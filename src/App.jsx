@@ -33,7 +33,6 @@ const AUTH_ERRORS = {
   "auth/too-many-requests": "잠시 후 다시 시도해주세요",
 };
 
-// ── 로그인/회원가입 화면 ─────────────────────────────
 function AuthScreen({ onLogin }) {
   const [tab, setTab] = useState("login");
   const [name, setName] = useState("");
@@ -97,7 +96,6 @@ function AuthScreen({ onLogin }) {
   );
 }
 
-// ── 학습 기록 저장 함수 ───────────────────────────────
 async function recordStat(uid, field) {
   try {
     const ref = doc(db, "users", uid);
@@ -105,7 +103,6 @@ async function recordStat(uid, field) {
   } catch(e) { console.warn("기록 저장 실패", e); }
 }
 
-// ── 학습 기록 화면 ────────────────────────────────────
 function StatsModal({ user, onClose }) {
   const [stats, setStats] = useState(null);
   useEffect(() => {
@@ -216,9 +213,9 @@ const API_ERRORS = {
 async function callClaude(messages, system) {
   if (!rateLimiter.check()) return "잠깐! 너무 빠르게 보내고 있어요. 잠시 후 다시 시도해줘! 😊";
   try {
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
+    const r = await fetch("/api/chat", {
       method:"POST",
-      headers:{"Content-Type":"application/json","x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01"},
+      headers:{"Content-Type":"application/json"},
       body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, system, messages:trimHistory(messages) }),
     });
     if (!r.ok) return API_ERRORS[r.status] || `오류가 발생했어요. (${r.status})`;
