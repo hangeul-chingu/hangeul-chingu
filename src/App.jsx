@@ -86,6 +86,26 @@ function AuthScreen({ onLogin }) {
           {loading?"처리 중...":tab==="login"?"로그인":"회원가입"}
         </button>
       </div>
+      {/* 패들렛 버튼 2개 — 로그인 화면 하단 */}
+      <div style={{marginTop:24,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
+        <div style={{fontSize:12,color:"#bbb",marginBottom:2}}>한글 친구가 처음이세요?</div>
+        <a
+          href="https://padlet.com/roh053068/breakout-room/Arng4MkerXZDqK6p-k2qlv36MmRprX5Rx"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:"2px solid #FF6B9D55",borderRadius:50,padding:"11px 22px",textDecoration:"none",color:"#FF6B9D",fontWeight:800,fontSize:14,boxShadow:"0 4px 16px rgba(255,107,157,.15)",WebkitTapHighlightColor:"transparent"}}
+        >
+          📚 소개자료 · 사용 메뉴얼 보기
+        </a>
+        <a
+          href="https://padlet.com/roh053068/breakout-room/d6AO26JdBPgP2ojL-k2qlv36MmRprX5Rx"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:"2px solid #4ECDC455",borderRadius:50,padding:"11px 22px",textDecoration:"none",color:"#4ECDC4",fontWeight:800,fontSize:14,boxShadow:"0 4px 16px rgba(78,205,196,.15)",WebkitTapHighlightColor:"transparent"}}
+        >
+          ✨ 이 앱이 나한테 어떤 도움이 될까?
+        </a>
+      </div>
     </div>
   );
 }
