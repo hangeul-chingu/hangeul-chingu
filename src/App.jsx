@@ -174,6 +174,19 @@ const CULTURAL_KEYWORDS = [
   {word:"대세",  level:"3~4급", meaning:"요즘 가장 인기 있는 사람이나 것", topic:"트렌드·연예"},
 ];
 const todayKeyword = CULTURAL_KEYWORDS[new Date().getDay() % CULTURAL_KEYWORDS.length];
+// No.9: 직장 생활 시나리오 뱅크 (요일별 순환)
+const WORKPLACE_SCENARIOS = [
+  {situation:"회의 반대 의견", level:"3~4급", expression:"저는 조금 다르게 생각하는데요, 혹시 ~는 어떨까요?", tip:"부드러운 의견 제시 — 직접 반박보다 대안 제안"},
+  {situation:"동료 업무 부탁", level:"3~4급", expression:"바쁘신 거 알지만, 혹시 이것 좀 도와주실 수 있을까요?", tip:"'혹시'+'~실 수 있을까요?' 조합이 가장 자연스러운 부탁 표현"},
+  {situation:"상사에게 보고", level:"4~5급", expression:"말씀드릴 사항이 있는데요, 잠깐 시간 괜찮으세요?", tip:"'말씀드리다'는 '말하다'의 높임말 — 보고 상황의 핵심 표현"},
+  {situation:"칭찬·감사 표현", level:"3~4급", expression:"덕분에 잘 마무리됐어요. 정말 감사합니다!", tip:"'덕분에'는 상대방의 도움으로 잘 됐을 때 쓰는 감사 표현"},
+  {situation:"업무 일정 조율", level:"4~5급", expression:"언제가 편하세요? 제가 맞출게요.", tip:"자신을 낮추는 표현 — 한국 직장 문화의 배려 표현"},
+  {situation:"실수 사과", level:"3~4급", expression:"제 실수였습니다. 죄송합니다. 바로 수정하겠습니다.", tip:"사과 후 즉시 해결 의지 표현 — 신뢰 회복의 핵심"},
+  {situation:"퇴근 인사", level:"2~3급", expression:"먼저 들어가겠습니다. 수고하세요!", tip:"'수고하세요'는 남아있는 사람에게, '수고하셨습니다'는 끝낸 사람에게"},
+];
+const todayWorkplace = WORKPLACE_SCENARIOS[new Date().getDay() % WORKPLACE_SCENARIOS.length];
+
+
 
 const PROMPTS = {
   speak:{
@@ -576,14 +589,17 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
   const lvKey = level === "adv" ? "adv" : "mid";
   const MOTIVATION_HINTS = {
     kpop:    "학습자는 K팝·드라마·영화에 관심이 많아요. 관련 문화 어휘(예: 최애, 컴백, 팬미팅, OST 등)를 자연스럽게 대화에 녹이고, 좋아하는 아티스트나 작품 이야기로 대화를 시작해 보세요.",
-    work:    "학습자는 한국 직장 생활·비즈니스에 관심이 있어요. 직장 예절, 회의 표현, 업무 요청 한국어(예: 보고드리다, 수고하셨습니다, ~해 주시겠어요?)를 자연스럽게 활용하세요.",
+    work:    "학습자는 한국 직장 생활·비즈니스에 관심이 있어요. 직장 상황별 표현을 자연스럽게 연습시켜 주세요. 아래 시나리오 중 하나를 대화 흐름에 맞게 활용하세요: (1) 회의에서 반대 의견 부드럽게 말하기 — '저는 조금 다르게 생각하는데요, 혹시 ~는 어떨까요?' (2) 동료에게 업무 부탁하기 — '바쁘신 거 알지만, 혹시 이것 좀 도와주실 수 있을까요?' (3) 상사에게 보고하기 — '말씀드릴 사항이 있는데요, 잠깐 시간 괜찮으세요?' (4) 회식 자리 음식 추천하기 — '여기 삼겹살이 맛있다고 하던데, 드셔보셨어요?' 틀린 표현은 자연스럽게 교정하고, 격식체와 비격식체 차이도 설명해 주세요."",
     family:  "학습자는 가족·친구·일상 대화를 배우고 싶어해요. 일상적인 상황(식사, 주말 계획, 날씨, 감정 표현)을 주제로 친근하게 대화해 주세요.",
     culture: "학습자는 한국 문화·여행에 관심이 있어요. 한국 음식, 관광지, 전통 풍습, 한국인의 생활 방식을 주제로 대화하고 관련 어휘를 소개해 주세요.",
     study:   "학습자는 TOPIK 시험·학업을 목표로 해요. 학습에 도움이 되는 표현과 어휘를 사용하고, 틀린 표현이 있으면 TOPIK 기준에 맞게 부드럽게 교정해 주세요.",
   };
   const basePrompt = character ? PROMPTS.speak[`${character}_${lvKey}`] || PROMPTS.speak.jake_mid : PROMPTS.speak.jake_mid;
   const motivationCtx = motivation && MOTIVATION_HINTS[motivation] ? '\n[학습 동기 맞춤] ' + MOTIVATION_HINTS[motivation] : '';
-  const sys = basePrompt + motivationCtx + (todayKeyword ? '\n[오늘의 문화 어휘] 오늘 대화에서 \''+todayKeyword.word+'\' 라는 표현을 자연스럽게 소개해 보세요. 뜻: '+todayKeyword.meaning+'. 관련 주제: '+todayKeyword.topic+'.' : '');
+  const workplaceCtx = (motivation === 'work' && todayWorkplace)
+    ? '\n[오늘의 직장 시나리오] 오늘은 \''+todayWorkplace.situation+'\' 상황을 연습해 보세요. 핵심 표현: \''+todayWorkplace.expression+'\' — '+todayWorkplace.tip+'.'
+    : '';
+  const sys = basePrompt + motivationCtx + (todayKeyword ? '\n[오늘의 문화 어휘] 오늘 대화에서 \''+todayKeyword.word+'\' 라는 표현을 자연스럽게 소개해 보세요. 뜻: '+todayKeyword.meaning+'. 관련 주제: '+todayKeyword.topic+'.' : '') + workplaceCtx;
 
   useEffect(() => { chatEnd.current?.scrollIntoView({behavior:"smooth"}); }, [chatUI, loading]);
 
@@ -617,14 +633,14 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
       </div>
       {[
         {key:"kpop",    emoji:"🎵", label:"K팝 · 드라마 · 영화",  color:C.pink,   bg:"#FFF0F6"},
-        {key:"work",    emoji:"💼", label:"한국 직장 · 비즈니스", color:C.teal,   bg:"#E8FAF8"},
+        {key:"work",    emoji:"💼", label:"한국 직장 · 비즈니스", color:C.teal,   bg:"#E8FAF8", sub:`오늘: ${todayWorkplace ? todayWorkplace.situation : "직장 표현"}`},
         {key:"family",  emoji:"👨‍👩‍👧", label:"가족 · 친구 · 일상",   color:C.sky,    bg:"#EBF8FF"},
         {key:"culture", emoji:"🏛️", label:"한국 문화 · 여행",     color:C.orange, bg:"#FFF3E8"},
         {key:"study",   emoji:"📚", label:"TOPIK · 학업 · 진학",  color:C.purple, bg:"#F5F0FF"},
       ].map(m => (
         <button key={m.key} onClick={()=>setMotivation(m.key)} style={{width:"100%",marginBottom:10,background:m.bg,border:`2px solid ${m.color}55`,borderRadius:16,padding:"14px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
           <div style={{fontSize:30,flexShrink:0}}>{m.emoji}</div>
-          <div style={{fontSize:15,fontWeight:800,color:m.color}}>{m.label}</div>
+          <div style={{fontSize:15,fontWeight:800,color:m.color}}>{m.label}</div>{m.sub && <div style={{fontSize:11,color:m.color,opacity:.75,marginTop:3}}>📅 {m.sub}</div>}
           <div style={{marginLeft:"auto",fontSize:18,color:m.color,opacity:.5}}>›</div>
         </button>
       ))}
