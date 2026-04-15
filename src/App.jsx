@@ -69,7 +69,7 @@ function AuthScreen({ onLogin }) {
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:52,marginBottom:8}}>🇰🇷</div>
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
-      <div style={{fontSize:13,color:"#888",marginBottom:32}}>Korean Speaking & Writing Trainer</div>
+      <div style={{fontSize:13,color:"#888",marginBottom:32}}>브릿지 과정이 없는 학습자를 위한 24시간 디지털 브릿지 · Korean Speaking & Writing Trainer</div>
       <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:24,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.1)"}}>
         <div style={{display:"flex",background:"#f5f5f5",borderRadius:12,padding:4,marginBottom:20}}>
           {[["login","로그인"],["signup","회원가입"]].map(([k,l])=>(
@@ -990,6 +990,13 @@ export default function App() {
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
       <div style={{fontSize:14,color:"#888",marginBottom:8,textAlign:"center"}}>안녕하세요, {user.displayName||user.email}님! 👋</div>
       <div style={{fontSize:13,color:"#bbb",marginBottom:32}}>한국어 수준을 선택해 주세요</div>
+      <div style={{background:"#E8F8F5",border:"1.5px solid #4ECDC444",borderRadius:14,padding:"12px 16px",marginBottom:24,display:"flex",alignItems:"center",gap:12}}>
+        <div style={{fontSize:24,flexShrink:0}}>📚</div>
+        <div>
+          <div style={{fontSize:11,fontWeight:800,color:"#4ECDC4",marginBottom:3}}>🔗 학습 경로 안내</div>
+          <div style={{fontSize:13,color:"#333",lineHeight:1.6}}>교육부 <strong>'모두의 한국어'</strong>로 기초를 마쳤나요?<br/>그다음 실전 말하기·쓰기는 <strong style={{color:"#FF6B9D"}}>한글 친구</strong>와 함께!</div>
+        </div>
+      </div>
       {[
         {key:"mid",emoji:"🌱",label:"중급",sub:"TOPIK 3~4급",desc:"고유어 위주 짧은 문장\n일상 대화 중심",color:C.teal,bg:"#E8FAF8"},
         {key:"adv",emoji:"🔥",label:"고급",sub:"TOPIK 5~6급",desc:"한자어·사자성어·관용구\n사회·문화 심화 대화",color:C.pink,bg:"#FFF0F6"},
