@@ -962,21 +962,20 @@ function TutorTab({level, uid}) {
   const [recorded,   setRecorded]   = useState(false);
   const [tutorType, setTutorType] = useState(null);
   const tutorEnd = useRef(null);
-  const sys = tutorType === 'beginner' ? PROMPTS.tutorBeginner :
+  const sys = tutorType === 'adv' ? PROMPTS.tutorAdv :
     tutorType === 'heritage' ? PROMPTS.tutorHeritage :
+    tutorType === 'mid' ? PROMPTS.tutor :
     level === "adv" ? PROMPTS.tutorAdv : PROMPTS.tutor;
 
   useEffect(() => { tutorEnd.current?.scrollIntoView({behavior:"smooth"}); }, [tutorUI, tutorLoad]);
 
   async function startTutor() {
     setStarted(true); setTutorLoad(true);
-    const first = tutorType === 'beginner'
-      ? "안녕하세요! 😊 저는 마중이에요. 한국어가 어렵죠? 같이 천천히 해봐요! 오늘 학교에서 제일 어려운 게 뭐예요?"
+    const first = tutorType === 'adv'
+      ? "안녕하십니까, 학습자님. 저는 마중입니다. 오늘은 어떤 주제와 씨름해 보시겠습니까?"
       : tutorType === 'heritage'
       ? "안녕하세요 😊 저는 마중이에요. 가족과 한국어로 나누고 싶은 이야기가 있나요? 어떤 말을 제일 먼저 배우고 싶으세요?"
-      : level === "adv"
-      ? "안녕하십니까, 학습자님. 저는 마중입니다. 오늘은 어떤 주제와 씨름해 보시겠습니까?"
-      : "안녕하세요, 학습자님 😊 저는 마중이에요.\n오늘은 어떤 글을 함께 써볼까요?\n상황을 알려주시면 딱 맞는 조력자가 되어 드릴게요.";
+      : "안녕하세요, 학습자님 😊 저는 마중이에요.\n오늘은 어떤 글을 함께 써볼까요?\n상황을 알려주시면 딸 맞는 조력자가 되어 드릴게요.";
     setTutorUI([{role:"assistant", text:first}]);
     setTutorMsgs([{role:"assistant", content:first}]);
     setTutorLoad(false);
@@ -1005,8 +1004,8 @@ function TutorTab({level, uid}) {
         <div style={{fontSize:13,color:"#999"}}>딱 맞는 마중 방식으로 시작할게요</div>
       </div>
       {[
-        {key:"regular",  emoji:"📝", label:"일반 학습자",    sub:"TOPIK 준비 · 글쓰기 연습",    color:C.purple, bg:"#F5F0FF"},
-        {key:"beginner", emoji:"🌱", label:"초급 학습자",    sub:"학교생활 · 생존 한국어",       color:C.teal,   bg:"#E8FAF8"},
+        {key:"mid",      emoji:"🌱", label:"TOPIK 3~4급",       sub:"TOPIK 중급 수준 논술 연습",        color:C.teal,   bg:"#E8FAF8"},
+        {key:"adv",      emoji:"🔥", label:"TOPIK 5~6급",       sub:"고급 금써 심화 담론",          color:C.pink,   bg:"#FFF0F6"},
         {key:"heritage", emoji:"🏷️", label:"재외동포 2·3세",sub:"가족·뿌리와 연결되고 싶어요", color:C.coral,  bg:"#FFF3F0"},
       ].map(t => (
         <button key={t.key} onClick={()=>setTutorType(t.key)} style={{width:"100%",marginBottom:12,background:t.bg,border:`2px solid ${t.color}55`,borderRadius:18,padding:"16px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
