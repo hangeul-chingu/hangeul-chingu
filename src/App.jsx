@@ -163,6 +163,18 @@ const TOPICS = [
   {icon:"🤖", title:"AI와 일자리", hint:"인공지능 기술이 발전하면서 사람들의 일자리가 줄어들고 있다."},
 ];
 
+// No.4: 문화 어휘 키워드 뱅크 (요일별 순환)
+const CULTURAL_KEYWORDS = [
+  {word:"먹방",  level:"3~4급", meaning:"음식을 먹는 모습을 보여주는 방송", topic:"SNS·유튜브 문화"},
+  {word:"웹툰",  level:"3~4급", meaning:"인터넷에서 보는 만화", topic:"한국 디지털 콘텐츠"},
+  {word:"치맥",  level:"3~4급", meaning:"치킨과 맥주를 함께 먹는 문화", topic:"한국 음식 문화"},
+  {word:"눈치",  level:"4~5급", meaning:"상황을 빠르게 파악하는 능력", topic:"한국 사회·인간관계"},
+  {word:"길거리 응원", level:"3~4급", meaning:"거리에서 함께 모여 응원하는 문화", topic:"한국 스포츠 문화"},
+  {word:"눈치껏", level:"4~5급", meaning:"상황을 보고 스스로 알아서", topic:"한국 직장·사회"},
+  {word:"대세",  level:"3~4급", meaning:"요즘 가장 인기 있는 사람이나 것", topic:"트렌드·연예"},
+];
+const todayKeyword = CULTURAL_KEYWORDS[new Date().getDay() % CULTURAL_KEYWORDS.length];
+
 const PROMPTS = {
   speak:{
     jake_mid:`너의 이름은 '제이크(Jake)', 활기차고 트렌디한 20대 한국인 대학생 친구다.
@@ -540,9 +552,19 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
   const [input,     setInput]     = useState("");
   const [loading,   setLoading]   = useState(false);
   const [recorded,  setRecorded]  = useState(false);
+  const [motivation, setMotivation] = useState(null);
   const chatEnd = useRef(null);
   const lvKey = level === "adv" ? "adv" : "mid";
-  const sys   = character ? PROMPTS.speak[`${character}_${lvKey}`] || PROMPTS.speak.jake_mid : PROMPTS.speak.jake_mid;
+  const MOTIVATION_HINTS = {
+    kpop:    "학습자는 K팝·드라마·영화에 관심이 많아요. 관련 문화 어휘(예: 최애, 컴백, 팬미팅, OST 등)를 자연스럽게 대화에 녹이고, 좋아하는 아티스트나 작품 이야기로 대화를 시작해 보세요.",
+    work:    "학습자는 한국 직장 생활·비즈니스에 관심이 있어요. 직장 예절, 회의 표현, 업무 요청 한국어(예: 보고드리다, 수고하셨습니다, ~해 주시겠어요?)를 자연스럽게 활용하세요.",
+    family:  "학습자는 가족·친구·일상 대화를 배우고 싶어해요. 일상적인 상황(식사, 주말 계획, 날씨, 감정 표현)을 주제로 친근하게 대화해 주세요.",
+    culture: "학습자는 한국 문화·여행에 관심이 있어요. 한국 음식, 관광지, 전통 풍습, 한국인의 생활 방식을 주제로 대화하고 관련 어휘를 소개해 주세요.",
+    study:   "학습자는 TOPIK 시험·학업을 목표로 해요. 학습에 도움이 되는 표현과 어휘를 사용하고, 틀린 표현이 있으면 TOPIK 기준에 맞게 부드럽게 교정해 주세요.",
+  };
+  const basePrompt = character ? PROMPTS.speak[`${character}_${lvKey}`] || PROMPTS.speak.jake_mid : PROMPTS.speak.jake_mid;
+  const motivationCtx = motivation && MOTIVATION_HINTS[motivation] ? '\n[학습 동기 맞춤] ' + MOTIVATION_HINTS[motivation] : '';
+  const sys = basePrompt + motivationCtx + (todayKeyword ? '\n[오늘의 문화 어휘] 오늘 대화에서 \''+todayKeyword.word+'\' 라는 표현을 자연스럽게 소개해 보세요. 뜻: '+todayKeyword.meaning+'. 관련 주제: '+todayKeyword.topic+'.' : '');
 
   useEffect(() => { chatEnd.current?.scrollIntoView({behavior:"smooth"}); }, [chatUI, loading]);
 
@@ -567,6 +589,28 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
     setApiMsgs([{role:"assistant", content:ch.initMsg}]);
   }
 
+  if (!motivation) return (
+    <div style={{padding:"8px 0"}}>
+      <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center"}}>
+        <div style={{fontSize:28,marginBottom:6}}>🌟</div>
+        <div style={{fontSize:17,fontWeight:900,color:"#333",marginBottom:4}}>왜 한국어를 배우세요?</div>
+        <div style={{fontSize:13,color:"#999"}}>딱 맞는 대화 주제로 연결해 드릴게요!</div>
+      </div>
+      {[
+        {key:"kpop",    emoji:"🎵", label:"K팝 · 드라마 · 영화",  color:C.pink,   bg:"#FFF0F6"},
+        {key:"work",    emoji:"💼", label:"한국 직장 · 비즈니스", color:C.teal,   bg:"#E8FAF8"},
+        {key:"family",  emoji:"👨‍👩‍👧", label:"가족 · 친구 · 일상",   color:C.sky,    bg:"#EBF8FF"},
+        {key:"culture", emoji:"🏛️", label:"한국 문화 · 여행",     color:C.orange, bg:"#FFF3E8"},
+        {key:"study",   emoji:"📚", label:"TOPIK · 학업 · 진학",  color:C.purple, bg:"#F5F0FF"},
+      ].map(m => (
+        <button key={m.key} onClick={()=>setMotivation(m.key)} style={{width:"100%",marginBottom:10,background:m.bg,border:`2px solid ${m.color}55`,borderRadius:16,padding:"14px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
+          <div style={{fontSize:30,flexShrink:0}}>{m.emoji}</div>
+          <div style={{fontSize:15,fontWeight:800,color:m.color}}>{m.label}</div>
+          <div style={{marginLeft:"auto",fontSize:18,color:m.color,opacity:.5}}>›</div>
+        </button>
+      ))}
+    </div>
+  );
   if (!character) return (
     <div style={{padding:"8px 0"}}>
       <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center"}}>
