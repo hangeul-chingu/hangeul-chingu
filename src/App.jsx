@@ -241,6 +241,23 @@ const PROMPTS = {
 [보상] 역사적·철학적 맥락과 함께 학술적 찬사. 학습자 단어 인용 + 조선 회화·국악 연결.
 [금기] 영혼 없는 칭찬 금지. 완성 문장 먼저 제시 금지.
 [시작] "안녕하십니까, 학습자님. 저는 마중입니다. 오늘은 어떤 주제와 씨름해 보시겠습니까?"`,
+  tutorBeginner:`[페르소나] 이름: 마중(Majung). 학습자의 첫걸음을 따뜻하게 맞이하는 친절한 안내자.
+[대상] TOPIK 1~2급. 한국 학교나 생활이 낯선 초급 학습자.
+[철학] 절대 어려운 말 금지. 쉬운 단어로 천천히. 학습자가 틀려도 웃으며 다시 안내.
+[말투] 짧고 쉬운 문장. "천천히 괜찮아요 😊", "잘 했어요! 🎉" 격려 중심.
+[힌트 방식] 초성 힌트 → 그림으로 설명 → 쉬운 예문 순서로.
+[도입] 학교생활·일상 중 가장 어려운 것부터 먼저 물어보기.
+[금기] 긴 문장 금지. 한자어 금지. 학습자 실수 지적 금지.
+[시작] "안녕하세요! 😊 저는 마중이에요. 한국어가 어렵죠? 같이 천천히 해봐요! 오늘 학교에서 제일 어려운 게 뭐예요?"`,
+  tutorHeritage:`[페르소나] 이름: 마중(Majung). 뿌리를 찾는 여정의 따뜻한 동반자. 두 문화 사이에 다리를 놓는 인문학적 조력자.
+[대상] 재외동포 2·3세. 가족·뿌리와 연결되고 싶은 학습자.
+[철학] 언어보다 감정 먼저. "왜 배우려는지"를 충분히 듣고 공감. 정체성 존중.
+[말투] 따뜻하고 진심 어린 어조. 영어·한국어 혼용 이해. 판단 없음.
+[도입] 가족과 한국어로 나누고 싶은 이야기·기억을 먼저 물어보기.
+[교정] 언어 교정보다 표현의 감정을 먼저 인정. 교정은 자연스럽게 슬쩍.
+[보상] 완성 시 학습자 표현을 인용해 가족·고향·한국 문화와 연결한 진심 어린 찬사.
+[금기] 영혼 없는 칭찬 금지. 정체성 혼란 부추기기 금지. 완성 문장 먼저 제시 금지.
+[시작] "안녕하세요 😊 저는 마중이에요. 가족과 한국어로 나누고 싶은 이야기가 있나요? 어떤 말을 제일 먼저 배우고 싶으세요?"`,
 };
 
 const SEC = { MAX_LEN:500, MAX_HISTORY:30, RPM:15, WINDOW:60_000 };
@@ -925,14 +942,21 @@ function TutorTab({level, uid}) {
   const [tutorInput, setTutorInput] = useState("");
   const [tutorLoad,  setTutorLoad]  = useState(false);
   const [recorded,   setRecorded]   = useState(false);
+  const [tutorType, setTutorType] = useState(null);
   const tutorEnd = useRef(null);
-  const sys = level === "adv" ? PROMPTS.tutorAdv : PROMPTS.tutor;
+  const sys = tutorType === 'beginner' ? PROMPTS.tutorBeginner :
+    tutorType === 'heritage' ? PROMPTS.tutorHeritage :
+    level === "adv" ? PROMPTS.tutorAdv : PROMPTS.tutor;
 
   useEffect(() => { tutorEnd.current?.scrollIntoView({behavior:"smooth"}); }, [tutorUI, tutorLoad]);
 
   async function startTutor() {
     setStarted(true); setTutorLoad(true);
-    const first = level === "adv"
+    const first = tutorType === 'beginner'
+      ? "안녕하세요! 😊 저는 마중이에요. 한국어가 어렵죠? 같이 천천히 해봐요! 오늘 학교에서 제일 어려운 게 뭐예요?"
+      : tutorType === 'heritage'
+      ? "안녕하세요 😊 저는 마중이에요. 가족과 한국어로 나누고 싶은 이야기가 있나요? 어떤 말을 제일 먼저 배우고 싶으세요?"
+      : level === "adv"
       ? "안녕하십니까, 학습자님. 저는 마중입니다. 오늘은 어떤 주제와 씨름해 보시겠습니까?"
       : "안녕하세요, 학습자님 😊 저는 마중이에요.\n오늘은 어떤 글을 함께 써볼까요?\n상황을 알려주시면 딱 맞는 조력자가 되어 드릴게요.";
     setTutorUI([{role:"assistant", text:first}]);
@@ -955,6 +979,29 @@ function TutorTab({level, uid}) {
     setTutorLoad(false);
   }
 
+  if (!tutorType) return (
+    <div style={{padding:"8px 0"}}>
+      <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center"}}>
+        <div style={{fontSize:28,marginBottom:6}}>🌟</div>
+        <div style={{fontSize:17,fontWeight:900,color:"#333",marginBottom:4}}>어떤 학습자세요?</div>
+        <div style={{fontSize:13,color:"#999"}}>딱 맞는 마중 방식으로 시작할게요</div>
+      </div>
+      {[
+        {key:"regular",  emoji:"📝", label:"일반 학습자",    sub:"TOPIK 준비 · 글쓰기 연습",    color:C.purple, bg:"#F5F0FF"},
+        {key:"beginner", emoji:"🌱", label:"초급 학습자",    sub:"학교생활 · 생존 한국어",       color:C.teal,   bg:"#E8FAF8"},
+        {key:"heritage", emoji:"🏷️", label:"재외동포 2·3세",sub:"가족·뿌리와 연결되고 싶어요", color:C.coral,  bg:"#FFF3F0"},
+      ].map(t => (
+        <button key={t.key} onClick={()=>setTutorType(t.key)} style={{width:"100%",marginBottom:12,background:t.bg,border:`2px solid ${t.color}55`,borderRadius:18,padding:"16px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
+          <div style={{fontSize:38,flexShrink:0}}>{t.emoji}</div>
+          <div>
+            <div style={{fontSize:16,fontWeight:900,color:t.color,marginBottom:2}}>{t.label}</div>
+            <div style={{fontSize:13,color:"#777"}}>{t.sub}</div>
+          </div>
+          <div style={{marginLeft:"auto",fontSize:20,color:t.color,opacity:.5}}>›</div>
+        </button>
+      ))}
+    </div>
+  );
   if (!started) return (
     <div style={{padding:"24px 8px"}}>
       <div style={{background:"white",borderRadius:24,padding:24,boxShadow:`0 6px 28px ${C.purple}22`,marginBottom:16}}>
