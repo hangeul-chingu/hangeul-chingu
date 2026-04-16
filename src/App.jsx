@@ -1001,7 +1001,7 @@ function TutorTab({level, uid}) {
       ? "안녕하십니까, 학습자님. 저는 마중입니다. 오늘은 어떤 주제와 씨름해 보시겠습니까?"
       : tutorType === 'heritage'
       ? "안녕하세요 😊 저는 마중이에요. 가족과 한국어로 나누고 싶은 이야기가 있나요? 어떤 말을 제일 먼저 배우고 싶으세요?"
-      : "안녕하세요, 학습자님 😊 저는 마중이에요.\n오늘은 어떤 글을 함께 써볼까요?\n상황을 알려주시면 딸 맞는 조력자가 되어 드릴게요.";
+      : "안녕하세요, 학습자님 😊 저는 마중이에요.\n오늘은 어떤 글을 함께 써볼까요?\n상황을 알려주시면 딱 맞는 조력자가 되어 드릴게요.";
     setTutorUI([{role:"assistant", text:first}]);
     setTutorMsgs([{role:"assistant", content:first}]);
     setTutorLoad(false);
