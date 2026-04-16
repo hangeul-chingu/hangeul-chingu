@@ -794,9 +794,35 @@ function WriteTab({level, uid}) {
           <div style={{fontSize:13,color:"#777",lineHeight:1.5}}>네이버 논술 자료 읽고 쓴 글<br/>사진·PDF 업로드 → AI 피드백</div>
         </div>
       </button>
+      <button onClick={()=>setMode("culture")} style={{background:"linear-gradient(135deg,#FFF3E8,#FFE4C4)",border:"2px solid #FF8C42",borderRadius:16,padding:"20px 24px",cursor:"pointer",display:"flex",alignItems:"center",gap:16,width:"100%",marginTop:12,transition:"transform 0.15s"}} onMouseOver={e=>e.currentTarget.style.transform="translateY(-2px)"} onMouseOut={e=>e.currentTarget.style.transform="translateY(0)"}>
+        <div style={{fontSize:40,flexShrink:0}}>🎎</div>
+        <div style={{textAlign:"left"}}>
+          <div style={{fontSize:13,fontWeight:800,color:"#FF8C42",marginBottom:4}}>문화 비교 자유 논술</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#333",marginBottom:2}}>한국 세시풍속 · 문화 비교</div>
+          <div style={{fontSize:12,color:"#888"}}>내 나라와 한국의 문화를 비교해서 써요</div>
+        </div>
+      </button>
     </div>
   );
 
+  if (mode === "culture") return (
+    <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFF3E8,#FFF8F0)",padding:"20px 16px",maxWidth:700,margin:"0 auto"}}>
+      <button onClick={()=>setMode(null)} style={{background:"none",border:"none",color:"#FF8C42",fontWeight:700,fontSize:14,cursor:"pointer",marginBottom:16}}>← 논술 모드 선택으로</button>
+      <div style={{textAlign:"center",marginBottom:24}}>
+        <div style={{fontSize:36,marginBottom:8}}>🎎</div>
+        <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:4}}>한국 세시풍속 · 문화 비교 논술</div>
+        <div style={{fontSize:13,color:"#888"}}>내 나라와 한국의 문화를 비교해서 한국어로 표현해 보세요</div>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        {["설날과 내 나라 새해의 차이를 비교해서 써보세요","추석과 내 나라의 비슷한 명절을 비교해 보세요","한국 급식 문화를 처음 경험했을 때 느낀 점을 써보세요","한국의 돌잔치 문화와 내 나라의 아기 축하 문화를 비교해 보세요","한국 명절 음식(떡국, 송편 등)과 내 나라 명절 음식을 비교해 보세요"].map((topic, i) => (
+          <div key={i} style={{background:"#fff",border:"1.5px solid #FFD4A8",borderRadius:12,padding:"16px 18px",fontSize:14,color:"#555",lineHeight:1.5}}>
+            <span style={{color:"#FF8C42",fontWeight:700,marginRight:8}}>{i+1}.</span>{topic}
+            <div style={{marginTop:10,padding:"10px 14px",background:"#FFF3E8",borderRadius:8,fontSize:13,color:"#777"}}>이 주제로 글쓰기를 시작해 보세요. 단계별 글쓰기 가이드 탭을 이용하거나 자유롭게 작성 후 제출 평가를 받아보세요.</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
   if (mode === "submit") return (
     <div style={{padding:"8px 0"}}>
       <button onClick={()=>{setMode(null);setSubmitFile(null);setSubmitFeed(null);if(fileRef.current)fileRef.current.value="";}} style={{background:"none",border:"none",color:C.pink,fontWeight:700,fontSize:13,cursor:"pointer",marginBottom:12,padding:0}}>← 뒤로</button>
@@ -1120,6 +1146,7 @@ export default function App() {
           </div>
         </button>
       ))}
+      <div style={{fontSize:11,color:"#ccc",textAlign:"center",marginBottom:4,lineHeight:1.6,padding:"0 20px"}}>한국어 수준 분류는 국립국어원 한국어기초사전 초·중·고급 기준을 참고합니다.</div>
       <button onClick={handleLogout} style={{marginTop:8,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>로그아웃</button>
     </div>
   );
