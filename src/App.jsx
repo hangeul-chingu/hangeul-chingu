@@ -589,7 +589,7 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
   const lvKey = level === "adv" ? "adv" : "mid";
   const MOTIVATION_HINTS = {
     kpop:    "학습자는 K팝·드라마·영화에 관심이 많아요. 관련 문화 어휘(예: 최애, 컴백, 팬미팅, OST 등)를 자연스럽게 대화에 녹이고, 좋아하는 아티스트나 작품 이야기로 대화를 시작해 보세요.",
-    work:    "학습자는 한국 직장 생활·비즈니스에 관심이 있어요. 직장 상황별 표현을 자연스럽게 연습시켜 주세요. 아래 시나리오 중 하나를 대화 흐름에 맞게 활용하세요: (1) 회의에서 반대 의견 부드럽게 말하기 — '저는 조금 다르게 생각하는데요, 혹시 ~는 어떨까요?' (2) 동료에게 업무 부탁하기 — '바쁘신 거 알지만, 혹시 이것 좀 도와주실 수 있을까요?' (3) 상사에게 보고하기 — '말씀드릴 사항이 있는데요, 잠깐 시간 괜찮으세요?' (4) 회식 자리 음식 추천하기 — '여기 삼겹살이 맛있다고 하던데, 드셔보셨어요?' 틀린 표현은 자연스럽게 교정하고, 격식체와 비격식체 차이도 설명해 주세요."",
+    work:    "학습자는 한국 직장 생활·비즈니스에 관심이 있어요. 직장 상황별 표현을 자연스럽게 연습시켜 주세요. 아래 시나리오 중 하나를 대화 흐름에 맞게 활용하세요: (1) 회의에서 반대 의견 부드럽게 말하기 — '저는 조금 다르게 생각하는데요, 혹시 ~는 어떨까요?' (2) 동료에게 업무 부탁하기 — '바쁘신 거 알지만, 혹시 이것 좀 도와주실 수 있을까요?' (3) 상사에게 보고하기 — '말씀드릴 사항이 있는데요, 잠깐 시간 괜찮으세요?' (4) 회식 자리 음식 추천하기 — '여기 삼겹살이 맛있다고 하던데, 드셔보셨어요?' 틀린 표현은 자연스럽게 교정하고, 격식체와 비격식체 차이도 설명해 주세요.",
     family:  "학습자는 가족·친구·일상 대화를 배우고 싶어해요. 일상적인 상황(식사, 주말 계획, 날씨, 감정 표현)을 주제로 친근하게 대화해 주세요.",
     culture: "학습자는 한국 문화·여행에 관심이 있어요. 한국 음식, 관광지, 전통 풍습, 한국인의 생활 방식을 주제로 대화하고 관련 어휘를 소개해 주세요.",
     study:   "학습자는 TOPIK 시험·학업을 목표로 해요. 학습에 도움이 되는 표현과 어휘를 사용하고, 틀린 표현이 있으면 TOPIK 기준에 맞게 부드럽게 교정해 주세요.",
@@ -1140,7 +1140,7 @@ export default function App() {
       <div style={{display:"flex",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)"}}>
         {[["speak","🗣️ 프리토킹",C.pink],["write","✍️ 논술",C.teal],["tutor","🎓 하이터치",C.purple]].map(([k,l,col])=>(
           <button key={k} onClick={()=>setTab(k)} style={{flex:1,padding:"12px 0",border:"none",background:"transparent",cursor:"pointer",borderBottom:`3px solid ${tab===k?col:"transparent"}`,color:tab===k?col:"#aaa",fontWeight:tab===k?800:500,fontSize:13,transition:"all .2s",WebkitTapHighlightColor:"transparent"}}>{l}</button>
-        ))}
+        ))}h
       </div>
       <div style={{maxWidth:600,margin:"0 auto",padding:"12px 12px 80px",boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
