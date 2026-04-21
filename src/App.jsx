@@ -11,7 +11,7 @@ import {
   doc,
   setDoc,
   getDoc,
-  updateDoc,
+  updateDoc,h
   increment,
   serverTimestamp,
 } from "firebase/firestore";
@@ -476,7 +476,7 @@ function useTTS() {
       setSpeaking(null);
       if (e.error !== "interrupted") { setTtsHint(true); setTimeout(() => setTtsHint(false), 4000); }
     };
-    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) setTimeout(() => { s.pause(); s.resume(); }, 50);
+    if (/iphone|ipad|ipod|android/i.test(navigator.userAgent)) setTimeout(() => { s.pause(); s.resume(); }, 100);
     s.speak(u);
   }, [speaking]);
 
