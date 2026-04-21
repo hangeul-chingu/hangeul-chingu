@@ -318,7 +318,7 @@ async function callClaude(messages, system) {
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",
+        model:"claude-haiku-3-5-20241022",
         max_tokens:1000,
         system,
         messages:trimHistory(messages),
@@ -395,7 +395,7 @@ async function evaluateFile(file, level) {
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",
+        model:"claude-haiku-3-5-20241022",
         max_tokens:1000,
         system:evalSys,
         messages:[{ role:"user", content:userContent }],
