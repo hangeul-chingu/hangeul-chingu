@@ -1167,7 +1167,7 @@ export default function App() {
       <div style={{display:"flex",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)"}}>
         {[["speak","🗣️ 프리토킹",C.pink],["write","✍️ 논술",C.teal],["tutor","🎓 하이터치",C.purple]].map(([k,l,col])=>(
           <button key={k} onClick={()=>setTab(k)} style={{flex:1,padding:"12px 0",border:"none",background:"transparent",cursor:"pointer",borderBottom:`3px solid ${tab===k?col:"transparent"}`,color:tab===k?col:"#aaa",fontWeight:tab===k?800:500,fontSize:13,transition:"all .2s",WebkitTapHighlightColor:"transparent"}}>{l}</button>
-        ))}h
+        ))}
       </div>
       <div style={{maxWidth:600,margin:"0 auto",padding:"12px 12px 80px",boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
