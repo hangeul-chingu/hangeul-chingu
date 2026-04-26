@@ -314,9 +314,14 @@ const API_ERRORS = {
 async function callClaude(messages, system) {
   if (!rateLimiter.check()) return "잠깐! 너무 빠르게 보내고 있어요. 잠시 후 다시 시도해줘! 😊";
   try {
-    const r = await fetch("/api/chat", {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
       body:JSON.stringify({
         model:"claude-haiku-3-5-20241022",
         max_tokens:1000,
@@ -391,9 +396,14 @@ async function evaluateFile(file, level) {
       userContent = [contentBlock, { type:"text", text:"위 글을 평가해 주세요." }];
     }
 
-    const r = await fetch("/api/chat", {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
       body:JSON.stringify({
         model:"claude-haiku-3-5-20241022",
         max_tokens:1000,
