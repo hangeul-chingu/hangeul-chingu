@@ -323,7 +323,7 @@ async function callClaude(messages, system) {
         "anthropic-dangerous-direct-browser-access": "true",
       },
       body:JSON.stringify({
-        model:"claude-3-5-haiku-20241022",
+        model:"claude-sonnet-4-6",
         max_tokens:1000,
         system,
         messages:trimHistory(messages),
@@ -405,7 +405,7 @@ async function evaluateFile(file, level) {
         "anthropic-dangerous-direct-browser-access": "true",
       },
       body:JSON.stringify({
-        model:"claude-3-5-haiku-20241022",
+        model:"claude-sonnet-4-6",
         max_tokens:1000,
         system:evalSys,
         messages:[{ role:"user", content:userContent }],
