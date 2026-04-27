@@ -542,7 +542,7 @@ const DAILY_TOPICS = [
 ];
 
 const CHARS = [
-  {key:"jake",  emoji:"👦", name:"제이크",     sub:"활기찬 대학생 친구",  color:C.sky,    bg:"#EBF8FF", initMsg:"어~ 안녕하세요! 😊 저 제이크예요, 반가워요! 오늘 어디 사세요? 한국어 얼마나 배우셨어요?"},
+  {key:"jake",  emoji:"👦", name:"제이크",     sub:"활기찬 대학생 친구",  color:C.sky,    bg:"#EBF8FF", initMsg:"어~ 안녕하세요! 😊 저 제이크예요, 반가워요! 지금 어디 사세요? 한국어 얼마나 배우셨어요?"},
   {key:"miso",  emoji:"👩‍🏫", name:"미소 선생님",sub:"다정한 한국어 선생님",color:C.pink,   bg:"#FFF0F6", initMsg:"안녕하세요, 학습자님 😊 저는 미소 선생님이에요. 오늘 어떤 주제로 이야기해 볼까요?"},
   {key:"haneul",emoji:"🎒", name:"하늘이",     sub:"귀여운 어린이 친구",  color:C.yellow, bg:"#FFFBEB", initMsg:"안녕하세요~! 🎈 나는 하늘이예요! 같이 놀아요! 오늘 뭐 했어요?"},
 ];
