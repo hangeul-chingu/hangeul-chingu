@@ -670,7 +670,11 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
   const workplaceCtx = (motivation === 'work' && todayWorkplace)
     ? '\n[오늘의 직장 시나리오] 오늘은 \''+todayWorkplace.situation+'\' 상황을 연습해 보세요. 핵심 표현: \''+todayWorkplace.expression+'\' — '+todayWorkplace.tip+'.'
     : '';
-  const sys = basePrompt + motivationCtx + (todayKeyword ? '\n[오늘의 문화 어휘] 오늘 대화에서 \''+todayKeyword.word+'\' 라는 표현을 자연스럽게 소개해 보세요. 뜻: '+todayKeyword.meaning+'. 관련 주제: '+todayKeyword.topic+'.' : '') + workplaceCtx;
+  // ✅ safetyCtx 추가 — 산업 현장 안전 한국어 첫 대화부터 안전 표현 주입
+  const safetyCtx = (motivation === 'safety' && todaySafety)
+    ? '\n[오늘의 안전 시나리오] 반드시 첫 대화 시작 시 오늘의 안전 표현을 꺼내주세요. 오늘 상황: \''+todaySafety.situation+'\'. 핵심 표현: \''+todaySafety.expression+'\'. 팁: '+todaySafety.tip+'. 예시: "오늘은 \''+todaySafety.situation+'\' 상황을 같이 연습해봐요! \''+todaySafety.expression+'\' — 이 표현 알아요?" 형태로 자연스럽게 시작하세요.'
+    : '';
+  const sys = basePrompt + motivationCtx + (todayKeyword ? '\n[오늘의 문화 어휘] 오늘 대화에서 \''+todayKeyword.word+'\' 라는 표현을 자연스럽게 소개해 보세요. 뜻: '+todayKeyword.meaning+'. 관련 주제: '+todayKeyword.topic+'.' : '') + workplaceCtx + safetyCtx;
 
   useEffect(() => { chatEnd.current?.scrollIntoView({behavior:"smooth"}); }, [chatUI, loading]);
 
