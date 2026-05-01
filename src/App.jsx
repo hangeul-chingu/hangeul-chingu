@@ -156,7 +156,9 @@ const TOPICS = [
 ];
 
 // 문화 어휘 키워드 뱅크 (요일별 순환)
+// ✅ [추가] K드라마 문화 개념어 + 외국인용 어원 한자어 패키지 추가
 const CULTURAL_KEYWORDS = [
+  // 기존 — 한국 문화 어휘
   {word:"먹방",  level:"3~4급", meaning:"음식을 먹는 모습을 보여주는 방송", topic:"SNS·유튜브 문화"},
   {word:"웹툰",  level:"3~4급", meaning:"인터넷에서 보는 만화", topic:"한국 디지털 콘텐츠"},
   {word:"치맥",  level:"3~4급", meaning:"치킨과 맥주를 함께 먹는 문화", topic:"한국 음식 문화"},
@@ -164,6 +166,20 @@ const CULTURAL_KEYWORDS = [
   {word:"길거리 응원", level:"3~4급", meaning:"거리에서 함께 모여 응원하는 문화", topic:"한국 스포츠 문화"},
   {word:"눈치껏", level:"4~5급", meaning:"상황을 보고 스스로 알아서", topic:"한국 직장·사회"},
   {word:"대세",  level:"3~4급", meaning:"요즘 가장 인기 있는 사람이나 것", topic:"트렌드·연예"},
+  // ✅ K드라마 문화 개념어 (드라마에서 자주 나오는 표현)
+  {word:"오빠",  level:"2~3급", meaning:"여자가 남자 형이나 친한 남자에게 부르는 말. 드라마에서 자주 등장", topic:"K드라마·인간관계", etym:"오빠(oppa) — 한국 드라마에서 세계적으로 유명해진 표현"},
+  {word:"정(情)", level:"4~5급", meaning:"오랜 시간 함께하며 생기는 따뜻한 감정. 한국인의 핵심 정서", topic:"K드라마·한국 정서", etym:"情(정) — 감정(感情)·우정(友情)·열정(熱情)에도 쓰여요"},
+  {word:"빨리빨리", level:"3~4급", meaning:"한국 사람들의 빠른 속도를 중시하는 문화", topic:"K드라마·한국 사회"},
+  {word:"눈물샘", level:"4~5급", meaning:"눈물이 나오는 곳. '눈물샘이 터진다' = 눈물이 많이 난다", topic:"K드라마·감정 표현"},
+  {word:"현타",  level:"3~4급", meaning:"현실 자각 타임. 갑자기 현실을 깨닫는 순간", topic:"K드라마·신조어"},
+  {word:"설레다", level:"3~4급", meaning:"기대와 떨림이 함께 느껴지는 감정. 드라마 로맨스의 핵심 표현", topic:"K드라마·감정"},
+  {word:"최애",  level:"3~4급", meaning:"가장 좋아하는 것·사람. K팝·드라마 팬들이 자주 씀", topic:"K팝·K드라마"},
+  // ✅ 외국인용 어원 한자어 패키지 (한국인도 헷갈리는 표현)
+  {word:"심심한 사과", level:"5~6급", meaning:"'심심하다'는 여기서 '매우 깊다'는 뜻. 깊이 있는 사과라는 의미", topic:"어원 한자어·문해력", etym:"甚深(심심) — 깊을 심(深). '심해(深海·깊은 바다)'와 같은 한자"},
+  {word:"금일",  level:"4~5급", meaning:"오늘. '금(今)'은 지금·오늘이라는 뜻의 한자어", topic:"어원 한자어·공문서", etym:"今日(금일) — 금년(今年·올해)·금방(今方·방금)에도 같은 今 사용"},
+  {word:"우천시", level:"4~5급", meaning:"비가 올 때. 공지·안내문에서 자주 나오는 한자어 표현", topic:"어원 한자어·생활", etym:"雨天時(우천시) — 우산(雨傘)·우기(雨期)의 雨(비 우)"},
+  {word:"안전",  level:"3~4급", meaning:"위험이 없는 상태", topic:"어원 한자어·생활", etym:"安全(안전) — 安(안)은 편안(便安)·불안(不安)·보안(保安)에도 쓰여요"},
+  {word:"문화",  level:"3~4급", meaning:"사람들이 만들어온 생활 방식과 가치관의 총체", topic:"어원 한자어·사회", etym:"文化(문화) — 文(문)은 문학(文學)·문명(文明)·문자(文字)에도 쓰여요"},
 ];
 const todayKeyword = CULTURAL_KEYWORDS[new Date().getDay() % CULTURAL_KEYWORDS.length];
 
@@ -658,6 +674,8 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
     safety:  `학습자는 제조·건설·조선 등 산업 현장에서 일하고 있어요. 안전 한국어 표현을 자연스럽게 연습시켜 주세요. 오늘의 안전 시나리오: '${todaySafety.situation}' — 핵심 표현: '${todaySafety.expression}' (팁: ${todaySafety.tip}). 작업 지시·안전 수칙·응급 상황 표현을 실제처럼 연습시켜 주세요. 오늘 작업 순서를 한국어로 설명해보라고 부탁해 보세요.`,
     // ✅ [추가 #10] 베트남어권 특화
     vietnam: "학습자는 베트남어권 학습자예요. 한-베트남 공통 정서를 활용한 문화 브릿지 대화를 이끌어 주세요. 콩쥐팥쥐와 베트남의 비슷한 이야기 비교, 설날 비교, 한국 음식과 베트남 음식 비교 등 자연스러운 문화 연결 질문을 대화 중에 녹여주세요.",
+    // ✅ [추가 중기과제 #2] K-전통문화 역할극
+    folk: "학습자는 한국 전래동화·전통문화에 관심이 있어요. 흥부와 놀부·콩쥐팥쥐·선녀와 나무꾼 등 전래동화 캐릭터의 감정과 상황을 소재로 자연스럽게 대화를 이끌어 주세요. '흥부처럼 착한 마음이 있나요?', '콩쥐 같은 경험 있어요?' 형태로 학습자 경험과 연결하세요. 전통 어휘(박, 제비, 도깨비방망이 등)도 자연스럽게 소개해 주세요.",
   };
 
   const charKey = character === "jake_vietnam"
@@ -705,6 +723,11 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
     if (mot === 'vietnam') {
       return '안녕하세요! 😊 저 제이크예요! 베트남에서 오셨어요? 반가워요! 🇻🇳 베트남 음식 중에 뭘 제일 좋아해요?';
     }
+    // ✅ [추가 중기과제 #2] K-전통문화 역할극
+    if (mot === 'folk') {
+      const name = ch.key === 'haneul' ? '하늘이' : ch.key === 'miso' ? '미소 선생님' : '제이크';
+      return '안녕하세요! 😊 저 ' + name + '예요! 오늘은 한국 전래동화로 한국어 연습해봐요! 🎎\n\n흥부와 놀부, 콩쥐팥쥐 들어봤어요?\n\n"흥부는 착하고, 놀부는 욕심이 많아요."\n\n이 이야기에서 좋아하는 캐릭터가 있어요? 😊';
+    }
     return ch.initMsg;
   }
 
@@ -733,6 +756,8 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
         {key:"safety",  emoji:"⛑️", label:"현장 안전 한국어",     color:"#E53935", bg:"#FFF5F5", sub:`오늘: ${todaySafety.situation}`},
         // ✅ [추가 #10] 베트남어권 특화
         {key:"vietnam", emoji:"🇻🇳", label:"베트남 특화 대화",     color:"#1565C0", bg:"#E8F0FE", sub:"한-베트남 문화 연결"},
+        // ✅ [추가 중기과제 #2] K-전통문화 역할극
+        {key:"folk",    emoji:"🎎", label:"한국 전래동화 · 전통",  color:"#6D4C41", bg:"#FBF0E4", sub:"흥부놀부·콩쥐팥쥐 역할극"},
       ].map(m => (
         <button key={m.key} onClick={()=>setMotivation(m.key)} style={{width:"100%",marginBottom:10,background:m.bg,border:`2px solid ${m.color}55`,borderRadius:16,padding:"14px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
           <div style={{fontSize:30,flexShrink:0}}>{m.emoji}</div>
