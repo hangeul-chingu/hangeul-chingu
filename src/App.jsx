@@ -69,7 +69,7 @@ function AuthScreen({ onLogin }) {
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:52,marginBottom:8}}>🇰🇷</div>
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
-      <div style={{fontSize:13,color:"#888",marginBottom:32}}>브릿지 과정이 없는 학습자를 위한 24시간 디지털 브릿지 · Korean Speaking & Writing Trainer</div>
+      <div style={{fontSize:13,color:"#888",marginBottom:32,textAlign:"center"}}>이주배경 학습자를 위한 24시간 디지털 브릿지 · Korean Speaking &amp; Writing Trainer</div>
       <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:24,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.1)"}}>
         <div style={{display:"flex",background:"#f5f5f5",borderRadius:12,padding:4,marginBottom:20}}>
           {[["login","로그인"],["signup","회원가입"]].map(([k,l])=>(
@@ -86,23 +86,12 @@ function AuthScreen({ onLogin }) {
           {loading?"처리 중...":tab==="login"?"로그인":"회원가입"}
         </button>
       </div>
-      {/* 패들렛 버튼 2개 — 로그인 화면 하단 */}
       <div style={{marginTop:24,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
         <div style={{fontSize:12,color:"#bbb",marginBottom:2}}>한글 친구가 처음이세요?</div>
-        <a
-          href="https://padlet.com/roh053068/breakout-room/Arng4MkerXZDqK6p-k2qlv36MmRprX5Rx"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:"2px solid #FF6B9D55",borderRadius:50,padding:"11px 22px",textDecoration:"none",color:"#FF6B9D",fontWeight:800,fontSize:14,boxShadow:"0 4px 16px rgba(255,107,157,.15)",WebkitTapHighlightColor:"transparent"}}
-        >
+        <a href="https://padlet.com/roh053068/breakout-room/Arng4MkerXZDqK6p-k2qlv36MmRprX5Rx" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.pink}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.pink,fontWeight:800,fontSize:14,boxShadow:`0 4px 16px ${C.pink}25`,WebkitTapHighlightColor:"transparent"}}>
           📚 소개자료 · 사용 메뉴얼 보기
         </a>
-        <a
-          href="https://padlet.com/roh053068/breakout-room/d6AO26JdBPgP2ojL-k2qlv36MmRprX5Rx"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:"2px solid #4ECDC455",borderRadius:50,padding:"11px 22px",textDecoration:"none",color:"#4ECDC4",fontWeight:800,fontSize:14,boxShadow:"0 4px 16px rgba(78,205,196,.15)",WebkitTapHighlightColor:"transparent"}}
-        >
+        <a href="https://padlet.com/roh053068/breakout-room/d6AO26JdBPgP2ojL-k2qlv36MmRprX5Rx" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.teal,fontWeight:800,fontSize:14,boxShadow:`0 4px 16px ${C.teal}25`,WebkitTapHighlightColor:"transparent"}}>
           ✨ 이 앱이 나한테 어떤 도움이 될까?
         </a>
       </div>
@@ -161,9 +150,12 @@ const TOPICS = [
   {icon:"🏙️", title:"1인 가구 증가", hint:"혼자 사는 사람들이 점점 늘어나고 있다."},
   {icon:"📚", title:"학력 vs 실력", hint:"대학교 졸업장보다 실무 능력을 중시하는 기업이 늘고 있다."},
   {icon:"🤖", title:"AI와 일자리", hint:"인공지능 기술이 발전하면서 사람들의 일자리가 줄어들고 있다."},
+  // ✅ [추가] 이주배경 학습자 관련 주제
+  {icon:"🌏", title:"이주배경 학생과 학교 생활", hint:"한국 학교에서 처음 생활할 때 어려운 점이 있다."},
+  {icon:"🏭", title:"직장 속 한국어", hint:"한국 직장에서 한국어로 소통하는 것이 중요하다."},
 ];
 
-// No.4: 문화 어휘 키워드 뱅크 (요일별 순환)
+// 문화 어휘 키워드 뱅크 (요일별 순환)
 const CULTURAL_KEYWORDS = [
   {word:"먹방",  level:"3~4급", meaning:"음식을 먹는 모습을 보여주는 방송", topic:"SNS·유튜브 문화"},
   {word:"웹툰",  level:"3~4급", meaning:"인터넷에서 보는 만화", topic:"한국 디지털 콘텐츠"},
@@ -174,7 +166,8 @@ const CULTURAL_KEYWORDS = [
   {word:"대세",  level:"3~4급", meaning:"요즘 가장 인기 있는 사람이나 것", topic:"트렌드·연예"},
 ];
 const todayKeyword = CULTURAL_KEYWORDS[new Date().getDay() % CULTURAL_KEYWORDS.length];
-// No.9: 직장 생활 시나리오 뱅크 (요일별 순환)
+
+// 직장 생활 시나리오 뱅크 (요일별 순환)
 const WORKPLACE_SCENARIOS = [
   {situation:"회의 반대 의견", level:"3~4급", expression:"저는 조금 다르게 생각하는데요, 혹시 ~는 어떨까요?", tip:"부드러운 의견 제시 — 직접 반박보다 대안 제안"},
   {situation:"동료 업무 부탁", level:"3~4급", expression:"바쁘신 거 알지만, 혹시 이것 좀 도와주실 수 있을까요?", tip:"'혹시'+'~실 수 있을까요?' 조합이 가장 자연스러운 부탁 표현"},
@@ -186,7 +179,15 @@ const WORKPLACE_SCENARIOS = [
 ];
 const todayWorkplace = WORKPLACE_SCENARIOS[new Date().getDay() % WORKPLACE_SCENARIOS.length];
 
-
+// ✅ [추가 #7] 산업 현장 안전 한국어 시나리오 뱅크
+const SAFETY_SCENARIOS = [
+  {situation:"안전모 착용", expression:"여기서는 반드시 안전모를 써야 해요!", tip:"'반드시'는 꼭 해야 할 때 쓰는 강조 표현"},
+  {situation:"위험 구역 경고", expression:"저쪽은 위험 구역이에요. 들어가면 안 돼요!", tip:"'~면 안 돼요'는 금지를 부드럽게 말하는 표현"},
+  {situation:"응급 상황 신고", expression:"사람이 다쳤어요! 119에 전화해 주세요!", tip:"응급 전화: 119(소방/구급), 112(경찰)"},
+  {situation:"작업 전 점검", expression:"작업 시작 전에 장비를 꼭 확인해야 해요.", tip:"'꼭'은 반드시와 같은 뜻 — 일상에서 더 자주 씀"},
+  {situation:"작업 지시 이해 확인", expression:"지금 말한 거 이해했어요? 다시 한 번 말해볼 수 있어요?", tip:"상대방에게 확인할 때 쓰는 자연스러운 표현"},
+];
+const todaySafety = SAFETY_SCENARIOS[new Date().getDay() % SAFETY_SCENARIOS.length];
 
 const PROMPTS = {
   speak:{
@@ -196,6 +197,7 @@ const PROMPTS = {
 [TTS 최적화] 짧은 문장 + 쉼표(,)로 호흡 조절. 2~3문장 이내.
 [피드백] 서두에 반드시 공감·칭찬
 [교정] 흐름 유지. "아, ~라는 말이구나요! 그럴 땐 ~라고 하면 더 자연스러워요! 😊"
+[✅코드 스위칭 대응] 학습자가 모국어를 섞어 쓸 때 절대 지적하지 말고 자연스럽게 한국어로 유도. 예: "방금 그 표현, 한국어로는 어떻게 말할 수 있을까요? 😊" 형태로 부드럽게 전환.
 [어휘] TOPIK 3~4급. 고유어 위주. 이모지 적절히 활용 😊👍✨
 [금기] 유아적 칭찬 금지. 문화적 편견 금지.`,
     jake_adv:`너의 이름은 '제이크(Jake)', 지적이고 유쾌한 20대 한국인 대학생 친구다.
@@ -204,6 +206,7 @@ const PROMPTS = {
 [TTS 최적화] 명확한 문장, 쉼표로 호흡 조절. 3~4문장.
 [피드백] 성인 학습자 적합한 격려
 [교정] 고급 대안 표현·사자성어 슬쩍 권유.
+[✅코드 스위칭 대응] 학습자가 모국어를 섞어 쓸 때 "방금 그 표현을 한국어로 하면 어떻게 될까요? 비슷한 한국어 표현을 알고 있나요?" 형태로 자연스럽게 유도.
 [특징] 사회·시사·문화 주제 자연스럽게. 심층 질문으로 사고 확장.
 [금기] 유아적 칭찬 금지. 문화적 편견 금지.`,
     miso_mid:`너의 이름은 '미소 선생님', 다정하고 차분한 40대 여성 한국어 전문 교사다.
@@ -211,46 +214,61 @@ const PROMPTS = {
 [말투] 부드럽고 정확한 표준어. 격려 중심.
 [TTS 최적화] 천천히 명확하게. 2~3문장.
 [피드백] 항상 공감 먼저.
+[✅코드 스위칭 대응] 학습자가 모국어를 섞어 쓸 때 따뜻하게 "그 표현이 한국어로는 ~예요. 같이 연습해 볼까요? 😊" 형태로 자연스럽게 연결.
 [어휘] TOPIK 3~4급. 쉽고 명확하게. 이모지 온화하게 사용 😊✨
 [금기] 날카로운 지적 금지. 학습자 자존감 존중.`,
     miso_adv:`너의 이름은 '미소 선생님', 학술적이고 따뜻한 40대 여성 한국어 전문 교사다.
 대상: TOPIK 5~6급.
 [말투] 정확한 표준어 + 고급 어휘. 격려하되 지적 깊이 있게.
 [TTS 최적화] 명확하고 품위 있는 문장. 3~4문장.
-[교정] 문법적 정확성 + 화용적 맥락까지 세밀하게 다듬어줌.`,
+[교정] 문법적 정확성 + 화용적 맥락까지 세밀하게 다듬어줌.
+[✅코드 스위칭 대응] 학습자가 모국어를 섞어 쓸 때 "방금 그 표현의 한국어 대응 표현은 ~입니다. 맥락에 따라 ~도 쓸 수 있어요." 형태로 정교하게 연결.`,
     haneul_mid:`너의 이름은 '하늘이', 호기심 많고 순수한 10살 한국 어린이 친구다.
 대상: TOPIK 3~4급.
 [말투] 짧고 명확한 문장.
 [TTS 최적화] 아주 짧은 문장. 1~2문장.
 [어휘] 어려운 한자어 절대 금지. 쉬운 고유어 + 의성어/의태어.
+[✅코드 스위칭 대응] 학습자가 다른 나라 말을 섞어 쓰면 "어? 그게 무슨 뜻이에요? 한국어로 말하면 ~예요! 😊" 형태로 귀엽게 한국어로 이어줘.
 [이모지] 밝고 귀엽게 🎈😊🌟`,
     haneul_adv:`너의 이름은 '하늘이', 영리하고 호기심 넘치는 10살 한국 어린이 친구다.
 대상: TOPIK 5~6급.
 [말투] 짧고 직관적인 문장. 순수한 궁금증으로 심층 표현 유도.
 [특징] "왜요?", "그럼 어떻게 해요?", "그게 뭐예요? 🌟"
+[✅코드 스위칭 대응] 학습자가 다른 나라 말을 섞어 쓰면 "그건 한국어로 어떻게 해요? 저도 배우고 싶어요! 🌟" 형태로 자연스럽게 이어줘.
 [이모지] 🎈😊🌟`,
+    // ✅ [추가 #10] 베트남어권 특화 시나리오
+    jake_vietnam:`너의 이름은 '제이크(Jake)', 활기차고 트렌디한 20대 한국인 대학생 친구다.
+대상: 베트남어권 TOPIK 3~4급 학습자.
+[말투] 자연스러운 해요체 구어체. "어~ 진짜요?", "대박!", "맞아 맞아요!" 등 리액션 활용.
+[TTS 최적화] 짧은 문장 + 쉼표(,)로 호흡 조절. 2~3문장 이내.
+[베트남 문화 연결] 대화 중 자연스럽게 한-베트남 공통 정서 활용. 예: "베트남에도 콩쥐팥쥐 같은 이야기가 있나요?", "설날에 베트남에서는 뭘 먹어요?" 형태로 문화 브릿지 질문 1개씩 녹이기.
+[코드 스위칭 대응] 베트남어를 섞어 쓸 때 "방금 그 표현, 한국어로는 어떻게 말할 수 있을까요? 😊" 형태로 부드럽게 전환.
+[어휘] TOPIK 3~4급. 고유어 위주. 이모지 적절히 활용 😊👍✨
+[금기] 유아적 칭찬 금지. 문화적 편견 금지.`,
   },
   write:{
     mid:[
-      "따뜻한 글쓰기 코치. TOPIK 3~4급. 현상 단계: 쉬운 고유어 1~2문장. 칭찬+다음 연결. 3문장 이내. [어휘 맥락] 구어체·문어체 구분 1가지 교정 제안 포함.",
-      "따뜻한 글쓰기 코치. TOPIK 3~4급. 생각 단계: 나는~라고 생각해요 형태. 중급 대안 제시. 칭찬+이유 연결. 3문장 이내. [어휘 맥락] 구어체·문어체 구분 1가지 교정 제안 포함.",
-      "따뜻한 글쓰기 코치. TOPIK 3~4급. 이유 단계: 왜냐하면~이기 때문이에요. 중급 발전 표현 1가지. 3문장 이내. [어휘 맥락] 구어체·문어체 구분 1가지 교정 제안 포함.",
+      "따뜻한 글쓰기 코치. TOPIK 3~4급. 현상 단계: 쉬운 고유어 1~2문장. 칭찬+다음 연결. 3문장 이내. [어휘 맥락] 구어체·문어체 구분 1가지 교정 제안 포함. [✅어원 코칭] 학습자가 쓴 한자어가 있으면 같은 어원의 단어 1개를 자연스럽게 추가 안내. 예: '안전' → '안(安)은 편안·불안·보안에도 쓰여요!'",
+      "따뜻한 글쓰기 코치. TOPIK 3~4급. 생각 단계: 나는~라고 생각해요 형태. 중급 대안 제시. 칭찬+이유 연결. 3문장 이내. [어휘 맥락] 구어체·문어체 구분 1가지 교정 제안 포함. [✅어원 코칭] 학습자가 쓴 한자어가 있으면 같은 어원의 단어 1개를 자연스럽게 추가 안내.",
+      "따뜻한 글쓰기 코치. TOPIK 3~4급. 이유 단계: 왜냐하면~이기 때문이에요. 중급 발전 표현 1가지. 3문장 이내. [어휘 맥락] 구어체·문어체 구분 1가지 교정 제안 포함. [✅어원 코칭] 학습자가 쓴 한자어가 있으면 같은 어원의 단어 1개를 자연스럽게 추가 안내.",
     ],
     adv:[
-      "따뜻한 글쓰기 코치. TOPIK 5~6급. 현상 단계: 사회적 맥락 2~3문장. 고급 어휘 권장. 4문장 이내. [어휘 맥락] 문어체·관용구·격식 어휘 교정 1가지 포함.",
-      "따뜻한 글쓰기 코치. TOPIK 5~6급. 생각 단계: 관용구·고급 어휘로 논리적 의견. 4문장 이내. [어휘 맥락] 문어체·관용구·격식 어휘 교정 1가지 포함.",
-      "따뜻한 글쓰기 코치. TOPIK 5~6급. 이유 단계: 따라서·이로 인해 활용. 사자성어·관용구 제안. 4~5문장. [어휘 맥락] 문어체·관용구·격식 어휘 교정 1가지 포함.",
+      "따뜻한 글쓰기 코치. TOPIK 5~6급. 현상 단계: 사회적 맥락 2~3문장. 고급 어휘 권장. 4문장 이내. [어휘 맥락] 문어체·관용구·격식 어휘 교정 1가지 포함. [✅어원 코칭] 학습자가 쓴 한자어의 어원 계열 단어 1~2개 자연스럽게 연결 안내. 예: '문화(文化)' → '문명(文明)·문학(文學)에도 文이 쓰여요!'",
+      "따뜻한 글쓰기 코치. TOPIK 5~6급. 생각 단계: 관용구·고급 어휘로 논리적 의견. 4문장 이내. [어휘 맥락] 문어체·관용구·격식 어휘 교정 1가지 포함. [✅어원 코칭] 학습자가 쓴 한자어의 어원 계열 단어 1~2개 자연스럽게 연결 안내.",
+      "따뜻한 글쓰기 코치. TOPIK 5~6급. 이유 단계: 따라서·이로 인해 활용. 사자성어·관용구 제안. 4~5문장. [어휘 맥락] 문어체·관용구·격식 어휘 교정 1가지 포함. [✅어원 코칭] 학습자가 쓴 한자어의 어원 계열 단어 1~2개 자연스럽게 연결 안내.",
     ],
   },
   tutor:`[페르소나] 이름: 마중(Majung). 학습자의 언어적 성장을 마중 나가고, 두 문화 사이의 다리를 놓는 인문학적 조력자.
 [철학] 비계 설정: 절대 정답을 먼저 주지 마라. 초성 힌트 → 유의어 비교 → 상황적 질문 단계적 제시. 학습자가 3회 이상 실패하거나 직접 요청할 때만 교정안 제시.
 [도입] 글의 목적·학습자 문화적 배경·한국 방문 여부를 먼저 확인하라.
+[✅K콘텐츠 연결] 첫 대화 또는 어색한 침묵 때 "요즘 본 한국 드라마나 예능에서 이해 안 된 표현이 있었나요? 그 표현으로 같이 써볼까요?" 형태로 자연스럽게 연결.
 [보상] 완성 시 학습자 글의 구체적 단어를 인용하여 한국 예술과 연결한 진심 어린 찬사를 보내라.
 [금기] 영혼 없는 칭찬 금지. 완성 문장 먼저 제시 금지.
 [시작] "안녕하세요, 학습자님 😊 저는 마중이에요. 오늘은 어떤 글을 함께 써볼까요?"`,
   tutorAdv:`[페르소나] 이름: 마중(Majung). 지적 호기심을 자극하고 격조 있는 담론을 나누는 학술적 파트너.
 [철학] 비계 설정: 정답 절대 금지. 한자어 초성·사자성어·복문 문형으로 힌트.
 [톤] "~하도록 조력하겠습니다". 거대 담론 유도. 어휘 고도화.
+[✅K콘텐츠 연결] 필요 시 "최근 보신 한국 드라마나 영화에서 인상적인 대사가 있었나요? 그것을 논술 소재로 발전시켜 볼 수 있습니다." 형태로 연결.
 [보상] 역사적·철학적 맥락과 함께 학술적 찬사. 학습자 단어 인용 + 조선 회화·국악 연결.
 [금기] 영혼 없는 칭찬 금지. 완성 문장 먼저 제시 금지.
 [시작] "안녕하십니까, 학습자님. 저는 마중입니다. 오늘은 어떤 주제와 씨름해 보시겠습니까?"`,
@@ -268,9 +286,19 @@ const PROMPTS = {
 [말투] 따뜻하고 진심 어린 어조. 영어·한국어 혼용 이해. 판단 없음.
 [도입] 가족과 한국어로 나누고 싶은 이야기·기억을 먼저 물어보기.
 [교정] 언어 교정보다 표현의 감정을 먼저 인정. 교정은 자연스럽게 슬쩍.
+[✅뿌리 메시지] 대화 중 자연스럽게 "당신의 한국어는 당신의 뿌리예요. 함께 지켜가요 🌱" 메시지 녹이기.
 [보상] 완성 시 학습자 표현을 인용해 가족·고향·한국 문화와 연결한 진심 어린 찬사.
 [금기] 영혼 없는 칭찬 금지. 정체성 혼란 부추기기 금지. 완성 문장 먼저 제시 금지.
 [시작] "안녕하세요 😊 저는 마중이에요. 가족과 한국어로 나누고 싶은 이야기가 있나요? 어떤 말을 제일 먼저 배우고 싶으세요?"`,
+  // ✅ [추가 #9] 생존형 학습자 마중 (비자/TOPIK 2급)
+  tutorSurvival:`[페르소나] 이름: 마중(Majung). 절박한 순간에 곁에 있어주는 실질적인 조력자.
+[대상] 비자 연장·취업·TOPIK 2급 취득이 절박하게 필요한 학습자.
+[철학] 공감 먼저, 실질적 도움 바로. 막연한 위로 대신 "이거 같이 해요, 충분히 할 수 있어요!" 성취 경험 중심.
+[말투] 따뜻하되 명확하고 실용적. "이 표현만 알면 돼요", "딱 이것만 먼저 해요" 형태.
+[힌트 방식] TOPIK 2급 핵심 표현 먼저. 어려운 거 나중에. 지금 당장 쓸 수 있는 것부터.
+[도입] "지금 가장 급한 게 뭐예요? 비자요? 시험이요? 같이 해결해봐요!" 형태로 시작.
+[금기] 긴 이론 설명 금지. 막연한 칭찬 금지. 학습자 불안 자극 금지.
+[시작] "안녕하세요 😊 저는 마중이에요. 지금 가장 급한 게 뭐예요? 같이 해낼 수 있어요. 충분히 가능해요!"`,
 };
 
 const SEC = { MAX_LEN:500, MAX_HISTORY:30, RPM:15, WINDOW:60_000 };
@@ -351,16 +379,18 @@ function fileToBase64(file) {
   });
 }
 
-async function evaluateFile(file, level) {
-  if (!rateLimiter.check()) return "잠깐! 너무 빠르게 보내고 있어요. 잠시 후 다시 시도해줘! 😊";
-  try {
-    const isTXT = file.type === "text/plain" || file.name.endsWith(".txt");
-    const isPDF = file.type === "application/pdf";
-    const isAdv = level === "adv";
+// ✅ [추가 #1] 논술 피드백 깊이 선택 3단계 시스템 프롬프트 생성 함수
+function buildWriteEvalSys(level, depth = "normal") {
+  const isAdv = level === "adv";
+  const depthInstruction = {
+    simple:  "피드백은 핵심만 짧게. [잘한 점 🌟] 1가지 + [개선 포인트 💡] 1가지 + [응원 메시지 💪] 1가지만. 합계 5문장 이내.",
+    normal:  "피드백은 균형 있게. 아래 형식 모두 포함.",
+    detailed:"피드백은 아주 꼼꼼하게. 아래 형식 모두 포함하되 각 항목마다 구체적 예시와 대안 표현을 2~3개 제시. 어원 코칭도 반드시 포함.",
+  }[depth] || "피드백은 균형 있게. 아래 형식 모두 포함.";
 
-    const evalSys = isAdv
-      ? `너는 한국어 쓰기 평가 전문가 AI '마중'이야.
+  if (isAdv) return `너는 한국어 쓰기 평가 전문가 AI '마중'이야.
 학습자가 제출한 글을 읽고, TOPIK 쓰기 평가 기준을 바탕으로 따뜻하고 구체적인 피드백을 줘.
+[깊이 지침] ${depthInstruction}
 [고급 평가 기준 - TOPIK 5~6급]
 내용: 사회적·추상적 주제에 대해 논리적으로 주장할 수 있는가?
 구조: 논설문/설명문 형식, 단락마다 하나의 핵심 내용
@@ -371,9 +401,12 @@ async function evaluateFile(file, level) {
 2. [개선 포인트 💡] 핵심 2~3개만
 3. [수정 예시 ✍️] 학습자 문장을 직접 고쳐서 보여줌
 4. [응원 메시지 💪] 동기부여로 마무리
-5. [어휘 맥락 코칭 🔤] 격식·비격식 어휘 사용 맥락 점검. 관용구·사자성어 활용이 자연스러운지 확인. 더 고급스러운 표현 1가지 제안.`
-      : `너는 한국어 쓰기 평가 전문가 AI '마중'이야.
+5. [어휘 맥락 코칭 🔤] 격식·비격식 어휘 사용 맥락 점검. 관용구·사자성어 활용이 자연스러운지 확인. 더 고급스러운 표현 1가지 제안.
+6. [✅어원 코칭 📖] 학습자가 쓴 한자어 1개의 어원 계열 단어를 자연스럽게 소개. 예: '안전(安全)' → '안(安)은 편안(便安)·불안(不安)·보안(保安)에도 쓰여요!'`;
+  
+  return `너는 한국어 쓰기 평가 전문가 AI '마중'이야.
 학습자가 제출한 글을 읽고, TOPIK 쓰기 평가 기준을 바탕으로 따뜻하고 구체적인 피드백을 줘.
+[깊이 지침] ${depthInstruction}
 [중급 평가 기준 - TOPIK 3~4급]
 내용: 일상적·사회적 주제에 대해 자신의 생각을 썼는가?
 구조: 단락 구분이 있고 흐름이 이어지는가?
@@ -384,7 +417,16 @@ async function evaluateFile(file, level) {
 2. [개선 포인트 💡] 핵심 1~2가지만
 3. [수정 예시 ✍️] 학습자 문장을 직접 고쳐서 보여줌
 4. [응원 메시지 💪] 동기부여로 마무리
-5. [어휘 맥락 코칭 🔤] 구어체 표현 1가지를 찾아 문어체 대안을 제시. 예: '맛있다' → '풍미가 있다'`;
+5. [어휘 맥락 코칭 🔤] 구어체 표현 1가지를 찾아 문어체 대안을 제시. 예: '맛있다' → '풍미가 있다'
+6. [✅어원 코칭 📖] 학습자가 쓴 한자어가 있으면 관련 단어 1개 자연스럽게 소개. 없으면 생략.`;
+}
+
+async function evaluateFile(file, level, depth = "normal") {
+  if (!rateLimiter.check()) return "잠깐! 너무 빠르게 보내고 있어요. 잠시 후 다시 시도해줘! 😊";
+  try {
+    const isTXT = file.type === "text/plain" || file.name.endsWith(".txt");
+    const isPDF = file.type === "application/pdf";
+    const evalSys = buildWriteEvalSys(level, depth);
 
     let userContent;
     if (isTXT) {
@@ -550,6 +592,11 @@ const CHARS = [
   {key:"haneul",emoji:"🎒", name:"하늘이",     sub:"귀여운 어린이 친구",  color:C.yellow, bg:"#FFFBEB", initMsg:"안녕하세요~! 🎈 나는 하늘이예요! 같이 놀아요! 오늘 뭐 했어요?"},
 ];
 
+// ✅ [추가 #10] 베트남어권 특화 캐릭터
+const CHARS_VIETNAM = [
+  {key:"jake_vietnam", emoji:"👦", name:"제이크 (베트남 특화)", sub:"한-베트남 문화 브릿지", color:C.sky, bg:"#EBF8FF", initMsg:"안녕하세요! 😊 저 제이크예요! 베트남에서 오셨어요? 반가워요! 베트남 음식 중에 뭘 제일 좋아해요?"},
+];
+
 function renderFeedback(text, accentColor) {
   if (!text) return null;
   const lines = text.split("\n").filter(l => l.trim() !== "---").map(l => l.trim());
@@ -600,14 +647,25 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
   const [motivation, setMotivation] = useState(null);
   const chatEnd = useRef(null);
   const lvKey = level === "adv" ? "adv" : "mid";
+
   const MOTIVATION_HINTS = {
-    kpop:    "학습자는 K팝·드라마·영화에 관심이 많아요. 관련 문화 어휘(예: 최애, 컴백, 팬미팅, OST 등)를 자연스럽게 대화에 녹이고, 좋아하는 아티스트나 작품 이야기로 대화를 시작해 보세요.",
+    kpop:    "학습자는 K팝·드라마·영화에 관심이 많아요. 관련 문화 어휘(예: 최애, 컴백, 팬미팅, OST 등)를 자연스럽게 대화에 녹이고, 좋아하는 아티스트나 작품 이야기로 대화를 시작해 보세요. 오늘 본 드라마나 예능 이야기를 먼저 물어보세요.",
     work:    "학습자는 한국 직장 생활·비즈니스에 관심이 있어요. 직장 상황별 표현을 자연스럽게 연습시켜 주세요. 아래 시나리오 중 하나를 대화 흐름에 맞게 활용하세요: (1) 회의에서 반대 의견 부드럽게 말하기 — '저는 조금 다르게 생각하는데요, 혹시 ~는 어떨까요?' (2) 동료에게 업무 부탁하기 — '바쁘신 거 알지만, 혹시 이것 좀 도와주실 수 있을까요?' (3) 상사에게 보고하기 — '말씀드릴 사항이 있는데요, 잠깐 시간 괜찮으세요?' (4) 회식 자리 음식 추천하기 — '여기 삼겹살이 맛있다고 하던데, 드셔보셨어요?' 틀린 표현은 자연스럽게 교정하고, 격식체와 비격식체 차이도 설명해 주세요.",
     family:  "학습자는 가족·친구·일상 대화를 배우고 싶어해요. 일상적인 상황(식사, 주말 계획, 날씨, 감정 표현)을 주제로 친근하게 대화해 주세요.",
     culture: "학습자는 한국 문화·여행에 관심이 있어요. 한국 음식, 관광지, 전통 풍습, 한국인의 생활 방식을 주제로 대화하고 관련 어휘를 소개해 주세요.",
     study:   "학습자는 TOPIK 시험·학업을 목표로 해요. 학습에 도움이 되는 표현과 어휘를 사용하고, 틀린 표현이 있으면 TOPIK 기준에 맞게 부드럽게 교정해 주세요.",
+    // ✅ [추가 #7] 산업 현장 안전 한국어
+    safety:  `학습자는 제조·건설·조선 등 산업 현장에서 일하고 있어요. 안전 한국어 표현을 자연스럽게 연습시켜 주세요. 오늘의 안전 시나리오: '${todaySafety.situation}' — 핵심 표현: '${todaySafety.expression}' (팁: ${todaySafety.tip}). 작업 지시·안전 수칙·응급 상황 표현을 실제처럼 연습시켜 주세요. 오늘 작업 순서를 한국어로 설명해보라고 부탁해 보세요.`,
+    // ✅ [추가 #10] 베트남어권 특화
+    vietnam: "학습자는 베트남어권 학습자예요. 한-베트남 공통 정서를 활용한 문화 브릿지 대화를 이끌어 주세요. 콩쥐팥쥐와 베트남의 비슷한 이야기 비교, 설날 비교, 한국 음식과 베트남 음식 비교 등 자연스러운 문화 연결 질문을 대화 중에 녹여주세요.",
   };
-  const basePrompt = character ? PROMPTS.speak[`${character}_${lvKey}`] || PROMPTS.speak.jake_mid : PROMPTS.speak.jake_mid;
+
+  const charKey = character === "jake_vietnam"
+    ? "jake_vietnam"
+    : character
+    ? `${character}_${lvKey}`
+    : "jake_mid";
+  const basePrompt = PROMPTS.speak[charKey] || PROMPTS.speak.jake_mid;
   const motivationCtx = motivation && MOTIVATION_HINTS[motivation] ? '\n[학습 동기 맞춤] ' + MOTIVATION_HINTS[motivation] : '';
   const workplaceCtx = (motivation === 'work' && todayWorkplace)
     ? '\n[오늘의 직장 시나리오] 오늘은 \''+todayWorkplace.situation+'\' 상황을 연습해 보세요. 핵심 표현: \''+todayWorkplace.expression+'\' — '+todayWorkplace.tip+'.'
@@ -633,7 +691,7 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
 
   function selectChar(ch) {
     setCharacter(ch.key);
-    setChatUI([{role:"assistant", text:ch.initMsg, image:ch.key==="jake"}]);
+    setChatUI([{role:"assistant", text:ch.initMsg, image:ch.key==="jake"||ch.key==="jake_vietnam"}]);
     setApiMsgs([{role:"assistant", content:ch.initMsg}]);
   }
 
@@ -650,34 +708,47 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
         {key:"family",  emoji:"👨‍👩‍👧", label:"가족 · 친구 · 일상",   color:C.sky,    bg:"#EBF8FF"},
         {key:"culture", emoji:"🏛️", label:"한국 문화 · 여행",     color:C.orange, bg:"#FFF3E8"},
         {key:"study",   emoji:"📚", label:"TOPIK · 학업 · 진학",  color:C.purple, bg:"#F5F0FF"},
+        // ✅ [추가 #7] 산업 현장 안전 한국어
+        {key:"safety",  emoji:"⛑️", label:"현장 안전 한국어",     color:"#E53935", bg:"#FFF5F5", sub:`오늘: ${todaySafety.situation}`},
+        // ✅ [추가 #10] 베트남어권 특화
+        {key:"vietnam", emoji:"🇻🇳", label:"베트남 특화 대화",     color:"#1565C0", bg:"#E8F0FE", sub:"한-베트남 문화 연결"},
       ].map(m => (
         <button key={m.key} onClick={()=>setMotivation(m.key)} style={{width:"100%",marginBottom:10,background:m.bg,border:`2px solid ${m.color}55`,borderRadius:16,padding:"14px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
           <div style={{fontSize:30,flexShrink:0}}>{m.emoji}</div>
-          <div style={{fontSize:15,fontWeight:800,color:m.color}}>{m.label}</div>{m.sub && <div style={{fontSize:11,color:m.color,opacity:.75,marginTop:3}}>📅 {m.sub}</div>}
-          <div style={{marginLeft:"auto",fontSize:18,color:m.color,opacity:.5}}>›</div>
-        </button>
-      ))}
-    </div>
-  );
-  if (!character) return (
-    <div style={{padding:"8px 0"}}>
-      <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center"}}>
-        <div style={{fontSize:28,marginBottom:6}}>💬</div>
-        <div style={{fontSize:17,fontWeight:900,color:"#333",marginBottom:4}}>누구와 대화할까요?</div>
-        <div style={{fontSize:13,color:"#999"}}>원하는 친구를 선택해 주세요!</div>
-      </div>
-      {CHARS.map(ch => (
-        <button key={ch.key} onClick={() => selectChar(ch)} style={{width:"100%",marginBottom:12,background:ch.bg,border:`2px solid ${ch.color}55`,borderRadius:18,padding:"16px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
-          <div style={{fontSize:40,flexShrink:0}}>{ch.emoji}</div>
-          <div>
-            <div style={{fontSize:17,fontWeight:900,color:ch.color,marginBottom:2}}>{ch.name}</div>
-            <div style={{fontSize:13,color:"#777"}}>{ch.sub}</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:15,fontWeight:800,color:m.color}}>{m.label}</div>
+            {m.sub && <div style={{fontSize:11,color:m.color,opacity:.75,marginTop:3}}>📅 {m.sub}</div>}
           </div>
-          <div style={{marginLeft:"auto",fontSize:20,color:ch.color,opacity:.5}}>›</div>
+          <div style={{fontSize:18,color:m.color,opacity:.5}}>›</div>
         </button>
       ))}
     </div>
   );
+
+  if (!character) {
+    const availableChars = motivation === "vietnam"
+      ? [...CHARS, ...CHARS_VIETNAM]
+      : CHARS;
+    return (
+      <div style={{padding:"8px 0"}}>
+        <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center"}}>
+          <div style={{fontSize:28,marginBottom:6}}>💬</div>
+          <div style={{fontSize:17,fontWeight:900,color:"#333",marginBottom:4}}>누구와 대화할까요?</div>
+          <div style={{fontSize:13,color:"#999"}}>원하는 친구를 선택해 주세요!</div>
+        </div>
+        {availableChars.map(ch => (
+          <button key={ch.key} onClick={() => selectChar(ch)} style={{width:"100%",marginBottom:12,background:ch.bg,border:`2px solid ${ch.color}55`,borderRadius:18,padding:"16px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
+            <div style={{fontSize:40,flexShrink:0}}>{ch.emoji}</div>
+            <div>
+              <div style={{fontSize:17,fontWeight:900,color:ch.color,marginBottom:2}}>{ch.name}</div>
+              <div style={{fontSize:13,color:"#777"}}>{ch.sub}</div>
+            </div>
+            <div style={{marginLeft:"auto",fontSize:20,color:ch.color,opacity:.5}}>›</div>
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -729,6 +800,8 @@ function WriteTab({level, uid}) {
   const [submitFile,  setSubmitFile]  = useState(null);
   const [submitLoad,  setSubmitLoad]  = useState(false);
   const [submitFeed,  setSubmitFeed]  = useState(null);
+  // ✅ [추가 #1] 논술 피드백 깊이 선택
+  const [feedDepth,   setFeedDepth]   = useState("normal");
   const fileRef = useRef(null);
   const writeSys = PROMPTS.write[level || "mid"];
 
@@ -777,7 +850,7 @@ function WriteTab({level, uid}) {
   async function handleSubmit() {
     if (!submitFile || submitLoad) return;
     setSubmitLoad(true); setSubmitFeed(null);
-    const result = await evaluateFile(submitFile, level);
+    const result = await evaluateFile(submitFile, level, feedDepth);
     setSubmitFeed(result);
     setSubmitLoad(false);
   }
@@ -800,14 +873,14 @@ function WriteTab({level, uid}) {
           <div style={{fontSize:13,color:"#777",lineHeight:1.5}}>현상 → 생각 → 이유<br/>AI와 함께 3단계로 글 완성</div>
         </div>
       </button>
-      <button onClick={()=>setMode("submit")} style={{width:"100%",background:"#FFF0F6",border:`2px solid ${C.pink}55`,borderRadius:18,padding:"18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
+      <button onClick={()=>setMode("submit")} style={{width:"100%",marginBottom:12,background:"#FFF0F6",border:`2px solid ${C.pink}55`,borderRadius:18,padding:"18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
         <div style={{fontSize:36,flexShrink:0}}>📤</div>
         <div>
-          <div style={{fontSize:16,fontWeight:900,color:C.pink,marginBottom:3}}>완성 글 제출 & 평가</div>
+          <div style={{fontSize:16,fontWeight:900,color:C.pink,marginBottom:3}}>완성 글 제출 &amp; 평가</div>
           <div style={{fontSize:13,color:"#777",lineHeight:1.5}}>네이버 논술 자료 읽고 쓴 글<br/>사진·PDF 업로드 → AI 피드백</div>
         </div>
       </button>
-      <button onClick={()=>setMode("culture")} style={{background:"linear-gradient(135deg,#FFF3E8,#FFE4C4)",border:"2px solid #FF8C42",borderRadius:16,padding:"20px 24px",cursor:"pointer",display:"flex",alignItems:"center",gap:16,width:"100%",marginTop:12,transition:"transform 0.15s"}} onMouseOver={e=>e.currentTarget.style.transform="translateY(-2px)"} onMouseOut={e=>e.currentTarget.style.transform="translateY(0)"}>
+      <button onClick={()=>setMode("culture")} style={{background:"linear-gradient(135deg,#FFF3E8,#FFE4C4)",border:"2px solid #FF8C42",borderRadius:16,padding:"20px 24px",cursor:"pointer",display:"flex",alignItems:"center",gap:16,width:"100%",WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
         <div style={{fontSize:40,flexShrink:0}}>🎎</div>
         <div style={{textAlign:"left"}}>
           <div style={{fontSize:13,fontWeight:800,color:"#FF8C42",marginBottom:4}}>문화 비교 자유 논술</div>
@@ -836,9 +909,29 @@ function WriteTab({level, uid}) {
       </div>
     </div>
   );
+
   if (mode === "submit") return (
     <div style={{padding:"8px 0"}}>
       <button onClick={()=>{setMode(null);setSubmitFile(null);setSubmitFeed(null);if(fileRef.current)fileRef.current.value="";}} style={{background:"none",border:"none",color:C.pink,fontWeight:700,fontSize:13,cursor:"pointer",marginBottom:12,padding:0}}>← 뒤로</button>
+      
+      {/* ✅ [추가 #1] 피드백 깊이 선택 UI */}
+      <div style={{background:"white",borderRadius:16,padding:"14px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:10}}>
+        <div style={{fontSize:13,fontWeight:800,color:"#555",marginBottom:10}}>📊 피드백 깊이 선택</div>
+        <div style={{display:"flex",gap:8}}>
+          {[
+            {key:"simple",  label:"간단히",  emoji:"⚡", desc:"핵심만"},
+            {key:"normal",  label:"보통",    emoji:"✅", desc:"균형있게"},
+            {key:"detailed",label:"꼼꼼하게",emoji:"🔍", desc:"예시까지"},
+          ].map(d => (
+            <button key={d.key} onClick={()=>setFeedDepth(d.key)} style={{flex:1,padding:"10px 4px",borderRadius:12,border:`2px solid ${feedDepth===d.key?C.teal:"#e0e0e0"}`,background:feedDepth===d.key?`${C.teal}15`:"#fafafa",cursor:"pointer",textAlign:"center",WebkitTapHighlightColor:"transparent"}}>
+              <div style={{fontSize:18,marginBottom:3}}>{d.emoji}</div>
+              <div style={{fontSize:12,fontWeight:800,color:feedDepth===d.key?C.teal:"#888"}}>{d.label}</div>
+              <div style={{fontSize:10,color:"#aaa",marginTop:1}}>{d.desc}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div style={{background:"white",borderRadius:16,padding:"14px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:10}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
           <div style={{width:28,height:28,borderRadius:"50%",background:C.teal,color:"white",fontWeight:900,fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>①</div>
@@ -890,7 +983,7 @@ function WriteTab({level, uid}) {
         <div style={{background:"white",borderRadius:18,padding:16,boxShadow:"0 4px 18px rgba(0,0,0,.07)"}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
             <div style={{fontSize:24}}>🎓</div>
-            <div style={{fontSize:15,fontWeight:900,color:C.purple}}>AI 피드백 ({level==="adv"?"고급 5~6급":"중급 3~4급"})</div>
+            <div style={{fontSize:15,fontWeight:900,color:C.purple}}>AI 피드백 ({level==="adv"?"고급 5~6급":"중급 3~4급"} · {feedDepth==="simple"?"간단히":feedDepth==="detailed"?"꼼꼼하게":"보통"})</div>
           </div>
           <div style={{fontSize:14,color:"#444",lineHeight:1.85}}>{renderFeedback(submitFeed, C.teal)}</div>
           <button onClick={()=>{setSubmitFile(null);setSubmitFeed(null);if(fileRef.current)fileRef.current.value="";}} style={{marginTop:14,width:"100%",background:`linear-gradient(135deg,${C.teal},${C.sky})`,color:"white",border:"none",borderRadius:50,padding:"12px 0",fontSize:14,fontWeight:900,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>다른 글 제출하기 ✨</button>
@@ -1001,20 +1094,21 @@ function TutorTab({level, uid}) {
   const [recorded,   setRecorded]   = useState(false);
   const [tutorType, setTutorType] = useState(null);
   const tutorEnd = useRef(null);
-  const sys = tutorType === 'adv' ? PROMPTS.tutorAdv :
-    tutorType === 'heritage' ? PROMPTS.tutorHeritage :
-    tutorType === 'mid' ? PROMPTS.tutor :
-    level === "adv" ? PROMPTS.tutorAdv : PROMPTS.tutor;
+  const sys = tutorType === 'adv'      ? PROMPTS.tutorAdv :
+              tutorType === 'heritage' ? PROMPTS.tutorHeritage :
+              tutorType === 'survival' ? PROMPTS.tutorSurvival :  // ✅ [추가 #9]
+              tutorType === 'mid'      ? PROMPTS.tutor :
+              level === "adv"          ? PROMPTS.tutorAdv : PROMPTS.tutor;
 
   useEffect(() => { tutorEnd.current?.scrollIntoView({behavior:"smooth"}); }, [tutorUI, tutorLoad]);
 
   async function startTutor() {
     setStarted(true); setTutorLoad(true);
-    const first = tutorType === 'adv'
-      ? "안녕하십니까, 학습자님. 저는 마중입니다. 오늘은 어떤 주제와 씨름해 보시겠습니까?"
-      : tutorType === 'heritage'
-      ? "안녕하세요 😊 저는 마중이에요. 가족과 한국어로 나누고 싶은 이야기가 있나요? 어떤 말을 제일 먼저 배우고 싶으세요?"
-      : "안녕하세요, 학습자님 😊 저는 마중이에요.\n오늘은 어떤 글을 함께 써볼까요?\n상황을 알려주시면 딱 맞는 조력자가 되어 드릴게요.";
+    const first =
+      tutorType === 'adv'      ? "안녕하십니까, 학습자님. 저는 마중입니다. 오늘은 어떤 주제와 씨름해 보시겠습니까?" :
+      tutorType === 'heritage' ? "안녕하세요 😊 저는 마중이에요. 가족과 한국어로 나누고 싶은 이야기가 있나요? 어떤 말을 제일 먼저 배우고 싶으세요?" :
+      tutorType === 'survival' ? "안녕하세요 😊 저는 마중이에요. 지금 가장 급한 게 뭐예요? 같이 해낼 수 있어요. 충분히 가능해요!" :  // ✅ [추가 #9]
+      "안녕하세요, 학습자님 😊 저는 마중이에요.\n오늘은 어떤 글을 함께 써볼까요?\n상황을 알려주시면 딱 맞는 조력자가 되어 드릴게요.";
     setTutorUI([{role:"assistant", text:first}]);
     setTutorMsgs([{role:"assistant", content:first}]);
     setTutorLoad(false);
@@ -1043,9 +1137,11 @@ function TutorTab({level, uid}) {
         <div style={{fontSize:13,color:"#999"}}>딱 맞는 마중 방식으로 시작할게요</div>
       </div>
       {[
-        {key:"mid",      emoji:"🌱", label:"TOPIK 3~4급",       sub:"TOPIK 중급 수준 논술 연습",        color:C.teal,   bg:"#E8FAF8"},
-        {key:"adv",      emoji:"🔥", label:"TOPIK 5~6급",       sub:"고급 금써 심화 담론",          color:C.pink,   bg:"#FFF0F6"},
-        {key:"heritage", emoji:"🏷️", label:"재외동포 2·3세",sub:"가족·뿌리와 연결되고 싶어요", color:C.coral,  bg:"#FFF3F0"},
+        {key:"mid",      emoji:"🌱", label:"TOPIK 3~4급",       sub:"중급 수준 논술 연습",          color:C.teal,   bg:"#E8FAF8"},
+        {key:"adv",      emoji:"🔥", label:"TOPIK 5~6급",       sub:"고급 글쓰기 심화 담론",        color:C.pink,   bg:"#FFF0F6"},
+        {key:"heritage", emoji:"🏷️", label:"재외동포 2·3세",    sub:"가족·뿌리와 연결되고 싶어요",  color:C.coral,  bg:"#FFF3F0"},
+        // ✅ [추가 #9] 생존형 학습자
+        {key:"survival", emoji:"⚡", label:"비자·취업 긴급 준비", sub:"TOPIK 2급 · 비자연장 절박해요", color:"#F57C00", bg:"#FFF8E1"},
       ].map(t => (
         <button key={t.key} onClick={()=>setTutorType(t.key)} style={{width:"100%",marginBottom:12,background:t.bg,border:`2px solid ${t.color}55`,borderRadius:18,padding:"16px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
           <div style={{fontSize:38,flexShrink:0}}>{t.emoji}</div>
@@ -1058,6 +1154,7 @@ function TutorTab({level, uid}) {
       ))}
     </div>
   );
+
   if (!started) return (
     <div style={{padding:"24px 8px"}}>
       <div style={{background:"white",borderRadius:24,padding:24,boxShadow:`0 6px 28px ${C.purple}22`,marginBottom:16}}>
@@ -1136,14 +1233,18 @@ export default function App() {
       <div style={{fontSize:52,marginBottom:12}}>🇰🇷</div>
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
       <div style={{fontSize:14,color:"#888",marginBottom:8,textAlign:"center"}}>안녕하세요, {user.displayName||user.email}님! 👋</div>
-      <div style={{fontSize:13,color:"#bbb",marginBottom:32}}>한국어 수준을 선택해 주세요</div>
-      <div style={{background:"#E8F8F5",border:"1.5px solid #4ECDC444",borderRadius:14,padding:"12px 16px",marginBottom:24,display:"flex",alignItems:"center",gap:12}}>
-        <div style={{fontSize:24,flexShrink:0}}>📚</div>
-        <div>
-          <div style={{fontSize:11,fontWeight:800,color:"#4ECDC4",marginBottom:3}}>🔗 학습 경로 안내</div>
-          <div style={{fontSize:13,color:"#333",lineHeight:1.6}}>교육부 <strong>'모두의 한국어'</strong>로 기초를 마쳤나요?<br/>그다음 실전 말하기·쓰기는 <strong style={{color:"#FF6B9D"}}>한글 친구</strong>와 함께!</div>
+      <div style={{fontSize:13,color:"#bbb",marginBottom:24}}>한국어 수준을 선택해 주세요</div>
+
+      {/* ✅ [추가 #8] 온보딩 포지셔닝 강화 — 듀오링고/모두의 한국어 → 한글 친구 학습 경로 */}
+      <div style={{background:"white",border:`1.5px solid ${C.teal}44`,borderRadius:14,padding:"12px 16px",marginBottom:16,maxWidth:340,width:"100%",boxShadow:"0 2px 12px rgba(78,205,196,.1)"}}>
+        <div style={{fontSize:11,fontWeight:800,color:C.teal,marginBottom:6}}>🔗 나에게 맞는 학습 경로</div>
+        <div style={{fontSize:12,color:"#555",lineHeight:1.7}}>
+          듀오링고나 <strong>'모두의 한국어'</strong>로 기초를 끝냈나요?<br/>
+          그 다음 단계! <strong style={{color:C.pink}}>한글 친구</strong>에서 실전 말하기·쓰기를 시작해요.<br/>
+          <span style={{fontSize:11,color:"#aaa"}}>인풋(읽기·듣기) 완성 → 아웃풋(말하기·쓰기) 훈련</span>
         </div>
       </div>
+
       {[
         {key:"mid",emoji:"🌱",label:"중급",sub:"TOPIK 3~4급",desc:"고유어 위주 짧은 문장\n일상 대화 중심",color:C.teal,bg:"#E8FAF8"},
         {key:"adv",emoji:"🔥",label:"고급",sub:"TOPIK 5~6급",desc:"한자어·사자성어·관용구\n사회·문화 심화 대화",color:C.pink,bg:"#FFF0F6"},
