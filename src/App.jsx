@@ -693,10 +693,45 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
     setLoading(false);
   }
 
-  function selectChar(ch) {
+  async function selectChar(ch) {
     setCharacter(ch.key);
-    setChatUI([{role:"assistant", text:ch.initMsg, image:ch.key==="jake"||ch.key==="jake_vietnam"}]);
-    setApiMsgs([{role:"assistant", content:ch.initMsg}]);
+    // 이미지 표시 여부
+    const showImage = ch.key === "jake" || ch.key === "jake_vietnam";
+
+    // ✅ 안정적 방법: AI가 직접 첫 메시지 생성
+    // 하드코딩 initMsg 대신 sys(시스템 프롬프트)를 그대로 적용해
+    // 동기(safety/work/vietnam 등)에 맞는 첫 인사를 항상 일관되게 받아옴
+    const charKeyNow = ch.key === "jake_vietnam"
+      ? "jake_vietnam"
+      : `${ch.key}_${lvKey}`;
+    const baseNow = PROMPTS.speak[charKeyNow] || PROMPTS.speak.jake_mid;
+    const motivationCtxNow = motivation && MOTIVATION_HINTS[motivation]
+      ? '\n[학습 동기 맞춤] ' + MOTIVATION_HINTS[motivation] : '';
+    const workplaceCtxNow = (motivation === 'work' && todayWorkplace)
+      ? '\n[오늘의 직장 시나리오] 오늘은\'' + todayWorkplace.situation + '\' 상황을 연습해 보세요. 핵심 표현: \'' + todayWorkplace.expression + '\' — ' + todayWorkplace.tip + '.'
+      : '';
+    const safetyCtxNow = (motivation === 'safety' && todaySafety)
+      ? '\n[오늘의 안전 시나리오] 반드시 첫 대화 시작 시 오늘의 안전 표현을 꺼내주세요. 오늘 상황: \'' + todaySafety.situation + '\'. 핵심 표현: \'' + todaySafety.expression + '\'. 팁: ' + todaySafety.tip + '. "오늘은 \'' + todaySafety.situation + '\' 상황을 같이 연습해봐요! \'' + todaySafety.expression + '\' — 이 표현 알아요?" 형태로 시작하세요.'
+      : '';
+    const keywordCtxNow = todayKeyword
+      ? '\n[오늘의 문화 어휘] 오늘 대화에서\'' + todayKeyword.word + '\' 라는 표현을 자연스럽게 소개해 보세요. 뜻: ' + todayKeyword.meaning + '. 관련 주제: ' + todayKeyword.topic + '.'
+      : '';
+    const sysNow = baseNow + motivationCtxNow + keywordCtxNow + workplaceCtxNow + safetyCtxNow;
+
+    // 로딩 상태 표시 후 AI 첫 메시지 생성
+    setChatUI([{role:"assistant", text:"...", image:showImage, loading:true}]);
+    setLoading(true);
+
+    const firstMsg = await callClaude(
+      [{ role:"user", content:"안녕하세요! 대화를 시작해 주세요." }],
+      sysNow
+    );
+
+    const initUI = [{role:"assistant", text:firstMsg, image:showImage}];
+    const initAPI = [{role:"assistant", content:firstMsg}];
+    setChatUI(initUI);
+    setApiMsgs(initAPI);
+    setLoading(false);
   }
 
   if (!motivation) return (
@@ -763,19 +798,24 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
             <div style={{maxWidth:"78%"}}>
               {m.image&&<div style={{marginBottom:6,borderRadius:12,overflow:"hidden"}}><StreetScene/></div>}
               <div style={{position:"relative"}}>
-                <div style={{background:m.role==="user"?`linear-gradient(135deg,${C.pink},${C.coral})`:`linear-gradient(135deg,${C.teal},${C.sky})`,color:"white",padding:m.role==="assistant"?"9px 36px 9px 12px":"9px 12px",borderRadius:m.role==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",fontSize:14,lineHeight:1.6,wordBreak:"break-word"}}>{m.text}</div>
-                {m.role==="assistant"&&(
-                  <button onPointerDown={()=>{unlock();speak(m.text,`speak-${i}`,character);}} aria-label="음성 재생" style={{position:"absolute",right:4,top:"50%",transform:"translateY(-50%)",background:speaking===`speak-${i}`?"rgba(255,255,255,.5)":"rgba(255,255,255,.25)",border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,WebkitTapHighlightColor:"transparent"}}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      {speaking===`speak-${i}`?<><rect x="5" y="4" width="4" height="16" rx="1.5" fill="white"/><rect x="15" y="4" width="4" height="16" rx="1.5" fill="white"/></>:<><path d="M11 5L6 9H2v6h4l5 4V5z" fill="white"/><path d="M19.07 4.93a10 10 0 010 14.14" stroke="white" strokeWidth="2" strokeLinecap="round"/><path d="M15.54 8.46a5 5 0 010 7.07" stroke="white" strokeWidth="2" strokeLinecap="round"/></>}
-                    </svg>
-                  </button>
-                )}
+                {m.loading
+                  ? <div style={{background:"#f0f0f0",borderRadius:"16px 16px 16px 4px",padding:"9px 14px",color:"#999",fontSize:13}}>첫 인사 준비 중... ✍️</div>
+                  : <>
+                      <div style={{background:m.role==="user"?`linear-gradient(135deg,${C.pink},${C.coral})`:`linear-gradient(135deg,${C.teal},${C.sky})`,color:"white",padding:m.role==="assistant"?"9px 36px 9px 12px":"9px 12px",borderRadius:m.role==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",fontSize:14,lineHeight:1.6,wordBreak:"break-word"}}>{m.text}</div>
+                      {m.role==="assistant"&&(
+                        <button onPointerDown={()=>{unlock();speak(m.text,`speak-${i}`,character);}} aria-label="음성 재생" style={{position:"absolute",right:4,top:"50%",transform:"translateY(-50%)",background:speaking===`speak-${i}`?"rgba(255,255,255,.5)":"rgba(255,255,255,.25)",border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,WebkitTapHighlightColor:"transparent"}}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            {speaking===`speak-${i}`?<><rect x="5" y="4" width="4" height="16" rx="1.5" fill="white"/><rect x="15" y="4" width="4" height="16" rx="1.5" fill="white"/></>:<><path d="M11 5L6 9H2v6h4l5 4V5z" fill="white"/><path d="M19.07 4.93a10 10 0 010 14.14" stroke="white" strokeWidth="2" strokeLinecap="round"/><path d="M15.54 8.46a5 5 0 010 7.07" stroke="white" strokeWidth="2" strokeLinecap="round"/></>}
+                          </svg>
+                        </button>
+                      )}
+                    </>
+                }
               </div>
             </div>
           </div>
         ))}
-        {loading&&<div style={{display:"flex",alignItems:"flex-end",gap:6}}><div style={{fontSize:24}}>👨‍🦱</div><div style={{background:"#f0f0f0",borderRadius:"16px 16px 16px 4px",padding:"9px 14px",color:"#999",fontSize:13}}>입력 중... ✍️</div></div>}
+        {loading&&!chatUI.some(m=>m.loading)&&<div style={{display:"flex",alignItems:"flex-end",gap:6}}><div style={{fontSize:24}}>👨‍🦱</div><div style={{background:"#f0f0f0",borderRadius:"16px 16px 16px 4px",padding:"9px 14px",color:"#999",fontSize:13}}>입력 중... ✍️</div></div>}
         <div ref={chatEnd}/>
       </div>
       <div style={{display:"flex",gap:8,alignItems:"center"}}>
