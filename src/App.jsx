@@ -150,15 +150,11 @@ const TOPICS = [
   {icon:"🏙️", title:"1인 가구 증가", hint:"혼자 사는 사람들이 점점 늘어나고 있다."},
   {icon:"📚", title:"학력 vs 실력", hint:"대학교 졸업장보다 실무 능력을 중시하는 기업이 늘고 있다."},
   {icon:"🤖", title:"AI와 일자리", hint:"인공지능 기술이 발전하면서 사람들의 일자리가 줄어들고 있다."},
-  // ✅ [추가] 이주배경 학습자 관련 주제
   {icon:"🌏", title:"이주배경 학생과 학교 생활", hint:"한국 학교에서 처음 생활할 때 어려운 점이 있다."},
   {icon:"🏭", title:"직장 속 한국어", hint:"한국 직장에서 한국어로 소통하는 것이 중요하다."},
 ];
 
-// 문화 어휘 키워드 뱅크 (요일별 순환)
-// ✅ [추가] K드라마 문화 개념어 + 외국인용 어원 한자어 패키지 추가
 const CULTURAL_KEYWORDS = [
-  // 기존 — 한국 문화 어휘
   {word:"먹방",  level:"3~4급", meaning:"음식을 먹는 모습을 보여주는 방송", topic:"SNS·유튜브 문화"},
   {word:"웹툰",  level:"3~4급", meaning:"인터넷에서 보는 만화", topic:"한국 디지털 콘텐츠"},
   {word:"치맥",  level:"3~4급", meaning:"치킨과 맥주를 함께 먹는 문화", topic:"한국 음식 문화"},
@@ -166,7 +162,6 @@ const CULTURAL_KEYWORDS = [
   {word:"길거리 응원", level:"3~4급", meaning:"거리에서 함께 모여 응원하는 문화", topic:"한국 스포츠 문화"},
   {word:"눈치껏", level:"4~5급", meaning:"상황을 보고 스스로 알아서", topic:"한국 직장·사회"},
   {word:"대세",  level:"3~4급", meaning:"요즘 가장 인기 있는 사람이나 것", topic:"트렌드·연예"},
-  // ✅ K드라마 문화 개념어 (드라마에서 자주 나오는 표현)
   {word:"오빠",  level:"2~3급", meaning:"여자가 남자 형이나 친한 남자에게 부르는 말. 드라마에서 자주 등장", topic:"K드라마·인간관계", etym:"오빠(oppa) — 한국 드라마에서 세계적으로 유명해진 표현"},
   {word:"정(情)", level:"4~5급", meaning:"오랜 시간 함께하며 생기는 따뜻한 감정. 한국인의 핵심 정서", topic:"K드라마·한국 정서", etym:"情(정) — 감정(感情)·우정(友情)·열정(熱情)에도 쓰여요"},
   {word:"빨리빨리", level:"3~4급", meaning:"한국 사람들의 빠른 속도를 중시하는 문화", topic:"K드라마·한국 사회"},
@@ -174,7 +169,6 @@ const CULTURAL_KEYWORDS = [
   {word:"현타",  level:"3~4급", meaning:"현실 자각 타임. 갑자기 현실을 깨닫는 순간", topic:"K드라마·신조어"},
   {word:"설레다", level:"3~4급", meaning:"기대와 떨림이 함께 느껴지는 감정. 드라마 로맨스의 핵심 표현", topic:"K드라마·감정"},
   {word:"최애",  level:"3~4급", meaning:"가장 좋아하는 것·사람. K팝·드라마 팬들이 자주 씀", topic:"K팝·K드라마"},
-  // ✅ 외국인용 어원 한자어 패키지 (한국인도 헷갈리는 표현)
   {word:"심심한 사과", level:"5~6급", meaning:"'심심하다'는 여기서 '매우 깊다'는 뜻. 깊이 있는 사과라는 의미", topic:"어원 한자어·문해력", etym:"甚深(심심) — 깊을 심(深). '심해(深海·깊은 바다)'와 같은 한자"},
   {word:"금일",  level:"4~5급", meaning:"오늘. '금(今)'은 지금·오늘이라는 뜻의 한자어", topic:"어원 한자어·공문서", etym:"今日(금일) — 금년(今年·올해)·금방(今方·방금)에도 같은 今 사용"},
   {word:"우천시", level:"4~5급", meaning:"비가 올 때. 공지·안내문에서 자주 나오는 한자어 표현", topic:"어원 한자어·생활", etym:"雨天時(우천시) — 우산(雨傘)·우기(雨期)의 雨(비 우)"},
@@ -183,7 +177,6 @@ const CULTURAL_KEYWORDS = [
 ];
 const todayKeyword = CULTURAL_KEYWORDS[new Date().getDay() % CULTURAL_KEYWORDS.length];
 
-// 직장 생활 시나리오 뱅크 (요일별 순환)
 const WORKPLACE_SCENARIOS = [
   {situation:"회의 반대 의견", level:"3~4급", expression:"저는 조금 다르게 생각하는데요, 혹시 ~는 어떨까요?", tip:"부드러운 의견 제시 — 직접 반박보다 대안 제안"},
   {situation:"동료 업무 부탁", level:"3~4급", expression:"바쁘신 거 알지만, 혹시 이것 좀 도와주실 수 있을까요?", tip:"'혹시'+'~실 수 있을까요?' 조합이 가장 자연스러운 부탁 표현"},
@@ -195,7 +188,6 @@ const WORKPLACE_SCENARIOS = [
 ];
 const todayWorkplace = WORKPLACE_SCENARIOS[new Date().getDay() % WORKPLACE_SCENARIOS.length];
 
-// ✅ [추가 #7] 산업 현장 안전 한국어 시나리오 뱅크
 const SAFETY_SCENARIOS = [
   {situation:"안전모 착용", expression:"여기서는 반드시 안전모를 써야 해요!", tip:"'반드시'는 꼭 해야 할 때 쓰는 강조 표현"},
   {situation:"위험 구역 경고", expression:"저쪽은 위험 구역이에요. 들어가면 안 돼요!", tip:"'~면 안 돼요'는 금지를 부드럽게 말하는 표현"},
@@ -252,7 +244,6 @@ const PROMPTS = {
 [특징] "왜요?", "그럼 어떻게 해요?", "그게 뭐예요? 🌟"
 [✅코드 스위칭 대응] 학습자가 다른 나라 말을 섞어 쓰면 "그건 한국어로 어떻게 해요? 저도 배우고 싶어요! 🌟" 형태로 자연스럽게 이어줘.
 [이모지] 🎈😊🌟`,
-    // ✅ [추가 #10] 베트남어권 특화 시나리오
     jake_vietnam:`너의 이름은 '제이크(Jake)', 활기차고 트렌디한 20대 한국인 대학생 친구다.
 대상: 베트남어권 TOPIK 3~4급 학습자.
 [말투] 자연스러운 해요체 구어체. "어~ 진짜요?", "대박!", "맞아 맞아요!" 등 리액션 활용.
@@ -306,7 +297,6 @@ const PROMPTS = {
 [보상] 완성 시 학습자 표현을 인용해 가족·고향·한국 문화와 연결한 진심 어린 찬사.
 [금기] 영혼 없는 칭찬 금지. 정체성 혼란 부추기기 금지. 완성 문장 먼저 제시 금지.
 [시작] "안녕하세요 😊 저는 마중이에요. 가족과 한국어로 나누고 싶은 이야기가 있나요? 어떤 말을 제일 먼저 배우고 싶으세요?"`,
-  // ✅ [추가 #9] 생존형 학습자 마중 (비자/TOPIK 2급)
   tutorSurvival:`[페르소나] 이름: 마중(Majung). 절박한 순간에 곁에 있어주는 실질적인 조력자.
 [대상] 비자 연장·취업·TOPIK 2급 취득이 절박하게 필요한 학습자.
 [철학] 공감 먼저, 실질적 도움 바로. 막연한 위로 대신 "이거 같이 해요, 충분히 할 수 있어요!" 성취 경험 중심.
@@ -395,7 +385,6 @@ function fileToBase64(file) {
   });
 }
 
-// ✅ [추가 #1] 논술 피드백 깊이 선택 3단계 시스템 프롬프트 생성 함수
 function buildWriteEvalSys(level, depth = "normal") {
   const isAdv = level === "adv";
   const depthInstruction = {
@@ -419,7 +408,7 @@ function buildWriteEvalSys(level, depth = "normal") {
 4. [응원 메시지 💪] 동기부여로 마무리
 5. [어휘 맥락 코칭 🔤] 격식·비격식 어휘 사용 맥락 점검. 관용구·사자성어 활용이 자연스러운지 확인. 더 고급스러운 표현 1가지 제안.
 6. [✅어원 코칭 📖] 학습자가 쓴 한자어 1개의 어원 계열 단어를 자연스럽게 소개. 예: '안전(安全)' → '안(安)은 편안(便安)·불안(不安)·보안(保安)에도 쓰여요!'`;
-  
+
   return `너는 한국어 쓰기 평가 전문가 AI '마중'이야.
 학습자가 제출한 글을 읽고, TOPIK 쓰기 평가 기준을 바탕으로 따뜻하고 구체적인 피드백을 줘.
 [깊이 지침] ${depthInstruction}
@@ -493,6 +482,13 @@ const TTS_PROFILES = {
   default:{ rate:1.0,  pitch:1.0,  volume:1.0 },
 };
 
+// ============================================================
+// ✅ V122 핵심 수정: useTTS — Android Chrome 묵음 버그 완전 수정
+// 수정 내용:
+//   1. voices 로드 대기 (onvoiceschanged) — 모바일 핵심 원인
+//   2. speak() 이후에 pause/resume 실행 (기존 순서 역전 버그 수정)
+//   3. Android 전용 처리 (iOS 영향 없음)
+// ============================================================
 function useTTS() {
   const [speaking, setSpeaking] = useState(null);
   const [ttsHint,  setTtsHint]  = useState(false);
@@ -522,6 +518,7 @@ function useTTS() {
     s.speak(u); unRef.current = true;
   }, []);
 
+  // ✅ V122 수정된 speak 함수
   const speak = useCallback((text, idx, character = "default") => {
     const s = window.speechSynthesis;
     if (!s) { setTtsHint(true); setTimeout(() => setTtsHint(false), 3000); return; }
@@ -529,26 +526,60 @@ function useTTS() {
     s.cancel();
     const tts = cleanTTS(text.replace(/같이/g, "가치").replace(/굳이/g, "구지"));
     if (!tts) return;
-    const profile = TTS_PROFILES[character] || TTS_PROFILES.default;
-    const isQ = /[?？]/.test(text);
-    const u = new SpeechSynthesisUtterance(tts);
-    u.lang   = "ko-KR";
-    u.volume = profile.volume;
-    u.rate   = profile.rate  * (isQ ? 0.93 : 1.0);
-    u.pitch  = profile.pitch * (isQ ? 1.12 : 1.0);
-    const { male, female, fallback } = voicesRef.current;
-    if      (character === "jake")   u.voice = male   || fallback;
-    else if (character === "miso")   u.voice = female || fallback;
-    else if (character === "haneul") u.voice = female || fallback;
-    else                             u.voice = fallback;
-    u.onstart = () => { setSpeaking(idx); setTtsHint(false); };
-    u.onend   = () => setSpeaking(null);
-    u.onerror = (e) => {
-      setSpeaking(null);
-      if (e.error !== "interrupted") { setTtsHint(true); setTimeout(() => setTtsHint(false), 4000); }
+
+    const doSpeak = () => {
+      const profile = TTS_PROFILES[character] || TTS_PROFILES.default;
+      const isQ = /[?？]/.test(text);
+      const u = new SpeechSynthesisUtterance(tts);
+      u.lang   = "ko-KR";
+      u.volume = profile.volume;
+      u.rate   = profile.rate  * (isQ ? 0.93 : 1.0);
+      u.pitch  = profile.pitch * (isQ ? 1.12 : 1.0);
+      const { male, female, fallback } = voicesRef.current;
+      if      (character === "jake")   u.voice = male   || fallback;
+      else if (character === "miso")   u.voice = female || fallback;
+      else if (character === "haneul") u.voice = female || fallback;
+      else                             u.voice = fallback;
+
+      u.onstart = () => { setSpeaking(idx); setTtsHint(false); };
+      u.onend   = () => setSpeaking(null);
+      u.onerror = (e) => {
+        setSpeaking(null);
+        if (e.error !== "interrupted") { setTtsHint(true); setTimeout(() => setTtsHint(false), 4000); }
+      };
+
+      // ✅ speak() 먼저 실행
+      s.speak(u);
+
+      // ✅ Android Chrome 묵음 버그 수정: speak() 이후 50ms에 pause/resume
+      // (기존 코드는 speak() 전에 실행되어 효과 없었음)
+      if (/android/i.test(navigator.userAgent)) {
+        setTimeout(() => {
+          if (s.speaking) { s.pause(); s.resume(); }
+        }, 50);
+      }
     };
-    if (/iphone|ipad|ipod|android/i.test(navigator.userAgent)) setTimeout(() => { s.pause(); s.resume(); }, 100);
-    s.speak(u);
+
+    // ✅ voices 로드 대기 — Android/iOS에서 voices가 늦게 로드되는 문제 해결
+    const voices = s.getVoices();
+    if (voices.length > 0) {
+      doSpeak();
+    } else {
+      // voices 아직 없으면 로드 완료 후 실행
+      s.onvoiceschanged = () => {
+        s.onvoiceschanged = null;
+        // ref도 함께 업데이트
+        const vs = s.getVoices().filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
+        const male = vs.find(v => /male|남성|hyun|jun|min/i.test(v.name))
+                  || vs.find(v => /google.*ko|ko.*google/i.test(v.name) && !/yuna|female|여/i.test(v.name));
+        const female = vs.find(v => /yuna|female|여성/i.test(v.name))
+                    || vs.find(v => /google/i.test(v.name));
+        voicesRef.current = { male: male || vs[0], female: female || vs[0], fallback: vs[0] || null };
+        doSpeak();
+      };
+      // 1초 후에도 onvoiceschanged 미발생 시 강제 실행 (일부 Android 대비)
+      setTimeout(doSpeak, 1000);
+    }
   }, [speaking]);
 
   return { speaking, ttsHint, unlock, speak };
@@ -608,7 +639,6 @@ const CHARS = [
   {key:"haneul",emoji:"🎒", name:"하늘이",     sub:"귀여운 어린이 친구",  color:C.yellow, bg:"#FFFBEB", initMsg:"안녕하세요~! 🎈 나는 하늘이예요! 같이 놀아요! 오늘 뭐 했어요?"},
 ];
 
-// ✅ [추가 #10] 베트남어권 특화 캐릭터
 const CHARS_VIETNAM = [
   {key:"jake_vietnam", emoji:"👦", name:"제이크 (베트남 특화)", sub:"한-베트남 문화 브릿지", color:C.sky, bg:"#EBF8FF", initMsg:"안녕하세요! 😊 저 제이크예요! 베트남에서 오셨어요? 반가워요! 베트남 음식 중에 뭘 제일 좋아해요?"},
 ];
@@ -670,11 +700,8 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
     family:  "학습자는 가족·친구·일상 대화를 배우고 싶어해요. 일상적인 상황(식사, 주말 계획, 날씨, 감정 표현)을 주제로 친근하게 대화해 주세요.",
     culture: "학습자는 한국 문화·여행에 관심이 있어요. 한국 음식, 관광지, 전통 풍습, 한국인의 생활 방식을 주제로 대화하고 관련 어휘를 소개해 주세요.",
     study:   "학습자는 TOPIK 시험·학업을 목표로 해요. 학습에 도움이 되는 표현과 어휘를 사용하고, 틀린 표현이 있으면 TOPIK 기준에 맞게 부드럽게 교정해 주세요.",
-    // ✅ [추가 #7] 산업 현장 안전 한국어
     safety:  `학습자는 제조·건설·조선 등 산업 현장에서 일하고 있어요. 안전 한국어 표현을 자연스럽게 연습시켜 주세요. 오늘의 안전 시나리오: '${todaySafety.situation}' — 핵심 표현: '${todaySafety.expression}' (팁: ${todaySafety.tip}). 작업 지시·안전 수칙·응급 상황 표현을 실제처럼 연습시켜 주세요. 오늘 작업 순서를 한국어로 설명해보라고 부탁해 보세요.`,
-    // ✅ [추가 #10] 베트남어권 특화
     vietnam: "학습자는 베트남어권 학습자예요. 한-베트남 공통 정서를 활용한 문화 브릿지 대화를 이끌어 주세요. 콩쥐팥쥐와 베트남의 비슷한 이야기 비교, 설날 비교, 한국 음식과 베트남 음식 비교 등 자연스러운 문화 연결 질문을 대화 중에 녹여주세요.",
-    // ✅ [추가 중기과제 #2] K-전통문화 역할극
     folk: "학습자는 한국 전래동화·전통문화에 관심이 있어요. 흥부와 놀부·콩쥐팥쥐·선녀와 나무꾼 등 전래동화 캐릭터의 감정과 상황을 소재로 자연스럽게 대화를 이끌어 주세요. '흥부처럼 착한 마음이 있나요?', '콩쥐 같은 경험 있어요?' 형태로 학습자 경험과 연결하세요. 전통 어휘(박, 제비, 도깨비방망이 등)도 자연스럽게 소개해 주세요.",
   };
 
@@ -688,7 +715,6 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
   const workplaceCtx = (motivation === 'work' && todayWorkplace)
     ? '\n[오늘의 직장 시나리오] 오늘은 \''+todayWorkplace.situation+'\' 상황을 연습해 보세요. 핵심 표현: \''+todayWorkplace.expression+'\' — '+todayWorkplace.tip+'.'
     : '';
-  // ✅ safetyCtx 추가 — 산업 현장 안전 한국어 첫 대화부터 안전 표현 주입
   const safetyCtx = (motivation === 'safety' && todaySafety)
     ? '\n[오늘의 안전 시나리오] 반드시 첫 대화 시작 시 오늘의 안전 표현을 꺼내주세요. 오늘 상황: \''+todaySafety.situation+'\'. 핵심 표현: \''+todaySafety.expression+'\'. 팁: '+todaySafety.tip+'. 예시: "오늘은 \''+todaySafety.situation+'\' 상황을 같이 연습해봐요! \''+todaySafety.expression+'\' — 이 표현 알아요?" 형태로 자연스럽게 시작하세요.'
     : '';
@@ -723,7 +749,6 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
     if (mot === 'vietnam') {
       return '안녕하세요! 😊 저 제이크예요! 베트남에서 오셨어요? 반가워요! 🇻🇳 베트남 음식 중에 뭘 제일 좋아해요?';
     }
-    // ✅ [추가 중기과제 #2] K-전통문화 역할극
     if (mot === 'folk') {
       const name = ch.key === 'haneul' ? '하늘이' : ch.key === 'miso' ? '미소 선생님' : '제이크';
       return '안녕하세요! 😊 저 ' + name + '예요! 오늘은 한국 전래동화로 한국어 연습해봐요! 🎎\n\n흥부와 놀부, 콩쥐팥쥐 들어봤어요?\n\n"흥부는 착하고, 놀부는 욕심이 많아요."\n\n이 이야기에서 좋아하는 캐릭터가 있어요? 😊';
@@ -752,11 +777,8 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
         {key:"family",  emoji:"👨‍👩‍👧", label:"가족 · 친구 · 일상",   color:C.sky,    bg:"#EBF8FF"},
         {key:"culture", emoji:"🏛️", label:"한국 문화 · 여행",     color:C.orange, bg:"#FFF3E8"},
         {key:"study",   emoji:"📚", label:"TOPIK · 학업 · 진학",  color:C.purple, bg:"#F5F0FF"},
-        // ✅ [추가 #7] 산업 현장 안전 한국어
         {key:"safety",  emoji:"⛑️", label:"현장 안전 한국어",     color:"#E53935", bg:"#FFF5F5", sub:`오늘: ${todaySafety.situation}`},
-        // ✅ [추가 #10] 베트남어권 특화
         {key:"vietnam", emoji:"🇻🇳", label:"베트남 특화 대화",     color:"#1565C0", bg:"#E8F0FE", sub:"한-베트남 문화 연결"},
-        // ✅ [추가 중기과제 #2] K-전통문화 역할극
         {key:"folk",    emoji:"🎎", label:"한국 전래동화 · 전통",  color:"#6D4C41", bg:"#FBF0E4", sub:"흥부놀부·콩쥐팥쥐 역할극"},
       ].map(m => (
         <button key={m.key} onClick={()=>setMotivation(m.key)} style={{width:"100%",marginBottom:10,background:m.bg,border:`2px solid ${m.color}55`,borderRadius:16,padding:"14px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
@@ -846,7 +868,6 @@ function WriteTab({level, uid}) {
   const [submitFile,  setSubmitFile]  = useState(null);
   const [submitLoad,  setSubmitLoad]  = useState(false);
   const [submitFeed,  setSubmitFeed]  = useState(null);
-  // ✅ [추가 #1] 논술 피드백 깊이 선택
   const [feedDepth,   setFeedDepth]   = useState("normal");
   const fileRef = useRef(null);
   const writeSys = PROMPTS.write[level || "mid"];
@@ -959,8 +980,6 @@ function WriteTab({level, uid}) {
   if (mode === "submit") return (
     <div style={{padding:"8px 0"}}>
       <button onClick={()=>{setMode(null);setSubmitFile(null);setSubmitFeed(null);if(fileRef.current)fileRef.current.value="";}} style={{background:"none",border:"none",color:C.pink,fontWeight:700,fontSize:13,cursor:"pointer",marginBottom:12,padding:0}}>← 뒤로</button>
-      
-      {/* ✅ [추가 #1] 피드백 깊이 선택 UI */}
       <div style={{background:"white",borderRadius:16,padding:"14px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:10}}>
         <div style={{fontSize:13,fontWeight:800,color:"#555",marginBottom:10}}>📊 피드백 깊이 선택</div>
         <div style={{display:"flex",gap:8}}>
@@ -977,7 +996,6 @@ function WriteTab({level, uid}) {
           ))}
         </div>
       </div>
-
       <div style={{background:"white",borderRadius:16,padding:"14px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:10}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
           <div style={{width:28,height:28,borderRadius:"50%",background:C.teal,color:"white",fontWeight:900,fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>①</div>
@@ -1142,7 +1160,7 @@ function TutorTab({level, uid}) {
   const tutorEnd = useRef(null);
   const sys = tutorType === 'adv'      ? PROMPTS.tutorAdv :
               tutorType === 'heritage' ? PROMPTS.tutorHeritage :
-              tutorType === 'survival' ? PROMPTS.tutorSurvival :  // ✅ [추가 #9]
+              tutorType === 'survival' ? PROMPTS.tutorSurvival :
               tutorType === 'mid'      ? PROMPTS.tutor :
               level === "adv"          ? PROMPTS.tutorAdv : PROMPTS.tutor;
 
@@ -1153,7 +1171,7 @@ function TutorTab({level, uid}) {
     const first =
       tutorType === 'adv'      ? "안녕하십니까, 학습자님. 저는 마중입니다. 오늘은 어떤 주제와 씨름해 보시겠습니까?" :
       tutorType === 'heritage' ? "안녕하세요 😊 저는 마중이에요. 가족과 한국어로 나누고 싶은 이야기가 있나요? 어떤 말을 제일 먼저 배우고 싶으세요?" :
-      tutorType === 'survival' ? "안녕하세요 😊 저는 마중이에요. 지금 가장 급한 게 뭐예요? 같이 해낼 수 있어요. 충분히 가능해요!" :  // ✅ [추가 #9]
+      tutorType === 'survival' ? "안녕하세요 😊 저는 마중이에요. 지금 가장 급한 게 뭐예요? 같이 해낼 수 있어요. 충분히 가능해요!" :
       "안녕하세요, 학습자님 😊 저는 마중이에요.\n오늘은 어떤 글을 함께 써볼까요?\n상황을 알려주시면 딱 맞는 조력자가 되어 드릴게요.";
     setTutorUI([{role:"assistant", text:first}]);
     setTutorMsgs([{role:"assistant", content:first}]);
@@ -1186,7 +1204,6 @@ function TutorTab({level, uid}) {
         {key:"mid",      emoji:"🌱", label:"TOPIK 3~4급",       sub:"중급 수준 논술 연습",          color:C.teal,   bg:"#E8FAF8"},
         {key:"adv",      emoji:"🔥", label:"TOPIK 5~6급",       sub:"고급 글쓰기 심화 담론",        color:C.pink,   bg:"#FFF0F6"},
         {key:"heritage", emoji:"🏷️", label:"재외동포 2·3세",    sub:"가족·뿌리와 연결되고 싶어요",  color:C.coral,  bg:"#FFF3F0"},
-        // ✅ [추가 #9] 생존형 학습자
         {key:"survival", emoji:"⚡", label:"비자·취업 긴급 준비", sub:"TOPIK 2급 · 비자연장 절박해요", color:"#F57C00", bg:"#FFF8E1"},
       ].map(t => (
         <button key={t.key} onClick={()=>setTutorType(t.key)} style={{width:"100%",marginBottom:12,background:t.bg,border:`2px solid ${t.color}55`,borderRadius:18,padding:"16px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
@@ -1280,8 +1297,6 @@ export default function App() {
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
       <div style={{fontSize:14,color:"#888",marginBottom:8,textAlign:"center"}}>안녕하세요, {user.displayName||user.email}님! 👋</div>
       <div style={{fontSize:13,color:"#bbb",marginBottom:24}}>한국어 수준을 선택해 주세요</div>
-
-      {/* ✅ [추가 #8] 온보딩 포지셔닝 강화 — 듀오링고/모두의 한국어 → 한글 친구 학습 경로 */}
       <div style={{background:"white",border:`1.5px solid ${C.teal}44`,borderRadius:14,padding:"12px 16px",marginBottom:16,maxWidth:340,width:"100%",boxShadow:"0 2px 12px rgba(78,205,196,.1)"}}>
         <div style={{fontSize:11,fontWeight:800,color:C.teal,marginBottom:6}}>🔗 나에게 맞는 학습 경로</div>
         <div style={{fontSize:12,color:"#555",lineHeight:1.7}}>
@@ -1290,7 +1305,6 @@ export default function App() {
           <span style={{fontSize:11,color:"#aaa"}}>인풋(읽기·듣기) 완성 → 아웃풋(말하기·쓰기) 훈련</span>
         </div>
       </div>
-
       {[
         {key:"mid",emoji:"🌱",label:"중급",sub:"TOPIK 3~4급",desc:"고유어 위주 짧은 문장\n일상 대화 중심",color:C.teal,bg:"#E8FAF8"},
         {key:"adv",emoji:"🔥",label:"고급",sub:"TOPIK 5~6급",desc:"한자어·사자성어·관용구\n사회·문화 심화 대화",color:C.pink,bg:"#FFF0F6"},
