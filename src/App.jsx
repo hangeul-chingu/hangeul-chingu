@@ -547,16 +547,15 @@ function useTTS() {
       s.speak(u);
 
       // ✅ V122 수정 2: Android Chrome 묵음 버그 수정
-      // 200ms → 500ms + keepAlive (긴 문장 중간 멈춤 방지)
+      // pause/resume 타이머 방식 제거 → keepAlive 단독 방식으로 변경
+      // 100ms마다 paused 상태 감지 후 즉시 resume — 중간 멈춤 완전 대응
       if (/android/i.test(navigator.userAgent)) {
-        setTimeout(() => {
-          if (s.speaking) { s.pause(); s.resume(); }
-        }, 500);
-        // 1초마다 paused 상태 감지 후 resume — Android 중간 멈춤 버그 대응
         const keepAlive = setInterval(() => {
-          if (s.speaking && s.paused) s.resume();
-          if (!s.speaking) clearInterval(keepAlive);
-        }, 1000);
+          if (!s.speaking) { clearInterval(keepAlive); return; }
+          if (s.paused) s.resume();
+        }, 100);
+        // 60초 후 강제 종료 (무한루프 방지)
+        setTimeout(() => clearInterval(keepAlive), 60000);
       }
     };
 
