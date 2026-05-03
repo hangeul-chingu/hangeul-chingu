@@ -22,261 +22,6 @@ const C = {
   purple:"#C3B1E1", bg:"#FFF8F2",
 };
 
-// ============================================================
-// ✅ V122 추가 1: 역량 태그 맵 (목표역량-활동-평가 정렬)
-// 교수님 피드백: "목표 역량과 활동, 평가의 정렬성을 루브릭 수준으로 명확히"
-// ============================================================
-const RUBRIC_TAGS = {
-  mid: [
-    { key:"connector",  label:"접속어 사용",    emoji:"🔗", color:"#4ECDC4", desc:"왜냐하면·그래서·그런데 등 연결어 사용" },
-    { key:"structure",  label:"현상→생각→이유", emoji:"🏗️", color:"#FF8C42", desc:"3단계 논술 구조 완성도" },
-    { key:"vocab",      label:"중급 어휘",       emoji:"📖", color:"#74C0FC", desc:"TOPIK 3~4급 어휘 적절 사용" },
-    { key:"grammar",    label:"문법 정확도",     emoji:"✏️", color:"#FF6B9D", desc:"연결어미·종결어미·높임법" },
-    { key:"content",    label:"주제 일관성",     emoji:"🎯", color:"#C3B1E1", desc:"일상·사회적 주제 자신의 생각 표현" },
-  ],
-  adv: [
-    { key:"argument",   label:"주장-근거-예시",  emoji:"⚖️", color:"#FF6B9D", desc:"논설문 완성도: 주장·근거·예시 갖춤" },
-    { key:"structure",  label:"서론-본론-결론",  emoji:"🏗️", color:"#FF8C42", desc:"고급 논술 단락 구조" },
-    { key:"highvocab",  label:"고급 어휘",        emoji:"📚", color:"#4ECDC4", desc:"전문어·관용어·사자성어 활용" },
-    { key:"grammar",    label:"복잡문법",         emoji:"✏️", color:"#74C0FC", desc:"복잡한 문법 구조 정확 사용" },
-    { key:"logic",      label:"논리 흐름",        emoji:"🧠", color:"#C3B1E1", desc:"따라서·이로 인해 등 논증 구조" },
-  ],
-};
-
-// ============================================================
-// ✅ V122 추가 2: 역량 태그 추출 함수
-// 피드백 텍스트에서 루브릭 달성 여부를 자동 감지
-// ============================================================
-function extractRubricTags(feedbackText, level) {
-  if (!feedbackText) return [];
-  const tags = RUBRIC_TAGS[level === "adv" ? "adv" : "mid"];
-  const achieved = [];
-  const patterns = {
-    // mid
-    connector:  /접속어|왜냐하면|그래서|그런데|연결어/,
-    structure:  /현상.*생각.*이유|3단계|구조.*완성|흐름.*자연/,
-    vocab:      /어휘.*적절|중급.*어휘|단어.*다양|잘 사용/,
-    grammar:    /문법.*정확|높임법.*적절|어미.*바르게|문법.*좋/,
-    content:    /주제.*일관|내용.*명확|자신의 생각|의견.*잘/,
-    // adv
-    argument:   /주장.*근거|논거.*명확|예시.*풍부|논증/,
-    highvocab:  /고급.*어휘|사자성어|관용구|전문.*용어/,
-    logic:      /논리.*흐름|따라서|이로 인해|논증.*구조/,
-  };
-  for (const tag of tags) {
-    if (patterns[tag.key] && patterns[tag.key].test(feedbackText)) {
-      achieved.push(tag);
-    }
-  }
-  // 최소 2개는 보장 (빈 화면 방지)
-  if (achieved.length < 2) {
-    const extras = tags.filter(t => !achieved.includes(t)).slice(0, 2 - achieved.length);
-    achieved.push(...extras);
-  }
-  return achieved;
-}
-
-// ============================================================
-// ✅ V122 추가 3: 역량 태그 배지 컴포넌트
-// ============================================================
-function RubricBadges({ feedbackText, level, accentColor }) {
-  const tags = extractRubricTags(feedbackText, level);
-  if (!tags.length) return null;
-  return (
-    <div style={{
-      background: "linear-gradient(135deg,#F0FFF8,#E8F4FE)",
-      border: `1.5px solid ${accentColor}44`,
-      borderRadius: 14,
-      padding: "12px 14px",
-      marginBottom: 12,
-    }}>
-      <div style={{ fontSize: 11, fontWeight: 800, color: accentColor, marginBottom: 8, letterSpacing: 0.5 }}>
-        🏆 이번 글에서 달성한 역량
-      </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-        {tags.map((tag, i) => (
-          <div key={i} style={{
-            display: "flex", alignItems: "center", gap: 5,
-            background: `${tag.color}18`,
-            border: `1.5px solid ${tag.color}55`,
-            borderRadius: 20, padding: "5px 10px",
-          }}>
-            <span style={{ fontSize: 13 }}>{tag.emoji}</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: tag.color }}>{tag.label}</span>
-            <span style={{
-              fontSize: 10, color: "white", fontWeight: 800,
-              background: tag.color, borderRadius: "50%",
-              width: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center",
-            }}>✓</span>
-          </div>
-        ))}
-      </div>
-      <div style={{ fontSize: 11, color: "#aaa", marginTop: 8 }}>
-        💡 부족한 역량은 하이터치 튜터와 함께 보완해봐요!
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// ✅ V122 추가 4: 성장 리포트 카드 (학습 향상 분석 구조)
-// 교수님 피드백: "말하기·쓰기 능력이 어떤 지표로 향상되었는지 분석 구조"
-// ============================================================
-function GrowthReport({ stats }) {
-  if (!stats) return null;
-  const speak = stats.speak || 0;
-  const write = stats.write || 0;
-  const tutor = stats.tutor || 0;
-  const total = speak + write + tutor;
-
-  // 레벨 산정 (TOPIK 급수 기반)
-  function getGrowthLevel(count, type) {
-    if (type === "speak") {
-      if (count >= 30) return { label: "TOPIK 4급 수준 발화", color: C.pink, bar: 100 };
-      if (count >= 15) return { label: "TOPIK 3급 수준 발화", color: C.orange, bar: 65 };
-      if (count >= 5)  return { label: "기초 발화 형성 중",   color: C.yellow, bar: 30 };
-      return { label: "발화 시작 단계", color: "#ccc", bar: Math.max(5, (count/5)*30) };
-    }
-    if (type === "write") {
-      if (count >= 10) return { label: "논술 구조 숙달",      color: C.teal,   bar: 100 };
-      if (count >= 5)  return { label: "현상→생각→이유 완성", color: C.sky,    bar: 60 };
-      if (count >= 2)  return { label: "쓰기 구조 학습 중",   color: C.yellow, bar: 30 };
-      return { label: "쓰기 시작 단계", color: "#ccc", bar: Math.max(5, (count/2)*30) };
-    }
-    if (type === "tutor") {
-      if (count >= 10) return { label: "자기주도 수정 완성",  color: C.purple, bar: 100 };
-      if (count >= 5)  return { label: "힌트 기반 발견 단계", color: C.pink,   bar: 60 };
-      if (count >= 2)  return { label: "비계 학습 시작",      color: C.yellow, bar: 30 };
-      return { label: "튜터 시작 단계", color: "#ccc", bar: Math.max(5, (count/2)*30) };
-    }
-    return { label: "시작 단계", color: "#ccc", bar: 5 };
-  }
-
-  const speakLv = getGrowthLevel(speak, "speak");
-  const writeLv = getGrowthLevel(write, "write");
-  const tutorLv = getGrowthLevel(tutor, "tutor");
-
-  // 다음 목표
-  function getNextGoal(count, type) {
-    if (type === "speak") {
-      if (count < 5)  return `프리토킹 ${5 - count}회 더 → 기초 발화 형성!`;
-      if (count < 15) return `프리토킹 ${15 - count}회 더 → TOPIK 3급 수준 발화!`;
-      if (count < 30) return `프리토킹 ${30 - count}회 더 → TOPIK 4급 수준 발화!`;
-      return "🎉 발화 목표 달성! 원어민 연결 가능!";
-    }
-    if (type === "write") {
-      if (count < 2)  return `논술 ${2 - count}편 더 → 구조 학습 시작!`;
-      if (count < 5)  return `논술 ${5 - count}편 더 → 현상→생각→이유 완성!`;
-      if (count < 10) return `논술 ${10 - count}편 더 → 논술 구조 숙달!`;
-      return "🎉 논술 목표 달성!";
-    }
-    if (type === "tutor") {
-      if (count < 2)  return `하이터치 ${2 - count}회 더 → 비계 학습 시작!`;
-      if (count < 5)  return `하이터치 ${5 - count}회 더 → 힌트 기반 발견!`;
-      if (count < 10) return `하이터치 ${10 - count}회 더 → 자기주도 수정 완성!`;
-      return "🎉 하이터치 목표 달성!";
-    }
-    return "";
-  }
-
-  const items = [
-    { emoji: "🗣️", label: "프리토킹",  count: speak, lv: speakLv, goal: getNextGoal(speak, "speak"),  color: C.pink },
-    { emoji: "✍️", label: "논술",      count: write, lv: writeLv, goal: getNextGoal(write, "write"),  color: C.teal },
-    { emoji: "🎓", label: "하이터치",  count: tutor, lv: tutorLv, goal: getNextGoal(tutor, "tutor"),  color: C.purple },
-  ];
-
-  // 휴먼터치 연결 조건 (프리토킹 15회+ AND 논술 2편+ OR 하이터치 5회+)
-  const humanTouchReady = (speak >= 15 && write >= 2) || tutor >= 5;
-
-  return (
-    <div>
-      {/* 총합 요약 */}
-      <div style={{
-        background: "linear-gradient(135deg,#1a1a2e,#2d1b69)",
-        borderRadius: 16, padding: "16px 18px", marginBottom: 14,
-        display: "flex", alignItems: "center", gap: 14,
-      }}>
-        <div style={{ textAlign: "center", flexShrink: 0 }}>
-          <div style={{ fontSize: 36, fontWeight: 900, color: C.yellow, lineHeight: 1 }}>{total}</div>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,.6)", marginTop: 3 }}>총 학습 횟수</div>
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, color: "white", fontWeight: 700, marginBottom: 4 }}>
-            {total === 0 ? "학습을 시작해봐요! 🌱" :
-             total < 10 ? "첫걸음을 내딛고 있어요! 💪" :
-             total < 30 ? "꾸준히 성장하고 있어요! 🌿" :
-             total < 60 ? "실력이 쑥쑥 늘고 있어요! 🔥" : "대단한 학습자예요! 🏆"}
-          </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,.55)", lineHeight: 1.5 }}>
-            말하기·쓰기·튜터 통합 학습량
-          </div>
-        </div>
-      </div>
-
-      {/* 개별 역량 성장 바 */}
-      {items.map((item, i) => (
-        <div key={i} style={{
-          background: "white", borderRadius: 14, padding: "12px 14px", marginBottom: 10,
-          boxShadow: "0 2px 10px rgba(0,0,0,.06)",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <div style={{ fontSize: 22, flexShrink: 0 }}>{item.emoji}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={{ fontSize: 13, fontWeight: 800, color: "#333" }}>{item.label}</span>
-                <span style={{ fontSize: 18, fontWeight: 900, color: item.color }}>{item.count}회</span>
-              </div>
-              <div style={{ fontSize: 11, color: item.lv.color, fontWeight: 700, marginTop: 1 }}>
-                {item.lv.label}
-              </div>
-            </div>
-          </div>
-          {/* 성장 프로그레스 바 */}
-          <div style={{ background: "#f0f0f0", borderRadius: 10, height: 8, overflow: "hidden", marginBottom: 6 }}>
-            <div style={{
-              width: `${item.lv.bar}%`, height: "100%",
-              background: `linear-gradient(90deg, ${item.color}, ${item.lv.color})`,
-              borderRadius: 10, transition: "width .5s ease",
-            }}/>
-          </div>
-          <div style={{ fontSize: 11, color: "#999", lineHeight: 1.5 }}>🎯 {item.goal}</div>
-        </div>
-      ))}
-
-      {/* 휴먼터치 연결 조건 표시 */}
-      <div style={{
-        background: humanTouchReady ? "linear-gradient(135deg,#E8FAF8,#FFF0F6)" : "#f8f8f8",
-        border: `2px solid ${humanTouchReady ? C.teal : "#e0e0e0"}`,
-        borderRadius: 14, padding: "12px 14px", marginTop: 4,
-      }}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: humanTouchReady ? C.teal : "#bbb", marginBottom: 6 }}>
-          🤝 원어민 1:1 연결 (휴먼터치)
-        </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-          {[
-            { label: `프리토킹 ${speak}/15회`, done: speak >= 15 },
-            { label: `논술 ${write}/2편`, done: write >= 2 },
-            { label: `OR 하이터치 ${tutor}/5회`, done: tutor >= 5 },
-          ].map((cond, i) => (
-            <div key={i} style={{
-              fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 12,
-              background: cond.done ? `${C.teal}22` : "#f0f0f0",
-              color: cond.done ? C.teal : "#bbb",
-              border: `1px solid ${cond.done ? C.teal : "#e0e0e0"}`,
-            }}>
-              {cond.done ? "✓ " : ""}{cond.label}
-            </div>
-          ))}
-        </div>
-        {humanTouchReady
-          ? <div style={{ fontSize: 12, color: C.teal, fontWeight: 700 }}>🎉 조건 달성! KakaoTalk/Line 원어민 연결 가능해요!</div>
-          : <div style={{ fontSize: 11, color: "#aaa" }}>조건 달성 시 한국어 원어민 자원봉사자와 연결돼요</div>
-        }
-      </div>
-    </div>
-  );
-}
-
 const AUTH_ERRORS = {
   "auth/email-already-in-use": "이미 사용 중인 이메일이에요",
   "auth/wrong-password": "비밀번호가 틀렸어요",
@@ -361,13 +106,8 @@ async function recordStat(uid, field) {
   } catch(e) { console.warn("기록 저장 실패", e); }
 }
 
-// ============================================================
-// ✅ V122 수정: StatsModal — 성장 리포트 카드 통합
-// 교수님 피드백: "학습자의 말하기·쓰기 능력이 어떤 지표로 향상되었는지 분석 구조"
-// ============================================================
 function StatsModal({ user, onClose }) {
   const [stats, setStats] = useState(null);
-  const [view,  setView]  = useState("summary"); // "summary" | "growth"
   useEffect(() => {
     getDoc(doc(db, "users", user.uid)).then(d => {
       if (d.exists()) setStats(d.data().stats);
@@ -375,41 +115,24 @@ function StatsModal({ user, onClose }) {
   }, [user.uid]);
 
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:24,overflowY:"auto"}}>
-      <div style={{background:"white",borderRadius:24,padding:24,width:"100%",maxWidth:360,boxShadow:"0 8px 32px rgba(0,0,0,.2)",maxHeight:"90vh",overflowY:"auto"}}>
-        <div style={{textAlign:"center",marginBottom:16}}>
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:24}}>
+      <div style={{background:"white",borderRadius:24,padding:24,width:"100%",maxWidth:340,boxShadow:"0 8px 32px rgba(0,0,0,.2)"}}>
+        <div style={{textAlign:"center",marginBottom:20}}>
           <div style={{fontSize:36,marginBottom:6}}>📊</div>
           <div style={{fontSize:18,fontWeight:900,color:"#333"}}>{user.displayName}님의 학습 기록</div>
         </div>
-
-        {/* 탭 전환 */}
-        <div style={{display:"flex",background:"#f5f5f5",borderRadius:12,padding:4,marginBottom:16}}>
-          {[["summary","요약"],["growth","성장 리포트 📈"]].map(([k,l])=>(
-            <button key={k} onClick={()=>setView(k)} style={{flex:1,padding:"8px 0",border:"none",borderRadius:10,background:view===k?"white":"transparent",fontWeight:view===k?800:500,color:view===k?C.teal:"#999",cursor:"pointer",fontSize:13,transition:"all .2s"}}>{l}</button>
-          ))}
-        </div>
-
-        {view === "summary" && (
-          <>
-            {stats ? (
-              <div style={{display:"flex",gap:12,marginBottom:16}}>
-                {[["🗣️","프리토킹",stats.speak,C.pink],["✍️","논술",stats.write,C.teal],["🎓","하이터치",stats.tutor,C.purple]].map(([e,l,v,c])=>(
-                  <div key={l} style={{flex:1,background:`${c}18`,borderRadius:16,padding:"14px 8px",textAlign:"center"}}>
-                    <div style={{fontSize:24,marginBottom:4}}>{e}</div>
-                    <div style={{fontSize:22,fontWeight:900,color:c}}>{v}</div>
-                    <div style={{fontSize:11,color:"#999",marginTop:2}}>{l}</div>
-                  </div>
-                ))}
+        {stats ? (
+          <div style={{display:"flex",gap:12,marginBottom:20}}>
+            {[["🗣️","프리토킹",stats.speak,C.pink],["✍️","논술",stats.write,C.teal],["🎓","하이터치",stats.tutor,C.purple]].map(([e,l,v,c])=>(
+              <div key={l} style={{flex:1,background:`${c}18`,borderRadius:16,padding:"14px 8px",textAlign:"center"}}>
+                <div style={{fontSize:24,marginBottom:4}}>{e}</div>
+                <div style={{fontSize:22,fontWeight:900,color:c}}>{v}</div>
+                <div style={{fontSize:11,color:"#999",marginTop:2}}>{l}</div>
               </div>
-            ) : <div style={{textAlign:"center",color:"#aaa",padding:"20px 0"}}>불러오는 중...</div>}
-          </>
-        )}
-
-        {view === "growth" && (
-          <GrowthReport stats={stats} />
-        )}
-
-        <button onClick={onClose} style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",marginTop:8}}>닫기</button>
+            ))}
+          </div>
+        ) : <div style={{textAlign:"center",color:"#aaa",padding:"20px 0"}}>불러오는 중...</div>}
+        <button onClick={onClose} style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer"}}>닫기</button>
       </div>
     </div>
   );
@@ -625,22 +348,21 @@ const API_ERRORS = {
   503:"서비스가 일시적으로 불안정해요. 잠시 후 다시 시도해줘! 🔧",
 };
 
+// ============================================================
+// ✅ V122 수정 1: callClaude — /api/chat 프록시로 변경
+// 이유: 브라우저 직접 호출 시 API 키 노출 + 모바일 CORS 불안정
+// ============================================================
 async function callClaude(messages, system) {
   if (!rateLimiter.check()) return "잠깐! 너무 빠르게 보내고 있어요. 잠시 후 다시 시도해줘! 😊";
   try {
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body:JSON.stringify({
-        model:"claude-sonnet-4-6",
-        max_tokens:1000,
+    const r = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
         system,
-        messages:trimHistory(messages),
+        messages: trimHistory(messages),
       }),
     });
     if (!r.ok) return API_ERRORS[r.status] || `오류가 발생했어요. (${r.status})`;
@@ -653,6 +375,9 @@ async function callClaude(messages, system) {
   }
 }
 
+// ============================================================
+// ✅ V122 수정 1-b: evaluateFile — /api/chat 프록시로 변경
+// ============================================================
 function fileToBase64(file) {
   return new Promise((res, rej) => {
     const r = new FileReader();
@@ -723,19 +448,14 @@ async function evaluateFile(file, level, depth = "normal") {
       userContent = [contentBlock, { type:"text", text:"위 글을 평가해 주세요." }];
     }
 
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body:JSON.stringify({
-        model:"claude-sonnet-4-6",
-        max_tokens:1000,
-        system:evalSys,
-        messages:[{ role:"user", content:userContent }],
+    const r = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system: evalSys,
+        messages: [{ role:"user", content:userContent }],
       }),
     });
     if (!r.ok) return API_ERRORS[r.status] || `오류 (${r.status})`;
@@ -759,6 +479,12 @@ const TTS_PROFILES = {
   default:{ rate:1.0,  pitch:1.0,  volume:1.0 },
 };
 
+// ============================================================
+// ✅ V122 핵심 수정: useTTS
+// 수정 1: callClaude /api/chat 프록시 전환 (API 키 보안 + 모바일 안정)
+// 수정 2: Android pause/resume 타이밍 50ms → 200ms (묵음 버그 핵심 원인)
+// 수정 3: unlock 완료 후 speak 실행 (iOS/Android unlock 타이밍 보장)
+// ============================================================
 function useTTS() {
   const [speaking, setSpeaking] = useState(null);
   const [ttsHint,  setTtsHint]  = useState(false);
@@ -816,12 +542,20 @@ function useTTS() {
         setSpeaking(null);
         if (e.error !== "interrupted") { setTtsHint(true); setTimeout(() => setTtsHint(false), 4000); }
       };
+
+      // speak() 먼저 실행
       s.speak(u);
+
+      // ✅ V122 수정 2: Android Chrome 묵음 버그 수정
+      // 50ms → 200ms 로 늘림 (speak() 후 speaking 상태 안정화 대기)
       if (/android/i.test(navigator.userAgent)) {
-        setTimeout(() => { if (s.speaking) { s.pause(); s.resume(); } }, 50);
+        setTimeout(() => {
+          if (s.speaking) { s.pause(); s.resume(); }
+        }, 200);
       }
     };
 
+    // voices 로드 대기 — Android/iOS에서 voices가 늦게 로드되는 문제 해결
     const voices = s.getVoices();
     if (voices.length > 0) {
       doSpeak();
@@ -937,68 +671,6 @@ function TodayTopic({purple}) {
         <div style={{fontSize:14,fontWeight:700,color:"#333"}}>{t.text}</div>
         <div style={{fontSize:11,color:"#aaa",marginTop:2}}>이 주제로 튜터와 이야기해 보세요!</div>
       </div>
-    </div>
-  );
-}
-
-// ============================================================
-// ✅ V122 추가 5: 하이터치 브릿지 버튼 컴포넌트
-// 교수님 피드백: "교사의 개입 지점이 더 분명하게 드러나야 함"
-// 논술 완료/피드백 후 → 마중(하이터치) 자동 연결 유도
-// ============================================================
-function HighTouchBridge({ feedbackText, level, onGoToTutor, weak }) {
-  // 개입 트리거: 피드백에서 "개선"이 2개 이상이거나 weak 플래그 있을 때
-  const needsIntervention = weak || (feedbackText && (feedbackText.match(/개선|보완|부족|필요/g) || []).length >= 2);
-
-  if (!needsIntervention && !feedbackText) return null;
-
-  return (
-    <div style={{
-      background: needsIntervention
-        ? "linear-gradient(135deg,#FFF5FB,#F0FFF8)"
-        : "linear-gradient(135deg,#F0FFF8,#EBF8FF)",
-      border: `2px solid ${needsIntervention ? C.purple : C.teal}`,
-      borderRadius: 16,
-      padding: "14px 16px",
-      marginTop: 14,
-    }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
-        <div style={{ fontSize: 24, flexShrink: 0 }}>🎓</div>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 800, color: needsIntervention ? C.purple : C.teal, marginBottom: 3 }}>
-            {needsIntervention
-              ? "마중 튜터와 함께 보완해봐요!"
-              : "더 깊이 연습하고 싶다면?"}
-          </div>
-          <div style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>
-            {needsIntervention
-              ? "AI 피드백에서 보완이 필요한 부분이 발견됐어요.\n하이터치 마중 튜터가 힌트로 함께 해결해 드려요! 💡"
-              : "이 주제를 더 깊이 써보고 싶으면 마중 튜터와 함께해요.\n정답 대신 힌트로, 스스로 발견하는 글쓰기! ✨"}
-          </div>
-        </div>
-      </div>
-      {/* 개입 트리거 조건 표시 */}
-      {needsIntervention && (
-        <div style={{
-          background: `${C.purple}12`, borderRadius: 10, padding: "8px 12px", marginBottom: 10,
-          fontSize: 12, color: C.purple,
-        }}>
-          💡 <strong>마중 개입 포인트:</strong> 이번 글에서{" "}
-          {level === "adv" ? "논리 구조·고급 어휘" : "접속어 사용·문장 흐름"}을 함께 다듬으면 훨씬 좋아져요!
-        </div>
-      )}
-      <button
-        onClick={onGoToTutor}
-        style={{
-          width: "100%",
-          background: `linear-gradient(135deg,${C.purple},${C.pink})`,
-          color: "white", border: "none", borderRadius: 50,
-          padding: "12px 0", fontSize: 14, fontWeight: 900,
-          cursor: "pointer", WebkitTapHighlightColor: "transparent",
-        }}
-      >
-        🎓 하이터치 마중 튜터와 연습하기 →
-      </button>
     </div>
   );
 }
@@ -1149,7 +821,15 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
               <div style={{position:"relative"}}>
                 <div style={{background:m.role==="user"?`linear-gradient(135deg,${C.pink},${C.coral})`:`linear-gradient(135deg,${C.teal},${C.sky})`,color:"white",padding:m.role==="assistant"?"9px 36px 9px 12px":"9px 12px",borderRadius:m.role==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",fontSize:14,lineHeight:1.6,wordBreak:"break-word",whiteSpace:"pre-wrap"}}>{m.text}</div>
                 {m.role==="assistant"&&(
-                  <button onPointerDown={()=>{unlock();speak(m.text,`speak-${i}`,character);}} aria-label="음성 재생" style={{position:"absolute",right:4,top:"50%",transform:"translateY(-50%)",background:speaking===`speak-${i}`?"rgba(255,255,255,.5)":"rgba(255,255,255,.25)",border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,WebkitTapHighlightColor:"transparent"}}>
+                  // ✅ V122 수정 3: unlock 완료 후 speak 실행 (100ms 딜레이)
+                  // iOS/Android에서 unlock이 완료되기 전 speak가 실행되는 타이밍 버그 수정
+                  <button
+                    onPointerDown={() => {
+                      unlock();
+                      setTimeout(() => speak(m.text, `speak-${i}`, character), 100);
+                    }}
+                    aria-label="음성 재생"
+                    style={{position:"absolute",right:4,top:"50%",transform:"translateY(-50%)",background:speaking===`speak-${i}`?"rgba(255,255,255,.5)":"rgba(255,255,255,.25)",border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,WebkitTapHighlightColor:"transparent"}}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                       {speaking===`speak-${i}`?<><rect x="5" y="4" width="4" height="16" rx="1.5" fill="white"/><rect x="15" y="4" width="4" height="16" rx="1.5" fill="white"/></>:<><path d="M11 5L6 9H2v6h4l5 4V5z" fill="white"/><path d="M19.07 4.93a10 10 0 010 14.14" stroke="white" strokeWidth="2" strokeLinecap="round"/><path d="M15.54 8.46a5 5 0 010 7.07" stroke="white" strokeWidth="2" strokeLinecap="round"/></>}
                     </svg>
@@ -1175,10 +855,7 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
   );
 }
 
-// ============================================================
-// ✅ V122 수정: WriteTab — RubricBadges + HighTouchBridge 통합
-// ============================================================
-function WriteTab({level, uid, onGoToTutor}) {
+function WriteTab({level, uid}) {
   const [mode,        setMode]        = useState(null);
   const [wStep,       setWStep]       = useState(0);
   const [wText,       setWText]       = useState(["","",""]);
@@ -1372,15 +1049,7 @@ function WriteTab({level, uid, onGoToTutor}) {
             <div style={{fontSize:24}}>🎓</div>
             <div style={{fontSize:15,fontWeight:900,color:C.purple}}>AI 피드백 ({level==="adv"?"고급 5~6급":"중급 3~4급"} · {feedDepth==="simple"?"간단히":feedDepth==="detailed"?"꼼꼼하게":"보통"})</div>
           </div>
-          {/* ✅ V122: 역량 태그 배지 추가 */}
-          <RubricBadges feedbackText={submitFeed} level={level} accentColor={C.teal} />
           <div style={{fontSize:14,color:"#444",lineHeight:1.85}}>{renderFeedback(submitFeed, C.teal)}</div>
-          {/* ✅ V122: 하이터치 브릿지 버튼 추가 */}
-          <HighTouchBridge
-            feedbackText={submitFeed}
-            level={level}
-            onGoToTutor={onGoToTutor}
-          />
           <button onClick={()=>{setSubmitFile(null);setSubmitFeed(null);if(fileRef.current)fileRef.current.value="";}} style={{marginTop:14,width:"100%",background:`linear-gradient(135deg,${C.teal},${C.sky})`,color:"white",border:"none",borderRadius:50,padding:"12px 0",fontSize:14,fontWeight:900,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>다른 글 제출하기 ✨</button>
         </div>
       )}
@@ -1453,14 +1122,6 @@ function WriteTab({level, uid, onGoToTutor}) {
       ) : (
         <div style={{background:"white",borderRadius:18,padding:16,boxShadow:"0 4px 18px rgba(0,0,0,.07)"}}>
           <div style={{textAlign:"center",marginBottom:14}}><div style={{fontSize:40}}>🎉</div><div style={{fontSize:18,fontWeight:900,color:C.pink}}>완성된 글</div></div>
-
-          {/* ✅ V122: 역량 태그 배지 — 완성 글에도 표시 */}
-          <RubricBadges
-            feedbackText={wFeed.join(" ")}
-            level={level}
-            accentColor={C.teal}
-          />
-
           {STEPS.map((s,i) => (
             <div key={i} style={{marginBottom:14}}>
               <div style={{fontSize:12,color:s.color,fontWeight:800,marginBottom:4}}>{s.emoji} {s.label}</div>
@@ -1481,16 +1142,7 @@ function WriteTab({level, uid, onGoToTutor}) {
               {artFeed.bridgePlace&&<div style={{background:"rgba(255,140,66,.1)",borderRadius:12,padding:"12px 14px",borderLeft:"3px solid #FF8C42"}}><div style={{color:"#FF8C42",fontSize:10,fontWeight:800,marginBottom:6}}>🌏 마중의 약속</div><div style={{color:"rgba(255,255,255,.9)",fontSize:13,lineHeight:1.75}}>나중에 한국에 오신다면 <strong style={{color:"#FFD93D"}}>{artFeed.bridgePlace}</strong>을 마중 나가서 보여드리고 싶네요 🇰🇷</div></div>}
             </div>
           )}
-
-          {/* ✅ V122: 하이터치 브릿지 버튼 — 3단계 완성 후 자동 표시 */}
-          <HighTouchBridge
-            feedbackText={wFeed.join(" ")}
-            level={level}
-            onGoToTutor={onGoToTutor}
-            weak={false}
-          />
-
-          <button onClick={resetWrite} style={{marginTop:12,width:"100%",background:`linear-gradient(135deg,${C.teal},${C.sky})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>새로운 글 쓰기 ✨</button>
+          <button onClick={resetWrite} style={{width:"100%",background:`linear-gradient(135deg,${C.teal},${C.sky})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>새로운 글 쓰기 ✨</button>
         </div>
       )}
     </div>
@@ -1631,12 +1283,6 @@ export default function App() {
     setLevel(null); setTab("speak");
   }
 
-  // ✅ V122: 논술 → 하이터치 탭 이동 함수
-  function goToTutor() {
-    setTab("tutor");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
   if (user===undefined) return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:C.bg}}>
       <div style={{fontSize:40}}>🇰🇷</div>
@@ -1700,7 +1346,7 @@ export default function App() {
       <div style={{maxWidth:600,margin:"0 auto",padding:"12px 12px 80px",boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
         {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak}/>}
-        {tab==="write"&&<WriteTab level={level} uid={user.uid} onGoToTutor={goToTutor}/>}
+        {tab==="write"&&<WriteTab level={level} uid={user.uid}/>}
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
       </div>
     </div>
