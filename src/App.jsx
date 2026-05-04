@@ -152,6 +152,8 @@ const TOPICS = [
   {icon:"🤖", title:"AI와 일자리", hint:"인공지능 기술이 발전하면서 사람들의 일자리가 줄어들고 있다."},
   {icon:"🌏", title:"이주배경 학생과 학교 생활", hint:"한국 학교에서 처음 생활할 때 어려운 점이 있다."},
   {icon:"🏭", title:"직장 속 한국어", hint:"한국 직장에서 한국어로 소통하는 것이 중요하다."},
+  // ✅ V122 추가: 8번째 논술 카드 (적용/개선 4월 No.7 — 산업 현장 소통 문제)
+  {icon:"🦺", title:"직장에서의 소통", hint:"한국어를 어느 정도 알아도 직장에서 소통이 어려운 경우가 많다."},
 ];
 
 const CULTURAL_KEYWORDS = [
@@ -174,6 +176,13 @@ const CULTURAL_KEYWORDS = [
   {word:"우천시", level:"4~5급", meaning:"비가 올 때. 공지·안내문에서 자주 나오는 한자어 표현", topic:"어원 한자어·생활", etym:"雨天時(우천시) — 우산(雨傘)·우기(雨期)의 雨(비 우)"},
   {word:"안전",  level:"3~4급", meaning:"위험이 없는 상태", topic:"어원 한자어·생활", etym:"安全(안전) — 安(안)은 편안(便安)·불안(不安)·보안(保安)에도 쓰여요"},
   {word:"문화",  level:"3~4급", meaning:"사람들이 만들어온 생활 방식과 가치관의 총체", topic:"어원 한자어·사회", etym:"文化(문화) — 文(문)은 문학(文學)·문명(文明)·문자(文字)에도 쓰여요"},
+  // ✅ V122 추가: 생활·다문화·직장 카테고리 6개 (적용/개선 No.4, 4월 No.7)
+  {word:"자조모임", level:"3~4급", meaning:"비슷한 상황에 있는 사람들이 서로 돕고 나누는 모임", topic:"생활·다문화"},
+  {word:"이중언어", level:"4~5급", meaning:"두 가지 언어를 함께 쓰거나 배우는 것", topic:"다문화·교육"},
+  {word:"통번역", level:"4~5급", meaning:"말(통역)과 글(번역)을 다른 언어로 바꿔주는 것", topic:"직업·다문화"},
+  {word:"작업지시", level:"3~4급", meaning:"일하는 방법이나 순서를 설명하는 것", topic:"직장·현장"},
+  {word:"안전수칙", level:"3~4급", meaning:"다치지 않으려고 반드시 지켜야 하는 규칙", topic:"직장·현장"},
+  {word:"귀화",  level:"4~5급", meaning:"다른 나라의 국적을 얻어 그 나라 국민이 되는 것", topic:"생활·법률"},
 ];
 const todayKeyword = CULTURAL_KEYWORDS[new Date().getDay() % CULTURAL_KEYWORDS.length];
 
@@ -207,7 +216,8 @@ const PROMPTS = {
 [교정] 흐름 유지. "아, ~라는 말이구나요! 그럴 땐 ~라고 하면 더 자연스러워요! 😊"
 [✅코드 스위칭 대응] 학습자가 모국어를 섞어 쓸 때 절대 지적하지 말고 자연스럽게 한국어로 유도. 예: "방금 그 표현, 한국어로는 어떻게 말할 수 있을까요? 😊" 형태로 부드럽게 전환.
 [어휘] TOPIK 3~4급. 고유어 위주. 이모지 적절히 활용 😊👍✨
-[금기] 유아적 칭찬 금지. 문화적 편견 금지.`,
+[✅음식 경험 유도] 학습자가 말이 없거나 대화가 멈출 때, 주제를 제시하지 말고 경험을 물어봐. 예: "오늘 뭐 먹었어요?", "고향 음식 중에 제일 좋아하는 거 뭐예요?", "한국 음식 중에 처음 먹어본 거 있어요?" — 음식은 주제가 아니라 경험이니까 자연스럽게 말문이 열려.
+[금기] 유아적 칭찬 금지. 문화적 편견 금지. "오늘 주제는~" 같은 주제 제시 절대 금지.`,
     jake_adv:`너의 이름은 '제이크(Jake)', 지적이고 유쾌한 20대 한국인 대학생 친구다.
 대상: TOPIK 5~6급.
 [말투] 해요체 + 고급 어휘·사자성어 자연스럽게.
@@ -216,6 +226,7 @@ const PROMPTS = {
 [교정] 고급 대안 표현·사자성어 슬쩍 권유.
 [✅코드 스위칭 대응] 학습자가 모국어를 섞어 쓸 때 "방금 그 표현을 한국어로 하면 어떻게 될까요? 비슷한 한국어 표현을 알고 있나요?" 형태로 자연스럽게 유도.
 [특징] 사회·시사·문화 주제 자연스럽게. 심층 질문으로 사고 확장.
+[✅음식 경험 유도] 대화가 멈출 때 경험을 물어봐. 예: "최근에 인상 깊었던 식사 자리가 있었나요?", "한국 음식 중에 문화적으로 흥미롭다고 느낀 것이 있어요?" — 음식을 매개로 문화·사회 이야기로 자연스럽게 확장.
 [금기] 유아적 칭찬 금지. 문화적 편견 금지.`,
     miso_mid:`너의 이름은 '미소 선생님', 다정하고 차분한 40대 여성 한국어 전문 교사다.
 대상: TOPIK 3~4급.
@@ -679,6 +690,54 @@ function TodayTopic({purple}) {
   );
 }
 
+// ✅ V122 수정8: 학습 성장 경로 시각화 컴포넌트
+// 근거: 적용/개선 No.3, No.5 (적응→자립→기여 3단계)
+// "기여" 예시: 통번역·멘토 등 — 고정 직함이 아닌 열린 표현으로 표시
+function GrowthPathBanner({ level }) {
+  const steps = [
+    {
+      emoji: "🌱", label: "적응", sub: "TOPIK 3~4급",
+      desc: "일상 소통\n기초 자립", color: C.teal, bg: "#E8FAF8",
+      active: level === "mid",
+    },
+    {
+      emoji: "🌿", label: "자립", sub: "TOPIK 5~6급",
+      desc: "직장·학업\n사회 참여", color: C.pink, bg: "#FFF0F6",
+      active: level === "adv",
+    },
+    {
+      emoji: "🌳", label: "기여", sub: "TOPIK 합격 후",
+      desc: "통번역·멘토\n등 지역사회", color: C.orange, bg: "#FFF3E8",
+      active: false,
+    },
+  ];
+  return (
+    <div style={{background:"white",border:"1.5px solid #e8e8e8",borderRadius:16,padding:"14px 16px",marginBottom:16,maxWidth:340,width:"100%",boxShadow:"0 2px 12px rgba(0,0,0,.06)"}}>
+      <div style={{fontSize:11,fontWeight:800,color:"#aaa",letterSpacing:.5,marginBottom:10,textAlign:"center"}}>
+        📍 나의 한국어 성장 경로
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:0}}>
+        {steps.map((s, i) => (
+          <div key={i} style={{display:"flex",alignItems:"center",flex:1}}>
+            <div style={{flex:1,background:s.active?s.bg:"#fafafa",border:`2px solid ${s.active?s.color:"#e0e0e0"}`,borderRadius:12,padding:"10px 6px",textAlign:"center",boxShadow:s.active?`0 2px 10px ${s.color}30`:"none",transition:"all .2s"}}>
+              <div style={{fontSize:22,marginBottom:3}}>{s.emoji}</div>
+              <div style={{fontSize:13,fontWeight:900,color:s.active?s.color:"#bbb",marginBottom:2}}>{s.label}</div>
+              <div style={{fontSize:9,color:s.active?s.color:"#ccc",fontWeight:700,marginBottom:3}}>{s.sub}</div>
+              <div style={{fontSize:9,color:s.active?"#666":"#ccc",lineHeight:1.5,whiteSpace:"pre-line"}}>{s.desc}</div>
+            </div>
+            {i < steps.length - 1 && (
+              <div style={{fontSize:14,color:"#ccc",padding:"0 3px",flexShrink:0}}>→</div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div style={{fontSize:10,color:"#bbb",textAlign:"center",marginTop:8,lineHeight:1.5}}>
+        한글 친구는 적응을 넘어 자립과 기여까지 함께해요 🇰🇷
+      </div>
+    </div>
+  );
+}
+
 function SpeakTab({level, uid, unlock, speaking, speak}) {
   const [character, setCharacter] = useState(null);
   const [chatUI,    setChatUI]    = useState([]);
@@ -687,6 +746,8 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
   const [loading,   setLoading]   = useState(false);
   const [recorded,  setRecorded]  = useState(false);
   const [motivation, setMotivation] = useState(null);
+  // ✅ V122 수정7: 상황 맥락 선택 state (주제가 아닌 상황만 선택)
+  const [context, setContext] = useState(null);
   const chatEnd = useRef(null);
   const lvKey = level === "adv" ? "adv" : "mid";
 
@@ -708,13 +769,21 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
     : "jake_mid";
   const basePrompt = PROMPTS.speak[charKey] || PROMPTS.speak.jake_mid;
   const motivationCtx = motivation && MOTIVATION_HINTS[motivation] ? '\n[학습 동기 맞춤] ' + MOTIVATION_HINTS[motivation] : '';
+  // ✅ V122 수정7: 상황 맥락 힌트 — "주제"가 아닌 "상황" 설정
+  const CONTEXT_HINTS = {
+    daily:    "\n[상황 맥락] 학습자가 현재 일상적인 상황(집, 카페, 시장, 이웃과의 대화 등)에 있다고 가정해. 특별한 주제를 제시하지 말고, 자연스럽게 오늘 하루 이야기를 물어봐. 예: '오늘 뭐 했어요?', '점심 뭐 드셨어요?'",
+    workplace:"\n[상황 맥락] 학습자가 한국 직장이나 현장 상황에 있다고 가정해. 업무 관련 표현이 나오면 자연스럽게 교정하고, 격식체·비격식체 차이도 알려줘. 주제를 먼저 제시하지 말고 '요즘 직장에서 어때요?' 처럼 경험을 물어봐.",
+    home:     "\n[상황 맥락] 학습자가 집에서 가족이나 친구와 이야기하는 상황이야. 편안하고 친근한 분위기로, 음식·가족·일상 소재가 나오면 자연스럽게 이어받아. 주제 제시 금지.",
+    outside:  "\n[상황 맥락] 학습자가 한국 거리·가게·식당·카페 등 실외에 있는 상황이야. 주문하기, 길 물어보기, 가게에서 대화하기 등이 나올 수 있어. 경험을 물어보면서 시작해.",
+  };
+  const contextCtx = context && CONTEXT_HINTS[context] ? CONTEXT_HINTS[context] : '';
   const workplaceCtx = (motivation === 'work' && todayWorkplace)
     ? '\n[오늘의 직장 시나리오] 오늘은 \''+todayWorkplace.situation+'\' 상황을 연습해 보세요. 핵심 표현: \''+todayWorkplace.expression+'\' — '+todayWorkplace.tip+'.'
     : '';
   const safetyCtx = (motivation === 'safety' && todaySafety)
     ? '\n[오늘의 안전 시나리오] 반드시 첫 대화 시작 시 오늘의 안전 표현을 꺼내주세요. 오늘 상황: \''+todaySafety.situation+'\'. 핵심 표현: \''+todaySafety.expression+'\'. 팁: '+todaySafety.tip+'. 예시: "오늘은 \''+todaySafety.situation+'\' 상황을 같이 연습해봐요! \''+todaySafety.expression+'\' — 이 표현 알아요?" 형태로 자연스럽게 시작하세요.'
     : '';
-  const sys = basePrompt + motivationCtx + (todayKeyword ? '\n[오늘의 문화 어휘] 오늘 대화에서 \''+todayKeyword.word+'\' 라는 표현을 자연스럽게 소개해 보세요. 뜻: '+todayKeyword.meaning+'. 관련 주제: '+todayKeyword.topic+'.' : '') + workplaceCtx + safetyCtx;
+  const sys = basePrompt + motivationCtx + contextCtx + (todayKeyword ? '\n[오늘의 문화 어휘] 오늘 대화에서 \''+todayKeyword.word+'\' 라는 표현을 자연스럽게 소개해 보세요. 뜻: '+todayKeyword.meaning+'. 관련 주제: '+todayKeyword.topic+'.' : '') + workplaceCtx + safetyCtx;
 
   useEffect(() => { chatEnd.current?.scrollIntoView({behavior:"smooth"}); }, [chatUI, loading]);
 
@@ -788,6 +857,37 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
       ))}
     </div>
   );
+
+  // ✅ V122 수정7: 상황 맥락 선택 화면
+  // safety/vietnam/folk/work는 상황 맥락 없이 바로 페르소나 선택으로
+  if (!context && !["safety","vietnam","folk","work"].includes(motivation)) return (
+    <div style={{padding:"8px 0"}}>
+      <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center"}}>
+        <div style={{fontSize:28,marginBottom:6}}>🗺️</div>
+        <div style={{fontSize:17,fontWeight:900,color:"#333",marginBottom:4}}>지금 어떤 상황이에요?</div>
+        <div style={{fontSize:13,color:"#999"}}>주제가 아닌 상황만 골라요 — 대화는 자연스럽게!</div>
+      </div>
+      {[
+        {key:"daily",     emoji:"🏡", label:"집 · 일상",          sub:"오늘 하루 이야기",       color:C.teal,   bg:"#E8FAF8"},
+        {key:"workplace", emoji:"🏢", label:"직장 · 학교",        sub:"한국 직장·학교 분위기",  color:C.sky,    bg:"#EBF8FF"},
+        {key:"home",      emoji:"👨\u200d👩\u200d👧", label:"가족 · 친구와 함께", sub:"편안하고 친근한 대화",  color:C.pink,   bg:"#FFF0F6"},
+        {key:"outside",   emoji:"🛍️", label:"거리 · 가게 · 식당", sub:"실외 실생활 한국어",     color:C.orange, bg:"#FFF3E8"},
+      ].map(ctx => (
+        <button key={ctx.key} onClick={()=>setContext(ctx.key)} style={{width:"100%",marginBottom:10,background:ctx.bg,border:`2px solid ${ctx.color}55`,borderRadius:16,padding:"14px 18px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
+          <div style={{fontSize:30,flexShrink:0}}>{ctx.emoji}</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:15,fontWeight:800,color:ctx.color}}>{ctx.label}</div>
+            <div style={{fontSize:12,color:"#888",marginTop:2}}>{ctx.sub}</div>
+          </div>
+          <div style={{fontSize:18,color:ctx.color,opacity:.5}}>›</div>
+        </button>
+      ))}
+      <button onClick={()=>setContext("daily")} style={{width:"100%",marginTop:4,background:"none",border:"none",color:"#bbb",fontSize:13,cursor:"pointer",padding:"10px 0",WebkitTapHighlightColor:"transparent"}}>
+        그냥 바로 시작할게요 →
+      </button>
+    </div>
+  );
+
 
   if (!character) {
     const availableChars = motivation === "vietnam"
@@ -1300,7 +1400,9 @@ export default function App() {
       <div style={{fontSize:52,marginBottom:12}}>🇰🇷</div>
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
       <div style={{fontSize:14,color:"#888",marginBottom:8,textAlign:"center"}}>안녕하세요, {user.displayName||user.email}님! 👋</div>
-      <div style={{fontSize:13,color:"#bbb",marginBottom:24}}>한국어 수준을 선택해 주세요</div>
+      <div style={{fontSize:13,color:"#bbb",marginBottom:16}}>한국어 수준을 선택해 주세요</div>
+      {/* ✅ V122 수정8: 성장 경로 배너 — 레벨 선택 전 전체 여정 미리 보여주기 */}
+      <GrowthPathBanner level={level} />
       <div style={{background:"white",border:`1.5px solid ${C.teal}44`,borderRadius:14,padding:"12px 16px",marginBottom:16,maxWidth:340,width:"100%",boxShadow:"0 2px 12px rgba(78,205,196,.1)"}}>
         <div style={{fontSize:11,fontWeight:800,color:C.teal,marginBottom:6}}>🔗 나에게 맞는 학습 경로</div>
         <div style={{fontSize:12,color:"#555",lineHeight:1.7}}>
