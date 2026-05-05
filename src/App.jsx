@@ -182,9 +182,19 @@ async function callClaudeSimple(prompt, sys) {
   } catch(e) { return ""; }
 }
 
+// ✅ V128: 초급 상황 카드 목록
+const BEG_SITUATIONS = [
+  {key:"daily",   emoji:"🏠", ko:"한국에서 살아요",    en:"Living in Korea",      vi:"Sống ở Hàn Quốc",    hint:"일상 생활·이웃·시장",     color:"#4CAF50", bg:"#E8F5E9"},
+  {key:"work",    emoji:"🏢", ko:"한국에서 일해요",    en:"Working in Korea",     vi:"Làm việc ở Hàn Quốc", hint:"직장·현장·동료",          color:"#1565C0", bg:"#E8F0FE"},
+  {key:"topik",   emoji:"🎓", ko:"시험 준비해요",      en:"Preparing for TOPIK",  vi:"Luyện thi TOPIK",     hint:"TOPIK 1~2급 어휘·표현",  color:"#9C6FDE", bg:"#F3EEFF"},
+  {key:"kculture",emoji:"❤️", ko:"K컬처 좋아해요",    en:"Love K-culture",       vi:"Yêu văn hóa Hàn",    hint:"드라마·K팝·음식",        color:"#E91E63", bg:"#FCE4EC"},
+  {key:"overseas",emoji:"🌏", ko:"해외에서 배워요",    en:"Learning from abroad", vi:"Học từ nước ngoài",   hint:"재외동포·해외 한류 팬",   color:"#FF6F00", bg:"#FFF3E0"},
+];
+
 function BegScreen({ user, onBack, begSpeak=false }) {
-  const [step, setStep] = useState("lang");   // lang → greet → topic → learn
+  const [step, setStep] = useState("lang");   // lang → greet → situation → topic → learn
   const [lang, setLang] = useState(null);
+  const [situation, setSituation] = useState(null);
   const [greeting, setGreeting] = useState("");
   const [gLoading, setGLoading] = useState(false);
   const [topic, setTopic] = useState(null);
@@ -213,8 +223,14 @@ function BegScreen({ user, onBack, begSpeak=false }) {
     }
   }
 
-  // 감정 버튼 → 주제 선택 화면
+  // 감정 버튼 → 상황 선택 화면
   function handleEmoji(btn) {
+    setStep("situation");
+  }
+
+  // 상황 선택 → 주제 선택 화면
+  function handleSituation(s) {
+    setSituation(s);
     setStep("topic");
   }
 
@@ -587,15 +603,24 @@ function BegScreen({ user, onBack, begSpeak=false }) {
     ]
 };
 
+  const SITUATION_HINTS = {
+    daily:    "학습자는 한국에서 실제로 생활하고 있어요. 슈퍼마켓·이웃·병원·은행 등 일상 상황에서 바로 쓸 수 있는 표현 중심으로 가르쳐 주세요.",
+    work:     "학습자는 한국 직장이나 공사 현장에서 일하고 있어요. 동료 대화·업무 지시·안전 표현 등 현장에서 바로 쓸 수 있는 실용 표현을 우선해 주세요.",
+    topik:    "학습자는 TOPIK 1~2급을 목표로 공부하고 있어요. 시험에 자주 나오는 어휘와 표현을 자연스럽게 연습시켜 주세요.",
+    kculture: "학습자는 K팝·드라마·음식 등 K컬처에 관심이 많아요. 드라마 대사·아이돌 관련 표현·한국 음식 이름 등을 자연스럽게 대화에 녹여 주세요.",
+    overseas: "학습자는 해외에서 한국어를 배우는 재외동포 또는 K컬처 팬이에요. 한국 문화 이해와 기초 회화 표현을 친근하게 알려 주세요.",
+  };
+
   function buildSys(t) {
     const topicName = t?.ko || "자기소개";
     const langLabel = lang?.label || "한국어";
     const isKo = lang?.code === "ko";
     const topicVocab = BEG_VOCAB[t?.id] || [];
     const vocabList = topicVocab.join(", ");
+    const situationCtx = situation ? `\n[학습자 상황] ${SITUATION_HINTS[situation.key] || ""}` : "";
     return `[페르소나] 이름: 마중. 초급 한국어 학습자의 첫 친구이자 따뜻한 안내자.
 
-[현재 주제] ${topicName} (${t?.hint||""})
+[현재 주제] ${topicName} (${t?.hint||""})${situationCtx}
 
 [언어 원칙]
 - 설명: ${isKo ? "한국어" : langLabel}로
@@ -699,6 +724,33 @@ ${vocabList}
     </div>
   );
 
+  // ── 상황 선택 화면 ── (V128 신규)
+  if (step === "situation") return (
+    <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:24}}>🌸</div>
+      <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>어떤 상황이에요?</div>
+      <div style={{fontSize:13,color:"#aaa",marginBottom:20,textAlign:"center"}}>
+        {lang?.code==="vi"?"Tình huống của bạn là gì?":lang?.code==="en"?"What's your situation?":"맞는 상황을 골라요!"}
+      </div>
+      <div style={{width:"100%",maxWidth:360,display:"flex",flexDirection:"column",gap:10}}>
+        {BEG_SITUATIONS.map(s=>(
+          <button key={s.key} onClick={()=>handleSituation(s)}
+            style={{background:s.bg,border:`2px solid ${s.color}55`,borderRadius:18,padding:"16px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14,boxShadow:"0 2px 12px rgba(0,0,0,.06)",WebkitTapHighlightColor:"transparent",transition:"all .15s",textAlign:"left"}}>
+            <span style={{fontSize:30,flexShrink:0}}>{s.emoji}</span>
+            <div style={{flex:1}}>
+              <div style={{fontSize:15,fontWeight:900,color:s.color}}>{s.ko}</div>
+              <div style={{fontSize:11,color:s.color,opacity:.75,marginTop:2}}>
+                {lang?.code==="vi"?s.vi:s.en} · {s.hint}
+              </div>
+            </div>
+            <span style={{fontSize:18,color:s.color,opacity:.5}}>›</span>
+          </button>
+        ))}
+      </div>
+      <button onClick={()=>setStep("greet")} style={{marginTop:20,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
+    </div>
+  );
+
   // ── 주제 선택 화면 ── (V125 신규)
   if (step === "topic") return (
     <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -730,7 +782,7 @@ ${vocabList}
         <div style={{fontSize:24}}>🌸</div>
         <div style={{flex:1}}>
           <div style={{fontSize:15,fontWeight:900,color:"white"}}>한글 친구 · 마중</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.8)"}}>{topic?.emoji} {topic?.ko} · {user.displayName||user.email}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.8)"}}>{topic?.emoji} {topic?.ko}{situation ? ` · ${situation.emoji} ${situation.ko}` : ""} · {user.displayName||user.email}</div>
         </div>
         {/* 주제 바꾸기 버튼 */}
         <button onClick={()=>{setStep("topic");setChat([]);setTurnCount(0);}} style={{background:"rgba(255,255,255,.18)",border:"1.5px solid rgba(255,255,255,.5)",borderRadius:14,padding:"4px 10px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700,marginRight:6}}>주제 바꾸기</button>
