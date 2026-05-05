@@ -1375,6 +1375,7 @@ export default function App() {
   const [level, setLevel] = useState(null);
   const [tab,   setTab]   = useState("speak");
   const [showStats, setShowStats] = useState(false);
+  const [showTopikChoice, setShowTopikChoice] = useState(false); // ✅ V123: 레벨 2단계 선택
   const {speaking, ttsHint, unlock, speak} = useTTS();
 
   useEffect(()=>{
@@ -1384,7 +1385,7 @@ export default function App() {
 
   async function handleLogout() {
     await signOut(auth);
-    setLevel(null); setTab("speak");
+    setLevel(null); setTab("speak"); setShowTopikChoice(false);
   }
 
   if (user===undefined) return (
@@ -1406,26 +1407,63 @@ export default function App() {
       <div style={{background:"white",border:`1.5px solid ${C.teal}44`,borderRadius:14,padding:"12px 16px",marginBottom:16,maxWidth:340,width:"100%",boxShadow:"0 2px 12px rgba(78,205,196,.1)"}}>
         <div style={{fontSize:11,fontWeight:800,color:C.teal,marginBottom:6}}>🔗 나에게 맞는 학습 경로</div>
         <div style={{fontSize:12,color:"#555",lineHeight:1.7}}>
-          듀오링고나 <strong>'모두의 한국어'</strong>로 기초를 끝냈나요?<br/>
-          그 다음 단계! <strong style={{color:C.pink}}>한글 친구</strong>에서 실전 말하기·쓰기를 시작해요.<br/>
+          한국어를 처음 시작하거나 기초부터 다시 다지고 싶다면 <strong style={{color:"#9C6FDE"}}>처음 시작해요</strong>를 선택해요.<br/>
+          TOPIK 시험을 준비 중이라면 <strong style={{color:C.pink}}>TOPIK 준비해요</strong>를 선택해요.<br/>
           <span style={{fontSize:11,color:"#aaa"}}>인풋(읽기·듣기) 완성 → 아웃풋(말하기·쓰기) 훈련</span>
         </div>
       </div>
-      {[
-        {key:"mid",emoji:"🌱",label:"중급",sub:"TOPIK 3~4급",desc:"고유어 위주 짧은 문장\n일상 대화 중심",color:C.teal,bg:"#E8FAF8"},
-        {key:"adv",emoji:"🔥",label:"고급",sub:"TOPIK 5~6급",desc:"한자어·사자성어·관용구\n사회·문화 심화 대화",color:C.pink,bg:"#FFF0F6"},
-      ].map(o=>(
-        <button key={o.key} onClick={()=>setLevel(o.key)} style={{width:"100%",maxWidth:340,marginBottom:16,background:o.bg,border:`2.5px solid ${o.color}`,borderRadius:20,padding:"20px 22px",cursor:"pointer",textAlign:"left",boxShadow:`0 4px 18px ${o.color}28`,display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
-          <div style={{fontSize:40,flexShrink:0}}>{o.emoji}</div>
-          <div>
-            <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:4}}>
-              <span style={{fontSize:20,fontWeight:900,color:o.color}}>{o.label}</span>
-              <span style={{fontSize:12,color:"#999",fontWeight:600}}>{o.sub}</span>
+
+      {!showTopikChoice ? (
+        /* ── 1단계: 초급 직진 / TOPIK 진입 ── */
+        <>
+          {/* 🌸 처음 시작해요 → 초급(beg) 바로 진입 */}
+          <button onClick={()=>setLevel("beg")} style={{width:"100%",maxWidth:340,marginBottom:14,background:"#F3EEFF",border:"2.5px solid #9C6FDE",borderRadius:20,padding:"20px 22px",cursor:"pointer",textAlign:"left",boxShadow:"0 4px 18px #9C6FDE28",display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
+            <div style={{fontSize:40,flexShrink:0}}>🌸</div>
+            <div>
+              <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:4}}>
+                <span style={{fontSize:20,fontWeight:900,color:"#9C6FDE"}}>처음 시작해요</span>
+                <span style={{fontSize:12,color:"#999",fontWeight:600}}>초급</span>
+              </div>
+              <div style={{fontSize:13,color:"#666",lineHeight:1.6}}>한글 자모부터 생활 한국어까지{"\n"}세종학당 방식으로 자연스럽게</div>
             </div>
-            <div style={{fontSize:13,color:"#666",lineHeight:1.6,whiteSpace:"pre-line"}}>{o.desc}</div>
-          </div>
-        </button>
-      ))}
+          </button>
+
+          {/* 📚 TOPIK 준비해요 → 2단계(중·고급 선택)로 이동 */}
+          <button onClick={e=>{e.stopPropagation();setShowTopikChoice(true);}} style={{width:"100%",maxWidth:340,marginBottom:16,background:"#FFF0F6",border:"2.5px solid #FF6B9D",borderRadius:20,padding:"20px 22px",cursor:"pointer",textAlign:"left",boxShadow:"0 4px 18px #FF6B9D28",display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
+            <div style={{fontSize:40,flexShrink:0}}>📚</div>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:4}}>
+                <span style={{fontSize:20,fontWeight:900,color:C.pink}}>TOPIK 준비해요</span>
+                <span style={{fontSize:12,color:"#999",fontWeight:600}}>중·고급</span>
+              </div>
+              <div style={{fontSize:13,color:"#666",lineHeight:1.6}}>TOPIK 3~6급 실전 말하기·쓰기{"\n"}심화 출력 훈련</div>
+            </div>
+            <div style={{fontSize:20,color:C.pink,opacity:.5,flexShrink:0}}>›</div>
+          </button>
+        </>
+      ) : (
+        /* ── 2단계: 중급 / 고급 선택 ── */
+        <>
+          <button onClick={e=>{e.stopPropagation();setShowTopikChoice(false);}} style={{alignSelf:"flex-start",marginLeft:"calc(50% - 170px)",background:"none",border:"none",color:"#aaa",fontSize:13,cursor:"pointer",marginBottom:8,padding:"4px 0"}}>← 뒤로</button>
+          <div style={{fontSize:13,color:"#888",marginBottom:12,textAlign:"center"}}>TOPIK 급수를 선택해 주세요</div>
+          {[
+            {key:"mid",emoji:"🌱",label:"중급",sub:"TOPIK 3~4급",desc:"고유어 위주 짧은 문장\n일상 대화 중심",color:C.teal,bg:"#E8FAF8"},
+            {key:"adv",emoji:"🔥",label:"고급",sub:"TOPIK 5~6급",desc:"한자어·사자성어·관용구\n사회·문화 심화 대화",color:C.pink,bg:"#FFF0F6"},
+          ].map(o=>(
+            <button key={o.key} onClick={()=>setLevel(o.key)} style={{width:"100%",maxWidth:340,marginBottom:14,background:o.bg,border:`2.5px solid ${o.color}`,borderRadius:20,padding:"20px 22px",cursor:"pointer",textAlign:"left",boxShadow:`0 4px 18px ${o.color}28`,display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
+              <div style={{fontSize:40,flexShrink:0}}>{o.emoji}</div>
+              <div>
+                <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:4}}>
+                  <span style={{fontSize:20,fontWeight:900,color:o.color}}>{o.label}</span>
+                  <span style={{fontSize:12,color:"#999",fontWeight:600}}>{o.sub}</span>
+                </div>
+                <div style={{fontSize:13,color:"#666",lineHeight:1.6,whiteSpace:"pre-line"}}>{o.desc}</div>
+              </div>
+            </button>
+          ))}
+        </>
+      )}
+
       <div style={{fontSize:11,color:"#ccc",textAlign:"center",marginBottom:4,lineHeight:1.6,padding:"0 20px"}}>한국어 수준 분류는 국립국어원 한국어기초사전 초·중·고급 기준을 참고합니다.</div>
       <button onClick={handleLogout} style={{marginTop:8,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>로그아웃</button>
     </div>
