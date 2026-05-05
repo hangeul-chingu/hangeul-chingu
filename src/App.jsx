@@ -182,7 +182,7 @@ async function callClaudeSimple(prompt, sys) {
   } catch(e) { return ""; }
 }
 
-function BegScreen({ user, onBack }) {
+function BegScreen({ user, onBack, begSpeak=false }) {
   const [step, setStep] = useState("lang");   // lang → greet → topic → learn
   const [lang, setLang] = useState(null);
   const [greeting, setGreeting] = useState("");
@@ -293,11 +293,15 @@ function BegScreen({ user, onBack }) {
 
   // ── 언어 선택 화면 ──
   if (step === "lang") return (
-    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-      <div style={{fontSize:48,marginBottom:8}}>🌸</div>
-      <div style={{fontSize:22,fontWeight:900,color:"#9C6FDE",marginBottom:4}}>한글 친구</div>
-      <div style={{fontSize:13,color:"#aaa",marginBottom:24}}>언어를 선택해 주세요 / Select your language</div>
-      <div style={{width:"100%",maxWidth:340,display:"flex",flexDirection:"column",gap:10}}>
+    <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:begSpeak?"flex-start":"center",padding:begSpeak?"8px 0":"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      {!begSpeak && <><div style={{fontSize:48,marginBottom:8}}>🌸</div>
+      <div style={{fontSize:22,fontWeight:900,color:"#9C6FDE",marginBottom:4}}>한글 친구</div></>}
+      <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center",width:"100%"}}>
+        <div style={{fontSize:28,marginBottom:6}}>🌍</div>
+        <div style={{fontSize:17,fontWeight:900,color:"#333",marginBottom:4}}>언어를 선택해 주세요</div>
+        <div style={{fontSize:13,color:"#999"}}>Select your language</div>
+      </div>
+      <div style={{width:"100%",display:"flex",flexDirection:"column",gap:10}}>
         {LANG_LIST.map(l=>(
           <button key={l.code} onClick={()=>handleLang(l)} style={{background:"white",border:"2px solid #9C6FDE44",borderRadius:16,padding:"14px 20px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,fontSize:16,fontWeight:700,color:"#333",boxShadow:"0 2px 10px rgba(156,111,222,.1)",WebkitTapHighlightColor:"transparent"}}>
             <span style={{fontSize:24}}>{l.flag}</span>
@@ -305,13 +309,13 @@ function BegScreen({ user, onBack }) {
           </button>
         ))}
       </div>
-      <button onClick={onBack} style={{marginTop:20,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
+      {!begSpeak && <button onClick={onBack} style={{marginTop:20,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>}
     </div>
   );
 
   // ── 마중이 인사 화면 ──
   if (step === "greet") return (
-    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:64,marginBottom:16}}>🌸</div>
       {gLoading ? (
         <div style={{fontSize:16,color:"#9C6FDE"}}>마중이가 인사 준비 중... 😊</div>
@@ -338,7 +342,7 @@ function BegScreen({ user, onBack }) {
 
   // ── 주제 선택 화면 ── (V125 신규)
   if (step === "topic") return (
-    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:36,marginBottom:8,marginTop:24}}>🌸</div>
       <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>오늘 뭐 배울까요?</div>
       <div style={{fontSize:13,color:"#aaa",marginBottom:20,textAlign:"center"}}>
@@ -361,7 +365,7 @@ function BegScreen({ user, onBack }) {
 
   // ── 학습 채팅 화면 ──
   return (
-    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       {/* 헤더 */}
       <div style={{background:`linear-gradient(100deg,#9C6FDE,#C3B1E1)`,padding:"14px 16px",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
         <div style={{fontSize:24}}>🌸</div>
@@ -384,7 +388,7 @@ function BegScreen({ user, onBack }) {
       </div>
 
       {/* 채팅 영역 */}
-      <div style={{flex:1,overflowY:"auto",padding:"16px 12px 80px",maxWidth:600,margin:"0 auto",width:"100%",boxSizing:"border-box"}}>
+      <div style={{flex:1,overflowY:"auto",padding:begSpeak?"16px 0 16px":"16px 12px 80px",maxWidth:600,margin:"0 auto",width:"100%",boxSizing:"border-box"}}>
         {chat.map((m,i)=>(
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",marginBottom:12}}>
             {m.role==="assistant"&&<div style={{fontSize:22,marginRight:6,flexShrink:0,alignSelf:"flex-end"}}>🌸</div>}
@@ -405,7 +409,7 @@ function BegScreen({ user, onBack }) {
       </div>
 
       {/* 입력창 */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,background:"white",borderTop:"1px solid #eee",padding:"10px 12px",display:"flex",gap:8,maxWidth:600,margin:"0 auto",boxSizing:"border-box"}}>
+      <div style={{position:begSpeak?"relative":"fixed",bottom:begSpeak?undefined:0,left:begSpeak?undefined:0,right:begSpeak?undefined:0,background:"white",borderTop:"1px solid #eee",borderRadius:begSpeak?16:0,padding:"10px 12px",display:"flex",gap:8,maxWidth:600,margin:begSpeak?"8px 0 0":"0 auto",boxSizing:"border-box"}}>
         <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSend()} placeholder="한국어로 써봐요! 😊" style={{flex:1,padding:"12px 16px",borderRadius:50,border:`2px solid #9C6FDE44`,outline:"none",fontSize:14,fontFamily:"inherit"}} />
         <button onClick={handleSend} disabled={!input.trim()||sending} style={{background:"#9C6FDE",color:"white",border:"none",borderRadius:50,padding:"12px 18px",cursor:"pointer",fontSize:14,fontWeight:900,opacity:!input.trim()||sending?0.4:1,flexShrink:0}}>→</button>
       </div>
@@ -1104,7 +1108,10 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
     setApiMsgs([{role:'assistant', content:msg}]);
   }
 
-  if (!motivation) return (
+  // ✅ V126: 초급(beg) 전용 프리토킹 화면
+  if (level === "beg") return <BegScreen user={{uid, displayName:"", email:""}} onBack={()=>{}} begSpeak={true}/>;
+
+    if (!motivation) return (
     <div style={{padding:"8px 0"}}>
       <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center"}}>
         <div style={{fontSize:28,marginBottom:6}}>🌟</div>
@@ -1671,7 +1678,7 @@ export default function App() {
 
   if (!user) return <AuthScreen onLogin={setUser}/>;
 
-  if (level === "beg") return <BegScreen user={user} onBack={()=>setLevel(null)}/>;
+  // ✅ V126: beg는 탭 화면으로 진입 (BegScreen은 프리토킹 탭 안에서 제공)
 
   if (!level) return (
     <div onClick={unlock} style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -1749,14 +1756,14 @@ export default function App() {
   return (
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       {showStats&&<StatsModal user={user} onClose={()=>setShowStats(false)}/>}
-      <div style={{background:`linear-gradient(100deg,${C.pink},${C.orange},${C.yellow})`,padding:"16px 16px 12px",position:"relative"}}>
+      <div style={{background:level==="beg"?`linear-gradient(100deg,#9C6FDE,#C3B1E1)`:`linear-gradient(100deg,${C.pink},${C.orange},${C.yellow})`,padding:"16px 16px 12px",position:"relative"}}>
         <div style={{textAlign:"center"}}>
           <div style={{fontSize:24,fontWeight:900,color:"white",textShadow:"0 2px 8px rgba(0,0,0,.2)"}}>한글 친구 🇰🇷</div>
           <div style={{color:"rgba(255,255,255,.85)",fontSize:12,marginTop:2}}>{user.displayName||user.email}</div>
         </div>
         <div style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",display:"flex",gap:6}}>
           <button onClick={()=>setShowStats(true)} style={{background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 10px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>📊</button>
-          <button onClick={()=>setLevel(null)} style={{background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 10px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>{level==="adv"?"🔥":"🌱"} ✕</button>
+          <button onClick={()=>setLevel(null)} style={{background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 10px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>{level==="adv"?"🔥":level==="beg"?"🌸":"🌱"} ✕</button>
         </div>
       </div>
       <div style={{display:"flex",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)"}}>
@@ -1773,4 +1780,3 @@ export default function App() {
     </div>
   );
 }
-
