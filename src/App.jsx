@@ -652,29 +652,29 @@ ${vocabList}
 [분위기] 친구에게 말하듯 밝고 따뜻하게. 틀려도 "잘했어요! 조금만 고치면 완벽해요 😊".`;
   }
 
-  // ✅ V129: 퀴즈 생성 — BEG_VOCAB에서 4지선다 퀴즈 만들기
+  // ✅ V129 수정: 퀴즈 — "이 중 주제 단어가 아닌 것은?" 형식
   function makeQuiz(t) {
     const vocab = BEG_VOCAB[t?.id] || [];
-    if (vocab.length < 4) return null;
-    // 정답 단어 랜덤 선택
-    const answerWord = vocab[Math.floor(Math.random() * vocab.length)];
-    // 오답 3개: 다른 주제 어휘 혼합
-    const allVocab = Object.values(BEG_VOCAB).flat();
-    const distractors = allVocab
-      .filter(w => w !== answerWord && !vocab.includes(w))
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 3);
-    const options = [...distractors, answerWord].sort(() => Math.random() - 0.5);
-    // 뜻 생성 힌트 — 퀴즈 질문은 "이 뜻의 한국어 단어는?" 형식
-    const questions = [
-      `"${answerWord}" — 이 단어가 속하는 주제는?`,
-      `다음 중 "${t?.ko}" 주제의 단어는?`,
-      `"${answerWord}"의 뜻으로 맞는 것은?`,
-    ];
+    if (vocab.length < 3) return null;
+
+    // 정답 주제 단어 3개 (같은 주제)
+    const shuffled = [...vocab].sort(() => Math.random() - 0.5);
+    const correct3 = shuffled.slice(0, 3);
+
+    // 오답 1개 (다른 주제 어휘)
+    const otherVocab = Object.entries(BEG_VOCAB)
+      .filter(([id]) => id !== t?.id)
+      .flatMap(([, words]) => words);
+    const wrong1 = otherVocab.sort(() => Math.random() - 0.5)[0];
+
+    if (!wrong1) return null;
+
+    const options = [...correct3, wrong1].sort(() => Math.random() - 0.5);
+
     return {
       type: "quiz",
-      question: `🎯 퀴즈 타임! "${t?.ko}" 주제 단어 중 하나예요!\n다음 중 "${answerWord}"와 같은 주제의 단어는?`,
-      answer: answerWord,
+      question: `✨ 잠깐 연습해요!\n다음 중 "${t?.ko}" 할 때 쓰는 말이 아닌 것은?`,
+      answer: wrong1,   // 정답 = 다른 주제 단어 (골라내야 할 것)
       options,
       selected: null,
     };
@@ -722,8 +722,8 @@ ${vocabList}
     if (!q) return;
     const correct = opt === q.answer;
     const reaction = correct
-      ? `정답이에요! 🎉 "${q.answer}" 맞아요! 정말 잘했어요! 😊 계속 대화해봐요!`
-      : `아쉽지만 괜찮아요! 😊 정답은 "${q.answer}"예요. 다시 한번 기억해봐요! 💪`;
+      ? `정답이에요! 🎉 "${q.answer}"은(는) ${topic?.ko} 할 때 쓰는 말이 아니에요! 정말 잘했어요! 😊`
+      : `아쉽지만 괜찮아요! 😊 "${q.answer}"이(가) 달라요. 나머지 셋은 모두 "${topic?.ko}" 할 때 쓰는 말이에요! 다시 기억해봐요 💪`;
     setChat(p=>[...p, {role:"assistant", text:reaction}]);
   }
 
