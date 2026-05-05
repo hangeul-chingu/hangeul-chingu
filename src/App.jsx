@@ -652,6 +652,34 @@ ${vocabList}
 [분위기] 친구에게 말하듯 밝고 따뜻하게. 틀려도 "잘했어요! 조금만 고치면 완벽해요 😊".`;
   }
 
+  // ✅ V129: 퀴즈 생성 — BEG_VOCAB에서 4지선다 퀴즈 만들기
+  function makeQuiz(t) {
+    const vocab = BEG_VOCAB[t?.id] || [];
+    if (vocab.length < 4) return null;
+    // 정답 단어 랜덤 선택
+    const answerWord = vocab[Math.floor(Math.random() * vocab.length)];
+    // 오답 3개: 다른 주제 어휘 혼합
+    const allVocab = Object.values(BEG_VOCAB).flat();
+    const distractors = allVocab
+      .filter(w => w !== answerWord && !vocab.includes(w))
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+    const options = [...distractors, answerWord].sort(() => Math.random() - 0.5);
+    // 뜻 생성 힌트 — 퀴즈 질문은 "이 뜻의 한국어 단어는?" 형식
+    const questions = [
+      `"${answerWord}" — 이 단어가 속하는 주제는?`,
+      `다음 중 "${t?.ko}" 주제의 단어는?`,
+      `"${answerWord}"의 뜻으로 맞는 것은?`,
+    ];
+    return {
+      type: "quiz",
+      question: `🎯 퀴즈 타임! "${t?.ko}" 주제 단어 중 하나예요!\n다음 중 "${answerWord}"와 같은 주제의 단어는?`,
+      answer: answerWord,
+      options,
+      selected: null,
+    };
+  }
+
   // 학습 채팅
   async function handleSend() {
     if (!input.trim() || sending) return;
@@ -662,7 +690,7 @@ ${vocabList}
     setSending(true);
 
     const sys = buildSys(topic);
-    const msgs = newChat.map(m=>({role:m.role==="user"?"user":"assistant", content:m.text}));
+    const msgs = newChat.filter(m=>m.type!=="quiz").map(m=>({role:m.role==="user"?"user":"assistant", content:m.text}));
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
@@ -670,9 +698,33 @@ ${vocabList}
     });
     const d = await r.json();
     const reply = d.content?.map(b=>b.text||"").join("")||"다시 한번 해봐요! 😊";
-    setChat(p=>[...p, {role:"assistant", text:reply}]);
-    setTurnCount(p=>p+1);
+    const nextTurn = turnCount + 1;
+    // ✅ V129: 5턴마다 퀴즈 카드 삽입
+    if (nextTurn % 5 === 0) {
+      const quiz = makeQuiz(topic);
+      setChat(p=>[...p, {role:"assistant", text:reply}, ...(quiz ? [quiz] : [])]);
+    } else {
+      setChat(p=>[...p, {role:"assistant", text:reply}]);
+    }
+    setTurnCount(nextTurn);
     setSending(false);
+  }
+
+  // ✅ V129: 퀴즈 답 선택 처리
+  function handleQuizAnswer(qIdx, opt) {
+    setChat(prev => prev.map((m, i) => {
+      if (i !== qIdx || m.type !== "quiz") return m;
+      const correct = opt === m.answer;
+      return {...m, selected: opt};
+    }));
+    // 정답/오답 마중이 반응 메시지
+    const q = chat[qIdx];
+    if (!q) return;
+    const correct = opt === q.answer;
+    const reaction = correct
+      ? `정답이에요! 🎉 "${q.answer}" 맞아요! 정말 잘했어요! 😊 계속 대화해봐요!`
+      : `아쉽지만 괜찮아요! 😊 정답은 "${q.answer}"예요. 다시 한번 기억해봐요! 💪`;
+    setChat(p=>[...p, {role:"assistant", text:reaction}]);
   }
 
   // ── 언어 선택 화면 ──
@@ -800,14 +852,41 @@ ${vocabList}
 
       {/* 채팅 영역 */}
       <div style={{flex:1,overflowY:"auto",padding:begSpeak?"16px 0 16px":"16px 12px 80px",maxWidth:600,margin:"0 auto",width:"100%",boxSizing:"border-box"}}>
-        {chat.map((m,i)=>(
-          <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",marginBottom:12}}>
-            {m.role==="assistant"&&<div style={{fontSize:22,marginRight:6,flexShrink:0,alignSelf:"flex-end"}}>🌸</div>}
-            <div style={{maxWidth:"80%",background:m.role==="user"?"#9C6FDE":"white",color:m.role==="user"?"white":"#333",borderRadius:m.role==="user"?"20px 20px 4px 20px":"20px 20px 20px 4px",padding:"12px 16px",fontSize:14,lineHeight:1.75,boxShadow:"0 2px 10px rgba(0,0,0,.08)",whiteSpace:"pre-wrap"}}>
-              {m.text}
+        {chat.map((m,i)=>{
+          // ✅ V129: 퀴즈 카드 렌더
+          if (m.type === "quiz") return (
+            <div key={i} style={{marginBottom:16,background:"white",borderRadius:18,padding:"16px",boxShadow:"0 4px 18px rgba(156,111,222,.15)",border:"2px solid #9C6FDE33"}}>
+              <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:10,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{m.question}</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {m.options.map((opt,j)=>{
+                  const selected = m.selected !== null;
+                  const isCorrect = opt === m.answer;
+                  const isSelected = opt === m.selected;
+                  let bg = "white", border = "#ddd", color = "#333";
+                  if (selected) {
+                    if (isCorrect) { bg="#E8F5E9"; border="#4CAF50"; color="#2E7D32"; }
+                    else if (isSelected) { bg="#FFEBEE"; border="#EF5350"; color="#C62828"; }
+                  }
+                  return (
+                    <button key={j} onClick={()=>!m.selected && handleQuizAnswer(i, opt)}
+                      disabled={!!m.selected}
+                      style={{background:bg,border:`2px solid ${border}`,borderRadius:12,padding:"10px 8px",cursor:m.selected?"default":"pointer",fontSize:13,fontWeight:700,color,transition:"all .2s",WebkitTapHighlightColor:"transparent"}}>
+                      {isCorrect && selected ? "✅ " : isSelected && !isCorrect ? "❌ " : ""}{opt}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+          return (
+            <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",marginBottom:12}}>
+              {m.role==="assistant"&&<div style={{fontSize:22,marginRight:6,flexShrink:0,alignSelf:"flex-end"}}>🌸</div>}
+              <div style={{maxWidth:"80%",background:m.role==="user"?"#9C6FDE":"white",color:m.role==="user"?"white":"#333",borderRadius:m.role==="user"?"20px 20px 4px 20px":"20px 20px 20px 4px",padding:"12px 16px",fontSize:14,lineHeight:1.75,boxShadow:"0 2px 10px rgba(0,0,0,.08)",whiteSpace:"pre-wrap"}}>
+                {m.text}
+              </div>
+            </div>
+          );
+        })}
         {sending&&(
           <div style={{display:"flex",alignItems:"center",gap:6,color:"#bbb",fontSize:13,marginBottom:12}}>
             <span>🌸</span>
