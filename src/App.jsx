@@ -138,6 +138,169 @@ function StatsModal({ user, onClose }) {
   );
 }
 
+// ============================================================
+// ✅ V124: BegScreen — 초급 학습자 전용 화면
+// ============================================================
+const LANG_LIST = [
+  {code:"ko", flag:"🇰🇷", label:"한국어로 시작할게요!"},
+  {code:"vi", flag:"🇻🇳", label:"Tiếng Việt"},
+  {code:"zh", flag:"🇨🇳", label:"中文"},
+  {code:"en", flag:"🇺🇸", label:"English"},
+  {code:"ja", flag:"🇯🇵", label:"日本語"},
+  {code:"id", flag:"🇮🇩", label:"Bahasa Indonesia"},
+  {code:"ru", flag:"🇷🇺", label:"Русский"},
+  {code:"th", flag:"🇹🇭", label:"ภาษาไทย"},
+  {code:"mn", flag:"🇲🇳", label:"Монгол"},
+  {code:"uz", flag:"🇺🇿", label:"O'zbek"},
+];
+
+const EMOJI_BTNS = [
+  {emoji:"😊", ko:"좋아요!", en:"Good!"},
+  {emoji:"🙈", ko:"떨려요!", en:"Nervous!"},
+  {emoji:"🔥", ko:"해볼게요!", en:"Let's go!"},
+];
+
+async function callClaudeSimple(prompt, sys) {
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:300,system:sys,messages:[{role:"user",content:prompt}]}),
+    });
+    const d = await r.json();
+    return d.content?.map(b=>b.text||"").join("")||"";
+  } catch(e) { return ""; }
+}
+
+function BegScreen({ user, onBack }) {
+  const [step, setStep] = useState("lang");   // lang → greet → learn
+  const [lang, setLang] = useState(null);
+  const [greeting, setGreeting] = useState("");
+  const [gLoading, setGLoading] = useState(false);
+  const [chat, setChat] = useState([]);
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+
+  // 언어 선택 후 마중이 인사 생성
+  async function handleLang(l) {
+    setLang(l);
+    setStep("greet");
+    if (l.code === "ko") {
+      setGreeting("안녕하세요! 저는 한글 친구, 마중이에요 🌸");
+    } else {
+      setGLoading(true);
+      const sys = `You are Majung, a Korean language learning assistant. Translate ONLY the following Korean greeting into ${l.label} language. Output only the translation, nothing else.`;
+      const t = await callClaudeSimple("안녕하세요! 저는 한글 친구, 마중이에요 🌸", sys);
+      setGreeting(t || "안녕하세요! 저는 한글 친구, 마중이에요 🌸");
+      setGLoading(false);
+    }
+  }
+
+  // 감정 버튼 → 학습 시작
+  async function handleEmoji(btn) {
+    const initMsg = {role:"assistant", text:`${btn.emoji} ${btn.ko}\n\n천천히 같이 해봐요! 😊\n\n오늘 첫 한국어 — 따라 해봐요:\n\n🇰🇷 "안녕하세요!"\n(= Hello!)`};
+    setChat([initMsg]);
+    setStep("learn");
+  }
+
+  // 학습 채팅
+  async function handleSend() {
+    if (!input.trim() || sending) return;
+    const userMsg = {role:"user", text:input.trim()};
+    setChat(p=>[...p, userMsg]);
+    setInput("");
+    setSending(true);
+    const sys = `[페르소나] 이름: 마중. 초급 한국어 학습자의 첫 친구.
+[언어] 학습자 언어: ${lang?.label||"한국어"}. 설명은 학습자 언어로, 학습 내용은 한국어로.
+[원칙] 절대 어려운 말 금지. 짧고 쉬운 문장만. 틀려도 웃으며 격려.
+[흐름] 배운 것 → 칭찬 → 다음 표현 하나씩. 절대 한 번에 많이 가르치지 말 것.
+[목표] 학습자가 한국어 한 문장이라도 말하게 만들기.`;
+    const msgs = [...chat, userMsg].map(m=>({role:m.role==="user"?"user":"assistant", content:m.text}));
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:300,system:sys,messages:msgs}),
+    });
+    const d = await r.json();
+    const reply = d.content?.map(b=>b.text||"").join("")||"다시 한번 해봐요! 😊";
+    setChat(p=>[...p, {role:"assistant", text:reply}]);
+    setSending(false);
+  }
+
+  // ── 언어 선택 화면 ──
+  if (step === "lang") return (
+    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{fontSize:48,marginBottom:8}}>🌸</div>
+      <div style={{fontSize:22,fontWeight:900,color:"#9C6FDE",marginBottom:4}}>한글 친구</div>
+      <div style={{fontSize:13,color:"#aaa",marginBottom:24}}>언어를 선택해 주세요 / Select your language</div>
+      <div style={{width:"100%",maxWidth:340,display:"flex",flexDirection:"column",gap:10}}>
+        {LANG_LIST.map(l=>(
+          <button key={l.code} onClick={()=>handleLang(l)} style={{background:"white",border:"2px solid #9C6FDE44",borderRadius:16,padding:"14px 20px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,fontSize:16,fontWeight:700,color:"#333",boxShadow:"0 2px 10px rgba(156,111,222,.1)",WebkitTapHighlightColor:"transparent"}}>
+            <span style={{fontSize:24}}>{l.flag}</span>
+            <span>{l.label}</span>
+          </button>
+        ))}
+      </div>
+      <button onClick={onBack} style={{marginTop:20,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
+    </div>
+  );
+
+  // ── 마중이 인사 화면 ──
+  if (step === "greet") return (
+    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{fontSize:64,marginBottom:16}}>🌸</div>
+      {gLoading ? (
+        <div style={{fontSize:16,color:"#9C6FDE"}}>마중이가 인사 준비 중... 😊</div>
+      ) : (
+        <>
+          <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:6,textAlign:"center"}}>안녕하세요! 저는 한글 친구, 마중이에요 🌸</div>
+          {lang?.code !== "ko" && greeting && (
+            <div style={{fontSize:15,color:"#9C6FDE",marginBottom:24,textAlign:"center",padding:"10px 20px",background:"#F3EEFF",borderRadius:12}}>{greeting}</div>
+          )}
+          <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:300,marginTop:16}}>
+            {EMOJI_BTNS.map(btn=>(
+              <button key={btn.emoji} onClick={()=>handleEmoji(btn)} style={{background:"white",border:"2.5px solid #9C6FDE",borderRadius:20,padding:"16px 20px",cursor:"pointer",fontSize:18,fontWeight:800,color:"#9C6FDE",boxShadow:"0 4px 14px #9C6FDE22",WebkitTapHighlightColor:"transparent",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+                <span>{btn.emoji}</span>
+                <span>{btn.ko}</span>
+                {lang?.code !== "ko" && <span style={{fontSize:13,color:"#aaa",fontWeight:500}}>/ {btn.en}</span>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  // ── 학습 채팅 화면 ──
+  return (
+    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{background:`linear-gradient(100deg,#9C6FDE,#C3B1E1)`,padding:"14px 16px",display:"flex",alignItems:"center",gap:10}}>
+        <div style={{fontSize:24}}>🌸</div>
+        <div>
+          <div style={{fontSize:16,fontWeight:900,color:"white"}}>한글 친구 · 마중</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.8)"}}>{user.displayName||user.email} · 초급</div>
+        </div>
+        <button onClick={onBack} style={{marginLeft:"auto",background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 12px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>✕</button>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"16px 12px 80px",maxWidth:600,margin:"0 auto",width:"100%",boxSizing:"border-box"}}>
+        {chat.map((m,i)=>(
+          <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",marginBottom:12}}>
+            {m.role==="assistant"&&<div style={{fontSize:22,marginRight:6,flexShrink:0}}>🌸</div>}
+            <div style={{maxWidth:"80%",background:m.role==="user"?"#9C6FDE":"white",color:m.role==="user"?"white":"#333",borderRadius:m.role==="user"?"20px 20px 4px 20px":"20px 20px 20px 4px",padding:"12px 16px",fontSize:14,lineHeight:1.7,boxShadow:"0 2px 10px rgba(0,0,0,.08)",whiteSpace:"pre-wrap"}}>
+              {m.text}
+            </div>
+          </div>
+        ))}
+        {sending&&<div style={{display:"flex",alignItems:"center",gap:6,color:"#aaa",fontSize:13}}><span>🌸</span> 마중이가 생각 중...</div>}
+      </div>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,background:"white",borderTop:"1px solid #eee",padding:"10px 12px",display:"flex",gap:8,maxWidth:600,margin:"0 auto",boxSizing:"border-box"}}>
+        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSend()} placeholder="한국어로 써봐요! 😊" style={{flex:1,padding:"12px 16px",borderRadius:50,border:`2px solid #9C6FDE44`,outline:"none",fontSize:14}} />
+        <button onClick={handleSend} disabled={!input.trim()||sending} style={{background:"#9C6FDE",color:"white",border:"none",borderRadius:50,padding:"12px 18px",cursor:"pointer",fontSize:14,fontWeight:900,opacity:!input.trim()||sending?0.4:1}}>→</button>
+      </div>
+    </div>
+  );
+}
+
 const STEPS = [
   {label:"현상", emoji:"👀", hint:"예: 요즘 한국 사람들이 편의점을 자주 이용해요.", color:C.teal},
   {label:"생각", emoji:"💭", hint:"예: 나는 편의점 문화가 편리하다고 생각해요.", color:C.orange},
@@ -1395,6 +1558,8 @@ export default function App() {
   );
 
   if (!user) return <AuthScreen onLogin={setUser}/>;
+
+  if (level === "beg") return <BegScreen user={user} onBack={()=>setLevel(null)}/>;
 
   if (!level) return (
     <div onClick={unlock} style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
