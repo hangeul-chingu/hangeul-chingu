@@ -139,7 +139,7 @@ function StatsModal({ user, onClose }) {
 }
 
 // ============================================================
-// ✅ V124: BegScreen — 초급 학습자 전용 화면
+// ✅ V125: BegScreen — 초급 학습자 전용 화면 (고도화)
 // ============================================================
 const LANG_LIST = [
   {code:"ko", flag:"🇰🇷", label:"한국어로 시작할게요!"},
@@ -154,10 +154,20 @@ const LANG_LIST = [
   {code:"uz", flag:"🇺🇿", label:"O'zbek"},
 ];
 
+// 주제 카드 — 세종학당 방식 (뇌를 먼저 열기)
+const BEG_TOPICS = [
+  {id:"intro",    emoji:"👋", ko:"자기소개",      en:"Introduce yourself",    vi:"Giới thiệu bản thân",   hint:"이름, 나라, 직업"},
+  {id:"family",   emoji:"👨‍👩‍👧", ko:"가족 이야기",    en:"Talk about family",      vi:"Nói về gia đình",       hint:"엄마, 아빠, 형제"},
+  {id:"food",     emoji:"🍜", ko:"음식 주문하기",  en:"Order food",             vi:"Gọi món ăn",            hint:"이거 주세요, 맛있어요"},
+  {id:"place",    emoji:"🏪", ko:"장소·위치",      en:"Places & directions",    vi:"Địa điểm & hướng đi",  hint:"어디예요? 여기, 저기"},
+  {id:"shopping", emoji:"🛍️", ko:"쇼핑·가격",      en:"Shopping & prices",      vi:"Mua sắm & giá cả",     hint:"얼마예요? 주세요"},
+  {id:"work",     emoji:"💼", ko:"직장·일상",      en:"Work & daily life",      vi:"Công việc & cuộc sống", hint:"회사, 일해요, 바빠요"},
+];
+
 const EMOJI_BTNS = [
-  {emoji:"😊", ko:"좋아요!", en:"Good!"},
-  {emoji:"🙈", ko:"떨려요!", en:"Nervous!"},
-  {emoji:"🔥", ko:"해볼게요!", en:"Let's go!"},
+  {emoji:"😊", ko:"좋아요!", en:"Good!", vi:"Tốt lắm!"},
+  {emoji:"🙈", ko:"떨려요!", en:"Nervous!", vi:"Hồi hộp!"},
+  {emoji:"🔥", ko:"해볼게요!", en:"Let's go!", vi:"Bắt đầu thôi!"},
 ];
 
 async function callClaudeSimple(prompt, sys) {
@@ -173,13 +183,20 @@ async function callClaudeSimple(prompt, sys) {
 }
 
 function BegScreen({ user, onBack }) {
-  const [step, setStep] = useState("lang");   // lang → greet → learn
+  const [step, setStep] = useState("lang");   // lang → greet → topic → learn
   const [lang, setLang] = useState(null);
   const [greeting, setGreeting] = useState("");
   const [gLoading, setGLoading] = useState(false);
+  const [topic, setTopic] = useState(null);
   const [chat, setChat] = useState([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [turnCount, setTurnCount] = useState(0);
+  const chatBottomRef = useRef(null);
+
+  useEffect(()=>{
+    chatBottomRef.current?.scrollIntoView({behavior:"smooth"});
+  },[chat, sending]);
 
   // 언어 선택 후 마중이 인사 생성
   async function handleLang(l) {
@@ -196,34 +213,81 @@ function BegScreen({ user, onBack }) {
     }
   }
 
-  // 감정 버튼 → 학습 시작
-  async function handleEmoji(btn) {
-    const initMsg = {role:"assistant", text:`${btn.emoji} ${btn.ko}\n\n천천히 같이 해봐요! 😊\n\n오늘 첫 한국어 — 따라 해봐요:\n\n🇰🇷 "안녕하세요!"\n(= Hello!)`};
-    setChat([initMsg]);
+  // 감정 버튼 → 주제 선택 화면
+  function handleEmoji(btn) {
+    setStep("topic");
+  }
+
+  // 주제 선택 → 학습 시작
+  async function handleTopic(t) {
+    setTopic(t);
     setStep("learn");
+    setSending(true);
+
+    // 마중이 첫 메시지 — 주제 기반으로 자연스럽게 시작
+    const sys = buildSys(t);
+    const startPrompt = `학습자가 "${t.ko}" 주제를 선택했어. 첫 인사와 함께 이 주제의 첫 번째 한국어 표현 하나를 자연스럽게 알려줘.`;
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:350,system:sys,messages:[{role:"user",content:startPrompt}]}),
+    });
+    const d = await r.json();
+    const reply = d.content?.map(b=>b.text||"").join("")||`${t.emoji} 좋아요! "${t.ko}" 시작해봐요! 😊`;
+    setChat([{role:"assistant", text:reply}]);
+    setTurnCount(1);
+    setSending(false);
+  }
+
+  // 마중이 시스템 프롬프트 — 구조적 학습 흐름
+  function buildSys(t) {
+    const topicName = t?.ko || "자기소개";
+    const langLabel = lang?.label || "한국어";
+    const isKo = lang?.code === "ko";
+    return `[페르소나] 이름: 마중. 초급 한국어 학습자의 첫 친구이자 따뜻한 안내자.
+
+[현재 주제] ${topicName} (${t?.hint||""})
+
+[언어 원칙]
+- 설명: ${isKo ? "한국어" : langLabel}로
+- 학습 내용(한국어 표현): 반드시 한국어로
+- 한국어 표현 옆에 항상 발음과 뜻을 함께 표기
+
+[학습 흐름 — 반드시 이 순서를 지켜라]
+1. 한국어 표현 1개 제시 (예: "안녕하세요!")
+2. 발음 힌트 + 뜻 설명
+3. "따라 해봐요! 😊" 로 학습자 발화 유도
+4. 학습자 답변 → 칭찬 → 짧은 교정(있으면) → 다음 표현 1개
+5. 3~4개 표현 익히면 → "연습해볼까요? 😊" 로 짧은 대화 연습
+
+[절대 금지]
+- 한 번에 2개 이상 표현 가르치기 ❌
+- 어려운 문법 용어 사용 ❌
+- 틀렸을 때 부정적 반응 ❌
+
+[분위기] 친구에게 말하듯 밝고 따뜻하게. 틀려도 "잘했어요! 조금만 고치면 완벽해요 😊".`;
   }
 
   // 학습 채팅
   async function handleSend() {
     if (!input.trim() || sending) return;
     const userMsg = {role:"user", text:input.trim()};
-    setChat(p=>[...p, userMsg]);
+    const newChat = [...chat, userMsg];
+    setChat(newChat);
     setInput("");
     setSending(true);
-    const sys = `[페르소나] 이름: 마중. 초급 한국어 학습자의 첫 친구.
-[언어] 학습자 언어: ${lang?.label||"한국어"}. 설명은 학습자 언어로, 학습 내용은 한국어로.
-[원칙] 절대 어려운 말 금지. 짧고 쉬운 문장만. 틀려도 웃으며 격려.
-[흐름] 배운 것 → 칭찬 → 다음 표현 하나씩. 절대 한 번에 많이 가르치지 말 것.
-[목표] 학습자가 한국어 한 문장이라도 말하게 만들기.`;
-    const msgs = [...chat, userMsg].map(m=>({role:m.role==="user"?"user":"assistant", content:m.text}));
+
+    const sys = buildSys(topic);
+    const msgs = newChat.map(m=>({role:m.role==="user"?"user":"assistant", content:m.text}));
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:300,system:sys,messages:msgs}),
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:350,system:sys,messages:msgs}),
     });
     const d = await r.json();
     const reply = d.content?.map(b=>b.text||"").join("")||"다시 한번 해봐요! 😊";
     setChat(p=>[...p, {role:"assistant", text:reply}]);
+    setTurnCount(p=>p+1);
     setSending(false);
   }
 
@@ -255,14 +319,15 @@ function BegScreen({ user, onBack }) {
         <>
           <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:6,textAlign:"center"}}>안녕하세요! 저는 한글 친구, 마중이에요 🌸</div>
           {lang?.code !== "ko" && greeting && (
-            <div style={{fontSize:15,color:"#9C6FDE",marginBottom:24,textAlign:"center",padding:"10px 20px",background:"#F3EEFF",borderRadius:12}}>{greeting}</div>
+            <div style={{fontSize:15,color:"#9C6FDE",marginBottom:16,textAlign:"center",padding:"10px 20px",background:"#F3EEFF",borderRadius:12}}>{greeting}</div>
           )}
-          <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:300,marginTop:16}}>
+          <div style={{fontSize:13,color:"#888",marginBottom:16,textAlign:"center"}}>오늘 기분이 어때요?</div>
+          <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:300}}>
             {EMOJI_BTNS.map(btn=>(
               <button key={btn.emoji} onClick={()=>handleEmoji(btn)} style={{background:"white",border:"2.5px solid #9C6FDE",borderRadius:20,padding:"16px 20px",cursor:"pointer",fontSize:18,fontWeight:800,color:"#9C6FDE",boxShadow:"0 4px 14px #9C6FDE22",WebkitTapHighlightColor:"transparent",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
                 <span>{btn.emoji}</span>
                 <span>{btn.ko}</span>
-                {lang?.code !== "ko" && <span style={{fontSize:13,color:"#aaa",fontWeight:500}}>/ {btn.en}</span>}
+                {lang?.code !== "ko" && <span style={{fontSize:13,color:"#aaa",fontWeight:500}}>/ {lang?.code==="vi"?btn.vi:btn.en}</span>}
               </button>
             ))}
           </div>
@@ -271,31 +336,78 @@ function BegScreen({ user, onBack }) {
     </div>
   );
 
+  // ── 주제 선택 화면 ── (V125 신규)
+  if (step === "topic") return (
+    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{fontSize:36,marginBottom:8,marginTop:24}}>🌸</div>
+      <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>오늘 뭐 배울까요?</div>
+      <div style={{fontSize:13,color:"#aaa",marginBottom:20,textAlign:"center"}}>
+        {lang?.code==="vi"?"Hôm nay học gì?":lang?.code==="en"?"What do you want to learn today?":"What would you like to learn?"}
+      </div>
+      <div style={{width:"100%",maxWidth:360,display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+        {BEG_TOPICS.map(t=>(
+          <button key={t.id} onClick={()=>handleTopic(t)} style={{background:"white",border:"2px solid #9C6FDE33",borderRadius:18,padding:"18px 12px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:6,boxShadow:"0 2px 12px rgba(156,111,222,.08)",WebkitTapHighlightColor:"transparent",transition:"all .15s"}}>
+            <span style={{fontSize:32}}>{t.emoji}</span>
+            <span style={{fontSize:14,fontWeight:900,color:"#9C6FDE"}}>{t.ko}</span>
+            <span style={{fontSize:11,color:"#bbb",textAlign:"center",lineHeight:1.4}}>
+              {lang?.code==="vi"?t.vi:lang?.code==="en"?t.en:t.hint}
+            </span>
+          </button>
+        ))}
+      </div>
+      <button onClick={()=>setStep("greet")} style={{marginTop:20,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
+    </div>
+  );
+
   // ── 학습 채팅 화면 ──
   return (
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-      <div style={{background:`linear-gradient(100deg,#9C6FDE,#C3B1E1)`,padding:"14px 16px",display:"flex",alignItems:"center",gap:10}}>
+      {/* 헤더 */}
+      <div style={{background:`linear-gradient(100deg,#9C6FDE,#C3B1E1)`,padding:"14px 16px",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
         <div style={{fontSize:24}}>🌸</div>
-        <div>
-          <div style={{fontSize:16,fontWeight:900,color:"white"}}>한글 친구 · 마중</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.8)"}}>{user.displayName||user.email} · 초급</div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:15,fontWeight:900,color:"white"}}>한글 친구 · 마중</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.8)"}}>{topic?.emoji} {topic?.ko} · {user.displayName||user.email}</div>
         </div>
-        <button onClick={onBack} style={{marginLeft:"auto",background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 12px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>✕</button>
+        {/* 주제 바꾸기 버튼 */}
+        <button onClick={()=>{setStep("topic");setChat([]);setTurnCount(0);}} style={{background:"rgba(255,255,255,.18)",border:"1.5px solid rgba(255,255,255,.5)",borderRadius:14,padding:"4px 10px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700,marginRight:6}}>주제 바꾸기</button>
+        <button onClick={onBack} style={{background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 12px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>✕</button>
       </div>
+
+      {/* 학습 진행 표시 바 */}
+      <div style={{background:"white",padding:"8px 16px",borderBottom:"1px solid #f0eaff",display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+        <div style={{fontSize:11,color:"#9C6FDE",fontWeight:700}}>학습 중</div>
+        <div style={{flex:1,height:6,background:"#F3EEFF",borderRadius:10,overflow:"hidden"}}>
+          <div style={{height:"100%",width:`${Math.min(turnCount*12,100)}%`,background:"linear-gradient(90deg,#9C6FDE,#C3B1E1)",borderRadius:10,transition:"width .4s"}}/>
+        </div>
+        <div style={{fontSize:11,color:"#bbb"}}>{turnCount}번 연습</div>
+      </div>
+
+      {/* 채팅 영역 */}
       <div style={{flex:1,overflowY:"auto",padding:"16px 12px 80px",maxWidth:600,margin:"0 auto",width:"100%",boxSizing:"border-box"}}>
         {chat.map((m,i)=>(
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",marginBottom:12}}>
-            {m.role==="assistant"&&<div style={{fontSize:22,marginRight:6,flexShrink:0}}>🌸</div>}
-            <div style={{maxWidth:"80%",background:m.role==="user"?"#9C6FDE":"white",color:m.role==="user"?"white":"#333",borderRadius:m.role==="user"?"20px 20px 4px 20px":"20px 20px 20px 4px",padding:"12px 16px",fontSize:14,lineHeight:1.7,boxShadow:"0 2px 10px rgba(0,0,0,.08)",whiteSpace:"pre-wrap"}}>
+            {m.role==="assistant"&&<div style={{fontSize:22,marginRight:6,flexShrink:0,alignSelf:"flex-end"}}>🌸</div>}
+            <div style={{maxWidth:"80%",background:m.role==="user"?"#9C6FDE":"white",color:m.role==="user"?"white":"#333",borderRadius:m.role==="user"?"20px 20px 4px 20px":"20px 20px 20px 4px",padding:"12px 16px",fontSize:14,lineHeight:1.75,boxShadow:"0 2px 10px rgba(0,0,0,.08)",whiteSpace:"pre-wrap"}}>
               {m.text}
             </div>
           </div>
         ))}
-        {sending&&<div style={{display:"flex",alignItems:"center",gap:6,color:"#aaa",fontSize:13}}><span>🌸</span> 마중이가 생각 중...</div>}
+        {sending&&(
+          <div style={{display:"flex",alignItems:"center",gap:6,color:"#bbb",fontSize:13,marginBottom:12}}>
+            <span>🌸</span>
+            <div style={{background:"white",borderRadius:"20px 20px 20px 4px",padding:"10px 16px",boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
+              <span style={{letterSpacing:3}}>•••</span>
+            </div>
+          </div>
+        )}
+        <div ref={chatBottomRef}/>
       </div>
+
+      {/* 입력창 */}
       <div style={{position:"fixed",bottom:0,left:0,right:0,background:"white",borderTop:"1px solid #eee",padding:"10px 12px",display:"flex",gap:8,maxWidth:600,margin:"0 auto",boxSizing:"border-box"}}>
-        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSend()} placeholder="한국어로 써봐요! 😊" style={{flex:1,padding:"12px 16px",borderRadius:50,border:`2px solid #9C6FDE44`,outline:"none",fontSize:14}} />
-        <button onClick={handleSend} disabled={!input.trim()||sending} style={{background:"#9C6FDE",color:"white",border:"none",borderRadius:50,padding:"12px 18px",cursor:"pointer",fontSize:14,fontWeight:900,opacity:!input.trim()||sending?0.4:1}}>→</button>
+        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSend()} placeholder="한국어로 써봐요! 😊" style={{flex:1,padding:"12px 16px",borderRadius:50,border:`2px solid #9C6FDE44`,outline:"none",fontSize:14,fontFamily:"inherit"}} />
+        <button onClick={handleSend} disabled={!input.trim()||sending} style={{background:"#9C6FDE",color:"white",border:"none",borderRadius:50,padding:"12px 18px",cursor:"pointer",fontSize:14,fontWeight:900,opacity:!input.trim()||sending?0.4:1,flexShrink:0}}>→</button>
       </div>
     </div>
   );
