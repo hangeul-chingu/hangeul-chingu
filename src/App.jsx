@@ -876,6 +876,8 @@ ${vocabList}
         <div ref={chatBottomRef}/>
       </div>
 
+      {/* ✅ V137 placeholder 이탤릭+연한색 */}
+      <style>{`.beg-placeholder::placeholder{color:#C3B1E1;font-style:italic;opacity:1;}`}</style>
       {/* ✅ V137 질문 유도 힌트 배너 */}
       {chat.length > 0 && chat.length < 8 && (
         <div style={{position:begSpeak?"relative":"fixed",bottom:begSpeak?undefined:62,left:begSpeak?undefined:0,right:begSpeak?undefined:0,maxWidth:600,margin:"0 auto",padding:"6px 12px",boxSizing:"border-box",pointerEvents:"none"}}>
@@ -887,7 +889,7 @@ ${vocabList}
       )}
       {/* 입력창 */}
       <div style={{position:begSpeak?"relative":"fixed",bottom:begSpeak?undefined:0,left:begSpeak?undefined:0,right:begSpeak?undefined:0,background:"white",borderTop:"1px solid #eee",borderRadius:begSpeak?16:0,padding:"10px 12px",display:"flex",gap:8,maxWidth:600,margin:begSpeak?"8px 0 0":"0 auto",boxSizing:"border-box"}}>
-        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSend()} placeholder="한국어로 써봐요! 궁금한 것도 물어봐요 😊" style={{flex:1,padding:"12px 16px",borderRadius:50,border:`2px solid #9C6FDE44`,outline:"none",fontSize:14,fontFamily:"inherit"}} />
+        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSend()} placeholder="한국어로 써봐요! 궁금한 것도 물어봐요 😊" className="beg-placeholder" style={{flex:1,padding:"12px 16px",borderRadius:50,border:`2px solid #9C6FDE44`,outline:"none",fontSize:14,fontFamily:"inherit"}} />
         <button onClick={handleSend} disabled={!input.trim()||sending} style={{background:"#9C6FDE",color:"white",border:"none",borderRadius:50,padding:"12px 18px",cursor:"pointer",fontSize:14,fontWeight:900,opacity:!input.trim()||sending?0.4:1,flexShrink:0}}>→</button>
       </div>
     </div>
