@@ -877,8 +877,8 @@ ${vocabList}
       </div>
 
       {/* ✅ V137 질문 유도 힌트 배너 */}
-      {chat.length > 0 && chat.length < 3 && (
-        <div style={{position:begSpeak?"relative":"fixed",bottom:begSpeak?undefined:58,left:begSpeak?undefined:0,right:begSpeak?undefined:0,maxWidth:600,margin:"0 auto",padding:"6px 12px",boxSizing:"border-box",pointerEvents:"none"}}>
+      {chat.length > 0 && chat.length < 8 && (
+        <div style={{position:begSpeak?"relative":"fixed",bottom:begSpeak?undefined:62,left:begSpeak?undefined:0,right:begSpeak?undefined:0,maxWidth:600,margin:"0 auto",padding:"6px 12px",boxSizing:"border-box",pointerEvents:"none"}}>
           <div style={{background:"#9C6FDE",borderRadius:12,padding:"8px 14px",fontSize:12,color:"white",fontWeight:700,textAlign:"center",boxShadow:"0 2px 10px #9C6FDE44"}}>
             💬 궁금한 한국어 표현이 있으면 뭐든 물어봐요!
             <div style={{fontSize:11,fontWeight:500,marginTop:2,opacity:.85}}>예: "~자마자 어떻게 써요?" · "이 단어 무슨 뜻이에요?"</div>
