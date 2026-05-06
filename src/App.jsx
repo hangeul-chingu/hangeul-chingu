@@ -1215,6 +1215,30 @@ function GrowthPathBanner({ level }) {
   );
 }
 
+// ✅ V130: 중급 퀴즈 뱅크
+const MID_QUIZ = [
+  {q:"'결정하다'와 비슷한 말은?", answer:"정하다", opts:["정하다","부르다","넘다","받다"]},
+  {q:"'천천히'의 반대말은?", answer:"빨리", opts:["빨리","조용히","혼자","가끔"]},
+  {q:"'기분이 좋다'를 다르게 표현하면?", answer:"즐겁다", opts:["즐겁다","피곤하다","어렵다","무섭다"]},
+  {q:"'매우'와 같은 뜻으로 쓸 수 있는 말은?", answer:"아주", opts:["아주","조금","별로","거의"]},
+  {q:"'부탁하다'와 가장 가까운 표현은?", answer:"요청하다", opts:["요청하다","거절하다","기억하다","준비하다"]},
+  {q:"'약속을 ___다' — 알맞은 말은?", answer:"지키", opts:["지키","만들","고치","버리"]},
+  {q:"'감사합니다'보다 더 격식 있는 표현은?", answer:"감사드립니다", opts:["감사드립니다","고마워요","감사해","고맙긴 해"]},
+  {q:"'조금'의 반대 개념에 가장 가까운 말은?", answer:"많이", opts:["많이","가끔","다시","또"]},
+];
+
+// ✅ V130: 고급 퀴즈 뱅크 (사자성어·관용구)
+const ADV_QUIZ = [
+  {q:"'일석이조(一石二鳥)'의 뜻은?", answer:"한 가지 행동으로 두 가지 이득을 얻음", opts:["한 가지 행동으로 두 가지 이득을 얻음","어려운 일도 열심히 하면 됨","혼자보다 함께가 낫다는 뜻","작은 것부터 시작해야 한다는 뜻"]},
+  {q:"'발이 넓다'는 표현의 뜻은?", answer:"아는 사람이 많다", opts:["아는 사람이 많다","걷는 것을 좋아한다","자주 여행을 간다","발이 크다"]},
+  {q:"'산 넘어 산'의 뜻은?", answer:"어려움이 계속 이어짐", opts:["어려움이 계속 이어짐","자연이 아름답다","멀리 여행을 간다","목표에 가까워짐"]},
+  {q:"'배보다 배꼽이 크다'의 뜻은?", answer:"부수적인 것이 주된 것보다 더 큼", opts:["부수적인 것이 주된 것보다 더 큼","배가 많이 고프다","일이 계획보다 잘 됨","이익이 매우 크다"]},
+  {q:"'우공이산(愚公移山)'이 주는 교훈은?", answer:"끈기와 노력으로 불가능도 가능해짐", opts:["끈기와 노력으로 불가능도 가능해짐","빠른 결정이 중요하다","혼자 하는 것이 낫다","산에서 지혜를 얻어야 한다"]},
+  {q:"'손이 크다'는 관용구의 뜻은?", answer:"씀씀이가 넉넉하고 후하다", opts:["씀씀이가 넉넉하고 후하다","손이 물리적으로 크다","일을 잘 한다","욕심이 많다"]},
+  {q:"'고진감래(苦盡甘來)'의 뜻은?", answer:"고생 끝에 즐거움이 옴", opts:["고생 끝에 즐거움이 옴","달콤한 것을 먹으면 기분이 좋아짐","고생은 피해야 한다","즐거움은 짧게 온다"]},
+  {q:"'눈이 높다'는 관용구의 뜻은?", answer:"기준이나 이상이 높다", opts:["기준이나 이상이 높다","시력이 좋다","높은 곳을 잘 본다","욕심이 없다"]},
+];
+
 function SpeakTab({level, uid, unlock, speaking, speak}) {
   const [character, setCharacter] = useState(null);
   const [chatUI,    setChatUI]    = useState([]);
@@ -1225,6 +1249,8 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
   const [motivation, setMotivation] = useState(null);
   // ✅ V122 수정7: 상황 맥락 선택 state (주제가 아닌 상황만 선택)
   const [context, setContext] = useState(null);
+  // ✅ V130: 중·고급 퀴즈용 턴 카운트
+  const [turnCount, setTurnCount] = useState(0);
   const chatEnd = useRef(null);
   const lvKey = level === "adv" ? "adv" : "mid";
 
@@ -1264,6 +1290,13 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
 
   useEffect(() => { chatEnd.current?.scrollIntoView({behavior:"smooth"}); }, [chatUI, loading]);
 
+  // ✅ V130: 중·고급 퀴즈 생성
+  function makeMidAdvQuiz() {
+    const bank = level === "adv" ? ADV_QUIZ : MID_QUIZ;
+    const q = bank[Math.floor(Math.random() * bank.length)];
+    return {type:"quiz", question:`✨ 잠깐 연습해요!\n${q.q}`, answer:q.answer, options:[...q.opts].sort(()=>Math.random()-0.5), selected:null};
+  }
+
   async function sendMsg() {
     if (!input.trim() || loading) return;
     const txt = sanitize(input.trim());
@@ -1273,8 +1306,16 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
     const newAPI = [...apiMsgs, {role:"user", content:txt}];
     setChatUI(newUI); setLoading(true);
     const reply = await callClaude(newAPI, sys);
+    const nextTurn = turnCount + 1;
+    // ✅ V130: 5턴마다 퀴즈 카드 삽입
+    if (nextTurn % 5 === 0) {
+      const quiz = makeMidAdvQuiz();
+      setChatUI([...newUI, {role:"assistant", text:reply}, quiz]);
+    } else {
+      setChatUI([...newUI, {role:"assistant", text:reply}]);
+    }
     setApiMsgs([...newAPI, {role:"assistant", content:reply}]);
-    setChatUI([...newUI,   {role:"assistant", text:reply}]);
+    setTurnCount(nextTurn);
     if (!recorded && uid) { recordStat(uid,"speak"); setRecorded(true); }
     setLoading(false);
   }
@@ -1397,7 +1438,39 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
   return (
     <>
       <div style={{background:"white",borderRadius:18,padding:12,minHeight:360,maxHeight:420,overflowY:"auto",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:10}}>
-        {chatUI.map((m,i) => (
+        {chatUI.map((m,i) => {
+          // ✅ V130: 퀴즈 카드 렌더
+          if (m.type === "quiz") return (
+            <div key={i} style={{background:"#FFF8E1",border:"2px solid #FFD93D",borderRadius:16,padding:"14px",marginBottom:10}}>
+              <div style={{fontSize:13,fontWeight:800,color:"#F39C12",marginBottom:8,whiteSpace:"pre-line"}}>{m.question}</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {m.options.map((opt,j) => {
+                  const answered = !!m.selected;
+                  const isCorrect = opt === m.answer;
+                  const isPicked = opt === m.selected;
+                  return (
+                    <button key={j} onClick={()=>{
+                      if (m.selected) return;
+                      const correct = opt === m.answer;
+                      setChatUI(prev => prev.map((msg,idx) => idx===i ? {...msg, selected:opt} : msg));
+                      const reaction = correct
+                        ? `정답이에요! 🎉 "${m.answer}" — 정말 잘했어요! 😊`
+                        : `아쉽지만 괜찮아요! 😊 정답은 "${m.answer}"이에요. 다시 기억해봐요 💪`;
+                      setChatUI(prev => [...prev, {role:"assistant", text:reaction}]);
+                    }}
+                      style={{padding:"10px 8px",borderRadius:12,border:"2px solid",fontSize:13,fontWeight:700,cursor:answered?"default":"pointer",transition:"all .2s",textAlign:"center",
+                        borderColor: !answered ? "#FFD93D" : isCorrect ? "#28a745" : isPicked ? "#e74c3c" : "#ddd",
+                        background: !answered ? "white" : isCorrect ? "#D4EDDA" : isPicked ? "#FDECEA" : "#fafafa",
+                        color: !answered ? "#555" : isCorrect ? "#28a745" : isPicked ? "#e74c3c" : "#bbb",
+                        WebkitTapHighlightColor:"transparent"}}>
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+          return (
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",marginBottom:10,alignItems:"flex-end",gap:6}}>
             {m.role==="assistant"&&<div style={{fontSize:24,flexShrink:0,lineHeight:1}}>👨‍🦱</div>}
             <div style={{maxWidth:"78%"}}>
@@ -1405,8 +1478,6 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
               <div style={{position:"relative"}}>
                 <div style={{background:m.role==="user"?`linear-gradient(135deg,${C.pink},${C.coral})`:`linear-gradient(135deg,${C.teal},${C.sky})`,color:"white",padding:m.role==="assistant"?"9px 36px 9px 12px":"9px 12px",borderRadius:m.role==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",fontSize:14,lineHeight:1.6,wordBreak:"break-word",whiteSpace:"pre-wrap"}}>{m.text}</div>
                 {m.role==="assistant"&&(
-                  // ✅ V122 수정 3: unlock 완료 후 speak 실행 (100ms 딜레이)
-                  // iOS/Android에서 unlock이 완료되기 전 speak가 실행되는 타이밍 버그 수정
                   <button
                     onPointerDown={() => {
                       unlock();
@@ -1422,7 +1493,8 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
         {loading&&<div style={{display:"flex",alignItems:"flex-end",gap:6}}><div style={{fontSize:24}}>👨‍🦱</div><div style={{background:"#f0f0f0",borderRadius:"16px 16px 16px 4px",padding:"9px 14px",color:"#999",fontSize:13}}>입력 중... ✍️</div></div>}
         <div ref={chatEnd}/>
       </div>
