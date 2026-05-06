@@ -492,7 +492,14 @@ ${vocabList}
 - 마크다운 절대 금지: 표, 헤더(#), 구분선(---), 코드블록 사용 금지
 - 친구에게 문자 보내듯 짧고 자연스러운 문장으로만 대화해
 - 예문은 줄바꿈으로 자연스럽게 보여줘. 따옴표나 화살표(→)로 간단히 표시해도 좋아
-- 이모지는 자연스럽게 1~2개 정도만`;
+- 이모지는 자연스럽게 1~2개 정도만
+
+[✅ V137 답변량 제한 — 초급 인지과부하 방지]
+- 한 번 응답에 최대 80자 이내로 짧게 끊어라
+- 예문은 1개만. 절대 2개 이상 연속으로 주지 마
+- 설명 후 반드시 학습자에게 질문 1개로 공을 넘겨라
+- 학습자가 더 알고 싶으면 스스로 물어보게 유도해
+- "더 알고 싶어요?" 같은 유도 문구 금지 — 자연스러운 질문으로 끝내라`;
   }
 
   // ✅ V129 수정: 퀴즈 — "이 중 주제 단어가 아닌 것은?" 형식
@@ -869,9 +876,18 @@ ${vocabList}
         <div ref={chatBottomRef}/>
       </div>
 
+      {/* ✅ V137 질문 유도 힌트 배너 */}
+      {chat.length > 0 && chat.length < 3 && (
+        <div style={{position:begSpeak?"relative":"fixed",bottom:begSpeak?undefined:58,left:begSpeak?undefined:0,right:begSpeak?undefined:0,maxWidth:600,margin:"0 auto",padding:"6px 12px",boxSizing:"border-box",pointerEvents:"none"}}>
+          <div style={{background:"#9C6FDE",borderRadius:12,padding:"8px 14px",fontSize:12,color:"white",fontWeight:700,textAlign:"center",boxShadow:"0 2px 10px #9C6FDE44"}}>
+            💬 궁금한 한국어 표현이 있으면 뭐든 물어봐요!
+            <div style={{fontSize:11,fontWeight:500,marginTop:2,opacity:.85}}>예: "~자마자 어떻게 써요?" · "이 단어 무슨 뜻이에요?"</div>
+          </div>
+        </div>
+      )}
       {/* 입력창 */}
       <div style={{position:begSpeak?"relative":"fixed",bottom:begSpeak?undefined:0,left:begSpeak?undefined:0,right:begSpeak?undefined:0,background:"white",borderTop:"1px solid #eee",borderRadius:begSpeak?16:0,padding:"10px 12px",display:"flex",gap:8,maxWidth:600,margin:begSpeak?"8px 0 0":"0 auto",boxSizing:"border-box"}}>
-        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSend()} placeholder="한국어로 써봐요! 😊" style={{flex:1,padding:"12px 16px",borderRadius:50,border:`2px solid #9C6FDE44`,outline:"none",fontSize:14,fontFamily:"inherit"}} />
+        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSend()} placeholder="한국어로 써봐요! 궁금한 것도 물어봐요 😊" style={{flex:1,padding:"12px 16px",borderRadius:50,border:`2px solid #9C6FDE44`,outline:"none",fontSize:14,fontFamily:"inherit"}} />
         <button onClick={handleSend} disabled={!input.trim()||sending} style={{background:"#9C6FDE",color:"white",border:"none",borderRadius:50,padding:"12px 18px",cursor:"pointer",fontSize:14,fontWeight:900,opacity:!input.trim()||sending?0.4:1,flexShrink:0}}>→</button>
       </div>
     </div>
