@@ -192,7 +192,7 @@ const BEG_SITUATIONS = [
 ];
 
 function BegScreen({ user, onBack, begSpeak=false }) {
-  const [step, setStep] = useState("lang");   // lang → greet → situation → topic → learn
+  const [step, setStep] = useState("lang");   // lang → greet → situation → plan → topic → learn
   const [lang, setLang] = useState(null);
   const [situation, setSituation] = useState(null);
   const [greeting, setGreeting] = useState("");
@@ -203,6 +203,37 @@ function BegScreen({ user, onBack, begSpeak=false }) {
   const [sending, setSending] = useState(false);
   const [turnCount, setTurnCount] = useState(0);
   const chatBottomRef = useRef(null);
+
+  // ✅ V131: D-Day 학습 계획
+  const [daysPerWeek, setDaysPerWeek] = useState(3);
+  const [minPerDay, setMinPerDay] = useState(30);
+  const [goalDate, setGoalDate] = useState(null);   // 확정된 목표일 (Date)
+  const [showResetModal, setShowResetModal] = useState(false);
+
+  // 총 80시간 기준 D-Day 계산
+  function calcGoalDate(dpw, mpd) {
+    const totalMin = 80 * 60;
+    const minPerWeek = dpw * mpd;
+    const weeksNeeded = Math.ceil(totalMin / minPerWeek);
+    const d = new Date();
+    d.setDate(d.getDate() + weeksNeeded * 7);
+    return d;
+  }
+
+  function formatDate(d) {
+    if (!d) return "";
+    return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+  }
+
+  function confirmPlan() {
+    setGoalDate(calcGoalDate(daysPerWeek, minPerDay));
+    setStep("topic");
+  }
+
+  function resetDDay() {
+    setGoalDate(calcGoalDate(daysPerWeek, minPerDay));
+    setShowResetModal(false);
+  }
 
   useEffect(()=>{
     chatBottomRef.current?.scrollIntoView({behavior:"smooth"});
@@ -228,10 +259,10 @@ function BegScreen({ user, onBack, begSpeak=false }) {
     setStep("situation");
   }
 
-  // 상황 선택 → 주제 선택 화면
+  // 상황 선택 → 학습 계획(plan) 화면
   function handleSituation(s) {
     setSituation(s);
-    setStep("topic");
+    setStep("plan");
   }
 
   // 주제 선택 → 학습 시작
@@ -511,7 +542,71 @@ ${vocabList}
     </div>
   );
 
-  // ── 주제 선택 화면 ── (V125 신규)
+  // ── D-Day 학습 계획 화면 (V131 신규) ──
+  if (step === "plan") {
+    const preview = calcGoalDate(daysPerWeek, minPerDay);
+    return (
+      <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:16}}>🎯</div>
+        <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>나만의 학습 계획</div>
+        <div style={{fontSize:13,color:"#aaa",marginBottom:24,textAlign:"center"}}>
+          {lang?.code==="vi"?"Hãy đặt kế hoạch học của bạn!":lang?.code==="en"?"Set your learning plan!":"한글 친구와 함께 목표일을 정해요!"}
+        </div>
+
+        <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:20,padding:"22px 20px",boxShadow:"0 4px 20px rgba(156,111,222,.10)",marginBottom:16}}>
+          {/* 주 몇 회 */}
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:13,fontWeight:800,color:"#9C6FDE",marginBottom:10}}>
+              📅 {lang?.code==="vi"?"Mỗi tuần học mấy ngày?":lang?.code==="en"?"How many days per week?":"일주일에 며칠 공부할 수 있어요?"}
+            </div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {[1,2,3,4,5,6,7].map(d=>(
+                <button key={d} onClick={()=>setDaysPerWeek(d)}
+                  style={{width:40,height:40,borderRadius:50,border:`2px solid ${daysPerWeek===d?"#9C6FDE":"#eee"}`,background:daysPerWeek===d?"#9C6FDE":"white",color:daysPerWeek===d?"white":"#aaa",fontWeight:800,fontSize:14,cursor:"pointer",transition:"all .15s"}}>
+                  {d}
+                </button>
+              ))}
+            </div>
+            <div style={{fontSize:11,color:"#bbb",marginTop:6}}>
+              {lang?.code==="vi"?`${daysPerWeek} ngày/tuần`:lang?.code==="en"?`${daysPerWeek} day(s)/week`:`주 ${daysPerWeek}일`}
+            </div>
+          </div>
+
+          {/* 하루 몇 분 */}
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:13,fontWeight:800,color:"#9C6FDE",marginBottom:10}}>
+              ⏱️ {lang?.code==="vi"?"Mỗi ngày học bao nhiêu phút?":lang?.code==="en"?"How many minutes per day?":"하루에 몇 분 공부할 수 있어요?"}
+            </div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {[15,20,30,45,60,90].map(m=>(
+                <button key={m} onClick={()=>setMinPerDay(m)}
+                  style={{padding:"8px 14px",borderRadius:50,border:`2px solid ${minPerDay===m?"#9C6FDE":"#eee"}`,background:minPerDay===m?"#9C6FDE":"white",color:minPerDay===m?"white":"#aaa",fontWeight:800,fontSize:13,cursor:"pointer",transition:"all .15s"}}>
+                  {m}분
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* D-Day 미리보기 */}
+          <div style={{background:"linear-gradient(135deg,#9C6FDE15,#C084FC15)",borderRadius:14,padding:"16px",textAlign:"center"}}>
+            <div style={{fontSize:12,color:"#aaa",marginBottom:4}}>
+              {lang?.code==="vi"?"Ngày hoàn thành dự kiến":lang?.code==="en"?"Estimated completion date":"목표 완주일"}
+            </div>
+            <div style={{fontSize:20,fontWeight:900,color:"#9C6FDE"}}>{formatDate(preview)}</div>
+            <div style={{fontSize:11,color:"#bbb",marginTop:4}}>
+              {lang?.code==="vi"?"80 giờ học = thế giới mới!":lang?.code==="en"?"80 hours = a new world!":"80시간 = 새로운 세상! 🌏"}
+            </div>
+          </div>
+        </div>
+
+        <button onClick={confirmPlan}
+          style={{width:"100%",maxWidth:360,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:16,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #9C6FDE44",WebkitTapHighlightColor:"transparent"}}>
+          {lang?.code==="vi"?"Bắt đầu thôi! 🚀":lang?.code==="en"?"Let's go! 🚀":"도전 시작! 🚀"}
+        </button>
+        <button onClick={()=>setStep("situation")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
+      </div>
+    );
+  }
   if (step === "topic") return (
     <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:36,marginBottom:8,marginTop:24}}>🌸</div>
@@ -548,6 +643,70 @@ ${vocabList}
         <button onClick={()=>{setStep("topic");setChat([]);setTurnCount(0);}} style={{background:"rgba(255,255,255,.18)",border:"1.5px solid rgba(255,255,255,.5)",borderRadius:14,padding:"4px 10px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700,marginRight:6}}>주제 바꾸기</button>
         <button onClick={onBack} style={{background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 12px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>✕</button>
       </div>
+
+      {/* ✅ V131: D-Day 뱃지 + 리셋 버튼 */}
+      {goalDate && (
+        <div style={{background:"white",padding:"8px 16px",borderBottom:"1px solid #f0eaff",display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+          <div style={{fontSize:11,color:"#9C6FDE",fontWeight:800}}>🎯 목표일</div>
+          <div style={{fontSize:12,fontWeight:900,color:"#333",flex:1}}>{formatDate(goalDate)}</div>
+          <button onClick={()=>setShowResetModal(true)}
+            style={{background:"none",border:"1.5px solid #9C6FDE44",borderRadius:20,padding:"3px 10px",cursor:"pointer",color:"#9C6FDE",fontSize:11,fontWeight:700}}>
+            🔄 리셋
+          </button>
+        </div>
+      )}
+
+      {/* ✅ V131: D-Day 리셋 모달 */}
+      {showResetModal && (
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.45)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div style={{background:"white",borderRadius:24,padding:"28px 24px",maxWidth:320,width:"100%",boxShadow:"0 8px 40px rgba(0,0,0,.18)",textAlign:"center"}}>
+            <div style={{fontSize:36,marginBottom:8}}>🔄</div>
+            <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",marginBottom:6}}>D-Day 리셋</div>
+            <div style={{fontSize:13,color:"#666",marginBottom:20,lineHeight:1.7}}>
+              쉰 날이 있어도 괜찮아요!<br/>
+              학습 진도는 그대로 유지되고<br/>
+              목표일만 오늘 기준으로 새로 계산할게요.
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:12,color:"#aaa",width:80,textAlign:"right"}}>주 몇 회</span>
+                <div style={{display:"flex",gap:6,flex:1,flexWrap:"wrap"}}>
+                  {[1,2,3,4,5,6,7].map(d=>(
+                    <button key={d} onClick={()=>setDaysPerWeek(d)}
+                      style={{width:32,height:32,borderRadius:50,border:`2px solid ${daysPerWeek===d?"#9C6FDE":"#eee"}`,background:daysPerWeek===d?"#9C6FDE":"white",color:daysPerWeek===d?"white":"#aaa",fontWeight:800,fontSize:12,cursor:"pointer"}}>
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:12,color:"#aaa",width:80,textAlign:"right"}}>하루 몇 분</span>
+                <div style={{display:"flex",gap:6,flex:1,flexWrap:"wrap"}}>
+                  {[15,20,30,45,60,90].map(m=>(
+                    <button key={m} onClick={()=>setMinPerDay(m)}
+                      style={{padding:"4px 10px",borderRadius:50,border:`2px solid ${minPerDay===m?"#9C6FDE":"#eee"}`,background:minPerDay===m?"#9C6FDE":"white",color:minPerDay===m?"white":"#aaa",fontWeight:800,fontSize:11,cursor:"pointer"}}>
+                      {m}분
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div style={{background:"#F3EEFF",borderRadius:12,padding:"10px",marginBottom:18,fontSize:13,fontWeight:800,color:"#9C6FDE"}}>
+              새 목표일: {formatDate(calcGoalDate(daysPerWeek, minPerDay))}
+            </div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setShowResetModal(false)}
+                style={{flex:1,background:"#f5f5f5",border:"none",borderRadius:50,padding:"12px 0",fontSize:14,fontWeight:700,color:"#aaa",cursor:"pointer"}}>
+                취소
+              </button>
+              <button onClick={resetDDay}
+                style={{flex:1,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",border:"none",borderRadius:50,padding:"12px 0",fontSize:14,fontWeight:900,color:"white",cursor:"pointer"}}>
+                확정!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 학습 진행 표시 바 */}
       <div style={{background:"white",padding:"8px 16px",borderBottom:"1px solid #f0eaff",display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
