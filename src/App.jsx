@@ -381,8 +381,8 @@ ${vocabList}
 
     return {
       type: "quiz",
-      question: `✨ 잠깐 연습해요!\n다음 중 "${t?.ko}" 할 때 쓰는 말이 아닌 것은?`,
-      answer: wrong1,   // 정답 = 다른 주제 단어 (골라내야 할 것)
+      question: `✨ 잠깐 연습해요!\n다음 중 어울리지 않는 단어는?`,
+      answer: wrong1,
       options,
       selected: null,
     };
@@ -430,8 +430,8 @@ ${vocabList}
     if (!q) return;
     const correct = opt === q.answer;
     const reaction = correct
-      ? `정답이에요! 🎉 "${q.answer}"은(는) ${topic?.ko} 할 때 쓰는 말이 아니에요! 정말 잘했어요! 😊`
-      : `아쉽지만 괜찮아요! 😊 "${q.answer}"이(가) 달라요. 나머지 셋은 모두 "${topic?.ko}" 할 때 쓰는 말이에요! 다시 기억해봐요 💪`;
+      ? `정답이에요! 🎉 "${q.answer}"은(는) 어울리지 않는 단어예요! 정말 잘했어요! 😊`
+      : `아쉽지만 괜찮아요! 😊 "${q.answer}"이(가) 어울리지 않는 단어예요. 나머지 셋은 모두 잘 어울리는 말이에요! 다시 기억해봐요 💪`;
     setChat(p=>[...p, {role:"assistant", text:reaction}]);
   }
 
@@ -1850,6 +1850,240 @@ function TutorTab({level, uid}) {
   );
 }
 
+// ✅ V130: 게임 탭
+function GameTab({level}) {
+  const [game, setGame] = useState(null); // null | "flip" | "sentence"
+  const isBeg = level === "beg";
+
+  // ── 카드 뒤집기 게임 (초급용 — BEG_VOCAB 활용) ──
+  function FlipGame() {
+    const topicKeys = Object.keys(BEG_VOCAB);
+    const [topicIdx, setTopicIdx] = useState(0);
+    const topicId = topicKeys[topicIdx];
+    const topicLabel = {
+      intro: "인사·소개", family: "가족", food: "음식·주문",
+      place: "장소·위치", shop: "쇼핑", work: "직장·일상"
+    }[topicId] || topicId;
+
+    const pool = BEG_VOCAB[topicId] || [];
+    const [cards, setCards] = useState(() => makeCards(pool));
+    const [flipped, setFlipped] = useState([]); // 뒤집힌 인덱스들
+    const [matched, setMatched] = useState([]); // 맞춘 인덱스들
+    const [lock, setLock] = useState(false);
+    const [score, setScore] = useState(0);
+    const [tries, setTries] = useState(0);
+
+    function makeCards(words) {
+      const pick = [...words].sort(() => Math.random() - 0.5).slice(0, 6);
+      const pairs = [...pick, ...pick].map((w, i) => ({id: i, word: w, pairId: pick.indexOf(w) < 6 ? pick.indexOf(w) : i - 6}));
+      return pairs.sort(() => Math.random() - 0.5).map((c, i) => ({...c, idx: i}));
+    }
+
+    function handleFlip(idx) {
+      if (lock || flipped.includes(idx) || matched.includes(idx)) return;
+      const next = [...flipped, idx];
+      setFlipped(next);
+      if (next.length === 2) {
+        setLock(true);
+        setTries(t => t + 1);
+        const [a, b] = next;
+        if (cards[a].word === cards[b].word) {
+          setMatched(m => [...m, a, b]);
+          setScore(s => s + 1);
+          setFlipped([]);
+          setLock(false);
+        } else {
+          setTimeout(() => { setFlipped([]); setLock(false); }, 900);
+        }
+      }
+    }
+
+    function reset() {
+      setCards(makeCards(pool));
+      setFlipped([]); setMatched([]); setScore(0); setTries(0); setLock(false);
+    }
+
+    const done = matched.length === cards.length;
+
+    return (
+      <div style={{padding:"8px 0"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {topicKeys.map((k, i) => {
+              const lbl = {intro:"인사",family:"가족",food:"음식",place:"장소",shop:"쇼핑",work:"직장"}[k]||k;
+              return (
+                <button key={k} onClick={()=>{setTopicIdx(i);setFlipped([]);setMatched([]);setScore(0);setTries(0);setLock(false);setCards(makeCards(BEG_VOCAB[k]||[]));}}
+                  style={{padding:"4px 10px",borderRadius:20,border:`1.5px solid ${i===topicIdx?"#9C6FDE":"#ddd"}`,background:i===topicIdx?"#F3EEFF":"white",color:i===topicIdx?"#9C6FDE":"#888",fontSize:12,fontWeight:i===topicIdx?800:500,cursor:"pointer"}}>
+                  {lbl}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+          <div style={{fontSize:13,color:"#666"}}>🎯 맞춘 쌍: <strong style={{color:"#9C6FDE"}}>{score}/6</strong> &nbsp;|&nbsp; 시도: {tries}</div>
+          <button onClick={reset} style={{padding:"5px 12px",borderRadius:20,border:"1.5px solid #9C6FDE",background:"white",color:"#9C6FDE",fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 다시</button>
+        </div>
+        {done && (
+          <div style={{background:"#F3EEFF",borderRadius:14,padding:"12px",textAlign:"center",marginBottom:12,fontWeight:800,color:"#9C6FDE",fontSize:15}}>
+            🎉 완성! {tries}번 만에 다 맞췄어요! 정말 잘했어요!
+          </div>
+        )}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+          {cards.map((c, i) => {
+            const isFlipped = flipped.includes(i) || matched.includes(i);
+            const isMatched = matched.includes(i);
+            return (
+              <div key={i} onClick={()=>handleFlip(i)}
+                style={{aspectRatio:"1",borderRadius:12,cursor:isMatched?"default":"pointer",display:"flex",alignItems:"center",justifyContent:"center",
+                  background: isMatched ? "#D4EDDA" : isFlipped ? "#F3EEFF" : "#9C6FDE",
+                  border: isMatched ? "2px solid #28a745" : isFlipped ? "2px solid #9C6FDE" : "2px solid #7B4FBE",
+                  boxShadow: isFlipped&&!isMatched ? "0 2px 10px #9C6FDE44" : "none",
+                  transition:"all .2s",fontSize:13,fontWeight:800,
+                  color: isMatched ? "#28a745" : isFlipped ? "#9C6FDE" : "transparent",
+                  padding:"4px",textAlign:"center",wordBreak:"break-all",lineHeight:1.3,
+                  userSelect:"none",WebkitTapHighlightColor:"transparent"}}>
+                {isFlipped ? c.word : "🃏"}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{marginTop:12,fontSize:12,color:"#aaa",textAlign:"center"}}>같은 단어 카드 2장을 찾아요!</div>
+      </div>
+    );
+  }
+
+  // ── 문장 완성 게임 ──
+  function SentenceGame() {
+    const QBANK = [
+      {q:"안녕_____요.", blank:"하세", opts:["하세","있어","없어","됩니"]},
+      {q:"저는 학생_____.", blank:"이에요", opts:["이에요","했어요","갔어요","왔어요"]},
+      {q:"이름이 _____요?", blank:"뭐예", opts:["뭐예","언제","어디","얼마"]},
+      {q:"밥 _____어요.", blank:"먹었", opts:["먹었","마셨","갔었","왔었"]},
+      {q:"한국어가 _____어요.", blank:"재미있", opts:["재미있","맛있었","없었","됐"]},
+      {q:"감사합니_____.", blank:"다", opts:["다","까","요","죠"]},
+      {q:"안녕히 _____세요.", blank:"가", opts:["가","오","있","계"]},
+      {q:"저는 한국어를 _____고 싶어요.", blank:"배우", opts:["배우","먹으","가","자"]},
+      {q:"물 한 잔 _____세요.", blank:"주", opts:["주","받","갖","드"]},
+      {q:"지금 어디 _____어요?", blank:"있", opts:["있","없","됐","갔"]},
+    ];
+    const [pool] = useState(() => [...QBANK].sort(()=>Math.random()-0.5).slice(0,5));
+    const [cur, setCur] = useState(0);
+    const [selected, setSelected] = useState(null);
+    const [results, setResults] = useState([]);
+    const done = cur >= pool.length;
+
+    function handleSelect(opt) {
+      if (selected) return;
+      setSelected(opt);
+      setTimeout(() => {
+        setResults(r => [...r, opt === pool[cur].blank]);
+        setCur(c => c + 1);
+        setSelected(null);
+      }, 800);
+    }
+
+    function reset() { setCur(0); setSelected(null); setResults([]); }
+
+    if (done) {
+      const correct = results.filter(Boolean).length;
+      return (
+        <div style={{textAlign:"center",padding:"24px 0"}}>
+          <div style={{fontSize:48,marginBottom:8}}>{correct===5?"🏆":correct>=3?"🎉":"💪"}</div>
+          <div style={{fontSize:20,fontWeight:900,color:"#9C6FDE",marginBottom:4}}>
+            {correct}개 맞췄어요!
+          </div>
+          <div style={{fontSize:14,color:"#666",marginBottom:20}}>
+            {correct===5?"완벽해요! 최고예요! 😊":correct>=3?"잘했어요! 다시 한 번 도전해봐요 💪":"괜찮아요! 연습하면 돼요 😊"}
+          </div>
+          <button onClick={reset} style={{padding:"12px 28px",borderRadius:50,background:"#9C6FDE",color:"white",border:"none",fontSize:15,fontWeight:800,cursor:"pointer"}}>🔄 다시 도전</button>
+        </div>
+      );
+    }
+
+    const q = pool[cur];
+    const sentence = q.q.replace("_____", `[   ]`);
+
+    return (
+      <div style={{padding:"8px 0"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div style={{fontSize:13,color:"#888"}}>문제 {cur+1} / {pool.length}</div>
+          <div style={{display:"flex",gap:4}}>
+            {results.map((r,i)=><span key={i} style={{fontSize:16}}>{r?"✅":"❌"}</span>)}
+          </div>
+        </div>
+        <div style={{background:"#F3EEFF",borderRadius:16,padding:"20px",marginBottom:20,textAlign:"center"}}>
+          <div style={{fontSize:18,fontWeight:800,color:"#333",lineHeight:1.8}}>
+            {q.q.split("_____").map((part, i) => (
+              <span key={i}>
+                {part}
+                {i === 0 && (
+                  <span style={{
+                    display:"inline-block",minWidth:60,borderBottom:"3px solid #9C6FDE",
+                    color: selected ? (selected===q.blank?"#28a745":"#e74c3c") : "#9C6FDE",
+                    fontWeight:900,padding:"0 4px",transition:"color .2s"
+                  }}>
+                    {selected || "___"}
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          {q.opts.map(opt => (
+            <button key={opt} onClick={()=>handleSelect(opt)} disabled={!!selected}
+              style={{padding:"14px",borderRadius:14,border:"2px solid",
+                borderColor: !selected ? "#9C6FDE44" : opt===q.blank ? "#28a745" : opt===selected ? "#e74c3c" : "#ddd",
+                background: !selected ? "white" : opt===q.blank ? "#D4EDDA" : opt===selected ? "#FDECEA" : "white",
+                color: !selected ? "#333" : opt===q.blank ? "#28a745" : opt===selected ? "#e74c3c" : "#aaa",
+                fontSize:15,fontWeight:800,cursor:selected?"default":"pointer",transition:"all .2s",
+                WebkitTapHighlightColor:"transparent"}}>
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── 게임 선택 화면 ──
+  if (!game) return (
+    <div style={{padding:"16px 0"}}>
+      <div style={{textAlign:"center",marginBottom:20}}>
+        <div style={{fontSize:32,marginBottom:6}}>🎮</div>
+        <div style={{fontSize:18,fontWeight:900,color:"#333",marginBottom:4}}>게임으로 연습해요!</div>
+        <div style={{fontSize:13,color:"#888"}}>배운 한국어를 게임으로 즐겁게 익혀봐요</div>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        <button onClick={()=>setGame("flip")}
+          style={{background:"#F3EEFF",border:"2px solid #9C6FDE",borderRadius:18,padding:"20px",textAlign:"left",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+          <div style={{fontSize:28,marginBottom:6}}>🃏</div>
+          <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",marginBottom:4}}>단어 카드 뒤집기</div>
+          <div style={{fontSize:13,color:"#666"}}>같은 단어 카드 2장을 짝지어 보세요!</div>
+        </button>
+        <button onClick={()=>setGame("sentence")}
+          style={{background:"#E8FAF8",border:"2px solid #4ECDC4",borderRadius:18,padding:"20px",textAlign:"left",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+          <div style={{fontSize:28,marginBottom:6}}>✏️</div>
+          <div style={{fontSize:16,fontWeight:900,color:"#4ECDC4",marginBottom:4}}>문장 완성</div>
+          <div style={{fontSize:13,color:"#666"}}>빈칸에 알맞은 말을 골라 문장을 완성해요!</div>
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{padding:"8px 0"}}>
+      <button onClick={()=>setGame(null)}
+        style={{background:"none",border:"none",color:"#9C6FDE",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:12,padding:"4px 0",display:"flex",alignItems:"center",gap:4}}>
+        ← 게임 선택으로
+      </button>
+      {game === "flip" && <FlipGame />}
+      {game === "sentence" && <SentenceGame />}
+    </div>
+  );
+}
+
 export default function App() {
   const [user, setUser] = useState(undefined);
   const [level, setLevel] = useState(null);
@@ -1965,8 +2199,8 @@ export default function App() {
         </div>
       </div>
       <div style={{display:"flex",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)"}}>
-        {[["speak","🗣️ 프리토킹",C.pink],["write","✍️ 논술",C.teal],["tutor","🎓 하이터치",C.purple]].map(([k,l,col])=>(
-          <button key={k} onClick={()=>setTab(k)} style={{flex:1,padding:"12px 0",border:"none",background:"transparent",cursor:"pointer",borderBottom:`3px solid ${tab===k?col:"transparent"}`,color:tab===k?col:"#aaa",fontWeight:tab===k?800:500,fontSize:13,transition:"all .2s",WebkitTapHighlightColor:"transparent"}}>{l}</button>
+        {[["speak","🗣️ 프리토킹",C.pink],["write","✍️ 논술",C.teal],["tutor","🎓 하이터치",C.purple],["game","🎮 게임",C.yellow]].map(([k,l,col])=>(
+          <button key={k} onClick={()=>setTab(k)} style={{flex:1,padding:"12px 0",border:"none",background:"transparent",cursor:"pointer",borderBottom:`3px solid ${tab===k?col:"transparent"}`,color:tab===k?col:"#aaa",fontWeight:tab===k?800:500,fontSize:12,transition:"all .2s",WebkitTapHighlightColor:"transparent"}}>{l}</button>
         ))}
       </div>
       <div style={{maxWidth:600,margin:"0 auto",padding:"12px 12px 80px",boxSizing:"border-box"}}>
@@ -1974,6 +2208,7 @@ export default function App() {
         {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak}/>}
         {tab==="write"&&<WriteTab level={level} uid={user.uid}/>}
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
+        {tab==="game"&&<GameTab level={level}/>}
       </div>
     </div>
   );
