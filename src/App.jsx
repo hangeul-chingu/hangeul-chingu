@@ -2169,39 +2169,77 @@ function TutorTab({level, uid}) {
     setTutorLoad(false);
   }
 
-  // ✅ V140: 초급 전용 하이터치 화면
-  if (level === "beg") {
-    if (!started) return (
+  // ✅ V140: 초급 전용 하이터치 화면 — 4개 버튼 선택
+  if (level === "beg" && !started) {
+    const BEG_TUTOR_MODES = [
+      {
+        key:"grammar", emoji:"💬", label:"문법으로 문장 만들기",
+        sub:"오늘 배운 문법 표현을 연습해요",
+        color:"#9C6FDE", bg:"#F3EEFF",
+        msg:"안녕하세요! 😊 저는 마중이에요.
+오늘 배운 문법으로 문장 만들기 연습을 해볼게요!
+
+어떤 문법을 연습하고 싶어요? 예: -아요/어요, -고 싶어요, -이에요/예요 등
+모르면 '모르겠어요'라고 해도 괜찮아요 🌸",
+      },
+      {
+        key:"vocab", emoji:"🔤", label:"모르는 단어 물어보기",
+        sub:"궁금한 단어를 쉽게 설명해 드려요",
+        color:"#00BFA5", bg:"#E8FAF8",
+        msg:"안녕하세요! 😊 저는 마중이에요.
+모르는 한국어 단어가 있으면 뭐든 물어봐요!
+
+단어를 쓰거나 뜻을 설명하면 쉽게 알려드릴게요 🔤",
+      },
+      {
+        key:"writing", emoji:"✏️", label:"짧은 문장 쓰기 연습",
+        sub:"자유롭게 짧은 문장을 써봐요",
+        color:"#FF7043", bg:"#FFF3E0",
+        msg:"안녕하세요! 😊 저는 마중이에요.
+짧은 문장 쓰기 연습을 시작해요!
+
+오늘 있었던 일이나 느낌을 한국어로 짧게 써봐요.
+틀려도 괜찮아요, 함께 고쳐나가면 돼요 ✏️",
+      },
+      {
+        key:"topik", emoji:"🎯", label:"TOPIK 2급 표현 연습",
+        sub:"핵심 표현을 반복 연습해요",
+        color:"#E91E8C", bg:"#FFF0F6",
+        msg:"안녕하세요! 😊 저는 마중이에요.
+TOPIK 2급 핵심 표현 집중 연습을 시작해요!
+
+오늘의 첫 번째 표현: **-(으)ㄹ 수 있어요**
+
+예: '저는 한국어를 말할 수 있어요.'
+
+이 표현으로 문장 하나 만들어볼 수 있어요? 🎯",
+      },
+    ];
+    return (
       <div style={{padding:"8px 0"}}>
-        <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center"}}>
-          <div style={{fontSize:32,marginBottom:6}}>🌸</div>
-          <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",marginBottom:4}}>마중이와 1:1 한국어 연습</div>
-          <div style={{fontSize:12,color:"#999",marginBottom:16}}>초급자를 위한 쉽고 친절한 한국어 코치예요 😊</div>
-          <div style={{display:"flex",flexDirection:"column",gap:10,textAlign:"left",marginBottom:16}}>
-            {[
-              {emoji:"💬", text:"오늘 배운 문법으로 문장 만들기"},
-              {emoji:"🔤", text:"모르는 단어 쉽게 설명해 드려요"},
-              {emoji:"✏️", text:"짧은 문장 쓰기 연습"},
-              {emoji:"🎯", text:"TOPIK 2급 핵심 표현 집중 연습"},
-            ].map((item,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"#F3EEFF",borderRadius:12,padding:"10px 14px"}}>
-                <span style={{fontSize:20}}>{item.emoji}</span>
-                <span style={{fontSize:13,color:"#555",fontWeight:500}}>{item.text}</span>
+        <div style={{background:"white",borderRadius:18,padding:"16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:12,textAlign:"center"}}>
+          <div style={{fontSize:28,marginBottom:4}}>🌸</div>
+          <div style={{fontSize:15,fontWeight:900,color:"#9C6FDE",marginBottom:2}}>마중이와 1:1 한국어 연습</div>
+          <div style={{fontSize:12,color:"#999"}}>오늘 어떤 연습을 할까요?</div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {BEG_TUTOR_MODES.map(m=>(
+            <button key={m.key} onClick={()=>{
+              setStarted(true);
+              setTutorUI([{role:"assistant",text:m.msg}]);
+              setTutorMsgs([{role:"assistant",content:m.msg}]);
+            }} style={{background:m.bg,border:`2px solid ${m.color}44`,borderRadius:16,padding:"14px 16px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12,WebkitTapHighlightColor:"transparent",transition:"all .15s"}}>
+              <span style={{fontSize:28,flexShrink:0}}>{m.emoji}</span>
+              <div>
+                <div style={{fontSize:14,fontWeight:800,color:m.color,marginBottom:2}}>{m.label}</div>
+                <div style={{fontSize:12,color:"#888"}}>{m.sub}</div>
               </div>
-            ))}
-          </div>
-          <button onClick={()=>{
-            setStarted(true);
-            const msg = "안녕하세요! 😊 저는 마중이에요. 초급 한국어 함께 연습해요!\n\n오늘 어떤 걸 연습할까요? 문법, 단어, 짧은 문장 쓰기 — 뭐든 편하게 말해줘요 🌸";
-            setTutorUI([{role:"assistant",text:msg}]);
-            setTutorMsgs([{role:"assistant",content:msg}]);
-          }} style={{background:"linear-gradient(135deg,#9C6FDE,#C3B1E1)",border:"none",borderRadius:50,padding:"14px 32px",color:"white",fontSize:15,fontWeight:800,cursor:"pointer",width:"100%"}}>
-            마중이와 시작하기! 🌸
-          </button>
+              <span style={{marginLeft:"auto",color:m.color,fontSize:16,flexShrink:0}}>›</span>
+            </button>
+          ))}
         </div>
       </div>
     );
-    // 채팅 화면은 공통으로 아래에서 렌더됨
   }
 
   if (!tutorType) return (
@@ -2863,7 +2901,14 @@ export default function App() {
       <div style={{maxWidth:600,margin:"0 auto",padding:"12px 12px 80px",boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
         {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak} begReady={begReady}/>}
-        {tab==="write"&&<WriteTab level={level} uid={user.uid}/>}
+        {tab==="write"&&(level==="beg"
+          ? <div style={{padding:"48px 24px",textAlign:"center"}}>
+              <div style={{fontSize:52,marginBottom:14}}>🔒</div>
+              <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",marginBottom:8}}>논술은 중급부터 열려요!</div>
+              <div style={{fontSize:13,color:"#999",lineHeight:1.8}}>프리토킹으로 말하기 기초를 먼저 다져요.<br/>TOPIK 3급 이상이 되면 논술이 열려요 😊</div>
+            </div>
+          : <WriteTab level={level} uid={user.uid}/>
+        )}}
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
         {tab==="game"&&<GameTab level={level}/>}
       </div>
