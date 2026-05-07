@@ -2780,17 +2780,13 @@ export default function App() {
       {/* ✅ V140: 초급 학습 진도 게이지 */}
       {level==="beg" && begReady && goalDate && (()=>{
         const now = new Date();
-        const start = new Date(goalDate);
-        // confirmPlan 시점 역산: goalDate - 총 학습일수
-        const totalHours = 80;
-        const sessionsNeeded = Math.ceil((totalHours*60)/minPerDay);
-        const totalDays = Math.ceil(sessionsNeeded/daysPerWeek)*7;
-        const startDate = new Date(goalDate);
-        startDate.setDate(startDate.getDate()-totalDays);
-        const elapsed = Math.max(0, now-startDate);
-        const total = goalDate-startDate;
-        const pct = Math.min(100, Math.round((elapsed/total)*100));
-        const dLeft = Math.max(0, Math.ceil((goalDate-now)/(1000*60*60*24)));
+        // goalDate 기준으로 시작일 역산 (오늘~goalDate 전체 기간 대비 경과)
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 1); // 오늘 시작 기준
+        const elapsed = Math.max(0, now - startDate);
+        const total = Math.max(1, goalDate - startDate);
+        const pct = Math.min(100, Math.round((elapsed / total) * 100));
+        const dLeft = Math.max(0, Math.ceil((goalDate - now) / (1000*60*60*24)));
         const goalLabel = [{id:"topik2",label:"TOPIK 2급"},{id:"topik4",label:"TOPIK 4급"},{id:"daily",label:"일상 말하기"},{id:"work",label:"직장 한국어"},{id:"life",label:"한국 생활"}].find(g=>g.id===studyGoal)?.label||"목표";
         const msg = pct<20?"시작이 반이에요! 💪":pct<50?"잘 하고 있어요! 🌟":pct<80?"절반 넘었어요! 🔥":"거의 다 왔어요! 🏁";
         return (
