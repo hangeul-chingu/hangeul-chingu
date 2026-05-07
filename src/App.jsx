@@ -2134,11 +2134,13 @@ function TutorTab({level, uid}) {
   const [recorded,   setRecorded]   = useState(false);
   const [tutorType, setTutorType] = useState(null);
   const tutorEnd = useRef(null);
-  const sys = tutorType === 'adv'      ? PROMPTS.tutorAdv :
-              tutorType === 'heritage' ? PROMPTS.tutorHeritage :
-              tutorType === 'survival' ? PROMPTS.tutorSurvival :
-              tutorType === 'mid'      ? PROMPTS.tutor :
-              level === "adv"          ? PROMPTS.tutorAdv : PROMPTS.tutor;
+  const BEG_SYS = "친절하고 쉬운 초급 한국어 코치 마중이. TOPIK 1~2급 학습자 대상. 문장은 짧고 쉽게. 한자어 금지. 칭찬 먼저. 교정은 1가지만. 이모지 적극 활용.";
+  const sys = tutorType === 'adv'          ? PROMPTS.tutorAdv :
+              tutorType === 'heritage'     ? PROMPTS.tutorHeritage :
+              tutorType === 'survival'     ? PROMPTS.tutorSurvival :
+              tutorType === 'mid'          ? PROMPTS.tutor :
+              tutorType?.startsWith('beg') ? BEG_SYS :
+              level === "adv"              ? PROMPTS.tutorAdv : PROMPTS.tutor;
 
   useEffect(() => { tutorEnd.current?.scrollIntoView({behavior:"smooth"}); }, [tutorUI, tutorLoad]);
 
@@ -2208,6 +2210,7 @@ function TutorTab({level, uid}) {
           {BEG_TUTOR_MODES.map(m=>(
             <button key={m.key} onClick={()=>{
               setStarted(true);
+              setTutorType("beg_"+m.key);
               setTutorUI([{role:"assistant",text:m.msg}]);
               setTutorMsgs([{role:"assistant",content:m.msg}]);
             }} style={{background:m.bg,border:`2px solid ${m.color}44`,borderRadius:16,padding:"14px 16px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12,WebkitTapHighlightColor:"transparent",transition:"all .15s"}}>
