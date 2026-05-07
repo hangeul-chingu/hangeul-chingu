@@ -2771,6 +2771,15 @@ export default function App() {
   const [showStats, setShowStats] = useState(false);
   const [showTopikChoice, setShowTopikChoice] = useState(false); // ✅ V123: 레벨 2단계 선택
   const [begReady, setBegReady] = useState(false); // ✅ V139: 초급 도전 시작 전까지 탭 숨김
+  const [showPromo, setShowPromo] = useState(false); // ✅ V143: 홍보 모달
+
+  // ✅ V143: 로그인 후 방문 횟수 확인 (최대 3회)
+  useEffect(()=>{
+    if(!user) return;
+    const key = `hc_promo_${user.uid}`;
+    const count = parseInt(localStorage.getItem(key)||"0");
+    if(count < 3){ setShowPromo(true); localStorage.setItem(key, String(count+1)); }
+  },[user]);
   const {speaking, ttsHint, unlock, speak} = useTTS();
 
   useEffect(()=>{
@@ -2790,6 +2799,74 @@ export default function App() {
   );
 
   if (!user) return <AuthScreen onLogin={setUser}/>;
+
+  // ✅ V143: 홍보 모달 (최초 3회 로그인 시 표시)
+  if (showPromo) {
+    const count = parseInt(localStorage.getItem(`hc_promo_${user.uid}`)||"1");
+    const visitLabel = count===1?"첫 번째":count===2?"두 번째":"세 번째";
+    const btnLabel = `${visitLabel} 방문 환영해요! ${count===1?"🚀":count===2?"😊":"🌸"}`;
+    const badgeLabel = `${visitLabel} 방문이에요! ${count===1?"👋":count===2?"😊":"🎉"}`;
+    return (
+      <div onClick={unlock} style={{minHeight:"100vh",background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",padding:"16px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",boxSizing:"border-box"}}>
+        <div style={{background:"white",borderRadius:20,width:"100%",maxWidth:360,overflow:"hidden"}}>
+          {/* 헤더 */}
+          <div style={{background:"#9C6FDE",padding:"18px 20px 14px",textAlign:"center"}}>
+            <div style={{display:"inline-block",background:"rgba(255,255,255,0.25)",borderRadius:20,padding:"3px 14px",fontSize:11,color:"white",fontWeight:700,marginBottom:8}}>{badgeLabel}</div>
+            <div style={{fontSize:17,fontWeight:900,color:"white",marginBottom:3}}>🌸 한글 친구가 특별한 이유</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",marginBottom:10}}>딱 세 번만 보여드려요 — 꼭 기억해 주세요!</div>
+            <div style={{display:"flex",gap:6,justifyContent:"center"}}>
+              {[1,2,3].map(i=>(
+                <div key={i} style={{width:8,height:8,borderRadius:"50%",background:i<=count?"white":"rgba(255,255,255,0.3)"}}/>
+              ))}
+            </div>
+          </div>
+          {/* 본문 */}
+          <div style={{padding:16}}>
+            <div style={{background:"#F3EEFF",borderRadius:"0 12px 12px 0",borderLeft:"3px solid #9C6FDE",padding:"11px 13px",marginBottom:13}}>
+              <div style={{fontSize:11,fontWeight:800,color:"#6B46C1",marginBottom:2}}>💡 핵심 차이</div>
+              <div style={{fontSize:11,color:"#553C9A",lineHeight:1.55}}>다른 기관 <strong>200~400시간</strong>이 필요한 초급 완성을<br/>한글 친구는 <strong>80시간</strong>에 약속합니다!</div>
+            </div>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:10.5,tableLayout:"fixed",marginBottom:13}}>
+              <thead>
+                <tr style={{background:"#F8F4FF"}}>
+                  {["기관","초급 시간","말하기 훈련","장소 무관","비용"].map((h,i)=>(
+                    <th key={i} style={{padding:"7px 5px",color:"#6B46C1",fontWeight:700,borderBottom:"2px solid #9C6FDE",textAlign:i===0?"left":"center",fontSize:10}}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ["A 기관","400h","△","✕","고비용","#f59e0b","#ef4444","#ef4444","#666"],
+                  ["B 기관","215h","△","✕","제한적","#f59e0b","#ef4444","#ef4444","#666"],
+                  ["C 기관","45~104h","✕","✕","제한적","#ef4444","#ef4444","#ef4444","#666"],
+                ].map(([name,h,sp,loc,cost,sc,lc,cc,tc])=>(
+                  <tr key={name} style={{borderBottom:"0.5px solid #f0f0f0"}}>
+                    <td style={{padding:"6px 5px",fontWeight:600,color:"#444",fontSize:10}}>{name}</td>
+                    <td style={{padding:"6px 5px",textAlign:"center",color:"#555"}}>{h}</td>
+                    <td style={{padding:"6px 5px",textAlign:"center",color:sc,fontWeight:700}}>{sp}</td>
+                    <td style={{padding:"6px 5px",textAlign:"center",color:lc,fontWeight:700}}>{loc}</td>
+                    <td style={{padding:"6px 5px",textAlign:"center",color:tc,fontSize:9}}>{cost}</td>
+                  </tr>
+                ))}
+                <tr style={{background:"#F8F4FF"}}>
+                  <td style={{padding:"6px 5px",fontWeight:800,color:"#9C6FDE",fontSize:10}}>🌸 한글 친구</td>
+                  <td style={{padding:"6px 5px",textAlign:"center",color:"#9C6FDE",fontWeight:800}}>80h</td>
+                  <td style={{padding:"6px 5px",textAlign:"center",color:"#22c55e",fontWeight:700}}>✓</td>
+                  <td style={{padding:"6px 5px",textAlign:"center",color:"#22c55e",fontWeight:700}}>✓</td>
+                  <td style={{padding:"6px 5px",textAlign:"center",color:"#888",fontSize:9}}>??</td>
+                </tr>
+              </tbody>
+            </table>
+            <div style={{background:"#E8FAF8",borderRadius:10,padding:"10px 12px",fontSize:11,color:"#085041",lineHeight:1.55}}>
+              🎯 <strong>"설계는 우리가 했습니다.<br/>이대로만 따라오면 됩니다."</strong>
+            </div>
+          </div>
+          {/* 버튼 */}
+          <button onClick={()=>setShowPromo(false)} style={{width:"100%",padding:13,background:"#9C6FDE",border:"none",color:"white",fontSize:14,fontWeight:800,cursor:"pointer"}}>{btnLabel}</button>
+        </div>
+      </div>
+    );
+  }
 
   // ✅ V126: beg는 탭 화면으로 진입 (BegScreen은 프리토킹 탭 안에서 제공)
 
