@@ -164,12 +164,6 @@ const BEG_TOPICS = [
   {id:"work",     emoji:"💼", ko:"직장·일상",      en:"Work & daily life",      vi:"Công việc & cuộc sống", hint:"회사, 일해요, 바빠요"},
 ];
 
-const EMOJI_BTNS = [
-  {emoji:"😊", ko:"좋아요!", en:"Good!", vi:"Tốt lắm!"},
-  {emoji:"🙈", ko:"떨려요!", en:"Nervous!", vi:"Hồi hộp!"},
-  {emoji:"🔥", ko:"해볼게요!", en:"Let's go!", vi:"Bắt đầu thôi!"},
-];
-
 async function callClaudeSimple(prompt, sys) {
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
@@ -181,15 +175,6 @@ async function callClaudeSimple(prompt, sys) {
     return d.content?.map(b=>b.text||"").join("")||"";
   } catch(e) { return ""; }
 }
-
-// ✅ V128: 초급 상황 카드 목록
-const BEG_SITUATIONS = [
-  {key:"daily",   emoji:"🏠", ko:"한국에서 살아요",    en:"Living in Korea",      vi:"Sống ở Hàn Quốc",    hint:"일상 생활·이웃·시장",     color:"#4CAF50", bg:"#E8F5E9"},
-  {key:"work",    emoji:"🏢", ko:"한국에서 일해요",    en:"Working in Korea",     vi:"Làm việc ở Hàn Quốc", hint:"직장·현장·동료",          color:"#1565C0", bg:"#E8F0FE"},
-  {key:"topik",   emoji:"🎓", ko:"시험 준비해요",      en:"Preparing for TOPIK",  vi:"Luyện thi TOPIK",     hint:"TOPIK 1~2급 어휘·표현",  color:"#9C6FDE", bg:"#F3EEFF"},
-  {key:"kculture",emoji:"❤️", ko:"K컬처 좋아해요",    en:"Love K-culture",       vi:"Yêu văn hóa Hàn",    hint:"드라마·K팝·음식",        color:"#E91E63", bg:"#FCE4EC"},
-  {key:"overseas",emoji:"🌏", ko:"해외에서 배워요",    en:"Learning from abroad", vi:"Học từ nước ngoài",   hint:"재외동포·해외 한류 팬",   color:"#FF6F00", bg:"#FFF3E0"},
-];
 
 // ✅ V129 수정: BEG_VOCAB — 주제별 실제 관련 어휘만, 무관한 단어 제거
 const BEG_VOCAB = {
@@ -248,11 +233,8 @@ const BEG_VOCAB = {
 
 
 function BegScreen({ user, onBack, begSpeak=false }) {
-  const [step, setStep] = useState("lang");   // lang → greet → situation → plan → topic → learn
+  const [step, setStep] = useState("lang");   // lang → curriculum → plan → topic → learn
   const [lang, setLang] = useState(null);
-  const [situation, setSituation] = useState(null);
-  const [greeting, setGreeting] = useState("");
-  const [gLoading, setGLoading] = useState(false);
   const [topic, setTopic] = useState(null);
   const [chat, setChat] = useState([]);
   const [input, setInput] = useState("");
@@ -295,30 +277,10 @@ function BegScreen({ user, onBack, begSpeak=false }) {
     chatBottomRef.current?.scrollIntoView({behavior:"smooth"});
   },[chat, sending]);
 
-  // 언어 선택 후 마중이 인사 생성
-  async function handleLang(l) {
+  // 언어 선택 → 커리큘럼 미리보기로 이동
+  function handleLang(l) {
     setLang(l);
-    setStep("greet");
-    if (l.code === "ko") {
-      setGreeting("안녕하세요! 저는 한글 친구, 마중이에요 🌸");
-    } else {
-      setGLoading(true);
-      const sys = `You are Majung, a Korean language learning assistant. Translate ONLY the following Korean greeting into ${l.label} language. Output only the translation, nothing else.`;
-      const t = await callClaudeSimple("안녕하세요! 저는 한글 친구, 마중이에요 🌸", sys);
-      setGreeting(t || "안녕하세요! 저는 한글 친구, 마중이에요 🌸");
-      setGLoading(false);
-    }
-  }
-
-  // 감정 버튼 → 상황 선택 화면
-  function handleEmoji(btn) {
-    setStep("situation");
-  }
-
-  // 상황 선택 → 학습 계획(plan) 화면
-  function handleSituation(s) {
-    setSituation(s);
-    setStep("plan");
+    setStep("curriculum");
   }
 
   // 주제 선택 → 학습 시작
@@ -356,10 +318,9 @@ function BegScreen({ user, onBack, begSpeak=false }) {
     const isKo = lang?.code === "ko";
     const topicVocab = BEG_VOCAB[t?.id] || [];
     const vocabList = topicVocab.join(", ");
-    const situationCtx = situation ? `\n[학습자 상황] ${SITUATION_HINTS[situation.key] || ""}` : "";
     return `[페르소나] 이름: 마중. 초급 한국어 학습자의 첫 친구이자 따뜻한 안내자.
 
-[현재 주제] ${topicName} (${t?.hint||""})${situationCtx}
+[현재 주제] ${topicName} (${t?.hint||""})
 
 [언어 원칙]
 - 설명: ${isKo ? "한국어" : langLabel}로
@@ -600,61 +561,60 @@ ${vocabList}
     </div>
   );
 
-  // ── 마중이 인사 화면 ──
-  if (step === "greet") return (
-    <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-      <div style={{fontSize:64,marginBottom:16}}>🌸</div>
-      {gLoading ? (
-        <div style={{fontSize:16,color:"#9C6FDE"}}>마중이가 인사 준비 중... 😊</div>
-      ) : (
-        <>
-          <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:6,textAlign:"center"}}>안녕하세요! 저는 한글 친구, 마중이에요 🌸</div>
-          {lang?.code !== "ko" && greeting && (
-            <div style={{fontSize:15,color:"#9C6FDE",marginBottom:16,textAlign:"center",padding:"10px 20px",background:"#F3EEFF",borderRadius:12}}>{greeting}</div>
-          )}
-          <div style={{fontSize:13,color:"#888",marginBottom:16,textAlign:"center"}}>오늘 기분이 어때요?</div>
-          <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:300}}>
-            {EMOJI_BTNS.map(btn=>(
-              <button key={btn.emoji} onClick={()=>handleEmoji(btn)} style={{background:"white",border:"2.5px solid #9C6FDE",borderRadius:20,padding:"16px 20px",cursor:"pointer",fontSize:18,fontWeight:800,color:"#9C6FDE",boxShadow:"0 4px 14px #9C6FDE22",WebkitTapHighlightColor:"transparent",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
-                <span>{btn.emoji}</span>
-                <span>{btn.ko}</span>
-                {lang?.code !== "ko" && <span style={{fontSize:13,color:"#aaa",fontWeight:500}}>/ {lang?.code==="vi"?btn.vi:btn.en}</span>}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-
-  // ── 상황 선택 화면 ── (V128 신규)
-  if (step === "situation") return (
-    <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-      <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:24}}>🌸</div>
-      <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>어떤 상황이에요?</div>
-      <div style={{fontSize:13,color:"#aaa",marginBottom:20,textAlign:"center"}}>
-        {lang?.code==="vi"?"Tình huống của bạn là gì?":lang?.code==="en"?"What's your situation?":"맞는 상황을 골라요!"}
-      </div>
-      <div style={{width:"100%",maxWidth:360,display:"flex",flexDirection:"column",gap:10}}>
-        {BEG_SITUATIONS.map(s=>(
-          <button key={s.key} onClick={()=>handleSituation(s)}
-            style={{background:s.bg,border:`2px solid ${s.color}55`,borderRadius:18,padding:"16px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14,boxShadow:"0 2px 12px rgba(0,0,0,.06)",WebkitTapHighlightColor:"transparent",transition:"all .15s",textAlign:"left"}}>
-            <span style={{fontSize:30,flexShrink:0}}>{s.emoji}</span>
-            <div style={{flex:1}}>
-              <div style={{fontSize:15,fontWeight:900,color:s.color}}>{s.ko}</div>
-              <div style={{fontSize:11,color:s.color,opacity:.75,marginTop:2}}>
-                {lang?.code==="vi"?s.vi:s.en} · {s.hint}
-              </div>
-            </div>
-            <span style={{fontSize:18,color:s.color,opacity:.5}}>›</span>
-          </button>
-        ))}
-      </div>
-      <button onClick={()=>setStep("greet")} style={{marginTop:20,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
-    </div>
-  );
-
   // ── D-Day 학습 계획 화면 (V131 신규) ──
+  // ── 80시간 커리큘럼 미리보기 화면 ──
+  if (step === "curriculum") {
+    const items = [
+      { emoji:"🔤", label:"발음 · 모음 · 자음 · 받침 · 연음",           hours:13, color:"#E8F4FD", border:"#90CAF9" },
+      { emoji:"📌", label:"조사 · 대명사",                                hours: 3, color:"#FFF3E0", border:"#FFCC80" },
+      { emoji:"🗣️", label:"서술어 1~16단원 (기초 → 허락 · 경험 · 도움)", hours:33, color:"#F3EEFF", border:"#CE93D8" },
+      { emoji:"💪", label:"통합 실전 훈련 (4회 반복)",                    hours:15, color:"#E8F5E9", border:"#A5D6A7" },
+      { emoji:"🏁", label:"마무리 + 예비",                                hours:16, color:"#FCE4EC", border:"#F48FB1" },
+    ];
+    const vi = lang?.code==="vi", en = lang?.code==="en";
+    return (
+      <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:12}}>📚</div>
+        <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
+          {vi?"80 giờ của bạn!":en?"Your 80 Hours!":"나의 80시간 커리큘럼"}
+        </div>
+        <div style={{fontSize:13,color:"#aaa",marginBottom:22,textAlign:"center"}}>
+          {vi?"Đây là những gì bạn sẽ học trong 80 giờ!":en?"Here's what you'll learn in 80 hours!":"80시간 동안 이걸 배워요! 🌏"}
+        </div>
+
+        {/* 커리큘럼 카드 */}
+        <div style={{width:"100%",maxWidth:360,display:"flex",flexDirection:"column",gap:10,marginBottom:18}}>
+          {items.map((it,i)=>(
+            <div key={i} style={{background:it.color,border:`2px solid ${it.border}`,borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
+              <div style={{fontSize:24,minWidth:32,textAlign:"center"}}>{it.emoji}</div>
+              <div style={{flex:1,fontSize:13,fontWeight:800,color:"#444",lineHeight:1.4}}>{it.label}</div>
+              <div style={{background:"white",borderRadius:50,padding:"4px 10px",fontSize:12,fontWeight:900,color:"#9C6FDE",whiteSpace:"nowrap",boxShadow:"0 2px 6px rgba(0,0,0,.08)"}}>{it.hours}h</div>
+            </div>
+          ))}
+          {/* 합계 */}
+          <div style={{background:"linear-gradient(135deg,#9C6FDE,#C084FC)",borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <div style={{fontSize:14,fontWeight:900,color:"white"}}>🎯 {vi?"Tổng cộng":en?"Total":"합계"}</div>
+            <div style={{fontSize:18,fontWeight:900,color:"white"}}>80h</div>
+          </div>
+        </div>
+
+        {/* 약속 문구 */}
+        <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:16,padding:"14px 18px",marginBottom:22,textAlign:"center",boxShadow:"0 2px 12px rgba(156,111,222,.10)"}}>
+          <div style={{fontSize:12,color:"#9C6FDE",fontWeight:800,marginBottom:4}}>💜 한글 친구의 약속</div>
+          <div style={{fontSize:12,color:"#666",lineHeight:1.6}}>
+            {vi?"80 giờ của bạn sẽ mở ra một thế giới mới.":en?"Your 80 hours will open a new world.":"당신의 80시간은 새로운 세상을 열어줍니다."}
+          </div>
+        </div>
+
+        <button onClick={()=>setStep("plan")}
+          style={{width:"100%",maxWidth:360,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:16,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #9C6FDE44",WebkitTapHighlightColor:"transparent"}}>
+          {vi?"Tiếp theo! →":en?"Next! →":"학습 계획 세우기 →"}
+        </button>
+        <button onClick={()=>setStep("lang")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
+      </div>
+    );
+  }
+
   if (step === "plan") {
     const preview = calcGoalDate(daysPerWeek, minPerDay);
     return (
@@ -715,7 +675,7 @@ ${vocabList}
           style={{width:"100%",maxWidth:360,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:16,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #9C6FDE44",WebkitTapHighlightColor:"transparent"}}>
           {lang?.code==="vi"?"Bắt đầu thôi! 🚀":lang?.code==="en"?"Let's go! 🚀":"도전 시작! 🚀"}
         </button>
-        <button onClick={()=>setStep("situation")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
+        <button onClick={()=>setStep("curriculum")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
       </div>
     );
   }
@@ -737,7 +697,7 @@ ${vocabList}
           </button>
         ))}
       </div>
-      <button onClick={()=>setStep("greet")} style={{marginTop:20,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
+      <button onClick={()=>setStep("lang")} style={{marginTop:20,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
     </div>
   );
 
@@ -749,7 +709,7 @@ ${vocabList}
         <div style={{fontSize:24}}>🌸</div>
         <div style={{flex:1}}>
           <div style={{fontSize:15,fontWeight:900,color:"white"}}>한글 친구 · 마중</div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,.8)"}}>{topic?.emoji} {topic?.ko}{situation ? ` · ${situation.emoji} ${situation.ko}` : ""} · {user.displayName||user.email}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,.8)"}}>{topic?.emoji} {topic?.ko} · {user.displayName||user.email}</div>
         </div>
         {/* 주제 바꾸기 버튼 */}
         <button onClick={()=>{setStep("topic");setChat([]);setTurnCount(0);}} style={{background:"rgba(255,255,255,.18)",border:"1.5px solid rgba(255,255,255,.5)",borderRadius:14,padding:"4px 10px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700,marginRight:6}}>주제 바꾸기</button>
