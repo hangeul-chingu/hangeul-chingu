@@ -246,6 +246,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady }) {
   const [daysPerWeek, setDaysPerWeek] = useState(3);
   const [minPerDay, setMinPerDay] = useState(30);
   const [goalDate, setGoalDate] = useState(null);   // 확정된 목표일 (Date)
+  const [studyGoal, setStudyGoal] = useState(null); // ✅ V140: 학습 목표
   const [showResetModal, setShowResetModal] = useState(false);
 
   // 총 80시간 기준 D-Day 계산
@@ -626,6 +627,29 @@ ${vocabList}
           {lang?.code==="vi"?"Hãy đặt kế hoạch học của bạn!":lang?.code==="en"?"Set your learning plan!":"한글 친구와 함께 목표일을 정해요!"}
         </div>
 
+        {/* 목표 선택 */}
+        <div style={{width:"100%",maxWidth:360,marginBottom:16}}>
+          <div style={{fontSize:13,fontWeight:800,color:"#9C6FDE",marginBottom:10,textAlign:"center"}}>
+            🎯 {lang?.code==="vi"?"Mục tiêu của bạn là gì?":lang?.code==="en"?"What's your goal?":"나의 목표를 선택해요!"}
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {[
+              {id:"topik2", emoji:"🏆", label:lang?.code==="vi"?"Đạt TOPIK cấp 2":lang?.code==="en"?"Achieve TOPIK Level 2":"TOPIK 2급 달성하기"},
+              {id:"topik4", emoji:"🏆", label:lang?.code==="vi"?"Đạt TOPIK cấp 4":lang?.code==="en"?"Achieve TOPIK Level 4":"TOPIK 4급 달성하기"},
+              {id:"daily", emoji:"💬", label:lang?.code==="vi"?"Nói tiếng Hàn hàng ngày tự do":lang?.code==="en"?"Speak Korean freely in daily life":"일상 한국어 자유롭게 말하기"},
+              {id:"work",  emoji:"💼", label:lang?.code==="vi"?"Tiếng Hàn công việc":lang?.code==="en"?"Korean for work":"직장·현장 한국어 익히기"},
+              {id:"life",  emoji:"🏠", label:lang?.code==="vi"?"Thích nghi cuộc sống Hàn Quốc":lang?.code==="en"?"Adapt to life in Korea":"한국 생활 적응하기"},
+            ].map(g=>(
+              <button key={g.id} onClick={()=>setStudyGoal(g.id)}
+                style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",borderRadius:14,border:`2px solid ${studyGoal===g.id?"#9C6FDE":"#eee"}`,background:studyGoal===g.id?"#F3EEFF":"white",cursor:"pointer",textAlign:"left",WebkitTapHighlightColor:"transparent",transition:"all .15s"}}>
+                <span style={{fontSize:20}}>{g.emoji}</span>
+                <span style={{fontSize:13,fontWeight:studyGoal===g.id?800:500,color:studyGoal===g.id?"#9C6FDE":"#555"}}>{g.label}</span>
+                {studyGoal===g.id&&<span style={{marginLeft:"auto",color:"#9C6FDE",fontSize:16}}>✓</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:20,padding:"22px 20px",boxShadow:"0 4px 20px rgba(156,111,222,.10)",marginBottom:16}}>
           {/* 주 몇 회 */}
           <div style={{marginBottom:20}}>
@@ -666,6 +690,9 @@ ${vocabList}
               {lang?.code==="vi"?"Ngày hoàn thành dự kiến":lang?.code==="en"?"Estimated completion date":"목표 완주일"}
             </div>
             <div style={{fontSize:20,fontWeight:900,color:"#9C6FDE"}}>{formatDate(preview)}</div>
+            {studyGoal&&<div style={{fontSize:12,color:"#9C6FDE",fontWeight:700,marginTop:6,background:"#9C6FDE18",borderRadius:8,padding:"4px 10px",display:"inline-block"}}>
+              {[{id:"topik2",label:"TOPIK 2급 달성"},{id:"topik4",label:"TOPIK 4급 달성"},{id:"daily",label:"일상 한국어 말하기"},{id:"work",label:"직장 한국어 익히기"},{id:"life",label:"한국 생활 적응"}].find(g=>g.id===studyGoal)?.label} 🎯
+            </div>}
             <div style={{fontSize:11,color:"#bbb",marginTop:4}}>
               {lang?.code==="vi"?"80 giờ học = thế giới mới!":lang?.code==="en"?"80 hours = a new world!":"80시간 = 새로운 세상! 🌏"}
             </div>
