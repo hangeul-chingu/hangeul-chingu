@@ -2875,10 +2875,12 @@ export default function App() {
       </div>
       <div style={{maxWidth:600,margin:"0 auto",width:"100%"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)",gap:1,backgroundColor:"#ebebeb",borderRadius:"0 0 16px 16px",overflow:"hidden"}}>
-          {[["speak","🗣️","프리토킹",C.pink],["write","✍️","논술",C.teal],["tutor","🎓","하이터치",C.purple],["game","🎮","게임",C.yellow]].map(([k,emoji,label,col])=>(
-            <button key={k} onClick={()=>setTab(k)} style={{padding:"14px 0 10px",border:"none",background:tab===k?`${col}18`:"white",cursor:"pointer",color:tab===k?col:"#aaa",fontWeight:tab===k?800:500,fontSize:12,transition:"all .2s",WebkitTapHighlightColor:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:3,borderBottom:tab===k?`3px solid ${col}`:"3px solid transparent"}}>
-              <span style={{fontSize:20}}>{emoji}</span>
-              <span>{label}</span>
+          {[["speak","🗣️","프리토킹",C.pink,"#FCE8F3"],["write","✍️","논술",C.teal,"#E8FAF8"],["tutor","🎓","하이터치",C.purple,"#F3EEFF"],["game","🎮","게임",C.yellow,"#FFFBE8"]].map(([k,emoji,label,col,bg])=>(
+            <button key={k} onClick={()=>setTab(k)} style={{padding:"16px 0 12px",border:"none",background:tab===k?bg:"white",cursor:"pointer",transition:"all .2s",WebkitTapHighlightColor:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+              <div style={{width:52,height:52,borderRadius:"50%",background:tab===k?bg:"#f5f5f5",border:tab===k?`2.5px solid ${col}`:"2px solid #e8e8e8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,transition:"all .2s",boxShadow:tab===k?`0 4px 12px ${col}33`:"none"}}>
+                {emoji}
+              </div>
+              <span style={{fontSize:12,fontWeight:tab===k?800:500,color:tab===k?col:"#aaa",transition:"all .2s"}}>{label}</span>
             </button>
           ))}
         </div>
