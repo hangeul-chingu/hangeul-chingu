@@ -2738,9 +2738,12 @@ export default function App() {
           <button onClick={()=>setLevel(null)} style={{background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 10px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>{level==="adv"?"🔥":level==="beg"?"🌸":"🌱"} ✕</button>
         </div>
       </div>
-      <div style={{display:"flex",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)"}}>
-        {[["speak","🗣️ 프리토킹",C.pink],["write","✍️ 논술",C.teal],["tutor","🎓 하이터치",C.purple],["game","🎮 게임",C.yellow]].map(([k,l,col])=>(
-          <button key={k} onClick={()=>setTab(k)} style={{flex:1,padding:"12px 0",border:"none",background:"transparent",cursor:"pointer",borderBottom:`3px solid ${tab===k?col:"transparent"}`,color:tab===k?col:"#aaa",fontWeight:tab===k?800:500,fontSize:12,transition:"all .2s",WebkitTapHighlightColor:"transparent"}}>{l}</button>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)",gap:1,backgroundColor:"#ebebeb"}}>
+        {[["speak","🗣️","프리토킹",C.pink],["write","✍️","논술",C.teal],["tutor","🎓","하이터치",C.purple],["game","🎮","게임",C.yellow]].map(([k,emoji,label,col])=>(
+          <button key={k} onClick={()=>setTab(k)} style={{padding:"14px 0 10px",border:"none",background:tab===k?`${col}18`:"white",cursor:"pointer",color:tab===k?col:"#aaa",fontWeight:tab===k?800:500,fontSize:12,transition:"all .2s",WebkitTapHighlightColor:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:3,borderBottom:tab===k?`3px solid ${col}`:"3px solid transparent"}}>
+            <span style={{fontSize:20}}>{emoji}</span>
+            <span>{label}</span>
+          </button>
         ))}
       </div>
       <div style={{maxWidth:600,margin:"0 auto",padding:"12px 12px 80px",boxSizing:"border-box"}}>
