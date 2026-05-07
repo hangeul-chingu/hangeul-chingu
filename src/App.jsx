@@ -550,7 +550,7 @@ ${vocabList}
         <div style={{fontSize:17,fontWeight:900,color:"#333",marginBottom:4}}>언어를 선택해 주세요</div>
         <div style={{fontSize:13,color:"#999"}}>Select your language</div>
       </div>
-      <div style={{width:"100%",display:"flex",flexDirection:"column",gap:10}}>
+      <div style={{width:"100%",maxWidth:360,display:"flex",flexDirection:"column",gap:10}}>
         {LANG_LIST.map(l=>(
           <button key={l.code} onClick={()=>handleLang(l)} style={{background:"white",border:"2px solid #9C6FDE44",borderRadius:16,padding:"14px 20px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,fontSize:16,fontWeight:700,color:"#333",boxShadow:"0 2px 10px rgba(156,111,222,.1)",WebkitTapHighlightColor:"transparent"}}>
             <span style={{fontSize:24}}>{l.flag}</span>
