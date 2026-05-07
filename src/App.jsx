@@ -567,11 +567,13 @@ ${vocabList}
   // ── 80시간 커리큘럼 미리보기 화면 ──
   if (step === "curriculum") {
     const items = [
-      { emoji:"🔤", label:"발음 · 모음 · 자음 · 받침 · 연음",           hours:13, color:"#E8F4FD", border:"#90CAF9" },
-      { emoji:"📌", label:"조사 · 대명사",                                hours: 3, color:"#FFF3E0", border:"#FFCC80" },
-      { emoji:"🗣️", label:"서술어 1~16단원 (기초 → 허락 · 경험 · 도움)", hours:33, color:"#F3EEFF", border:"#CE93D8" },
-      { emoji:"💪", label:"통합 실전 훈련 (4회 반복)",                    hours:15, color:"#E8F5E9", border:"#A5D6A7" },
-      { emoji:"🏁", label:"마무리 + 예비",                                hours:16, color:"#FCE4EC", border:"#F48FB1" },
+      { emoji:"🔤", label:"발음 · 모음 · 자음 · 받침 · 연음",                    hours:13, color:"#E8F4FD", border:"#90CAF9" },
+      { emoji:"📌", label:"조사 · 대명사",                                           hours: 3, color:"#FFF3E0", border:"#FFCC80" },
+      { emoji:"🗣️", label:"서술어 1~25단원 (기초 → 추측 · 결정 · 기간)",             hours:33, color:"#F3EEFF", border:"#CE93D8" },
+      { emoji:"⏱️", label:"부사어 (때 · 전에 · 후에 · 면서 · 때문에 · 려고 등)",     hours: 5, color:"#FFF8E1", border:"#FFD54F" },
+      { emoji:"📖", label:"기타 표현 (비교 · 존칭 · 간접화법 · 관형어 등)",           hours: 5, color:"#FDE8F5", border:"#F48FB1" },
+      { emoji:"💪", label:"통합 실전 훈련 (4회 반복)",                               hours:15, color:"#E8F5E9", border:"#A5D6A7" },
+      { emoji:"🏁", label:"마무리 + 예비",                                           hours: 6, color:"#FCE4EC", border:"#F48FB1" },
     ];
     const vi = lang?.code==="vi", en = lang?.code==="en";
     return (
