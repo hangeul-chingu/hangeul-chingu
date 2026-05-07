@@ -249,9 +249,20 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   const [studyGoal, setStudyGoal] = useState(null); // ✅ V140: 학습 목표
   const [showResetModal, setShowResetModal] = useState(false);
 
-  // 총 80시간 기준 D-Day 계산
-  function calcGoalDate(dpw, mpd) {
-    const totalMin = 80 * 60;
+  // 목표별 기준 시간 (단위: 시간)
+  // ⚠️ V142: 근거 탐색 중 — 추후 수정 가능
+  const GOAL_HOURS = {
+    topik2: 80,   // 초급 완성 (저자 80시간 기준)
+    topik4: 160,  // 중급 완성 (근거 탐색 중)
+    daily:  80,   // 일상 한국어 (초급 완성으로 충분)
+    work:   120,  // 직장·현장 (근거 탐색 중)
+    life:   80,   // 한국 생활 적응 (초급 완성으로 충분)
+  };
+
+  // 목표별 D-Day 계산
+  function calcGoalDate(dpw, mpd, goal) {
+    const hours = GOAL_HOURS[goal] ?? 80;
+    const totalMin = hours * 60;
     const minPerWeek = dpw * mpd;
     const weeksNeeded = Math.ceil(totalMin / minPerWeek);
     const d = new Date();
@@ -265,14 +276,14 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   }
 
   function confirmPlan() {
-    setGoalDate(calcGoalDate(daysPerWeek, minPerDay));
+    setGoalDate(calcGoalDate(daysPerWeek, minPerDay, studyGoal));
     // ✅ V140: topic 선택 화면 제거 — 도전 시작 즉시 탭 활성화
     onReady?.();
     setStep("learn");
   }
 
   function resetDDay() {
-    setGoalDate(calcGoalDate(daysPerWeek, minPerDay));
+    setGoalDate(calcGoalDate(daysPerWeek, minPerDay, studyGoal));
     setShowResetModal(false);
   }
 
@@ -644,7 +655,7 @@ ${vocabList}
   }
 
   if (step === "plan") {
-    const preview = calcGoalDate(daysPerWeek, minPerDay);
+    const preview = calcGoalDate(daysPerWeek, minPerDay, studyGoal);
     return (
       <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:16}}>🎯</div>
@@ -832,7 +843,7 @@ ${vocabList}
               </div>
             </div>
             <div style={{background:"#F3EEFF",borderRadius:12,padding:"10px",marginBottom:18,fontSize:13,fontWeight:800,color:"#9C6FDE"}}>
-              새 목표일: {formatDate(calcGoalDate(daysPerWeek, minPerDay))}
+              새 목표일: {formatDate(calcGoalDate(daysPerWeek, minPerDay, studyGoal))}
             </div>
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setShowResetModal(false)}
