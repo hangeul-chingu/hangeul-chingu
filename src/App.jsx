@@ -1482,7 +1482,7 @@ const ADV_QUIZ = [
   {q:"'눈이 높다'는 관용구의 뜻은?", answer:"기준이나 이상이 높다", opts:["기준이나 이상이 높다","시력이 좋다","높은 곳을 잘 본다","욕심이 없다"]},
 ];
 
-function SpeakTab({level, uid, unlock, speaking, speak}) {
+function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
   const [character, setCharacter] = useState(null);
   const [chatUI,    setChatUI]    = useState([]);
   const [apiMsgs,   setApiMsgs]   = useState([]);
@@ -1590,8 +1590,8 @@ function SpeakTab({level, uid, unlock, speaking, speak}) {
     setApiMsgs([{role:'assistant', content:msg}]);
   }
 
-  // ✅ V126: 초급(beg) 전용 프리토킹 화면
-  if (level === "beg") return <BegScreen user={{uid, displayName:"", email:""}} onBack={()=>{}} begSpeak={true}/>;
+  // ✅ V140: begReady=true면 이미 학습 시작 → BegScreen 재진입 방지
+  if (level === "beg" && !begReady) return <BegScreen user={{uid, displayName:"", email:""}} onBack={()=>{}} begSpeak={true}/>;
 
     if (!motivation) return (
     <div style={{padding:"8px 0"}}>
@@ -2745,7 +2745,7 @@ export default function App() {
       </div>
       <div style={{maxWidth:600,margin:"0 auto",padding:"12px 12px 80px",boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
-        {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak}/>}
+        {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak} begReady={begReady}/>}
         {tab==="write"&&<WriteTab level={level} uid={user.uid}/>}
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
         {tab==="game"&&<GameTab level={level}/>}
