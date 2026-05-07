@@ -232,8 +232,8 @@ const BEG_VOCAB = {
 };
 
 
-function BegScreen({ user, onBack, begSpeak=false, onReady }) {
-  const [step, setStep] = useState("lang");   // lang → curriculum → plan → topic → learn
+function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false }) {
+  const [step, setStep] = useState(skipToLearn ? "topic" : "lang");   // lang → curriculum → plan → topic → learn
   const [lang, setLang] = useState(null);
   const [topic, setTopic] = useState(null);
   const [chat, setChat] = useState([]);
@@ -1028,6 +1028,11 @@ const PROMPTS = {
 [금기] 유아적 칭찬 금지. 문화적 편견 금지.`,
   },
   write:{
+    beg:[
+      "따뜻한 글쓰기 코치. 초급(TOPIK 1~2급). 현상 단계: 아주 짧고 쉬운 1문장. 이모지 1개 포함. 칭찬 먼저. 쉬운 어휘로 교정 1가지. 한자어 금지. 2문장 이내.",
+      "따뜻한 글쓰기 코치. 초급(TOPIK 1~2급). 생각 단계: '나는 ~이 좋아요/싫어요' 형태 유도. 칭찬+쉬운 대안 1가지. 2문장 이내.",
+      "따뜻한 글쓰기 코치. 초급(TOPIK 1~2급). 이유 단계: '왜냐하면 ~ 이에요' 형태. 아주 간단한 발전 표현 1가지. 2문장 이내. 잘했다고 마무리.",
+    ],
     mid:[
       "따뜻한 글쓰기 코치. TOPIK 3~4급. 현상 단계: 쉬운 고유어 1~2문장. 칭찬+다음 연결. 3문장 이내. [어휘 맥락] 구어체·문어체 구분 1가지 교정 제안 포함. [✅어원 코칭] 학습자가 쓴 한자어가 있으면 같은 어원의 단어 1개를 자연스럽게 추가 안내. 예: '안전' → '안(安)은 편안·불안·보안에도 쓰여요!'",
       "따뜻한 글쓰기 코치. TOPIK 3~4급. 생각 단계: 나는~라고 생각해요 형태. 중급 대안 제시. 칭찬+이유 연결. 3문장 이내. [어휘 맥락] 구어체·문어체 구분 1가지 교정 제안 포함. [✅어원 코칭] 학습자가 쓴 한자어가 있으면 같은 어원의 단어 1개를 자연스럽게 추가 안내.",
@@ -1637,14 +1642,8 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
   if (level === "beg") {
     // begReady=false: BegScreen 재진입 (언어/커리큘럼/계획/주제 선택)
     if (!begReady) return <BegScreen user={{uid, displayName:"", email:""}} onBack={()=>{}} begSpeak={true}/>;
-    // begReady=true: 이미 학습 시작됨 → SpeakTab에서 별도 UI 없이 빈 안내만 표시
-    return (
-      <div style={{padding:"32px 16px",textAlign:"center",color:"#bbb"}}>
-        <div style={{fontSize:36,marginBottom:12}}>🌸</div>
-        <div style={{fontSize:14,fontWeight:700,color:"#9C6FDE",marginBottom:6}}>마중이와 학습 중이에요!</div>
-        <div style={{fontSize:12,color:"#aaa"}}>하이터치 · 논술 · 게임 탭도 이용해봐요 😊</div>
-      </div>
-    );
+    // begReady=true: BegScreen 채팅 화면으로 직접 연결
+    return <BegScreen user={{uid, displayName:"", email:""}} onBack={()=>{}} begSpeak={true} skipToLearn={true}/>;
   }
 
     if (!motivation) return (
@@ -1823,7 +1822,7 @@ function WriteTab({level, uid}) {
   const [submitFeed,  setSubmitFeed]  = useState(null);
   const [feedDepth,   setFeedDepth]   = useState("normal");
   const fileRef = useRef(null);
-  const writeSys = PROMPTS.write[level || "mid"];
+  const writeSys = PROMPTS.write[level === "beg" ? "beg" : level === "adv" ? "adv" : "mid"];
 
   async function submitStep() {
     if (!wText[wStep].trim() || wLoad) return;
@@ -2144,6 +2143,41 @@ function TutorTab({level, uid}) {
     setTutorUI([...newUI,   {role:"assistant", text:reply}]);
     if (!recorded && uid) { recordStat(uid,"tutor"); setRecorded(true); }
     setTutorLoad(false);
+  }
+
+  // ✅ V140: 초급 전용 하이터치 화면
+  if (level === "beg") {
+    if (!started) return (
+      <div style={{padding:"8px 0"}}>
+        <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center"}}>
+          <div style={{fontSize:32,marginBottom:6}}>🌸</div>
+          <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",marginBottom:4}}>마중이와 1:1 한국어 연습</div>
+          <div style={{fontSize:12,color:"#999",marginBottom:16}}>초급자를 위한 쉽고 친절한 한국어 코치예요 😊</div>
+          <div style={{display:"flex",flexDirection:"column",gap:10,textAlign:"left",marginBottom:16}}>
+            {[
+              {emoji:"💬", text:"오늘 배운 문법으로 문장 만들기"},
+              {emoji:"🔤", text:"모르는 단어 쉽게 설명해 드려요"},
+              {emoji:"✏️", text:"짧은 문장 쓰기 연습"},
+              {emoji:"🎯", text:"TOPIK 2급 핵심 표현 집중 연습"},
+            ].map((item,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"#F3EEFF",borderRadius:12,padding:"10px 14px"}}>
+                <span style={{fontSize:20}}>{item.emoji}</span>
+                <span style={{fontSize:13,color:"#555",fontWeight:500}}>{item.text}</span>
+              </div>
+            ))}
+          </div>
+          <button onClick={()=>{
+            setStarted(true);
+            const msg = "안녕하세요! 😊 저는 마중이에요. 초급 한국어 함께 연습해요!\n\n오늘 어떤 걸 연습할까요? 문법, 단어, 짧은 문장 쓰기 — 뭐든 편하게 말해줘요 🌸";
+            setTutorUI([{role:"assistant",text:msg}]);
+            setTutorMsgs([{role:"assistant",content:msg}]);
+          }} style={{background:"linear-gradient(135deg,#9C6FDE,#C3B1E1)",border:"none",borderRadius:50,padding:"14px 32px",color:"white",fontSize:15,fontWeight:800,cursor:"pointer",width:"100%"}}>
+            마중이와 시작하기! 🌸
+          </button>
+        </div>
+      </div>
+    );
+    // 채팅 화면은 공통으로 아래에서 렌더됨
   }
 
   if (!tutorType) return (
