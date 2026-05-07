@@ -232,7 +232,7 @@ const BEG_VOCAB = {
 };
 
 
-function BegScreen({ user, onBack, begSpeak=false }) {
+function BegScreen({ user, onBack, begSpeak=false, onReady }) {
   const [step, setStep] = useState("lang");   // lang → curriculum → plan → topic → learn
   const [lang, setLang] = useState(null);
   const [topic, setTopic] = useState(null);
@@ -287,6 +287,7 @@ function BegScreen({ user, onBack, begSpeak=false }) {
   async function handleTopic(t) {
     setTopic(t);
     setStep("learn");
+    onReady?.();   // ✅ V139: 도전 시작 — 탭 활성화
     setSending(true);
 
     // 마중이 첫 메시지 — 주제 기반으로 자연스럽게 시작
@@ -2623,6 +2624,7 @@ export default function App() {
   const [tab,   setTab]   = useState("speak");
   const [showStats, setShowStats] = useState(false);
   const [showTopikChoice, setShowTopikChoice] = useState(false); // ✅ V123: 레벨 2단계 선택
+  const [begReady, setBegReady] = useState(false); // ✅ V139: 초급 도전 시작 전까지 탭 숨김
   const {speaking, ttsHint, unlock, speak} = useTTS();
 
   useEffect(()=>{
@@ -2632,7 +2634,7 @@ export default function App() {
 
   async function handleLogout() {
     await signOut(auth);
-    setLevel(null); setTab("speak"); setShowTopikChoice(false);
+    setLevel(null); setTab("speak"); setShowTopikChoice(false); setBegReady(false);
   }
 
   if (user===undefined) return (
@@ -2716,6 +2718,11 @@ export default function App() {
       <div style={{fontSize:11,color:"#ccc",textAlign:"center",marginBottom:4,lineHeight:1.6,padding:"0 20px"}}>한국어 수준 분류는 국립국어원 한국어기초사전 초·중·고급 기준을 참고합니다.</div>
       <button onClick={handleLogout} style={{marginTop:8,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>로그아웃</button>
     </div>
+  );
+
+  // ✅ V139: 초급 — 도전 시작 전까지 BegScreen 전체화면 (탭 숨김)
+  if (level === "beg" && !begReady) return (
+    <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)}/>
   );
 
   return (
