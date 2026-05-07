@@ -233,7 +233,7 @@ const BEG_VOCAB = {
 
 
 function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false }) {
-  const [step, setStep] = useState(skipToLearn ? "topic" : "lang");   // lang → curriculum → plan → topic → learn
+  const [step, setStep] = useState(skipToLearn ? "learn" : "lang");   // lang → curriculum → plan → topic → learn
   const [lang, setLang] = useState(null);
   const [topic, setTopic] = useState(null);
   const [chat, setChat] = useState([]);
@@ -266,7 +266,9 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
 
   function confirmPlan() {
     setGoalDate(calcGoalDate(daysPerWeek, minPerDay));
-    setStep("topic");
+    // ✅ V140: topic 선택 화면 제거 — 도전 시작 즉시 탭 활성화
+    onReady?.();
+    setStep("learn");
   }
 
   function resetDDay() {
@@ -278,6 +280,26 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
     chatBottomRef.current?.scrollIntoView({behavior:"smooth"});
   },[chat, sending]);
 
+  // ✅ V140: topic 없이 learn으로 진입 시 자동으로 마중이 첫 메시지 시작
+  useEffect(()=>{
+    if (step === "learn" && !topic && chat.length === 0 && !sending) {
+      const autoStart = async () => {
+        setSending(true);
+        const sys = buildSys(null);
+        const r = await fetch("https://api.anthropic.com/v1/messages", {
+          method:"POST",
+          headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+          body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:350,system:sys,messages:[{role:"user",content:"초급 한국어 학습자야. 자기소개부터 자연스럽게 시작해줘. 첫 인사와 함께 이름 묻는 표현을 알려줘."}]}),
+        });
+        const d = await r.json();
+        const msg = d.content?.[0]?.text || "안녕하세요! 😊 저는 마중이에요. 같이 한국어 연습해요! 이름이 뭐예요?";
+        setChat([{role:"assistant",text:msg}]);
+        setSending(false);
+      };
+      autoStart();
+    }
+  },[step]);
+
   // 언어 선택 → 커리큘럼 미리보기로 이동
   function handleLang(l) {
     setLang(l);
@@ -288,12 +310,14 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   async function handleTopic(t) {
     setTopic(t);
     setStep("learn");
-    onReady?.();   // ✅ V139: 도전 시작 — 탭 활성화
+    // onReady는 confirmPlan에서 이미 호출됨 (V140)
     setSending(true);
 
     // 마중이 첫 메시지 — 주제 기반으로 자연스럽게 시작
     const sys = buildSys(t);
-    const startPrompt = `학습자가 "${t.ko}" 주제를 선택했어. 첫 인사와 함께 이 주제의 첫 번째 한국어 표현 하나를 자연스럽게 알려줘.`;
+    const startPrompt = t
+      ? `학습자가 "${t.ko}" 주제를 선택했어. 첫 인사와 함께 이 주제의 첫 번째 한국어 표현 하나를 자연스럽게 알려줘.`
+      : `초급 한국어 학습자야. 자기소개부터 자연스럽게 시작해줘. 첫 인사와 함께 이름 묻는 표현을 알려줘.`;
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method:"POST",
       headers:{"Content-Type":"application/json","x-api-key":import.meta.env.VITE_ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
