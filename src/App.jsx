@@ -1619,8 +1619,19 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
     setApiMsgs([{role:'assistant', content:msg}]);
   }
 
-  // ✅ V140: begReady=true면 이미 학습 시작 → BegScreen 재진입 방지
-  if (level === "beg" && !begReady) return <BegScreen user={{uid, displayName:"", email:""}} onBack={()=>{}} begSpeak={true}/>;
+  // ✅ V140: 초급 처리
+  if (level === "beg") {
+    // begReady=false: BegScreen 재진입 (언어/커리큘럼/계획/주제 선택)
+    if (!begReady) return <BegScreen user={{uid, displayName:"", email:""}} onBack={()=>{}} begSpeak={true}/>;
+    // begReady=true: 이미 학습 시작됨 → SpeakTab에서 별도 UI 없이 빈 안내만 표시
+    return (
+      <div style={{padding:"32px 16px",textAlign:"center",color:"#bbb"}}>
+        <div style={{fontSize:36,marginBottom:12}}>🌸</div>
+        <div style={{fontSize:14,fontWeight:700,color:"#9C6FDE",marginBottom:6}}>마중이와 학습 중이에요!</div>
+        <div style={{fontSize:12,color:"#aaa"}}>하이터치 · 논술 · 게임 탭도 이용해봐요 😊</div>
+      </div>
+    );
+  }
 
     if (!motivation) return (
     <div style={{padding:"8px 0"}}>
