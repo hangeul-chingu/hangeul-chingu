@@ -2908,7 +2908,7 @@ export default function App() {
               <div style={{fontSize:13,color:"#999",lineHeight:1.8}}>프리토킹으로 말하기 기초를 먼저 다져요.<br/>TOPIK 3급 이상이 되면 논술이 열려요 😊</div>
             </div>
           : <WriteTab level={level} uid={user.uid}/>
-        )}}
+        )}
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
         {tab==="game"&&<GameTab level={level}/>}
       </div>
