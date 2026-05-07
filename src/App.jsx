@@ -746,17 +746,31 @@ ${vocabList}
         <button onClick={onBack} style={{background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 12px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>✕</button>
       </div>
 
-      {/* ✅ V131: D-Day 뱃지 + 리셋 버튼 */}
-      {goalDate && (
-        <div style={{background:"white",padding:"8px 16px",borderBottom:"1px solid #f0eaff",display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
-          <div style={{fontSize:11,color:"#9C6FDE",fontWeight:800}}>🎯 목표일</div>
-          <div style={{fontSize:12,fontWeight:900,color:"#333",flex:1}}>{formatDate(goalDate)}</div>
-          <button onClick={()=>setShowResetModal(true)}
-            style={{background:"none",border:"1.5px solid #9C6FDE44",borderRadius:20,padding:"3px 10px",cursor:"pointer",color:"#9C6FDE",fontSize:11,fontWeight:700}}>
-            🔄 리셋
-          </button>
-        </div>
-      )}
+      {/* ✅ V131: D-Day 뱃지 + 리셋 버튼 + V140 진도 게이지 */}
+      {goalDate && (()=>{
+        const now = new Date();
+        const startDate = new Date(); startDate.setDate(startDate.getDate()-1);
+        const pct = Math.min(100, Math.round(((now-startDate)/Math.max(1,goalDate-startDate))*100));
+        const dLeft = Math.max(0, Math.ceil((goalDate-now)/(1000*60*60*24)));
+        const goalLabel = [{id:"topik2",label:"TOPIK 2급"},{id:"topik4",label:"TOPIK 4급"},{id:"daily",label:"일상 말하기"},{id:"work",label:"직장 한국어"},{id:"life",label:"한국 생활 적응"}].find(g=>g.id===studyGoal)?.label||"목표";
+        const msg = pct<20?"시작이 반이에요! 💪":pct<50?"잘 하고 있어요! 🌟":pct<80?"절반 넘었어요! 🔥":"거의 다 왔어요! 🏁";
+        return (
+          <div style={{background:"white",padding:"10px 16px",borderBottom:"1px solid #f0eaff",flexShrink:0}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+              <div style={{fontSize:11,color:"#9C6FDE",fontWeight:800}}>🎯 {goalLabel}</div>
+              <div style={{fontSize:11,color:"#aaa",flex:1}}>D-{dLeft} · {pct}%</div>
+              <button onClick={()=>setShowResetModal(true)}
+                style={{background:"none",border:"1.5px solid #9C6FDE44",borderRadius:20,padding:"3px 10px",cursor:"pointer",color:"#9C6FDE",fontSize:11,fontWeight:700}}>
+                🔄 리셋
+              </button>
+            </div>
+            <div style={{background:"#f0eaff",borderRadius:50,height:7,overflow:"hidden",marginBottom:4}}>
+              <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50}}/>
+            </div>
+            <div style={{fontSize:10,color:"#9C6FDE",fontWeight:600}}>{msg}</div>
+          </div>
+        );
+      })()}
 
       {/* ✅ V131: D-Day 리셋 모달 */}
       {showResetModal && (
@@ -2788,36 +2802,6 @@ export default function App() {
           ))}
         </div>
       </div>
-      {/* ✅ V140: 초급 학습 진도 게이지 */}
-      {level==="beg" && begReady && goalDate && (()=>{
-        const now = new Date();
-        // goalDate 기준으로 시작일 역산 (오늘~goalDate 전체 기간 대비 경과)
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 1); // 오늘 시작 기준
-        const elapsed = Math.max(0, now - startDate);
-        const total = Math.max(1, goalDate - startDate);
-        const pct = Math.min(100, Math.round((elapsed / total) * 100));
-        const dLeft = Math.max(0, Math.ceil((goalDate - now) / (1000*60*60*24)));
-        const goalLabel = [{id:"topik2",label:"TOPIK 2급"},{id:"topik4",label:"TOPIK 4급"},{id:"daily",label:"일상 말하기"},{id:"work",label:"직장 한국어"},{id:"life",label:"한국 생활"}].find(g=>g.id===studyGoal)?.label||"목표";
-        const msg = pct<20?"시작이 반이에요! 💪":pct<50?"잘 하고 있어요! 🌟":pct<80?"절반 넘었어요! 🔥":"거의 다 왔어요! 🏁";
-        return (
-          <div style={{maxWidth:600,margin:"0 auto",padding:"10px 12px 0",boxSizing:"border-box"}}>
-            <div style={{background:"white",borderRadius:16,padding:"14px 16px",boxShadow:"0 2px 12px rgba(156,111,222,.10)"}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-                <div style={{fontSize:12,fontWeight:800,color:"#9C6FDE"}}>🏃 {goalLabel} 달성 중!</div>
-                <div style={{fontSize:11,color:"#aaa"}}>D-{dLeft} · {pct}%</div>
-              </div>
-              <div style={{background:"#f0eaff",borderRadius:50,height:10,overflow:"hidden",marginBottom:8}}>
-                <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50,transition:"width .6s ease"}}/>
-              </div>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{fontSize:11,color:"#9C6FDE",fontWeight:700}}>{msg}</div>
-                <div style={{fontSize:11,color:"#bbb"}}>{formatDate(goalDate)}까지</div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
       <div style={{maxWidth:600,margin:"0 auto",padding:"12px 12px 80px",boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
         {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak} begReady={begReady}/>}
