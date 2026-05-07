@@ -2738,13 +2738,15 @@ export default function App() {
           <button onClick={()=>setLevel(null)} style={{background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 10px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>{level==="adv"?"🔥":level==="beg"?"🌸":"🌱"} ✕</button>
         </div>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)",gap:1,backgroundColor:"#ebebeb"}}>
-        {[["speak","🗣️","프리토킹",C.pink],["write","✍️","논술",C.teal],["tutor","🎓","하이터치",C.purple],["game","🎮","게임",C.yellow]].map(([k,emoji,label,col])=>(
-          <button key={k} onClick={()=>setTab(k)} style={{padding:"14px 0 10px",border:"none",background:tab===k?`${col}18`:"white",cursor:"pointer",color:tab===k?col:"#aaa",fontWeight:tab===k?800:500,fontSize:12,transition:"all .2s",WebkitTapHighlightColor:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:3,borderBottom:tab===k?`3px solid ${col}`:"3px solid transparent"}}>
-            <span style={{fontSize:20}}>{emoji}</span>
-            <span>{label}</span>
-          </button>
-        ))}
+      <div style={{maxWidth:600,margin:"0 auto",width:"100%"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)",gap:1,backgroundColor:"#ebebeb",borderRadius:"0 0 16px 16px",overflow:"hidden"}}>
+          {[["speak","🗣️","프리토킹",C.pink],["write","✍️","논술",C.teal],["tutor","🎓","하이터치",C.purple],["game","🎮","게임",C.yellow]].map(([k,emoji,label,col])=>(
+            <button key={k} onClick={()=>setTab(k)} style={{padding:"14px 0 10px",border:"none",background:tab===k?`${col}18`:"white",cursor:"pointer",color:tab===k?col:"#aaa",fontWeight:tab===k?800:500,fontSize:12,transition:"all .2s",WebkitTapHighlightColor:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:3,borderBottom:tab===k?`3px solid ${col}`:"3px solid transparent"}}>
+              <span style={{fontSize:20}}>{emoji}</span>
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
       </div>
       <div style={{maxWidth:600,margin:"0 auto",padding:"12px 12px 80px",boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
