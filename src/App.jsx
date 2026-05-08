@@ -2949,8 +2949,8 @@ export default function App() {
                 <tr style={{background:"#F8F4FF"}}>
                   <td style={{padding:"6px 5px",fontWeight:800,color:"#9C6FDE",fontSize:10}}>🌸 한글 친구</td>
                   <td style={{padding:"6px 5px",textAlign:"center",color:"#9C6FDE",fontWeight:800}}>80h</td>
-                  <td style={{padding:"6px 5px",textAlign:"center",color:"#22c55e",fontWeight:700}}>✓</td>
-                  <td style={{padding:"6px 5px",textAlign:"center",color:"#22c55e",fontWeight:700}}>✓</td>
+                  <td style={{padding:"6px 5px",textAlign:"center",color:"#00C896",fontWeight:900,fontSize:14}}>✓</td>
+                  <td style={{padding:"6px 5px",textAlign:"center",color:"#00C896",fontWeight:900,fontSize:14}}>✓</td>
                   <td style={{padding:"6px 5px",textAlign:"center",color:"#888",fontSize:9}}>??</td>
                 </tr>
               </tbody>
@@ -2960,7 +2960,9 @@ export default function App() {
             </div>
           </div>
           {/* 버튼 */}
-          <button onClick={()=>setShowPromo(false)} style={{width:"100%",padding:13,background:"#9C6FDE",border:"none",color:"white",fontSize:14,fontWeight:800,cursor:"pointer"}}>{btnLabel}</button>
+          <button onClick={()=>setShowPromo(false)} style={{width:"100%",padding:14,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",border:"none",color:"white",fontSize:15,fontWeight:900,cursor:"pointer",letterSpacing:0.5,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+            <span>지금 바로 시작하기</span><span style={{fontSize:18}}>→</span>
+          </button>
         </div>
       </div>
     );
