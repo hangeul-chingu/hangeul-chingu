@@ -1395,6 +1395,51 @@ function useTTS() {
   return { speaking, ttsHint, unlock, speak };
 }
 
+// ✅ V144: useSTT — Web Speech API 음성 입력 훅
+function useSTT({ onResult }) {
+  const [listening, setListening] = useState(false);
+  const [sttError,  setSttError]  = useState("");   // "unsupported" | "denied" | ""
+  const recogRef = useRef(null);
+
+  // 아이폰 + Chrome 조합 감지 (iOS에서 Chrome은 STT 미지원)
+  const isIOS    = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isChrome = /CriOS/.test(navigator.userAgent);   // iOS Chrome 식별자
+  const iosChrome = isIOS && isChrome;
+
+  const supported = !iosChrome && (
+    typeof window !== "undefined" &&
+    ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
+  );
+
+  function startListening() {
+    if (!supported) { setSttError("unsupported"); return; }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const r  = new SR();
+    r.lang         = "ko-KR";
+    r.interimResults = false;
+    r.maxAlternatives = 1;
+    r.onstart  = () => { setListening(true); setSttError(""); };
+    r.onend    = () => setListening(false);
+    r.onerror  = (e) => {
+      setListening(false);
+      if (e.error === "not-allowed") setSttError("denied");
+    };
+    r.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      if (text) onResult(text);
+    };
+    recogRef.current = r;
+    r.start();
+  }
+
+  function stopListening() {
+    recogRef.current?.stop();
+    setListening(false);
+  }
+
+  return { listening, sttError, supported, iosChrome, startListening, stopListening };
+}
+
 const StreetScene = () => (
   <svg viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg" style={{width:"100%",height:"auto",borderRadius:14,display:"block"}}>
     <defs>
@@ -1578,6 +1623,11 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
   // ✅ V130: 중·고급 퀴즈용 턴 카운트
   const [turnCount, setTurnCount] = useState(0);
   const chatEnd = useRef(null);
+  // ✅ V144: STT 훅 연결
+  const { listening, sttError, supported: sttSupported, iosChrome,
+          startListening, stopListening } = useSTT({
+    onResult: (text) => setInput(prev => prev ? prev + " " + text : text),
+  });
   const lvKey = level === "adv" ? "adv" : "mid";
 
   const MOTIVATION_HINTS = {
@@ -1768,6 +1818,8 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
 
   return (
     <>
+      {/* ✅ V144: 마이크 pulse 애니메이션 */}
+      <style>{`@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(255,107,107,0.3)}50%{box-shadow:0 0 0 8px rgba(255,107,107,0.1)}}`}</style>
       <div style={{background:"white",borderRadius:18,padding:12,minHeight:360,maxHeight:420,overflowY:"auto",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:10}}>
         {chatUI.map((m,i) => {
           // ✅ V130: 퀴즈 카드 렌더
@@ -1829,9 +1881,55 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
         {loading&&<div style={{display:"flex",alignItems:"flex-end",gap:6}}><div style={{fontSize:24}}>👨‍🦱</div><div style={{background:"#f0f0f0",borderRadius:"16px 16px 16px 4px",padding:"9px 14px",color:"#999",fontSize:13}}>입력 중... ✍️</div></div>}
         <div ref={chatEnd}/>
       </div>
+      {/* ✅ V144: 아이폰 + Chrome 감지 시 Safari 안내 문구 */}
+      {iosChrome && (
+        <div style={{background:"#FFF3CD",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:6,fontSize:13,color:"#5D4037",textAlign:"center",lineHeight:1.55}}>
+          🍎 <strong>아이폰에서 음성 입력은 Safari로 열어주세요!</strong><br/>
+          <span style={{fontSize:12,color:"#888"}}>Chrome 앱은 마이크 기능을 지원하지 않아요.</span>
+        </div>
+      )}
+      {/* ✅ V144: 마이크 권한 거부 시 안내 */}
+      {sttError === "denied" && (
+        <div style={{background:"#FCE4D6",border:"1px solid #FF8C42",borderRadius:12,padding:"10px 14px",marginBottom:6,fontSize:13,color:"#5D4037",textAlign:"center"}}>
+          🎤 마이크 권한이 거부됐어요. 브라우저 설정에서 마이크를 허용해주세요.
+        </div>
+      )}
       <div style={{display:"flex",gap:8,alignItems:"center"}}>
+        {/* ✅ V144: 마이크 버튼 — STT 지원 환경에서만 표시 */}
+        {sttSupported && (
+          <button
+            onPointerDown={unlock}
+            onClick={listening ? stopListening : startListening}
+            aria-label={listening ? "녹음 중지" : "음성 입력"}
+            style={{flexShrink:0,width:50,height:50,
+              background: listening
+                ? `linear-gradient(135deg,#FF6B6B,#FF4757)`
+                : `linear-gradient(135deg,#9C6FDE,#C3B1E1)`,
+              border:"none",borderRadius:"50%",cursor:"pointer",
+              display:"flex",alignItems:"center",justifyContent:"center",
+              WebkitTapHighlightColor:"transparent",touchAction:"manipulation",padding:0,
+              boxShadow: listening ? "0 0 0 4px rgba(255,107,107,0.3)" : "none",
+              animation: listening ? "pulse 1.2s infinite" : "none",
+            }}>
+            {listening
+              ? <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
+              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <rect x="9" y="2" width="6" height="12" rx="3" fill="white"/>
+                  <path d="M5 11a7 7 0 0014 0" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="12" y1="19" x2="12" y2="22" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="8"  y1="22" x2="16" y2="22" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+            }
+          </button>
+        )}
         <div style={{flex:1,minWidth:0,position:"relative"}}>
-          <input value={input} onChange={e=>setInput(e.target.value.slice(0,SEC.MAX_LEN))} onKeyDown={e=>e.key==="Enter"&&sendMsg()} placeholder="한국어로 자유롭게! 😊" aria-label="메시지 입력" style={{width:"100%",padding:"13px 16px",borderRadius:50,border:`2px solid ${C.pink}`,outline:"none",fontSize:15,background:"white",boxSizing:"border-box",WebkitAppearance:"none"}}/>
+          <input value={input} onChange={e=>setInput(e.target.value.slice(0,SEC.MAX_LEN))} onKeyDown={e=>e.key==="Enter"&&sendMsg()}
+            placeholder={listening ? "🎤 듣고 있어요... 말해보세요!" : "한국어로 자유롭게! 😊"}
+            aria-label="메시지 입력"
+            style={{width:"100%",padding:"13px 16px",borderRadius:50,
+              border:`2px solid ${listening ? "#FF6B6B" : C.pink}`,
+              outline:"none",fontSize:15,background: listening ? "#FFF5F5" : "white",
+              boxSizing:"border-box",WebkitAppearance:"none",transition:"all .2s"}}/>
           {input.length>400&&<span style={{position:"absolute",right:14,top:"50%",transform:"translateY(-50%)",fontSize:10,color:input.length>=SEC.MAX_LEN?"#e74c3c":"#aaa"}}>{input.length}/{SEC.MAX_LEN}</span>}
         </div>
         <button onPointerDown={unlock} onClick={sendMsg} disabled={loading||!input.trim()} aria-label="전송" style={{flexShrink:0,width:50,height:50,background:`linear-gradient(135deg,${C.pink},${C.orange})`,border:"none",borderRadius:"50%",cursor:"pointer",opacity:loading||!input.trim()?0.4:1,display:"flex",alignItems:"center",justifyContent:"center",WebkitTapHighlightColor:"transparent",touchAction:"manipulation",padding:0}}>
