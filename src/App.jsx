@@ -795,6 +795,83 @@ ${vocabList}
         ],
         tip: vi?"Nguyên âm kép = 2 âm ghép lại — đơn giản thôi!":en?"Compound vowels = 2 sounds combined — simple!":"복합 모음 = 두 소리가 합쳐진 것 — 쉬워요!"
       },
+      { id:"ssang", emoji:"💪", title:vi?"Phụ âm đôi":en?"Double consonants":"쌍자음",
+        desc:vi?"Mạnh hơn — căng hơn!":en?"Stronger — more tense!":"더 강하게! 긴장음이에요",
+        items:[
+          {char:"ㄲ", word:"까치",   meaning:vi?"chim ác là":en?"magpie":"까치"},
+          {char:"ㄸ", word:"딸기",   meaning:vi?"dâu tây":en?"strawberry":"딸기"},
+          {char:"ㅃ", word:"빠르다", meaning:vi?"nhanh":en?"fast":"빠르다"},
+          {char:"ㅆ", word:"씩씩하다",meaning:vi?"dũng cảm":en?"brave":"씩씩하다"},
+          {char:"ㅉ", word:"짜다",   meaning:vi?"mặn":en?"salty":"짜다"},
+        ],
+        tip: vi?"Phụ âm đôi = phụ âm bình thường nhưng căng hơn — đừng lo!":en?"Double consonants = same but more tense — just push harder!":"쌍자음 = 같은 자음을 더 강하게! 아는 소리예요 😊"
+      },
+      { id:"batchim1", emoji:"🧱", title:vi?"Phụ âm cuối 1":en?"Final consonants 1":"받침 1",
+        desc:vi?"ㄱ · ㅇ · ㅁ":en?"ㄱ · ㅇ · ㅁ":"ㄱ · ㅇ · ㅁ 받침",
+        items:[
+          {char:"국", word:"국",     meaning:vi?"canh":en?"soup":"국"},
+          {char:"책", word:"책",     meaning:vi?"sách":en?"book":"책"},
+          {char:"학교",word:"학교",  meaning:vi?"trường học":en?"school":"학교"},
+          {char:"영어",word:"영어",  meaning:vi?"tiếng Anh":en?"English":"영어"},
+          {char:"방",  word:"방",    meaning:vi?"phòng":en?"room":"방"},
+          {char:"강",  word:"강",    meaning:vi?"sông":en?"river":"강"},
+          {char:"밥",  word:"밥",    meaning:vi?"cơm":en?"rice":"밥"},
+          {char:"몸",  word:"몸",    meaning:vi?"cơ thể":en?"body":"몸"},
+          {char:"봄",  word:"봄",    meaning:vi?"mùa xuân":en?"spring":"봄"},
+        ],
+        tip: vi?"Phụ âm cuối = âm nhẹ ở cuối — chỉ cần khép miệng!":en?"Final consonant = soft sound at the end!":"받침은 마지막에 살짝 닫는 소리예요 😊"
+      },
+      { id:"batchim2", emoji:"🧱", title:vi?"Phụ âm cuối 2":en?"Final consonants 2":"받침 2",
+        desc:vi?"ㅂ · ㄹ · ㄴ":en?"ㅂ · ㄹ · ㄴ":"ㅂ · ㄹ · ㄴ 받침",
+        items:[
+          {char:"입",  word:"입",    meaning:vi?"miệng":en?"mouth":"입"},
+          {char:"집",  word:"집",    meaning:vi?"nhà":en?"house":"집"},
+          {char:"앞",  word:"앞",    meaning:vi?"phía trước":en?"front":"앞"},
+          {char:"말",  word:"말",    meaning:vi?"ngựa/lời":en?"horse/word":"말"},
+          {char:"글",  word:"글",    meaning:vi?"chữ viết":en?"writing":"글"},
+          {char:"일",  word:"일",    meaning:vi?"công việc":en?"work":"일"},
+          {char:"눈",  word:"눈",    meaning:vi?"mắt/tuyết":en?"eye/snow":"눈"},
+          {char:"손",  word:"손",    meaning:vi?"tay":en?"hand":"손"},
+          {char:"문",  word:"문",    meaning:vi?"cửa":en?"door":"문"},
+        ],
+        tip: vi?"ㄹ cuối = lưỡi chạm nhẹ — nghe như L nhẹ!":en?"ㄹ at end = soft L sound!":"ㄹ받침은 혀를 살짝 굴리는 소리예요 😊"
+      },
+      { id:"batchim3", emoji:"🧱", title:vi?"Phụ âm cuối 3":en?"Final consonants 3":"받침 3",
+        desc:vi?"ㄷ · ㅅ · ㅈ · ㅎ 계열":en?"ㄷ · ㅅ · ㅈ · ㅎ group":"ㄷ·ㅅ·ㅈ·ㅎ 계열",
+        items:[
+          {char:"낮",  word:"낮",    meaning:vi?"ban ngày":en?"daytime":"낮"},
+          {char:"꽃",  word:"꽃",    meaning:vi?"hoa":en?"flower":"꽃"},
+          {char:"빛",  word:"빛",    meaning:vi?"ánh sáng":en?"light":"빛"},
+          {char:"옷",  word:"옷",    meaning:vi?"quần áo":en?"clothes":"옷"},
+          {char:"밖",  word:"밖",    meaning:vi?"bên ngoài":en?"outside":"밖"},
+          {char:"부엌",word:"부엌",  meaning:vi?"nhà bếp":en?"kitchen":"부엌"},
+        ],
+        tip: vi?"Nhóm này đều phát âm như ㄷ ở cuối — cùng một âm!":en?"This group all sound like ㄷ at the end — same sound!":"이 계열은 모두 받침에서 ㄷ처럼 소리나요 😊"
+      },
+      { id:"double", emoji:"🔀", title:vi?"Phụ âm cuối kép":en?"Double final consonants":"겹받침",
+        desc:vi?"2 phụ âm — chỉ đọc 1!":en?"2 consonants — only read 1!":"두 개지만 하나만 읽어요!",
+        items:[
+          {char:"닭",  word:"닭",    meaning:vi?"con gà":en?"chicken":"닭"},
+          {char:"삶",  word:"삶",    meaning:vi?"cuộc sống":en?"life":"삶"},
+          {char:"읽다",word:"읽다",  meaning:vi?"đọc":en?"to read":"읽다"},
+          {char:"젊다",word:"젊다",  meaning:vi?"trẻ":en?"young":"젊다"},
+          {char:"넓다",word:"넓다",  meaning:vi?"rộng":en?"wide":"넓다"},
+          {char:"많다",word:"많다",  meaning:vi?"nhiều":en?"many":"많다"},
+        ],
+        tip: vi?"Đừng lo — chỉ cần đọc 1 trong 2 phụ âm!":en?"Don't worry — just read one of the two!":"어렵게 생각 말아요 — 둘 중 하나만 읽어요! 😊"
+      },
+      { id:"liaison", emoji:"🔗", title:vi?"Liên âm":en?"Liaison":"연음",
+        desc:vi?"Kết nối âm — nói tự nhiên hơn!":en?"Sound linking — speak naturally!":"소리가 이어져요 — 실전 발음!",
+        items:[
+          {char:"국이",  word:"국이",   meaning:vi?"canh (chủ ngữ)":en?"soup (subject)":"국+이"},
+          {char:"집에",  word:"집에",   meaning:vi?"ở nhà":en?"at home":"집+에"},
+          {char:"옷을",  word:"옷을",   meaning:vi?"quần áo (tân ngữ)":en?"clothes (object)":"옷+을"},
+          {char:"밥을",  word:"밥을",   meaning:vi?"cơm (tân ngữ)":en?"rice (object)":"밥+을"},
+          {char:"책이",  word:"책이",   meaning:vi?"sách (chủ ngữ)":en?"book (subject)":"책+이"},
+          {char:"일이",  word:"일이",   meaning:vi?"công việc":en?"work (subject)":"일+이"},
+        ],
+        tip: vi?"Khi có nguyên âm theo sau — phụ âm cuối chuyển sang!":en?"When a vowel follows — the final consonant moves over!":"모음이 오면 받침이 다음 음절로 넘어가요 😊"
+      },
     ];
 
     const current = PRON_STEPS[pronStep];
