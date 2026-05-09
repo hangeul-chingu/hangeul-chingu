@@ -249,6 +249,10 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   const [studyGoal, setStudyGoal] = useState(null); // ✅ V140: 학습 목표
   const [showResetModal, setShowResetModal] = useState(false);
 
+  // ✅ V145: 발음 화면 state (훅 규칙 — 컴포넌트 최상단에 선언)
+  const [pronStep, setPronStep] = useState(0);
+  const [flipped, setFlipped] = useState({});
+
   // 목표별 기준 시간 (단위: 시간)
   // ⚠️ V142: 근거 탐색 중 — 추후 수정 가능
   const GOAL_HOURS = {
@@ -793,8 +797,6 @@ ${vocabList}
       },
     ];
 
-    const [pronStep, setPronStep] = React.useState(0);
-    const [flipped, setFlipped] = React.useState({});
     const current = PRON_STEPS[pronStep];
 
     return (
