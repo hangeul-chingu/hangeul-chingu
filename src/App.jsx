@@ -277,9 +277,16 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
 
   function confirmPlan() {
     setGoalDate(calcGoalDate(daysPerWeek, minPerDay, studyGoal));
-    // ✅ V140: topic 선택 화면 제거 — 도전 시작 즉시 탭 활성화
-    onReady?.();
-    setStep("learn");
+    // ✅ V145: 목표 그룹에 따라 분기
+    // 그룹 A (커리큘럼 순서형): topik2, life → 발음 화면부터
+    // 그룹 B (자유 탐색형): topik4, daily, work → 기존 자유 탭 열림
+    const groupA = ["topik2", "life"];
+    if (groupA.includes(studyGoal)) {
+      setStep("pronunciation");
+    } else {
+      onReady?.();
+      setStep("learn");
+    }
   }
 
   function resetDDay() {
@@ -744,6 +751,117 @@ ${vocabList}
       </div>
     );
   }
+  // ── V145: 발음 화면 (그룹 A 전용 — TOPIK 2급, 한국 생활 적응) ──
+  if (step === "pronunciation") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    // 발음 단계 목록
+    const PRON_STEPS = [
+      { id:"vowel1",  emoji:"🔤", title:vi?"Nguyên âm 1":en?"Vowels 1":"모음 1",
+        desc:vi?"14 nguyên âm cơ bản":en?"14 basic vowels":"기본 모음 14개",
+        items:[
+          {char:"ㅏ", word:"아버지", meaning:vi?"bố":en?"father":"아버지"},
+          {char:"ㅑ", word:"야채",   meaning:vi?"rau củ":en?"vegetable":"야채"},
+          {char:"ㅓ", word:"어머니", meaning:vi?"mẹ":en?"mother":"어머니"},
+          {char:"ㅕ", word:"여행",   meaning:vi?"du lịch":en?"travel":"여행"},
+          {char:"ㅗ", word:"오빠",   meaning:vi?"anh trai":en?"older brother":"오빠"},
+          {char:"ㅛ", word:"요리",   meaning:vi?"nấu ăn":en?"cooking":"요리"},
+          {char:"ㅜ", word:"우리",   meaning:vi?"chúng ta":en?"we/our":"우리"},
+          {char:"ㅠ", word:"유리",   meaning:vi?"thủy tinh":en?"glass":"유리"},
+          {char:"ㅡ", word:"으쌰",   meaning:vi?"cố lên!":en?"let's go!":"으쌰!"},
+          {char:"ㅣ", word:"이름",   meaning:vi?"tên":en?"name":"이름"},
+          {char:"ㅐ", word:"개",     meaning:vi?"con chó":en?"dog":"개"},
+          {char:"ㅔ", word:"세계",   meaning:vi?"thế giới":en?"world":"세계"},
+          {char:"ㅒ", word:"얘기",   meaning:vi?"câu chuyện":en?"story":"얘기"},
+          {char:"ㅖ", word:"예쁘다", meaning:vi?"đẹp":en?"pretty":"예쁘다"},
+        ],
+        tip: vi?"ㅐ và ㅔ nghe gần giống nhau — đừng lo!":en?"ㅐ and ㅔ sound similar — don't worry!":"ㅐ와 ㅔ는 발음이 비슷해요 — 걱정 마세요! 😊"
+      },
+      { id:"vowel2",  emoji:"🔤", title:vi?"Nguyên âm 2":en?"Vowels 2":"모음 2",
+        desc:vi?"Nguyên âm kép — đã quen rồi!":en?"Compound vowels — already familiar!":"복합 모음 — 이미 아는 발음이에요!",
+        items:[
+          {char:"ㅘ", word:"화요일", meaning:vi?"thứ ba":en?"Tuesday":"화요일"},
+          {char:"ㅙ", word:"왜",     meaning:vi?"tại sao":en?"why":"왜"},
+          {char:"ㅚ", word:"최고",   meaning:vi?"tốt nhất":en?"the best":"최고"},
+          {char:"ㅝ", word:"원하다", meaning:vi?"muốn":en?"to want":"원하다"},
+          {char:"ㅞ", word:"웨이터", meaning:vi?"bồi bàn":en?"waiter":"웨이터"},
+          {char:"ㅟ", word:"위험",   meaning:vi?"nguy hiểm":en?"danger":"위험"},
+          {char:"ㅢ", word:"의사",   meaning:vi?"bác sĩ":en?"doctor":"의사"},
+        ],
+        tip: vi?"Nguyên âm kép = 2 âm ghép lại — đơn giản thôi!":en?"Compound vowels = 2 sounds combined — simple!":"복합 모음 = 두 소리가 합쳐진 것 — 쉬워요!"
+      },
+    ];
+
+    const [pronStep, setPronStep] = React.useState(0);
+    const [flipped, setFlipped] = React.useState({});
+    const current = PRON_STEPS[pronStep];
+
+    return (
+      <div style={{minHeight:"100vh", background:`linear-gradient(150deg,${C.bg},#F3EEFF)`, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 20px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        {/* 헤더 */}
+        <div style={{fontSize:32, marginBottom:4}}>{current.emoji}</div>
+        <div style={{fontSize:17, fontWeight:900, color:"#9C6FDE", marginBottom:2, textAlign:"center"}}>
+          {vi?"Phát âm":en?"Pronunciation":"발음 학습"} — {current.title}
+        </div>
+        <div style={{fontSize:12, color:"#aaa", marginBottom:6, textAlign:"center"}}>{current.desc}</div>
+
+        {/* 진행 표시 */}
+        <div style={{display:"flex", gap:6, marginBottom:16}}>
+          {PRON_STEPS.map((s,i)=>(
+            <div key={s.id} style={{width:28, height:6, borderRadius:3, background:i===pronStep?"#9C6FDE":i<pronStep?"#C084FC":"#eee", transition:"all .3s"}}/>
+          ))}
+          <div style={{width:28, height:6, borderRadius:3, background:"#eee"}}/>
+          <div style={{fontSize:10, color:"#bbb", marginLeft:4, alignSelf:"center"}}>···</div>
+        </div>
+
+        {/* 팁 배너 */}
+        <div style={{background:"#F3EEFF", border:"1.5px solid #C084FC44", borderRadius:12, padding:"8px 14px", marginBottom:14, maxWidth:360, width:"100%", fontSize:12, color:"#9C6FDE", fontWeight:600, textAlign:"center"}}>
+          💡 {current.tip}
+        </div>
+
+        {/* 모음 카드 그리드 */}
+        <div style={{display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, maxWidth:380, width:"100%", marginBottom:20}}>
+          {current.items.map((item,i)=>(
+            <div key={i} onClick={()=>setFlipped(f=>({...f,[i]:!f[i]}))}
+              style={{background:flipped[i]?"#9C6FDE":"white", border:`2px solid ${flipped[i]?"#9C6FDE":"#E8E0F8"}`, borderRadius:14, padding:"10px 6px", cursor:"pointer", textAlign:"center", transition:"all .2s", boxShadow:"0 2px 8px #9C6FDE18"}}>
+              {flipped[i] ? (
+                <>
+                  <div style={{fontSize:11, color:"white", fontWeight:700, marginBottom:2}}>{item.word}</div>
+                  <div style={{fontSize:10, color:"rgba(255,255,255,.8)"}}>{item.meaning}</div>
+                </>
+              ) : (
+                <>
+                  <div style={{fontSize:26, fontWeight:900, color:"#9C6FDE", marginBottom:2}}>{item.char}</div>
+                  <div style={{fontSize:9, color:"#bbb"}}>탭하세요</div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div style={{fontSize:11, color:"#bbb", marginBottom:20, textAlign:"center"}}>
+          {vi?"Chạm vào thẻ để xem từ ví dụ":en?"Tap a card to see example word":"카드를 탭하면 예시 단어가 나와요 😊"}
+        </div>
+
+        {/* 다음 / 자유학습으로 버튼 */}
+        {pronStep < PRON_STEPS.length - 1 ? (
+          <button onClick={()=>{setPronStep(p=>p+1); setFlipped({});}}
+            style={{width:"100%", maxWidth:360, background:"linear-gradient(135deg,#9C6FDE,#C084FC)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C6FDE44"}}>
+            {vi?"Tiếp theo →":en?"Next →":"다음 →"} {PRON_STEPS[pronStep+1].title}
+          </button>
+        ) : (
+          <button onClick={()=>{onReady?.(); setStep("learn");}}
+            style={{width:"100%", maxWidth:360, background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #00C89644"}}>
+            {vi?"Bắt đầu học! 🚀":en?"Start learning! 🚀":"학습 시작! 🚀"}
+          </button>
+        )}
+
+        <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer"}}>← 뒤로</button>
+      </div>
+    );
+  }
+
   if (step === "topic") return (
     <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:36,marginBottom:8,marginTop:24}}>🌸</div>
