@@ -35,22 +35,28 @@ const AUTH_ERRORS = {
 
 function AuthScreen({ onLogin }) {
   const [tab, setTab] = useState("login");
+  const [role, setRole] = useState("learner"); // "learner" | "instructor"
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [dataOwnershipAgreed, setDataOwnershipAgreed] = useState(false);
+  const [emailAgreed, setEmailAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleSubmit() {
     if (!email.trim() || !password.trim()) { setError("이메일과 비밀번호를 입력해주세요"); return; }
     if (tab === "signup" && !name.trim()) { setError("이름을 입력해주세요"); return; }
+    if (tab === "signup" && !dataOwnershipAgreed) { setError("학습 데이터 소유권 귀속 및 활용 동의는 필수예요"); return; }
     setLoading(true); setError("");
     try {
       if (tab === "signup") {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(cred.user, { displayName: name });
         await setDoc(doc(db, "users", cred.user.uid), {
-          name, email,
+          name, email, role,
+          dataOwnershipAgreed: true,
+          emailAgreed,
           createdAt: serverTimestamp(),
           stats: { speak: 0, write: 0, tutor: 0 },
         });
@@ -65,25 +71,64 @@ function AuthScreen({ onLogin }) {
     setLoading(false);
   }
 
+  const roleLabel = { learner: "학습자", instructor: "교수자" };
+
   return (
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:52,marginBottom:8}}>🇰🇷</div>
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
       <div style={{fontSize:13,color:"#888",marginBottom:32,textAlign:"center"}}>이주배경 학습자를 위한 24시간 디지털 브릿지 · Korean Speaking &amp; Writing Trainer</div>
       <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:24,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.1)"}}>
+        {/* 로그인 / 회원가입 탭 */}
         <div style={{display:"flex",background:"#f5f5f5",borderRadius:12,padding:4,marginBottom:20}}>
           {[["login","로그인"],["signup","회원가입"]].map(([k,l])=>(
-            <button key={k} onClick={()=>{setTab(k);setError("");}} style={{flex:1,padding:"9px 0",border:"none",borderRadius:10,background:tab===k?"white":"transparent",fontWeight:tab===k?800:500,color:tab===k?C.pink:"#999",cursor:"pointer",fontSize:14,transition:"all .2s"}}>{l}</button>
+            <button key={k} onClick={()=>{setTab(k);setError("");setDataOwnershipAgreed(false);setEmailAgreed(false);}} style={{flex:1,padding:"9px 0",border:"none",borderRadius:10,background:tab===k?"white":"transparent",fontWeight:tab===k?800:500,color:tab===k?C.pink:"#999",cursor:"pointer",fontSize:14,transition:"all .2s"}}>{l}</button>
           ))}
         </div>
-        {tab==="signup"&&(
-          <input value={name} onChange={e=>setName(e.target.value)} placeholder="이름" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
-        )}
+
+        {/* 회원가입 전용 필드 */}
+        {tab==="signup"&&(<>
+          {/* 역할 선택 */}
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:12,color:"#888",marginBottom:6,fontWeight:600}}>가입 유형</div>
+            <div style={{display:"flex",gap:8}}>
+              {[["learner","🎓 학습자"],["instructor","👩‍🏫 교수자"]].map(([k,l])=>(
+                <button key={k} onClick={()=>setRole(k)} style={{flex:1,padding:"10px 0",border:`2px solid ${role===k?C.pink:"#eee"}`,borderRadius:12,background:role===k?`${C.pink}12`:"white",color:role===k?C.pink:"#aaa",fontWeight:role===k?800:500,fontSize:13,cursor:"pointer",transition:"all .2s"}}>{l}</button>
+              ))}
+            </div>
+          </div>
+
+          <input value={name} onChange={e=>setName(e.target.value)} placeholder={role==="instructor"?"교수자 이름":"이름"} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
+        </>)}
+
         <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="이메일" type="email" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
-        <input value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} placeholder="비밀번호 (6자 이상)" type="password" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:error?10:16,boxSizing:"border-box"}}/>
+        <input value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} placeholder="비밀번호 (6자 이상)" type="password" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:error&&tab==="login"?10:tab==="signup"?14:16,boxSizing:"border-box"}}/>
+
+        {/* 회원가입 동의 항목 */}
+        {tab==="signup"&&(<>
+          {/* 필수 동의 */}
+          <div onClick={()=>setDataOwnershipAgreed(p=>!p)} style={{display:"flex",alignItems:"flex-start",gap:10,background:dataOwnershipAgreed?"#F0FBF7":"#FAFAFA",border:`1.5px solid ${dataOwnershipAgreed?"#00C896":"#e0e0e0"}`,borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",transition:"all .2s"}}>
+            <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${dataOwnershipAgreed?"#00C896":"#ccc"}`,background:dataOwnershipAgreed?"#00C896":"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1,transition:"all .2s"}}>
+              {dataOwnershipAgreed&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
+            </div>
+            <div>
+              <div style={{fontSize:12,fontWeight:700,color:"#333",marginBottom:3}}>(필수) 학습 데이터 소유권 귀속 및 활용 동의</div>
+              <div style={{fontSize:11,color:"#777",lineHeight:1.6}}>학습자와 나눈 모든 대화 및 학습 데이터의 소유권은 한글 친구에 귀속되며, 이는 <strong>서비스의 고도화 및 인공지능 모델 업그레이드 연구</strong>를 위해 소중하게 사용됩니다.</div>
+            </div>
+          </div>
+
+          {/* 선택 동의 */}
+          <div onClick={()=>setEmailAgreed(p=>!p)} style={{display:"flex",alignItems:"center",gap:10,background:emailAgreed?"#FFF8F0":"#FAFAFA",border:`1.5px solid ${emailAgreed?C.orange:"#e0e0e0"}`,borderRadius:12,padding:"11px 14px",marginBottom:14,cursor:"pointer",transition:"all .2s"}}>
+            <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${emailAgreed?C.orange:"#ccc"}`,background:emailAgreed?C.orange:"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
+              {emailAgreed&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
+            </div>
+            <div style={{fontSize:12,fontWeight:600,color:"#555"}}>(선택) 업데이트 소식 이메일 수신 동의</div>
+          </div>
+        </>)}
+
         {error&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{error}</div>}
         <button onClick={handleSubmit} disabled={loading} style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:16,fontWeight:900,cursor:"pointer",opacity:loading?0.5:1}}>
-          {loading?"처리 중...":tab==="login"?"로그인":"회원가입"}
+          {loading?"처리 중...":tab==="login"?"로그인":`${roleLabel[role]}으로 가입하기`}
         </button>
       </div>
       <div style={{marginTop:24,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
