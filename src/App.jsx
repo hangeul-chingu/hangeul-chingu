@@ -251,6 +251,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
 
   // ✅ V145: 발음 화면 state (훅 규칙 — 컴포넌트 최상단에 선언)
   const [pronStep, setPronStep] = useState(0);
+  const [josaStep, setJosaStep] = useState(0);   // V147: 조사·대명사 단계
   const [flipped, setFlipped] = useState({});
 
   // 목표별 기준 시간 (단위: 시간)
@@ -940,13 +941,157 @@ ${vocabList}
             {vi?"Tiếp theo →":en?"Next →":"다음 →"} {PRON_STEPS[pronStep+1].title}
           </button>
         ) : (
-          <button onClick={()=>{onReady?.(); setStep("learn");}}
+          <button onClick={()=>{setStep("josa"); setJosaStep(0);}}
             style={{width:"100%", maxWidth:360, background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #00C89644"}}>
             {vi?"Bắt đầu học! 🚀":en?"Start learning! 🚀":"학습 시작! 🚀"}
           </button>
         )}
 
         <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer"}}>← 뒤로</button>
+      </div>
+    );
+  }
+
+  // ── V147: 조사·대명사 화면 (발음 다음 순서 — 3h) ──
+  if (step === "josa") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    const JOSA_STEPS = [
+      {
+        id: "topic_marker",
+        emoji: "🏷️",
+        title: vi ? "Trợ từ chủ đề 은/는" : en ? "Topic Marker 은/는" : "은/는 — 주제 조사",
+        desc: vi ? "Đánh dấu chủ đề câu" : en ? "Marks the topic of a sentence" : "문장의 주제를 나타내요",
+        items: [
+          { form: "저는", ex: vi ? "Tôi (thì)..." : en ? "I (as for me)..." : "저는 학생이에요.", note: vi ? "받침 없음 → 는" : en ? "No final consonant → 는" : "받침 없음 → 는" },
+          { form: "학생은", ex: vi ? "Học sinh (thì)..." : en ? "Student (as for)..." : "학생은 바빠요.", note: vi ? "받침 있음 → 은" : en ? "Final consonant → 은" : "받침 있음 → 은" },
+        ],
+        tip: vi ? "은/는 = 'As for...' — giới thiệu chủ đề!" : en ? "은/는 = 'As for...' — introduces the topic!" : "은/는은 '~은/는 말이에요'처럼 주제를 소개해요 😊"
+      },
+      {
+        id: "subject_marker",
+        emoji: "👆",
+        title: vi ? "Trợ từ chủ ngữ 이/가" : en ? "Subject Marker 이/가" : "이/가 — 주격 조사",
+        desc: vi ? "Đánh dấu chủ ngữ thực hiện hành động" : en ? "Marks who/what does the action" : "동작·상태의 주체를 나타내요",
+        items: [
+          { form: "친구가", ex: vi ? "Bạn bè (làm gì đó)..." : en ? "Friend (does)..." : "친구가 와요.", note: vi ? "받침 없음 → 가" : en ? "No final consonant → 가" : "받침 없음 → 가" },
+          { form: "책이", ex: vi ? "Sách (ở đâu đó)..." : en ? "Book (is)..." : "책이 있어요.", note: vi ? "받침 있음 → 이" : en ? "Final consonant → 이" : "받침 있음 → 이" },
+        ],
+        tip: vi ? "이/가 = ai/cái gì thực hiện hành động!" : en ? "이/가 = who/what does the action!" : "이/가는 동작·상태의 주인공을 가리켜요 😊"
+      },
+      {
+        id: "object_marker",
+        emoji: "🎯",
+        title: vi ? "Trợ từ tân ngữ 을/를" : en ? "Object Marker 을/를" : "을/를 — 목적격 조사",
+        desc: vi ? "Đánh dấu tân ngữ (đối tượng bị tác động)" : en ? "Marks the object of an action" : "동작의 대상을 나타내요",
+        items: [
+          { form: "밥을", ex: vi ? "Ăn cơm" : en ? "Eat rice" : "밥을 먹어요.", note: vi ? "받침 있음 → 을" : en ? "Final consonant → 을" : "받침 있음 → 을" },
+          { form: "커피를", ex: vi ? "Uống cà phê" : en ? "Drink coffee" : "커피를 마셔요.", note: vi ? "받침 없음 → 를" : en ? "No final consonant → 를" : "받침 없음 → 를" },
+        ],
+        tip: vi ? "을/를 = danh từ bị tác động bởi hành động!" : en ? "을/를 = the noun the action affects!" : "을/를은 '~을/를 해요'처럼 동작의 대상이에요 😊"
+      },
+      {
+        id: "place_marker",
+        emoji: "📍",
+        title: vi ? "Trợ từ nơi chốn 에/에서" : en ? "Place Markers 에/에서" : "에/에서 — 장소 조사",
+        desc: vi ? "에 = ở (trạng thái), 에서 = ở (hành động)" : en ? "에 = location (state), 에서 = location (action)" : "에 = 있는 곳 / 에서 = 행동하는 곳",
+        items: [
+          { form: "학교에", ex: vi ? "Ở trường (có ai đó)" : en ? "At school (someone is there)" : "학교에 있어요.", note: vi ? "에 = vị trí tồn tại" : en ? "에 = where something exists" : "에 = 존재하는 장소" },
+          { form: "학교에서", ex: vi ? "Học ở trường" : en ? "Study at school" : "학교에서 공부해요.", note: vi ? "에서 = nơi xảy ra hành động" : en ? "에서 = where action happens" : "에서 = 행동이 일어나는 장소" },
+        ],
+        tip: vi ? "에 있다 / 에서 하다 — hãy nhớ cặp này!" : en ? "에 있다 / 에서 하다 — remember this pair!" : "에 있어요 / 에서 해요 — 이 짝을 기억해요! 😊"
+      },
+      {
+        id: "and_marker",
+        emoji: "🤝",
+        title: vi ? "Trợ từ liên kết 와/과·하고" : en ? "And-Markers 와/과·하고" : "와/과·하고 — 연결 조사",
+        desc: vi ? "Nối các danh từ với nhau (và)" : en ? "Connects nouns (and)" : "명사와 명사를 이어줘요",
+        items: [
+          { form: "친구와", ex: vi ? "Với bạn" : en ? "With a friend" : "친구와 가요.", note: vi ? "받침 없음 → 와 (văn viết)" : en ? "No consonant → 와 (formal)" : "받침 없음 → 와 (격식체)" },
+          { form: "선생님하고", ex: vi ? "Với giáo viên" : en ? "With the teacher" : "선생님하고 이야기해요.", note: vi ? "하고 = thông dụng hơn" : en ? "하고 = more casual" : "하고 = 일상 대화에서 자주 써요" },
+        ],
+        tip: vi ? "하고 dùng được cho cả hai — tiện hơn!" : en ? "하고 works for both — easier in conversation!" : "하고는 받침 상관없이 쓸 수 있어요 — 편리해요! 😊"
+      },
+      {
+        id: "pronouns",
+        emoji: "❓",
+        title: vi ? "Đại từ nghi vấn" : en ? "Question Pronouns" : "의문 대명사",
+        desc: vi ? "5 từ để hỏi trong tiếng Hàn" : en ? "5 question words in Korean" : "한국어 5대 의문 대명사",
+        items: [
+          { form: "누구", ex: vi ? "Đây là ai?" : en ? "Who is this?" : "누구예요?", note: vi ? "who" : en ? "who" : "사람을 물어볼 때" },
+          { form: "언제", ex: vi ? "Khi nào?" : en ? "When?" : "언제 와요?", note: vi ? "when" : en ? "when" : "시간을 물어볼 때" },
+          { form: "어디", ex: vi ? "Ở đâu?" : en ? "Where?" : "어디 가요?", note: vi ? "where" : en ? "where" : "장소를 물어볼 때" },
+          { form: "무엇/뭐", ex: vi ? "Cái gì?" : en ? "What?" : "뭐예요?", note: vi ? "what" : en ? "what" : "사물을 물어볼 때" },
+          { form: "왜", ex: vi ? "Tại sao?" : en ? "Why?" : "왜 그래요?", note: vi ? "why" : en ? "why" : "이유를 물어볼 때" },
+        ],
+        tip: vi ? "누구·언제·어디·무엇·왜 — học thuộc 5 từ này!" : en ? "누구·언제·어디·무엇·왜 — master these 5!" : "누구·언제·어디·무엇·왜 — 5개만 외우면 끝! 😊"
+      },
+    ];
+
+    const cur = JOSA_STEPS[josaStep];
+    const totalSteps = JOSA_STEPS.length;
+
+    return (
+      <div style={{minHeight:"100vh", background:`linear-gradient(150deg,#FFFBF0,#FFF3E0)`, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 40px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        {/* 헤더 */}
+        <div style={{width:"100%", maxWidth:400, marginBottom:16}}>
+          <div style={{fontSize:13, color:"#aaa", marginBottom:6, textAlign:"center"}}>
+            {vi?"Bước 2/8 — Trợ từ & Đại từ":en?"Step 2/8 — Particles & Pronouns":"2단계/8단계 — 조사·대명사"}
+          </div>
+          {/* 진행 바 */}
+          <div style={{display:"flex", gap:5, justifyContent:"center", marginBottom:20}}>
+            {JOSA_STEPS.map((_,i)=>(
+              <div key={i} style={{width:28, height:6, borderRadius:3, background:i===josaStep?"#FF9800":i<josaStep?"#FFB74D":"#eee", transition:"all .3s"}}/>
+            ))}
+          </div>
+
+          {/* 카드 */}
+          <div style={{background:"white", borderRadius:20, padding:"24px 20px", boxShadow:"0 4px 24px #FF980022", border:"2px solid #FFE0B2"}}>
+            <div style={{fontSize:32, textAlign:"center", marginBottom:6}}>{cur.emoji}</div>
+            <div style={{fontSize:17, fontWeight:900, color:"#E65100", textAlign:"center", marginBottom:4}}>{cur.title}</div>
+            <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:18}}>{cur.desc}</div>
+
+            {/* 예시 항목 */}
+            <div style={{display:"flex", flexDirection:"column", gap:10}}>
+              {cur.items.map((item,i)=>(
+                <div key={i} style={{background:"#FFF8F0", borderRadius:12, padding:"12px 14px", border:"1px solid #FFE0B2"}}>
+                  <div style={{display:"flex", alignItems:"center", gap:10, flexWrap:"wrap"}}>
+                    <span style={{fontSize:20, fontWeight:900, color:"#E65100", minWidth:60}}>{item.form}</span>
+                    <span style={{fontSize:13, color:"#555", flex:1}}>{item.ex}</span>
+                  </div>
+                  <div style={{fontSize:11, color:"#FF9800", marginTop:4}}>💡 {item.note}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 팁 */}
+            {cur.tip && (
+              <div style={{marginTop:16, background:"#FFF3E0", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#E65100", textAlign:"center"}}>
+                ✨ {cur.tip}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 버튼 */}
+        <div style={{width:"100%", maxWidth:400}}>
+          {josaStep < totalSteps - 1 ? (
+            <button onClick={()=>setJosaStep(s=>s+1)}
+              style={{width:"100%", background:"linear-gradient(135deg,#FF9800,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #FF980044"}}>
+              {vi?"Tiếp theo →":en?"Next →":"다음 →"} {JOSA_STEPS[josaStep+1].title}
+            </button>
+          ) : (
+            <button onClick={()=>{onReady?.(); setStep("learn");}}
+              style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #00C89644"}}>
+              {vi?"Bắt đầu học! 🚀":en?"Start learning! 🚀":"학습 시작! 🚀"}
+            </button>
+          )}
+          <button onClick={()=>{setStep("pronunciation"); setPronStep(7);}}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
       </div>
     );
   }
