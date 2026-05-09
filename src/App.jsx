@@ -151,6 +151,87 @@ async function recordStat(uid, field) {
   } catch(e) { console.warn("기록 저장 실패", e); }
 }
 
+// ✅ V148: 기존 가입자 마이그레이션 팝업
+function MigrationModal({ user, onComplete, onReject }) {
+  const [role, setRole] = useState("learner");
+  const [dataOwnershipAgreed, setDataOwnershipAgreed] = useState(false);
+  const [emailAgreed, setEmailAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleAgree() {
+    if (!dataOwnershipAgreed) { setError("학습 데이터 소유권 귀속 및 활용 동의는 필수예요"); return; }
+    setLoading(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), { role, dataOwnershipAgreed: true, emailAgreed });
+      onComplete();
+    } catch(e) { setError("저장 중 오류가 발생했어요. 다시 시도해줘요"); }
+    setLoading(false);
+  }
+
+  async function handleReject() {
+    await signOut(auth);
+    onReject();
+  }
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:2000,padding:24,fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{background:"white",borderRadius:24,width:"100%",maxWidth:380,overflow:"hidden",boxShadow:"0 16px 48px rgba(0,0,0,0.25)"}}>
+        {/* 헤더 */}
+        <div style={{background:`linear-gradient(135deg,${C.pink},${C.orange})`,padding:"22px 24px 18px",textAlign:"center"}}>
+          <div style={{fontSize:36,marginBottom:6}}>🤝</div>
+          <div style={{fontSize:17,fontWeight:900,color:"white",marginBottom:4}}>한글 친구와 함께하기 위한 약속</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,0.85)"}}>상호 신뢰·상호 협조로 함께 성장해요</div>
+        </div>
+
+        {/* 본문 */}
+        <div style={{padding:"20px 24px 24px"}}>
+          {/* 역할 선택 */}
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:12,color:"#888",fontWeight:700,marginBottom:8}}>나는 한글 친구에서</div>
+            <div style={{display:"flex",gap:8}}>
+              {[["learner","🎓 학습자"],["instructor","👩‍🏫 교수자"]].map(([k,l])=>(
+                <button key={k} onClick={()=>setRole(k)} style={{flex:1,padding:"11px 0",border:`2px solid ${role===k?C.pink:"#eee"}`,borderRadius:12,background:role===k?`${C.pink}12`:"white",color:role===k?C.pink:"#aaa",fontWeight:role===k?800:500,fontSize:13,cursor:"pointer",transition:"all .2s"}}>{l}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* 필수 동의 */}
+          <div onClick={()=>setDataOwnershipAgreed(p=>!p)} style={{display:"flex",alignItems:"flex-start",gap:10,background:dataOwnershipAgreed?"#F0FBF7":"#FAFAFA",border:`1.5px solid ${dataOwnershipAgreed?"#00C896":"#e0e0e0"}`,borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",transition:"all .2s"}}>
+            <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${dataOwnershipAgreed?"#00C896":"#ccc"}`,background:dataOwnershipAgreed?"#00C896":"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1,transition:"all .2s"}}>
+              {dataOwnershipAgreed&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
+            </div>
+            <div>
+              <div style={{fontSize:12,fontWeight:700,color:"#333",marginBottom:3}}>(필수) 학습 데이터 소유권 귀속 및 활용 동의</div>
+              <div style={{fontSize:11,color:"#777",lineHeight:1.6}}>학습자와 나눈 모든 대화 및 학습 데이터의 소유권은 한글 친구에 귀속되며, 이는 <strong>서비스의 고도화 및 인공지능 모델 업그레이드 연구</strong>를 위해 소중하게 사용됩니다.</div>
+            </div>
+          </div>
+
+          {/* 선택 동의 */}
+          <div onClick={()=>setEmailAgreed(p=>!p)} style={{display:"flex",alignItems:"center",gap:10,background:emailAgreed?"#FFF8F0":"#FAFAFA",border:`1.5px solid ${emailAgreed?C.orange:"#e0e0e0"}`,borderRadius:12,padding:"11px 14px",marginBottom:16,cursor:"pointer",transition:"all .2s"}}>
+            <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${emailAgreed?C.orange:"#ccc"}`,background:emailAgreed?C.orange:"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
+              {emailAgreed&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
+            </div>
+            <div style={{fontSize:12,fontWeight:600,color:"#555"}}>(선택) 업데이트 소식 이메일 수신 동의</div>
+          </div>
+
+          {error&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{error}</div>}
+
+          {/* 동의 버튼 */}
+          <button onClick={handleAgree} disabled={loading} style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:loading?0.5:1,marginBottom:10}}>
+            {loading?"저장 중...":"동의하고 한글 친구 시작하기 🚀"}
+          </button>
+
+          {/* 거부 버튼 */}
+          <button onClick={handleReject} style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
+            동의하지 않음 (앱 사용 불가, 로그아웃)
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StatsModal({ user, onClose }) {
   const [stats, setStats] = useState(null);
   useEffect(() => {
@@ -3267,6 +3348,17 @@ export default function App() {
   const [showTopikChoice, setShowTopikChoice] = useState(false); // ✅ V123: 레벨 2단계 선택
   const [begReady, setBegReady] = useState(false); // ✅ V139: 초급 도전 시작 전까지 탭 숨김
   const [showPromo, setShowPromo] = useState(false); // ✅ V143: 홍보 모달
+  const [showMigration, setShowMigration] = useState(false); // ✅ V148: 기존 가입자 마이그레이션
+
+  // ✅ V148: 기존 가입자 마이그레이션 체크 (dataOwnershipAgreed 없으면 팝업)
+  useEffect(()=>{
+    if(!user) return;
+    getDoc(doc(db, "users", user.uid)).then(d => {
+      if(d.exists() && d.data().dataOwnershipAgreed === undefined) {
+        setShowMigration(true);
+      }
+    }).catch(()=>{});
+  },[user]);
 
   // ✅ V143: 로그인 후 방문 횟수 확인 (최대 3회)
   useEffect(()=>{
@@ -3294,6 +3386,15 @@ export default function App() {
   );
 
   if (!user) return <AuthScreen onLogin={setUser}/>;
+
+  // ✅ V148: 기존 가입자 마이그레이션 팝업
+  if (showMigration) return (
+    <MigrationModal
+      user={user}
+      onComplete={()=>setShowMigration(false)}
+      onReject={()=>setUser(null)}
+    />
+  );
 
   // ✅ V143: 홍보 모달 (최초 3회 로그인 시 표시)
   if (showPromo) {
