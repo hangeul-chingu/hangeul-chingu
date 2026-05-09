@@ -799,6 +799,16 @@ ${vocabList}
 
     const current = PRON_STEPS[pronStep];
 
+    function playSound(text) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "ko-KR";
+      utter.rate = 0.8;
+      utter.pitch = 1;
+      window.speechSynthesis.speak(utter);
+    }
+
     return (
       <div style={{minHeight:"100vh", background:`linear-gradient(150deg,${C.bg},#F3EEFF)`, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 20px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         {/* 헤더 */}
@@ -825,7 +835,7 @@ ${vocabList}
         {/* 모음 카드 그리드 */}
         <div style={{display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, maxWidth:380, width:"100%", marginBottom:20}}>
           {current.items.map((item,i)=>(
-            <div key={i} onClick={()=>setFlipped(f=>({...f,[i]:!f[i]}))}
+            <div key={i} onClick={()=>{ setFlipped(f=>({...f,[i]:!f[i]})); playSound(flipped[i] ? item.char : item.word); }}
               style={{background:flipped[i]?"#9C6FDE":"white", border:`2px solid ${flipped[i]?"#9C6FDE":"#E8E0F8"}`, borderRadius:14, padding:"10px 6px", cursor:"pointer", textAlign:"center", transition:"all .2s", boxShadow:"0 2px 8px #9C6FDE18"}}>
               {flipped[i] ? (
                 <>
