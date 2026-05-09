@@ -829,12 +829,12 @@ ${vocabList}
               style={{background:flipped[i]?"#9C6FDE":"white", border:`2px solid ${flipped[i]?"#9C6FDE":"#E8E0F8"}`, borderRadius:14, padding:"10px 6px", cursor:"pointer", textAlign:"center", transition:"all .2s", boxShadow:"0 2px 8px #9C6FDE18"}}>
               {flipped[i] ? (
                 <>
-                  <div style={{fontSize:11, color:"white", fontWeight:700, marginBottom:2}}>{item.word}</div>
-                  <div style={{fontSize:10, color:"rgba(255,255,255,.8)"}}>{item.meaning}</div>
+                  <div style={{fontSize:12, color:"white", fontWeight:700, marginBottom:2, wordBreak:"keep-all"}}>{item.word}</div>
+                  <div style={{fontSize:10, color:"rgba(255,255,255,.85)"}}>{item.meaning}</div>
                 </>
               ) : (
                 <>
-                  <div style={{fontSize:26, fontWeight:900, color:"#9C6FDE", marginBottom:2}}>{item.char}</div>
+                  <div style={{fontSize:34, fontWeight:900, color:"#9C6FDE", marginBottom:2, lineHeight:1.1}}>{item.char}</div>
                   <div style={{fontSize:9, color:"#bbb"}}>탭하세요</div>
                 </>
               )}
