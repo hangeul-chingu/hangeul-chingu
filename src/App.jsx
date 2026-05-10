@@ -1275,6 +1275,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   const [pronTestFeedback, setPronTestFeedback] = useState(null); // {ok, msg, similarity}
   const [pronTestLoading, setPronTestLoading] = useState(false);
   const [pronTestFromStep, setPronTestFromStep] = useState(0); // 어느 발음 단계에서 왔는지
+  const pronRecRef = useRef(null); // ✅ V153: STT 인스턴스 ref (재클릭 종료용)
 
   // ✅ V152: 서술어 단원 학습 + 누적 테스트 state
   const [unitCardIdx, setUnitCardIdx] = useState(0);   // 학습 카드 인덱스
@@ -1970,9 +1971,11 @@ ${vocabList}
 
         {/* 발음 테스트 버튼 — 각 단계마다 테스트 후 다음으로 */}
         <button onClick={()=>{
-          // 현재 단계 단어 중 3개 랜덤 선택
-          const items = current.items || [];
-          const picked = [...items].sort(()=>Math.random()-0.5).slice(0,Math.min(3,items.length));
+          // ✅ V153: 누적 반복 원칙 — 현재 단계 + 이전 모든 단계 단어 전체
+          const accumulated = PRON_STEPS.slice(0, pronStep + 1)
+            .flatMap(s => s.items || []);
+          // 순서를 섞어서 제시 (전체 단어, 랜덤 순서)
+          const picked = [...accumulated].sort(() => Math.random() - 0.5);
           setPronTestItems(picked);
           setPronTestIdx(0);
           setPronTestResults([]);
@@ -2014,6 +2017,11 @@ ${vocabList}
 
     // STT 시작
     function startSTT() {
+      // ✅ V153: 듣는 중일 때 버튼 재클릭 → 즉시 종료 후 평가
+      if (pronTestListening && pronRecRef.current) {
+        pronRecRef.current.stop();
+        return;
+      }
       if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
         alert(vi?"Trình duyệt không hỗ trợ STT":en?"Browser doesn't support STT":"이 브라우저는 음성 인식을 지원하지 않아요");
         return;
@@ -2023,6 +2031,7 @@ ${vocabList}
       rec.lang = "ko-KR";
       rec.interimResults = false;
       rec.maxAlternatives = 3;
+      pronRecRef.current = rec; // ref에 저장
       setPronTestListening(true);
       setPronTestSTT("");
       setPronTestFeedback(null);
@@ -2038,9 +2047,10 @@ ${vocabList}
         }
         setPronTestSTT(bestText);
         setPronTestListening(false);
+        pronRecRef.current = null;
         await judgePronunciation(bestText, target, bestSim);
       };
-      rec.onerror = () => { setPronTestListening(false); };
+      rec.onerror = () => { setPronTestListening(false); pronRecRef.current = null; };
       rec.start();
     }
 
@@ -2176,7 +2186,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <button onClick={startSTT}
               style={{width:"100%", background: pronTestListening?"linear-gradient(135deg,#FF6B6B,#E64A00)":"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"16px 0", fontSize:16, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C6FDE44"}}>
               {pronTestListening
-                ? (vi?"🔴 Đang nghe...":en?"🔴 Listening...":"🔴 듣는 중...")
+                ? (vi?"🔴 Đang nghe... (nhấn lại để dừng)":en?"🔴 Listening... (tap again to stop)":"🔴 듣는 중... (다시 누르면 종료)")
                 : (vi?"🎤 Bắt đầu nói":en?"🎤 Speak now":"🎤 말하기 시작")}
             </button>
           )}
