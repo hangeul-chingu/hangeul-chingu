@@ -2504,10 +2504,44 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               {vi?"Tiếp theo →":en?"Next →":"다음 →"} {JOSA_STEPS[josaStep+1].title}
             </button>
           ) : (
-            <button onClick={()=>{
-              setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(true);
-              setJosaSTTResult(""); setJosaSTTFeedback(null);
+            <button onClick={async()=>{
+              setTestAnswers({}); setTestResult(null); setTestQuestions([]);
+              setJosaSTTMap({}); setJosaListeningKey(null);
+              setTestLoading(true);
               setStep("testJosa");
+              try {
+                const res = await fetch("https://api.anthropic.com/v1/messages",{
+                  method:"POST",
+                  headers:{"Content-Type":"application/json"},
+                  body:JSON.stringify({
+                    model:"claude-sonnet-4-20250514",
+                    max_tokens:800,
+                    messages:[{role:"user", content:`한국어 초급 조사·대명사 빈칸 채우기 10문제를 만들어주세요.
+배운 내용: 은/는(주제) 이/가(주격) 을/를(목적격) 에/에서(장소) 와/과·하고(연결) 누구·언제·어디·뭐·왜(의문대명사)
+규칙: 초급 수준, 각 유형 골고루, ___ 빈칸 형식
+출력: JSON만 {"questions":[{"id":1,"sentence":"저___ 학생이에요.","answer":"는","hint":"주제 조사"}]}`}]
+                  })
+                });
+                const data = await res.json();
+                const text = data.content?.[0]?.text || "";
+                const clean = text.replace(/```json|```/g,"").trim();
+                const parsed = JSON.parse(clean);
+                setTestQuestions(parsed.questions || []);
+              } catch {
+                setTestQuestions([
+                  {id:1,sentence:"저___ 학생이에요.",answer:"는",hint:"주제 조사"},
+                  {id:2,sentence:"친구___ 왔어요.",answer:"가",hint:"주격 조사"},
+                  {id:3,sentence:"밥___ 먹어요.",answer:"을",hint:"목적격 조사"},
+                  {id:4,sentence:"학교___ 있어요.",answer:"에",hint:"장소(존재)"},
+                  {id:5,sentence:"학교___ 공부해요.",answer:"에서",hint:"장소(행동)"},
+                  {id:6,sentence:"친구___ 이야기해요.",answer:"하고",hint:"연결 조사"},
+                  {id:7,sentence:"___ 예요? (사람)",answer:"누구",hint:"의문대명사"},
+                  {id:8,sentence:"___ 가요? (장소)",answer:"어디",hint:"의문대명사"},
+                  {id:9,sentence:"___ 와요? (시간)",answer:"언제",hint:"의문대명사"},
+                  {id:10,sentence:"___ 예요? (사물)",answer:"뭐",hint:"의문대명사"},
+                ]);
+              }
+              setTestLoading(false);
             }}
               style={{width:"100%", background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #FF6B3544"}}>
               📝 {vi?"Làm bài kiểm tra!":en?"Take the test!":"조사·대명사 테스트! 📝"}
@@ -2542,56 +2576,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       "어디 가요?",
       "언제 와요?",
     ];
-
-    // 최초 진입 시 Claude API로 빈칸 문제 생성
-    if (testLoading && testQuestions.length === 0) {
-      fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          model:"claude-sonnet-4-20250514",
-          max_tokens:800,
-          messages:[{role:"user", content:`한국어 초급 조사·대명사 빈칸 채우기 10문제를 만들어주세요.
-배운 내용: 은/는(주제) 이/가(주격) 을/를(목적격) 에/에서(장소) 와/과·하고(연결) 누구·언제·어디·뭐·왜(의문대명사)
-규칙: 초급 수준, 각 유형 골고루, ___ 빈칸 형식
-출력: JSON만 {"questions":[{"id":1,"sentence":"저___ 학생이에요.","answer":"는","hint":"주제 조사"}]}`}]
-        })
-      }).then(r=>r.json()).then(data=>{
-        try {
-          const text = data.content?.[0]?.text||"";
-          const clean = text.replace(/```json|```/g,"").trim();
-          setTestQuestions(JSON.parse(clean).questions||[]);
-        } catch {
-          setTestQuestions([
-            {id:1,sentence:"저___ 학생이에요.",answer:"는",hint:"주제 조사"},
-            {id:2,sentence:"친구___ 왔어요.",answer:"가",hint:"주격 조사"},
-            {id:3,sentence:"밥___ 먹어요.",answer:"을",hint:"목적격 조사"},
-            {id:4,sentence:"학교___ 있어요.",answer:"에",hint:"장소(존재)"},
-            {id:5,sentence:"학교___ 공부해요.",answer:"에서",hint:"장소(행동)"},
-            {id:6,sentence:"친구___ 이야기해요.",answer:"하고",hint:"연결 조사"},
-            {id:7,sentence:"___ 예요? (사람)",answer:"누구",hint:"의문대명사"},
-            {id:8,sentence:"___ 가요? (장소)",answer:"어디",hint:"의문대명사"},
-            {id:9,sentence:"___ 와요? (시간)",answer:"언제",hint:"의문대명사"},
-            {id:10,sentence:"___ 예요? (사물)",answer:"뭐",hint:"의문대명사"},
-          ]);
-        }
-        setTestLoading(false);
-      }).catch(()=>{
-        setTestQuestions([
-          {id:1,sentence:"저___ 학생이에요.",answer:"는",hint:"주제 조사"},
-          {id:2,sentence:"친구___ 왔어요.",answer:"가",hint:"주격 조사"},
-          {id:3,sentence:"밥___ 먹어요.",answer:"을",hint:"목적격 조사"},
-          {id:4,sentence:"학교___ 있어요.",answer:"에",hint:"장소(존재)"},
-          {id:5,sentence:"학교___ 공부해요.",answer:"에서",hint:"장소(행동)"},
-          {id:6,sentence:"친구___ 이야기해요.",answer:"하고",hint:"연결 조사"},
-          {id:7,sentence:"___ 예요? (사람)",answer:"누구",hint:"의문대명사"},
-          {id:8,sentence:"___ 가요? (장소)",answer:"어디",hint:"의문대명사"},
-          {id:9,sentence:"___ 와요? (시간)",answer:"언제",hint:"의문대명사"},
-          {id:10,sentence:"___ 예요? (사물)",answer:"뭐",hint:"의문대명사"},
-        ]);
-        setTestLoading(false);
-      });
-    }
 
     // 채점
     function gradeJosaTest() {
