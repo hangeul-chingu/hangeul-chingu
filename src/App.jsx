@@ -14,6 +14,12 @@ import {
   updateDoc,
   increment,
   serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs,
+  onSnapshot,
+  deleteField,
 } from "firebase/firestore";
 
 const C = {
@@ -139,7 +145,334 @@ function AuthScreen({ onLogin }) {
         <a href="https://padlet.com/roh053068/breakout-room/d6AO26JdBPgP2ojL-k2qlv36MmRprX5Rx" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.teal,fontWeight:800,fontSize:14,boxShadow:`0 4px 16px ${C.teal}25`,WebkitTapHighlightColor:"transparent"}}>
           ✨ 이 앱이 나한테 어떤 도움이 될까?
         </a>
+        {/* ✅ V148: 교육과정 표준 준수 증명서 요청 버튼 */}
+        <CertRequestButton />
       </div>
+    </div>
+  );
+}
+
+
+// ════════════════════════════════════════════════════════
+// ✅ V148: 교수자 전용 관리 화면 (InstructorDashboard)
+// ════════════════════════════════════════════════════════
+function InstructorDashboard({ user, onLogout }) {
+  const [teacherData, setTeacherData] = useState(null);
+  const [classCode, setClassCode] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [tab, setTab] = useState("class"); // "class" | "students"
+  const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  // 교수자 정보 및 클래스 코드 로드
+  useEffect(() => {
+    if (!user) return;
+    getDoc(doc(db, "users", user.uid)).then(d => {
+      if (d.exists()) setTeacherData(d.data());
+    });
+    // 클래스 코드 조회 (없으면 null)
+    getDoc(doc(db, "classes", user.uid)).then(d => {
+      if (d.exists()) setClassCode(d.data().code);
+    }).catch(() => {});
+    setLoading(false);
+  }, [user]);
+
+  // 연결된 학습자 실시간 구독
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "users"), where("currentTeacherId", "==", user.uid));
+    const unsub = onSnapshot(q, snap => {
+      setStudents(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, [user]);
+
+  // 클래스 코드 생성
+  async function generateCode() {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    await setDoc(doc(db, "classes", user.uid), {
+      teacherId: user.uid,
+      teacherName: teacherData?.name || user.displayName || "선생님",
+      code,
+      createdAt: serverTimestamp(),
+    });
+    setClassCode(code);
+  }
+
+  // 클래스 링크 복사
+  function copyLink() {
+    const link = `${window.location.origin}?join=${classCode}`;
+    navigator.clipboard.writeText(link).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  // 학습자 연결 해제
+  async function disconnectStudent(studentId) {
+    if (!window.confirm("이 학습자와의 연결을 해제하시겠습니까?")) return;
+    await updateDoc(doc(db, "users", studentId), {
+      currentTeacherId: deleteField(),
+      teacherName: deleteField(),
+    });
+  }
+
+  const teacherName = teacherData?.name || user.displayName || "선생님";
+
+  return (
+    <div style={{minHeight:"100vh", background:`linear-gradient(150deg,#F0F4FF,#E8F0FB)`, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      {/* 헤더 */}
+      <div style={{background:"linear-gradient(135deg,#2E75B6,#1A3A5C)", padding:"20px 20px 16px", color:"white"}}>
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
+          <div>
+            <div style={{fontSize:12, opacity:0.8, marginBottom:4}}>👩‍🏫 교수자 관리 화면</div>
+            <div style={{fontSize:20, fontWeight:900}}>{teacherName} 선생님</div>
+            <div style={{fontSize:12, opacity:0.75, marginTop:2}}>{user.email}</div>
+          </div>
+          <button onClick={onLogout} style={{background:"rgba(255,255,255,0.15)", border:"none", color:"white", borderRadius:20, padding:"8px 16px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+            로그아웃
+          </button>
+        </div>
+        {/* 탭 */}
+        <div style={{display:"flex", gap:8, marginTop:16}}>
+          {[["class","🏫 클래스 관리"],["students","👥 학습자 목록"]].map(([k,l]) => (
+            <button key={k} onClick={()=>setTab(k)} style={{padding:"8px 18px", border:"none", borderRadius:20, background:tab===k?"white":"rgba(255,255,255,0.15)", color:tab===k?"#2E75B6":"white", fontWeight:tab===k?800:600, fontSize:13, cursor:"pointer", transition:"all .2s"}}>
+              {l} {k==="students" && students.length > 0 && `(${students.length})`}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{padding:"20px 16px", maxWidth:600, margin:"0 auto"}}>
+
+        {/* ── 클래스 관리 탭 ── */}
+        {tab === "class" && (
+          <div>
+            <div style={{background:"white", borderRadius:20, padding:24, boxShadow:"0 4px 16px rgba(0,0,0,0.08)", marginBottom:16}}>
+              <div style={{fontSize:15, fontWeight:900, color:"#1A3A5C", marginBottom:4}}>📋 클래스 참여 코드</div>
+              <div style={{fontSize:13, color:"#888", marginBottom:20}}>학습자가 이 코드 또는 링크로 선생님 클래스에 참여할 수 있어요.</div>
+
+              {classCode ? (
+                <>
+                  {/* 코드 표시 */}
+                  <div style={{background:"#F0F4FF", border:"2px dashed #2E75B6", borderRadius:16, padding:"20px", textAlign:"center", marginBottom:16}}>
+                    <div style={{fontSize:12, color:"#888", marginBottom:8}}>클래스 참여 코드</div>
+                    <div style={{fontSize:40, fontWeight:900, color:"#2E75B6", letterSpacing:8}}>{classCode}</div>
+                    <div style={{fontSize:11, color:"#aaa", marginTop:8}}>학습자에게 이 코드를 알려주세요</div>
+                  </div>
+
+                  {/* 링크 복사 */}
+                  <div style={{background:"#f9f9f9", border:"1px solid #eee", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12}}>
+                    <div style={{fontSize:12, color:"#666", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1}}>
+                      {window.location.origin}?join={classCode}
+                    </div>
+                    <button onClick={copyLink} style={{background: copied?"#00C896":"#2E75B6", color:"white", border:"none", borderRadius:20, padding:"7px 16px", fontSize:12, fontWeight:800, cursor:"pointer", marginLeft:12, flexShrink:0, transition:"all .3s"}}>
+                      {copied ? "✅ 복사됨" : "링크 복사"}
+                    </button>
+                  </div>
+
+                  {/* 재생성 */}
+                  <button onClick={generateCode} style={{width:"100%", background:"none", border:"1.5px solid #ddd", borderRadius:12, padding:"10px 0", fontSize:13, color:"#aaa", cursor:"pointer"}}>
+                    🔄 코드 재생성
+                  </button>
+                </>
+              ) : (
+                <button onClick={generateCode} style={{width:"100%", background:"linear-gradient(135deg,#2E75B6,#1A3A5C)", color:"white", border:"none", borderRadius:16, padding:"18px 0", fontSize:16, fontWeight:900, cursor:"pointer"}}>
+                  ✨ 클래스 코드 생성하기
+                </button>
+              )}
+            </div>
+
+            {/* 사용 안내 */}
+            <div style={{background:"white", borderRadius:20, padding:20, boxShadow:"0 4px 16px rgba(0,0,0,0.06)"}}>
+              <div style={{fontSize:14, fontWeight:800, color:"#1A3A5C", marginBottom:12}}>📖 사용 방법</div>
+              {[
+                ["1", "위 코드 생성 버튼을 눌러 클래스 코드를 만드세요"],
+                ["2", "학습자에게 코드 또는 링크를 공유하세요"],
+                ["3", "학습자가 앱에서 코드를 입력하면 연결 요청이 옵니다"],
+                ["4", "연결된 학습자의 학습 데이터를 '학습자 목록' 탭에서 확인하세요"],
+              ].map(([no, text]) => (
+                <div key={no} style={{display:"flex", gap:12, marginBottom:10, alignItems:"flex-start"}}>
+                  <div style={{width:24, height:24, borderRadius:"50%", background:"#2E75B6", color:"white", fontSize:12, fontWeight:900, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0}}>
+                    {no}
+                  </div>
+                  <div style={{fontSize:13, color:"#555", lineHeight:1.6, paddingTop:2}}>{text}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── 학습자 목록 탭 ── */}
+        {tab === "students" && (
+          <div>
+            {students.length === 0 ? (
+              <div style={{background:"white", borderRadius:20, padding:40, textAlign:"center", boxShadow:"0 4px 16px rgba(0,0,0,0.06)"}}>
+                <div style={{fontSize:40, marginBottom:12}}>👥</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1A3A5C", marginBottom:8}}>아직 연결된 학습자가 없어요</div>
+                <div style={{fontSize:13, color:"#aaa"}}>클래스 코드를 공유해서 학습자를 초대해 보세요</div>
+              </div>
+            ) : (
+              students.map(st => (
+                <div key={st.id} style={{background:"white", borderRadius:16, padding:18, marginBottom:12, boxShadow:"0 4px 12px rgba(0,0,0,0.06)"}}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
+                    <div>
+                      <div style={{fontSize:15, fontWeight:800, color:"#1A3A5C"}}>{st.name || "이름 없음"}</div>
+                      <div style={{fontSize:12, color:"#aaa", marginTop:2}}>{st.email}</div>
+                    </div>
+                    <button onClick={()=>disconnectStudent(st.id)} style={{background:"#FFF0F0", border:"1px solid #FFCCCC", color:"#E53935", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                      연결 해제
+                    </button>
+                  </div>
+                  {/* 학습 통계 */}
+                  <div style={{display:"flex", gap:8}}>
+                    {[["🗣️","말하기", st.stats?.speak||0],["✍️","쓰기", st.stats?.write||0],["🤝","하이터치", st.stats?.tutor||0]].map(([icon, label, val]) => (
+                      <div key={label} style={{flex:1, background:"#F5F8FF", borderRadius:10, padding:"10px 8px", textAlign:"center"}}>
+                        <div style={{fontSize:16}}>{icon}</div>
+                        <div style={{fontSize:18, fontWeight:900, color:"#2E75B6"}}>{val}</div>
+                        <div style={{fontSize:11, color:"#888"}}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
+// ✅ V148: 학습자 → 교수자 클래스 참여 팝업
+// ════════════════════════════════════════════════════════
+function JoinClassModal({ user, code, onClose }) {
+  const [teacherData, setTeacherData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [joining, setJoining] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // 코드로 교수자 클래스 조회
+    const q = query(collection(db, "classes"), where("code", "==", code));
+    getDocs(q).then(snap => {
+      if (snap.empty) { setError("유효하지 않은 코드예요"); setLoading(false); return; }
+      setTeacherData(snap.docs[0].data());
+      setLoading(false);
+    }).catch(() => { setError("조회 중 오류가 발생했어요"); setLoading(false); });
+  }, [code]);
+
+  async function handleJoin() {
+    if (!teacherData) return;
+    setJoining(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        currentTeacherId: teacherData.teacherId,
+        teacherName: teacherData.teacherName,
+        connectedAt: serverTimestamp(),
+      });
+      onClose(true);
+    } catch(e) {
+      setError("연결 중 오류가 발생했어요");
+    }
+    setJoining(false);
+  }
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:3000,padding:24,fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{background:"white",borderRadius:24,width:"100%",maxWidth:360,overflow:"hidden",boxShadow:"0 16px 48px rgba(0,0,0,0.25)"}}>
+        <div style={{background:"linear-gradient(135deg,#2E75B6,#1A3A5C)",padding:"22px 24px 18px",textAlign:"center"}}>
+          <div style={{fontSize:36,marginBottom:6}}>🏫</div>
+          <div style={{fontSize:17,fontWeight:900,color:"white"}}>클래스 참여 요청</div>
+        </div>
+        <div style={{padding:"24px"}}>
+          {loading ? (
+            <div style={{textAlign:"center",padding:20,color:"#aaa"}}>확인 중...</div>
+          ) : error ? (
+            <>
+              <div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:12,padding:"14px",fontSize:14,color:"#E53935",textAlign:"center",marginBottom:16}}>{error}</div>
+              <button onClick={()=>onClose(false)} style={{width:"100%",background:"#f5f5f5",border:"none",borderRadius:50,padding:"12px 0",fontSize:14,color:"#888",cursor:"pointer"}}>닫기</button>
+            </>
+          ) : (
+            <>
+              <div style={{background:"#F0F4FF",borderRadius:16,padding:18,textAlign:"center",marginBottom:20}}>
+                <div style={{fontSize:14,color:"#888",marginBottom:6}}>클래스 참여 요청</div>
+                <div style={{fontSize:20,fontWeight:900,color:"#1A3A5C"}}>{teacherData?.teacherName} 선생님</div>
+                <div style={{fontSize:12,color:"#aaa",marginTop:4}}>의 클래스에 참여하시겠습니까?</div>
+              </div>
+              <div style={{background:"#FFF8DC",border:"1px solid #F0D060",borderRadius:12,padding:"12px 14px",fontSize:12,color:"#7A6000",lineHeight:1.7,marginBottom:20}}>
+                ⚠️ <strong>{teacherData?.teacherName} 선생님</strong>에게 나의 학습 데이터(학습 기록, 대화 내용, 통계)를 공유하게 됩니다. 연결은 언제든지 해제할 수 있습니다.
+              </div>
+              <button onClick={handleJoin} disabled={joining} style={{width:"100%",background:"linear-gradient(135deg,#2E75B6,#1A3A5C)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:joining?0.5:1,marginBottom:10}}>
+                {joining ? "연결 중..." : "✅ 동의하고 클래스 참여하기"}
+              </button>
+              <button onClick={()=>onClose(false)} style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
+                취소
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ✅ V148: 교육과정 표준 준수 증명서 요청 컴포넌트
+function CertRequestButton() {
+  const [email, setEmail] = useState("");
+  const [open, setOpen] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleRequest() {
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError("올바른 이메일 주소를 입력해 주세요");
+      return;
+    }
+    const subject = encodeURIComponent("교육과정 표준 준수 증명서 요청");
+    const body = encodeURIComponent(
+      "안녕하세요,\n\n한글 친구(Hangeul Chingu) 교육과정 표준 준수 증명서를 요청합니다.\n\n요청자 이메일: " + trimmed + "\n\n감사합니다."
+    );
+    window.location.href = `mailto:roh053068@gmail.com?subject=${subject}&body=${body}`;
+    setSent(true);
+    setError("");
+  }
+
+  if (!open) return (
+    <button onClick={()=>setOpen(true)} style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:"2px solid #2E75B655",borderRadius:50,padding:"11px 22px",color:"#2E75B6",fontWeight:800,fontSize:14,boxShadow:"0 4px 16px #2E75B625",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+      📄 교육과정 표준 준수 증명서 요청
+    </button>
+  );
+
+  return (
+    <div style={{width:"100%",maxWidth:360,background:"white",border:"2px solid #2E75B655",borderRadius:20,padding:"18px 20px",boxShadow:"0 4px 16px #2E75B625"}}>
+      <div style={{fontSize:13,fontWeight:800,color:"#2E75B6",marginBottom:4}}>📄 교육과정 표준 준수 증명서 요청</div>
+      <div style={{fontSize:12,color:"#888",marginBottom:12,lineHeight:1.6}}>요청자 이메일을 입력하면 개발자에게 요청 메일이 발송됩니다. 증명서는 이메일로 회신드립니다.</div>
+      {sent ? (
+        <div style={{background:"#E8F5EE",border:"1px solid #00C896",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#1E6B3C",fontWeight:600}}>
+          ✅ 요청이 발송되었습니다! 이메일을 확인해 주세요.
+        </div>
+      ) : (<>
+        <input
+          value={email}
+          onChange={e=>{setEmail(e.target.value);setError("");}}
+          placeholder="요청자 이메일 주소"
+          type="email"
+          style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`1.5px solid ${error?"#E53935":"#2E75B644"}`,outline:"none",fontSize:14,marginBottom:error?6:10,boxSizing:"border-box"}}
+        />
+        {error&&<div style={{fontSize:12,color:"#E53935",marginBottom:8}}>{error}</div>}
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={handleRequest} style={{flex:1,background:"linear-gradient(135deg,#2E75B6,#1A3A5C)",color:"white",border:"none",borderRadius:50,padding:"11px 0",fontSize:14,fontWeight:800,cursor:"pointer"}}>
+            요청 메일 보내기
+          </button>
+          <button onClick={()=>{setOpen(false);setEmail("");setError("");}} style={{padding:"11px 16px",background:"#f5f5f5",border:"none",borderRadius:50,fontSize:13,color:"#999",cursor:"pointer"}}>
+            취소
+          </button>
+        </div>
+      </>)}
     </div>
   );
 }
@@ -3349,6 +3682,8 @@ export default function App() {
   const [begReady, setBegReady] = useState(false); // ✅ V139: 초급 도전 시작 전까지 탭 숨김
   const [showPromo, setShowPromo] = useState(false); // ✅ V143: 홍보 모달
   const [showMigration, setShowMigration] = useState(false); // ✅ V148: 기존 가입자 마이그레이션
+  const [userRole, setUserRole] = useState(null); // ✅ V148: 로그인 후 Firestore role
+  const [joinCode, setJoinCode] = useState(null); // ✅ V148: URL ?join= 파라미터
 
   // ✅ V148: 기존 가입자 마이그레이션 체크 (dataOwnershipAgreed 없으면 팝업)
   useEffect(()=>{
@@ -3359,6 +3694,21 @@ export default function App() {
       }
     }).catch(()=>{});
   },[user]);
+
+  // ✅ V148: 로그인 후 role 로드
+  useEffect(()=>{
+    if(!user) return;
+    getDoc(doc(db, "users", user.uid)).then(d => {
+      if(d.exists()) setUserRole(d.data().role || "learner");
+    }).catch(()=>setUserRole("learner"));
+  },[user]);
+
+  // ✅ V148: URL ?join= 파라미터 감지
+  useEffect(()=>{
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("join");
+    if(code) setJoinCode(code.toUpperCase());
+  },[]);
 
   // ✅ V143: 로그인 후 방문 횟수 확인 (최대 3회)
   useEffect(()=>{
@@ -3395,6 +3745,26 @@ export default function App() {
       onReject={()=>setUser(null)}
     />
   );
+
+  // ✅ V148: 교수자 전용 관리 화면
+  if (userRole === "instructor") return (
+    <>
+      <InstructorDashboard user={user} onLogout={handleLogout} />
+      {joinCode && (
+        <JoinClassModal
+          user={user}
+          code={joinCode}
+          onClose={(success)=>{
+            setJoinCode(null);
+            window.history.replaceState({}, "", window.location.pathname);
+          }}
+        />
+      )}
+    </>
+  );
+
+  // ✅ V148: 학습자 클래스 참여 팝업 (URL ?join= 감지)
+  // joinCode가 있고 학습자인 경우 → 앱 위에 팝업 오버레이
 
   // ✅ V143: 홍보 모달 (최초 3회 로그인 시 표시)
   if (showPromo) {
@@ -3549,6 +3919,17 @@ export default function App() {
   return (
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       {showStats&&<StatsModal user={user} onClose={()=>setShowStats(false)}/>}
+      {/* ✅ V148: 학습자 클래스 참여 팝업 */}
+      {joinCode && userRole === "learner" && (
+        <JoinClassModal
+          user={user}
+          code={joinCode}
+          onClose={(success)=>{
+            setJoinCode(null);
+            window.history.replaceState({}, "", window.location.pathname);
+          }}
+        />
+      )}
       <div style={{background:level==="beg"?`linear-gradient(100deg,#9C6FDE,#C3B1E1)`:`linear-gradient(100deg,${C.pink},${C.orange},${C.yellow})`,padding:"16px 16px 12px",position:"relative"}}>
         <div style={{textAlign:"center"}}>
           <div style={{fontSize:24,fontWeight:900,color:"white",textShadow:"0 2px 8px rgba(0,0,0,.2)"}}>한글 친구 🇰🇷</div>
