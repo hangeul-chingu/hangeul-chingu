@@ -24,6 +24,8 @@ import {
 
 // ✅ V150: 최고 관리자 이메일 (이 이메일로만 AdminDashboard 접근 가능)
 const ADMIN_EMAIL = "roh053068@gmail.com";
+// ✅ V153: 개발자 학습자 이메일 (이 이메일로만 단계 점프 버튼 표시)
+const DEV_EMAIL = "csyager@hanmail.net";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1290,6 +1292,40 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
     catch { return []; }
   });
 
+  // ✅ V153: 개발자 전용 단계 점프 (csyager@hanmail.net 만 표시)
+  const isDev = user?.email === DEV_EMAIL;
+  function DevJumpPanel() {
+    if (!isDev) return null;
+    const jumps = [
+      { label:"발음①", action:()=>{ setPronStep(0); setStep("pronunciation"); }},
+      { label:"발음⑧", action:()=>{ setPronStep(7); setStep("pronunciation"); }},
+      { label:"조사",   action:()=>{ setJosaStep(0); setStep("josa"); }},
+      { label:"서술어1",action:()=>{ setUnitCardIdx(0); setStep("unit1"); }},
+      { label:"테스트1",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(false); setStep("test1"); }},
+      { label:"서술어2",action:()=>{ setUnitCardIdx(0); setStep("unit2"); }},
+      { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
+    ];
+    return (
+      <div style={{position:"fixed", bottom:16, right:16, zIndex:9999,
+        background:"#1A1A2E", borderRadius:16, padding:"10px 14px",
+        boxShadow:"0 4px 20px rgba(0,0,0,.5)", maxWidth:320}}>
+        <div style={{fontSize:10, color:"#FF6B6B", fontWeight:800, marginBottom:8, letterSpacing:1}}>
+          🔧 DEV ONLY
+        </div>
+        <div style={{display:"flex", flexWrap:"wrap", gap:6}}>
+          {jumps.map((s,i)=>(
+            <button key={i} onClick={s.action} style={{
+              background:"#2D2D44", color:"#A8E6CF", border:"1px solid #3D3D5C",
+              borderRadius:8, padding:"5px 10px", fontSize:11, fontWeight:700,
+              cursor:"pointer", whiteSpace:"nowrap"}}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   // 목표별 기준 시간 (단위: 시간)
   // ⚠️ V142: 근거 탐색 중 — 추후 수정 가능
   const GOAL_HOURS = {
@@ -1925,6 +1961,7 @@ ${vocabList}
 
     return (
       <div style={{minHeight:"100vh", background:`linear-gradient(150deg,${C.bg},#F3EEFF)`, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 20px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
         {/* 헤더 */}
         <div style={{fontSize:32, marginBottom:4}}>{current.emoji}</div>
         <div style={{fontSize:17, fontWeight:900, color:"#9C6FDE", marginBottom:2, textAlign:"center"}}>
@@ -2403,6 +2440,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     return (
       <div style={{minHeight:"100vh", background:`linear-gradient(150deg,#FFFBF0,#FFF3E0)`, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 40px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
         {/* 헤더 */}
         <div style={{width:"100%", maxWidth:400, marginBottom:16}}>
           <div style={{fontSize:13, color:"#aaa", marginBottom:6, textAlign:"center"}}>
@@ -2512,6 +2550,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const total = UNIT1_CARDS.length;
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8F8F2,#D0F0E4)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
         {/* 헤더 */}
         <div style={{width:"100%", maxWidth:400, marginBottom:16}}>
           <div style={{fontSize:12, color:"#00A876", fontWeight:700, marginBottom:6}}>
@@ -2719,6 +2758,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // 문제 풀기 화면
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#E64A00", marginBottom:4}}>
             📝 {vi?"Bài kiểm tra — Tổng hợp (Bài 1)":en?"Test — Cumulative (Unit 1)":"누적 테스트 — 1단원"}
