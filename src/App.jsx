@@ -861,6 +861,7 @@ function QuoteTab({ teacherName }) {
           ※ 비용 명목: 디지털 학습 인프라 구축 및 AI 서버 유지 후원금<br/>
           ※ 300명 초과 기관은 별도 협의&nbsp;
           <button onClick={()=>{
+            const to = "roh053068@gmail.com";
             const subject = encodeURIComponent("[한글 친구] 300명 초과 기관 도입 협의 요청");
             const body = encodeURIComponent(
               "안녕하세요, 한글 친구 담당자님.\n\n" +
@@ -874,7 +875,10 @@ function QuoteTab({ teacherName }) {
               "━━━━━━━━━━━━━━━━━━━━\n\n" +
               "감사합니다."
             );
-            window.location.href = `mailto:roh053068@gmail.com?subject=${subject}&body=${body}`;
+            window.open(
+              `https://mail.google.com/mail/?view=cm&to=${to}&su=${subject}&body=${body}`,
+              "_blank"
+            );
           }} style={{
             display:"inline-block",
             background:"linear-gradient(135deg,#2E75B6,#1A3A5C)",
