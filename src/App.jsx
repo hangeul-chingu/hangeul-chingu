@@ -1284,9 +1284,9 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   const [unitCardIdx, setUnitCardIdx] = useState(0);   // 학습 카드 인덱스
   const [testQuestions, setTestQuestions] = useState([]); // AI 생성 문제
   // ✅ V154: 조사 STT state
-  const [josaListening, setJosaListening] = useState(false);
-  const [josaSTTResult, setJosaSTTResult] = useState("");
-  const [josaSTTFeedback, setJosaSTTFeedback] = useState(null); // {ok, similarity}
+  // ✅ V154: 조사 테스트 STT — 카드별 독립 {key: {result, ok, similarity}}
+  const [josaListeningKey, setJosaListeningKey] = useState(null); // "qIdx" 형태
+  const [josaSTTMap, setJosaSTTMap] = useState({});
   const [testAnswers, setTestAnswers] = useState({});     // 학습자 답변
   const [testResult, setTestResult] = useState(null);    // {passed, score, feedback}
   const [testLoading, setTestLoading] = useState(false);
@@ -2464,14 +2464,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:17, fontWeight:900, color:"#E65100", textAlign:"center", marginBottom:4}}>{cur.title}</div>
             <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:18}}>{cur.desc}</div>
 
-            {/* 예시 항목 */}
+            {/* 예시 항목 — 학습 화면: 🔊 듣기만, 🎤는 테스트 화면에서 */}
             <div style={{display:"flex", flexDirection:"column", gap:10}}>
               {cur.items.map((item,i)=>(
                 <div key={i} style={{background:"#FFF8F0", borderRadius:12, padding:"12px 14px", border:"1px solid #FFE0B2"}}>
                   <div style={{display:"flex", alignItems:"center", gap:10, flexWrap:"wrap"}}>
                     <span style={{fontSize:20, fontWeight:900, color:"#E65100", minWidth:60}}>{item.form}</span>
                     <span style={{fontSize:13, color:"#555", flex:1}}>{item.ex}</span>
-                    {/* 🔊 듣기 버튼 */}
+                    {/* 🔊 듣기만 — 학습 단계 */}
                     <button onClick={()=>{
                       if (!window.speechSynthesis) return;
                       window.speechSynthesis.cancel();
@@ -2481,43 +2481,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                     }} style={{background:"#FF9800", border:"none", borderRadius:50, width:32, height:32, fontSize:14, cursor:"pointer", flexShrink:0}}>
                       🔊
                     </button>
-                    {/* 🎤 따라 말하기 버튼 */}
-                    <button onClick={()=>{
-                      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                        alert("이 브라우저는 음성인식을 지원하지 않아요. Chrome을 사용해주세요.");
-                        return;
-                      }
-                      setJosaSTTResult(""); setJosaSTTFeedback(null); setJosaListening(true);
-                      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-                      const rec = new SR();
-                      rec.lang = "ko-KR"; rec.interimResults = false; rec.maxAlternatives = 1;
-                      rec.onresult = (e) => {
-                        const said = e.results[0][0].transcript.replace(/[.,!?]/g,"").trim();
-                        const target = item.ex.replace(/[.,!?]/g,"").trim();
-                        // 간단 유사도: 공통 글자 수 / 목표 글자 수
-                        let match = 0;
-                        for (const ch of said) { if (target.includes(ch)) match++; }
-                        const sim = Math.round((match / Math.max(target.length, 1)) * 100);
-                        setJosaSTTResult(said);
-                        setJosaSTTFeedback({ok: sim >= 60, similarity: sim, target: item.ex});
-                        setJosaListening(false);
-                      };
-                      rec.onerror = () => setJosaListening(false);
-                      rec.onend = () => setJosaListening(false);
-                      rec.start();
-                    }} style={{background: josaListening?"#E53935":"#FF9800", border:"none", borderRadius:50, width:32, height:32, fontSize:14, cursor:"pointer", flexShrink:0}}>
-                      {josaListening ? "⏹" : "🎤"}
-                    </button>
                   </div>
                   <div style={{fontSize:11, color:"#FF9800", marginTop:4}}>💡 {item.note}</div>
-                  {/* STT 피드백 */}
-                  {josaSTTFeedback && josaSTTResult && (
-                    <div style={{marginTop:6, padding:"6px 10px", borderRadius:8,
-                      background: josaSTTFeedback.ok?"#E8F5E9":"#FFF3E0",
-                      fontSize:11, color: josaSTTFeedback.ok?"#2E7D32":"#E65100"}}>
-                      {josaSTTFeedback.ok ? "✅ 잘했어요!" : "🔄 다시 해봐요!"} ({josaSTTFeedback.similarity}%) — 말한 것: {josaSTTResult}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -2564,68 +2529,65 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const vi = lang?.code === "vi";
     const en = lang?.code === "en";
 
-    // 최초 진입 시 Claude API로 문제 생성
+    // STT 예문 목록 (학습한 예시 문장 전체)
+    const STT_SENTENCES = [
+      "저는 학생이에요.",
+      "학생은 바빠요.",
+      "친구가 왔어요.",
+      "밥을 먹어요.",
+      "학교에 있어요.",
+      "학교에서 공부해요.",
+      "친구하고 이야기해요.",
+      "누구예요?",
+      "어디 가요?",
+      "언제 와요?",
+    ];
+
+    // 최초 진입 시 Claude API로 빈칸 문제 생성
     if (testLoading && testQuestions.length === 0) {
       fetch("https://api.anthropic.com/v1/messages", {
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
           model:"claude-sonnet-4-20250514",
-          max_tokens:1000,
-          messages:[{role:"user", content:`
-당신은 한국어 초급 교사입니다. 학습자가 지금까지 배운 조사와 의문대명사를 테스트하는 문제를 만들어주세요.
-
-[배운 내용]
-1. 은/는 (주제 조사) — 저는, 학생은
-2. 이/가 (주격 조사) — 저가, 친구가
-3. 을/를 (목적격 조사) — 밥을, 책을
-4. 에/에서 (장소 조사) — 학교에 있어요 / 학교에서 공부해요
-5. 와/과·하고 (연결 조사) — 친구와, 선생님하고
-6. 의문대명사: 누구, 언제, 어디, 뭐/무엇, 왜
-
-[규칙]
-- 총 10문제
-- 빈칸 채우기 형식 (___에 알맞은 조사 또는 대명사)
-- 초급 수준 쉬운 문장
-- 각 조사 유형이 골고루 포함될 것
-
-[출력 — JSON만, 다른 텍스트 없음]
-{"questions":[{"id":1,"sentence":"저___ 학생이에요.","answer":"는","hint":"주제 조사"},{"id":2,...}]}
-`}]
+          max_tokens:800,
+          messages:[{role:"user", content:`한국어 초급 조사·대명사 빈칸 채우기 10문제를 만들어주세요.
+배운 내용: 은/는(주제) 이/가(주격) 을/를(목적격) 에/에서(장소) 와/과·하고(연결) 누구·언제·어디·뭐·왜(의문대명사)
+규칙: 초급 수준, 각 유형 골고루, ___ 빈칸 형식
+출력: JSON만 {"questions":[{"id":1,"sentence":"저___ 학생이에요.","answer":"는","hint":"주제 조사"}]}`}]
         })
       }).then(r=>r.json()).then(data=>{
         try {
-          const text = data.content?.[0]?.text || "";
-          const clean = text.replace(/\`\`\`json|\`\`\`/g,"").trim();
-          const parsed = JSON.parse(clean);
-          setTestQuestions(parsed.questions || []);
+          const text = data.content?.[0]?.text||"";
+          const clean = text.replace(/```json|```/g,"").trim();
+          setTestQuestions(JSON.parse(clean).questions||[]);
         } catch {
           setTestQuestions([
-            {id:1, sentence:"저___ 학생이에요.", answer:"는", hint:"주제 조사"},
-            {id:2, sentence:"친구___ 왔어요.", answer:"가", hint:"주격 조사"},
-            {id:3, sentence:"밥___ 먹어요.", answer:"을", hint:"목적격 조사"},
-            {id:4, sentence:"학교___ 있어요.", answer:"에", hint:"장소(존재)"},
-            {id:5, sentence:"학교___ 공부해요.", answer:"에서", hint:"장소(행동)"},
-            {id:6, sentence:"친구___ 이야기해요.", answer:"하고", hint:"연결 조사"},
-            {id:7, sentence:"___ 예요? (사람을 물을 때)", answer:"누구", hint:"의문대명사"},
-            {id:8, sentence:"___ 가요? (장소를 물을 때)", answer:"어디", hint:"의문대명사"},
-            {id:9, sentence:"___ 와요? (시간을 물을 때)", answer:"언제", hint:"의문대명사"},
-            {id:10, sentence:"___ 예요? (사물을 물을 때)", answer:"뭐", hint:"의문대명사"},
+            {id:1,sentence:"저___ 학생이에요.",answer:"는",hint:"주제 조사"},
+            {id:2,sentence:"친구___ 왔어요.",answer:"가",hint:"주격 조사"},
+            {id:3,sentence:"밥___ 먹어요.",answer:"을",hint:"목적격 조사"},
+            {id:4,sentence:"학교___ 있어요.",answer:"에",hint:"장소(존재)"},
+            {id:5,sentence:"학교___ 공부해요.",answer:"에서",hint:"장소(행동)"},
+            {id:6,sentence:"친구___ 이야기해요.",answer:"하고",hint:"연결 조사"},
+            {id:7,sentence:"___ 예요? (사람)",answer:"누구",hint:"의문대명사"},
+            {id:8,sentence:"___ 가요? (장소)",answer:"어디",hint:"의문대명사"},
+            {id:9,sentence:"___ 와요? (시간)",answer:"언제",hint:"의문대명사"},
+            {id:10,sentence:"___ 예요? (사물)",answer:"뭐",hint:"의문대명사"},
           ]);
         }
         setTestLoading(false);
       }).catch(()=>{
         setTestQuestions([
-          {id:1, sentence:"저___ 학생이에요.", answer:"는", hint:"주제 조사"},
-          {id:2, sentence:"친구___ 왔어요.", answer:"가", hint:"주격 조사"},
-          {id:3, sentence:"밥___ 먹어요.", answer:"을", hint:"목적격 조사"},
-          {id:4, sentence:"학교___ 있어요.", answer:"에", hint:"장소(존재)"},
-          {id:5, sentence:"학교___ 공부해요.", answer:"에서", hint:"장소(행동)"},
-          {id:6, sentence:"친구___ 이야기해요.", answer:"하고", hint:"연결 조사"},
-          {id:7, sentence:"___ 예요? (사람을 물을 때)", answer:"누구", hint:"의문대명사"},
-          {id:8, sentence:"___ 가요? (장소를 물을 때)", answer:"어디", hint:"의문대명사"},
-          {id:9, sentence:"___ 와요? (시간을 물을 때)", answer:"언제", hint:"의문대명사"},
-          {id:10, sentence:"___ 예요? (사물을 물을 때)", answer:"뭐", hint:"의문대명사"},
+          {id:1,sentence:"저___ 학생이에요.",answer:"는",hint:"주제 조사"},
+          {id:2,sentence:"친구___ 왔어요.",answer:"가",hint:"주격 조사"},
+          {id:3,sentence:"밥___ 먹어요.",answer:"을",hint:"목적격 조사"},
+          {id:4,sentence:"학교___ 있어요.",answer:"에",hint:"장소(존재)"},
+          {id:5,sentence:"학교___ 공부해요.",answer:"에서",hint:"장소(행동)"},
+          {id:6,sentence:"친구___ 이야기해요.",answer:"하고",hint:"연결 조사"},
+          {id:7,sentence:"___ 예요? (사람)",answer:"누구",hint:"의문대명사"},
+          {id:8,sentence:"___ 가요? (장소)",answer:"어디",hint:"의문대명사"},
+          {id:9,sentence:"___ 와요? (시간)",answer:"언제",hint:"의문대명사"},
+          {id:10,sentence:"___ 예요? (사물)",answer:"뭐",hint:"의문대명사"},
         ]);
         setTestLoading(false);
       });
@@ -2634,64 +2596,99 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // 채점
     function gradeJosaTest() {
       if (testQuestions.length === 0) return;
+      // 빈칸 채우기 점수
       let correct = 0;
-      const feedback = testQuestions.map(q => {
-        const userAns = (testAnswers[q.id] || "").trim();
-        const ok = userAns === q.answer ||
-          (q.answer === "뭐" && userAns === "무엇") ||
-          (q.answer === "무엇" && userAns === "뭐");
+      const writingFb = testQuestions.map(q => {
+        const ua = (testAnswers[q.id]||"").trim();
+        const ok = ua === q.answer || (q.answer==="뭐"&&ua==="무엇") || (q.answer==="무엇"&&ua==="뭐");
         if (ok) correct++;
-        return { ...q, userAns, ok };
+        return {...q, userAns:ua, ok};
       });
-      const score = Math.round((correct / testQuestions.length) * 100);
-      setTestResult({ passed: score >= 80, score, feedback });
+      // STT 점수
+      let sttCorrect = 0;
+      const sttFb = STT_SENTENCES.map((s,i) => {
+        const d = josaSTTMap[i];
+        if (d?.ok) sttCorrect++;
+        return {sentence:s, ...d};
+      });
+      const writingScore = Math.round((correct/testQuestions.length)*100);
+      const sttScore = Math.round((sttCorrect/STT_SENTENCES.length)*100);
+      const total = Math.round((writingScore + sttScore) / 2);
+      setTestResult({passed: total >= 80, score: total, writingScore, sttScore, writingFb, sttFb});
     }
 
     // 로딩 중
     if (testLoading) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"}}>
+      <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
         <DevJumpPanel />
-        <div style={{fontSize:40, marginBottom:16}}>📝</div>
-        <div style={{fontSize:15, color:"#FF9800", fontWeight:700}}>문제 만드는 중...</div>
+        <div style={{fontSize:40,marginBottom:16}}>📝</div>
+        <div style={{fontSize:15,color:"#FF9800",fontWeight:700}}>문제 만드는 중...</div>
       </div>
     );
 
     // 결과 화면
     if (testResult) {
-      const { passed, score, feedback } = testResult;
+      const {passed,score,writingScore,sttScore,writingFb,sttFb} = testResult;
       return (
-        <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",padding:"24px 16px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <DevJumpPanel />
-          <div style={{width:"100%", maxWidth:400}}>
-            <div style={{textAlign:"center", marginBottom:20}}>
+          <div style={{width:"100%",maxWidth:400}}>
+            <div style={{textAlign:"center",marginBottom:20}}>
               <div style={{fontSize:48}}>{passed?"🎉":"😊"}</div>
-              <div style={{fontSize:22, fontWeight:900, color: passed?"#E65100":"#FF9800", marginBottom:4}}>
-                {passed ? (vi?"Xuất sắc!":en?"Excellent!":"통과! 🎉") : (vi?"Thử lại nhé!":en?"Try again!":"아직 조금 더 연습해요!")}
+              <div style={{fontSize:22,fontWeight:900,color:passed?"#E65100":"#FF9800",marginBottom:8}}>
+                {passed?(vi?"Xuất sắc!":en?"Excellent!":"통과! 🎉"):(vi?"Thử lại nhé!":en?"Try again!":"조금 더 연습해요!")}
               </div>
-              <div style={{fontSize:28, fontWeight:900, color:"#E65100"}}>{score}점</div>
-              <div style={{fontSize:13, color:"#aaa"}}>{vi?"80điểm trở lên = qua!":en?"80+ = pass!":"80점 이상 통과"}</div>
+              <div style={{display:"flex",gap:12,justifyContent:"center",marginBottom:4}}>
+                <div style={{background:"white",borderRadius:12,padding:"8px 16px",textAlign:"center",boxShadow:"0 2px 8px #FF980022"}}>
+                  <div style={{fontSize:11,color:"#aaa"}}>✍️ 빈칸</div>
+                  <div style={{fontSize:20,fontWeight:900,color:"#E65100"}}>{writingScore}점</div>
+                </div>
+                <div style={{background:"white",borderRadius:12,padding:"8px 16px",textAlign:"center",boxShadow:"0 2px 8px #FF980022"}}>
+                  <div style={{fontSize:11,color:"#aaa"}}>🎤 말하기</div>
+                  <div style={{fontSize:20,fontWeight:900,color:"#E65100"}}>{sttScore}점</div>
+                </div>
+                <div style={{background:"#E65100",borderRadius:12,padding:"8px 16px",textAlign:"center"}}>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,.8)"}}>종합</div>
+                  <div style={{fontSize:20,fontWeight:900,color:"white"}}>{score}점</div>
+                </div>
+              </div>
+              <div style={{fontSize:12,color:"#aaa"}}>80점 이상 통과</div>
             </div>
-            <div style={{display:"flex", flexDirection:"column", gap:8, marginBottom:20}}>
-              {feedback.map(r=>(
-                <div key={r.id} style={{background: r.ok?"#E8F5E9":"#FFF3E0", borderRadius:12, padding:"10px 14px", border:`1px solid ${r.ok?"#A5D6A7":"#FFCC80"}`}}>
-                  <div style={{display:"flex", justifyContent:"space-between"}}>
-                    <span style={{fontWeight:700, color:"#333", fontSize:13}}>{r.sentence}</span>
-                    <span style={{fontSize:12, color: r.ok?"#2E7D32":"#E65100", fontWeight:700}}>{r.ok?"✅":"❌"}</span>
+            {/* 빈칸 결과 */}
+            <div style={{fontSize:13,fontWeight:700,color:"#E65100",marginBottom:8}}>✍️ 빈칸 채우기</div>
+            <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:16}}>
+              {(writingFb||[]).map(r=>(
+                <div key={r.id} style={{background:r.ok?"#E8F5E9":"#FFF3E0",borderRadius:10,padding:"8px 12px",border:`1px solid ${r.ok?"#A5D6A7":"#FFCC80"}`}}>
+                  <div style={{display:"flex",justifyContent:"space-between"}}>
+                    <span style={{fontSize:13,color:"#333"}}>{r.sentence}</span>
+                    <span style={{fontSize:12,color:r.ok?"#2E7D32":"#E65100",fontWeight:700}}>{r.ok?"✅":"❌"}</span>
                   </div>
-                  {!r.ok && <div style={{fontSize:11, color:"#888", marginTop:2}}>
-                    정답: <b>{r.answer}</b> / 내 답: {r.userAns || "(없음)"}
-                  </div>}
+                  {!r.ok&&<div style={{fontSize:11,color:"#888",marginTop:2}}>정답: <b>{r.answer}</b> / 내 답: {r.userAns||(vi?"(trống)":en?"(empty)":"(없음)")}</div>}
+                </div>
+              ))}
+            </div>
+            {/* STT 결과 */}
+            <div style={{fontSize:13,fontWeight:700,color:"#E65100",marginBottom:8}}>🎤 따라 말하기</div>
+            <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:20}}>
+              {(sttFb||[]).map((r,i)=>(
+                <div key={i} style={{background:r?.ok?"#E8F5E9":"#FFF3E0",borderRadius:10,padding:"8px 12px",border:`1px solid ${r?.ok?"#A5D6A7":"#FFCC80"}`}}>
+                  <div style={{display:"flex",justifyContent:"space-between"}}>
+                    <span style={{fontSize:13,color:"#333"}}>{r.sentence}</span>
+                    <span style={{fontSize:12,color:r?.ok?"#2E7D32":"#E65100",fontWeight:700}}>{r?.ok?"✅":"❌"}</span>
+                  </div>
+                  {r?.result&&<div style={{fontSize:11,color:"#888",marginTop:2}}>말한 것: {r.result} ({r.similarity}%)</div>}
+                  {!r?.result&&<div style={{fontSize:11,color:"#bbb",marginTop:2}}>{vi?"Chưa thử":en?"Not attempted":"시도 안 함"}</div>}
                 </div>
               ))}
             </div>
             {passed ? (
-              <button onClick={()=>{ onReady?.(); setUnitCardIdx(0); setStep("unit1"); }}
-                style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #00C89644"}}>
+              <button onClick={()=>{onReady?.();setUnitCardIdx(0);setStep("unit1");}}
+                style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A876)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #00C89644"}}>
                 {vi?"Tiếp theo! 🚀":en?"Next! 🚀":"서술어 1단원으로! 🚀"}
               </button>
             ) : (
-              <button onClick={()=>{ setJosaStep(0); setJosaSTTResult(""); setJosaSTTFeedback(null); setStep("josa"); }}
-                style={{width:"100%", background:"linear-gradient(135deg,#FF9800,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+              <button onClick={()=>{setJosaStep(0);setJosaSTTMap({});setJosaListeningKey(null);setStep("josa");}}
+                style={{width:"100%",background:"linear-gradient(135deg,#FF9800,#E65100)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer"}}>
                 🔄 {vi?"Học lại từ đầu":en?"Study again":"조사·대명사 처음부터 다시 학습"}
               </button>
             )}
@@ -2702,33 +2699,89 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     // 문제 풀기 화면
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",padding:"24px 16px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:400}}>
-          <div style={{fontSize:14, fontWeight:900, color:"#E65100", marginBottom:4}}>
+        <div style={{width:"100%",maxWidth:400}}>
+          <div style={{fontSize:14,fontWeight:900,color:"#E65100",marginBottom:2}}>
             📝 {vi?"Bài kiểm tra — Trợ từ & Đại từ":en?"Test — Particles & Pronouns":"조사·대명사 테스트"}
           </div>
-          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
-            {vi?"Điền vào chỗ trống":en?"Fill in the blanks":"빈칸에 알맞은 조사 또는 대명사를 쓰세요"}
+          <div style={{fontSize:12,color:"#aaa",marginBottom:18}}>
+            {vi?"빈칸 채우기 + 따라 말하기":en?"Fill in blanks + Speak along":"✍️ 빈칸 채우기 + 🎤 따라 말하기"}
           </div>
+
+          {/* 섹션1: 빈칸 채우기 */}
+          <div style={{fontSize:13,fontWeight:700,color:"#E65100",marginBottom:8}}>✍️ 빈칸 채우기</div>
           {testQuestions.map(q=>(
-            <div key={q.id} style={{background:"white", borderRadius:14, padding:"14px 16px", marginBottom:10, border:"1px solid #FFE0B2", boxShadow:"0 2px 8px #FF980011"}}>
-              <div style={{fontSize:15, fontWeight:700, color:"#333", marginBottom:8}}>{q.sentence}</div>
-              <div style={{fontSize:11, color:"#FF9800", marginBottom:8}}>💡 {q.hint}</div>
+            <div key={q.id} style={{background:"white",borderRadius:12,padding:"12px 14px",marginBottom:8,border:"1px solid #FFE0B2"}}>
+              <div style={{fontSize:14,fontWeight:700,color:"#333",marginBottom:6}}>{q.sentence}</div>
+              <div style={{fontSize:11,color:"#FF9800",marginBottom:6}}>💡 {q.hint}</div>
               <input
-                value={testAnswers[q.id] || ""}
-                onChange={e=>setTestAnswers(a=>({...a, [q.id]: e.target.value}))}
-                placeholder={vi?"Điền vào đây...":en?"Fill in here...":"여기에 쓰세요..."}
-                style={{width:"100%", border:"2px solid #FFE0B2", borderRadius:8, padding:"8px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
+                value={testAnswers[q.id]||""}
+                onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))}
+                placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
+                style={{width:"100%",border:"2px solid #FFE0B2",borderRadius:8,padding:"7px 10px",fontSize:14,outline:"none",boxSizing:"border-box"}}
               />
             </div>
           ))}
+
+          {/* 섹션2: 따라 말하기 */}
+          <div style={{fontSize:13,fontWeight:700,color:"#E65100",margin:"18px 0 8px"}}>🎤 따라 말하기</div>
+          <div style={{fontSize:11,color:"#aaa",marginBottom:10}}>{vi?"Nghe và đọc theo":en?"Listen and repeat":"🔊 듣고 따라 말해보세요"}</div>
+          {STT_SENTENCES.map((sentence,i)=>{
+            const key = i;
+            const isListening = josaListeningKey === key;
+            const result = josaSTTMap[key];
+            return (
+              <div key={i} style={{background:"white",borderRadius:12,padding:"12px 14px",marginBottom:8,border:`2px solid ${result?.ok?"#A5D6A7":result?"#FFCC80":"#FFE0B2"}`}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:result?6:0}}>
+                  {/* 듣기 버튼 */}
+                  <button onClick={()=>{
+                    if(!window.speechSynthesis)return;
+                    window.speechSynthesis.cancel();
+                    const u=new SpeechSynthesisUtterance(sentence);
+                    u.lang="ko-KR";u.rate=0.65;
+                    window.speechSynthesis.speak(u);
+                  }} style={{background:"#FF9800",border:"none",borderRadius:50,width:30,height:30,fontSize:13,cursor:"pointer",flexShrink:0}}>🔊</button>
+                  {/* 문장 */}
+                  <span style={{fontSize:14,fontWeight:700,color:"#333",flex:1}}>{sentence}</span>
+                  {/* 말하기 버튼 — 이 카드만 활성화 */}
+                  <button onClick={()=>{
+                    if(!("webkitSpeechRecognition" in window)&&!("SpeechRecognition" in window)){
+                      alert("Chrome 브라우저를 사용해주세요.");return;
+                    }
+                    if(isListening){setJosaListeningKey(null);return;}
+                    setJosaListeningKey(key);
+                    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+                    const rec=new SR();
+                    rec.lang="ko-KR";rec.interimResults=false;rec.maxAlternatives=1;
+                    rec.onresult=(e)=>{
+                      const said=e.results[0][0].transcript.replace(/[.,!?]/g,"").trim();
+                      const target=sentence.replace(/[.,!?]/g,"").trim();
+                      let match=0;
+                      for(const ch of said){if(target.includes(ch))match++;}
+                      const sim=Math.round((match/Math.max(target.length,1))*100);
+                      setJosaSTTMap(m=>({...m,[key]:{result:said,ok:sim>=60,similarity:sim}}));
+                      setJosaListeningKey(null);
+                    };
+                    rec.onerror=()=>setJosaListeningKey(null);
+                    rec.onend=()=>setJosaListeningKey(null);
+                    rec.start();
+                  }} style={{background:isListening?"#E53935":"#FF9800",border:"none",borderRadius:50,width:30,height:30,fontSize:13,cursor:"pointer",flexShrink:0}}>
+                    {isListening?"⏹":"🎤"}
+                  </button>
+                  {result&&<span style={{fontSize:13,color:result.ok?"#2E7D32":"#E65100",fontWeight:700}}>{result.ok?"✅":"❌"}</span>}
+                </div>
+                {result&&<div style={{fontSize:11,color:"#888"}}>말한 것: {result.result} ({result.similarity}%)</div>}
+              </div>
+            );
+          })}
+
           <button onClick={gradeJosaTest}
-            style={{width:"100%", background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:8, boxShadow:"0 4px 16px #FF6B3544"}}>
+            style={{width:"100%",background:"linear-gradient(135deg,#FF6B35,#E64A00)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",marginTop:12,boxShadow:"0 4px 16px #FF6B3544"}}>
             {vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}
           </button>
-          <button onClick={()=>{ setJosaStep(5); setStep("josa"); }}
-            style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+          <button onClick={()=>{setJosaStep(5);setStep("josa");}}
+            style={{marginTop:12,background:"none",border:"none",color:"#aaa",fontSize:12,cursor:"pointer",display:"block",margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
         </div>
