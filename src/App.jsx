@@ -1266,6 +1266,16 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   const [josaStep, setJosaStep] = useState(0);   // V147: 조사·대명사 단계
   const [flipped, setFlipped] = useState({});
 
+  // ✅ V153: 발음 테스트 state
+  const [pronTestItems, setPronTestItems] = useState([]);   // 테스트할 단어 목록
+  const [pronTestIdx, setPronTestIdx] = useState(0);        // 현재 문제 인덱스
+  const [pronTestResults, setPronTestResults] = useState([]); // 결과 누적
+  const [pronTestSTT, setPronTestSTT] = useState("");       // STT 인식 결과
+  const [pronTestListening, setPronTestListening] = useState(false);
+  const [pronTestFeedback, setPronTestFeedback] = useState(null); // {ok, msg, similarity}
+  const [pronTestLoading, setPronTestLoading] = useState(false);
+  const [pronTestFromStep, setPronTestFromStep] = useState(0); // 어느 발음 단계에서 왔는지
+
   // ✅ V152: 서술어 단원 학습 + 누적 테스트 state
   const [unitCardIdx, setUnitCardIdx] = useState(0);   // 학습 카드 인덱스
   const [testQuestions, setTestQuestions] = useState([]); // AI 생성 문제
@@ -1958,20 +1968,318 @@ ${vocabList}
           {vi?"Chạm vào thẻ để xem từ ví dụ":en?"Tap a card to see example word":"카드를 탭하면 예시 단어가 나와요 😊"}
         </div>
 
-        {/* 다음 / 자유학습으로 버튼 */}
-        {pronStep < PRON_STEPS.length - 1 ? (
-          <button onClick={()=>{setPronStep(p=>p+1); setFlipped({});}}
-            style={{width:"100%", maxWidth:360, background:"linear-gradient(135deg,#9C6FDE,#C084FC)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C6FDE44"}}>
-            {vi?"Tiếp theo →":en?"Next →":"다음 →"} {PRON_STEPS[pronStep+1].title}
-          </button>
-        ) : (
-          <button onClick={()=>{setStep("josa"); setJosaStep(0);}}
-            style={{width:"100%", maxWidth:360, background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #00C89644"}}>
-            {vi?"Bắt đầu học! 🚀":en?"Start learning! 🚀":"학습 시작! 🚀"}
-          </button>
-        )}
+        {/* 발음 테스트 버튼 — 각 단계마다 테스트 후 다음으로 */}
+        <button onClick={()=>{
+          // 현재 단계 단어 중 3개 랜덤 선택
+          const items = current.items || [];
+          const picked = [...items].sort(()=>Math.random()-0.5).slice(0,Math.min(3,items.length));
+          setPronTestItems(picked);
+          setPronTestIdx(0);
+          setPronTestResults([]);
+          setPronTestSTT("");
+          setPronTestFeedback(null);
+          setPronTestFromStep(pronStep);
+          setStep("pronTest");
+        }}
+          style={{width:"100%", maxWidth:360, background:"linear-gradient(135deg,#9C6FDE,#C084FC)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C6FDE44"}}>
+          🎤 {vi?"Kiểm tra phát âm!":en?"Pronunciation test!":"발음 테스트하기!"}
+        </button>
 
         <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer"}}>← 뒤로</button>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════
+  // ✅ V153: 발음 STT 테스트 화면
+  // ════════════════════════════════════════════════════════
+  if (step === "pronTest") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const PRON_STEPS_COUNT = 8; // 총 발음 단계 수
+
+    // 유사도 계산 함수 (레벤슈타인 거리 기반)
+    function calcSimilarity(a, b) {
+      const s1 = a.trim().toLowerCase();
+      const s2 = b.trim().toLowerCase();
+      if (s1 === s2) return 100;
+      if (!s1 || !s2) return 0;
+      const m = s1.length, n = s2.length;
+      const dp = Array.from({length:m+1}, (_,i) => Array.from({length:n+1}, (_,j) => i===0?j:j===0?i:0));
+      for (let i=1;i<=m;i++) for (let j=1;j<=n;j++)
+        dp[i][j] = s1[i-1]===s2[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+      const maxLen = Math.max(m,n);
+      return Math.round((1 - dp[m][n]/maxLen)*100);
+    }
+
+    // STT 시작
+    function startSTT() {
+      if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
+        alert(vi?"Trình duyệt không hỗ trợ STT":en?"Browser doesn't support STT":"이 브라우저는 음성 인식을 지원하지 않아요");
+        return;
+      }
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const rec = new SR();
+      rec.lang = "ko-KR";
+      rec.interimResults = false;
+      rec.maxAlternatives = 3;
+      setPronTestListening(true);
+      setPronTestSTT("");
+      setPronTestFeedback(null);
+      rec.onresult = async (e) => {
+        // 여러 후보 중 정답과 가장 유사한 것 선택
+        const target = pronTestItems[pronTestIdx]?.word || "";
+        let bestText = e.results[0][0].transcript;
+        let bestSim = calcSimilarity(bestText, target);
+        for (let i=0;i<e.results[0].length;i++) {
+          const t = e.results[0][i].transcript;
+          const s = calcSimilarity(t, target);
+          if (s > bestSim) { bestSim = s; bestText = t; }
+        }
+        setPronTestSTT(bestText);
+        setPronTestListening(false);
+        await judgePronunciation(bestText, target, bestSim);
+      };
+      rec.onerror = () => { setPronTestListening(false); };
+      rec.start();
+    }
+
+    // 판단 함수
+    async function judgePronunciation(sttText, target, similarity) {
+      if (similarity >= 85) {
+        // 바로 통과
+        setPronTestFeedback({ok:true, similarity, msg: vi?"Xuất sắc! Phát âm chuẩn!":en?"Excellent pronunciation!":"완벽해요! 🎉"});
+        setPronTestResults(r=>[...r, {target, sttText, similarity, ok:true}]);
+      } else if (similarity >= 50) {
+        // Claude 판단
+        setPronTestLoading(true);
+        try {
+          const res = await fetch("https://api.anthropic.com/v1/messages",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+              model:"claude-sonnet-4-20250514",
+              max_tokens:200,
+              messages:[{role:"user", content:`
+한국어 초급 학습자의 발음을 평가해주세요.
+목표 단어: "${target}"
+STT 인식 결과: "${sttText}"
+유사도: ${similarity}%
+
+이 학습자의 발음이 통과 수준인지 판단하고, 짧은 피드백을 주세요.
+JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${lang?.code==="vi"?"베트남어":lang?.code==="en"?"영어":"한국어"})"}
+`}]
+            })
+          });
+          const data = await res.json();
+          const text = data.content?.[0]?.text || "";
+          const clean = text.replace(/```json|```/g,"").trim();
+          const parsed = JSON.parse(clean);
+          setPronTestFeedback({ok:parsed.pass, similarity, msg:parsed.feedback});
+          setPronTestResults(r=>[...r, {target, sttText, similarity, ok:parsed.pass}]);
+        } catch {
+          // Claude 실패 시 유사도 70% 기준으로 fallback
+          const ok = similarity >= 70;
+          setPronTestFeedback({ok, similarity, msg: ok?"잘했어요! 😊":"다시 한번 해봐요! 💪"});
+          setPronTestResults(r=>[...r, {target, sttText, similarity, ok}]);
+        }
+        setPronTestLoading(false);
+      } else {
+        // 바로 실패
+        setPronTestFeedback({ok:false, similarity, msg: vi?"Thử lại nhé! 💪":en?"Try again! 💪":"다시 해봐요! 💪"});
+        setPronTestResults(r=>[...r, {target, sttText, similarity, ok:false}]);
+      }
+    }
+
+    // 다음 문제 / 결과 보기
+    function goNext() {
+      if (pronTestIdx < pronTestItems.length - 1) {
+        setPronTestIdx(i=>i+1);
+        setPronTestSTT("");
+        setPronTestFeedback(null);
+      } else {
+        // 전체 결과 — 80% 이상 통과
+        const passed = pronTestResults.filter(r=>r.ok).length;
+        const total = pronTestResults.length;
+        const score = Math.round((passed/total)*100);
+        setStep("pronResult");
+        setPronTestResults(r => [{_summary:true, passed, total, score, fromStep: pronTestFromStep}, ...r]);
+      }
+    }
+
+    const currentItem = pronTestItems[pronTestIdx];
+    if (!currentItem) return null;
+
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3EEFF,#E8E0FF)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{width:"100%", maxWidth:380}}>
+          {/* 헤더 */}
+          <div style={{fontSize:13, color:"#9C6FDE", fontWeight:700, marginBottom:4}}>
+            🎤 {vi?"Kiểm tra phát âm":en?"Pronunciation Test":"발음 테스트"} ({pronTestIdx+1}/{pronTestItems.length})
+          </div>
+          <div style={{display:"flex", gap:4, marginBottom:20}}>
+            {pronTestItems.map((_,i)=>(
+              <div key={i} style={{flex:1, height:5, borderRadius:3, background:i<pronTestIdx?"#9C6FDE":i===pronTestIdx?"#C084FC":"#E0D0FF"}}/>
+            ))}
+          </div>
+
+          {/* 목표 단어 카드 */}
+          <div style={{background:"white", borderRadius:20, padding:28, textAlign:"center", boxShadow:"0 8px 32px #9C6FDE22", marginBottom:20}}>
+            <div style={{fontSize:13, color:"#aaa", marginBottom:8}}>
+              {vi?"Hãy đọc to từ này":en?"Read this word aloud":"이 단어를 크게 발음해보세요"}
+            </div>
+            <div style={{fontSize:48, fontWeight:900, color:"#7C3AED", marginBottom:4}}>
+              {currentItem.word}
+            </div>
+            <div style={{fontSize:14, color:"#aaa"}}>
+              {currentItem.meaning}
+            </div>
+            {/* 예시 듣기 버튼 */}
+            <button onClick={()=>{
+              const u = new SpeechSynthesisUtterance(currentItem.word);
+              u.lang="ko-KR"; u.rate=0.7;
+              window.speechSynthesis.cancel();
+              window.speechSynthesis.speak(u);
+            }} style={{marginTop:12, background:"#F3EEFF", border:"none", borderRadius:20, padding:"6px 16px", fontSize:12, color:"#9C6FDE", cursor:"pointer", fontWeight:700}}>
+              🔊 {vi?"Nghe mẫu":en?"Listen":"예시 듣기"}
+            </button>
+          </div>
+
+          {/* STT 결과 표시 */}
+          {pronTestSTT && (
+            <div style={{background:"white", borderRadius:14, padding:14, marginBottom:12, textAlign:"center"}}>
+              <div style={{fontSize:12, color:"#aaa", marginBottom:4}}>{vi?"Bạn đã nói":en?"You said":"내가 말한 것"}</div>
+              <div style={{fontSize:20, fontWeight:700, color:"#333"}}>{pronTestSTT}</div>
+              <div style={{fontSize:12, color:"#9C6FDE", marginTop:4}}>
+                {vi?"Độ tương đồng":en?"Similarity":"유사도"}: {pronTestFeedback?.similarity}%
+              </div>
+            </div>
+          )}
+
+          {/* 피드백 */}
+          {pronTestLoading && (
+            <div style={{textAlign:"center", padding:12, color:"#9C6FDE", fontWeight:700}}>
+              ⏳ {vi?"Đang đánh giá...":en?"Evaluating...":"평가 중..."}
+            </div>
+          )}
+          {pronTestFeedback && !pronTestLoading && (
+            <div style={{background: pronTestFeedback.ok?"#F0FBF6":"#FFF0F0", borderRadius:14, padding:14, marginBottom:12, textAlign:"center"}}>
+              <div style={{fontSize:24, marginBottom:4}}>{pronTestFeedback.ok?"✅":"❌"}</div>
+              <div style={{fontSize:14, fontWeight:700, color: pronTestFeedback.ok?"#00A876":"#E64A00"}}>
+                {pronTestFeedback.msg}
+              </div>
+            </div>
+          )}
+
+          {/* 버튼 영역 */}
+          {!pronTestFeedback && !pronTestLoading && (
+            <button onClick={startSTT}
+              style={{width:"100%", background: pronTestListening?"linear-gradient(135deg,#FF6B6B,#E64A00)":"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"16px 0", fontSize:16, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C6FDE44"}}>
+              {pronTestListening
+                ? (vi?"🔴 Đang nghe...":en?"🔴 Listening...":"🔴 듣는 중...")
+                : (vi?"🎤 Bắt đầu nói":en?"🎤 Speak now":"🎤 말하기 시작")}
+            </button>
+          )}
+          {pronTestFeedback && !pronTestLoading && (
+            <div style={{display:"flex", gap:8}}>
+              {!pronTestFeedback.ok && (
+                <button onClick={()=>{setPronTestSTT(""); setPronTestFeedback(null);}}
+                  style={{flex:1, background:"white", border:"2px solid #9C6FDE", color:"#9C6FDE", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, cursor:"pointer"}}>
+                  🔄 {vi?"Thử lại":en?"Retry":"다시 시도"}
+                </button>
+              )}
+              <button onClick={goNext}
+                style={{flex:2, background:"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                {pronTestIdx < pronTestItems.length-1
+                  ? (vi?"Câu tiếp →":en?"Next →":"다음 문제 →")
+                  : (vi?"Xem kết quả →":en?"See results →":"결과 보기 →")}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════
+  // ✅ V153: 발음 테스트 결과 화면
+  // ════════════════════════════════════════════════════════
+  if (step === "pronResult") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const summary = pronTestResults[0]?._summary ? pronTestResults[0] : null;
+    const details = pronTestResults.filter(r=>!r._summary);
+    const passed = summary?.score >= 80;
+    const fromStep = summary?.fromStep ?? 0;
+    const PRON_STEPS_COUNT = 8;
+
+    return (
+      <div style={{minHeight:"100vh", background: passed?"linear-gradient(150deg,#E8F8F2,#D0F0E4)":"linear-gradient(150deg,#FFF0F0,#FFE0E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{width:"100%", maxWidth:380}}>
+          <div style={{textAlign:"center", marginBottom:24}}>
+            <div style={{fontSize:56}}>{passed?"🎉":"💪"}</div>
+            <div style={{fontSize:22, fontWeight:900, color: passed?"#00A876":"#E64A00", marginBottom:4}}>
+              {passed
+                ? (vi?"Qua rồi!":en?"Passed!":"통과! 🎉")
+                : (vi?"Chưa qua. Luyện lại nhé!":en?"Not passed. Practice more!":"미통과 — 다시 연습해요")}
+            </div>
+            <div style={{fontSize:28, fontWeight:900, color: passed?"#00C896":"#FF6B6B"}}>
+              {summary?.passed}/{summary?.total} ({summary?.score}점)
+            </div>
+            <div style={{fontSize:12, color:"#888", marginTop:4}}>통과 기준: 80점 이상</div>
+          </div>
+
+          {/* 문제별 결과 */}
+          <div style={{background:"white", borderRadius:16, padding:16, marginBottom:20}}>
+            {details.map((r,i)=>(
+              <div key={i} style={{marginBottom:10, padding:10, borderRadius:10, background:r.ok?"#F0FBF6":"#FFF0F0"}}>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                  <span style={{fontWeight:700, color:"#333"}}>{r.target}</span>
+                  <span style={{fontSize:12, color: r.ok?"#00A876":"#E64A00", fontWeight:700}}>
+                    {r.ok?"✅":"❌"} {r.similarity}%
+                  </span>
+                </div>
+                <div style={{fontSize:12, color:"#888", marginTop:2}}>
+                  {vi?"Bạn nói":en?"You said":"말한 것"}: {r.sttText || "(없음)"}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {passed ? (
+            <button onClick={()=>{
+              setFlipped({});
+              if (fromStep < PRON_STEPS_COUNT - 1) {
+                setPronStep(fromStep + 1);
+                setStep("pronunciation");
+              } else {
+                setStep("josa");
+                setJosaStep(0);
+              }
+            }}
+              style={{width:"100%", background:"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+              {fromStep < PRON_STEPS_COUNT - 1
+                ? (vi?"Học bài tiếp theo →":en?"Next lesson →":"다음 단계로 →")
+                : (vi?"Học trợ từ! 🚀":en?"Learn particles! 🚀":"조사 학습으로! 🚀")}
+            </button>
+          ) : (
+            <button onClick={()=>{
+              setPronTestIdx(0);
+              setPronTestResults([]);
+              setPronTestSTT("");
+              setPronTestFeedback(null);
+              setStep("pronTest");
+            }}
+              style={{width:"100%", background:"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+              🔄 {vi?"Làm lại bài kiểm tra":en?"Retake test":"발음 테스트 다시 도전"}
+            </button>
+          )}
+
+          <button onClick={()=>{setStep("pronunciation"); setPronStep(fromStep);}}
+            style={{marginTop:10, width:"100%", background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer"}}>
+            ← {vi?"Xem lại bài học":en?"Review lesson":"학습 다시 보기"}
+          </button>
+        </div>
       </div>
     );
   }
