@@ -22,6 +22,9 @@ import {
   deleteField,
 } from "firebase/firestore";
 
+// ✅ V150: 최고 관리자 이메일 (이 이메일로만 AdminDashboard 접근 가능)
+const ADMIN_EMAIL = "roh053068@gmail.com";
+
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
   teal:"#4ECDC4", sky:"#74C0FC", coral:"#FF6B6B",
@@ -154,9 +157,265 @@ function AuthScreen({ onLogin }) {
 
 
 // ════════════════════════════════════════════════════════
+// ✅ V150: 최고 관리자 전용 화면 (AdminDashboard)
+// ════════════════════════════════════════════════════════
+function AdminDashboard({ user, onLogout, onExitAdmin }) {
+  const [tab, setTab] = useState("topik"); // "topik" | "users"
+  const [submissions, setSubmissions] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // TOPIK 제출 목록 실시간 구독
+  useEffect(() => {
+    const q = query(collection(db, "topik_submissions"));
+    const unsub = onSnapshot(q, snap => {
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // 최신순 정렬
+      docs.sort((a, b) => (b.submittedAt?.seconds || 0) - (a.submittedAt?.seconds || 0));
+      setSubmissions(docs);
+    });
+    return () => unsub();
+  }, []);
+
+  // 전체 학습자 목록
+  useEffect(() => {
+    const q = query(collection(db, "users"), where("role", "==", "learner"));
+    const unsub = onSnapshot(q, snap => {
+      setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  // 관리자 최종 승인
+  async function approveSubmission(subId, uid) {
+    await updateDoc(doc(db, "topik_submissions", subId), {
+      status: "approved",
+      approvedAt: serverTimestamp(),
+      approvedBy: "admin",
+    });
+    await updateDoc(doc(db, "users", uid), {
+      topikApproved: true,
+      topikApprovedAt: serverTimestamp(),
+    });
+  }
+
+  // 반려
+  async function rejectSubmission(subId, reason) {
+    await updateDoc(doc(db, "topik_submissions", subId), {
+      status: "rejected",
+      rejectedAt: serverTimestamp(),
+      rejectedReason: reason || "재제출 요청",
+    });
+  }
+
+  const pending   = submissions.filter(s => s.status === "ai_reviewed");
+  const approved  = submissions.filter(s => s.status === "approved");
+  const rejected  = submissions.filter(s => s.status === "rejected");
+
+  const STATUS_COLOR = { ai_reviewed:"#F5A623", approved:"#00C896", rejected:"#E53935", pending:"#aaa" };
+  const STATUS_LABEL = { ai_reviewed:"AI 판독 완료 — 승인 대기", approved:"✅ 승인 완료", rejected:"❌ 반려", pending:"제출됨" };
+
+  return (
+    <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#1A1A2E,#16213E)", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      {/* 헤더 */}
+      <div style={{background:"linear-gradient(135deg,#0F3460,#1A1A2E)", padding:"20px 20px 0", color:"white", borderBottom:"1px solid #ffffff15"}}>
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", maxWidth:800, margin:"0 auto"}}>
+          <div>
+            <div style={{fontSize:11, opacity:0.6, marginBottom:4, letterSpacing:2}}>🔐 ADMIN ONLY</div>
+            <div style={{fontSize:20, fontWeight:900}}>최고 관리자 페이지</div>
+            <div style={{fontSize:12, opacity:0.6, marginTop:2}}>{user.email}</div>
+          </div>
+          <div style={{display:"flex", flexDirection:"column", gap:6, alignItems:"flex-end"}}>
+            <button onClick={onExitAdmin} style={{background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.25)", color:"white", borderRadius:20, padding:"7px 14px", fontSize:11, fontWeight:800, cursor:"pointer"}}>
+              👩‍🏫 교수자 화면으로
+            </button>
+            <button onClick={onLogout} style={{background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", color:"rgba(255,255,255,0.7)", borderRadius:20, padding:"7px 14px", fontSize:11, fontWeight:700, cursor:"pointer"}}>
+              로그아웃
+            </button>
+          </div>
+        </div>
+        {/* 탭 */}
+        <div style={{display:"flex", gap:8, marginTop:16, maxWidth:800, margin:"16px auto 0"}}>
+          {[["topik","🎓 TOPIK 성적 검증"],["users","👥 전체 학습자"]].map(([k,l]) => (
+            <button key={k} onClick={()=>setTab(k)} style={{padding:"9px 20px", border:"none", borderRadius:"16px 16px 0 0", background:tab===k?"white":"transparent", color:tab===k?"#0F3460":"rgba(255,255,255,0.6)", fontWeight:tab===k?800:500, fontSize:13, cursor:"pointer"}}>
+              {l} {k==="topik" && pending.length > 0 && <span style={{background:"#F5A623", color:"white", borderRadius:10, padding:"1px 7px", fontSize:11, marginLeft:4}}>{pending.length}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{padding:"20px 16px", maxWidth:800, margin:"0 auto"}}>
+
+        {/* ── TOPIK 성적 검증 탭 ── */}
+        {tab === "topik" && (
+          <div>
+            {/* 통계 요약 */}
+            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:20}}>
+              {[
+                ["⏳", "승인 대기", pending.length, "#F5A623"],
+                ["✅", "승인 완료", approved.length, "#00C896"],
+                ["❌", "반려", rejected.length, "#E53935"],
+              ].map(([icon, label, count, color]) => (
+                <div key={label} style={{background:"rgba(255,255,255,0.05)", border:`1px solid ${color}40`, borderRadius:16, padding:"14px 12px", textAlign:"center"}}>
+                  <div style={{fontSize:22}}>{icon}</div>
+                  <div style={{fontSize:22, fontWeight:900, color}}>{count}</div>
+                  <div style={{fontSize:11, color:"rgba(255,255,255,0.5)", marginTop:2}}>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {submissions.length === 0 ? (
+              <div style={{background:"rgba(255,255,255,0.05)", borderRadius:20, padding:40, textAlign:"center"}}>
+                <div style={{fontSize:40, marginBottom:12}}>📭</div>
+                <div style={{fontSize:15, fontWeight:700, color:"rgba(255,255,255,0.7)"}}>아직 제출된 성적표가 없어요</div>
+              </div>
+            ) : (
+              submissions.map(sub => (
+                <SubmissionCard key={sub.id} sub={sub} onApprove={approveSubmission} onReject={rejectSubmission} />
+              ))
+            )}
+          </div>
+        )}
+
+        {/* ── 전체 학습자 탭 ── */}
+        {tab === "users" && (
+          <div>
+            {loading ? (
+              <div style={{color:"rgba(255,255,255,0.5)", textAlign:"center", padding:40}}>로딩 중...</div>
+            ) : users.length === 0 ? (
+              <div style={{color:"rgba(255,255,255,0.5)", textAlign:"center", padding:40}}>학습자가 없어요</div>
+            ) : (
+              users.map(u => (
+                <div key={u.id} style={{background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:16, padding:16, marginBottom:10}}>
+                  <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                    <div>
+                      <div style={{fontSize:14, fontWeight:800, color:"white"}}>{u.name || "이름 없음"}</div>
+                      <div style={{fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:2}}>{u.email}</div>
+                    </div>
+                    <div style={{textAlign:"right"}}>
+                      {u.topikApproved && <div style={{fontSize:11, background:"#00C89620", color:"#00C896", borderRadius:10, padding:"3px 10px", fontWeight:700}}>TOPIK 인증 ✅</div>}
+                      <div style={{fontSize:11, color:"rgba(255,255,255,0.3)", marginTop:4}}>
+                        말하기 {u.stats?.speak||0} · 쓰기 {u.stats?.write||0}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// 개별 제출 카드 (AI 판독 결과 + 관리자 승인/반려)
+function SubmissionCard({ sub, onApprove, onReject }) {
+  const [expanded, setExpanded] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [acting, setActing] = useState(false);
+
+  const statusColor = { ai_reviewed:"#F5A623", approved:"#00C896", rejected:"#E53935", pending:"#aaa" };
+  const statusLabel = { ai_reviewed:"AI 판독 완료 — 승인 대기", approved:"승인 완료", rejected:"반려됨", pending:"분석 중" };
+  const col = statusColor[sub.status] || "#aaa";
+
+  async function handleApprove() {
+    setActing(true);
+    await onApprove(sub.id, sub.uid);
+    setActing(false);
+  }
+  async function handleReject() {
+    setActing(true);
+    await onReject(sub.id, rejectReason);
+    setActing(false);
+  }
+
+  return (
+    <div style={{background:"rgba(255,255,255,0.05)", border:`1px solid ${col}40`, borderRadius:20, marginBottom:14, overflow:"hidden"}}>
+      {/* 헤더 행 */}
+      <div onClick={()=>setExpanded(p=>!p)} style={{padding:"16px 18px", cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+        <div>
+          <div style={{fontSize:14, fontWeight:800, color:"white"}}>{sub.learnerName || "이름 없음"}</div>
+          <div style={{fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:2}}>{sub.learnerEmail}</div>
+        </div>
+        <div style={{textAlign:"right"}}>
+          <div style={{fontSize:11, background:`${col}20`, color:col, borderRadius:10, padding:"3px 10px", fontWeight:700}}>
+            {statusLabel[sub.status] || sub.status}
+          </div>
+          <div style={{fontSize:10, color:"rgba(255,255,255,0.3)", marginTop:4}}>
+            {sub.submittedAt ? new Date(sub.submittedAt.seconds*1000).toLocaleDateString("ko-KR") : ""}
+          </div>
+        </div>
+      </div>
+
+      {/* 상세 (펼침) */}
+      {expanded && (
+        <div style={{padding:"0 18px 18px", borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+          {/* AI 판독 결과 */}
+          <div style={{background:"rgba(0,0,0,0.3)", borderRadius:14, padding:16, marginTop:14, marginBottom:14}}>
+            <div style={{fontSize:12, color:"#F5A623", fontWeight:700, marginBottom:8}}>🤖 Claude AI 판독 결과</div>
+            <div style={{fontSize:13, color:"rgba(255,255,255,0.8)", lineHeight:1.7, whiteSpace:"pre-wrap"}}>
+              {sub.aiResult || "판독 결과 없음"}
+            </div>
+            {sub.aiScore && (
+              <div style={{marginTop:10, display:"flex", gap:8}}>
+                <span style={{background:"#00C89620", color:"#00C896", borderRadius:10, padding:"4px 12px", fontSize:12, fontWeight:700}}>
+                  판독 점수: {sub.aiScore}점
+                </span>
+                <span style={{background:sub.aiPassed?"#00C89620":"#E5393520", color:sub.aiPassed?"#00C896":"#E53935", borderRadius:10, padding:"4px 12px", fontSize:12, fontWeight:700}}>
+                  {sub.aiPassed ? "✅ 합격 판정" : "❌ 미합격 판정"}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* 이미지 링크 */}
+          {sub.imageUrl && (
+            <a href={sub.imageUrl} target="_blank" rel="noopener noreferrer"
+              style={{display:"inline-flex", alignItems:"center", gap:6, background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:10, padding:"8px 14px", color:"rgba(255,255,255,0.7)", fontSize:12, textDecoration:"none", marginBottom:14}}>
+              🖼️ 원본 이미지 열기
+            </a>
+          )}
+
+          {/* 승인/반려 버튼 (대기 상태일 때만) */}
+          {sub.status === "ai_reviewed" && (
+            <div>
+              <button onClick={handleApprove} disabled={acting}
+                style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A87A)", color:"white", border:"none", borderRadius:12, padding:"13px 0", fontSize:14, fontWeight:900, cursor:"pointer", marginBottom:10}}>
+                {acting ? "처리 중..." : "✅ 최종 승인 — 배지 & 권한 부여"}
+              </button>
+              <input value={rejectReason} onChange={e=>setRejectReason(e.target.value)}
+                placeholder="반려 사유 (선택)"
+                style={{width:"100%", padding:"10px 14px", borderRadius:10, border:"1px solid rgba(255,255,255,0.15)", background:"rgba(255,255,255,0.05)", color:"white", fontSize:13, marginBottom:8, boxSizing:"border-box"}}
+              />
+              <button onClick={handleReject} disabled={acting}
+                style={{width:"100%", background:"rgba(229,57,53,0.15)", border:"1px solid #E5393540", color:"#E53935", borderRadius:12, padding:"11px 0", fontSize:13, fontWeight:700, cursor:"pointer"}}>
+                ❌ 반려
+              </button>
+            </div>
+          )}
+
+          {sub.status === "approved" && (
+            <div style={{background:"#00C89615", border:"1px solid #00C89640", borderRadius:12, padding:"12px 16px", fontSize:13, color:"#00C896", fontWeight:600}}>
+              ✅ 승인 완료 — 학습자에게 배지 및 원어민 대화권이 부여됐어요.
+            </div>
+          )}
+          {sub.status === "rejected" && (
+            <div style={{background:"#E5393515", border:"1px solid #E5393540", borderRadius:12, padding:"12px 16px", fontSize:13, color:"#E53935"}}>
+              ❌ 반려됨 — 사유: {sub.rejectedReason || "없음"}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
 // ✅ V148: 교수자 전용 관리 화면 (InstructorDashboard)
 // ════════════════════════════════════════════════════════
-function InstructorDashboard({ user, onLogout }) {
+function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin }) {
   const [teacherData, setTeacherData] = useState(null);
   const [classCode, setClassCode] = useState(null);
   const [students, setStudents] = useState([]);
@@ -230,9 +489,16 @@ function InstructorDashboard({ user, onLogout }) {
             <div style={{fontSize:20, fontWeight:900}}>{teacherName} 선생님</div>
             <div style={{fontSize:12, opacity:0.75, marginTop:2}}>{user.email}</div>
           </div>
-          <button onClick={onLogout} style={{background:"rgba(255,255,255,0.15)", border:"none", color:"white", borderRadius:20, padding:"8px 16px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
-            로그아웃
-          </button>
+          <div style={{display:"flex", flexDirection:"column", gap:6, alignItems:"flex-end"}}>
+            {isAdmin && (
+              <button onClick={onEnterAdmin} style={{background:"linear-gradient(135deg,#F5A623,#E8940F)", border:"none", color:"white", borderRadius:20, padding:"7px 14px", fontSize:11, fontWeight:800, cursor:"pointer", letterSpacing:0.5}}>
+                🔐 관리자 페이지
+              </button>
+            )}
+            <button onClick={onLogout} style={{background:"rgba(255,255,255,0.15)", border:"none", color:"white", borderRadius:20, padding:"8px 16px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+              로그아웃
+            </button>
+          </div>
         </div>
         {/* 탭 */}
         <div style={{display:"flex", gap:8, marginTop:16}}>
@@ -3006,6 +3272,184 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
   );
 }
 
+// ════════════════════════════════════════════════════════
+// ✅ V150: TOPIK 성적표 업로드 & Claude Vision 판독
+// ════════════════════════════════════════════════════════
+function TopikCertTab({ user }) {
+  const [file,       setFile]    = useState(null);
+  const [preview,    setPreview] = useState(null);
+  const [loading,    setLoading] = useState(false);
+  const [result,     setResult]  = useState(null);
+  const [submitted,  setSubmitted] = useState(false);
+  const [alreadyOk,  setAlreadyOk] = useState(false);
+  const fileRef = useRef(null);
+
+  // 이미 승인된 사용자 확인
+  useEffect(() => {
+    if (!user?.uid) return;
+    getDoc(doc(db, "users", user.uid)).then(d => {
+      if (d.exists() && d.data().topikApproved) setAlreadyOk(true);
+    });
+  }, [user]);
+
+  function handleFile(e) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFile(f);
+    setResult(null);
+    setSubmitted(false);
+    const reader = new FileReader();
+    reader.onload = ev => setPreview(ev.target.result);
+    reader.readAsDataURL(f);
+  }
+
+  async function analyzeAndSubmit() {
+    if (!file || !preview) return;
+    setLoading(true);
+    setResult(null);
+
+    try {
+      // base64 추출
+      const base64 = preview.split(",")[1];
+      const mediaType = file.type || "image/jpeg";
+
+      // Claude Vision API 호출
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: { type: "base64", media_type: mediaType, data: base64 }
+              },
+              {
+                type: "text",
+                text: `이 이미지는 한국어능력시험(TOPIK) 성적표입니다.
+다음 항목을 분석하고 JSON 형식으로만 답해주세요 (설명 없이 JSON만):
+{
+  "isTopik": true/false,
+  "examLevel": "TOPIK I 또는 TOPIK II 또는 불명",
+  "grade": "1급/2급/3급/4급/5급/6급 또는 불합격 또는 판독불가",
+  "totalScore": 숫자 또는 null,
+  "passed": true/false,
+  "confidence": "높음/중간/낮음",
+  "reason": "판독 근거 한 줄 요약"
+}`
+              }
+            ]
+          }]
+        })
+      });
+
+      const data = await res.json();
+      const raw = data.content?.[0]?.text || "{}";
+      let parsed;
+      try {
+        parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
+      } catch {
+        parsed = { isTopik: false, passed: false, confidence: "낮음", reason: "판독 실패" };
+      }
+      setResult(parsed);
+
+      // Firestore에 제출 저장
+      const subRef = doc(collection(db, "topik_submissions"));
+      await setDoc(subRef, {
+        uid: user.uid,
+        learnerName: user.displayName || user.email,
+        learnerEmail: user.email,
+        imageUrl: null, // Firebase Storage 미사용 — 관리자는 AI 결과로 판단
+        aiResult: `등급: ${parsed.grade} / 점수: ${parsed.totalScore ?? "판독불가"} / 합격여부: ${parsed.passed ? "합격" : "불합격"} / 신뢰도: ${parsed.confidence}
+근거: ${parsed.reason}`,
+        aiScore: parsed.totalScore,
+        aiPassed: parsed.passed,
+        aiGrade: parsed.grade,
+        aiConfidence: parsed.confidence,
+        status: "ai_reviewed",
+        submittedAt: serverTimestamp(),
+      });
+      setSubmitted(true);
+    } catch (e) {
+      setResult({ isTopik: false, passed: false, confidence: "낮음", reason: "오류 발생: " + e.message });
+    }
+    setLoading(false);
+  }
+
+  if (alreadyOk) return (
+    <div style={{textAlign:"center", padding:"40px 20px"}}>
+      <div style={{fontSize:60, marginBottom:16}}>🏆</div>
+      <div style={{fontSize:18, fontWeight:900, color:"#00C896", marginBottom:8}}>TOPIK 합격 인증 완료!</div>
+      <div style={{fontSize:14, color:"#888"}}>배지와 원어민 대화권이 부여됐어요.</div>
+    </div>
+  );
+
+  return (
+    <div style={{padding:"0 4px"}}>
+      <div style={{background:"white", borderRadius:20, padding:24, boxShadow:"0 4px 16px rgba(0,0,0,0.08)", marginBottom:14}}>
+        <div style={{fontSize:15, fontWeight:900, color:"#1A3A5C", marginBottom:4}}>🎓 TOPIK 합격 인증</div>
+        <div style={{fontSize:13, color:"#888", lineHeight:1.6, marginBottom:20}}>
+          TOPIK 성적표 사진을 업로드하면 AI가 즉시 분석해요.<br/>
+          분석 결과는 관리자가 최종 확인 후 승인됩니다.
+        </div>
+
+        {/* 이미지 업로드 */}
+        <div onClick={()=>fileRef.current?.click()}
+          style={{border:"2px dashed #2E75B655", borderRadius:16, padding:"28px 20px", textAlign:"center", cursor:"pointer", background:"#F5F8FF", marginBottom:16}}>
+          {preview ? (
+            <img src={preview} alt="성적표" style={{maxWidth:"100%", maxHeight:200, borderRadius:8, objectFit:"contain"}} />
+          ) : (
+            <>
+              <div style={{fontSize:36, marginBottom:8}}>📄</div>
+              <div style={{fontSize:14, fontWeight:700, color:"#2E75B6"}}>성적표 사진 업로드</div>
+              <div style={{fontSize:12, color:"#aaa", marginTop:4}}>JPG · PNG · PDF</div>
+            </>
+          )}
+        </div>
+        <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={handleFile} style={{display:"none"}} />
+
+        {file && !submitted && (
+          <button onClick={analyzeAndSubmit} disabled={loading}
+            style={{width:"100%", background:"linear-gradient(135deg,#2E75B6,#1A3A5C)", color:"white", border:"none", borderRadius:14, padding:"14px 0", fontSize:14, fontWeight:900, cursor:loading?"not-allowed":"pointer"}}>
+            {loading ? "🤖 AI 분석 중..." : "🔍 AI 판독 & 제출하기"}
+          </button>
+        )}
+      </div>
+
+      {/* AI 판독 결과 */}
+      {result && (
+        <div style={{background:"white", borderRadius:20, padding:20, boxShadow:"0 4px 16px rgba(0,0,0,0.08)"}}>
+          <div style={{fontSize:13, fontWeight:800, color:"#1A3A5C", marginBottom:12}}>🤖 AI 판독 결과</div>
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:14}}>
+            {[
+              ["등급", result.grade || "판독불가"],
+              ["점수", result.totalScore ? result.totalScore + "점" : "판독불가"],
+              ["합격 여부", result.passed ? "✅ 합격" : "❌ 불합격"],
+              ["판독 신뢰도", result.confidence || "낮음"],
+            ].map(([k,v]) => (
+              <div key={k} style={{background:"#F5F8FF", borderRadius:12, padding:"10px 14px"}}>
+                <div style={{fontSize:11, color:"#888", marginBottom:3}}>{k}</div>
+                <div style={{fontSize:14, fontWeight:800, color:"#1A3A5C"}}>{v}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{fontSize:12, color:"#888", lineHeight:1.6, marginBottom:submitted?12:0}}>
+            📝 {result.reason}
+          </div>
+          {submitted && (
+            <div style={{background:"#E8F5EE", border:"1px solid #00C896", borderRadius:12, padding:"12px 16px", fontSize:13, color:"#1E6B3C", fontWeight:600}}>
+              ✅ 제출 완료! 관리자 최종 확인 후 승인 안내드릴게요.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function WriteTab({level, uid}) {
   const [mode,        setMode]        = useState(null);
   const [wStep,       setWStep]       = useState(0);
@@ -3938,6 +4382,7 @@ export default function App() {
   const [showPromo, setShowPromo] = useState(false); // ✅ V143: 홍보 모달
   const [showMigration, setShowMigration] = useState(false); // ✅ V148: 기존 가입자 마이그레이션
   const [userRole, setUserRole] = useState(null); // ✅ V148: 로그인 후 Firestore role
+  const [adminMode, setAdminMode] = useState(false);  // ✅ V151: 관리자 모드 토글
   const [joinCode, setJoinCode] = useState(null); // ✅ V148: URL ?join= 파라미터
 
   // ✅ V148: 기존 가입자 마이그레이션 체크 (dataOwnershipAgreed 없으면 팝업)
@@ -4001,10 +4446,15 @@ export default function App() {
     />
   );
 
-  // ✅ V148: 교수자 전용 관리 화면
+  // ✅ V151: 관리자 이메일 → 관리자 모드 토글 시 AdminDashboard
+  if (user.email === ADMIN_EMAIL && adminMode) return (
+    <AdminDashboard user={user} onLogout={handleLogout} onExitAdmin={()=>setAdminMode(false)} />
+  );
+
+  // ✅ V148: 교수자 전용 관리 화면 (관리자 이메일도 교수자로 진입)
   if (userRole === "instructor") return (
     <>
-      <InstructorDashboard user={user} onLogout={handleLogout} />
+      <InstructorDashboard user={user} onLogout={handleLogout} isAdmin={user.email === ADMIN_EMAIL} onEnterAdmin={()=>setAdminMode(true)} />
       {joinCode && (
         <JoinClassModal
           user={user}
@@ -4197,7 +4647,7 @@ export default function App() {
       </div>
       <div style={{maxWidth:600,margin:"0 auto",width:"100%"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)",gap:1,backgroundColor:"#ebebeb",borderRadius:"0 0 16px 16px",overflow:"hidden"}}>
-          {[["speak","🗣️","프리토킹",C.pink,"#FCE8F3"],["write","✍️","논술",C.teal,"#E8FAF8"],["tutor","🎓","하이터치",C.purple,"#F3EEFF"],["game","🎮","게임",C.yellow,"#FFFBE8"]].map(([k,emoji,label,col,bg])=>(
+          {[["speak","🗣️","프리토킹",C.pink,"#FCE8F3"],["write","✍️","논술",C.teal,"#E8FAF8"],["tutor","🎓","하이터치",C.purple,"#F3EEFF"],["game","🎮","게임",C.yellow,"#FFFBE8"],["topik","🏆","TOPIK인증","#2E75B6","#F0F4FF"]].map(([k,emoji,label,col,bg])=>(
             <button key={k} onClick={()=>setTab(k)} style={{padding:"16px 0 12px",border:"none",background:tab===k?bg:"white",cursor:"pointer",transition:"all .2s",WebkitTapHighlightColor:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
               <div style={{width:52,height:52,borderRadius:"50%",background:tab===k?bg:"#f5f5f5",border:tab===k?`2.5px solid ${col}`:"2px solid #e8e8e8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,transition:"all .2s",boxShadow:tab===k?`0 4px 12px ${col}33`:"none"}}>
                 {emoji}
@@ -4220,6 +4670,7 @@ export default function App() {
         )}
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
         {tab==="game"&&<GameTab level={level}/>}
+        {tab==="topik"&&<TopikCertTab user={user}/>}
       </div>
     </div>
   );
