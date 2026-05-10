@@ -160,7 +160,7 @@ function InstructorDashboard({ user, onLogout }) {
   const [teacherData, setTeacherData] = useState(null);
   const [classCode, setClassCode] = useState(null);
   const [students, setStudents] = useState([]);
-  const [tab, setTab] = useState("class"); // "class" | "students"
+  const [tab, setTab] = useState("class"); // "class" | "students" | "quote"
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -236,7 +236,7 @@ function InstructorDashboard({ user, onLogout }) {
         </div>
         {/* 탭 */}
         <div style={{display:"flex", gap:8, marginTop:16}}>
-          {[["class","🏫 클래스 관리"],["students","👥 학습자 목록"]].map(([k,l]) => (
+          {[["class","🏫 클래스 관리"],["students","👥 학습자 목록"],["quote","📄 견적서"]].map(([k,l]) => (
             <button key={k} onClick={()=>setTab(k)} style={{padding:"8px 18px", border:"none", borderRadius:20, background:tab===k?"white":"rgba(255,255,255,0.15)", color:tab===k?"#2E75B6":"white", fontWeight:tab===k?800:600, fontSize:13, cursor:"pointer", transition:"all .2s"}}>
               {l} {k==="students" && students.length > 0 && `(${students.length})`}
             </button>
@@ -340,6 +340,261 @@ function InstructorDashboard({ user, onLogout }) {
             )}
           </div>
         )}
+
+        {/* ── 견적서 탭 ── */}
+        {tab === "quote" && <QuoteTab teacherName={teacherName} />}
+
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
+// ✅ V149: 견적서 생성 컴포넌트
+// ════════════════════════════════════════════════════════
+function QuoteTab({ teacherName }) {
+  const [studentCount, setStudentCount] = useState(30);
+  const [months, setMonths] = useState(6);
+  const [orgName, setOrgName] = useState("");
+  const [generated, setGenerated] = useState(false);
+
+  // 요금제 (학생 수 기준)
+  const PLANS = [
+    { max: 30,  unitPrice: 5000,  label: "소규모 (30명 이하)" },
+    { max: 100, unitPrice: 4000,  label: "중규모 (31~100명)" },
+    { max: 300, unitPrice: 3000,  label: "대규모 (101~300명)" },
+    { max: 9999,unitPrice: 2500,  label: "기관 맞춤 (300명 초과)" },
+  ];
+
+  const plan = PLANS.find(p => studentCount <= p.max) || PLANS[PLANS.length - 1];
+  const monthlyTotal = studentCount * plan.unitPrice;
+  const grandTotal = monthlyTotal * months;
+  const fmt = n => n.toLocaleString("ko-KR");
+
+  function printQuote() {
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+    const validDate = new Date(today); validDate.setDate(validDate.getDate() + 30);
+    const validStr = `${validDate.getFullYear()}년 ${validDate.getMonth()+1}월 ${validDate.getDate()}일`;
+
+    const html = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<title>견적서 — 한글 친구</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Noto Sans KR',sans-serif; color:#1A1A2E; background:#fff; padding:40px; }
+  .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:36px; border-bottom:3px solid #2E75B6; padding-bottom:20px; }
+  .brand { font-size:22px; font-weight:900; color:#2E75B6; }
+  .brand-sub { font-size:12px; color:#888; margin-top:4px; }
+  .doc-title { font-size:28px; font-weight:900; text-align:center; margin-bottom:28px; color:#1A3A5C; }
+  .meta { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:28px; }
+  .meta-box { background:#F0F4FF; border-radius:12px; padding:14px 18px; }
+  .meta-label { font-size:11px; color:#888; margin-bottom:4px; }
+  .meta-value { font-size:14px; font-weight:700; color:#1A3A5C; }
+  table { width:100%; border-collapse:collapse; margin-bottom:24px; }
+  th { background:#2E75B6; color:white; padding:12px 16px; font-size:13px; text-align:left; }
+  td { padding:12px 16px; border-bottom:1px solid #eee; font-size:13px; }
+  tr:nth-child(even) td { background:#F5F8FF; }
+  .total-row td { background:#1A3A5C; color:white; font-weight:900; font-size:15px; }
+  .note { background:#FFF8EC; border-left:4px solid #F5A623; border-radius:0 12px 12px 0; padding:16px 20px; margin-bottom:24px; font-size:13px; line-height:1.7; color:#555; }
+  .footer { text-align:center; font-size:12px; color:#aaa; margin-top:36px; padding-top:16px; border-top:1px solid #eee; }
+  .sign-area { display:flex; justify-content:flex-end; margin-top:28px; }
+  .sign-box { text-align:center; border:1px solid #ddd; border-radius:12px; padding:16px 32px; }
+  .sign-label { font-size:12px; color:#888; margin-bottom:8px; }
+  .sign-name { font-size:15px; font-weight:900; color:#1A3A5C; }
+  @media print { body { padding:20px; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="brand">한글 친구 (Hangeul Chingu)</div>
+    <div class="brand-sub">AI 기반 한국어 학습 플랫폼 · hangeul-chingu.vercel.app</div>
+  </div>
+  <div style="text-align:right; font-size:12px; color:#888;">
+    <div>발행일: ${dateStr}</div>
+    <div>유효기간: ${validStr}까지</div>
+  </div>
+</div>
+
+<div class="doc-title">📄 예산 기획 및 견적서</div>
+
+<div class="meta">
+  <div class="meta-box">
+    <div class="meta-label">수신 기관명</div>
+    <div class="meta-value">${orgName || "(기관명 미입력)"}</div>
+  </div>
+  <div class="meta-box">
+    <div class="meta-label">담당 교수자</div>
+    <div class="meta-value">${teacherName} 선생님</div>
+  </div>
+  <div class="meta-box">
+    <div class="meta-label">학습자 규모</div>
+    <div class="meta-value">${fmt(studentCount)}명</div>
+  </div>
+  <div class="meta-box">
+    <div class="meta-label">운영 기간</div>
+    <div class="meta-value">${months}개월</div>
+  </div>
+</div>
+
+<table>
+  <thead>
+    <tr><th>항목</th><th>단가 (1인/월)</th><th>인원</th><th>기간</th><th>금액</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>디지털 학습 인프라 구축 및 AI 서버 유지 후원금<br/><span style="font-size:11px;color:#aaa;">${plan.label} 요금제 · 한글 친구 AI 학습 플랫폼</span></td>
+      <td>${fmt(plan.unitPrice)}원</td>
+      <td>${fmt(studentCount)}명</td>
+      <td>${months}개월</td>
+      <td style="font-weight:700;">${fmt(grandTotal)}원</td>
+    </tr>
+    <tr class="total-row">
+      <td colspan="4" style="text-align:right;">합계 (VAT 포함)</td>
+      <td>${fmt(grandTotal)}원</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <strong>📌 비용 명목 안내</strong><br/>
+  본 견적서의 비용 항목은 <strong>디지털 학습 인프라 구축 및 AI 서버 유지 후원금</strong>으로,
+  한글 친구 AI 학습 플랫폼의 지속적인 운영·고도화를 위한 재원으로 사용됩니다.
+  공공기관 및 비영리 교육 기관의 예산 편성 기준에 맞게 설계된 항목명입니다.<br/><br/>
+  <strong>📌 서비스 내용</strong><br/>
+  • AI 기반 1:1 맞춤형 한국어 말하기·쓰기 훈련 (마중이 AI)<br/>
+  • TOPIK 1~2급 대응 80시간 압축 커리큘럼<br/>
+  • 교수자 대시보드 · 학습자 진도 관리 · 클래스 운영 시스템<br/>
+  • 다국어 지원 (한국어·베트남어·영어)
+</div>
+
+<div class="sign-area">
+  <div class="sign-box">
+    <div class="sign-label">발행인</div>
+    <div class="sign-name">한글 친구 (Hangeul Chingu)</div>
+    <div style="font-size:11px;color:#aaa;margin-top:4px;">한국어 교원 2급 (문화체육관광부)</div>
+    <div style="margin-top:12px; border-top:1px solid #eee; padding-top:10px; font-size:12px; color:#2E75B6;">hangeul-chingu.vercel.app</div>
+  </div>
+</div>
+
+<div class="footer">
+  본 견적서는 한글 친구(Hangeul Chingu) AI 학습 플랫폼이 자동 생성한 문서입니다.<br/>
+  문의: hangeul-chingu.vercel.app
+</div>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank");
+    win.document.write(html);
+    win.document.close();
+    setTimeout(() => win.print(), 500);
+    setGenerated(true);
+  }
+
+  return (
+    <div>
+      <div style={{background:"white", borderRadius:20, padding:24, boxShadow:"0 4px 16px rgba(0,0,0,0.08)", marginBottom:16}}>
+        <div style={{fontSize:15, fontWeight:900, color:"#1A3A5C", marginBottom:4}}>📄 예산 기획 및 견적서 생성</div>
+        <div style={{fontSize:13, color:"#888", marginBottom:20, lineHeight:1.6}}>기관 제출용 견적서를 자동으로 생성해요.<br/>인쇄하거나 PDF로 저장할 수 있어요.</div>
+
+        {/* 기관명 */}
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:13, fontWeight:700, color:"#1A3A5C", marginBottom:8}}>수신 기관명 (선택)</div>
+          <input
+            value={orgName}
+            onChange={e=>setOrgName(e.target.value)}
+            placeholder="예: ○○다문화가족지원센터"
+            style={{width:"100%", padding:"11px 14px", borderRadius:12, border:"1.5px solid #e0e0e0", fontSize:14, outline:"none", boxSizing:"border-box"}}
+          />
+        </div>
+
+        {/* 학생 수 */}
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:13, fontWeight:700, color:"#1A3A5C", marginBottom:8}}>
+            학습자 수: <span style={{color:"#2E75B6"}}>{studentCount}명</span>
+          </div>
+          <input type="range" min={1} max={300} value={studentCount}
+            onChange={e=>setStudentCount(Number(e.target.value))}
+            style={{width:"100%", accentColor:"#2E75B6"}}
+          />
+          <div style={{display:"flex", justifyContent:"space-between", fontSize:11, color:"#aaa", marginTop:4}}>
+            <span>1명</span><span>150명</span><span>300명</span>
+          </div>
+          {/* 직접 입력 */}
+          <input type="number" min={1} max={9999} value={studentCount}
+            onChange={e=>setStudentCount(Math.max(1,Number(e.target.value)))}
+            style={{marginTop:8, width:90, padding:"7px 10px", borderRadius:10, border:"1.5px solid #e0e0e0", fontSize:13, textAlign:"center"}}
+          />
+          <span style={{fontSize:12, color:"#888", marginLeft:6}}>명 직접 입력</span>
+        </div>
+
+        {/* 운영 기간 */}
+        <div style={{marginBottom:20}}>
+          <div style={{fontSize:13, fontWeight:700, color:"#1A3A5C", marginBottom:8}}>
+            운영 기간: <span style={{color:"#2E75B6"}}>{months}개월</span>
+          </div>
+          <div style={{display:"flex", gap:8, flexWrap:"wrap"}}>
+            {[3,6,9,12].map(m => (
+              <button key={m} onClick={()=>setMonths(m)}
+                style={{padding:"8px 18px", borderRadius:20, border:`2px solid ${months===m?"#2E75B6":"#e0e0e0"}`,
+                  background:months===m?"#2E75B6":"white", color:months===m?"white":"#555",
+                  fontWeight:months===m?800:600, fontSize:13, cursor:"pointer"}}>
+                {m}개월
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 요금 요약 */}
+        <div style={{background:"#F0F4FF", borderRadius:16, padding:18, marginBottom:20}}>
+          <div style={{fontSize:12, color:"#888", marginBottom:8}}>{plan.label} 요금제 적용</div>
+          <div style={{display:"flex", justifyContent:"space-between", marginBottom:6}}>
+            <span style={{fontSize:13, color:"#555"}}>1인당 월 단가</span>
+            <span style={{fontSize:13, fontWeight:700}}>{fmt(plan.unitPrice)}원</span>
+          </div>
+          <div style={{display:"flex", justifyContent:"space-between", marginBottom:6}}>
+            <span style={{fontSize:13, color:"#555"}}>월 합계</span>
+            <span style={{fontSize:13, fontWeight:700}}>{fmt(monthlyTotal)}원</span>
+          </div>
+          <div style={{borderTop:"1px solid #2E75B620", margin:"10px 0"}}/>
+          <div style={{display:"flex", justifyContent:"space-between"}}>
+            <span style={{fontSize:15, fontWeight:900, color:"#1A3A5C"}}>{months}개월 총액</span>
+            <span style={{fontSize:18, fontWeight:900, color:"#2E75B6"}}>{fmt(grandTotal)}원</span>
+          </div>
+        </div>
+
+        <button onClick={printQuote}
+          style={{width:"100%", background:"linear-gradient(135deg,#2E75B6,#1A3A5C)", color:"white",
+            border:"none", borderRadius:16, padding:"16px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+          🖨️ 견적서 출력 / PDF 저장
+        </button>
+
+        {generated && (
+          <div style={{marginTop:12, background:"#E8F5EE", border:"1px solid #00C896", borderRadius:12,
+            padding:"12px 16px", fontSize:13, color:"#1E6B3C", fontWeight:600, textAlign:"center"}}>
+            ✅ 견적서가 생성됐어요! 인쇄 창에서 'PDF로 저장'을 선택하세요.
+          </div>
+        )}
+      </div>
+
+      {/* 요금제 안내 */}
+      <div style={{background:"white", borderRadius:20, padding:20, boxShadow:"0 4px 16px rgba(0,0,0,0.06)"}}>
+        <div style={{fontSize:14, fontWeight:800, color:"#1A3A5C", marginBottom:12}}>💡 요금제 안내</div>
+        {PLANS.slice(0,3).map((p,i) => (
+          <div key={i} style={{display:"flex", justifyContent:"space-between", alignItems:"center",
+            padding:"10px 0", borderBottom: i<2?"1px solid #f0f0f0":"none"}}>
+            <span style={{fontSize:13, color:"#555"}}>{p.label}</span>
+            <span style={{fontSize:13, fontWeight:700, color:"#2E75B6"}}>{fmt(p.unitPrice)}원/인·월</span>
+          </div>
+        ))}
+        <div style={{marginTop:12, fontSize:12, color:"#aaa", lineHeight:1.6}}>
+          ※ 비용 명목: 디지털 학습 인프라 구축 및 AI 서버 유지 후원금<br/>
+          ※ 300명 초과 기관은 별도 협의
+        </div>
       </div>
     </div>
   );
