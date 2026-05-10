@@ -2030,22 +2030,28 @@ ${vocabList}
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SR();
       rec.lang = "ko-KR";
-      rec.interimResults = false;
+      rec.interimResults = true;   // ✅ 중간 결과도 받아서 짧은 단어 인식 개선
+      rec.continuous = true;        // ✅ 짧은 단어도 끊기지 않게
       rec.maxAlternatives = 3;
       pronRecRef.current = rec;
       isListeningRef.current = true;
+      let hasResult = false;        // ✅ 결과 수신 여부 추적
       setPronTestListening(true);
       setPronTestSTT("");
       setPronTestFeedback(null);
       rec.onresult = async (e) => {
+        // 최종 결과(isFinal)만 처리
+        const finalResult = Array.from(e.results).find(r => r.isFinal);
+        if (!finalResult) return; // 중간 결과는 무시
+        hasResult = true;
+        rec.stop();
         isListeningRef.current = false;
         pronRecRef.current = null;
-        // 여러 후보 중 정답과 가장 유사한 것 선택
         const target = pronTestItems[pronTestIdx]?.word || "";
-        let bestText = e.results[0][0].transcript;
+        let bestText = finalResult[0].transcript;
         let bestSim = calcSimilarity(bestText, target);
-        for (let i=0;i<e.results[0].length;i++) {
-          const t = e.results[0][i].transcript;
+        for (let i=0;i<finalResult.length;i++) {
+          const t = finalResult[i].transcript;
           const s = calcSimilarity(t, target);
           if (s > bestSim) { bestSim = s; bestText = t; }
         }
@@ -2053,17 +2059,23 @@ ${vocabList}
         setPronTestListening(false);
         await judgePronunciation(bestText, target, bestSim);
       };
-      rec.onerror = () => {
+      rec.onerror = (e) => {
+        hasResult = true; // 에러도 결과로 처리해서 onend 중복 방지
         isListeningRef.current = false;
         pronRecRef.current = null;
         setPronTestListening(false);
+        if (e.error !== "aborted") {
+          setPronTestFeedback({ok:false, similarity:0, msg:"🎤 마이크를 확인하고 다시 시도해주세요"});
+        }
       };
       rec.onend = () => {
-        // stop() 호출 시 onresult 없이 onend만 발생하는 경우 처리
-        if (isListeningRef.current) {
-          isListeningRef.current = false;
-          pronRecRef.current = null;
-          setPronTestListening(false);
+        isListeningRef.current = false;
+        pronRecRef.current = null;
+        setPronTestListening(false);
+        // 결과 없이 종료된 경우 — 다시 시도 안내
+        if (!hasResult) {
+          setPronTestFeedback({ok:false, similarity:0, msg: vi?"Không nghe thấy. Thử lại nhé! 🎤":en?"Couldn't hear you. Try again! 🎤":"소리를 인식하지 못했어요. 크게 다시 말해봐요! 🎤"});
+          setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(인식 실패)", similarity:0, ok:false}]);
         }
       };
       rec.start();
