@@ -859,7 +859,31 @@ function QuoteTab({ teacherName }) {
         ))}
         <div style={{marginTop:12, fontSize:12, color:"#aaa", lineHeight:1.6}}>
           ※ 비용 명목: 디지털 학습 인프라 구축 및 AI 서버 유지 후원금<br/>
-          ※ 300명 초과 기관은 별도 협의
+          ※ 300명 초과 기관은 별도 협의&nbsp;
+          <button onClick={()=>{
+            const subject = encodeURIComponent("[한글 친구] 300명 초과 기관 도입 협의 요청");
+            const body = encodeURIComponent(
+              "안녕하세요, 한글 친구 담당자님.\n\n" +
+              "저는 " + teacherName + " 입니다.\n" +
+              "300명 초과 규모의 기관 도입을 협의하고 싶어 연락드립니다.\n\n" +
+              "━━━━━━━━━━━━━━━━━━━━\n" +
+              "▪ 기관명: (기관명을 입력해주세요)\n" +
+              "▪ 예상 학습자 수: (인원을 입력해주세요)\n" +
+              "▪ 운영 예정 기간: (기간을 입력해주세요)\n" +
+              "▪ 문의 내용: (자유롭게 작성해주세요)\n" +
+              "━━━━━━━━━━━━━━━━━━━━\n\n" +
+              "감사합니다."
+            );
+            window.location.href = `mailto:roh053068@gmail.com?subject=${subject}&body=${body}`;
+          }} style={{
+            display:"inline-block",
+            background:"linear-gradient(135deg,#2E75B6,#1A3A5C)",
+            color:"white", border:"none", borderRadius:20,
+            padding:"5px 14px", fontSize:12, fontWeight:800,
+            cursor:"pointer", verticalAlign:"middle", marginLeft:4
+          }}>
+            📩 협의 요청
+          </button>
         </div>
       </div>
     </div>
