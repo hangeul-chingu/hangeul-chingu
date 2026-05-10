@@ -1812,8 +1812,8 @@ ${vocabList}
           {char:"ㅠ", word:"유리",   meaning:vi?"thủy tinh":en?"glass":"유리"},
           {char:"ㅡ", word:"음식",   meaning:vi?"thức ăn":en?"food":"음식"},
           {char:"ㅣ", word:"이름",   meaning:vi?"tên":en?"name":"이름"},
-          {char:"ㅐ", word:"개",     meaning:vi?"con chó":en?"dog":"개"},
-          {char:"ㅔ", word:"세계",   meaning:vi?"thế giới":en?"world":"세계"},
+          {char:"ㅐ", word:"지우개", meaning:vi?"cục tẩy":en?"eraser":"지우개"},
+          {char:"ㅔ", word:"가게",   meaning:vi?"cửa hàng":en?"store":"가게"},
           {char:"ㅒ", word:"얘기",   meaning:vi?"câu chuyện":en?"story":"얘기"},
           {char:"ㅖ", word:"예쁘다", meaning:vi?"đẹp":en?"pretty":"예쁘다"},
         ],
@@ -1918,7 +1918,7 @@ ${vocabList}
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = "ko-KR";
-      utter.rate = 0.8;
+      utter.rate = 0.65;
       utter.pitch = 1;
       window.speechSynthesis.speak(utter);
     }
@@ -2174,7 +2174,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {/* 예시 듣기 버튼 */}
             <button onClick={()=>{
               const u = new SpeechSynthesisUtterance(currentItem.word);
-              u.lang="ko-KR"; u.rate=0.7;
+              u.lang="ko-KR"; u.rate=0.55;
               window.speechSynthesis.cancel();
               window.speechSynthesis.speak(u);
             }} style={{marginTop:12, background:"#F3EEFF", border:"none", borderRadius:20, padding:"6px 16px", fontSize:12, color:"#9C6FDE", cursor:"pointer", fontWeight:700}}>
