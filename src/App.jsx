@@ -449,14 +449,18 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin }) {
 
   // 클래스 코드 생성
   async function generateCode() {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    await setDoc(doc(db, "classes", user.uid), {
-      teacherId: user.uid,
-      teacherName: teacherData?.name || user.displayName || "선생님",
-      code,
-      createdAt: serverTimestamp(),
-    });
-    setClassCode(code);
+    try {
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      await setDoc(doc(db, "classes", user.uid), {
+        teacherId: user.uid,
+        teacherName: teacherData?.name || user.displayName || "선생님",
+        code,
+        createdAt: serverTimestamp(),
+      });
+      setClassCode(code);
+    } catch(e) {
+      alert("코드 생성 중 오류가 발생했어요: " + e.message);
+    }
   }
 
   // 클래스 링크 복사
