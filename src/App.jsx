@@ -2700,8 +2700,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{fontSize:14,fontWeight:700,color:"#333",marginBottom:6}}>{q.sentence}</div>
               <div style={{fontSize:11,color:"#FF9800",marginBottom:6}}>💡 {q.hint}</div>
               <input
+                type="text"
                 value={testAnswers[q.id]||""}
                 onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))}
+                onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
                 placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
                 style={{width:"100%",border:"2px solid #FFE0B2",borderRadius:8,padding:"7px 10px",fontSize:14,outline:"none",boxSizing:"border-box"}}
               />
@@ -2760,7 +2762,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             );
           })}
 
-          <button onClick={gradeJosaTest}
+          <button type="button" onClick={gradeJosaTest}
             style={{width:"100%",background:"linear-gradient(135deg,#FF6B35,#E64A00)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",marginTop:12,boxShadow:"0 4px 16px #FF6B3544"}}>
             {vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}
           </button>
