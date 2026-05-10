@@ -1276,6 +1276,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   const [pronTestLoading, setPronTestLoading] = useState(false);
   const [pronTestFromStep, setPronTestFromStep] = useState(0); // 어느 발음 단계에서 왔는지
   const pronRecRef = useRef(null); // ✅ V153: STT 인스턴스 ref (재클릭 종료용)
+  const isListeningRef = useRef(false); // ✅ V153: 클로저 문제 해결용 — state 대신 ref로 추적
 
   // ✅ V152: 서술어 단원 학습 + 누적 테스트 state
   const [unitCardIdx, setUnitCardIdx] = useState(0);   // 학습 카드 인덱스
@@ -1809,7 +1810,7 @@ ${vocabList}
           {char:"ㅛ", word:"요리",   meaning:vi?"nấu ăn":en?"cooking":"요리"},
           {char:"ㅜ", word:"우리",   meaning:vi?"chúng ta":en?"we/our":"우리"},
           {char:"ㅠ", word:"유리",   meaning:vi?"thủy tinh":en?"glass":"유리"},
-          {char:"ㅡ", word:"으쌰",   meaning:vi?"cố lên!":en?"let's go!":"으쌰!"},
+          {char:"ㅡ", word:"음식",   meaning:vi?"thức ăn":en?"food":"음식"},
           {char:"ㅣ", word:"이름",   meaning:vi?"tên":en?"name":"이름"},
           {char:"ㅐ", word:"개",     meaning:vi?"con chó":en?"dog":"개"},
           {char:"ㅔ", word:"세계",   meaning:vi?"thế giới":en?"world":"세계"},
@@ -2018,7 +2019,7 @@ ${vocabList}
     // STT 시작
     function startSTT() {
       // ✅ V153: 듣는 중일 때 버튼 재클릭 → 즉시 종료 후 평가
-      if (pronTestListening && pronRecRef.current) {
+      if (isListeningRef.current && pronRecRef.current) {
         pronRecRef.current.stop();
         return;
       }
@@ -2031,11 +2032,14 @@ ${vocabList}
       rec.lang = "ko-KR";
       rec.interimResults = false;
       rec.maxAlternatives = 3;
-      pronRecRef.current = rec; // ref에 저장
+      pronRecRef.current = rec;
+      isListeningRef.current = true;
       setPronTestListening(true);
       setPronTestSTT("");
       setPronTestFeedback(null);
       rec.onresult = async (e) => {
+        isListeningRef.current = false;
+        pronRecRef.current = null;
         // 여러 후보 중 정답과 가장 유사한 것 선택
         const target = pronTestItems[pronTestIdx]?.word || "";
         let bestText = e.results[0][0].transcript;
@@ -2047,10 +2051,21 @@ ${vocabList}
         }
         setPronTestSTT(bestText);
         setPronTestListening(false);
-        pronRecRef.current = null;
         await judgePronunciation(bestText, target, bestSim);
       };
-      rec.onerror = () => { setPronTestListening(false); pronRecRef.current = null; };
+      rec.onerror = () => {
+        isListeningRef.current = false;
+        pronRecRef.current = null;
+        setPronTestListening(false);
+      };
+      rec.onend = () => {
+        // stop() 호출 시 onresult 없이 onend만 발생하는 경우 처리
+        if (isListeningRef.current) {
+          isListeningRef.current = false;
+          pronRecRef.current = null;
+          setPronTestListening(false);
+        }
+      };
       rec.start();
     }
 
