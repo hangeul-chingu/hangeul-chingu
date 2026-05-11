@@ -2581,28 +2581,29 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       "언제 와요?",
     ];
 
-    // 채점
+    // 채점 — setJosaTestAnswers 함수형 업데이트로 최신 answers 확보 후 채점
     function gradeJosaTest() {
       if (josaTestQuestions.length === 0) return;
-      // 빈칸 채우기 점수
-      let correct = 0;
-      const writingFb = josaTestQuestions.map(q => {
-        const ua = (josaTestAnswers[q.id]||"").trim();
-        const ok = ua === q.answer || (q.answer==="뭐"&&ua==="무엇") || (q.answer==="무엇"&&ua==="뭐");
-        if (ok) correct++;
-        return {...q, userAns:ua, ok};
+      setJosaTestAnswers(latestAnswers => {
+        let correct = 0;
+        const writingFb = josaTestQuestions.map(q => {
+          const ua = (latestAnswers[q.id]||"").trim();
+          const ok = ua === q.answer || (q.answer==="뭐"&&ua==="무엇") || (q.answer==="무엇"&&ua==="뭐");
+          if (ok) correct++;
+          return {...q, userAns:ua, ok};
+        });
+        let sttCorrect = 0;
+        const sttFb = STT_SENTENCES.map((s,i) => {
+          const d = josaSTTMap[i];
+          if (d?.ok) sttCorrect++;
+          return {sentence:s, ...d};
+        });
+        const writingScore = Math.round((correct/josaTestQuestions.length)*100);
+        const sttScore = Math.round((sttCorrect/STT_SENTENCES.length)*100);
+        const total = Math.round((writingScore + sttScore) / 2);
+        setJosaTestResult({passed: total >= 80, score: total, writingScore, sttScore, writingFb, sttFb});
+        return latestAnswers; // 상태 변경 없이 최신값만 읽음
       });
-      // STT 점수
-      let sttCorrect = 0;
-      const sttFb = STT_SENTENCES.map((s,i) => {
-        const d = josaSTTMap[i];
-        if (d?.ok) sttCorrect++;
-        return {sentence:s, ...d};
-      });
-      const writingScore = Math.round((correct/josaTestQuestions.length)*100);
-      const sttScore = Math.round((sttCorrect/STT_SENTENCES.length)*100);
-      const total = Math.round((writingScore + sttScore) / 2);
-      setJosaTestResult({passed: total >= 80, score: total, writingScore, sttScore, writingFb, sttFb});
     }
 
     // 로딩 중
