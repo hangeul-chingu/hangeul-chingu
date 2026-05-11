@@ -2802,37 +2802,37 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         front: "저는 학생___.",
         blank: "이에요",
         full: "저는 학생이에요.",
-        hint: vi?"Tôi là học sinh.":en?"I am a student.":"나 = 학생 → A는 B이에요",
+        hint: vi?"'학생' kết thúc bằng phụ âm ㅇ":en?"'학생' ends with consonant ㅇ":"'학생' 끝 받침 있음 → 자음 끝",
       },
       {
         front: "이분은 선생님___.",
         blank: "이세요",
         full: "이분은 선생님이세요.",
-        hint: vi?"Người này là giáo viên.":en?"This person is a teacher.":"높임말 → 이세요",
+        hint: vi?"'이분' = người đáng kính, dùng kính ngữ":en?"'이분' = respected person, use honorific":"'이분' = 높여 부르는 말",
       },
       {
         front: "여기는 학교___.",
         blank: "예요",
         full: "여기는 학교예요.",
-        hint: vi?"Đây là trường học.":en?"This is a school.":"모음 끝 → 예요",
+        hint: vi?"'학교' kết thúc bằng nguyên âm ㅛ":en?"'학교' ends with vowel ㅛ":"'학교' 끝이 모음 ㅛ",
       },
       {
         front: "오늘은 월요일___.",
         blank: "이에요",
         full: "오늘은 월요일이에요.",
-        hint: vi?"Hôm nay là thứ Hai.":en?"Today is Monday.":"자음 끝 → 이에요",
+        hint: vi?"'월요일' kết thúc bằng phụ âm ㄹ":en?"'월요일' ends with consonant ㄹ":"'월요일' 끝 받침 ㄹ 있음",
       },
       {
         front: "저는 베트남 사람___.",
         blank: "이에요",
         full: "저는 베트남 사람이에요.",
-        hint: vi?"Tôi là người Việt Nam.":en?"I am Vietnamese.":"국적 표현",
+        hint: vi?"'사람' kết thúc bằng phụ âm ㅁ":en?"'사람' ends with consonant ㅁ":"'사람' 끝 받침 ㅁ 있음",
       },
       {
         front: "이것은 가방___.",
         blank: "이에요",
         full: "이것은 가방이에요.",
-        hint: vi?"Đây là cái túi.":en?"This is a bag.":"사물 → 이에요/예요",
+        hint: vi?"'가방' kết thúc bằng phụ âm ㅇ":en?"'가방' ends with consonant ㅇ":"'가방' 끝 받침 ㅇ 있음",
       },
     ];
     const card = UNIT1_CARDS[unitCardIdx];
