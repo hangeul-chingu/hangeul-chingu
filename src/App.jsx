@@ -2989,6 +2989,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V152: 누적 테스트 화면 — 서술어 1단원 (발음+조사+1단원 전체)
   // ════════════════════════════════════════════════════════
   if (step === "test1") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
     // 채점 함수
     function gradeTest() {
       if (testQuestions.length === 0) return;
@@ -3031,10 +3033,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     // 문제가 없으면 (API 실패 후 fallback도 없는 경우) 방어
     if (testQuestions.length === 0) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8F8F2,#D0F0E4)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8F8F2,#D0F0E4)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", padding:24}}>
         <div style={{fontSize:48, marginBottom:16}}>⚠️</div>
-        <div style={{fontSize:16, fontWeight:700, color:"#E64A00", marginBottom:16}}>문제를 불러오지 못했어요</div>
-        <button onClick={()=>setStep("unit1")} style={{background:"#00C896", border:"none", borderRadius:50, padding:"12px 28px", color:"white", fontSize:14, fontWeight:700, cursor:"pointer"}}>← 단원으로 돌아가기</button>
+        <div style={{fontSize:16, fontWeight:700, color:"#E64A00", marginBottom:8}}>문제를 불러오지 못했어요</div>
+        <div style={{fontSize:12, color:"#aaa", marginBottom:4}}>loading: {String(testLoading)}</div>
+        <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>questions: {testQuestions.length}개</div>
+        <button onClick={()=>{ setTestQuestions([]); setTestLoading(false); setTestResult(null); setTestAnswers({}); setStep("unit1"); }} style={{background:"#00C896", border:"none", borderRadius:50, padding:"12px 28px", color:"white", fontSize:14, fontWeight:700, cursor:"pointer", marginBottom:8}}>← 단원으로 돌아가기</button>
+        <button onClick={()=>{ setTestQuestions([]); setTestLoading(false); }} style={{background:"#FF8C42", border:"none", borderRadius:50, padding:"12px 28px", color:"white", fontSize:14, fontWeight:700, cursor:"pointer"}}>🔄 다시 시도</button>
       </div>
     );
 
