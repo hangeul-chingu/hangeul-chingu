@@ -2781,48 +2781,49 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   // ════════════════════════════════════════════════════════
-  // ✅ V152: 서술어 1단원 학습 화면 — 이에요/이다 (A=B)
+  // ✅ V156: 서술어 1단원 학습 화면 — 이에요/이다 (A=B)
   // ════════════════════════════════════════════════════════
-  const UNIT1_CARDS = [
-    {
-      front: "저는 학생___.",
-      blank: "이에요",
-      full: "저는 학생이에요.",
-      hint: vi?"Tôi là học sinh.":en?"I am a student.":"나 = 학생 → A는 B이에요",
-    },
-    {
-      front: "이분은 선생님___.",
-      blank: "이세요",
-      full: "이분은 선생님이세요.",
-      hint: vi?"Người này là giáo viên.":en?"This person is a teacher.":"높임말 → 이세요",
-    },
-    {
-      front: "여기는 학교___.",
-      blank: "예요",
-      full: "여기는 학교예요.",
-      hint: vi?"Đây là trường học.":en?"This is a school.":"모음 끝 → 예요",
-    },
-    {
-      front: "오늘은 월요일___.",
-      blank: "이에요",
-      full: "오늘은 월요일이에요.",
-      hint: vi?"Hôm nay là thứ Hai.":en?"Today is Monday.":"자음 끝 → 이에요",
-    },
-    {
-      front: "저는 베트남 사람___.",
-      blank: "이에요",
-      full: "저는 베트남 사람이에요.",
-      hint: vi?"Tôi là người Việt Nam.":en?"I am Vietnamese.":"국적 표현",
-    },
-    {
-      front: "이것은 가방___.",
-      blank: "이에요",
-      full: "이것은 가방이에요.",
-      hint: vi?"Đây là cái túi.":en?"This is a bag.":"사물 → 이에요/예요",
-    },
-  ];
-
   if (step === "unit1") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const UNIT1_CARDS = [
+      {
+        front: "저는 학생___.",
+        blank: "이에요",
+        full: "저는 학생이에요.",
+        hint: vi?"Tôi là học sinh.":en?"I am a student.":"나 = 학생 → A는 B이에요",
+      },
+      {
+        front: "이분은 선생님___.",
+        blank: "이세요",
+        full: "이분은 선생님이세요.",
+        hint: vi?"Người này là giáo viên.":en?"This person is a teacher.":"높임말 → 이세요",
+      },
+      {
+        front: "여기는 학교___.",
+        blank: "예요",
+        full: "여기는 학교예요.",
+        hint: vi?"Đây là trường học.":en?"This is a school.":"모음 끝 → 예요",
+      },
+      {
+        front: "오늘은 월요일___.",
+        blank: "이에요",
+        full: "오늘은 월요일이에요.",
+        hint: vi?"Hôm nay là thứ Hai.":en?"Today is Monday.":"자음 끝 → 이에요",
+      },
+      {
+        front: "저는 베트남 사람___.",
+        blank: "이에요",
+        full: "저는 베트남 사람이에요.",
+        hint: vi?"Tôi là người Việt Nam.":en?"I am Vietnamese.":"국적 표현",
+      },
+      {
+        front: "이것은 가방___.",
+        blank: "이에요",
+        full: "이것은 가방이에요.",
+        hint: vi?"Đây là cái túi.":en?"This is a bag.":"사물 → 이에요/예요",
+      },
+    ];
     const card = UNIT1_CARDS[unitCardIdx];
     const total = UNIT1_CARDS.length;
     return (
