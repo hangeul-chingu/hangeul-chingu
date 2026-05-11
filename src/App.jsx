@@ -1302,48 +1302,24 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
     catch { return []; }
   });
 
-  // ✅ V156: test1 진입 시 API 호출 — 모든 상태 선언 후 올바른 위치
+  // ✅ V164: test1 — API 제거, UNIT1_CARDS 기반 고정 10문제
   useEffect(() => {
     if (step !== "test1" || testQuestions.length > 0) return;
-    setTestLoading(true);
-    const langCode = lang?.code;
-    const FALLBACK = [
-      {id:1, sentence:"저는 의사___.", answers:["예요"], hint:"모음 끝 → 예요"},
-      {id:2, sentence:"이분은 선생님___.", answers:["이세요"], hint:"높임말"},
-      {id:3, sentence:"여기는 병원___.", answers:["이에요"], hint:"자음 끝 → 이에요"},
-      {id:4, sentence:"선생님___ 교실에 있어요.", answers:["은","이"], hint:"주제·주격 조사"},
-      {id:5, sentence:"___ 선생님이세요?", answers:["누구"], hint:"의문대명사: 사람"},
-      {id:6, sentence:"___ 먹어요?", answers:["무엇","뭐"], hint:"의문대명사: 사물"},
+    const FIXED_QUESTIONS = [
+      {id:1,  sentence:"저는 학생___.",           answers:["이에요"],      hint:"학생 → 받침 있어요 → 이에요"},
+      {id:2,  sentence:"여기는 학교___.",          answers:["예요"],        hint:"학교 → 받침 없어요 → 예요"},
+      {id:3,  sentence:"이분은 선생님___.",         answers:["이세요"],      hint:"이분 = 높여 부르는 말 → 이세요"},
+      {id:4,  sentence:"오늘은 월요일___.",         answers:["이에요"],      hint:"월요일 → 받침 있어요 → 이에요"},
+      {id:5,  sentence:"저는 베트남 사람___.",      answers:["이에요"],      hint:"사람 → 받침 있어요 → 이에요"},
+      {id:6,  sentence:"이것은 가방___.",           answers:["이에요"],      hint:"가방 → 받침 있어요 → 이에요"},
+      {id:7,  sentence:"선생님___ 교실에 있어요.",  answers:["은","이"],     hint:"선생님 → 받침 있어요 → 은/이"},
+      {id:8,  sentence:"친구___ 공원에 가요.",      answers:["와"],          hint:"친구 → 받침 없어요 → 와"},
+      {id:9,  sentence:"___ 선생님이에요?",         answers:["누구"],        hint:"사람을 물어볼 때 → 누구"},
+      {id:10, sentence:"___ 먹어요?",               answers:["뭐","무엇을"], hint:"사물을 물어볼 때 → 뭐"},
     ];
-    const prompt = '한국어 초급 테스트 문제 10개를 JSON으로만 출력하세요. 배운 내용: 이에요/예요/이세요, 조사(은/는/이/가/을/를/에/에서/와/과), 의문대명사(누구/언제/어디/무엇/왜). 규칙: 1)빈칸(___)은 문제당 반드시 1개만 2)의문대명사 문제는 ___ 뒤에 조사 붙이지 말 것(___가X→___O) 3)정답이 여러 개면 answers 배열에 모두 포함 4)hint는 핵심 문법 용어만 간결하게 5)하고는 사용 금지(배운 내용 아님) 6)무엇 정답 문제는 answers에 뭐도 함께 포함. 형식: {"questions":[{"id":1,"sentence":"저는 학생___.","answers":["이에요"],"hint":"자음 끝"},{"id":2,"sentence":"선생님___ 교실에 있어요.","answers":["은","이"],"hint":"주제·주격 조사"}]}';
-    (async () => {
-      try {
-        const res = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01",
-            "anthropic-dangerous-direct-browser-access": "true"
-          },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 1000,
-            messages: [{role: "user", content: prompt}]
-          })
-        });
-        const data = await res.json();
-        const text = data.content?.[0]?.text || "";
-        const clean = text.replace(/```json|```/g, "").trim();
-        const parsed = JSON.parse(clean);
-        setTestQuestions(parsed.questions?.length ? parsed.questions : FALLBACK);
-      } catch(e) {
-        setTestQuestions(FALLBACK);
-      } finally {
-        setTestLoading(false);
-      }
-    })();
-  }, [step]); // step이 test1로 바뀔 때마다 실행 — testLoading은 내부에서 확인
+    setTestQuestions(FIXED_QUESTIONS);
+    setTestLoading(false);
+  }, [step]);
 
   // ✅ V153: 개발자 전용 단계 점프 (csyager@hanmail.net 만 표시)
   const isDev = user?.email === DEV_EMAIL;
