@@ -1304,7 +1304,8 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
 
   // ✅ V156: test1 진입 시 API 호출 — 모든 상태 선언 후 올바른 위치
   React.useEffect(() => {
-    if (step !== "test1" || !testLoading || testQuestions.length > 0) return;
+    if (step !== "test1" || testQuestions.length > 0) return;
+    setTestLoading(true);
     const langCode = lang?.code;
     const FALLBACK = [
       {id:1, sentence:"저는 의사___.", answer:"예요", hint:"모음 끝 → 예요"},
@@ -1336,7 +1337,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       }
       setTestLoading(false);
     })();
-  }, [step, testLoading]);
+  }, [step]); // step이 test1로 바뀔 때마다 실행 — testLoading은 내부에서 확인
 
   // ✅ V153: 개발자 전용 단계 점프 (csyager@hanmail.net 만 표시)
   const isDev = user?.email === DEV_EMAIL;
@@ -1347,7 +1348,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"발음⑧", action:()=>{ setPronStep(7); setStep("pronunciation"); }},
       { label:"조사",   action:()=>{ setJosaStep(0); setStep("josa"); }},
       { label:"서술어1",action:()=>{ setUnitCardIdx(0); setStep("unit1"); }},
-      { label:"테스트1",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(false); setStep("test1"); }},
+      { label:"테스트1",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(true); setStep("test1"); }},
       { label:"조사테스트",action:()=>{ setJosaTestAnswers({}); setJosaTestResult(null); setJosaTestQuestions([]); setJosaTestLoading(false); setJosaSTTMap({}); setJosaListeningKey(null); setStep("testJosa"); }},
       { label:"서술어2",action:()=>{ setUnitCardIdx(0); setStep("unit2"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
