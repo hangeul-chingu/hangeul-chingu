@@ -5420,28 +5420,17 @@ function GameTab({level}) {
   );
 }
 
-// ✅ V156: 크롬 TTS 타이밍 문제 해결 — 음성 로드 후 speak
+// ✅ V156: 크롬 TTS — cancel 후 setTimeout으로 확실하게 재생
 function speakKo(text, rate=0.65) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "ko-KR";
-  utter.rate = rate;
-  const voices = window.speechSynthesis.getVoices();
-  if (voices.length > 0) {
-    const koVoice = voices.find(v => v.lang.startsWith("ko"));
-    if (koVoice) utter.voice = koVoice;
+  // cancel() 직후 바로 speak하면 크롬에서 씹힘 — 짧은 딜레이 필수
+  setTimeout(() => {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "ko-KR";
+    utter.rate = rate;
     window.speechSynthesis.speak(utter);
-  } else {
-    // 음성 아직 로드 안 됨 — 로드 후 재시도
-    window.speechSynthesis.addEventListener("voiceschanged", function handler() {
-      window.speechSynthesis.removeEventListener("voiceschanged", handler);
-      const v2 = window.speechSynthesis.getVoices();
-      const koVoice = v2.find(v => v.lang.startsWith("ko"));
-      if (koVoice) utter.voice = koVoice;
-      window.speechSynthesis.speak(utter);
-    });
-  }
+  }, 150);
 }
 
 export default function App() {
