@@ -3023,6 +3023,24 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       setTestResult({passed, score, correct, total: testQuestions.length, feedback});
     }
 
+    // 로딩 화면
+    if (testLoading) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8F8F2,#D0F0E4)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{fontSize:48, marginBottom:16}}>⏳</div>
+        <div style={{fontSize:18, fontWeight:700, color:"#00A876"}}>문제 생성 중...</div>
+        <div style={{fontSize:13, color:"#888", marginTop:8}}>잠깐만요 🙏</div>
+      </div>
+    );
+
+    // 문제가 없으면 (API 실패 후 fallback도 없는 경우) 방어
+    if (testQuestions.length === 0) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8F8F2,#D0F0E4)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{fontSize:48, marginBottom:16}}>⚠️</div>
+        <div style={{fontSize:16, fontWeight:700, color:"#E64A00", marginBottom:16}}>문제를 불러오지 못했어요</div>
+        <button onClick={()=>setStep("unit1")} style={{background:"#00C896", border:"none", borderRadius:50, padding:"12px 28px", color:"white", fontSize:14, fontWeight:700, cursor:"pointer"}}>← 단원으로 돌아가기</button>
+      </div>
+    );
+
     // 결과 화면
     if (testResult) {
       return (
