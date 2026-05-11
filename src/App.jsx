@@ -2794,13 +2794,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       if (!unitCardInput.trim()) return;
       setUnitCardRevealed(true);
       // 학습자가 쓴 답을 TTS로 읽어줌
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-        const sentence = unitCardInput.trim();
-        const u = new SpeechSynthesisUtterance(sentence);
-        u.lang = "ko-KR"; u.rate = 0.65;
-        window.speechSynthesis.speak(u);
-      }
+      speakKo(unitCardInput.trim());
     }
 
     const UNIT1_CARDS = [
@@ -2894,11 +2888,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <div style={{fontSize:14, color:"#555", marginBottom:12}}>→ {card.full}</div>
               <button onClick={()=>{
-                if(!window.speechSynthesis) return;
-                window.speechSynthesis.cancel();
-                const u = new SpeechSynthesisUtterance(card.full);
-                u.lang="ko-KR"; u.rate=0.65;
-                window.speechSynthesis.speak(u);
+                speakKo(card.full);
               }} style={{background:"#00C896", border:"none", borderRadius:50, padding:"8px 20px", color:"white", fontSize:13, fontWeight:700, cursor:"pointer"}}>
                 🔊 {vi?"Nghe lại":en?"Listen":"전체 문장 듣기"}
               </button>
@@ -5428,6 +5418,30 @@ function GameTab({level}) {
       {game === "quiz" && <QuizGame />}
     </div>
   );
+}
+
+// ✅ V156: 크롬 TTS 타이밍 문제 해결 — 음성 로드 후 speak
+function speakKo(text, rate=0.65) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "ko-KR";
+  utter.rate = rate;
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    const koVoice = voices.find(v => v.lang.startsWith("ko"));
+    if (koVoice) utter.voice = koVoice;
+    window.speechSynthesis.speak(utter);
+  } else {
+    // 음성 아직 로드 안 됨 — 로드 후 재시도
+    window.speechSynthesis.addEventListener("voiceschanged", function handler() {
+      window.speechSynthesis.removeEventListener("voiceschanged", handler);
+      const v2 = window.speechSynthesis.getVoices();
+      const koVoice = v2.find(v => v.lang.startsWith("ko"));
+      if (koVoice) utter.voice = koVoice;
+      window.speechSynthesis.speak(utter);
+    });
+  }
 }
 
 export default function App() {
