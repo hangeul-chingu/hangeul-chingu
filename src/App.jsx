@@ -1308,14 +1308,14 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
     setTestLoading(true);
     const langCode = lang?.code;
     const FALLBACK = [
-      {id:1, sentence:"저는 의사___.", answer:"예요", hint:"모음 끝 → 예요"},
-      {id:2, sentence:"이분은 선생님___.", answer:"이세요", hint:"높임말"},
-      {id:3, sentence:"여기는 병원___.", answer:"이에요", hint:"자음 끝 → 이에요"},
-      {id:4, sentence:"오늘은 화요일___.", answer:"이에요", hint:"날짜/요일"},
-      {id:5, sentence:"___가 왔어요?", answer:"누구", hint:"의문대명사: 사람"},
-      {id:6, sentence:"책___읽어요.", answer:"을", hint:"목적격 조사"},
+      {id:1, sentence:"저는 의사___.", answers:["예요"], hint:"모음 끝 → 예요"},
+      {id:2, sentence:"이분은 선생님___.", answers:["이세요"], hint:"높임말"},
+      {id:3, sentence:"여기는 병원___.", answers:["이에요"], hint:"자음 끝 → 이에요"},
+      {id:4, sentence:"선생님___ 교실에 있어요.", answers:["은","이"], hint:"주제·주격 조사"},
+      {id:5, sentence:"___ 선생님이세요?", answers:["누구"], hint:"의문대명사: 사람"},
+      {id:6, sentence:"___ 먹어요?", answers:["무엇","뭐"], hint:"의문대명사: 사물"},
     ];
-    const prompt = '한국어 초급 테스트 문제 10개를 JSON으로만 출력하세요. 배운 내용: 이에요/예요/이세요, 조사(은/는/이/가/을/를/에/에서/하고), 의문대명사(누구/언제/어디/뭐). 형식: {"questions":[{"id":1,"sentence":"저는 학생___.","answer":"이에요","hint":"자음 끝"}]}';
+    const prompt = '한국어 초급 테스트 문제 10개를 JSON으로만 출력하세요. 배운 내용: 이에요/예요/이세요, 조사(은/는/이/가/을/를/에/에서/와/과), 의문대명사(누구/언제/어디/무엇/왜). 규칙: 1)빈칸(___)은 문제당 반드시 1개만 2)의문대명사 문제는 ___ 뒤에 조사 붙이지 말 것(___가X→___O) 3)정답이 여러 개면 answers 배열에 모두 포함 4)hint는 핵심 문법 용어만 간결하게 5)하고는 사용 금지(배운 내용 아님) 6)무엇 정답 문제는 answers에 뭐도 함께 포함. 형식: {"questions":[{"id":1,"sentence":"저는 학생___.","answers":["이에요"],"hint":"자음 끝"},{"id":2,"sentence":"선생님___ 교실에 있어요.","answers":["은","이"],"hint":"주제·주격 조사"}]}';
     (async () => {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -1613,7 +1613,7 @@ ${vocabList}
 - ~(으)ㄹ 거라고 했어요: "언제 온다고 했어요?"
 
 ▶ 관형어 (문장을 꾸미는 표현)
-- 동사+는/ㄴ/ㄹ + 명사: "지금 먹는 음식이 뭐예요?" / "어제 만난 친구요?" / "내일 할 일이 있어요?"
+- 동사+는/ㄴ/ㄹ + 명사: "지금 먹는 음식이 뭐예요?" / "어제 만난 친구예요?" / "내일 할 일이 있어요?"
 - 형용사+ㄴ/은 + 명사: "맛있는 음식, 예쁜 사람, 바쁜 하루"
 
 [절대 금지]
@@ -2465,13 +2465,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {
         id: "and_marker",
         emoji: "🤝",
-        title: vi ? "Trợ từ liên kết 와/과·하고" : en ? "And-Markers 와/과·하고" : "와/과·하고 — 연결 조사",
+        title: vi ? "Trợ từ liên kết 와/과" : en ? "And-Markers 와/과" : "와/과 — 연결 조사",
         desc: vi ? "Nối các danh từ với nhau (và)" : en ? "Connects nouns (and)" : "명사와 명사를 이어줘요",
         items: [
-          { form: "친구와", ex: vi ? "Với bạn" : en ? "With a friend" : "친구와 가요.", note: vi ? "받침 없음 → 와 (văn viết)" : en ? "No consonant → 와 (formal)" : "받침 없음 → 와 (격식체)" },
-          { form: "선생님하고", ex: vi ? "Với giáo viên" : en ? "With the teacher" : "선생님하고 이야기해요.", note: vi ? "하고 = thông dụng hơn" : en ? "하고 = more casual" : "하고 = 일상 대화에서 자주 써요" },
+          { form: "친구와", ex: vi ? "Với bạn" : en ? "With a friend" : "친구와 가요.", note: vi ? "받침 없음 → 와" : en ? "No final consonant → 와" : "받침 없음 → 와" },
+          { form: "선생님과", ex: vi ? "Với giáo viên" : en ? "With the teacher" : "선생님과 이야기해요.", note: vi ? "받침 있음 → 과" : en ? "Has final consonant → 과" : "받침 있음 → 과" },
         ],
-        tip: vi ? "하고 dùng được cho cả hai — tiện hơn!" : en ? "하고 works for both — easier in conversation!" : "하고는 받침 상관없이 쓸 수 있어요 — 편리해요! 😊"
+        tip: vi ? "받침 없으면 와, 받침 있으면 과!" : en ? "No final consonant → 와, has final consonant → 과!" : "받침 없으면 와, 받침 있으면 과! 😊"
       },
       {
         id: "pronouns",
@@ -2482,10 +2482,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           { form: "누구", ex: vi ? "Đây là ai?" : en ? "Who is this?" : "누구예요?", note: vi ? "who" : en ? "who" : "사람을 물어볼 때" },
           { form: "언제", ex: vi ? "Khi nào?" : en ? "When?" : "언제 와요?", note: vi ? "when" : en ? "when" : "시간을 물어볼 때" },
           { form: "어디", ex: vi ? "Ở đâu?" : en ? "Where?" : "어디 가요?", note: vi ? "where" : en ? "where" : "장소를 물어볼 때" },
-          { form: "무엇/뭐", ex: vi ? "Cái gì?" : en ? "What?" : "뭐예요?", note: vi ? "what" : en ? "what" : "사물을 물어볼 때" },
+          { form: "무엇(뭐)", ex: vi ? "Cái gì?" : en ? "What?" : "무엇이에요? / 뭐예요?", note: vi ? "what (무엇=문어체, 뭐=구어체)" : en ? "what (무엇=formal, 뭐=casual)" : "사물 질문 — 무엇(격식) / 뭐(일상대화)" },
           { form: "왜", ex: vi ? "Tại sao?" : en ? "Why?" : "왜 그래요?", note: vi ? "why" : en ? "why" : "이유를 물어볼 때" },
         ],
-        tip: vi ? "누구·언제·어디·무엇·왜 — học thuộc 5 từ này!" : en ? "누구·언제·어디·무엇·왜 — master these 5!" : "누구·언제·어디·무엇·왜 — 5개만 외우면 끝! 😊"
+        tip: vi ? "누구·언제·어디·무엇·왜 — học thuộc 5 từ này!" : en ? "누구·언제·어디·무엇·왜 — master these 5!" : "누구·언제·어디·무엇·왜 — 5개면 충분해요! 😊"
       },
     ];
 
@@ -2566,7 +2566,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                     model:"claude-sonnet-4-20250514",
                     max_tokens:800,
                     messages:[{role:"user", content:`한국어 초급 조사·대명사 빈칸 채우기 10문제를 만들어주세요.
-배운 내용: 은/는(주제) 이/가(주격) 을/를(목적격) 에/에서(장소) 와/과·하고(연결) 누구·언제·어디·뭐·왜(의문대명사)
+배운 내용: 은/는(주제) 이/가(주격) 을/를(목적격) 에/에서(장소) 와/과(연결) 누구·언제·어디·무엇·왜(의문대명사)
 규칙: 초급 수준, 각 유형 골고루, ___ 빈칸 형식
 출력: JSON만 {"questions":[{"id":1,"sentence":"저___ 학생이에요.","answer":"는","hint":"주제 조사"}]}`}]
                   })
@@ -2583,11 +2583,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                   {id:3,sentence:"밥___ 먹어요.",answer:"을",hint:"목적격 조사"},
                   {id:4,sentence:"학교___ 있어요.",answer:"에",hint:"장소(존재)"},
                   {id:5,sentence:"학교___ 공부해요.",answer:"에서",hint:"장소(행동)"},
-                  {id:6,sentence:"친구___ 이야기해요.",answer:"하고",hint:"연결 조사"},
+                  {id:6,sentence:"친구___ 공원에 가요.",answer:"와",hint:"연결 조사"},
                   {id:7,sentence:"___ 예요? (사람)",answer:"누구",hint:"의문대명사"},
                   {id:8,sentence:"___ 가요? (장소)",answer:"어디",hint:"의문대명사"},
                   {id:9,sentence:"___ 와요? (시간)",answer:"언제",hint:"의문대명사"},
-                  {id:10,sentence:"___ 예요? (사물)",answer:"뭐",hint:"의문대명사"},
+                  {id:10,sentence:"___ 이에요? (사물)",answers:["무엇","뭐"],hint:"의문대명사"},
                 ]);
               }
               setJosaTestLoading(false);
@@ -2620,7 +2620,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       "밥을 먹어요.",
       "학교에 있어요.",
       "학교에서 공부해요.",
-      "친구하고 이야기해요.",
+      "친구와 이야기해요.",
       "누구예요?",
       "어디 가요?",
       "언제 와요?",
@@ -2633,7 +2633,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         let correct = 0;
         const writingFb = josaTestQuestions.map(q => {
           const ua = (latestAnswers[q.id]||"").trim();
-          const ok = ua === q.answer || (q.answer==="뭐"&&ua==="무엇") || (q.answer==="무엇"&&ua==="뭐");
+          const ok = ua === q.answer || ua.replace(/\s/g,"") === q.answer.replace(/\s/g,"");
           if (ok) correct++;
           return {...q, userAns:ua, ok};
         });
@@ -2997,8 +2997,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       let correct = 0;
       const feedback = testQuestions.map(q => {
         const userAns = (testAnswers[q.id] || "").trim();
-        const ok = userAns === q.answer ||
-                   userAns.replace(/\s/g,"") === q.answer.replace(/\s/g,"");
+        // answers 배열(복수정답) 또는 answer 단일 정답 모두 지원
+        const validAnswers = q.answers || (q.answer ? [q.answer] : []);
+        const ok = validAnswers.some(a =>
+          userAns === a || userAns.replace(/\s/g,"") === a.replace(/\s/g,"")
+        );
         if (ok) correct++;
         return {...q, userAns, ok};
       });
@@ -3121,7 +3124,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 <div key={q.id} style={{background:"white", borderRadius:16, padding:16, marginBottom:12, boxShadow:"0 2px 8px #E64A0011"}}>
                   <div style={{fontSize:12, color:"#aaa", marginBottom:6}}>문제 {qi+1}</div>
                   <div style={{fontSize:16, fontWeight:700, color:"#333", marginBottom:4}}>{q.sentence}</div>
-                  {q.hint && <div style={{fontSize:12, color:"#aaa", marginBottom:8}}>💡 {q.hint}</div>}
+                  {q.hint && <div style={{fontSize:12, color:"#888", marginBottom:8}}>
+                    💡 {q.hint.split(/(→|·|:)/).map((part, i) =>
+                      i === 0
+                        ? <strong key={i} style={{color:"#E64A00", fontWeight:900}}>{part}</strong>
+                        : <span key={i} style={{color:"#888"}}>{part}</span>
+                    )}
+                  </div>}
                   <input
                     value={testAnswers[q.id]||""}
                     onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))}
