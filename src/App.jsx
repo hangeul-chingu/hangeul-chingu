@@ -1303,7 +1303,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   });
 
   // ✅ V156: test1 진입 시 API 호출 — 모든 상태 선언 후 올바른 위치
-  React.useEffect(() => {
+  useEffect(() => {
     if (step !== "test1" || testQuestions.length > 0) return;
     setTestLoading(true);
     const langCode = lang?.code;
