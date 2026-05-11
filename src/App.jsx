@@ -1288,6 +1288,57 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   const [testAnswers, setTestAnswers] = useState({});     // 학습자 답변 (서술어 테스트용)
   const [testResult, setTestResult] = useState(null);    // {passed, score, feedback} (서술어 테스트용)
   const [testLoading, setTestLoading] = useState(false); // (서술어 테스트용)
+
+  // ✅ V156: test1 진입 시 API 호출 — Hook은 최상단에서만
+  const { useEffect } = React;
+  useEffect(() => {
+    if (step !== "test1" || !testLoading || testQuestions.length > 0) return;
+    const langCode = lang?.code;
+    (async () => {
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1000,
+            messages: [{role: "user", content: `당신은 한국어 초급 교사입니다. 학습자가 지금까지 배운 전체 내용을 바탕으로 테스트 문제를 만들어주세요.
+
+[지금까지 배운 내용]
+1. 발음: 모음1·모음2·쌍자음·받침(ㄱ/ㅇ/ㅁ/ㅂ/ㄹ/ㄴ/ㄷ계열)·겹받침·연음
+2. 조사: 은/는, 이/가, 을/를, 에/에서, 와/과·하고
+3. 의문대명사: 누구, 언제, 어디, 뭐, 왜
+4. 서술어 1단원: 이에요/예요/이다 (A=B 구조), 높임말 이세요/세요
+
+[문제 생성 규칙]
+- 배운 전체 내용의 양에 비례하여 적절한 문제 수를 AI가 직접 결정하세요
+- 문제 유형: 빈칸 채우기 (___에 알맞은 말 쓰기)
+- 각 문제는 배운 내용 전체를 골고루 반영해야 합니다
+- 초급 학습자 수준에 맞는 간단한 예문 사용
+- 언어: ${langCode==="vi"?"베트남어 힌트 포함":langCode==="en"?"영어 힌트 포함":"한국어만"}
+
+[출력 형식 — JSON만 출력, 다른 텍스트 없음]
+{"questions":[{"id":1,"sentence":"저는 학생___.","answer":"이에요","hint":"나 = 학생"},{"id":2,...}]}`}]
+          })
+        });
+        const data = await res.json();
+        const text = data.content?.[0]?.text || "";
+        const clean = text.replace(/```json|```/g, "").trim();
+        const parsed = JSON.parse(clean);
+        setTestQuestions(parsed.questions || []);
+      } catch(e) {
+        setTestQuestions([
+          {id:1, sentence:"저는 의사___.", answer:"예요", hint:"모음 끝 → 예요"},
+          {id:2, sentence:"이분은 선생님___.", answer:"이세요", hint:"높임말"},
+          {id:3, sentence:"여기는 병원___.", answer:"이에요", hint:"자음 끝 → 이에요"},
+          {id:4, sentence:"오늘은 화요일___.", answer:"이에요", hint:"날짜/요일"},
+          {id:5, sentence:"___가 왔어요?", answer:"누구", hint:"의문대명사: 사람"},
+          {id:6, sentence:"책___읽어요.", answer:"을", hint:"목적격 조사"},
+        ]);
+      }
+      setTestLoading(false);
+    })();
+  }, [step, testLoading]);
   // ✅ V155: 조사 테스트 전용 상태 (서술어 테스트와 완전 분리)
   const [josaTestQuestions, setJosaTestQuestions] = useState([]);
   const [josaTestAnswers, setJosaTestAnswers] = useState({});
@@ -2976,56 +3027,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       }
       setTestResult({passed, score, correct, total: testQuestions.length, feedback});
     }
-
-    // ✅ V156: test1 진입 시 API 호출 (버튼 클로저 문제 해결)
-    React.useEffect(() => {
-      if (!testLoading || testQuestions.length > 0) return;
-      const langCode = lang?.code;
-      (async () => {
-        try {
-          const res = await fetch("https://api.anthropic.com/v1/messages", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-              model: "claude-sonnet-4-20250514",
-              max_tokens: 1000,
-              messages: [{role: "user", content: `당신은 한국어 초급 교사입니다. 학습자가 지금까지 배운 전체 내용을 바탕으로 테스트 문제를 만들어주세요.
-
-[지금까지 배운 내용]
-1. 발음: 모음1·모음2·쌍자음·받침(ㄱ/ㅇ/ㅁ/ㅂ/ㄹ/ㄴ/ㄷ계열)·겹받침·연음
-2. 조사: 은/는, 이/가, 을/를, 에/에서, 와/과·하고
-3. 의문대명사: 누구, 언제, 어디, 뭐, 왜
-4. 서술어 1단원: 이에요/예요/이다 (A=B 구조), 높임말 이세요/세요
-
-[문제 생성 규칙]
-- 배운 전체 내용의 양에 비례하여 적절한 문제 수를 AI가 직접 결정하세요
-- 문제 유형: 빈칸 채우기 (___에 알맞은 말 쓰기)
-- 각 문제는 배운 내용 전체를 골고루 반영해야 합니다
-- 초급 학습자 수준에 맞는 간단한 예문 사용
-- 언어: ${langCode==="vi"?"베트남어 힌트 포함":langCode==="en"?"영어 힌트 포함":"한국어만"}
-
-[출력 형식 — JSON만 출력, 다른 텍스트 없음]
-{"questions":[{"id":1,"sentence":"저는 학생___.","answer":"이에요","hint":"나 = 학생"},{"id":2,...}]}`}]
-            })
-          });
-          const data = await res.json();
-          const text = data.content?.[0]?.text || "";
-          const clean = text.replace(/```json|```/g, "").trim();
-          const parsed = JSON.parse(clean);
-          setTestQuestions(parsed.questions || []);
-        } catch(e) {
-          setTestQuestions([
-            {id:1, sentence:"저는 의사___.", answer:"예요", hint:"모음 끝 → 예요"},
-            {id:2, sentence:"이분은 선생님___.", answer:"이세요", hint:"높임말"},
-            {id:3, sentence:"여기는 병원___.", answer:"이에요", hint:"자음 끝 → 이에요"},
-            {id:4, sentence:"오늘은 화요일___.", answer:"이에요", hint:"날짜/요일"},
-            {id:5, sentence:"___가 왔어요?", answer:"누구", hint:"의문대명사: 사람"},
-            {id:6, sentence:"책___읽어요.", answer:"을", hint:"목적격 조사"},
-          ]);
-        }
-        setTestLoading(false);
-      })();
-    }, []);
 
     // 로딩 화면
     if (testLoading) return (
