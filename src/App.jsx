@@ -1282,6 +1282,8 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
 
   // ✅ V152: 서술어 단원 학습 + 누적 테스트 state
   const [unitCardIdx, setUnitCardIdx] = useState(0);   // 학습 카드 인덱스
+  const [unitCardInput, setUnitCardInput] = useState(""); // 카드 타이핑 입력값
+  const [unitCardRevealed, setUnitCardRevealed] = useState(false); // 정답 공개 여부
   const [testQuestions, setTestQuestions] = useState([]); // AI 생성 문제 (서술어 테스트용)
   const [testAnswers, setTestAnswers] = useState({});     // 학습자 답변 (서술어 테스트용)
   const [testResult, setTestResult] = useState(null);    // {passed, score, feedback} (서술어 테스트용)
@@ -2786,6 +2788,21 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   if (step === "unit1") {
     const vi = lang?.code === "vi";
     const en = lang?.code === "en";
+
+    // 확인하기 버튼 — 입력값 TTS로 읽고 정답 공개
+    function handleUnitCardSubmit() {
+      if (!unitCardInput.trim()) return;
+      setUnitCardRevealed(true);
+      // 학습자가 쓴 답을 TTS로 읽어줌
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        const sentence = unitCardInput.trim();
+        const u = new SpeechSynthesisUtterance(sentence);
+        u.lang = "ko-KR"; u.rate = 0.65;
+        window.speechSynthesis.speak(u);
+      }
+    }
+
     const UNIT1_CARDS = [
       {
         front: "저는 학생___.",
@@ -2844,29 +2861,58 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         </div>
 
         {/* 카드 */}
-        <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:20, padding:28, boxShadow:"0 8px 32px #00C89622", marginBottom:20}}>
-          <div style={{fontSize:13, color:"#aaa", marginBottom:12, textAlign:"center"}}>
+        <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:20, padding:28, boxShadow:"0 8px 32px #00C89622", marginBottom:16}}>
+          <div style={{fontSize:13, color:"#aaa", marginBottom:16, textAlign:"center"}}>
             {vi?"Điền vào chỗ trống":en?"Fill in the blank":"빈칸을 채워보세요 ✍️"}
           </div>
-          {/* 빈칸 문장 */}
-          <div style={{fontSize:22, fontWeight:900, color:"#1A3A2A", textAlign:"center", marginBottom:8, lineHeight:1.5}}>
-            {card.front.replace("___", "")}
-            <span style={{display:"inline-block", borderBottom:"3px solid #00C896", minWidth:60, color:"#00A876", fontWeight:900}}>
-              {card.blank}
-            </span>
+
+          {/* 빈칸 문장 — ___ 부분을 input으로 */}
+          <div style={{fontSize:20, fontWeight:900, color:"#1A3A2A", textAlign:"center", marginBottom:16, lineHeight:1.8}}>
+            {card.front.split("___")[0]}
+            <input
+              type="text"
+              value={unitCardInput}
+              onChange={e=>setUnitCardInput(e.target.value)}
+              onKeyDown={e=>{ if(e.key==="Enter" && !unitCardRevealed && unitCardInput.trim()) { e.preventDefault(); handleUnitCardSubmit(); } }}
+              disabled={unitCardRevealed}
+              placeholder="..."
+              style={{
+                display:"inline-block", width:80, textAlign:"center",
+                border:"none", borderBottom:`3px solid ${unitCardRevealed?(unitCardInput.trim()===card.blank?"#00C896":"#FF6B35"):"#00C896"}`,
+                fontSize:20, fontWeight:900, color:"#00A876", background:"transparent",
+                outline:"none", padding:"0 4px"
+              }}
+            />
+            {card.front.split("___")[1]}
           </div>
-          {/* 전체 문장 */}
-          <div style={{fontSize:15, color:"#00A876", textAlign:"center", marginBottom:12, fontWeight:700}}>
-            → {card.full}
-          </div>
+
+          {/* 정답 공개 후: 전체 문장 + TTS 듣기 버튼 */}
+          {unitCardRevealed && (
+            <div style={{textAlign:"center", marginBottom:12}}>
+              <div style={{fontSize:15, color: unitCardInput.trim()===card.blank?"#00A876":"#FF6B35", fontWeight:700, marginBottom:8}}>
+                {unitCardInput.trim()===card.blank ? "✅ 정답!" : `❌ 정답: ${card.blank}`}
+              </div>
+              <div style={{fontSize:14, color:"#555", marginBottom:12}}>→ {card.full}</div>
+              <button onClick={()=>{
+                if(!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(card.full);
+                u.lang="ko-KR"; u.rate=0.65;
+                window.speechSynthesis.speak(u);
+              }} style={{background:"#00C896", border:"none", borderRadius:50, padding:"8px 20px", color:"white", fontSize:13, fontWeight:700, cursor:"pointer"}}>
+                🔊 {vi?"Nghe lại":en?"Listen":"전체 문장 듣기"}
+              </button>
+            </div>
+          )}
+
           {/* 힌트 */}
           <div style={{background:"#F0FBF6", borderRadius:12, padding:"10px 14px", fontSize:13, color:"#555", textAlign:"center"}}>
             💡 {card.hint}
           </div>
         </div>
 
-        {/* 규칙 요약 (첫 카드에만) */}
-        {unitCardIdx === 0 && (
+        {/* 규칙 요약 (첫 카드에만, 정답 공개 전) */}
+        {unitCardIdx === 0 && !unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#00A876", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
             <div>· {vi?"Kết thúc bằng phụ âm":en?"Ends with consonant":"자음 끝"} → <b>이에요</b> &nbsp;(학생<b>이에요</b>)</div>
@@ -2875,9 +2921,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
         )}
 
-        {/* 버튼 */}
-        {unitCardIdx < total - 1 ? (
-          <button onClick={()=>setUnitCardIdx(i=>i+1)}
+        {/* 버튼 — 입력 전: 확인하기 / 정답 공개 후: 다음 */}
+        {!unitCardRevealed ? (
+          <button onClick={handleUnitCardSubmit} disabled={!unitCardInput.trim()}
+            style={{width:"100%", maxWidth:400, background: unitCardInput.trim()?"linear-gradient(135deg,#00C896,#00A876)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor: unitCardInput.trim()?"pointer":"default", boxShadow: unitCardInput.trim()?"0 4px 16px #00C89644":"none"}}>
+            {vi?"Kiểm tra":en?"Check":"확인하기 ✓"}
+          </button>
+        ) : unitCardIdx < total - 1 ? (
+          <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
             style={{width:"100%", maxWidth:400, background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #00C89644"}}>
             {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
           </button>
