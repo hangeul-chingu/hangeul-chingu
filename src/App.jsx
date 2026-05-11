@@ -1282,14 +1282,18 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
 
   // ✅ V152: 서술어 단원 학습 + 누적 테스트 state
   const [unitCardIdx, setUnitCardIdx] = useState(0);   // 학습 카드 인덱스
-  const [testQuestions, setTestQuestions] = useState([]); // AI 생성 문제
+  const [testQuestions, setTestQuestions] = useState([]); // AI 생성 문제 (서술어 테스트용)
+  const [testAnswers, setTestAnswers] = useState({});     // 학습자 답변 (서술어 테스트용)
+  const [testResult, setTestResult] = useState(null);    // {passed, score, feedback} (서술어 테스트용)
+  const [testLoading, setTestLoading] = useState(false); // (서술어 테스트용)
+  // ✅ V155: 조사 테스트 전용 상태 (서술어 테스트와 완전 분리)
+  const [josaTestQuestions, setJosaTestQuestions] = useState([]);
+  const [josaTestAnswers, setJosaTestAnswers] = useState({});
+  const [josaTestResult, setJosaTestResult] = useState(null);
+  const [josaTestLoading, setJosaTestLoading] = useState(false);
   // ✅ V154: 조사 STT state
-  // ✅ V154: 조사 테스트 STT — 카드별 독립 {key: {result, ok, similarity}}
-  const [josaListeningKey, setJosaListeningKey] = useState(null); // "qIdx" 형태
+  const [josaListeningKey, setJosaListeningKey] = useState(null);
   const [josaSTTMap, setJosaSTTMap] = useState({});
-  const [testAnswers, setTestAnswers] = useState({});     // 학습자 답변
-  const [testResult, setTestResult] = useState(null);    // {passed, score, feedback}
-  const [testLoading, setTestLoading] = useState(false);
   const [unitsPassed, setUnitsPassed] = useState(() => {
     // Firestore에서 불러오기 (초기값은 localStorage 캐시 사용)
     try { return JSON.parse(localStorage.getItem(`hc_units_${user?.uid}`) || "[]"); }
@@ -1306,7 +1310,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"조사",   action:()=>{ setJosaStep(0); setStep("josa"); }},
       { label:"서술어1",action:()=>{ setUnitCardIdx(0); setStep("unit1"); }},
       { label:"테스트1",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(false); setStep("test1"); }},
-      { label:"조사테스트",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(false); setStep("testJosa"); }},
+      { label:"조사테스트",action:()=>{ setJosaTestAnswers({}); setJosaTestResult(null); setJosaTestQuestions([]); setJosaTestLoading(false); setJosaSTTMap({}); setJosaListeningKey(null); setStep("testJosa"); }},
       { label:"서술어2",action:()=>{ setUnitCardIdx(0); setStep("unit2"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -2505,9 +2509,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </button>
           ) : (
             <button onClick={async()=>{
-              setTestAnswers({}); setTestResult(null); setTestQuestions([]);
+              setJosaTestAnswers({}); setJosaTestResult(null); setJosaTestQuestions([]);
               setJosaSTTMap({}); setJosaListeningKey(null);
-              setTestLoading(true);
+              setJosaTestLoading(true);
               setStep("testJosa");
               try {
                 const res = await fetch("https://api.anthropic.com/v1/messages",{
@@ -2526,9 +2530,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 const text = data.content?.[0]?.text || "";
                 const clean = text.replace(/```json|```/g,"").trim();
                 const parsed = JSON.parse(clean);
-                setTestQuestions(parsed.questions || []);
+                setJosaTestQuestions(parsed.questions || []);
               } catch {
-                setTestQuestions([
+                setJosaTestQuestions([
                   {id:1,sentence:"저___ 학생이에요.",answer:"는",hint:"주제 조사"},
                   {id:2,sentence:"친구___ 왔어요.",answer:"가",hint:"주격 조사"},
                   {id:3,sentence:"밥___ 먹어요.",answer:"을",hint:"목적격 조사"},
@@ -2541,7 +2545,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                   {id:10,sentence:"___ 예요? (사물)",answer:"뭐",hint:"의문대명사"},
                 ]);
               }
-              setTestLoading(false);
+              setJosaTestLoading(false);
             }}
               style={{width:"100%", background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #FF6B3544"}}>
               📝 {vi?"Làm bài kiểm tra!":en?"Take the test!":"조사·대명사 테스트! 📝"}
@@ -2579,11 +2583,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     // 채점
     function gradeJosaTest() {
-      if (testQuestions.length === 0) return;
+      if (josaTestQuestions.length === 0) return;
       // 빈칸 채우기 점수
       let correct = 0;
-      const writingFb = testQuestions.map(q => {
-        const ua = (testAnswers[q.id]||"").trim();
+      const writingFb = josaTestQuestions.map(q => {
+        const ua = (josaTestAnswers[q.id]||"").trim();
         const ok = ua === q.answer || (q.answer==="뭐"&&ua==="무엇") || (q.answer==="무엇"&&ua==="뭐");
         if (ok) correct++;
         return {...q, userAns:ua, ok};
@@ -2595,14 +2599,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         if (d?.ok) sttCorrect++;
         return {sentence:s, ...d};
       });
-      const writingScore = Math.round((correct/testQuestions.length)*100);
+      const writingScore = Math.round((correct/josaTestQuestions.length)*100);
       const sttScore = Math.round((sttCorrect/STT_SENTENCES.length)*100);
       const total = Math.round((writingScore + sttScore) / 2);
-      setTestResult({passed: total >= 80, score: total, writingScore, sttScore, writingFb, sttFb});
+      setJosaTestResult({passed: total >= 80, score: total, writingScore, sttScore, writingFb, sttFb});
     }
 
     // 로딩 중
-    if (testLoading) return (
+    if (josaTestLoading) return (
       <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
         <DevJumpPanel />
         <div style={{fontSize:40,marginBottom:16}}>📝</div>
@@ -2611,8 +2615,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     );
 
     // 결과 화면
-    if (testResult) {
-      const {passed,score,writingScore,sttScore,writingFb,sttFb} = testResult;
+    if (josaTestResult) {
+      const {passed,score,writingScore,sttScore,writingFb,sttFb} = josaTestResult;
       return (
         <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",padding:"24px 16px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <DevJumpPanel />
@@ -2666,12 +2670,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               ))}
             </div>
             {passed ? (
-              <button onClick={()=>{onReady?.();setUnitCardIdx(0);setStep("unit1");}}
+              <button onClick={()=>{setJosaTestResult(null);setJosaTestAnswers({});setJosaTestQuestions([]);onReady?.();setUnitCardIdx(0);setStep("unit1");}}
                 style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A876)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #00C89644"}}>
                 {vi?"Tiếp theo! 🚀":en?"Next! 🚀":"서술어 1단원으로! 🚀"}
               </button>
             ) : (
-              <button onClick={()=>{setJosaStep(0);setJosaSTTMap({});setJosaListeningKey(null);setStep("josa");}}
+              <button onClick={()=>{setJosaTestResult(null);setJosaTestAnswers({});setJosaTestQuestions([]);setJosaStep(0);setJosaSTTMap({});setJosaListeningKey(null);setStep("josa");}}
                 style={{width:"100%",background:"linear-gradient(135deg,#FF9800,#E65100)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer"}}>
                 🔄 {vi?"Học lại từ đầu":en?"Study again":"조사·대명사 처음부터 다시 학습"}
               </button>
@@ -2695,14 +2699,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           {/* 섹션1: 빈칸 채우기 */}
           <div style={{fontSize:13,fontWeight:700,color:"#E65100",marginBottom:8}}>✍️ 빈칸 채우기</div>
-          {testQuestions.map(q=>(
+          {josaTestQuestions.map(q=>(
             <div key={q.id} style={{background:"white",borderRadius:12,padding:"12px 14px",marginBottom:8,border:"1px solid #FFE0B2"}}>
               <div style={{fontSize:14,fontWeight:700,color:"#333",marginBottom:6}}>{q.sentence}</div>
               <div style={{fontSize:11,color:"#FF9800",marginBottom:6}}>💡 {q.hint}</div>
               <input
                 type="text"
-                value={testAnswers[q.id]||""}
-                onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))}
+                value={josaTestAnswers[q.id]||""}
+                onChange={e=>setJosaTestAnswers(a=>({...a,[q.id]:e.target.value}))}
                 onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
                 placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
                 style={{width:"100%",border:"2px solid #FFE0B2",borderRadius:8,padding:"7px 10px",fontSize:14,outline:"none",boxSizing:"border-box"}}
