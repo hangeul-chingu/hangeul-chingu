@@ -2905,8 +2905,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         {unitCardIdx === 0 && !unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#00A876", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
-            <div>· {vi?"Kết thúc bằng phụ âm":en?"Ends with consonant":"자음 끝"} → <b>이에요</b> &nbsp;(학생<b>이에요</b>)</div>
-            <div>· {vi?"Kết thúc bằng nguyên âm":en?"Ends with vowel":"모음 끝"} → <b>예요</b> &nbsp;(의사<b>예요</b>)</div>
+            <div>· {vi?"Kết thúc bằng phụ âm":en?"Ends with consonant":"자음 끝"} → <b>이에요</b> &nbsp;(책<b>이에요</b>)</div>
+            <div>· {vi?"Kết thúc bằng nguyên âm":en?"Ends with vowel":"모음 끝"} → <b>예요</b> &nbsp;(커피<b>예요</b>)</div>
             <div>· {vi?"Kính ngữ":en?"Honorific":"높임말"} → <b>이세요/세요</b></div>
           </div>
         )}
