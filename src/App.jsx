@@ -3302,17 +3302,17 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     const TEST2_QUESTIONS = [
       // 1단원 복습 (이에요/예요/이다)
-      { id:"t2_1",  q:"저는 학생___.",       answer:"이에요", answers:["이에요","이에요."] },
-      { id:"t2_2",  q:"여기는 학교___.",      answer:"예요",   answers:["예요","예요."] },
-      { id:"t2_3",  q:"오늘은 월요일___.",     answer:"이에요", answers:["이에요","이에요."] },
+      { id:"t2_1",  q:"저는 학생___.",       answer:"이에요", answers:["이에요","이에요."], hint:"💡 학생 → 받침?" },
+      { id:"t2_2",  q:"여기는 학교___.",      answer:"예요",   answers:["예요","예요."],   hint:"💡 학교 → 받침?" },
+      { id:"t2_3",  q:"오늘은 월요일___.",     answer:"이에요", answers:["이에요","이에요."], hint:"💡 월요일 → 받침?" },
       // 2단원 (있다·없다·많다·적다)
-      { id:"t2_4",  q:"시간이 ___.",          answer:"있어요", answers:["있어요","있어요."] },
-      { id:"t2_5",  q:"돈이 ___.",            answer:"없어요", answers:["없어요","없어요."] },
-      { id:"t2_6",  q:"친구가 ___.",          answer:"많아요", answers:["많아요","많아요."] },
-      { id:"t2_7",  q:"학생이 ___.",          answer:"적어요", answers:["적어요","적어요."] },
-      { id:"t2_8",  q:"이분은 선생님___.",     answer:"이세요", answers:["이세요","이세요."] },
-      { id:"t2_9",  q:"사람이 ___.",          answer:"많아요", answers:["많아요","많아요."] },
-      { id:"t2_10", q:"저는 베트남 사람___.", answer:"이에요", answers:["이에요","이에요."] },
+      { id:"t2_4",  q:"시간이 ___.",          answer:"있어요", answers:["있어요","있어요."], hint:"💡 있다" },
+      { id:"t2_5",  q:"돈이 ___.",            answer:"없어요", answers:["없어요","없어요."], hint:"💡 없다" },
+      { id:"t2_6",  q:"친구가 ___.",          answer:"많아요", answers:["많아요","많아요."], hint:"💡 많다" },
+      { id:"t2_7",  q:"학생이 ___.",          answer:"적어요", answers:["적어요","적어요."], hint:"💡 적다" },
+      { id:"t2_8",  q:"이분은 선생님___.",     answer:"이세요", answers:["이세요","이세요."], hint:"💡 이분 = 높여 부르는 말" },
+      { id:"t2_9",  q:"사람이 ___.",          answer:"많아요", answers:["많아요","많아요."], hint:"💡 많다" },
+      { id:"t2_10", q:"저는 베트남 사람___.", answer:"이에요", answers:["이에요","이에요."], hint:"💡 사람 → 받침?" },
     ];
 
     function gradeTest2() {
@@ -3410,6 +3410,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
                 style={{width:"100%", border:"2px solid #BBDEFB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
+              <div style={{fontSize:11, color:"#888", marginTop:4}}>{q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest2}
