@@ -1306,16 +1306,16 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   useEffect(() => {
     if (step !== "test1" || testQuestions.length > 0) return;
     const FIXED_QUESTIONS = [
-      {id:1,  sentence:"저는 학생___.",           answers:["이에요"],      hint:"학생 → 받침 있어요 → 이에요"},
-      {id:2,  sentence:"여기는 학교___.",          answers:["예요"],        hint:"학교 → 받침 없어요 → 예요"},
-      {id:3,  sentence:"이분은 선생님___.",         answers:["이세요"],      hint:"이분 = 높여 부르는 말 → 이세요"},
-      {id:4,  sentence:"오늘은 월요일___.",         answers:["이에요"],      hint:"월요일 → 받침 있어요 → 이에요"},
-      {id:5,  sentence:"저는 베트남 사람___.",      answers:["이에요"],      hint:"사람 → 받침 있어요 → 이에요"},
-      {id:6,  sentence:"이것은 가방___.",           answers:["이에요"],      hint:"가방 → 받침 있어요 → 이에요"},
-      {id:7,  sentence:"선생님___ 교실에 있어요.",  answers:["은","이"],     hint:"선생님 → 받침 있어요 → 은/이"},
-      {id:8,  sentence:"친구___ 공원에 가요.",      answers:["와"],          hint:"친구 → 받침 없어요 → 와"},
-      {id:9,  sentence:"___ 선생님이에요?",         answers:["누구"],        hint:"사람을 물어볼 때 → 누구"},
-      {id:10, sentence:"___ 먹어요?",               answers:["뭐","무엇을"], hint:"사물을 물어볼 때 → 뭐"},
+      {id:1,  sentence:"저는 학생___.",              answers:["이에요"],      hint:"학생 → 받침 있어요 → ??"},
+      {id:2,  sentence:"여기는 학교___.",             answers:["예요"],        hint:"학교 → 받침 없어요 → ??"},
+      {id:3,  sentence:"이분은 선생님___.",            answers:["이세요"],      hint:"이분 = 높여 부르는 말 → ??"},
+      {id:4,  sentence:"오늘은 월요일___.",            answers:["이에요"],      hint:"월요일 → 받침 있어요 → ??"},
+      {id:5,  sentence:"저는 베트남 사람___.",         answers:["이에요"],      hint:"사람 → 받침 있어요 → ??"},
+      {id:6,  sentence:"이것은 가방___.",              answers:["이에요"],      hint:"가방 → 받침 있어요 → ??"},
+      {id:7,  sentence:"선생님___ 교실에 있어요.",     answers:["은","이"],     hint:"선생님 → 받침 있어요 → ??"},
+      {id:8,  sentence:"친구___ 공원에 가요.",         answers:["와"],          hint:"친구 → 받침 없어요 → ??"},
+      {id:9,  sentence:"새로 오신 분이 ___예요?",      answers:["누구"],        hint:"사람을 물어볼 때 → ??"},
+      {id:10, sentence:"___ 먹어요?",                  answers:["뭐","무엇을"], hint:"사물을 물어볼 때 → ??"},
     ];
     setTestQuestions(FIXED_QUESTIONS);
     setTestLoading(false);
