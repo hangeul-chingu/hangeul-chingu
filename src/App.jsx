@@ -3708,7 +3708,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         hint: vi?"Hỏi về người → dùng từ gì?":en?"Asking about a person → which word?":"사람을 물어볼 때 쓰는 말",
       },
       {
-        front: "___에 가요? (시간을 물어볼 때)",
+        front: "___ 가요? (시간을 물어볼 때)",
         blank: "언제",
         full: "언제 가요?",
         hint: vi?"Hỏi về thời gian → dùng từ gì?":en?"Asking about time → which word?":"시간을 물어볼 때 쓰는 말",
@@ -3732,7 +3732,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         hint: vi?"Hỏi về lý do → dùng từ gì?":en?"Asking about a reason → which word?":"이유를 물어볼 때 쓰는 말",
       },
       {
-        front: "___이 친구예요? (사람 + 이/가)",
+        front: "___ 친구예요? (사람 + 이/가)",
         blank: "누가",
         full: "누가 친구예요?",
         hint: vi?"'누구' + 이/가 → 누가 (rút gọn)":en?"'누구' + 이/가 → 누가 (shortened)":"누구 + 가 → 누가 (줄여서 써요)",
@@ -3790,7 +3790,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
         </div>
 
-        {!unitCardRevealed && (
+        {!unitCardRevealed && unitCardIdx < 5 && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#2E7D32", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
             <div>· 사람 → <b>누구?</b> &nbsp;(주어일 때 → <b>누가?</b>)</div>
