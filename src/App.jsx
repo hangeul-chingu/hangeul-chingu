@@ -3158,37 +3158,37 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         front: "시간이 ___.",
         blank: "있어요",
         full: "시간이 있어요.",
-        hint: vi?"'있다' = có (tồn tại)":en?"'있다' = to exist / have":"있다 → 있어요 (존재·소유)",
+        hint: vi?"'có' — dùng khi có thứ gì đó":en?"Use when something IS there":"뭔가 있을 때 쓰는 말",
       },
       {
         front: "돈이 ___.",
         blank: "없어요",
         full: "돈이 없어요.",
-        hint: vi?"'없다' = không có":en?"'없다' = to not exist / not have":"없다 → 없어요 (존재하지 않음)",
+        hint: vi?"'không có' — dùng khi không có thứ gì":en?"Use when something is NOT there":"뭔가 없을 때 쓰는 말",
       },
       {
         front: "친구가 ___.",
         blank: "많아요",
         full: "친구가 많아요.",
-        hint: vi?"'많다' → '많아요' (ㅏ 탈락 없이 그대로)":en?"'많다' → '많아요'":"많다 → 많아요 (ㅏ+아요)",
+        hint: vi?"Số lượng lớn → dùng từ gì?":en?"A lot → which word?":"수가 많을 때 → 어떤 말?",
       },
       {
         front: "시간이 ___.",
         blank: "없어요",
         full: "시간이 없어요.",
-        hint: vi?"Ngược với '있어요'":en?"Opposite of '있어요'":"있어요 ↔ 없어요 반대말",
+        hint: vi?"'có' = 있다 → 'không có' = ?":en?"'있다' = have → opposite?":"앞에서 배운 '있다'의 반대말",
       },
       {
         front: "사람이 ___.",
         blank: "많아요",
         full: "사람이 많아요.",
-        hint: vi?"많다: dùng khi số lượng lớn":en?"많다: used when quantity is large":"많다 = 수가 크다",
+        hint: vi?"Rất nhiều người → từ nào?":en?"So many people → which word?":"사람이 아주 많을 때 → 어떤 말?",
       },
       {
         front: "학생이 ___.",
         blank: "적어요",
         full: "학생이 적어요.",
-        hint: vi?"'적다' → '적어요' (ㅓ+어요)":en?"'적다' → '적어요'":"적다 → 적어요 (ㅓ+어요, 많다 반대)",
+        hint: vi?"Ít người → ngược với '많다'":en?"Few → opposite of '많다'":"'많다'의 반대말",
       },
     ];
 
