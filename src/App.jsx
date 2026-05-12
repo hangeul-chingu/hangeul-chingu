@@ -1313,7 +1313,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       {id:5,  sentence:"저는 베트남 사람___.",         answers:["이에요"],      hint:"사람 → 받침 있어요 → ??"},
       {id:6,  sentence:"이것은 가방___.",              answers:["이에요"],      hint:"가방 → 받침 있어요 → ??"},
       {id:7,  sentence:"선생님___ 교실에 있어요.",     answers:["은","이"],     hint:"선생님 → 받침 있어요 → ??"},
-      {id:8,  sentence:"친구___ 공원에 가요.",         answers:["와"],          hint:"친구 → 받침 없어요 → ??"},
+      {id:8,  sentence:"친구___ 공원에 가요.",         answers:["와","는","가"], hint:"친구 → 받침 없어요 → ??"},
       {id:9,  sentence:"새로 오신 분이 ___예요?",      answers:["누구"],        hint:"사람을 물어볼 때 → ??"},
       {id:10, sentence:"___ 먹어요?",                  answers:["뭐","무엇을"], hint:"사물을 물어볼 때 → ??"},
     ];
@@ -2401,7 +2401,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         desc: vi ? "Đánh dấu chủ đề câu" : en ? "Marks the topic of a sentence" : "문장의 주제를 나타내요",
         items: [
           { form: "저는", ex: vi ? "Tôi (thì)..." : en ? "I (as for me)..." : "저는 학생이에요.", note: vi ? "받침 없음 → 는" : en ? "No final consonant → 는" : "받침 없음 → 는" },
+          { form: "가방은", ex: vi ? "Túi xách (thì)..." : en ? "The bag (as for)..." : "가방은 책상 위에 있어요.", note: vi ? "받침 없음 → 는" : en ? "No final consonant → 는" : "받침 없음 → 는" },
           { form: "학생은", ex: vi ? "Học sinh (thì)..." : en ? "Student (as for)..." : "학생은 바빠요.", note: vi ? "받침 있음 → 은" : en ? "Final consonant → 은" : "받침 있음 → 은" },
+          { form: "선생님은", ex: vi ? "Giáo viên (thì)..." : en ? "Teacher (as for)..." : "선생님은 교실에 있어요.", note: vi ? "받침 있음 → 은" : en ? "Final consonant → 은" : "받침 있음 → 은" },
         ],
         tip: vi ? "은/는 = 'As for...' — giới thiệu chủ đề!" : en ? "은/는 = 'As for...' — introduces the topic!" : "은/는은 '~은/는 말이에요'처럼 주제를 소개해요 😊"
       },
@@ -2412,7 +2414,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         desc: vi ? "Đánh dấu chủ ngữ thực hiện hành động" : en ? "Marks who/what does the action" : "동작·상태의 주체를 나타내요",
         items: [
           { form: "친구가", ex: vi ? "Bạn bè (làm gì đó)..." : en ? "Friend (does)..." : "친구가 와요.", note: vi ? "받침 없음 → 가" : en ? "No final consonant → 가" : "받침 없음 → 가" },
+          { form: "의자가", ex: vi ? "Cái ghế (ở đâu đó)..." : en ? "The chair (is)..." : "의자가 있어요.", note: vi ? "받침 없음 → 가" : en ? "No final consonant → 가" : "받침 없음 → 가" },
           { form: "책이", ex: vi ? "Sách (ở đâu đó)..." : en ? "Book (is)..." : "책이 있어요.", note: vi ? "받침 있음 → 이" : en ? "Final consonant → 이" : "받침 있음 → 이" },
+          { form: "학생이", ex: vi ? "Học sinh (làm gì đó)..." : en ? "Student (does)..." : "학생이 공부해요.", note: vi ? "받침 있음 → 이" : en ? "Final consonant → 이" : "받침 있음 → 이" },
         ],
         tip: vi ? "이/가 = ai/cái gì thực hiện hành động!" : en ? "이/가 = who/what does the action!" : "이/가는 동작·상태의 주인공을 가리켜요 😊"
       },
@@ -2423,7 +2427,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         desc: vi ? "Đánh dấu tân ngữ (đối tượng bị tác động)" : en ? "Marks the object of an action" : "동작의 대상을 나타내요",
         items: [
           { form: "밥을", ex: vi ? "Ăn cơm" : en ? "Eat rice" : "밥을 먹어요.", note: vi ? "받침 있음 → 을" : en ? "Final consonant → 을" : "받침 있음 → 을" },
+          { form: "책을", ex: vi ? "Đọc sách" : en ? "Read a book" : "책을 읽어요.", note: vi ? "받침 있음 → 을" : en ? "Final consonant → 을" : "받침 있음 → 을" },
           { form: "커피를", ex: vi ? "Uống cà phê" : en ? "Drink coffee" : "커피를 마셔요.", note: vi ? "받침 없음 → 를" : en ? "No final consonant → 를" : "받침 없음 → 를" },
+          { form: "의자를", ex: vi ? "Mua ghế" : en ? "Buy a chair" : "의자를 사요.", note: vi ? "받침 없음 → 를" : en ? "No final consonant → 를" : "받침 없음 → 를" },
         ],
         tip: vi ? "을/를 = danh từ bị tác động bởi hành động!" : en ? "을/를 = the noun the action affects!" : "을/를은 '~을/를 해요'처럼 동작의 대상이에요 😊"
       },
@@ -2434,7 +2440,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         desc: vi ? "에 = ở (trạng thái), 에서 = ở (hành động)" : en ? "에 = location (state), 에서 = location (action)" : "에 = 있는 곳 / 에서 = 행동하는 곳",
         items: [
           { form: "학교에", ex: vi ? "Ở trường (có ai đó)" : en ? "At school (someone is there)" : "학교에 있어요.", note: vi ? "에 = vị trí tồn tại" : en ? "에 = where something exists" : "에 = 존재하는 장소" },
+          { form: "집에", ex: vi ? "Về nhà" : en ? "Go home" : "집에 가요.", note: vi ? "에 = điểm đến" : en ? "에 = destination" : "에 = 가는 장소" },
           { form: "학교에서", ex: vi ? "Học ở trường" : en ? "Study at school" : "학교에서 공부해요.", note: vi ? "에서 = nơi xảy ra hành động" : en ? "에서 = where action happens" : "에서 = 행동이 일어나는 장소" },
+          { form: "도서관에서", ex: vi ? "Đọc sách ở thư viện" : en ? "Read at the library" : "도서관에서 책을 읽어요.", note: vi ? "에서 = nơi xảy ra hành động" : en ? "에서 = where action happens" : "에서 = 행동이 일어나는 장소" },
         ],
         tip: vi ? "에 있다 / 에서 하다 — hãy nhớ cặp này!" : en ? "에 있다 / 에서 하다 — remember this pair!" : "에 있어요 / 에서 해요 — 이 짝을 기억해요! 😊"
       },
@@ -2445,7 +2453,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         desc: vi ? "Nối các danh từ với nhau (và)" : en ? "Connects nouns (and)" : "명사와 명사를 이어줘요",
         items: [
           { form: "친구와", ex: vi ? "Với bạn" : en ? "With a friend" : "친구와 가요.", note: vi ? "받침 없음 → 와" : en ? "No final consonant → 와" : "받침 없음 → 와" },
+          { form: "의자와", ex: vi ? "Cái ghế và..." : en ? "Chair and..." : "의자와 책상이 있어요.", note: vi ? "받침 없음 → 와" : en ? "No final consonant → 와" : "받침 없음 → 와" },
           { form: "선생님과", ex: vi ? "Với giáo viên" : en ? "With the teacher" : "선생님과 이야기해요.", note: vi ? "받침 있음 → 과" : en ? "Has final consonant → 과" : "받침 있음 → 과" },
+          { form: "학생과", ex: vi ? "Với học sinh" : en ? "With the student" : "학생과 공부해요.", note: vi ? "받침 있음 → 과" : en ? "Has final consonant → 과" : "받침 있음 → 과" },
         ],
         tip: vi ? "받침 없으면 와, 받침 있으면 과!" : en ? "No final consonant → 와, has final consonant → 과!" : "받침 없으면 와, 받침 있으면 과! 😊"
       },
