@@ -2935,9 +2935,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         {unitCardIdx === 0 && !unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#00A876", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
-            <div>· {vi?"Kết thúc bằng phụ âm":en?"Ends with consonant":"자음 끝"} → <b>이에요</b> &nbsp;(책<b>이에요</b>)</div>
-            <div>· {vi?"Kết thúc bằng nguyên âm":en?"Ends with vowel":"모음 끝"} → <b>예요</b> &nbsp;(커피<b>예요</b>)</div>
-            <div>· {vi?"Kính ngữ":en?"Honorific":"높임말"} → <b>이세요/세요</b></div>
+            <div>· {vi?"Kết thúc bằng phụ âm":en?"Ends with consonant":"자음 끝"} → <b>이__요</b> &nbsp;(책 + ?)</div>
+            <div>· {vi?"Kết thúc bằng nguyên âm":en?"Ends with vowel":"모음 끝"} → <b>__요</b> &nbsp;(커피 + ?)</div>
+            <div>· {vi?"Kính ngữ":en?"Honorific":"높임말"} → <b>이__요 / __요</b></div>
           </div>
         )}
 
@@ -3256,10 +3256,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         {unitCardIdx === 0 && !unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#1565C0", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
-            <div>· 있다 → <b>있어요</b> &nbsp;(시간이 <b>있어요</b>)</div>
-            <div>· 없다 → <b>없어요</b> &nbsp;(돈이 <b>없어요</b>)</div>
-            <div>· 많다 → <b>많아요</b> &nbsp;(친구가 <b>많아요</b>)</div>
-            <div>· 적다 → <b>적어요</b> &nbsp;(학생이 <b>적어요</b>)</div>
+            <div>· 있다 → <b>있__요</b> &nbsp;(책 + 있다 + ?)</div>
+            <div>· 없다 → <b>없__요</b> &nbsp;(우유 + 없다 + ?)</div>
+            <div>· 많다 → <b>많__요</b> &nbsp;(숙제 + 많다 + ?)</div>
+            <div>· 적다 → <b>적__요</b> &nbsp;(물 + 적다 + ?)</div>
           </div>
         )}
 
