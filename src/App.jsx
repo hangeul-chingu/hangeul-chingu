@@ -3307,18 +3307,28 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const en = lang?.code === "en";
 
     const TEST2_QUESTIONS = [
-      // 1단원 복습 (이에요/예요/이다)
-      { id:"t2_1",  q:"저는 학생___.",       answer:"이에요", answers:["이에요","이에요."], hint:"💡 학생 → 받침?" },
-      { id:"t2_2",  q:"여기는 학교___.",      answer:"예요",   answers:["예요","예요."],   hint:"💡 학교 → 받침?" },
-      { id:"t2_3",  q:"오늘은 월요일___.",     answer:"이에요", answers:["이에요","이에요."], hint:"💡 월요일 → 받침?" },
-      // 2단원 (있다·없다·많다·적다)
-      { id:"t2_4",  q:"시간이 ___.",          answer:"있어요", answers:["있어요","있어요."], hint:"💡 있다" },
-      { id:"t2_5",  q:"돈이 ___.",            answer:"없어요", answers:["없어요","없어요."], hint:"💡 없다" },
-      { id:"t2_6",  q:"친구가 ___.",          answer:"많아요", answers:["많아요","많아요."], hint:"💡 많다" },
-      { id:"t2_7",  q:"학생이 ___.",          answer:"적어요", answers:["적어요","적어요."], hint:"💡 적다" },
-      { id:"t2_8",  q:"이분은 선생님___.",     answer:"이세요", answers:["이세요","이세요."], hint:"💡 이분 = 높여 부르는 말" },
-      { id:"t2_9",  q:"사람이 ___.",          answer:"많아요", answers:["많아요","많아요."], hint:"💡 많다" },
-      { id:"t2_10", q:"저는 베트남 사람___.", answer:"이에요", answers:["이에요","이에요."], hint:"💡 사람 → 받침?" },
+      // ── 1단원 복습 10문제 (이에요/예요/이다)
+      { id:"t2_1",  q:"저는 학생___.",         answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 학생 → 받침 있음" },
+      { id:"t2_2",  q:"여기는 학교___.",        answer:"예요",    answers:["예요","예요."],      hint:"💡 학교 → 받침 없음" },
+      { id:"t2_3",  q:"오늘은 월요일___.",       answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 월요일 → 받침 있음" },
+      { id:"t2_4",  q:"저는 의사___.",          answer:"예요",    answers:["예요","예요."],      hint:"💡 의사 → 받침 없음" },
+      { id:"t2_5",  q:"이분은 선생님___.",       answer:"이세요",  answers:["이세요","이세요."],  hint:"💡 높임 → 이세요" },
+      { id:"t2_6",  q:"저는 베트남 사람___.",    answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 사람 → 받침 있음" },
+      { id:"t2_7",  q:"여기는 회사___.",         answer:"예요",    answers:["예요","예요."],      hint:"💡 회사 → 받침 없음" },
+      { id:"t2_8",  q:"저 분은 친구___.",        answer:"예요",    answers:["예요","예요."],      hint:"💡 친구 → 받침 없음" },
+      { id:"t2_9",  q:"오늘은 화요일___.",       answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 화요일 → 받침 있음" },
+      { id:"t2_10", q:"저는 한국어 선생님___.",  answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 선생님 → 받침 있음" },
+      // ── 2단원 10문제 (있다·없다·많다·적다)
+      { id:"t2_11", q:"시간이 ___.",            answer:"있어요",  answers:["있어요","있어요."],  hint:"💡 있다" },
+      { id:"t2_12", q:"돈이 ___.",              answer:"없어요",  answers:["없어요","없어요."],  hint:"💡 없다" },
+      { id:"t2_13", q:"친구가 ___.",            answer:"많아요",  answers:["많아요","많아요."],  hint:"💡 많다" },
+      { id:"t2_14", q:"학생이 ___.",            answer:"적어요",  answers:["적어요","적어요."],  hint:"💡 적다" },
+      { id:"t2_15", q:"숙제가 ___.",            answer:"많아요",  answers:["많아요","많아요."],  hint:"💡 많다" },
+      { id:"t2_16", q:"오늘 시간이 ___.",       answer:"없어요",  answers:["없어요","없어요."],  hint:"💡 없다" },
+      { id:"t2_17", q:"교실에 의자가 ___.",     answer:"있어요",  answers:["있어요","있어요."],  hint:"💡 있다" },
+      { id:"t2_18", q:"오늘 사람이 ___.",       answer:"적어요",  answers:["적어요","적어요."],  hint:"💡 적다" },
+      { id:"t2_19", q:"냉장고에 음식이 ___.",   answer:"없어요",  answers:["없어요","없어요."],  hint:"💡 없다" },
+      { id:"t2_20", q:"우리 반 학생이 ___.",    answer:"많아요",  answers:["많아요","많아요."],  hint:"💡 많다" },
     ];
 
     function gradeTest2() {
@@ -3576,19 +3586,39 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const en = lang?.code === "en";
 
     const TEST3_QUESTIONS = [
-      // 1단원 복습
-      { id:"t3_1",  q:"저는 학생___.",       answer:"이에요", answers:["이에요","이에요."], hint:"💡 학생 → 받침?" },
-      { id:"t3_2",  q:"여기는 학교___.",      answer:"예요",   answers:["예요","예요."],   hint:"💡 학교 → 받침?" },
-      // 2단원 복습
-      { id:"t3_3",  q:"시간이 ___.",          answer:"있어요", answers:["있어요","있어요."], hint:"💡 있다" },
-      { id:"t3_4",  q:"돈이 ___.",            answer:"없어요", answers:["없어요","없어요."], hint:"💡 없다" },
-      { id:"t3_5",  q:"친구가 ___.",          answer:"많아요", answers:["많아요","많아요."], hint:"💡 많다" },
-      // 3단원 (형용사)
-      { id:"t3_6",  q:"이 가방이 ___.",       answer:"커요",   answers:["커요","커요."],   hint:"💡 크다" },
-      { id:"t3_7",  q:"저 가방이 ___.",       answer:"작아요", answers:["작아요","작아요."], hint:"💡 작다" },
-      { id:"t3_8",  q:"날씨가 ___.",          answer:"좋아요", answers:["좋아요","좋아요."], hint:"💡 좋다" },
-      { id:"t3_9",  q:"음식이 ___.",          answer:"맛있어요", answers:["맛있어요","맛있어요."], hint:"💡 맛있다" },
-      { id:"t3_10", q:"한국어가 ___.",        answer:"재미있어요", answers:["재미있어요","재미있어요."], hint:"💡 재미있다" },
+      // ── 1단원 복습 10문제
+      { id:"t3_1",  q:"저는 학생___.",         answer:"이에요",     answers:["이에요","이에요."],     hint:"💡 학생 → 받침 있음" },
+      { id:"t3_2",  q:"여기는 학교___.",        answer:"예요",       answers:["예요","예요."],         hint:"💡 학교 → 받침 없음" },
+      { id:"t3_3",  q:"오늘은 목요일___.",       answer:"이에요",     answers:["이에요","이에요."],     hint:"💡 목요일 → 받침 있음" },
+      { id:"t3_4",  q:"저는 간호사___.",         answer:"예요",       answers:["예요","예요."],         hint:"💡 간호사 → 받침 없음" },
+      { id:"t3_5",  q:"이분은 교수님___.",        answer:"이세요",     answers:["이세요","이세요."],     hint:"💡 높임 → 이세요" },
+      { id:"t3_6",  q:"저는 중국 사람___.",      answer:"이에요",     answers:["이에요","이에요."],     hint:"💡 사람 → 받침 있음" },
+      { id:"t3_7",  q:"여기는 병원___.",          answer:"이에요",     answers:["이에요","이에요."],     hint:"💡 병원 → 받침 있음" },
+      { id:"t3_8",  q:"저 분은 동료___.",         answer:"예요",       answers:["예요","예요."],         hint:"💡 동료 → 받침 없음" },
+      { id:"t3_9",  q:"오늘은 수요일___.",        answer:"이에요",     answers:["이에요","이에요."],     hint:"💡 수요일 → 받침 있음" },
+      { id:"t3_10", q:"저는 요리사___.",          answer:"예요",       answers:["예요","예요."],         hint:"💡 요리사 → 받침 없음" },
+      // ── 2단원 복습 10문제
+      { id:"t3_11", q:"시간이 ___.",             answer:"있어요",     answers:["있어요","있어요."],     hint:"💡 있다" },
+      { id:"t3_12", q:"돈이 ___.",               answer:"없어요",     answers:["없어요","없어요."],     hint:"💡 없다" },
+      { id:"t3_13", q:"친구가 ___.",             answer:"많아요",     answers:["많아요","많아요."],     hint:"💡 많다" },
+      { id:"t3_14", q:"학생이 ___.",             answer:"적어요",     answers:["적어요","적어요."],     hint:"💡 적다" },
+      { id:"t3_15", q:"오늘 숙제가 ___.",        answer:"없어요",     answers:["없어요","없어요."],     hint:"💡 없다" },
+      { id:"t3_16", q:"냉장고에 음식이 ___.",    answer:"있어요",     answers:["있어요","있어요."],     hint:"💡 있다" },
+      { id:"t3_17", q:"오늘 손님이 ___.",        answer:"많아요",     answers:["많아요","많아요."],     hint:"💡 많다" },
+      { id:"t3_18", q:"오늘 수업이 ___.",        answer:"없어요",     answers:["없어요","없어요."],     hint:"💡 없다" },
+      { id:"t3_19", q:"우리 반에 남자가 ___.",   answer:"적어요",     answers:["적어요","적어요."],     hint:"💡 적다" },
+      { id:"t3_20", q:"오늘 할 일이 ___.",       answer:"많아요",     answers:["많아요","많아요."],     hint:"💡 많다" },
+      // ── 3단원 10문제 (형용사)
+      { id:"t3_21", q:"이 가방이 ___.",          answer:"커요",       answers:["커요","커요."],         hint:"💡 크다" },
+      { id:"t3_22", q:"저 가방이 ___.",          answer:"작아요",     answers:["작아요","작아요."],     hint:"💡 작다" },
+      { id:"t3_23", q:"날씨가 ___.",             answer:"좋아요",     answers:["좋아요","좋아요."],     hint:"💡 좋다" },
+      { id:"t3_24", q:"음식이 ___.",             answer:"맛있어요",   answers:["맛있어요","맛있어요."], hint:"💡 맛있다" },
+      { id:"t3_25", q:"한국어가 ___.",           answer:"재미있어요", answers:["재미있어요","재미있어요."], hint:"💡 재미있다" },
+      { id:"t3_26", q:"오늘 너무 ___.",          answer:"바빠요",     answers:["바빠요","바빠요."],     hint:"💡 바쁘다" },
+      { id:"t3_27", q:"머리가 ___.",             answer:"아파요",     answers:["아파요","아파요."],     hint:"💡 아프다" },
+      { id:"t3_28", q:"오늘 날씨가 ___.",        answer:"싫어요",     answers:["싫어요","싫어요."],     hint:"💡 싫다" },
+      { id:"t3_29", q:"이 음식이 ___.",          answer:"맛없어요",   answers:["맛없어요","맛없어요."], hint:"💡 맛없다" },
+      { id:"t3_30", q:"한국어가 ___.",           answer:"어려워요",   answers:["어려워요","어려워요."], hint:"💡 어렵다" },
     ];
 
     function gradeTest3() {
@@ -3835,20 +3865,50 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const en = lang?.code === "en";
 
     const TEST4_QUESTIONS = [
-      // 1단원 복습
-      { id:"t4_1", q:"저는 학생___.",    answer:"이에요", answers:["이에요","이에요."], hint:"💡 학생 → 받침?" },
-      { id:"t4_2", q:"여기는 학교___.",  answer:"예요",   answers:["예요","예요."],   hint:"💡 학교 → 받침?" },
-      // 2단원 복습
-      { id:"t4_3", q:"시간이 ___.",      answer:"있어요", answers:["있어요","있어요."], hint:"💡 있다" },
-      { id:"t4_4", q:"친구가 ___.",      answer:"많아요", answers:["많아요","많아요."], hint:"💡 많다" },
-      // 3단원 복습
-      { id:"t4_5", q:"날씨가 ___.",      answer:"좋아요", answers:["좋아요","좋아요."], hint:"💡 좋다" },
-      { id:"t4_6", q:"음식이 ___.",      answer:"맛있어요", answers:["맛있어요","맛있어요."], hint:"💡 맛있다" },
-      // 4단원 (의문대명사)
-      { id:"t4_7", q:"___예요? (사람)",  answer:"누구",   answers:["누구","누구요","누구예요"], hint:"💡 사람을 물어볼 때" },
-      { id:"t4_8", q:"___ 가요? (장소)", answer:"어디",   answers:["어디","어디요"],  hint:"💡 장소를 물어볼 때" },
-      { id:"t4_9", q:"___ 해요? (이유)", answer:"왜",     answers:["왜","왜요"],     hint:"💡 이유를 물어볼 때" },
-      { id:"t4_10",q:"___ 먹어요? (사물)",answer:"뭐",   answers:["뭐","무엇","뭐요"], hint:"💡 사물을 물어볼 때" },
+      // ── 1단원 복습 10문제
+      { id:"t4_1",  q:"저는 학생___.",         answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 학생 → 받침 있음" },
+      { id:"t4_2",  q:"여기는 학교___.",        answer:"예요",    answers:["예요","예요."],      hint:"💡 학교 → 받침 없음" },
+      { id:"t4_3",  q:"오늘은 금요일___.",       answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 금요일 → 받침 있음" },
+      { id:"t4_4",  q:"저는 경찰___.",           answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 경찰 → 받침 있음" },
+      { id:"t4_5",  q:"이분은 의사___.",          answer:"이세요",  answers:["이세요","이세요."],  hint:"💡 높임 → 이세요" },
+      { id:"t4_6",  q:"저는 일본 사람___.",       answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 사람 → 받침 있음" },
+      { id:"t4_7",  q:"여기는 은행___.",          answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 은행 → 받침 있음" },
+      { id:"t4_8",  q:"저 분은 동생___.",         answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 동생 → 받침 있음" },
+      { id:"t4_9",  q:"여기는 카페___.",          answer:"예요",    answers:["예요","예요."],      hint:"💡 카페 → 받침 없음" },
+      { id:"t4_10", q:"저는 대학교 학생___.",     answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 학생 → 받침 있음" },
+      // ── 2단원 복습 10문제
+      { id:"t4_11", q:"시간이 ___.",             answer:"있어요",  answers:["있어요","있어요."],  hint:"💡 있다" },
+      { id:"t4_12", q:"돈이 ___.",               answer:"없어요",  answers:["없어요","없어요."],  hint:"💡 없다" },
+      { id:"t4_13", q:"친구가 ___.",             answer:"많아요",  answers:["많아요","많아요."],  hint:"💡 많다" },
+      { id:"t4_14", q:"학생이 ___.",             answer:"적어요",  answers:["적어요","적어요."],  hint:"💡 적다" },
+      { id:"t4_15", q:"오늘 일이 ___.",          answer:"많아요",  answers:["많아요","많아요."],  hint:"💡 많다" },
+      { id:"t4_16", q:"지갑에 카드가 ___.",      answer:"있어요",  answers:["있어요","있어요."],  hint:"💡 있다" },
+      { id:"t4_17", q:"오늘 버스가 ___.",        answer:"없어요",  answers:["없어요","없어요."],  hint:"💡 없다" },
+      { id:"t4_18", q:"교실에 창문이 ___.",      answer:"있어요",  answers:["있어요","있어요."],  hint:"💡 있다" },
+      { id:"t4_19", q:"오늘 손님이 ___.",        answer:"적어요",  answers:["적어요","적어요."],  hint:"💡 적다" },
+      { id:"t4_20", q:"가방에 책이 ___.",        answer:"많아요",  answers:["많아요","많아요."],  hint:"💡 많다" },
+      // ── 3단원 복습 10문제
+      { id:"t4_21", q:"오늘 날씨가 ___.",        answer:"좋아요",     answers:["좋아요","좋아요."],         hint:"💡 좋다" },
+      { id:"t4_22", q:"이 음식이 ___.",          answer:"맛있어요",   answers:["맛있어요","맛있어요."],     hint:"💡 맛있다" },
+      { id:"t4_23", q:"한국어가 ___.",           answer:"재미있어요", answers:["재미있어요","재미있어요."], hint:"💡 재미있다" },
+      { id:"t4_24", q:"오늘 너무 ___.",          answer:"바빠요",     answers:["바빠요","바빠요."],         hint:"💡 바쁘다" },
+      { id:"t4_25", q:"배가 ___.",               answer:"아파요",     answers:["아파요","아파요."],         hint:"💡 아프다" },
+      { id:"t4_26", q:"이 옷이 너무 ___.",       answer:"작아요",     answers:["작아요","작아요."],         hint:"💡 작다" },
+      { id:"t4_27", q:"저 가방이 너무 ___.",     answer:"커요",       answers:["커요","커요."],             hint:"💡 크다" },
+      { id:"t4_28", q:"이 음식이 ___.",          answer:"맛없어요",   answers:["맛없어요","맛없어요."],     hint:"💡 맛없다" },
+      { id:"t4_29", q:"한국어가 너무 ___.",      answer:"어려워요",   answers:["어려워요","어려워요."],     hint:"💡 어렵다" },
+      { id:"t4_30", q:"오늘 날씨가 ___.",        answer:"싫어요",     answers:["싫어요","싫어요."],         hint:"💡 싫다" },
+      // ── 4단원 10문제 (의문대명사)
+      { id:"t4_31", q:"___ 예요? (사람)",        answer:"누구",   answers:["누구","누구요","누구예요"], hint:"💡 사람" },
+      { id:"t4_32", q:"___ 가요? (장소)",        answer:"어디",   answers:["어디","어디요"],            hint:"💡 장소" },
+      { id:"t4_33", q:"___ 해요? (이유)",        answer:"왜",     answers:["왜","왜요"],               hint:"💡 이유" },
+      { id:"t4_34", q:"___ 먹어요? (사물)",      answer:"뭐",     answers:["뭐","무엇","뭐요"],         hint:"💡 사물" },
+      { id:"t4_35", q:"___ 와요? (시간)",        answer:"언제",   answers:["언제","언제요"],            hint:"💡 시간" },
+      { id:"t4_36", q:"___ 이 친구예요? (주어)", answer:"누가",   answers:["누가"],                    hint:"💡 누구+가→누가" },
+      { id:"t4_37", q:"___ 공부해요? (장소)",    answer:"어디서", answers:["어디서","어디에서"],        hint:"💡 장소+에서" },
+      { id:"t4_38", q:"___ 예요? (시간)",        answer:"언제",   answers:["언제","언제요"],            hint:"💡 시간" },
+      { id:"t4_39", q:"___ 좋아요? (사물)",      answer:"뭐",     answers:["뭐","무엇","뭐가"],         hint:"💡 사물" },
+      { id:"t4_40", q:"___ 가르쳐요? (사람)",    answer:"누구",   answers:["누구","누구를","누구에게"], hint:"💡 사람" },
     ];
 
     function gradeTest4() {
@@ -3879,7 +3939,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{fontSize:22, fontWeight:900, color: testResult.passed?"#2E7D32":"#E64A00", marginBottom:4}}>
                 {testResult.score}점 {testResult.passed?"— 통과!":"— 다시 도전!"}
               </div>
-              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2·3·4단원</div>
+              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2·3·4단원 (40문제)</div>
             </div>
             <div style={{background:"white", borderRadius:16, padding:16, marginBottom:16}}>
               {testResult.feedback.map((q,i)=>(
@@ -3922,7 +3982,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             📝 누적 테스트 — 1·2·3·4단원
           </div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
-            범위: 이에요/이다 + 있다·없다·많다·적다 + 형용사 + 의문대명사
+            범위: 이에요/이다 + 있다·없다·많다·적다 + 형용사 + 의문대명사 (40문제)
           </div>
           {TEST4_QUESTIONS.map((q,i)=>(
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
@@ -3972,7 +4032,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         hint: vi?"받침 없음 → 세요":en?"No final consonant → 세요":"받침 없음 → 세요",
       },
       {
-        front: "___ (드세요 → 먹다 높임)",
+        front: "___ (먹다의 높임말)",
         blank: "드세요",
         full: "드세요.",
         hint: vi?"먹다·마시다 → 드시다 (높임)":en?"먹다·마시다 → 드시다 (polite)":"먹다·마시다는 '드시다'로 높여요",
@@ -3990,8 +4050,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         hint: vi?"받침 있음 → 으세요":en?"Has final consonant → 으세요":"받침 있음 → 으세요",
       },
       {
-        front: "___ (천천히 + 말하다 → 명령)",
-        blank: "천천히 말하세요",
+        front: "천천히 ___ (말하다 → 명령)",
+        blank: "말하세요",
         full: "천천히 말하세요.",
         hint: vi?"천천히 + 말하다 → 말하세요":en?"Slowly + speak → 말하세요":"천천히 + 말하다 → 말하세요",
       },
@@ -4088,21 +4148,61 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const en = lang?.code === "en";
 
     const TEST5_QUESTIONS = [
-      // 1단원 복습
-      { id:"t5_1", q:"저는 선생님___.",    answer:"이에요", answers:["이에요","이에요."], hint:"💡 선생님 → 받침?" },
-      { id:"t5_2", q:"여기는 카페___.",    answer:"예요",   answers:["예요","예요."],   hint:"💡 카페 → 받침?" },
-      // 2단원 복습
-      { id:"t5_3", q:"돈이 ___.",          answer:"없어요", answers:["없어요","없어요."], hint:"💡 없다" },
-      { id:"t5_4", q:"사람이 ___.",        answer:"많아요", answers:["많아요","많아요."], hint:"💡 많다" },
-      // 3단원 복습
-      { id:"t5_5", q:"한국어가 ___.",      answer:"어려워요", answers:["어려워요","어려워요.","어렵아요"], hint:"💡 어렵다" },
-      // 4단원 복습
-      { id:"t5_6", q:"___ 와요? (시간)",   answer:"언제",   answers:["언제","언제요"],  hint:"💡 시간을 물어볼 때" },
-      { id:"t5_7", q:"___ 예요? (사람)",   answer:"누구",   answers:["누구","누구요","누구예요"], hint:"💡 사람을 물어볼 때" },
-      // 5단원 (세요)
-      { id:"t5_8", q:"앉다 → ___",         answer:"앉으세요", answers:["앉으세요","앉으세요."], hint:"💡 받침 있음 → 으세요" },
-      { id:"t5_9", q:"오다 → ___",         answer:"오세요",   answers:["오세요","오세요."],   hint:"💡 받침 없음 → 세요" },
-      { id:"t5_10",q:"먹다 → ___ (높임)",  answer:"드세요",   answers:["드세요","드세요."],   hint:"💡 먹다 특별 높임말" },
+      // ── 1단원 복습 10문제
+      { id:"t5_1",  q:"저는 선생님___.",        answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 선생님 → 받침 있음" },
+      { id:"t5_2",  q:"여기는 카페___.",         answer:"예요",    answers:["예요","예요."],      hint:"💡 카페 → 받침 없음" },
+      { id:"t5_3",  q:"오늘은 토요일___.",        answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 토요일 → 받침 있음" },
+      { id:"t5_4",  q:"저는 회사원___.",          answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 회사원 → 받침 있음" },
+      { id:"t5_5",  q:"이분은 원장님___.",         answer:"이세요",  answers:["이세요","이세요."],  hint:"💡 높임 → 이세요" },
+      { id:"t5_6",  q:"저는 필리핀 사람___.",     answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 사람 → 받침 있음" },
+      { id:"t5_7",  q:"여기는 공항___.",           answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 공항 → 받침 있음" },
+      { id:"t5_8",  q:"저 분은 팀장님___.",        answer:"이세요",  answers:["이세요","이세요."],  hint:"💡 높임 → 이세요" },
+      { id:"t5_9",  q:"여기는 편의점___.",          answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 편의점 → 받침 있음" },
+      { id:"t5_10", q:"저는 대학원생___.",          answer:"이에요",  answers:["이에요","이에요."],  hint:"💡 대학원생 → 받침 있음" },
+      // ── 2단원 복습 10문제
+      { id:"t5_11", q:"오늘 시간이 ___.",          answer:"없어요",  answers:["없어요","없어요."],  hint:"💡 없다" },
+      { id:"t5_12", q:"사람이 ___.",               answer:"많아요",  answers:["많아요","많아요."],  hint:"💡 많다" },
+      { id:"t5_13", q:"주머니에 돈이 ___.",        answer:"없어요",  answers:["없어요","없어요."],  hint:"💡 없다" },
+      { id:"t5_14", q:"오늘 할 일이 ___.",         answer:"많아요",  answers:["많아요","많아요."],  hint:"💡 많다" },
+      { id:"t5_15", q:"교실에 학생이 ___.",        answer:"적어요",  answers:["적어요","적어요."],  hint:"💡 적다" },
+      { id:"t5_16", q:"냉장고에 음식이 ___.",      answer:"없어요",  answers:["없어요","없어요."],  hint:"💡 없다" },
+      { id:"t5_17", q:"오늘 손님이 ___.",          answer:"많아요",  answers:["많아요","많아요."],  hint:"💡 많다" },
+      { id:"t5_18", q:"지금 여유가 ___.",          answer:"없어요",  answers:["없어요","없어요."],  hint:"💡 없다" },
+      { id:"t5_19", q:"오늘 버스에 사람이 ___.",   answer:"적어요",  answers:["적어요","적어요."],  hint:"💡 적다" },
+      { id:"t5_20", q:"책상 위에 책이 ___.",       answer:"있어요",  answers:["있어요","있어요."],  hint:"💡 있다" },
+      // ── 3단원 복습 10문제
+      { id:"t5_21", q:"한국어가 ___.",             answer:"어려워요",   answers:["어려워요","어려워요."],     hint:"💡 어렵다" },
+      { id:"t5_22", q:"오늘 날씨가 ___.",          answer:"좋아요",     answers:["좋아요","좋아요."],         hint:"💡 좋다" },
+      { id:"t5_23", q:"이 음식이 ___.",            answer:"맛있어요",   answers:["맛있어요","맛있어요."],     hint:"💡 맛있다" },
+      { id:"t5_24", q:"오늘 너무 ___.",            answer:"바빠요",     answers:["바빠요","바빠요."],         hint:"💡 바쁘다" },
+      { id:"t5_25", q:"다리가 ___.",               answer:"아파요",     answers:["아파요","아파요."],         hint:"💡 아프다" },
+      { id:"t5_26", q:"이 신발이 너무 ___.",       answer:"작아요",     answers:["작아요","작아요."],         hint:"💡 작다" },
+      { id:"t5_27", q:"저 빌딩이 ___.",            answer:"커요",       answers:["커요","커요."],             hint:"💡 크다" },
+      { id:"t5_28", q:"이 음식 맛이 ___.",         answer:"싫어요",     answers:["싫어요","싫어요."],         hint:"💡 싫다" },
+      { id:"t5_29", q:"이 문제가 너무 ___.",       answer:"어려워요",   answers:["어려워요","어려워요."],     hint:"💡 어렵다" },
+      { id:"t5_30", q:"한국어 공부가 ___.",        answer:"재미있어요", answers:["재미있어요","재미있어요."], hint:"💡 재미있다" },
+      // ── 4단원 복습 10문제
+      { id:"t5_31", q:"___ 예요? (사람)",          answer:"누구",   answers:["누구","누구요","누구예요"],  hint:"💡 사람" },
+      { id:"t5_32", q:"___ 가요? (장소)",          answer:"어디",   answers:["어디","어디요"],             hint:"💡 장소" },
+      { id:"t5_33", q:"___ 해요? (이유)",          answer:"왜",     answers:["왜","왜요"],                hint:"💡 이유" },
+      { id:"t5_34", q:"___ 먹어요? (사물)",        answer:"뭐",     answers:["뭐","무엇","뭐요"],          hint:"💡 사물" },
+      { id:"t5_35", q:"___ 와요? (시간)",          answer:"언제",   answers:["언제","언제요"],             hint:"💡 시간" },
+      { id:"t5_36", q:"___ 이 선생님이에요? (주어)", answer:"누가", answers:["누가"],                     hint:"💡 누구+가→누가" },
+      { id:"t5_37", q:"___ 배워요? (장소)",        answer:"어디서", answers:["어디서","어디에서"],         hint:"💡 장소+에서" },
+      { id:"t5_38", q:"___ 만나요? (시간)",        answer:"언제",   answers:["언제","언제요"],             hint:"💡 시간" },
+      { id:"t5_39", q:"___ 좋아해요? (사물)",      answer:"뭐",     answers:["뭐","무엇"],                hint:"💡 사물" },
+      { id:"t5_40", q:"___ 도와줘요? (사람)",      answer:"누구",   answers:["누구","누구를"],             hint:"💡 사람" },
+      // ── 5단원 10문제 (~세요)
+      { id:"t5_41", q:"앉다 → ___",               answer:"앉으세요",  answers:["앉으세요","앉으세요."],  hint:"💡 받침 있음 → 으세요" },
+      { id:"t5_42", q:"오다 → ___",               answer:"오세요",    answers:["오세요","오세요."],      hint:"💡 받침 없음 → 세요" },
+      { id:"t5_43", q:"먹다 → ___ (높임)",         answer:"드세요",    answers:["드세요","드세요."],      hint:"💡 먹다 특별 높임말" },
+      { id:"t5_44", q:"읽다 → ___",               answer:"읽으세요",  answers:["읽으세요","읽으세요."],  hint:"💡 받침 있음 → 으세요" },
+      { id:"t5_45", q:"기다리다 → ___",            answer:"기다리세요",answers:["기다리세요","기다리세요."], hint:"💡 받침 없음 → 세요" },
+      { id:"t5_46", q:"들어오다 → ___",            answer:"들어오세요",answers:["들어오세요","들어오세요."], hint:"💡 받침 없음 → 세요" },
+      { id:"t5_47", q:"말하다 → ___",              answer:"말하세요",  answers:["말하세요","말하세요."],  hint:"💡 받침 없음 → 세요" },
+      { id:"t5_48", q:"쓰다 → ___",               answer:"쓰세요",    answers:["쓰세요","쓰세요."],      hint:"💡 받침 없음 → 세요" },
+      { id:"t5_49", q:"닫다 → ___",               answer:"닫으세요",  answers:["닫으세요","닫으세요."],  hint:"💡 받침 있음 → 으세요" },
+      { id:"t5_50", q:"마시다 → ___ (높임)",       answer:"드세요",    answers:["드세요","드세요."],      hint:"💡 마시다 특별 높임말" },
     ];
 
     function gradeTest5() {
@@ -4133,7 +4233,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{fontSize:22, fontWeight:900, color: testResult.passed?"#2E7D32":"#E64A00", marginBottom:4}}>
                 {testResult.score}점 {testResult.passed?"— 통과!":"— 다시 도전!"}
               </div>
-              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2·3·4·5단원</div>
+              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2·3·4·5단원 (50문제)</div>
             </div>
             <div style={{background:"white", borderRadius:16, padding:16, marginBottom:16}}>
               {testResult.feedback.map((q,i)=>(
@@ -4176,7 +4276,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             📝 누적 테스트 — 1·2·3·4·5단원
           </div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
-            범위: 이에요/이다 + 있다·없다·많다·적다 + 형용사 + 의문대명사 + ~세요
+            범위: 이에요/이다 + 있다·없다·많다·적다 + 형용사 + 의문대명사 + ~세요 (50문제)
           </div>
           {TEST5_QUESTIONS.map((q,i)=>(
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
