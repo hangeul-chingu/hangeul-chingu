@@ -3426,7 +3426,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
                 style={{width:"100%", border:"2px solid #BBDEFB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
-              <div style={{fontSize:11, color:"#888", marginTop:4}}>{q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest2}
@@ -3703,7 +3703,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
                 style={{width:"100%", border:"2px solid #E1BEE7", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
-              <div style={{fontSize:11, color:"#888", marginTop:4}}>{q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest3}
@@ -3993,7 +3993,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
                 style={{width:"100%", border:"2px solid #C8E6C9", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
-              <div style={{fontSize:11, color:"#888", marginTop:4}}>{q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest4}
@@ -4287,7 +4287,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
                 style={{width:"100%", border:"2px solid #C8E6C9", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
-              <div style={{fontSize:11, color:"#888", marginTop:4}}>{q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest5}
