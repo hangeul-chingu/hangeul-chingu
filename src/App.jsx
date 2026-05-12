@@ -2934,7 +2934,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         </div>
 
         {/* 규칙 요약 (첫 카드에만, 정답 공개 전) */}
-        {unitCardIdx === 0 && !unitCardRevealed && (
+        {!unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#00A876", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
             <div>· {vi?"Kết thúc bằng phụ âm":en?"Ends with consonant":"자음 끝"} → <b>이__요</b> &nbsp;(책 + ?)</div>
@@ -3255,7 +3255,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         </div>
 
         {/* 규칙 요약 (첫 카드에만) */}
-        {unitCardIdx === 0 && !unitCardRevealed && (
+        {!unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#1565C0", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
             <div>· 있다 → <b>있__요</b> &nbsp;(책 + 있다 + ?)</div>
@@ -3446,37 +3446,37 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         front: "이 가방이 ___.",
         blank: "커요",
         full: "이 가방이 커요.",
-        hint: vi?"'크다' → dùng khi vật to lớn":en?"'크다' → used when something is big":"크다 → 크+어요 → 커요 (ㅡ 탈락)",
+        hint: vi?"'크다' → dùng khi vật to lớn":en?"'크다' → used when something is big":"크다 → 크+어요 → ?요 (ㅡ 탈락)",
       },
       {
         front: "저 가방이 ___.",
         blank: "작아요",
         full: "저 가방이 작아요.",
-        hint: vi?"'작다' → nhỏ (ngược với 크다)":en?"'작다' → small (opposite of 크다)":"작다 → 작+아요 → 작아요",
+        hint: vi?"'작다' → nhỏ (ngược với 크다)":en?"'작다' → small (opposite of 크다)":"작다 → 작+아요 → ?요",
       },
       {
         front: "날씨가 ___.",
         blank: "좋아요",
         full: "날씨가 좋아요.",
-        hint: vi?"'좋다' → tốt, đẹp":en?"'좋다' → good, nice":"좋다 → 좋+아요 → 좋아요",
+        hint: vi?"'좋다' → tốt, đẹp":en?"'좋다' → good, nice":"좋다 → 좋+아요 → ?요",
       },
       {
         front: "음식이 ___.",
         blank: "맛있어요",
         full: "음식이 맛있어요.",
-        hint: vi?"'맛있다' = ngon (맛+있다)":en?"'맛있다' = delicious (맛+있다)":"맛있다 → 맛있+어요 → 맛있어요",
+        hint: vi?"'맛있다' = ngon (맛+있다)":en?"'맛있다' = delicious (맛+있다)":"맛있다 → 맛있+어요 → ?요",
       },
       {
         front: "숙제가 ___.",
         blank: "많아요",
         full: "숙제가 많아요.",
-        hint: vi?"'많다' đã học ở Bài 2 — nhớ không?":en?"'많다' from Unit 2 — remember?":"2단원에서 배운 '많다' 복습!",
+        hint: vi?"'많다' đã học ở Bài 2 — nhớ không?":en?"'많다' from Unit 2 — remember?":"2단원에서 배운 '많다' → ?요",
       },
       {
         front: "한국어가 ___.",
         blank: "재미있어요",
         full: "한국어가 재미있어요.",
-        hint: vi?"'재미있다' = thú vị (재미+있다)":en?"'재미있다' = interesting (재미+있다)":"재미있다 → 재미있+어요",
+        hint: vi?"'재미있다' = thú vị (재미+있다)":en?"'재미있다' = interesting (재미+있다)":"재미있다 → 재미있+어요 → ?요",
       },
     ];
 
@@ -3531,7 +3531,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
         </div>
 
-        {unitCardIdx === 0 && !unitCardRevealed && (
+        {!unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#7B1FA2", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
             <div>· ㅏ/ㅗ 끝 → <b>아__</b> &nbsp;(작다 + ?)</div>
