@@ -4626,7 +4626,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         blank: "그리고",
         blanks: ["그리고","또"],
         full: "저는 커피를 좋아해요. 그리고 차도 좋아해요.",
-        hint: vi?"Thêm thông tin → dùng từ nào?":en?"Adding more info → which word?":"앞 내용에 더 추가할 때 → ___?",
+        hint: vi?"Thêm thông tin → 그리고 hoặc 또":en?"Adding more info → 그리고 or 또":"추가할 때 → 그리고 / 또 (둘 다 가능)",
       },
       {
         front: "날씨가 좋아요. ___ 바람이 불어요.",
@@ -4731,7 +4731,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
         </div>
 
-        {unitCardRevealed && (
+        {!unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#E65100", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
             <div>· <b>그리고 / 또</b> — {vi?"và / ngoài ra (thêm)":en?"and / also (add)":"그리고·또 → 추가"}</div>
@@ -4871,7 +4871,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
         </div>
 
-        {unitCardRevealed && (
+        {!unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#E65100", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
             <div>· <b>-고</b> — {vi?"và (liệt kê, nối tiếp)":en?"and (list, sequence)":"나열·순서 → 동사/형용사 + 고"}</div>
@@ -5170,7 +5170,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
         </div>
 
-        {unitCardRevealed && (
+        {!unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#BF360C", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
             <div>· <b>받침 없음 + -면</b> — {vi?"nếu (가다→가면)":en?"if (가다→가면)":"조건: 받침 없음 → -면"}</div>
