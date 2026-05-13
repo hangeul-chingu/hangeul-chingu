@@ -4626,7 +4626,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         blank: "그리고",
         blanks: ["그리고","또"],
         full: "저는 커피를 좋아해요. 그리고 차도 좋아해요.",
-        hint: vi?"Thêm thông tin → 그리고 hoặc 또":en?"Adding more info → 그리고 or 또":"추가할 때 → 그리고 / 또 (둘 다 가능)",
+        hint: vi?"Thêm thông tin → dùng từ nào?":en?"Adding more info → which word?":"앞 내용에 더 추가할 때 → ___?",
       },
       {
         front: "날씨가 좋아요. ___ 바람이 불어요.",
@@ -4639,7 +4639,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         blank: "하지만",
         blanks: ["하지만","그러나","그렇지만"],
         full: "한국어가 재미있어요. 하지만 어려워요.",
-        hint: vi?"Đối lập mạnh → 하지만 hoặc 그러나":en?"Strong contrast → 하지만 or 그러나":"강한 반대 → 하지만 / 그러나 (둘 다 가능)",
+        hint: vi?"Đối lập mạnh, phủ định → ___":en?"Strong contrast → which word?":"재미있다 ↔ 어렵다: 이 두 감정이 반대될 때 → ___",
       },
       {
         front: "비가 와요. ___ 우산을 가져왔어요.",
@@ -4658,25 +4658,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         blank: "하지만",
         blanks: ["하지만","그러나","그렇지만"],
         full: "저는 한국 음식을 좋아해요. 하지만 매운 건 못 먹어요.",
-        hint: vi?"Nhưng (đối lập mạnh) → 하지만 / 그러나":en?"But (strong contrast) → 하지만 / 그러나":"좋다 ↔ 못 먹다: 강한 반대 → 하지만 / 그러나",
+        hint: vi?"Yêu thích nhưng không ăn được → cảm giác đối lập?":en?"Like it but can't eat it → contrast word?":"좋아하지만 못 먹어요: 좋다 ↔ 못 먹다, 이럴 때 → ___",
       },
       {
         front: "시간이 있어요. ___ 같이 가요.",
         blank: "그러면",
         full: "시간이 있어요. 그러면 같이 가요.",
-        hint: vi?"앞 상황 → 결과 제안: 그러면 (thế thì)":en?"앞 상황 → 결과: 그러면 (then/if so)":"앞 상황을 받아 제안할 때 → 그러면",
+        hint: vi?"Tình huống đã có → đề xuất tiếp → ___?":en?"Given the situation → then what? → ___?":"시간이 있다는 걸 확인하고 제안할 때 → ___",
       },
       {
         front: "비싸요. ___ 살 거예요.",
         blank: "그래도",
         full: "비싸요. 그래도 살 거예요.",
-        hint: vi?"Dù vậy / vẫn → 그래도":en?"Even so / still → 그래도":"그래도 → 앞 상황에도 불구하고 (양보)",
+        hint: vi?"Dù đắt vẫn mua → vẫn cứ làm → ___?":en?"Expensive but buying anyway → which word?":"비싸도 포기 안 해요: 불구하고 계속할 때 → ___",
       },
       {
         front: "커피예요, ___ 차예요?",
         blank: "아니면",
         full: "커피예요, 아니면 차예요?",
-        hint: vi?"A hoặc B? → 아니면":en?"A or B? → 아니면":"선택 질문: A예요, 아니면 B예요?",
+        hint: vi?"Hỏi chọn một trong hai → ___?":en?"Asking to choose between two → ___?":"둘 중 하나를 고를 때 묻는 말 → ___",
       },
     ];
 
@@ -4731,7 +4731,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
         </div>
 
-        {!unitCardRevealed && (
+        {unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#E65100", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
             <div>· <b>그리고 / 또</b> — {vi?"và / ngoài ra (thêm)":en?"and / also (add)":"그리고·또 → 추가"}</div>
@@ -4810,13 +4810,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         front: "값이 비싸___ 좋아요.",
         blank: "지만",
         full: "값이 비싸지만 좋아요.",
-        hint: vi?"비싸다 + ___ (đối lập nhẹ)":en?"비싸다 + ___ (soft contrast)":"비싸지만 → 그래도 좋아요",
+        hint: vi?"비싸다 + ___ (đối lập trong câu)":en?"비싸다 + ___ (contrast within sentence)":"비싸다 ↔ 좋아요: 한 문장 안에서 반대 → ___",
       },
       {
         front: "배가 고파___ 밥을 먹어요.",
         blank: "서",
         full: "배가 고파서 밥을 먹어요.",
-        hint: vi?"고프다 + ___ (nguyên nhân)":en?"고프다 + ___ (reason/cause)":"고파서 → 이유를 말할 때 (아/어서)",
+        hint: vi?"배가 고프다 → 왜 밥 먹어요? (nguyên nhân)":en?"Hungry → why eat? (reason)":"배가 고파서 먹어요: 이유를 말할 때 어미는 → ___",
       },
     ];
 
@@ -4871,7 +4871,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
         </div>
 
-        {!unitCardRevealed && (
+        {unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#E65100", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
             <div>· <b>-고</b> — {vi?"và (liệt kê, nối tiếp)":en?"and (list, sequence)":"나열·순서 → 동사/형용사 + 고"}</div>
@@ -5085,37 +5085,37 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         front: "시간이 있___ 와요.",
         blank: "으면",
         full: "시간이 있으면 와요.",
-        hint: vi?"있다 + ___ (điều kiện: nếu)":en?"있다 + ___ (condition: if)":"받침 있음 → -으면 (조건: ~하면)",
+        hint: vi?"Nếu có thời gian thì... → điều kiện → ___?":en?"If there's time → condition ending → ___?":"시간이 있다면 올 거예요: 조건(if)을 붙일 때, 받침 있으면 → ___?",
       },
       {
         front: "날씨가 좋___ 공원에 가요.",
         blank: "으면",
         full: "날씨가 좋으면 공원에 가요.",
-        hint: vi?"좋다 + ___ (nếu tốt thì...)":en?"좋다 + ___ (if good, then...)":"받침 있음 → -으면",
+        hint: vi?"Nếu thời tiết đẹp thì... → ___?":en?"If the weather is nice then... → ___?":"날씨가 좋다 → 공원에 가요: 받침 있을 때 조건 어미 → ___?",
       },
       {
         front: "한국에 가___ 한국어를 배워요.",
         blank: "면",
         full: "한국에 가면 한국어를 배워요.",
-        hint: vi?"가다 + ___ (받침 없음 → -면)":en?"가다 + ___ (no final consonant → -면)":"받침 없음 → -면 (가+면)",
+        hint: vi?"가다 → 받침 없음 → 조건 어미는? (nếu đi)":en?"가다 → no final consonant → condition ending?":"가다처럼 받침 없을 때 조건(if) 어미 → ___?",
       },
       {
         front: "바쁘___ 못 가요.",
         blank: "니까",
         full: "바쁘니까 못 가요.",
-        hint: vi?"바쁘다 + ___ (lý do: vì bận)":en?"바쁘다 + ___ (reason: because busy)":"이유(구어): 바쁘+니까",
+        hint: vi?"바빠서 못 가요 → 구어로 이유 말할 때 → ___?":en?"Too busy, can't go → spoken reason ending → ___?":"바쁘다: 이유를 구어로 말할 때 받침 없으면 → ___?",
       },
       {
         front: "늦었___ 빨리 가요.",
         blank: "으니까",
         full: "늦었으니까 빨리 가요.",
-        hint: vi?"늦다 + ___ (받침 있음 → -으니까)":en?"늦다 + ___ (받침 있음 → -으니까)":"받침 있음 → -으니까 (이유)",
+        hint: vi?"늦었으니까 서둘러요 → 받침 있을 때 이유 어미 → ___?":en?"Late → hurry: reason ending with final consonant → ___?":"늦었다: 받침 있을 때 이유(구어) 어미 → ___?",
       },
       {
         front: "비가 오___ 우산 있어요?",
         blank: "는데",
         full: "비가 오는데 우산 있어요?",
-        hint: vi?"오다 + ___ (배경 설명 후 질문)":en?"오다 + ___ (background then question)":"동사+-는데: 배경 설명 후 연결",
+        hint: vi?"비가 온다 → 상황 설명 후 질문할 때 → ___?":en?"Rain is falling → set the scene then ask → ___?":"오다(동사): 배경 설명 후 이어말할 때 어미 → ___?",
       },
     ];
 
@@ -5170,7 +5170,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
         </div>
 
-        {!unitCardRevealed && (
+        {unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#BF360C", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
             <div>· <b>받침 없음 + -면</b> — {vi?"nếu (가다→가면)":en?"if (가다→가면)":"조건: 받침 없음 → -면"}</div>
