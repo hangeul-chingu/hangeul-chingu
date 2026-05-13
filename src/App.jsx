@@ -1344,6 +1344,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"서술어5",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit5"); }},
       { label:"서술어6A",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6a"); }},
       { label:"서술어6B",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6b"); }},
+      { label:"서술어6C",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6c"); }},
       { label:"테스트5",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test5"); }},
       { label:"테스트6",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test6"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
@@ -4623,8 +4624,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {
         front: "저는 커피를 좋아해요. ___ 차도 좋아해요.",
         blank: "그리고",
+        blanks: ["그리고","또"],
         full: "저는 커피를 좋아해요. 그리고 차도 좋아해요.",
-        hint: vi?"Thêm thông tin → dùng từ gì?":en?"Adding more info → which word?":"앞 내용에 더 추가할 때 → ___",
+        hint: vi?"Thêm thông tin → 그리고 hoặc 또":en?"Adding more info → 그리고 or 또":"추가할 때 → 그리고 / 또 (둘 다 가능)",
       },
       {
         front: "날씨가 좋아요. ___ 바람이 불어요.",
@@ -4635,8 +4637,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {
         front: "한국어가 재미있어요. ___ 어려워요.",
         blank: "하지만",
+        blanks: ["하지만","그러나","그렇지만"],
         full: "한국어가 재미있어요. 하지만 어려워요.",
-        hint: vi?"Đối lập mạnh → dùng từ gì?":en?"Strong contrast → which word?":"앞 내용과 반대일 때 → ___",
+        hint: vi?"Đối lập mạnh → 하지만 hoặc 그러나":en?"Strong contrast → 하지만 or 그러나":"강한 반대 → 하지만 / 그러나 (둘 다 가능)",
       },
       {
         front: "비가 와요. ___ 우산을 가져왔어요.",
@@ -4653,8 +4656,27 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {
         front: "저는 한국 음식을 좋아해요. ___ 매운 건 못 먹어요.",
         blank: "하지만",
+        blanks: ["하지만","그러나","그렇지만"],
         full: "저는 한국 음식을 좋아해요. 하지만 매운 건 못 먹어요.",
-        hint: vi?"Nhưng (đối lập mạnh)":en?"But (strong contrast)":"좋다 ↔ 못 먹다: 강한 반대 → ___",
+        hint: vi?"Nhưng (đối lập mạnh) → 하지만 / 그러나":en?"But (strong contrast) → 하지만 / 그러나":"좋다 ↔ 못 먹다: 강한 반대 → 하지만 / 그러나",
+      },
+      {
+        front: "시간이 있어요. ___ 같이 가요.",
+        blank: "그러면",
+        full: "시간이 있어요. 그러면 같이 가요.",
+        hint: vi?"앞 상황 → 결과 제안: 그러면 (thế thì)":en?"앞 상황 → 결과: 그러면 (then/if so)":"앞 상황을 받아 제안할 때 → 그러면",
+      },
+      {
+        front: "비싸요. ___ 살 거예요.",
+        blank: "그래도",
+        full: "비싸요. 그래도 살 거예요.",
+        hint: vi?"Dù vậy / vẫn → 그래도":en?"Even so / still → 그래도":"그래도 → 앞 상황에도 불구하고 (양보)",
+      },
+      {
+        front: "커피예요, ___ 차예요?",
+        blank: "아니면",
+        full: "커피예요, 아니면 차예요?",
+        hint: vi?"A hoặc B? → 아니면":en?"A or B? → 아니면":"선택 질문: A예요, 아니면 B예요?",
       },
     ];
 
@@ -4666,7 +4688,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <DevJumpPanel />
         <div style={{width:"100%", maxWidth:400, marginBottom:16}}>
           <div style={{fontSize:12, color:"#E65100", fontWeight:700, marginBottom:6}}>
-            📘 {vi?"Bài 6A — Liên từ (그리고·그런데·하지만·그래서)":en?"Unit 6A — Connectors (그리고·그런데·하지만·그래서)":"서술어 6A단원 — 연결어 (그리고·그런데·하지만·그래서)"}
+            📘 {vi?"Bài 6A — Liên từ (그리고·그런데·하지만·그래서)":en?"Unit 6A — Connectors (그리고·그런데·하지만·그래서)":"서술어 6A단원 — 연결어 (그리고·그런데·하지만·그래서·그러면·그래도·아니면)"}
           </div>
           <div style={{display:"flex", gap:4}}>
             {UNIT6A_CARDS.map((_,i)=>(
@@ -4687,15 +4709,15 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               onKeyDown={e=>{ if(e.key==="Enter" && !unitCardRevealed && unitCardInput.trim()) { e.preventDefault(); handleUnit6aSubmit(); } }}
               disabled={unitCardRevealed} placeholder="..."
               style={{display:"inline-block", width:90, textAlign:"center", border:"none",
-                borderBottom:`3px solid ${unitCardRevealed?(unitCardInput.trim()===card.blank?"#FF8F00":"#FF6B35"):"#FF8F00"}`,
+                borderBottom:`3px solid ${unitCardRevealed?((card.blanks||[card.blank]).includes(unitCardInput.trim())?"#FF8F00":"#FF6B35"):"#FF8F00"}`,
                 fontSize:17, fontWeight:900, color:"#E65100", background:"transparent", outline:"none", padding:"0 4px"}}
             />
             {card.front.split("___")[1]}
           </div>
           {unitCardRevealed && (
             <div style={{textAlign:"center", marginBottom:12}}>
-              <div style={{fontSize:15, color: unitCardInput.trim()===card.blank?"#E65100":"#FF6B35", fontWeight:700, marginBottom:8}}>
-                {unitCardInput.trim()===card.blank ? "✅ 정답!" : `❌ 정답: ${card.blank}`}
+              <div style={{fontSize:15, color: (card.blanks||[card.blank]).includes(unitCardInput.trim())?"#E65100":"#FF6B35", fontWeight:700, marginBottom:8}}>
+                {(card.blanks||[card.blank]).includes(unitCardInput.trim()) ? "✅ 정답!" : `❌ 정답: ${card.blank} (또는 ${(card.blanks||[card.blank]).filter(b=>b!==card.blank).join("/")||card.blank})`}
               </div>
               <div style={{fontSize:14, color:"#555", marginBottom:12}}>→ {card.full}</div>
               <button onClick={()=>speakKo(card.full)}
@@ -4712,10 +4734,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         {!unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#E65100", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
-            <div>· <b>그리고</b> — {vi?"và (thêm)":en?"and (add)":"그리고 → 추가"}</div>
+            <div>· <b>그리고 / 또</b> — {vi?"và / ngoài ra (thêm)":en?"and / also (add)":"그리고·또 → 추가"}</div>
             <div>· <b>그런데</b> — {vi?"nhưng mà (chuyển)":en?"but/however (shift)":"그런데 → 전환"}</div>
-            <div>· <b>하지만</b> — {vi?"nhưng (đối lập)":en?"but (contrast)":"하지만 → 반대"}</div>
+            <div>· <b>하지만 / 그러나 / 그렇지만</b> — {vi?"nhưng (đối lập)":en?"but (contrast)":"하지만·그러나·그렇지만 → 반대"}</div>
             <div>· <b>그래서</b> — {vi?"vì vậy (kết quả)":en?"so/therefore (result)":"그래서 → 결과"}</div>
+            <div>· <b>그러면</b> — {vi?"thế thì (điều kiện→đề xuất)":en?"then/if so (condition→result)":"그러면 → 앞 상황 받아 제안"}</div>
+            <div>· <b>그래도</b> — {vi?"dù vậy (nhượng bộ)":en?"even so (concession)":"그래도 → 양보"}</div>
+            <div>· <b>아니면</b> — {vi?"hoặc là (lựa chọn)":en?"or (choice)":"아니면 → 선택"}</div>
           </div>
         )}
 
@@ -4866,9 +4891,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
           </button>
         ) : (
-          <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test6"); }}
-            style={{width:"100%", maxWidth:400, background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-            📝 {vi?"Làm bài kiểm tra!":en?"Take the test!":"누적 테스트 시작! (1~6단원) 📝"}
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6c"); }}
+            style={{width:"100%", maxWidth:400, background:"linear-gradient(135deg,#FF6D00,#BF360C)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+            {vi?"Tiếp theo — Bài 6C →":en?"Next — Unit 6C →":"다음 → 6C단원 (-(으)면·-니까·-는데) 🚀"}
           </button>
         )}
         <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6a"); }}
@@ -5041,6 +5066,145 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
 
+
+  // ════════════════════════════════════════════════════════
+  // ✅ V184: 서술어 6C단원 — -(으)면·-(으)니까·-는데 (조건·이유·배경)
+  // ════════════════════════════════════════════════════════
+  if (step === "unit6c") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    function handleUnit6cSubmit() {
+      if (!unitCardInput.trim()) return;
+      setUnitCardRevealed(true);
+      speakKo(unitCardInput.trim());
+    }
+
+    const UNIT6C_CARDS = [
+      {
+        front: "시간이 있___ 와요.",
+        blank: "으면",
+        full: "시간이 있으면 와요.",
+        hint: vi?"있다 + ___ (điều kiện: nếu)":en?"있다 + ___ (condition: if)":"받침 있음 → -으면 (조건: ~하면)",
+      },
+      {
+        front: "날씨가 좋___ 공원에 가요.",
+        blank: "으면",
+        full: "날씨가 좋으면 공원에 가요.",
+        hint: vi?"좋다 + ___ (nếu tốt thì...)":en?"좋다 + ___ (if good, then...)":"받침 있음 → -으면",
+      },
+      {
+        front: "한국에 가___ 한국어를 배워요.",
+        blank: "면",
+        full: "한국에 가면 한국어를 배워요.",
+        hint: vi?"가다 + ___ (받침 없음 → -면)":en?"가다 + ___ (no final consonant → -면)":"받침 없음 → -면 (가+면)",
+      },
+      {
+        front: "바쁘___ 못 가요.",
+        blank: "니까",
+        full: "바쁘니까 못 가요.",
+        hint: vi?"바쁘다 + ___ (lý do: vì bận)":en?"바쁘다 + ___ (reason: because busy)":"이유(구어): 바쁘+니까",
+      },
+      {
+        front: "늦었___ 빨리 가요.",
+        blank: "으니까",
+        full: "늦었으니까 빨리 가요.",
+        hint: vi?"늦다 + ___ (받침 있음 → -으니까)":en?"늦다 + ___ (받침 있음 → -으니까)":"받침 있음 → -으니까 (이유)",
+      },
+      {
+        front: "비가 오___ 우산 있어요?",
+        blank: "는데",
+        full: "비가 오는데 우산 있어요?",
+        hint: vi?"오다 + ___ (배경 설명 후 질문)":en?"오다 + ___ (background then question)":"동사+-는데: 배경 설명 후 연결",
+      },
+    ];
+
+    const card = UNIT6C_CARDS[unitCardIdx];
+    const total = UNIT6C_CARDS.length;
+
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FFE0B2)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:400, marginBottom:16}}>
+          <div style={{fontSize:12, color:"#BF360C", fontWeight:700, marginBottom:6}}>
+            📘 {vi?"Bài 6C — Điều kiện·Lý do·Nền (-(으)면·-(으)니까·-는데)":en?"Unit 6C — Condition·Reason·Background":"서술어 6C단원 — -(으)면·-(으)니까·-는데"}
+          </div>
+          <div style={{display:"flex", gap:4}}>
+            {UNIT6C_CARDS.map((_,i)=>(
+              <div key={i} style={{flex:1, height:5, borderRadius:3, background: i<unitCardIdx?"#FF6D00": i===unitCardIdx?"#BF360C":"#FFE0B2", transition:"all .3s"}}/>
+            ))}
+          </div>
+          <div style={{fontSize:11, color:"#aaa", marginTop:4, textAlign:"right"}}>{unitCardIdx+1} / {total}</div>
+        </div>
+
+        <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:20, padding:28, boxShadow:"0 8px 32px #FF6D0022", marginBottom:16}}>
+          <div style={{fontSize:13, color:"#aaa", marginBottom:16, textAlign:"center"}}>
+            {vi?"Điền vào chỗ trống":en?"Fill in the blank":"빈칸을 채워보세요 ✍️"}
+          </div>
+          <div style={{fontSize:17, fontWeight:900, color:"#2A1000", textAlign:"center", marginBottom:16, lineHeight:2}}>
+            {card.front.split("___")[0]}
+            <input type="text" value={unitCardInput}
+              onChange={e=>setUnitCardInput(e.target.value)}
+              onKeyDown={e=>{ if(e.key==="Enter" && !unitCardRevealed && unitCardInput.trim()) { e.preventDefault(); handleUnit6cSubmit(); } }}
+              disabled={unitCardRevealed} placeholder="..."
+              style={{display:"inline-block", width:80, textAlign:"center", border:"none",
+                borderBottom:`3px solid ${unitCardRevealed?((card.blanks||[card.blank]).includes(unitCardInput.trim())?"#FF6D00":"#FF3D00"):"#FF6D00"}`,
+                fontSize:17, fontWeight:900, color:"#BF360C", background:"transparent", outline:"none", padding:"0 4px"}}
+            />
+            {card.front.split("___")[1]}
+          </div>
+          {unitCardRevealed && (
+            <div style={{textAlign:"center", marginBottom:12}}>
+              <div style={{fontSize:15, color:(card.blanks||[card.blank]).includes(unitCardInput.trim())?"#BF360C":"#FF3D00", fontWeight:700, marginBottom:8}}>
+                {(card.blanks||[card.blank]).includes(unitCardInput.trim()) ? "✅ 정답!" : `❌ 정답: ${card.blank}`}
+              </div>
+              <div style={{fontSize:14, color:"#555", marginBottom:12}}>→ {card.full}</div>
+              <button onClick={()=>speakKo(card.full)}
+                style={{background:"#FF6D00", border:"none", borderRadius:50, padding:"8px 20px", color:"white", fontSize:13, fontWeight:700, cursor:"pointer"}}>
+                🔊 {vi?"Nghe lại":en?"Listen":"전체 문장 듣기"}
+              </button>
+            </div>
+          )}
+          <div style={{background:"#FFF3E0", borderRadius:12, padding:"10px 14px", fontSize:13, color:"#555", textAlign:"center"}}>
+            💡 {card.hint}
+          </div>
+        </div>
+
+        {!unitCardRevealed && (
+          <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
+            <div style={{fontWeight:900, color:"#BF360C", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
+            <div>· <b>받침 없음 + -면</b> — {vi?"nếu (가다→가면)":en?"if (가다→가면)":"조건: 받침 없음 → -면"}</div>
+            <div>· <b>받침 있음 + -으면</b> — {vi?"nếu (있다→있으면)":en?"if (있다→있으면)":"조건: 받침 있음 → -으면"}</div>
+            <div>· <b>받침 없음 + -니까</b> — {vi?"vì (바쁘다→바쁘니까)":en?"because (구어)":"이유(구어): 받침 없음 → -니까"}</div>
+            <div>· <b>받침 있음 + -으니까</b> — {vi?"vì (늦다→늦으니까)":en?"because (받침 있음)":"이유(구어): 받침 있음 → -으니까"}</div>
+            <div>· <b>동사 + -는데</b> — {vi?"... mà (nền+nối)":en?"background + connect":"배경 설명 후 연결 → -는데"}</div>
+          </div>
+        )}
+
+        {!unitCardRevealed ? (
+          <button onClick={handleUnit6cSubmit} disabled={!unitCardInput.trim()}
+            style={{width:"100%", maxWidth:400, background: unitCardInput.trim()?"linear-gradient(135deg,#FF6D00,#BF360C)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor: unitCardInput.trim()?"pointer":"default"}}>
+            {vi?"Kiểm tra":en?"Check":"확인하기 ✓"}
+          </button>
+        ) : unitCardIdx < total - 1 ? (
+          <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
+            style={{width:"100%", maxWidth:400, background:"linear-gradient(135deg,#FF6D00,#BF360C)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+            {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+          </button>
+        ) : (
+          <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test6"); }}
+            style={{width:"100%", maxWidth:400, background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+            📝 {vi?"Làm bài kiểm tra!":en?"Take the test!":"누적 테스트 시작! (1~6단원) 📝"}
+          </button>
+        )}
+        <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6b"); }}
+          style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+          ← {vi?"Quay lại":en?"Back":"뒤로 (6B단원)"}
+        </button>
+      </div>
+    );
+  }
+
   // ════════════════════════════════════════════════════════
   // ✅ V183: 누적 테스트 6 — 1·2A·2B·3A·3B·4·5·6단원
   // ════════════════════════════════════════════════════════
@@ -5094,10 +5258,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       // ── 6A단원 10문제 (연결어)
       { id:"t6_36", q:"저는 커피를 좋아해요. ___ 차도 좋아해요.", answer:"그리고",  answers:["그리고"],  hint:"💡 추가 → ___" },
       { id:"t6_37", q:"날씨가 좋아요. ___ 바람이 불어요.",       answer:"그런데",  answers:["그런데"],  hint:"💡 전환 → ___" },
-      { id:"t6_38", q:"한국어가 재미있어요. ___ 어려워요.",       answer:"하지만",  answers:["하지만"],  hint:"💡 반대(강) → ___" },
+      { id:"t6_38", q:"한국어가 재미있어요. ___ 어려워요.",       answer:"하지만",  answers:["하지만","그러나"],  hint:"💡 강한 반대 → 하지만/그러나" },
       { id:"t6_39", q:"비가 와요. ___ 우산을 가져왔어요.",        answer:"그래서",  answers:["그래서"],  hint:"💡 결과 → ___" },
       { id:"t6_40", q:"배가 고파요. ___ 밥을 먹었어요.",          answer:"그래서",  answers:["그래서"],  hint:"💡 원인→결과 → ___" },
-      { id:"t6_41", q:"저는 한국 음식을 좋아해요. ___ 매운 건 못 먹어요.", answer:"하지만", answers:["하지만"], hint:"💡 반대(강) → ___" },
+      { id:"t6_41", q:"저는 한국 음식을 좋아해요. ___ 매운 건 못 먹어요.", answer:"하지만", answers:["하지만","그러나"], hint:"💡 강한 반대 → 하지만/그러나" },
       // ── 6B단원 10문제 (연결어미)
       { id:"t6_42", q:"밥을 먹___ 영화를 봐요.",         answer:"고",  answers:["고"],  hint:"💡 나열 → -고" },
       { id:"t6_43", q:"저는 키가 크___ 마르다.",         answer:"고",  answers:["고"],  hint:"💡 나열 → -고" },
@@ -5110,6 +5274,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { id:"t6_50", q:"친구를 만나___ 밥을 먹었어요.",  answer:"서",  answers:["서","아서","어서"],hint:"💡 순서 → -아/어서" },
       { id:"t6_51", q:"음식이 맛있___ 많이 먹었어요.",  answer:"어서",answers:["어서","서"],hint:"💡 이유 → -어서" },
       { id:"t6_52", q:"배가 불___ 디저트는 안 먹어요.", answer:"지만",answers:["지만"],hint:"💡 반대(한 문장) → -지만" },
+      // ── 6A 보강 4문제 (그러면·그래도·아니면·그렇지만)
+      { id:"t6_53", q:"시간이 있어요. ___ 같이 가요.",          answer:"그러면",  answers:["그러면"],              hint:"💡 앞 상황→제안 → ___" },
+      { id:"t6_54", q:"비싸요. ___ 살 거예요.",                  answer:"그래도",  answers:["그래도"],              hint:"💡 양보 → ___" },
+      { id:"t6_55", q:"커피예요, ___ 차예요?",                   answer:"아니면",  answers:["아니면"],              hint:"💡 선택 질문 → ___" },
+      { id:"t6_56", q:"한국어가 재미있어요. ___ 어려워요.",      answer:"하지만",  answers:["하지만","그러나","그렇지만"], hint:"💡 강한 반대 → 하지만/그러나/그렇지만" },
+      // ── 6C단원 6문제 (-(으)면·-(으)니까·-는데)
+      { id:"t6_57", q:"시간이 있___ 와요.",           answer:"으면",   answers:["으면"],        hint:"💡 받침 있음 → -으면 (조건)" },
+      { id:"t6_58", q:"한국에 가___ 한국어를 배워요.", answer:"면",     answers:["면"],          hint:"💡 받침 없음 → -면 (조건)" },
+      { id:"t6_59", q:"날씨가 좋___ 공원에 가요.",    answer:"으면",   answers:["으면"],        hint:"💡 받침 있음 → -으면" },
+      { id:"t6_60", q:"바쁘___ 못 가요.",             answer:"니까",   answers:["니까"],        hint:"💡 받침 없음 → -니까 (이유)" },
+      { id:"t6_61", q:"늦었___ 빨리 가요.",           answer:"으니까", answers:["으니까"],      hint:"💡 받침 있음 → -으니까 (이유)" },
+      { id:"t6_62", q:"비가 오___ 우산 있어요?",      answer:"는데",   answers:["는데"],        hint:"💡 동사+-는데 (배경 설명)" },
     ];
 
     function gradeTest6() {
@@ -5140,7 +5316,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{fontSize:22, fontWeight:900, color: testResult.passed?"#E65100":"#E64A00", marginBottom:4}}>
                 {testResult.score}점 {testResult.passed?"— 통과!":"— 다시 도전!"}
               </div>
-              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2A·2B·3A·3B·4·5·6단원 (52문제)</div>
+              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2A·2B·3A·3B·4·5·6단원 (62문제)</div>
             </div>
             <div style={{background:"white", borderRadius:16, padding:16, marginBottom:16}}>
               {testResult.feedback.map((q,i)=>(
@@ -5183,7 +5359,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             📝 누적 테스트 — 1·2A·2B·3A·3B·4·5·6단원
           </div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
-            범위: 서술어 1단원 ~ 6단원 전체 (52문제)
+            범위: 서술어 1단원 ~ 6단원 전체 (62문제)
           </div>
           {TEST6_QUESTIONS.map((q,i)=>(
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
