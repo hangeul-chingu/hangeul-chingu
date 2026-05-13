@@ -2839,37 +2839,37 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         front: "저는 학생___.",
         blank: "이에요",
         full: "저는 학생이에요.",
-        hint: vi?"학생 → 학생이에요":en?"학생 → 학생이에요":"학생 → 학생이에요",
+        hint: vi?"받침 ㅇ 있어요 → 이__요":en?"Has final consonant ㅇ → 이__요":"받침 ㅇ 있어요 → 이__요",
       },
       {
         front: "여기는 학교___.",
         blank: "예요",
         full: "여기는 학교예요.",
-        hint: vi?"학교 → 학교예요":en?"학교 → 학교예요":"학교 → 학교예요",
+        hint: vi?"받침 없어요 → __요":en?"No final consonant → __요":"받침 없어요 → __요",
       },
       {
         front: "저는 의사___.",
         blank: "예요",
         full: "저는 의사예요.",
-        hint: vi?"의사 → 의사예요":en?"의사 → 의사예요":"의사 → 의사예요",
+        hint: vi?"받침 없어요 → __요":en?"No final consonant → __요":"받침 없어요 → __요",
       },
       {
         front: "오늘은 월요일___.",
         blank: "이에요",
         full: "오늘은 월요일이에요.",
-        hint: vi?"월요일 → 월요일이에요":en?"월요일 → 월요일이에요":"월요일 → 월요일이에요",
+        hint: vi?"받침 ㄹ 있어요 → 이__요":en?"Has final consonant ㄹ → 이__요":"받침 ㄹ 있어요 → 이__요",
       },
       {
         front: "저는 베트남 사람___.",
         blank: "이에요",
         full: "저는 베트남 사람이에요.",
-        hint: vi?"사람 → 사람이에요":en?"사람 → 사람이에요":"사람 → 사람이에요",
+        hint: vi?"받침 ㅁ 있어요 → 이__요":en?"Has final consonant ㅁ → 이__요":"받침 ㅁ 있어요 → 이__요",
       },
       {
         front: "제 이름은 마중___.",
         blank: "이에요",
         full: "제 이름은 마중이에요.",
-        hint: vi?"마중 → 마중이에요":en?"마중 → 마중이에요":"마중 → 마중이에요",
+        hint: vi?"받침 ㅇ 있어요 → 이__요":en?"Has final consonant ㅇ → 이__요":"받침 ㅇ 있어요 → 이__요",
       },
     ];
     const card = UNIT1_CARDS[unitCardIdx];
@@ -2991,37 +2991,37 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         front: "저는 선생님이 ___.",
         blank: "아니에요",
         full: "저는 선생님이 아니에요.",
-        hint: vi?"학생이에요 → 아니에요 (phủ định)":en?"학생이에요 → 아니에요 (negative)":"학생이에요 ↔ 아니에요",
+        hint: vi?"이에요/예요의 반대말은?":en?"Opposite of 이에요/예요?":"이에요/예요의 반대말은?",
       },
       {
         front: "이분은 학생이 ___.",
         blank: "아니에요",
         full: "이분은 학생이 아니에요.",
-        hint: vi?"이분은 선생님이에요 → 학생이 아니에요":en?"이분은 선생님이에요 → 학생이 아니에요":"이분은 선생님이에요 → 학생이 아니에요",
+        hint: vi?"선생님이에요 → 학생이 ___?":en?"Is a teacher → not a student → ___?":"선생님이에요 → 학생이 ___?",
       },
       {
         front: "이름이 ___?",
         blank: "뭐예요",
         full: "이름이 뭐예요?",
-        hint: vi?"이름 → 이름이 뭐예요?":en?"이름 → 이름이 뭐예요?":"이름 → 이름이 뭐예요?",
+        hint: vi?"이름을 물어볼 때 → 이름이 ___?":en?"Asking someone's name → 이름이 ___?":"이름을 물어볼 때 → 이름이 ___?",
       },
       {
         front: "직업이 ___?",
         blank: "뭐예요",
         full: "직업이 뭐예요?",
-        hint: vi?"직업 → 직업이 뭐예요?":en?"직업 → 직업이 뭐예요?":"직업 → 직업이 뭐예요?",
+        hint: vi?"직업을 물어볼 때 → 직업이 ___?":en?"Asking someone's job → 직업이 ___?":"직업을 물어볼 때 → 직업이 ___?",
       },
       {
         front: "저는 요리사___.",
         blank: "예요",
         full: "저는 요리사예요.",
-        hint: vi?"요리사 → 요리사예요":en?"요리사 → 요리사예요":"요리사 → 요리사예요",
+        hint: vi?"받침 없어요 → __요":en?"No final consonant → __요":"받침 없어요 → __요",
       },
       {
         front: "저는 간호사___.",
         blank: "예요",
         full: "저는 간호사예요.",
-        hint: vi?"간호사 → 간호사예요":en?"간호사 → 간호사예요":"간호사 → 간호사예요",
+        hint: vi?"받침 없어요 → __요":en?"No final consonant → __요":"받침 없어요 → __요",
       },
     ];
 
@@ -3087,9 +3087,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         {!unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#00A876", marginBottom:8}}>📌 {vi?"Ví dụ":en?"Examples":"패턴 보기"}</div>
-            <div>· 학생이에요 ↔ <b>학생이 아니에요</b></div>
-            <div>· 이름이 <b>뭐예요?</b> → 마중이에요.</div>
-            <div>· 직업이 <b>뭐예요?</b> → 요리사예요.</div>
+            <div>· 이에요/예요의 반대말 → <b>이 ___</b></div>
+            <div>· 이름을 물어볼 때 → <b>이름이 ___?</b></div>
+            <div>· 직업을 물어볼 때 → <b>직업이 ___?</b></div>
           </div>
         )}
 
