@@ -4399,7 +4399,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{fontSize:22, fontWeight:900, color: testResult.passed?"#2E7D32":"#E64A00", marginBottom:4}}>
                 {testResult.score}점 {testResult.passed?"— 통과!":"— 다시 도전!"}
               </div>
-              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2·3·4단원 (40문제)</div>
+              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2A·2B·3A·3B·4단원 (40문제)</div>
             </div>
             <div style={{background:"white", borderRadius:16, padding:16, marginBottom:16}}>
               {testResult.feedback.map((q,i)=>(
@@ -4498,10 +4498,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         hint: vi?"먹다·마시다 → 드시다 (높임)":en?"먹다·마시다 → 드시다 (polite)":"먹다·마시다는 '드시다'로 높여요",
       },
       {
-        front: "___ (기다리다 → 명령)",
-        blank: "기다리세요",
-        full: "기다리세요.",
-        hint: vi?"받침 없음 → 세요":en?"No final consonant → 세요":"받침 없음 → 세요",
+        front: "___ (알다 → 높임 명령)",
+        blank: "아세요",
+        full: "아세요.",
+        hint: vi?"알다: ㄹ 빠지고 → 아세요":en?"알다: drop ㄹ → 아세요":"알다 → ㄹ 탈락 → 아세요 ⭐",
       },
       {
         front: "___ (읽다 → 명령)",
@@ -4510,10 +4510,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         hint: vi?"받침 있음 → 으세요":en?"Has final consonant → 으세요":"받침 있음 → 으세요",
       },
       {
-        front: "천천히 ___ (말하다 → 명령)",
-        blank: "말하세요",
-        full: "천천히 말하세요.",
-        hint: vi?"천천히 + 말하다 → 말하세요":en?"Slowly + speak → 말하세요":"천천히 + 말하다 → 말하세요",
+        front: "___ (살다 → 높임 명령)",
+        blank: "사세요",
+        full: "사세요.",
+        hint: vi?"살다: ㄹ 빠지고 → 사세요":en?"살다: drop ㄹ → 사세요":"살다 → ㄹ 탈락 → 사세요 ⭐",
       },
     ];
 
@@ -4571,10 +4571,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         {!unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#2E7D32", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
-            <div>· 받침 <b>없음</b> → <b>~세요</b> &nbsp;(오다→오세요, 가다→가세요)</div>
-            <div>· 받침 <b>있음</b> → <b>~으세요</b> &nbsp;(앉다→앉으세요, 읽다→읽으세요)</div>
+            <div>· 받침 <b>없음</b> → <b>~세요</b> &nbsp;(오다, 가다 + ?)</div>
+            <div>· 받침 <b>있음</b> → <b>~으세요</b> &nbsp;(앉다, 읽다 + ?)</div>
             <div>· 먹다·마시다 → <b>드세요</b> &nbsp;(특별 높임말)</div>
-            <div>· ㄹ받침 → <b>세요</b> &nbsp;(알다→아세요, 살다→사세요)</div>
+            <div>· ㄹ받침 → <b>ㄹ 빠지고 ~세요</b> &nbsp;(알다→___, 살다→___)</div>
           </div>
         )}
 
@@ -4657,8 +4657,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { id:"t5_42", q:"오다 → ___",               answer:"오세요",    answers:["오세요","오세요."],      hint:"💡 받침 없음 → 세요" },
       { id:"t5_43", q:"먹다 → ___ (높임)",         answer:"드세요",    answers:["드세요","드세요."],      hint:"💡 먹다 특별 높임말" },
       { id:"t5_44", q:"읽다 → ___",               answer:"읽으세요",  answers:["읽으세요","읽으세요."],  hint:"💡 받침 있음 → 으세요" },
-      { id:"t5_45", q:"기다리다 → ___",            answer:"기다리세요",answers:["기다리세요","기다리세요."], hint:"💡 받침 없음 → 세요" },
-      { id:"t5_46", q:"들어오다 → ___",            answer:"들어오세요",answers:["들어오세요","들어오세요."], hint:"💡 받침 없음 → 세요" },
+      { id:"t5_45", q:"알다 → ___ (높임)",          answer:"아세요",    answers:["아세요","아세요."],      hint:"💡 알다: ㄹ 탈락 → 아세요 ⭐" },
+      { id:"t5_46", q:"살다 → ___ (높임)",          answer:"사세요",    answers:["사세요","사세요."],      hint:"💡 살다: ㄹ 탈락 → 사세요 ⭐" },
       { id:"t5_47", q:"말하다 → ___",              answer:"말하세요",  answers:["말하세요","말하세요."],  hint:"💡 받침 없음 → 세요" },
       { id:"t5_48", q:"쓰다 → ___",               answer:"쓰세요",    answers:["쓰세요","쓰세요."],      hint:"💡 받침 없음 → 세요" },
       { id:"t5_49", q:"닫다 → ___",               answer:"닫으세요",  answers:["닫으세요","닫으세요."],  hint:"💡 받침 있음 → 으세요" },
@@ -4693,7 +4693,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{fontSize:22, fontWeight:900, color: testResult.passed?"#2E7D32":"#E64A00", marginBottom:4}}>
                 {testResult.score}점 {testResult.passed?"— 통과!":"— 다시 도전!"}
               </div>
-              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2·3·4·5단원 (50문제)</div>
+              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2A·2B·3A·3B·4·5단원 (50문제)</div>
             </div>
             <div style={{background:"white", borderRadius:16, padding:16, marginBottom:16}}>
               {testResult.feedback.map((q,i)=>(
@@ -4733,7 +4733,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <DevJumpPanel />
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#E64A00", marginBottom:4}}>
-            📝 누적 테스트 — 1·2·3·4·5단원
+            📝 누적 테스트 — 1·2A·2B·3A·3B·4·5단원
           </div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
             범위: 이에요/이다 + 있다·없다·많다·적다 + 형용사 + 의문대명사 + ~세요 (50문제)
