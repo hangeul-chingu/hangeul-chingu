@@ -2943,10 +2943,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         {/* 규칙 요약 (첫 카드에만, 정답 공개 전) */}
         {!unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
-            <div style={{fontWeight:900, color:"#00A876", marginBottom:8}}>📌 {vi?"Ví dụ":en?"Examples":"패턴 보기"}</div>
-            <div>· 학생 → <b>학생이에요</b> &nbsp;/&nbsp; 의사 → <b>의사예요</b></div>
-            <div>· 선생님 → <b>선생님이에요</b> &nbsp;/&nbsp; 학교 → <b>학교예요</b></div>
-            <div>· 사람 → <b>사람이에요</b> &nbsp;/&nbsp; 커피 → <b>커피예요</b></div>
+            <div style={{fontWeight:900, color:"#00A876", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
+            <div>· 받침 <b>있음</b> → <b>이__요</b> &nbsp;(학생, 사람, 월요일 + ?)</div>
+            <div>· 받침 <b>없음</b> → <b>__요</b> &nbsp;(학교, 의사, 커피 + ?)</div>
+            <div>· 높임 → <b>이세요</b> &nbsp;(선생님, 교수님 + ?)</div>
           </div>
         )}
 
@@ -3985,8 +3985,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
         </div>
 
-        {/* ㅂ불규칙 패턴 박스 */}
-        {!unitCardRevealed && (
+        {/* ㅂ불규칙 패턴 박스 — 정답 공개 후에만 표시 */}
+        {unitCardRevealed && (
           <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
             <div style={{fontWeight:900, color:"#7B1FA2", marginBottom:8}}>📌 {vi?"Quy tắc bất quy tắc ㅂ":en?"ㅂ Irregular Rule":"ㅂ불규칙 패턴"}</div>
             <div style={{background:"#F9F0FF", borderRadius:8, padding:"8px 12px", marginBottom:8, fontSize:13, textAlign:"center", color:"#7B1FA2", fontWeight:700}}>
