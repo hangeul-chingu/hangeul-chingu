@@ -4375,6 +4375,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { id:"t4_38", q:"___ 예요? (시간)",        answer:"언제",   answers:["언제","언제요"],            hint:"💡 시간" },
       { id:"t4_39", q:"___ 좋아요? (사물)",      answer:"뭐",     answers:["뭐","무엇","뭐가"],         hint:"💡 사물" },
       { id:"t4_40", q:"___ 가르쳐요? (사람)",    answer:"누구",   answers:["누구","누구를","누구에게"], hint:"💡 사람" },
+      // ── 2단원B 위치표현 (보완 6문항) ──
+      { id:"t4_41", q:"책상 위에 책이 ___.",           answer:"있어요",  answers:["있어요","있어요."],       hint:"💡 위 = above" },
+      { id:"t4_42", q:"가방 안에 지갑이 ___.",         answer:"있어요",  answers:["있어요","있어요."],       hint:"💡 안 = inside" },
+      { id:"t4_43", q:"은행 옆에 편의점이 ___.",       answer:"있어요",  answers:["있어요","있어요."],       hint:"💡 옆 = beside" },
+      { id:"t4_44", q:"냉장고 앞에 고양이가 ___.",     answer:"있어요",  answers:["있어요","있어요."],       hint:"💡 앞 = in front" },
+      { id:"t4_45", q:"화장실이 어디에 ___?",          answer:"있어요",  answers:["있어요","있어요?"],       hint:"💡 어디에 있어요?" },
+      { id:"t4_46", q:"의자 아래에 가방이 ___.",       answer:"있어요",  answers:["있어요","있어요."],       hint:"💡 아래 = below" },
+      // ── 3단원 추가 보완 (ㅂ불규칙 강화 4문항) ──
+      { id:"t4_47", q:"오늘 날씨가 ___.",              answer:"추워요",  answers:["추워요","추워요."],       hint:"💡 춥다 → ㅂ불규칙" },
+      { id:"t4_48", q:"이 짐이 ___.",                  answer:"무거워요",answers:["무거워요","무거워요."],   hint:"💡 무겁다 → ㅂ불규칙" },
+      { id:"t4_49", q:"여름에 날씨가 ___.",            answer:"더워요",  answers:["더워요","더워요."],       hint:"💡 덥다 → ㅂ불규칙" },
+      { id:"t4_50", q:"이 식당이 ___.",                answer:"싸요",    answers:["싸요","싸요."],           hint:"💡 싸다 → 싸요" },
     ];
 
     function gradeTest4() {
@@ -4405,7 +4417,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{fontSize:22, fontWeight:900, color: testResult.passed?"#2E7D32":"#E64A00", marginBottom:4}}>
                 {testResult.score}점 {testResult.passed?"— 통과!":"— 다시 도전!"}
               </div>
-              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2A·2B·3A·3B·4단원 (40문제)</div>
+              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2A·2B·3A·3B·4단원 (50문제)</div>
             </div>
             <div style={{background:"white", borderRadius:16, padding:16, marginBottom:16}}>
               {testResult.feedback.map((q,i)=>(
@@ -4448,7 +4460,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             📝 누적 테스트 — 1·2·3·4단원
           </div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
-            범위: 이에요/이다 + 있다·없다·많다·적다 + 형용사 + 의문대명사 (40문제)
+            범위: 이에요/이다 + 있다·없다·많다·적다 + 형용사 + 의문대명사 (50문제)
           </div>
           {TEST4_QUESTIONS.map((q,i)=>(
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
@@ -4967,6 +4979,17 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { id:"t5_48", q:"쓰다 → ___",               answer:"쓰세요",    answers:["쓰세요","쓰세요."],      hint:"💡 받침 없음 → 세요" },
       { id:"t5_49", q:"닫다 → ___",               answer:"닫으세요",  answers:["닫으세요","닫으세요."],  hint:"💡 받침 있음 → 으세요" },
       { id:"t5_50", q:"마시다 → ___ (높임)",       answer:"드세요",    answers:["드세요","드세요."],      hint:"💡 마시다 특별 높임말" },
+      // ── ~(으)세요 추가 보완 (10문항) ──
+      { id:"t5_51", q:"가다 → ___",                  answer:"가세요",    answers:["가세요","가세요."],       hint:"💡 받침 없음 → 세요" },
+      { id:"t5_52", q:"보다 → ___",                  answer:"보세요",    answers:["보세요","보세요."],       hint:"💡 받침 없음 → 세요" },
+      { id:"t5_53", q:"천천히 걷다 → ___",            answer:"걸으세요",  answers:["걸으세요","걸으세요."],   hint:"💡 걷다 → ㄷ불규칙 → 걸으세요" },
+      { id:"t5_54", q:"전화하다 → ___",              answer:"전화하세요", answers:["전화하세요","전화하세요."],hint:"💡 하다 계열 → 하세요" },
+      { id:"t5_55", q:"기다리다 → ___",              answer:"기다리세요", answers:["기다리세요","기다리세요."],hint:"💡 받침 없음 → 세요" },
+      { id:"t5_56", q:"주무시다 → ___ (자다 높임)",   answer:"주무세요",  answers:["주무세요","주무세요."],   hint:"💡 자다 높임 특별형" },
+      { id:"t5_57", q:"천천히 말하다 → ___",          answer:"말하세요",  answers:["말하세요","말하세요."],   hint:"💡 하다 계열 → 하세요" },
+      { id:"t5_58", q:"줄다 → ___ (ㄹ탈락)",         answer:"주세요",    answers:["주세요","주세요."],       hint:"💡 주다 → ㄹ탈락? 아니요, 줄다 → 주세요" },
+      { id:"t5_59", q:"입다 → ___",                  answer:"입으세요",  answers:["입으세요","입으세요."],   hint:"💡 받침 있음 → 으세요" },
+      { id:"t5_60", q:"들어오다 → ___",              answer:"들어오세요", answers:["들어오세요","들어오세요."],hint:"💡 받침 없음 → 세요" },
     ];
 
     function gradeTest5() {
@@ -4997,7 +5020,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{fontSize:22, fontWeight:900, color: testResult.passed?"#2E7D32":"#E64A00", marginBottom:4}}>
                 {testResult.score}점 {testResult.passed?"— 통과!":"— 다시 도전!"}
               </div>
-              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2A·2B·3A·3B·4·5단원 (50문제)</div>
+              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2A·2B·3A·3B·4·5단원 (60문제)</div>
             </div>
             <div style={{background:"white", borderRadius:16, padding:16, marginBottom:16}}>
               {testResult.feedback.map((q,i)=>(
@@ -5040,7 +5063,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             📝 누적 테스트 — 1·2A·2B·3A·3B·4·5단원
           </div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
-            범위: 이에요/이다 + 있다·없다·많다·적다 + 형용사 + 의문대명사 + ~세요 (50문제)
+            범위: 이에요/이다 + 있다·없다·많다·적다 + 형용사 + 의문대명사 + ~세요 (60문제)
           </div>
           {TEST5_QUESTIONS.map((q,i)=>(
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
@@ -5288,6 +5311,21 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { id:"t6_60", q:"바쁘___ 못 가요.",             answer:"니까",   answers:["니까"],        hint:"💡 받침 없음 → -니까 (이유)" },
       { id:"t6_61", q:"늦었___ 빨리 가요.",           answer:"으니까", answers:["으니까"],      hint:"💡 받침 있음 → -으니까 (이유)" },
       { id:"t6_62", q:"비가 오___ 우산 있어요?",      answer:"는데",   answers:["는데"],        hint:"💡 동사+-는데 (배경 설명)" },
+      // ── 6단원 연결어미 추가 보완 (14문항) ──
+      { id:"t6_63", q:"공부하___ 친구를 만나요. (나열)",     answer:"고",     answers:["고"],               hint:"💡 나열 → -고" },
+      { id:"t6_64", q:"음악을 듣___ 밥을 먹어요. (동시)",   answer:"고",     answers:["고"],               hint:"💡 동시 → -고" },
+      { id:"t6_65", q:"저는 키가 작___ 힘이 세요. (대조)",  answer:"지만",   answers:["지만"],             hint:"💡 반대 → -지만" },
+      { id:"t6_66", q:"돈이 없___ 행복해요. (대조)",        answer:"지만",   answers:["지만"],             hint:"💡 반대 → -지만" },
+      { id:"t6_67", q:"학교에 가___ 한국어를 배워요. (순서)",answer:"서",     answers:["서","아서","어서"], hint:"💡 순서/이유 → -아/어서" },
+      { id:"t6_68", q:"배가 너무 고파___ 빨리 먹어요. (이유)",answer:"서",   answers:["서","아서","어서"], hint:"💡 이유 → -아/어서" },
+      { id:"t6_69", q:"한국에 오___ 한국어를 공부해요. (이유)",answer:"서",  answers:["서","아서","어서"], hint:"💡 이유 → -아/어서" },
+      { id:"t6_70", q:"날씨가 따뜻하___ 꽃이 피어요. (이유)",answer:"서",   answers:["서","아서","어서"], hint:"💡 이유 → -아/어서" },
+      { id:"t6_71", q:"시간이 있___ 도와드릴게요. (조건)",  answer:"으면",   answers:["으면"],             hint:"💡 받침 있음 → -으면" },
+      { id:"t6_72", q:"한국어를 잘 하___ 좋겠어요. (조건)", answer:"면",     answers:["면"],               hint:"💡 받침 없음 → -면" },
+      { id:"t6_73", q:"내일 비가 오___ 집에 있을게요. (조건)",answer:"면",   answers:["면"],               hint:"💡 받침 없음 → -면" },
+      { id:"t6_74", q:"피곤하___ 일찍 자야 해요. (이유)",   answer:"니까",   answers:["니까"],             hint:"💡 받침 없음 → -니까" },
+      { id:"t6_75", q:"밥을 많이 먹었___ 배불러요. (이유)", answer:"으니까", answers:["으니까"],           hint:"💡 받침 있음 → -으니까" },
+      { id:"t6_76", q:"저는 한국어가 좋___ 매일 공부해요.", answer:"아서",   answers:["아서","서"],         hint:"💡 이유 → 좋+아서" },
     ];
 
     function gradeTest6() {
@@ -5318,7 +5356,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{fontSize:22, fontWeight:900, color: testResult.passed?"#E65100":"#E64A00", marginBottom:4}}>
                 {testResult.score}점 {testResult.passed?"— 통과!":"— 다시 도전!"}
               </div>
-              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2A·2B·3A·3B·4·5·6단원 (62문제)</div>
+              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2A·2B·3A·3B·4·5·6단원 (76문제)</div>
             </div>
             <div style={{background:"white", borderRadius:16, padding:16, marginBottom:16}}>
               {testResult.feedback.map((q,i)=>(
@@ -5612,6 +5650,34 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { id:"t7_62", q:"친구가 밥을 먹고 ___.",         answer:"있어요",     answers:["있어요","있어요."],      hint:"💡 먹고 있___" },
       { id:"t7_63", q:"선생님이 수업을 가르치___ 있어요.",answer:"고",      answers:["고"],                    hint:"💡 가르치다 + 고" },
       { id:"t7_64", q:"저는 요즘 한국 드라마를 보___ 있어요.",answer:"고",  answers:["고"],                    hint:"💡 보다 + 고" },
+      // ── 6단원 연결어미 추가 복습 (14문항) ──
+      { id:"t7_65", q:"공부하___ 친구를 만나요. (나열)",      answer:"고",     answers:["고"],               hint:"💡 나열 → -고" },
+      { id:"t7_66", q:"음악을 듣___ 밥을 먹어요. (동시)",    answer:"고",     answers:["고"],               hint:"💡 동시 → -고" },
+      { id:"t7_67", q:"저는 키가 작___ 힘이 세요. (대조)",   answer:"지만",   answers:["지만"],             hint:"💡 반대 → -지만" },
+      { id:"t7_68", q:"돈이 없___ 행복해요. (대조)",         answer:"지만",   answers:["지만"],             hint:"💡 반대 → -지만" },
+      { id:"t7_69", q:"학교에 가___ 한국어를 배워요. (순서)", answer:"서",     answers:["서","아서","어서"], hint:"💡 순서/이유 → -아/어서" },
+      { id:"t7_70", q:"배가 너무 고파___ 빨리 먹어요. (이유)",answer:"서",    answers:["서","아서","어서"], hint:"💡 이유 → -아/어서" },
+      { id:"t7_71", q:"시간이 있___ 도와드릴게요. (조건)",   answer:"으면",   answers:["으면"],             hint:"💡 받침 있음 → -으면" },
+      { id:"t7_72", q:"한국어를 잘 하___ 좋겠어요. (조건)",  answer:"면",     answers:["면"],               hint:"💡 받침 없음 → -면" },
+      { id:"t7_73", q:"피곤하___ 일찍 자야 해요. (이유)",    answer:"니까",   answers:["니까"],             hint:"💡 받침 없음 → -니까" },
+      { id:"t7_74", q:"밥을 많이 먹었___ 배불러요. (이유)",  answer:"으니까", answers:["으니까"],           hint:"💡 받침 있음 → -으니까" },
+      { id:"t7_75", q:"저는 한국어가 좋___ 매일 공부해요.",  answer:"아서",   answers:["아서","서"],         hint:"💡 이유 → 좋+아서" },
+      { id:"t7_76", q:"날씨가 따뜻하___ 꽃이 피어요. (이유)",answer:"서",    answers:["서","아서","어서"], hint:"💡 이유 → -아/어서" },
+      { id:"t7_77", q:"내일 비가 오___ 집에 있을게요. (조건)",answer:"면",    answers:["면"],               hint:"💡 받침 없음 → -면" },
+      { id:"t7_78", q:"비가 오___ 우산 있어요? (배경)",      answer:"는데",   answers:["는데"],             hint:"💡 동사+-는데 (배경)" },
+      // ── 7단원 현재진행 추가 복습 (12문항) ──
+      { id:"t7_79", q:"저는 지금 책을 읽___ 있어요.",        answer:"고",     answers:["고"],               hint:"💡 읽다 + 고" },
+      { id:"t7_80", q:"아이들이 운동장에서 뛰___ 있어요.",   answer:"고",     answers:["고"],               hint:"💡 뛰다 + 고" },
+      { id:"t7_81", q:"엄마가 전화하고 ___.",               answer:"있어요",  answers:["있어요","있어요."], hint:"💡 하고 있___" },
+      { id:"t7_82", q:"선생님이 칠판에 쓰___ 있어요.",       answer:"고",     answers:["고"],               hint:"💡 쓰다 + 고" },
+      { id:"t7_83", q:"저는 지금 영화를 보고 ___.",          answer:"있어요",  answers:["있어요","있어요."], hint:"💡 보고 있___" },
+      { id:"t7_84", q:"친구들이 노래를 부르___ 있어요.",     answer:"고",     answers:["고"],               hint:"💡 부르다 + 고" },
+      { id:"t7_85", q:"지금 비가 오___ 있어요.",             answer:"고",     answers:["고"],               hint:"💡 오다 + 고" },
+      { id:"t7_86", q:"형이 샤워하___ 있어요.",              answer:"고",     answers:["고"],               hint:"💡 하다 계열 + 고" },
+      { id:"t7_87", q:"저는 지금 숙제를 하고 ___.",          answer:"있어요",  answers:["있어요","있어요."], hint:"💡 하고 있___" },
+      { id:"t7_88", q:"동생이 게임을 하___ 있어요.",         answer:"고",     answers:["고"],               hint:"💡 하다 계열 + 고" },
+      { id:"t7_89", q:"할머니가 텔레비전을 보___ 있어요.",   answer:"고",     answers:["고"],               hint:"💡 보다 + 고" },
+      { id:"t7_90", q:"지금 누가 울___ 있어요?",             answer:"고",     answers:["고"],               hint:"💡 울다 + 고" },
     ];
 
     function gradeTest7() {
@@ -5688,7 +5754,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             📝 누적 테스트 — 1·2A·2B·3A·3B·4·5·6·7단원
           </div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
-            범위: 서술어 1단원 ~ 7단원 전체 (64문제)
+            범위: 서술어 1단원 ~ 7단원 전체 (90문제)
           </div>
           {TEST7_QUESTIONS.map((q,i)=>(
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
