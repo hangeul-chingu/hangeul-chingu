@@ -5396,6 +5396,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const UNIT7_CARDS = [
       {
         front: "지금 밥___.",
+        base: "먹다",
         blank: "먹고 있어요",
         full: "지금 밥 먹고 있어요.",
         hint: vi?"먹다 + ___ + 있어요 → 지금 하는 중":en?"먹다 + ___ + 있어요 → action in progress":"동사 줄기 + ___ + 있어요 → 지금 하는 중",
@@ -5403,6 +5404,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       {
         front: "친구가 전화___.",
+        base: "하다 / 걸다",
         blank: "하고 있어요",
         alts: ["걸고 있어요"],
         full: "친구가 전화하고 있어요. / 전화 걸고 있어요.",
@@ -5411,6 +5413,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       {
         front: "아이가 자___.",
+        base: "자다",
         blank: "고 있어요",
         full: "아이가 자고 있어요.",
         hint: vi?"자다(ngủ): 줄기 끝이 모음 → ___":en?"자다: vowel ending stem → ___":"자다: 줄기 '자' + ___ + 있어요",
@@ -5418,6 +5421,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       {
         front: "저는 한국어___.",
+        base: "공부하다",
         blank: "공부하고 있어요",
         full: "저는 한국어 공부하고 있어요.",
         hint: vi?"공부하다 + ___: đang học":en?"공부하다 → currently studying":"공부하다 → 공부하+고 있어요 → ___?",
@@ -5425,6 +5429,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       {
         front: "엄마가 요리___.",
+        base: "요리하다",
         blank: "하고 있어요",
         full: "엄마가 요리하고 있어요.",
         hint: vi?"요리하다: đang nấu ăn → ___":en?"요리하다 → cooking right now → ___":"요리하다 → 요리하+고 있어요",
@@ -5432,6 +5437,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       {
         front: "비가 ___.",
+        base: "오다",
         blank: "오고 있어요",
         full: "비가 오고 있어요.",
         hint: vi?"오다(đến/rơi): 줄기 '오' + ___":en?"오다: stem '오' + ___ + 있어요":"비가 내리고 있어요 = 비가 오+고 있어요",
@@ -5454,6 +5460,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           {/* 카드 */}
           <div style={{background:"white", borderRadius:20, padding:"28px 20px", boxShadow:"0 4px 20px rgba(46,125,50,.12)", marginBottom:16, textAlign:"center"}}>
+            {card.base && (
+              <div style={{display:"inline-block", background:"#FFF3E0", border:"1.5px solid #FFB74D", borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:700, color:"#E65100", marginBottom:10}}>
+                기본형: {card.base}
+              </div>
+            )}
             <div style={{fontSize:22, fontWeight:900, color:"#1B5E20", marginBottom:16, lineHeight:1.4}}>
               {card.front.replace("___", "　　　")}
             </div>
