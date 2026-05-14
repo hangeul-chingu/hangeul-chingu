@@ -5404,7 +5404,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {
         front: "친구가 전화___.",
         blank: "하고 있어요",
-        full: "친구가 전화하고 있어요.",
+        alts: ["걸고 있어요"],
+        full: "친구가 전화하고 있어요. / 전화 걸고 있어요.",
         hint: vi?"하다 + ___ + 있어요 → 지금 진행 중":en?"하다 + ___ → ongoing right now":"하다 → 하+고 있어요 → ___?",
         rule: vi?"하다 → 하+고 있어요":en?"하다 → 하+고 있어요":"하다 → 하+고 있어요",
       },
@@ -5470,7 +5471,23 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </button>
             {unitCardRevealed && (
               <div style={{marginTop:14}}>
-                <div style={{fontSize:18, fontWeight:900, color:"#2E7D32", marginBottom:6}}>✅ {card.blank}</div>
+                <div style={{fontSize:18, fontWeight:900, color:"#2E7D32", marginBottom:6}}>
+                  ✅ {card.blank.includes("고 있어요")
+                    ? <>{card.blank.replace("고 있어요","")}<span style={{color:"#C62828"}}>고 있어요</span></>
+                    : card.blank}
+                </div>
+                {card.alts && (
+                  <div style={{fontSize:13, color:"#888", marginBottom:6}}>
+                    또는: {card.alts.map((a,i)=>(
+                      <span key={i} style={{color:"#555", fontWeight:700}}>
+                        {a.includes("고 있어요")
+                          ? <>{a.replace("고 있어요","")}<span style={{color:"#C62828"}}>고 있어요</span></>
+                          : a}
+                        {i < card.alts.length-1 ? " / " : ""}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div style={{fontSize:14, color:"#555", marginBottom:8}}>→ {card.full}</div>
                 <div style={{fontSize:12, color:"#888", background:"#F1F8E9", borderRadius:8, padding:"8px 12px", marginBottom:8}}>{card.hint}</div>
                 <div style={{fontSize:12, color:"#2E7D32", fontWeight:700, background:"#E8F5E9", borderRadius:8, padding:"8px 12px"}}>
