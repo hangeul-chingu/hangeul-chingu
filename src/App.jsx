@@ -1331,6 +1331,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"발음①", action:()=>{ setPronStep(0); setStep("pronunciation"); }},
       { label:"발음⑧", action:()=>{ setPronStep(7); setStep("pronunciation"); }},
       { label:"시제1",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense1"); }},
+      { label:"시제2",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense2"); }},
       { label:"조사",   action:()=>{ setJosaStep(0); setStep("josa"); }},
       { label:"서술어1A",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit1"); }},
       { label:"서술어1B",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit1b"); }},
@@ -2615,9 +2616,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
               </button>
             ) : (
-              <button onClick={() => { setJosaStep(0); setStep("josa"); }}
+              <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setStep("tense2"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Học trợ từ! 🚀":en?"Learn particles! 🚀":"조사 학습으로! 🚀"}
+                {vi?"Tiếp theo: Tense 2! 🚀":en?"Next: Tense 2! 🚀":"시제 2단원으로! 🚀"}
               </button>
             )}
           </div>
@@ -2625,6 +2626,232 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <button onClick={() => setStep("pronResult")}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại phát âm":en?"Back to pronunciation":"뒤로 (발음)"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 시제 2단원: ㄹ탈락 동사 + 있다/없다 계열 ──
+  if (step === "tense2") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    const TENSE2_CARDS = [
+      { base:"살다",    meaning:{vi:"sống/ở",   en:"live"},
+        pres:"삽니다",    presQ:"삽니까?",
+        past:"살았습니다",pastQ:"살았습니까?",
+        fut:"살 것입니다",  futQ:"살 것입니까?",
+        rule:vi?"살다 → 살+ㅂ니다 → ㄹ탈락 → 삽니다":en?"살다 → 살+ㅂ니다 → ㄹ drop → 삽니다":"살다 → 살+ㅂ니다 → ㄹ탈락 → 삽니다" },
+      { base:"알다",    meaning:{vi:"biết",     en:"know"},
+        pres:"압니다",    presQ:"압니까?",
+        past:"알았습니다",pastQ:"알았습니까?",
+        fut:"알 것입니다",  futQ:"알 것입니까?",
+        rule:vi?"알다 → 알+ㅂ니다 → ㄹ탈락 → 압니다":en?"알다 → 알+ㅂ니다 → ㄹ drop → 압니다":"알다 → 알+ㅂ니다 → ㄹ탈락 → 압니다" },
+      { base:"만들다",  meaning:{vi:"làm/tạo",  en:"make"},
+        pres:"만듭니다",  presQ:"만듭니까?",
+        past:"만들었습니다",pastQ:"만들었습니까?",
+        fut:"만들 것입니다",futQ:"만들 것입니까?",
+        rule:vi?"만들다 → 만들+ㅂ니다 → ㄹ탈락 → 만듭니다":en?"만들다 → 만들+ㅂ니다 → ㄹ drop → 만듭니다":"만들다 → 만들+ㅂ니다 → ㄹ탈락 → 만듭니다" },
+      { base:"팔다",    meaning:{vi:"bán",      en:"sell"},
+        pres:"팝니다",    presQ:"팝니까?",
+        past:"팔았습니다",pastQ:"팔았습니까?",
+        fut:"팔 것입니다",  futQ:"팔 것입니까?",
+        rule:vi?"팔다 → 팔+ㅂ니다 → ㄹ탈락 → 팝니다":en?"팔다 → 팔+ㅂ니다 → ㄹ drop → 팝니다":"팔다 → 팔+ㅂ니다 → ㄹ탈락 → 팝니다" },
+      { base:"놀다",    meaning:{vi:"chơi",     en:"play"},
+        pres:"놉니다",    presQ:"놉니까?",
+        past:"놀았습니다",pastQ:"놀았습니까?",
+        fut:"놀 것입니다",  futQ:"놀 것입니까?",
+        rule:vi?"놀다 → 놀+ㅂ니다 → ㄹ탈락 → 놉니다":en?"놀다 → 놀+ㅂ니다 → ㄹ drop → 놉니다":"놀다 → 놀+ㅂ니다 → ㄹ탈락 → 놉니다" },
+      { base:"열다",    meaning:{vi:"mở",       en:"open"},
+        pres:"엽니다",    presQ:"엽니까?",
+        past:"열었습니다",pastQ:"열었습니까?",
+        fut:"열 것입니다",  futQ:"열 것입니까?",
+        rule:vi?"열다 → 열+ㅂ니다 → ㄹ탈락 → 엽니다":en?"열다 → 열+ㅂ니다 → ㄹ drop → 엽니다":"열다 → 열+ㅂ니다 → ㄹ탈락 → 엽니다" },
+      { base:"들다",    meaning:{vi:"cầm/nâng", en:"hold/lift"},
+        pres:"듭니다",    presQ:"듭니까?",
+        past:"들었습니다",pastQ:"들었습니까?",
+        fut:"들 것입니다",  futQ:"들 것입니까?",
+        rule:vi?"들다 → 들+ㅂ니다 → ㄹ탈락 → 듭니다":en?"들다 → 들+ㅂ니다 → ㄹ drop → 듭니다":"들다 → 들+ㅂ니다 → ㄹ탈락 → 듭니다" },
+      { base:"울다",    meaning:{vi:"khóc",     en:"cry"},
+        pres:"웁니다",    presQ:"웁니까?",
+        past:"울었습니다",pastQ:"울었습니까?",
+        fut:"울 것입니다",  futQ:"울 것입니까?",
+        rule:vi?"울다 → 울+ㅂ니다 → ㄹ탈락 → 웁니다":en?"울다 → 울+ㅂ니다 → ㄹ drop → 웁니다":"울다 → 울+ㅂ니다 → ㄹ탈락 → 웁니다" },
+      { base:"날다",    meaning:{vi:"bay",      en:"fly"},
+        pres:"납니다",    presQ:"납니까?",
+        past:"날았습니다",pastQ:"날았습니까?",
+        fut:"날 것입니다",  futQ:"날 것입니까?",
+        rule:vi?"날다 → 날+ㅂ니다 → ㄹ탈락 → 납니다":en?"날다 → 날+ㅂ니다 → ㄹ drop → 납니다":"날다 → 날+ㅂ니다 → ㄹ탈락 → 납니다" },
+      { base:"있다",    meaning:{vi:"có/ở",     en:"exist/have"},
+        pres:"있습니다",  presQ:"있습니까?",
+        past:"있었습니다",pastQ:"있었습니까?",
+        fut:"있을 것입니다",futQ:"있을 것입니까?",
+        rule:vi?"있다 → 있+습니다 → 있습니다 (그대로!)":en?"있다 → 있+습니다 → 있습니다 (no change!)":"있다 → 있+습니다 → 있습니다 (그대로!)" },
+      { base:"없다",    meaning:{vi:"không có", en:"not exist"},
+        pres:"없습니다",  presQ:"없습니까?",
+        past:"없었습니다",pastQ:"없었습니까?",
+        fut:"없을 것입니다",futQ:"없을 것입니까?",
+        rule:vi?"없다 → 없+습니다 → 없습니다 (그대로!)":en?"없다 → 없+습니다 → 없습니다 (no change!)":"없다 → 없+습니다 → 없습니다 (그대로!)" },
+      { base:"재미있다",meaning:{vi:"thú vị",   en:"interesting"},
+        pres:"재미있습니다",presQ:"재미있습니까?",
+        past:"재미있었습니다",pastQ:"재미있었습니까?",
+        fut:"재미있을 것입니다",futQ:"재미있을 것입니까?",
+        rule:vi?"재미있다 → 재미있+습니다 → 재미있습니다 (그대로!)":en?"재미있다 → 재미있+습니다 → 재미있습니다 (no change!)":"재미있다 → 재미있+습니다 → 재미있습니다 (그대로!)" },
+      { base:"맛있다",  meaning:{vi:"ngon",     en:"delicious"},
+        pres:"맛있습니다",presQ:"맛있습니까?",
+        past:"맛있었습니다",pastQ:"맛있었습니까?",
+        fut:"맛있을 것입니다",futQ:"맛있을 것입니까?",
+        rule:vi?"맛있다 → 맛있+습니다 → 맛있습니다 (그대로!)":en?"맛있다 → 맛있+습니다 → 맛있습니다 (no change!)":"맛있다 → 맛있+습니다 → 맛있습니다 (그대로!)" },
+      { base:"되다",    meaning:{vi:"trở thành",en:"become"},
+        pres:"됩니다",    presQ:"됩니까?",
+        past:"됐습니다",  pastQ:"됐습니까?",
+        fut:"될 것입니다",  futQ:"될 것입니까?",
+        rule:vi?"되다 → 되+ㅂ니다 → ㄹ탈락 → 됩니다":en?"되다 → 되+ㅂ니다 → ㄹ drop → 됩니다":"되다 → 되+ㅂ니다 → ㄹ탈락 → 됩니다" },
+      { base:"쉬다",    meaning:{vi:"nghỉ",     en:"rest"},
+        pres:"쉽니다",    presQ:"쉽니까?",
+        past:"쉬었습니다",pastQ:"쉬었습니까?",
+        fut:"쉴 것입니다",  futQ:"쉴 것입니까?",
+        rule:vi?"쉬다 → 쉬+ㅂ니다 → ㄹ탈락 → 쉽니다":en?"쉬다 → 쉬+ㅂ니다 → ㄹ drop → 쉽니다":"쉬다 → 쉬+ㅂ니다 → ㄹ탈락 → 쉽니다" },
+      { base:"같다",    meaning:{vi:"giống",    en:"same/like"},
+        pres:"같습니다",  presQ:"같습니까?",
+        past:"같았습니다",pastQ:"같았습니까?",
+        fut:"같을 것입니다",futQ:"같을 것입니까?",
+        rule:vi?"같다 → 같+습니다 → 같습니다 (그대로!)":en?"같다 → 같+습니다 → 같습니다 (no change!)":"같다 → 같+습니다 → 같습니다 (그대로!)" },
+      { base:"싸다",    meaning:{vi:"rẻ",       en:"cheap"},
+        pres:"쌉니다",    presQ:"쌉니까?",
+        past:"쌌습니다",  pastQ:"쌌습니까?",
+        fut:"쌀 것입니다",  futQ:"쌀 것입니까?",
+        rule:vi?"싸다 → 싸+ㅂ니다 → ㄹ탈락 → 쌉니다":en?"싸다 → 싸+ㅂ니다 → ㄹ drop → 쌉니다":"싸다 → 싸+ㅂ니다 → ㄹ탈락 → 쌉니다" },
+      { base:"비싸다",  meaning:{vi:"đắt",      en:"expensive"},
+        pres:"비쌉니다",  presQ:"비쌉니까?",
+        past:"비쌌습니다",pastQ:"비쌌습니까?",
+        fut:"비쌀 것입니다",futQ:"비쌀 것입니까?",
+        rule:vi?"비싸다 → 비싸+ㅂ니다 → ㄹ탈락 → 비쌉니다":en?"비싸다 → 비싸+ㅂ니다 → ㄹ drop → 비쌉니다":"비싸다 → 비싸+ㅂ니다 → ㄹ탈락 → 비쌉니다" },
+    ];
+
+    const card = TENSE2_CARDS[tenseCardIdx];
+    const total = TENSE2_CARDS.length;
+    const meaning = vi ? card.meaning.vi : en ? card.meaning.en : card.meaning.en;
+
+    const C = { bg:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", accent:"#512DA8",
+                 border:"#CE93D8",
+                 pres:"#1565C0", past:"#6A1B9A", fut:"#E65100",
+                 presLight:"#E3F2FD", pastLight:"#F3E5F5", futLight:"#FFF3E0" };
+
+    return (
+      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+
+          <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
+            📚 {vi?"시제 2단원 — Động từ ㄹ탈락 + 있다/없다":en?"Tense Unit 2 — ㄹ-drop Verbs + 있다/없다":"시제 2단원 — ㄹ탈락 동사 + 있다/없다 계열"}
+          </div>
+          <div style={{fontSize:11, color:"#aaa", marginBottom:12}}>
+            {vi?"ㄹ받침 → ㅂ/ㅅ/ㄴ/ㅇ 앞에서 탈락":en?"ㄹ final consonant drops before ㅂ/ㅅ/ㄴ/ㅇ":"ㄹ 받침은 ㅂ/ㅅ/ㄴ/ㅇ 앞에서 탈락해요"}
+          </div>
+
+          <div style={{display:"flex", gap:3, marginBottom:16}}>
+            {TENSE2_CARDS.map((_,i) => (
+              <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=tenseCardIdx?C.accent:"#ddd"}} />
+            ))}
+          </div>
+
+          <div style={{background:"white", borderRadius:20, overflow:"hidden", boxShadow:"0 4px 20px rgba(81,45,168,.12)", marginBottom:16}}>
+
+            <div style={{background:C.accent, padding:"16px 20px", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+              <div style={{fontSize:28, fontWeight:900, color:"white"}}>{card.base}</div>
+              <div style={{fontSize:14, color:"rgba(255,255,255,.85)", fontWeight:700}}>{meaning}</div>
+            </div>
+
+            <div style={{padding:"0"}}>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"1px solid #f0f0f0"}}>
+                <div style={{background:"#f5f5f5"}} />
+                <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.pres, background:C.presLight}}>
+                  {vi?"Hiện tại":en?"Present":"현재"}
+                </div>
+                <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.past, background:C.pastLight}}>
+                  {vi?"Quá khứ":en?"Past":"과거"}
+                </div>
+                <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.fut, background:C.futLight}}>
+                  {vi?"Tương lai":en?"Future":"미래"}
+                </div>
+              </div>
+
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"2px solid #e0e0e0"}}>
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
+                  <span style={{fontSize:20, fontWeight:900, color:"#555"}}>.</span>
+                </div>
+                {[
+                  {val:card.pres, color:C.pres, bg:C.presLight},
+                  {val:card.past, color:C.past, bg:C.pastLight},
+                  {val:card.fut,  color:C.fut,  bg:C.futLight},
+                ].map((cell,i) => (
+                  <div key={i} style={{padding:"14px 6px", textAlign:"center", background:tenseRevealed?cell.bg:"#fafafa", borderRight:i<2?"1px solid #f0f0f0":"none"}}>
+                    {tenseRevealed
+                      ? <span style={{fontSize:13, fontWeight:900, color:cell.color, lineHeight:1.3, display:"block"}}>{cell.val}</span>
+                      : <span style={{fontSize:18, color:"#ddd"}}>•••</span>}
+                  </div>
+                ))}
+              </div>
+
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:tenseRevealed?"1px solid #f0f0f0":"none"}}>
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
+                  <span style={{fontSize:18, fontWeight:900, color:"#E65100"}}>?</span>
+                </div>
+                {[
+                  {val:card.presQ, color:C.pres, bg:C.presLight},
+                  {val:card.pastQ, color:C.past, bg:C.pastLight},
+                  {val:card.futQ,  color:C.fut,  bg:C.futLight},
+                ].map((cell,i) => (
+                  <div key={i} style={{padding:"14px 6px", textAlign:"center", background:tenseRevealed?cell.bg:"#fafafa", borderRight:i<2?"1px solid #f0f0f0":"none"}}>
+                    {tenseRevealed
+                      ? <span style={{fontSize:13, fontWeight:900, color:cell.color, lineHeight:1.3, display:"block"}}>{cell.val}</span>
+                      : <span style={{fontSize:18, color:"#ddd"}}>•••</span>}
+                  </div>
+                ))}
+              </div>
+
+              {tenseRevealed && (
+                <div style={{padding:"10px 14px", background:"#EDE7F6", borderTop:"1px solid #D1C4E9"}}>
+                  <div style={{fontSize:12, color:C.accent, fontWeight:800}}>📌 {card.rule}</div>
+                </div>
+              )}
+
+              {!tenseRevealed && (
+                <div style={{padding:"16px"}}>
+                  <button onClick={() => setTenseRevealed(true)}
+                    style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#311B92)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                    {vi?"Xem đáp án 👀":en?"Show answers 👀":"정답 보기 👀"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div style={{display:"flex", gap:8}}>
+            {tenseCardIdx > 0 && (
+              <button onClick={() => { setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
+                style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>
+                ← {vi?"Trước":en?"Prev":"이전"}
+              </button>
+            )}
+            {tenseCardIdx < total - 1 ? (
+              <button onClick={() => { setTenseCardIdx(i=>i+1); setTenseRevealed(false); }}
+                style={{flex:1, background:`linear-gradient(135deg,${C.accent},#311B92)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
+              </button>
+            ) : (
+              <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setStep("tense3"); }}
+                style={{flex:1, background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo: Tense 3! 🚀":en?"Next: Tense 3! 🚀":"시제 3단원으로! 🚀"}
+              </button>
+            )}
+          </div>
+
+          <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setStep("tense1"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại Tense 1":en?"Back to Tense 1":"뒤로 (시제 1단원)"}
           </button>
         </div>
       </div>
