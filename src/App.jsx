@@ -1333,6 +1333,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"발음⑧", action:()=>{ setPronStep(7); setStep("pronunciation"); }},
       { label:"시제1",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense1"); }},
       { label:"시제2",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense2"); }},
+      { label:"시제3",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense3"); }},
       { label:"조사",   action:()=>{ setJosaStep(0); setStep("josa"); }},
       { label:"서술어1A",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit1"); }},
       { label:"서술어1B",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit1b"); }},
@@ -3070,6 +3071,225 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <button onClick={()=>{setStep("pronunciation"); setPronStep(7);}}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 시제 3단원: ㅂ불규칙 + 으탈락 형용사 ──
+  if (step === "tense3") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    const TENSE3_CARDS = [
+      // ── ㅂ불규칙 동사/형용사 ──
+      { base:"돕다",    meaning:{vi:"giúp đỡ",    en:"help"},
+        pres:"돕습니다",   presQ:"돕습니까?",
+        past:"도왔습니다",  pastQ:"도왔습니까?",
+        fut:"도울 것입니다",futQ:"도울 것입니까?",
+        rule:vi?"돕다 → 도+아서 → ㅂ탈락+오 → 도왔습니다":en?"돕다 → ㅂ drops → 도+와/았 → 도왔습니다":"돕다 → ㅂ탈락 → 도+아서 → 도왔습니다",
+        type:"ㅂ불규칙" },
+      { base:"눕다",    meaning:{vi:"nằm xuống",  en:"lie down"},
+        pres:"눕습니다",   presQ:"눕습니까?",
+        past:"누웠습니다",  pastQ:"누웠습니까?",
+        fut:"누울 것입니다",futQ:"누울 것입니까?",
+        rule:vi?"눕다 → ㅂ탈락 → 누+워서 → 누웠습니다":en?"눕다 → ㅂ drops → 누+워/었 → 누웠습니다":"눕다 → ㅂ탈락 → 누+워서 → 누웠습니다",
+        type:"ㅂ불규칙" },
+      { base:"쉽다",    meaning:{vi:"dễ",         en:"easy"},
+        pres:"쉽습니다",   presQ:"쉽습니까?",
+        past:"쉬웠습니다",  pastQ:"쉬웠습니까?",
+        fut:"쉬울 것입니다",futQ:"쉬울 것입니까?",
+        rule:vi?"쉽다 → ㅂ탈락 → 쉬+워서 → 쉬웠습니다":en?"쉽다 → ㅂ drops → 쉬+워/었 → 쉬웠습니다":"쉽다 → ㅂ탈락 → 쉬+워서 → 쉬웠습니다",
+        type:"ㅂ불규칙" },
+      { base:"어렵다",  meaning:{vi:"khó",        en:"difficult"},
+        pres:"어렵습니다", presQ:"어렵습니까?",
+        past:"어려웠습니다",pastQ:"어려웠습니까?",
+        fut:"어려울 것입니다",futQ:"어려울 것입니까?",
+        rule:vi?"어렵다 → ㅂ탈락 → 어려+워서 → 어려웠습니다":en?"어렵다 → ㅂ drops → 어려+워/었 → 어려웠습니다":"어렵다 → ㅂ탈락 → 어려+워서 → 어려웠습니다",
+        type:"ㅂ불규칙" },
+      // ── 으탈락 형용사 ──
+      { base:"크다",    meaning:{vi:"to/lớn",    en:"big"},
+        pres:"큽니다",     presQ:"큽니까?",
+        past:"컸습니다",   pastQ:"컸습니까?",
+        fut:"클 것입니다",  futQ:"클 것입니까?",
+        rule:vi?"크다 → 으탈락 → 크+아서 → 컸습니다":en?"크다 → 으 drops → 크+아/어 → 컸습니다":"크다 → 으탈락 → 크+아서 → 컸습니다",
+        type:"으탈락" },
+      { base:"기쁘다",  meaning:{vi:"vui mừng",  en:"happy/glad"},
+        pres:"기쁩니다",   presQ:"기쁩니까?",
+        past:"기뻤습니다",  pastQ:"기뻤습니까?",
+        fut:"기쁠 것입니다",futQ:"기쁠 것입니까?",
+        rule:vi?"기쁘다 → 으탈락 → 기쁘+어서 → 기뻤습니다":en?"기쁘다 → 으 drops → 기쁘+어/었 → 기뻤습니다":"기쁘다 → 으탈락 → 기쁘+어서 → 기뻤습니다",
+        type:"으탈락" },
+      { base:"예쁘다",  meaning:{vi:"đẹp",       en:"pretty"},
+        pres:"예쁩니다",   presQ:"예쁩니까?",
+        past:"예뻤습니다",  pastQ:"예뻤습니까?",
+        fut:"예쁠 것입니다",futQ:"예쁠 것입니까?",
+        rule:vi?"예쁘다 → 으탈락 → 예쁘+어서 → 예뻤습니다":en?"예쁘다 → 으 drops → 예쁘+어/었 → 예뻤습니다":"예쁘다 → 으탈락 → 예쁘+어서 → 예뻤습니다",
+        type:"으탈락" },
+      { base:"슬프다",  meaning:{vi:"buồn",      en:"sad"},
+        pres:"슬픕니다",   presQ:"슬픕니까?",
+        past:"슬펐습니다",  pastQ:"슬펐습니까?",
+        fut:"슬플 것입니다",futQ:"슬플 것입니까?",
+        rule:vi?"슬프다 → 으탈락 → 슬프+어서 → 슬펐습니다":en?"슬프다 → 으 drops → 슬프+어/었 → 슬펐습니다":"슬프다 → 으탈락 → 슬프+어서 → 슬펐습니다",
+        type:"으탈락" },
+      { base:"바쁘다",  meaning:{vi:"bận",       en:"busy"},
+        pres:"바쁩니다",   presQ:"바쁩니까?",
+        past:"바빴습니다",  pastQ:"바빴습니까?",
+        fut:"바쁠 것입니다",futQ:"바쁠 것입니까?",
+        rule:vi?"바쁘다 → 으탈락 → 바쁘+아서 → 바빴습니다":en?"바쁘다 → 으 drops → 바쁘+아/었 → 바빴습니다":"바쁘다 → 으탈락 → 바쁘+아서 → 바빴습니다",
+        type:"으탈락" },
+      { base:"아프다",  meaning:{vi:"đau/ốm",   en:"sick/painful"},
+        pres:"아픕니다",   presQ:"아픕니까?",
+        past:"아팠습니다",  pastQ:"아팠습니까?",
+        fut:"아플 것입니다",futQ:"아플 것입니까?",
+        rule:vi?"아프다 → 으탈락 → 아프+아서 → 아팠습니다":en?"아프다 → 으 drops → 아프+아/었 → 아팠습니다":"아프다 → 으탈락 → 아프+아서 → 아팠습니다",
+        type:"으탈락" },
+    ];
+
+    const card = TENSE3_CARDS[tenseCardIdx];
+    const total = TENSE3_CARDS.length;
+    const meaning = vi ? card.meaning.vi : en ? card.meaning.en : card.meaning.en;
+
+    const C = { bg:"linear-gradient(150deg,#FFF3E0,#FFE0B2)", accent:"#E65100",
+                 border:"#FFCC80",
+                 pres:"#1565C0", past:"#6A1B9A", fut:"#2E7D32",
+                 presLight:"#E3F2FD", pastLight:"#F3E5F5", futLight:"#E8F5E9" };
+
+    // 불규칙 유형별 배지 색상
+    const typeBadge = card.type === "ㅂ불규칙"
+      ? { bg:"#FF6B35", label: vi?"ㅂ불규칙":en?"ㅂ-irregular":"ㅂ불규칙" }
+      : { bg:"#512DA8", label: vi?"으탈락":en?"으-drop":"으탈락" };
+
+    return (
+      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+
+          <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
+            📚 {vi?"시제 3단원 — ㅂ불규칙 + 으탈락 형용사":en?"Tense Unit 3 — ㅂ-irregular + 으-drop":"시제 3단원 — ㅂ불규칙 + 으탈락 형용사"}
+          </div>
+          <div style={{fontSize:12, color:"#555", background:"#FFF3E0", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
+            {vi
+              ? <><b>🔶 ㅂ불규칙</b>: gốc kết thúc bằng <b>ㅂ</b> → <b>ㅂ bị mất</b>, thêm <b>오/우</b><br/>예: 돕다 → 도<b>왔</b>습니다 / 눕다 → 누<b>웠</b>습니다<br/><b>🔷 으탈락</b>: gốc kết thúc bằng <b>으</b> → <b>으 bị mất</b> trước 아/어<br/>예: 크다 → <b>컸</b>습니다 / 예쁘다 → <b>예뻤</b>습니다</>
+              : en
+              ? <><b>🔶 ㅂ-irregular</b>: stem ending in <b>ㅂ</b> → <b>ㅂ drops</b>, add <b>오/우</b><br/>e.g. 돕다 → 도<b>왔</b>습니다 / 눕다 → 누<b>웠</b>습니다<br/><b>🔷 으-drop</b>: stem ending in <b>으</b> → <b>으 drops</b> before 아/어<br/>e.g. 크다 → <b>컸</b>습니다 / 예쁘다 → <b>예뻤</b>습니다</>
+              : <><b>🔶 ㅂ불규칙</b>: 어간 끝 <b>ㅂ</b> → <b>ㅂ탈락</b> + <b>오/우</b> 결합<br/>예: 돕다 → 도<b>왔</b>습니다 / 눕다 → 누<b>웠</b>습니다<br/><b>🔷 으탈락</b>: 어간 끝 <b>으</b> → 아/어 앞에서 <b>으탈락</b><br/>예: 크다 → <b>컸</b>습니다 / 예쁘다 → <b>예뻤</b>습니다</>
+            }
+          </div>
+
+          <div style={{display:"flex", gap:3, marginBottom:16}}>
+            {TENSE3_CARDS.map((_,i) => (
+              <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=tenseCardIdx?C.accent:"#ddd"}} />
+            ))}
+          </div>
+
+          <div style={{background:"white", borderRadius:20, overflow:"hidden", boxShadow:"0 4px 20px rgba(230,81,0,.12)", marginBottom:16}}>
+
+            {/* 헤더: 기본형 + 뜻 + 불규칙 유형 배지 */}
+            <div style={{background:C.accent, padding:"16px 20px"}}>
+              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6}}>
+                <div style={{fontSize:28, fontWeight:900, color:"white"}}>{card.base}</div>
+                <div style={{fontSize:14, color:"rgba(255,255,255,.85)", fontWeight:700}}>{meaning}</div>
+              </div>
+              <div style={{display:"inline-block", background:typeBadge.bg, borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:900, color:"white"}}>
+                {typeBadge.label}
+              </div>
+            </div>
+
+            {/* 시제 표 헤더 */}
+            <div style={{padding:"0"}}>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"1px solid #f0f0f0"}}>
+                <div style={{background:"#f5f5f5"}} />
+                <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.pres, background:C.presLight}}>
+                  {vi?"Hiện tại":en?"Present":"현재"}
+                </div>
+                <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.past, background:C.pastLight}}>
+                  {vi?"Quá khứ":en?"Past":"과거"}
+                </div>
+                <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.fut, background:C.futLight}}>
+                  {vi?"Tương lai":en?"Future":"미래"}
+                </div>
+              </div>
+
+              {/* 진술(.) 행 */}
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"2px solid #e0e0e0"}}>
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
+                  <span style={{fontSize:20, fontWeight:900, color:"#555"}}>.</span>
+                </div>
+                {[
+                  {val:card.pres, color:C.pres, bg:C.presLight},
+                  {val:card.past, color:C.past, bg:C.pastLight},
+                  {val:card.fut,  color:C.fut,  bg:C.futLight},
+                ].map((cell,i) => (
+                  <div key={i} style={{padding:"14px 6px", textAlign:"center", background:tenseRevealed?cell.bg:"#fafafa", borderRight:i<2?"1px solid #f0f0f0":"none"}}>
+                    {tenseRevealed
+                      ? <span style={{fontSize:13, fontWeight:900, color:cell.color, lineHeight:1.3, display:"block"}}>{cell.val}</span>
+                      : <span style={{fontSize:18, color:"#ddd"}}>•••</span>}
+                  </div>
+                ))}
+              </div>
+
+              {/* 질문(?) 행 */}
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:tenseRevealed?"1px solid #f0f0f0":"none"}}>
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
+                  <span style={{fontSize:18, fontWeight:900, color:"#E65100"}}>?</span>
+                </div>
+                {[
+                  {val:card.presQ, color:C.pres, bg:C.presLight},
+                  {val:card.pastQ, color:C.past, bg:C.pastLight},
+                  {val:card.futQ,  color:C.fut,  bg:C.futLight},
+                ].map((cell,i) => (
+                  <div key={i} style={{padding:"14px 6px", textAlign:"center", background:tenseRevealed?cell.bg:"#fafafa", borderRight:i<2?"1px solid #f0f0f0":"none"}}>
+                    {tenseRevealed
+                      ? <span style={{fontSize:13, fontWeight:900, color:cell.color, lineHeight:1.3, display:"block"}}>{cell.val}</span>
+                      : <span style={{fontSize:18, color:"#ddd"}}>•••</span>}
+                  </div>
+                ))}
+              </div>
+
+              {/* 규칙 설명 (정답 공개 후) */}
+              {tenseRevealed && (
+                <div style={{padding:"10px 14px", background:"#FFF3E0", borderTop:"1px solid #FFE0B2"}}>
+                  <div style={{fontSize:12, color:C.accent, fontWeight:800}}>📌 {card.rule}</div>
+                </div>
+              )}
+
+              {!tenseRevealed && (
+                <div style={{padding:"16px"}}>
+                  <button onClick={() => setTenseRevealed(true)}
+                    style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#BF360C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                    {vi?"Xem đáp án 👀":en?"Show answers 👀":"정답 보기 👀"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 이전 / 다음 */}
+          <div style={{display:"flex", gap:8}}>
+            {tenseCardIdx > 0 && (
+              <button onClick={() => { setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
+                style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>
+                ← {vi?"Trước":en?"Prev":"이전"}
+              </button>
+            )}
+            {tenseCardIdx < total - 1 ? (
+              <button onClick={() => { setTenseCardIdx(i=>i+1); setTenseRevealed(false); }}
+                style={{flex:1, background:`linear-gradient(135deg,${C.accent},#BF360C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
+              </button>
+            ) : (
+              <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setStep("tense4"); }}
+                style={{flex:1, background:"linear-gradient(135deg,#1565C0,#0D47A1)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo: Tense 4! 🚀":en?"Next: Tense 4! 🚀":"시제 4단원으로! 🚀"}
+              </button>
+            )}
+          </div>
+
+          <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setStep("tense2"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại Tense 2":en?"Back to Tense 2":"뒤로 (시제 2단원)"}
           </button>
         </div>
       </div>
