@@ -2751,6 +2751,45 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                  pres:"#1565C0", past:"#6A1B9A", fut:"#E65100",
                  presLight:"#E3F2FD", pastLight:"#F3E5F5", futLight:"#FFF3E0" };
 
+    const inp2 = tenseInputs[tenseCardIdx] || {};
+    const setInp2 = (key, val) => setTenseInputs(prev => ({
+      ...prev,
+      [tenseCardIdx]: { ...(prev[tenseCardIdx]||{}), [key]: val }
+    }));
+    const check2 = (key) => {
+      if (!tenseRevealed) return null;
+      const userVal = (inp2[key]||"").trim().replace(/\s+/g,"");
+      const correct = (card[key]||"").replace(/\s+/g,"");
+      return userVal === correct ? "correct" : "wrong";
+    };
+    const renderCell2 = (key) => {
+      const status = check2(key);
+      const border = !tenseRevealed ? "2px solid #e0e0e0"
+        : status==="correct" ? "2px solid #2E7D32"
+        : "2px solid #C62828";
+      return (
+        <div style={{padding:"6px 4px", borderRight:"1px solid #f0f0f0"}}>
+          <input
+            type="text"
+            value={inp2[key]||""}
+            onChange={e => { if(!tenseRevealed) setInp2(key, e.target.value); }}
+            onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
+            readOnly={tenseRevealed}
+            style={{width:"100%", border, borderRadius:6, padding:"6px 4px", fontSize:12, fontWeight:700,
+              textAlign:"center", outline:"none", boxSizing:"border-box",
+              color: !tenseRevealed ? "#333" : status==="correct" ? "#2E7D32" : "#C62828",
+              background:"transparent", cursor: tenseRevealed?"default":"text"}}
+            placeholder="..."
+          />
+          {tenseRevealed && status==="wrong" && (
+            <div style={{fontSize:11, color:"#2E7D32", fontWeight:900, textAlign:"center", marginTop:2}}>
+              → {card[key]}
+            </div>
+          )}
+        </div>
+      );
+    };
+
     return (
       <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
@@ -2799,34 +2838,24 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
                   <span style={{fontSize:20, fontWeight:900, color:"#555"}}>.</span>
                 </div>
-                {[
-                  {val:card.pres, color:C.pres, bg:C.presLight},
-                  {val:card.past, color:C.past, bg:C.pastLight},
-                  {val:card.fut,  color:C.fut,  bg:C.futLight},
-                ].map((cell,i) => (
-                  <div key={i} style={{padding:"14px 6px", textAlign:"center", background:tenseRevealed?cell.bg:"#fafafa", borderRight:i<2?"1px solid #f0f0f0":"none"}}>
-                    {tenseRevealed
-                      ? <span style={{fontSize:13, fontWeight:900, color:cell.color, lineHeight:1.3, display:"block"}}>{cell.val}</span>
-                      : <span style={{fontSize:18, color:"#ddd"}}>•••</span>}
-                  </div>
-                ))}
+                {renderCell2("pres")}
+                {renderCell2("past")}
+                {renderCell2("fut")}
               </div>
 
-              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:tenseRevealed?"1px solid #f0f0f0":"none"}}>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr"}}>
                 <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
                   <span style={{fontSize:18, fontWeight:900, color:"#E65100"}}>?</span>
                 </div>
-                {[
-                  {val:card.presQ, color:C.pres, bg:C.presLight},
-                  {val:card.pastQ, color:C.past, bg:C.pastLight},
-                  {val:card.futQ,  color:C.fut,  bg:C.futLight},
-                ].map((cell,i) => (
-                  <div key={i} style={{padding:"14px 6px", textAlign:"center", background:tenseRevealed?cell.bg:"#fafafa", borderRight:i<2?"1px solid #f0f0f0":"none"}}>
-                    {tenseRevealed
-                      ? <span style={{fontSize:13, fontWeight:900, color:cell.color, lineHeight:1.3, display:"block"}}>{cell.val}</span>
-                      : <span style={{fontSize:18, color:"#ddd"}}>•••</span>}
-                  </div>
-                ))}
+                {renderCell2("presQ")}
+                {renderCell2("pastQ")}
+                {renderCell2("futQ")}
+              </div>
+
+              <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
+                <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
+                  {vi?"⚠️ Hàng (?) — nhớ gõ dấu '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — always end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+                </div>
               </div>
 
               {tenseRevealed && (
@@ -3156,10 +3185,48 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                  pres:"#1565C0", past:"#6A1B9A", fut:"#2E7D32",
                  presLight:"#E3F2FD", pastLight:"#F3E5F5", futLight:"#E8F5E9" };
 
-    // 불규칙 유형별 배지 색상
     const typeBadge = card.type === "ㅂ불규칙"
       ? { bg:"#FF6B35", label: vi?"ㅂ불규칙":en?"ㅂ-irregular":"ㅂ불규칙" }
       : { bg:"#512DA8", label: vi?"으탈락":en?"으-drop":"으탈락" };
+
+    const inp3 = tenseInputs[tenseCardIdx] || {};
+    const setInp3 = (key, val) => setTenseInputs(prev => ({
+      ...prev,
+      [tenseCardIdx]: { ...(prev[tenseCardIdx]||{}), [key]: val }
+    }));
+    const check3 = (key) => {
+      if (!tenseRevealed) return null;
+      const userVal = (inp3[key]||"").trim().replace(/\s+/g,"");
+      const correct = (card[key]||"").replace(/\s+/g,"");
+      return userVal === correct ? "correct" : "wrong";
+    };
+    const renderCell3 = (key) => {
+      const status = check3(key);
+      const border = !tenseRevealed ? "2px solid #e0e0e0"
+        : status==="correct" ? "2px solid #2E7D32"
+        : "2px solid #C62828";
+      return (
+        <div style={{padding:"6px 4px", borderRight:"1px solid #f0f0f0"}}>
+          <input
+            type="text"
+            value={inp3[key]||""}
+            onChange={e => { if(!tenseRevealed) setInp3(key, e.target.value); }}
+            onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
+            readOnly={tenseRevealed}
+            style={{width:"100%", border, borderRadius:6, padding:"6px 4px", fontSize:12, fontWeight:700,
+              textAlign:"center", outline:"none", boxSizing:"border-box",
+              color: !tenseRevealed ? "#333" : status==="correct" ? "#2E7D32" : "#C62828",
+              background:"transparent", cursor: tenseRevealed?"default":"text"}}
+            placeholder="..."
+          />
+          {tenseRevealed && status==="wrong" && (
+            <div style={{fontSize:11, color:"#2E7D32", fontWeight:900, textAlign:"center", marginTop:2}}>
+              → {card[key]}
+            </div>
+          )}
+        </div>
+      );
+    };
 
     return (
       <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -3186,7 +3253,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           <div style={{background:"white", borderRadius:20, overflow:"hidden", boxShadow:"0 4px 20px rgba(230,81,0,.12)", marginBottom:16}}>
 
-            {/* 헤더: 기본형 + 뜻 + 불규칙 유형 배지 */}
             <div style={{background:C.accent, padding:"16px 20px"}}>
               <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6}}>
                 <div style={{fontSize:28, fontWeight:900, color:"white"}}>{card.base}</div>
@@ -3197,7 +3263,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
             </div>
 
-            {/* 시제 표 헤더 */}
             <div style={{padding:"0"}}>
               <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"1px solid #f0f0f0"}}>
                 <div style={{background:"#f5f5f5"}} />
@@ -3212,43 +3277,30 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 </div>
               </div>
 
-              {/* 진술(.) 행 */}
               <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"2px solid #e0e0e0"}}>
                 <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
                   <span style={{fontSize:20, fontWeight:900, color:"#555"}}>.</span>
                 </div>
-                {[
-                  {val:card.pres, color:C.pres, bg:C.presLight},
-                  {val:card.past, color:C.past, bg:C.pastLight},
-                  {val:card.fut,  color:C.fut,  bg:C.futLight},
-                ].map((cell,i) => (
-                  <div key={i} style={{padding:"14px 6px", textAlign:"center", background:tenseRevealed?cell.bg:"#fafafa", borderRight:i<2?"1px solid #f0f0f0":"none"}}>
-                    {tenseRevealed
-                      ? <span style={{fontSize:13, fontWeight:900, color:cell.color, lineHeight:1.3, display:"block"}}>{cell.val}</span>
-                      : <span style={{fontSize:18, color:"#ddd"}}>•••</span>}
-                  </div>
-                ))}
+                {renderCell3("pres")}
+                {renderCell3("past")}
+                {renderCell3("fut")}
               </div>
 
-              {/* 질문(?) 행 */}
-              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:tenseRevealed?"1px solid #f0f0f0":"none"}}>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr"}}>
                 <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
                   <span style={{fontSize:18, fontWeight:900, color:"#E65100"}}>?</span>
                 </div>
-                {[
-                  {val:card.presQ, color:C.pres, bg:C.presLight},
-                  {val:card.pastQ, color:C.past, bg:C.pastLight},
-                  {val:card.futQ,  color:C.fut,  bg:C.futLight},
-                ].map((cell,i) => (
-                  <div key={i} style={{padding:"14px 6px", textAlign:"center", background:tenseRevealed?cell.bg:"#fafafa", borderRight:i<2?"1px solid #f0f0f0":"none"}}>
-                    {tenseRevealed
-                      ? <span style={{fontSize:13, fontWeight:900, color:cell.color, lineHeight:1.3, display:"block"}}>{cell.val}</span>
-                      : <span style={{fontSize:18, color:"#ddd"}}>•••</span>}
-                  </div>
-                ))}
+                {renderCell3("presQ")}
+                {renderCell3("pastQ")}
+                {renderCell3("futQ")}
               </div>
 
-              {/* 규칙 설명 (정답 공개 후) */}
+              <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
+                <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
+                  {vi?"⚠️ Hàng (?) — nhớ gõ dấu '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — always end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+                </div>
+              </div>
+
               {tenseRevealed && (
                 <div style={{padding:"10px 14px", background:"#FFF3E0", borderTop:"1px solid #FFE0B2"}}>
                   <div style={{fontSize:12, color:C.accent, fontWeight:800}}>📌 {card.rule}</div>
@@ -3266,7 +3318,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
 
-          {/* 이전 / 다음 */}
           <div style={{display:"flex", gap:8}}>
             {tenseCardIdx > 0 && (
               <button onClick={() => { setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
