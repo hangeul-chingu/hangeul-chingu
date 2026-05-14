@@ -2595,6 +2595,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
             </div>
 
+            {/* ? 입력 안내 */}
+            <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
+              <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
+                {vi?"⚠️ Hàng (?) — nhớ gõ dấu '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — always end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+              </div>
+            </div>
+
             {/* 정답 보기 버튼 */}
             {!tenseRevealed && (
               <div style={{padding:"16px"}}>
