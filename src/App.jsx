@@ -5391,6 +5391,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── 7단원: 현재진행 -고 있다 ──
   if (step === "unit7") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
     const UNIT7_CARDS = [
       {
         front: "지금 밥___.",
@@ -5508,6 +5510,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── 누적 테스트 7 ──
   if (step === "test7") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
     const TEST7_QUESTIONS = [
       // 1~6단원 누적 (10문제)
       { id:"t7_1",  q:"저는 회사원___.",            answer:"이에요",    answers:["이에요","이에요."],    hint:"💡 받침 있음" },
