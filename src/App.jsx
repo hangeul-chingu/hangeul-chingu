@@ -1334,6 +1334,9 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"시제1",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense1"); }},
       { label:"시제2",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense2"); }},
       { label:"시제3",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense3"); }},
+      { label:"시제4",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense4"); }},
+      { label:"시제5",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense5"); }},
+      { label:"시제6",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense6"); }},
       { label:"조사",   action:()=>{ setJosaStep(0); setStep("josa"); }},
       { label:"서술어1A",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit1"); }},
       { label:"서술어1B",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit1b"); }},
@@ -3341,6 +3344,632 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setStep("tense2"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại Tense 2":en?"Back to Tense 2":"뒤로 (시제 2단원)"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 시제 4단원: ㄷ불규칙 + 르불규칙 + ㅅ불규칙 ──
+  if (step === "tense4") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    const TENSE4_CARDS = [
+      // ── ㄷ불규칙 ──
+      { base:"걷다",  meaning:{vi:"đi bộ",    en:"walk"},
+        pres:"걷습니다",  presQ:"걷습니까?",
+        past:"걸었습니다", pastQ:"걸었습니까?",
+        fut:"걸을 것입니다",futQ:"걸을 것입니까?",
+        rule:vi?"걷다 → ㄷ불규칙 → 걸+어서 → 걸었습니다":en?"걷다 → ㄷ→ㄹ irregular → 걸었습니다":"걷다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 걸었습니다",
+        type:"ㄷ불규칙" },
+      { base:"듣다",  meaning:{vi:"nghe",     en:"listen"},
+        pres:"듣습니다",  presQ:"듣습니까?",
+        past:"들었습니다", pastQ:"들었습니까?",
+        fut:"들을 것입니다",futQ:"들을 것입니까?",
+        rule:vi?"듣다 → ㄷ불규칙 → 들+어서 → 들었습니다":en?"듣다 → ㄷ→ㄹ irregular → 들었습니다":"듣다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 들었습니다",
+        type:"ㄷ불규칙" },
+      { base:"묻다",  meaning:{vi:"hỏi",      en:"ask"},
+        pres:"묻습니다",  presQ:"묻습니까?",
+        past:"물었습니다", pastQ:"물었습니까?",
+        fut:"물을 것입니다",futQ:"물을 것입니까?",
+        rule:vi?"묻다 → ㄷ불규칙 → 물+어서 → 물었습니다":en?"묻다 → ㄷ→ㄹ irregular → 물었습니다":"묻다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 물었습니다",
+        type:"ㄷ불규칙" },
+      // ── 르불규칙 ──
+      { base:"모르다", meaning:{vi:"không biết",en:"not know"},
+        pres:"모릅니다",  presQ:"모릅니까?",
+        past:"몰랐습니다", pastQ:"몰랐습니까?",
+        fut:"모를 것입니다",futQ:"모를 것입니까?",
+        rule:vi?"모르다 → 르불규칙 → 모르+아 → ㄹ두개 → 몰랐습니다":en?"모르다 → 르 irregular → ㄹ doubles → 몰랐습니다":"모르다 → 르불규칙 → 모르+아 → ㄹ이 두 개 → 몰랐습니다",
+        type:"르불규칙" },
+      { base:"빠르다", meaning:{vi:"nhanh",    en:"fast"},
+        pres:"빠릅니다",  presQ:"빠릅니까?",
+        past:"빨랐습니다", pastQ:"빨랐습니까?",
+        fut:"빠를 것입니다",futQ:"빠를 것입니까?",
+        rule:vi?"빠르다 → 르불규칙 → 빠르+아 → ㄹ두개 → 빨랐습니다":en?"빠르다 → 르 irregular → ㄹ doubles → 빨랐습니다":"빠르다 → 르불규칙 → 빠르+아 → ㄹ이 두 개 → 빨랐습니다",
+        type:"르불규칙" },
+      { base:"다르다", meaning:{vi:"khác",     en:"different"},
+        pres:"다릅니다",  presQ:"다릅니까?",
+        past:"달랐습니다", pastQ:"달랐습니까?",
+        fut:"다를 것입니다",futQ:"다를 것입니까?",
+        rule:vi?"다르다 → 르불규칙 → 다르+아 → ㄹ두개 → 달랐습니다":en?"다르다 → 르 irregular → ㄹ doubles → 달랐습니다":"다르다 → 르불규칙 → 다르+아 → ㄹ이 두 개 → 달랐습니다",
+        type:"르불규칙" },
+      // ── ㅅ불규칙 (쓰다·끄다는 으탈락 동사) ──
+      { base:"쓰다",  meaning:{vi:"viết/dùng", en:"write/use"},
+        pres:"씁니다",    presQ:"씁니까?",
+        past:"썼습니다",  pastQ:"썼습니까?",
+        fut:"쓸 것입니다", futQ:"쓸 것입니까?",
+        rule:vi?"쓰다 → 으탈락 → 쓰+어 → 썼습니다":en?"쓰다 → 으-drop → 쓰+어 → 썼습니다":"쓰다 → 으탈락 → 쓰+어 → 썼습니다",
+        type:"으탈락" },
+      { base:"끄다",  meaning:{vi:"tắt",      en:"turn off"},
+        pres:"끕니다",    presQ:"끕니까?",
+        past:"껐습니다",  pastQ:"껐습니까?",
+        fut:"끌 것입니다", futQ:"끌 것입니까?",
+        rule:vi?"끄다 → 으탈락 → 끄+어 → 껐습니다":en?"끄다 → 으-drop → 끄+어 → 껐습니다":"끄다 → 으탈락 → 끄+어 → 껐습니다",
+        type:"으탈락" },
+    ];
+
+    const card = TENSE4_CARDS[tenseCardIdx];
+    const total = TENSE4_CARDS.length;
+    const meaning = vi ? card.meaning.vi : en ? card.meaning.en : card.meaning.en;
+
+    const C = { bg:"linear-gradient(150deg,#E8F5E9,#C8E6C9)", accent:"#1B5E20",
+                 border:"#A5D6A7",
+                 pres:"#1565C0", past:"#6A1B9A", fut:"#E65100",
+                 presLight:"#E3F2FD", pastLight:"#F3E5F5", futLight:"#FFF3E0" };
+
+    const typeBadge = card.type === "ㄷ불규칙"
+      ? { bg:"#1565C0", label: vi?"ㄷ불규칙":en?"ㄷ-irregular":"ㄷ불규칙" }
+      : card.type === "르불규칙"
+      ? { bg:"#6A1B9A", label: vi?"르불규칙":en?"르-irregular":"르불규칙" }
+      : { bg:"#E65100", label: vi?"으탈락(동사)":en?"으-drop(verb)":"으탈락(동사)" };
+
+    const inp4 = tenseInputs[tenseCardIdx] || {};
+    const setInp4 = (key, val) => setTenseInputs(prev => ({
+      ...prev,
+      [tenseCardIdx]: { ...(prev[tenseCardIdx]||{}), [key]: val }
+    }));
+    const check4 = (key) => {
+      if (!tenseRevealed) return null;
+      const userVal = (inp4[key]||"").trim().replace(/\s+/g,"");
+      const correct = (card[key]||"").replace(/\s+/g,"");
+      return userVal === correct ? "correct" : "wrong";
+    };
+    const renderCell4 = (key) => {
+      const status = check4(key);
+      const border = !tenseRevealed ? "2px solid #e0e0e0"
+        : status==="correct" ? "2px solid #2E7D32" : "2px solid #C62828";
+      return (
+        <div style={{padding:"6px 4px", borderRight:"1px solid #f0f0f0"}}>
+          <input type="text" value={inp4[key]||""}
+            onChange={e => { if(!tenseRevealed) setInp4(key, e.target.value); }}
+            onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
+            readOnly={tenseRevealed}
+            style={{width:"100%", border, borderRadius:6, padding:"6px 4px", fontSize:12, fontWeight:700,
+              textAlign:"center", outline:"none", boxSizing:"border-box",
+              color: !tenseRevealed?"#333":status==="correct"?"#2E7D32":"#C62828",
+              background:"transparent", cursor:tenseRevealed?"default":"text"}}
+            placeholder="..." />
+          {tenseRevealed && status==="wrong" && (
+            <div style={{fontSize:11, color:"#2E7D32", fontWeight:900, textAlign:"center", marginTop:2}}>→ {card[key]}</div>
+          )}
+        </div>
+      );
+    };
+
+    return (
+      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
+            📚 {vi?"시제 4단원 — ㄷ불규칙 + 르불규칙 + 으탈락 동사":en?"Tense Unit 4 — ㄷ/르 irregular + 으-drop":"시제 4단원 — ㄷ불규칙 + 르불규칙 + 으탈락 동사"}
+          </div>
+          <div style={{fontSize:12, color:"#555", background:"#E8F5E9", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
+            {vi
+              ? <><b>🔵 ㄷ불규칙</b>: ㄷ → <b>ㄹ</b>로 바뀜 (걷다→걸, 듣다→들)<br/><b>🟣 르불규칙</b>: 르 → <b>ㄹㄹ</b>로 바뀜 (모르다→몰랐)<br/><b>🟠 으탈락</b>: 끝 으 탈락 (쓰다→썼, 끄다→껐)</>
+              : en
+              ? <><b>🔵 ㄷ-irregular</b>: ㄷ → <b>ㄹ</b> before vowel (걷다→걸, 듣다→들)<br/><b>🟣 르-irregular</b>: 르 → <b>ㄹㄹ</b> (모르다→몰랐)<br/><b>🟠 으-drop</b>: final 으 drops (쓰다→썼, 끄다→껐)</>
+              : <><b>🔵 ㄷ불규칙</b>: 모음 앞에서 ㄷ → <b>ㄹ</b>로 교체 (걷다→걸, 듣다→들)<br/><b>🟣 르불규칙</b>: 르 → 아/어 앞에서 <b>ㄹㄹ</b>로 변환 (모르다→몰랐)<br/><b>🟠 으탈락</b>: 어간 끝 으 탈락 (쓰다→썼, 끄다→껐)</>
+            }
+          </div>
+          <div style={{display:"flex", gap:3, marginBottom:16}}>
+            {TENSE4_CARDS.map((_,i) => (
+              <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=tenseCardIdx?C.accent:"#ddd"}} />
+            ))}
+          </div>
+          <div style={{background:"white", borderRadius:20, overflow:"hidden", boxShadow:"0 4px 20px rgba(27,94,32,.12)", marginBottom:16}}>
+            <div style={{background:C.accent, padding:"16px 20px"}}>
+              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6}}>
+                <div style={{fontSize:28, fontWeight:900, color:"white"}}>{card.base}</div>
+                <div style={{fontSize:14, color:"rgba(255,255,255,.85)", fontWeight:700}}>{meaning}</div>
+              </div>
+              <div style={{display:"inline-block", background:typeBadge.bg, borderRadius:20, padding:"3px 12px", fontSize:12, fontWeight:900, color:"white"}}>
+                {typeBadge.label}
+              </div>
+            </div>
+            <div style={{padding:"0"}}>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"1px solid #f0f0f0"}}>
+                <div style={{background:"#f5f5f5"}} />
+                {["현재","과거","미래"].map((t,i)=>(
+                  <div key={i} style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900,
+                    color:[C.pres,C.past,C.fut][i], background:[C.presLight,C.pastLight,C.futLight][i]}}>
+                    {vi?["Hiện tại","Quá khứ","Tương lai"][i]:en?["Present","Past","Future"][i]:t}
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"2px solid #e0e0e0"}}>
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
+                  <span style={{fontSize:20, fontWeight:900, color:"#555"}}>.</span>
+                </div>
+                {renderCell4("pres")}{renderCell4("past")}{renderCell4("fut")}
+              </div>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr"}}>
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
+                  <span style={{fontSize:18, fontWeight:900, color:"#E65100"}}>?</span>
+                </div>
+                {renderCell4("presQ")}{renderCell4("pastQ")}{renderCell4("futQ")}
+              </div>
+              <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
+                <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
+                  {vi?"⚠️ Hàng (?) — nhớ gõ '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+                </div>
+              </div>
+              {tenseRevealed && (
+                <div style={{padding:"10px 14px", background:"#E8F5E9", borderTop:"1px solid #C8E6C9"}}>
+                  <div style={{fontSize:12, color:C.accent, fontWeight:800}}>📌 {card.rule}</div>
+                </div>
+              )}
+              {!tenseRevealed && (
+                <div style={{padding:"16px"}}>
+                  <button onClick={()=>setTenseRevealed(true)}
+                    style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                    {vi?"Xem đáp án 👀":en?"Show answers 👀":"정답 보기 👀"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{display:"flex", gap:8}}>
+            {tenseCardIdx > 0 && (
+              <button onClick={()=>{ setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
+                style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>
+                ← {vi?"Trước":en?"Prev":"이전"}
+              </button>
+            )}
+            {tenseCardIdx < total-1 ? (
+              <button onClick={()=>{ setTenseCardIdx(i=>i+1); setTenseRevealed(false); }}
+                style={{flex:1, background:`linear-gradient(135deg,${C.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
+              </button>
+            ) : (
+              <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense5"); }}
+                style={{flex:1, background:"linear-gradient(135deg,#AD1457,#880E4F)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo: Tense 5! 🚀":en?"Next: Tense 5! 🚀":"시제 5단원으로! 🚀"}
+              </button>
+            )}
+          </div>
+          <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense3"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại Tense 3":en?"Back to Tense 3":"뒤로 (시제 3단원)"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 시제 5단원: 받다·닫다·잡다·입다 (규칙 ㄷ받침) + 받침 없는 규칙 보강 ──
+  if (step === "tense5") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    const TENSE5_CARDS = [
+      { base:"받다",   meaning:{vi:"nhận",    en:"receive"},
+        pres:"받습니다",  presQ:"받습니까?",
+        past:"받았습니다", pastQ:"받았습니까?",
+        fut:"받을 것입니다",futQ:"받을 것입니까?",
+        rule:vi?"받다 → 규칙! 받+았 → 받았습니다 (ㄷ변화 없음)":en?"받다 → regular! ㄷ stays → 받았습니다":"받다 → 규칙 동사! ㄷ이 그대로 → 받았습니다",
+        type:"규칙" },
+      { base:"닫다",   meaning:{vi:"đóng",    en:"close"},
+        pres:"닫습니다",  presQ:"닫습니까?",
+        past:"닫았습니다", pastQ:"닫았습니까?",
+        fut:"닫을 것입니다",futQ:"닫을 것입니까?",
+        rule:vi?"닫다 → 규칙! 닫+았 → 닫았습니다 (ㄷ변화 없음)":en?"닫다 → regular! ㄷ stays → 닫았습니다":"닫다 → 규칙 동사! ㄷ이 그대로 → 닫았습니다",
+        type:"규칙" },
+      { base:"잡다",   meaning:{vi:"bắt/nắm", en:"grab/catch"},
+        pres:"잡습니다",  presQ:"잡습니까?",
+        past:"잡았습니다", pastQ:"잡았습니까?",
+        fut:"잡을 것입니다",futQ:"잡을 것입니까?",
+        rule:vi?"잡다 → 규칙! 잡+았 → 잡았습니다":en?"잡다 → regular → 잡았습니다":"잡다 → 규칙 동사 → 잡았습니다",
+        type:"규칙" },
+      { base:"입다",   meaning:{vi:"mặc",     en:"wear"},
+        pres:"입습니다",  presQ:"입습니까?",
+        past:"입었습니다", pastQ:"입었습니까?",
+        fut:"입을 것입니다",futQ:"입을 것입니까?",
+        rule:vi?"입다 → 규칙! 입+었 → 입었습니다":en?"입다 → regular → 입었습니다":"입다 → 규칙 동사 → 입었습니다",
+        type:"규칙" },
+      { base:"켜다",   meaning:{vi:"bật",     en:"turn on"},
+        pres:"켭니다",    presQ:"켭니까?",
+        past:"켰습니다",  pastQ:"켰습니까?",
+        fut:"켤 것입니다", futQ:"켤 것입니까?",
+        rule:vi?"켜다 → 받침 없음 → 켜+ㅂ니다 → ㄹ탈락 → 켭니다":en?"켜다 → no batchim → ㄹ drop → 켭니다":"켜다 → 받침 없음 → ㄹ탈락 → 켭니다",
+        type:"규칙" },
+      { base:"지우다",  meaning:{vi:"xóa",    en:"erase"},
+        pres:"지웁니다",  presQ:"지웁니까?",
+        past:"지웠습니다", pastQ:"지웠습니까?",
+        fut:"지울 것입니다",futQ:"지울 것입니까?",
+        rule:vi?"지우다 → 지우+어 → 지웠습니다":en?"지우다 → 지우+어 → 지웠습니다":"지우다 → 지우+어 → 지웠습니다",
+        type:"규칙" },
+      { base:"바꾸다",  meaning:{vi:"thay đổi",en:"change"},
+        pres:"바꿉니다",  presQ:"바꿉니까?",
+        past:"바꿨습니다", pastQ:"바꿨습니까?",
+        fut:"바꿀 것입니다",futQ:"바꿀 것입니까?",
+        rule:vi?"바꾸다 → 바꾸+어 → 바꿨습니다":en?"바꾸다 → 바꾸+어 → 바꿨습니다":"바꾸다 → 바꾸+어 → 바꿨습니다",
+        type:"규칙" },
+      { base:"그리다",  meaning:{vi:"vẽ",     en:"draw"},
+        pres:"그립니다",  presQ:"그립니까?",
+        past:"그렸습니다", pastQ:"그렸습니까?",
+        fut:"그릴 것입니다",futQ:"그릴 것입니까?",
+        rule:vi?"그리다 → 그리+어 → 그렸습니다":en?"그리다 → 그리+어 → 그렸습니다":"그리다 → 그리+어 → 그렸습니다",
+        type:"규칙" },
+    ];
+
+    const card = TENSE5_CARDS[tenseCardIdx];
+    const total = TENSE5_CARDS.length;
+    const meaning = vi ? card.meaning.vi : en ? card.meaning.en : card.meaning.en;
+
+    const C = { bg:"linear-gradient(150deg,#FCE4EC,#F8BBD9)", accent:"#AD1457",
+                 border:"#F48FB1",
+                 pres:"#1565C0", past:"#6A1B9A", fut:"#E65100",
+                 presLight:"#E3F2FD", pastLight:"#F3E5F5", futLight:"#FFF3E0" };
+
+    const inp5 = tenseInputs[tenseCardIdx] || {};
+    const setInp5 = (key, val) => setTenseInputs(prev => ({
+      ...prev,
+      [tenseCardIdx]: { ...(prev[tenseCardIdx]||{}), [key]: val }
+    }));
+    const check5 = (key) => {
+      if (!tenseRevealed) return null;
+      const userVal = (inp5[key]||"").trim().replace(/\s+/g,"");
+      const correct = (card[key]||"").replace(/\s+/g,"");
+      return userVal === correct ? "correct" : "wrong";
+    };
+    const renderCell5 = (key) => {
+      const status = check5(key);
+      const border = !tenseRevealed ? "2px solid #e0e0e0"
+        : status==="correct" ? "2px solid #2E7D32" : "2px solid #C62828";
+      return (
+        <div style={{padding:"6px 4px", borderRight:"1px solid #f0f0f0"}}>
+          <input type="text" value={inp5[key]||""}
+            onChange={e => { if(!tenseRevealed) setInp5(key, e.target.value); }}
+            onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
+            readOnly={tenseRevealed}
+            style={{width:"100%", border, borderRadius:6, padding:"6px 4px", fontSize:12, fontWeight:700,
+              textAlign:"center", outline:"none", boxSizing:"border-box",
+              color: !tenseRevealed?"#333":status==="correct"?"#2E7D32":"#C62828",
+              background:"transparent", cursor:tenseRevealed?"default":"text"}}
+            placeholder="..." />
+          {tenseRevealed && status==="wrong" && (
+            <div style={{fontSize:11, color:"#2E7D32", fontWeight:900, textAlign:"center", marginTop:2}}>→ {card[key]}</div>
+          )}
+        </div>
+      );
+    };
+
+    return (
+      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
+            📚 {vi?"시제 5단원 — 규칙 동사 보강 (받침 있음·없음)":en?"Tense Unit 5 — Regular Verbs (with/without batchim)":"시제 5단원 — 규칙 동사 보강 (받침 있음·없음)"}
+          </div>
+          <div style={{fontSize:12, color:"#555", background:"#FCE4EC", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
+            {vi
+              ? <>📌 <b>받다·닫다</b>: ㄷ받침이지만 <b>규칙 동사</b>! (걷다·듣다와 달라요)<br/>받다 → 받<b>았</b>습니다 ✅ (ㄷ 그대로)<br/>📌 <b>켜다·지우다·바꾸다·그리다</b>: 받침 없는 규칙 동사</>
+              : en
+              ? <>📌 <b>받다·닫다</b>: ends in ㄷ but <b>regular</b>! (unlike 걷다·듣다)<br/>받다 → 받<b>았</b>습니다 ✅ (ㄷ unchanged)<br/>📌 <b>켜다·지우다·바꾸다·그리다</b>: regular verbs, no batchim</>
+              : <>📌 <b>받다·닫다</b>: ㄷ받침이지만 <b>규칙 동사</b>예요! (걷다·듣다·묻다와 달라요)<br/>받다 → 받<b>았</b>습니다 ✅ (ㄷ 변화 없음)<br/>📌 <b>켜다·지우다·바꾸다·그리다</b>: 받침 없는 규칙 동사</>
+            }
+          </div>
+          <div style={{display:"flex", gap:3, marginBottom:16}}>
+            {TENSE5_CARDS.map((_,i) => (
+              <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=tenseCardIdx?C.accent:"#ddd"}} />
+            ))}
+          </div>
+          <div style={{background:"white", borderRadius:20, overflow:"hidden", boxShadow:"0 4px 20px rgba(173,20,87,.12)", marginBottom:16}}>
+            <div style={{background:C.accent, padding:"16px 20px", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+              <div style={{fontSize:28, fontWeight:900, color:"white"}}>{card.base}</div>
+              <div style={{fontSize:14, color:"rgba(255,255,255,.85)", fontWeight:700}}>{meaning}</div>
+            </div>
+            <div style={{padding:"0"}}>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"1px solid #f0f0f0"}}>
+                <div style={{background:"#f5f5f5"}} />
+                {["현재","과거","미래"].map((t,i)=>(
+                  <div key={i} style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900,
+                    color:[C.pres,C.past,C.fut][i], background:[C.presLight,C.pastLight,C.futLight][i]}}>
+                    {vi?["Hiện tại","Quá khứ","Tương lai"][i]:en?["Present","Past","Future"][i]:t}
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"2px solid #e0e0e0"}}>
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
+                  <span style={{fontSize:20, fontWeight:900, color:"#555"}}>.</span>
+                </div>
+                {renderCell5("pres")}{renderCell5("past")}{renderCell5("fut")}
+              </div>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr"}}>
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
+                  <span style={{fontSize:18, fontWeight:900, color:"#E65100"}}>?</span>
+                </div>
+                {renderCell5("presQ")}{renderCell5("pastQ")}{renderCell5("futQ")}
+              </div>
+              <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
+                <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
+                  {vi?"⚠️ Hàng (?) — nhớ gõ '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+                </div>
+              </div>
+              {tenseRevealed && (
+                <div style={{padding:"10px 14px", background:"#FCE4EC", borderTop:"1px solid #F8BBD9"}}>
+                  <div style={{fontSize:12, color:C.accent, fontWeight:800}}>📌 {card.rule}</div>
+                </div>
+              )}
+              {!tenseRevealed && (
+                <div style={{padding:"16px"}}>
+                  <button onClick={()=>setTenseRevealed(true)}
+                    style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#880E4F)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                    {vi?"Xem đáp án 👀":en?"Show answers 👀":"정답 보기 👀"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{display:"flex", gap:8}}>
+            {tenseCardIdx > 0 && (
+              <button onClick={()=>{ setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
+                style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>
+                ← {vi?"Trước":en?"Prev":"이전"}
+              </button>
+            )}
+            {tenseCardIdx < total-1 ? (
+              <button onClick={()=>{ setTenseCardIdx(i=>i+1); setTenseRevealed(false); }}
+                style={{flex:1, background:`linear-gradient(135deg,${C.accent},#880E4F)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
+              </button>
+            ) : (
+              <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense6"); }}
+                style={{flex:1, background:"linear-gradient(135deg,#00695C,#004D40)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo: Tense 6! 🚀":en?"Next: Tense 6! 🚀":"시제 6단원으로! 🚀"}
+              </button>
+            )}
+          </div>
+          <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense4"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại Tense 4":en?"Back to Tense 4":"뒤로 (시제 4단원)"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 시제 6단원: 하다 동사 ──
+  if (step === "tense6") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    const TENSE6_CARDS = [
+      { base:"공부하다",  meaning:{vi:"học bài",    en:"study"},
+        pres:"공부합니다",   presQ:"공부합니까?",
+        past:"공부했습니다",  pastQ:"공부했습니까?",
+        fut:"공부할 것입니다",futQ:"공부할 것입니까?" },
+      { base:"일하다",   meaning:{vi:"làm việc",   en:"work"},
+        pres:"일합니다",    presQ:"일합니까?",
+        past:"일했습니다",   pastQ:"일했습니까?",
+        fut:"일할 것입니다",  futQ:"일할 것입니까?" },
+      { base:"운동하다",  meaning:{vi:"tập thể dục",en:"exercise"},
+        pres:"운동합니다",   presQ:"운동합니까?",
+        past:"운동했습니다",  pastQ:"운동했습니까?",
+        fut:"운동할 것입니다",futQ:"운동할 것입니까?" },
+      { base:"요리하다",  meaning:{vi:"nấu ăn",    en:"cook"},
+        pres:"요리합니다",   presQ:"요리합니까?",
+        past:"요리했습니다",  pastQ:"요리했습니까?",
+        fut:"요리할 것입니다",futQ:"요리할 것입니까?" },
+      { base:"전화하다",  meaning:{vi:"gọi điện",   en:"call"},
+        pres:"전화합니다",   presQ:"전화합니까?",
+        past:"전화했습니다",  pastQ:"전화했습니까?",
+        fut:"전화할 것입니다",futQ:"전화할 것입니까?" },
+      { base:"청소하다",  meaning:{vi:"dọn dẹp",   en:"clean"},
+        pres:"청소합니다",   presQ:"청소합니까?",
+        past:"청소했습니다",  pastQ:"청소했습니까?",
+        fut:"청소할 것입니다",futQ:"청소할 것입니까?" },
+      { base:"이야기하다", meaning:{vi:"nói chuyện", en:"talk"},
+        pres:"이야기합니다",  presQ:"이야기합니까?",
+        past:"이야기했습니다", pastQ:"이야기했습니까?",
+        fut:"이야기할 것입니다",futQ:"이야기할 것입니까?" },
+      { base:"준비하다",  meaning:{vi:"chuẩn bị",  en:"prepare"},
+        pres:"준비합니다",   presQ:"준비합니까?",
+        past:"준비했습니다",  pastQ:"준비했습니까?",
+        fut:"준비할 것입니다",futQ:"준비할 것입니까?" },
+      { base:"출발하다",  meaning:{vi:"khởi hành",  en:"depart"},
+        pres:"출발합니다",   presQ:"출발합니까?",
+        past:"출발했습니다",  pastQ:"출발했습니까?",
+        fut:"출발할 것입니다",futQ:"출발할 것입니까?" },
+      { base:"도착하다",  meaning:{vi:"đến nơi",   en:"arrive"},
+        pres:"도착합니다",   presQ:"도착합니까?",
+        past:"도착했습니다",  pastQ:"도착했습니까?",
+        fut:"도착할 것입니다",futQ:"도착할 것입니까?" },
+      { base:"시작하다",  meaning:{vi:"bắt đầu",   en:"start"},
+        pres:"시작합니다",   presQ:"시작합니까?",
+        past:"시작했습니다",  pastQ:"시작했습니까?",
+        fut:"시작할 것입니다",futQ:"시작할 것입니까?" },
+      { base:"생각하다",  meaning:{vi:"suy nghĩ",  en:"think"},
+        pres:"생각합니다",   presQ:"생각합니까?",
+        past:"생각했습니다",  pastQ:"생각했습니까?",
+        fut:"생각할 것입니다",futQ:"생각할 것입니까?" },
+      { base:"이해하다",  meaning:{vi:"hiểu",      en:"understand"},
+        pres:"이해합니다",   presQ:"이해합니까?",
+        past:"이해했습니다",  pastQ:"이해했습니까?",
+        fut:"이해할 것입니다",futQ:"이해할 것입니까?" },
+      { base:"약속하다",  meaning:{vi:"hẹn/hứa",   en:"promise"},
+        pres:"약속합니다",   presQ:"약속합니까?",
+        past:"약속했습니다",  pastQ:"약속했습니까?",
+        fut:"약속할 것입니다",futQ:"약속할 것입니까?" },
+      { base:"졸업하다",  meaning:{vi:"tốt nghiệp", en:"graduate"},
+        pres:"졸업합니다",   presQ:"졸업합니까?",
+        past:"졸업했습니다",  pastQ:"졸업했습니까?",
+        fut:"졸업할 것입니다",futQ:"졸업할 것입니까?" },
+      { base:"연습하다",  meaning:{vi:"luyện tập",  en:"practice"},
+        pres:"연습합니다",   presQ:"연습합니까?",
+        past:"연습했습니다",  pastQ:"연습했습니까?",
+        fut:"연습할 것입니다",futQ:"연습할 것입니까?" },
+      { base:"감사하다",  meaning:{vi:"cảm ơn",    en:"thank"},
+        pres:"감사합니다",   presQ:"감사합니까?",
+        past:"감사했습니다",  pastQ:"감사했습니까?",
+        fut:"감사할 것입니다",futQ:"감사할 것입니까?" },
+      { base:"소개하다",  meaning:{vi:"giới thiệu", en:"introduce"},
+        pres:"소개합니다",   presQ:"소개합니까?",
+        past:"소개했습니다",  pastQ:"소개했습니까?",
+        fut:"소개할 것입니다",futQ:"소개할 것입니까?" },
+      { base:"노래하다",  meaning:{vi:"hát",       en:"sing"},
+        pres:"노래합니다",   presQ:"노래합니까?",
+        past:"노래했습니다",  pastQ:"노래했습니까?",
+        fut:"노래할 것입니다",futQ:"노래할 것입니까?" },
+      { base:"성공하다",  meaning:{vi:"thành công", en:"succeed"},
+        pres:"성공합니다",   presQ:"성공합니까?",
+        past:"성공했습니다",  pastQ:"성공했습니까?",
+        fut:"성공할 것입니다",futQ:"성공할 것입니까?" },
+    ];
+
+    const card = TENSE6_CARDS[tenseCardIdx];
+    const total = TENSE6_CARDS.length;
+    const meaning = vi ? card.meaning.vi : en ? card.meaning.en : card.meaning.en;
+    const rule6 = vi?"하다 → 합니다 (현재) / 했습니다 (과거) / 할 것입니다 (미래)":en?"하다 → 합니다 (pres) / 했습니다 (past) / 할 것입니다 (future)":"하다 → 합니다 (현재) / 했습니다 (과거) / 할 것입니다 (미래)";
+
+    const C = { bg:"linear-gradient(150deg,#E0F2F1,#B2DFDB)", accent:"#00695C",
+                 border:"#80CBC4",
+                 pres:"#1565C0", past:"#6A1B9A", fut:"#E65100",
+                 presLight:"#E3F2FD", pastLight:"#F3E5F5", futLight:"#FFF3E0" };
+
+    const inp6 = tenseInputs[tenseCardIdx] || {};
+    const setInp6 = (key, val) => setTenseInputs(prev => ({
+      ...prev,
+      [tenseCardIdx]: { ...(prev[tenseCardIdx]||{}), [key]: val }
+    }));
+    const check6 = (key) => {
+      if (!tenseRevealed) return null;
+      const userVal = (inp6[key]||"").trim().replace(/\s+/g,"");
+      const correct = (card[key]||"").replace(/\s+/g,"");
+      return userVal === correct ? "correct" : "wrong";
+    };
+    const renderCell6 = (key) => {
+      const status = check6(key);
+      const border = !tenseRevealed ? "2px solid #e0e0e0"
+        : status==="correct" ? "2px solid #2E7D32" : "2px solid #C62828";
+      return (
+        <div style={{padding:"6px 4px", borderRight:"1px solid #f0f0f0"}}>
+          <input type="text" value={inp6[key]||""}
+            onChange={e => { if(!tenseRevealed) setInp6(key, e.target.value); }}
+            onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
+            readOnly={tenseRevealed}
+            style={{width:"100%", border, borderRadius:6, padding:"6px 4px", fontSize:12, fontWeight:700,
+              textAlign:"center", outline:"none", boxSizing:"border-box",
+              color: !tenseRevealed?"#333":status==="correct"?"#2E7D32":"#C62828",
+              background:"transparent", cursor:tenseRevealed?"default":"text"}}
+            placeholder="..." />
+          {tenseRevealed && status==="wrong" && (
+            <div style={{fontSize:11, color:"#2E7D32", fontWeight:900, textAlign:"center", marginTop:2}}>→ {card[key]}</div>
+          )}
+        </div>
+      );
+    };
+
+    return (
+      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
+            📚 {vi?"시제 6단원 — 하다 동사":en?"Tense Unit 6 — 하다 Verbs":"시제 6단원 — 하다 동사"}
+          </div>
+          <div style={{fontSize:12, color:"#555", background:"#E0F2F1", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
+            {vi
+              ? <>📌 <b>하다 동사 규칙</b> (항상 규칙!):<br/>현재: <b>합니다</b> / 과거: <b>했습니다</b> / 미래: <b>할 것입니다</b><br/>공부<b>하다</b> → 공부<b>합니다</b> / 공부<b>했습니다</b> / 공부<b>할 것입니다</b></>
+              : en
+              ? <>📌 <b>하다 verb rule</b> (always regular!):<br/>Present: <b>합니다</b> / Past: <b>했습니다</b> / Future: <b>할 것입니다</b><br/>공부<b>하다</b> → 공부<b>합니다</b> / 공부<b>했습니다</b> / 공부<b>할 것입니다</b></>
+              : <>📌 <b>하다 동사 규칙</b> (항상 규칙이에요!):<br/>현재: <b>합니다</b> / 과거: <b>했습니다</b> / 미래: <b>할 것입니다</b><br/>공부<b>하다</b> → 공부<b>합니다</b> / 공부<b>했습니다</b> / 공부<b>할 것입니다</b></>
+            }
+          </div>
+          <div style={{display:"flex", gap:3, marginBottom:16}}>
+            {TENSE6_CARDS.map((_,i) => (
+              <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=tenseCardIdx?C.accent:"#ddd"}} />
+            ))}
+          </div>
+          <div style={{background:"white", borderRadius:20, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,105,92,.12)", marginBottom:16}}>
+            <div style={{background:C.accent, padding:"16px 20px", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+              <div style={{fontSize:28, fontWeight:900, color:"white"}}>{card.base}</div>
+              <div style={{fontSize:14, color:"rgba(255,255,255,.85)", fontWeight:700}}>{meaning}</div>
+            </div>
+            <div style={{padding:"0"}}>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"1px solid #f0f0f0"}}>
+                <div style={{background:"#f5f5f5"}} />
+                {["현재","과거","미래"].map((t,i)=>(
+                  <div key={i} style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900,
+                    color:[C.pres,C.past,C.fut][i], background:[C.presLight,C.pastLight,C.futLight][i]}}>
+                    {vi?["Hiện tại","Quá khứ","Tương lai"][i]:en?["Present","Past","Future"][i]:t}
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"2px solid #e0e0e0"}}>
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
+                  <span style={{fontSize:20, fontWeight:900, color:"#555"}}>.</span>
+                </div>
+                {renderCell6("pres")}{renderCell6("past")}{renderCell6("fut")}
+              </div>
+              <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr"}}>
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f5f5", borderRight:"1px solid #e8e8e8"}}>
+                  <span style={{fontSize:18, fontWeight:900, color:"#E65100"}}>?</span>
+                </div>
+                {renderCell6("presQ")}{renderCell6("pastQ")}{renderCell6("futQ")}
+              </div>
+              <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
+                <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
+                  {vi?"⚠️ Hàng (?) — nhớ gõ '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+                </div>
+              </div>
+              {tenseRevealed && (
+                <div style={{padding:"10px 14px", background:"#E0F2F1", borderTop:"1px solid #B2DFDB"}}>
+                  <div style={{fontSize:12, color:C.accent, fontWeight:800}}>📌 {rule6}</div>
+                </div>
+              )}
+              {!tenseRevealed && (
+                <div style={{padding:"16px"}}>
+                  <button onClick={()=>setTenseRevealed(true)}
+                    style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                    {vi?"Xem đáp án 👀":en?"Show answers 👀":"정답 보기 👀"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{display:"flex", gap:8}}>
+            {tenseCardIdx > 0 && (
+              <button onClick={()=>{ setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
+                style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>
+                ← {vi?"Trước":en?"Prev":"이전"}
+              </button>
+            )}
+            {tenseCardIdx < total-1 ? (
+              <button onClick={()=>{ setTenseCardIdx(i=>i+1); setTenseRevealed(false); }}
+                style={{flex:1, background:`linear-gradient(135deg,${C.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
+              </button>
+            ) : (
+              <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("josa"); }}
+                style={{flex:1, background:"linear-gradient(135deg,#1565C0,#0D47A1)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Hoàn thành Tense! 🎉 → Tiếp theo":en?"Tense Complete! 🎉 → Next":"시제 완료! 🎉 → 조사로 이동"}
+              </button>
+            )}
+          </div>
+          <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense5"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại Tense 5":en?"Back to Tense 5":"뒤로 (시제 5단원)"}
           </button>
         </div>
       </div>
