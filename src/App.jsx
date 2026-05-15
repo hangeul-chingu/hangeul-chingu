@@ -3995,83 +3995,83 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     const TENSE_TEST_Q = [
       // ── 1단원: 규칙 동사 (받침 있음) — 헷갈리기 쉬운 것 위주 ──
-      { id:"tt01",  base:"먹다",    col:"현재",    answer:"먹습니다",      hint:"받침 있음 → 먹+습니다" },
-      { id:"tt02",  base:"읽다",    col:"과거",    answer:"읽었습니다",    hint:"읽다 → 읽었습니다" },
-      { id:"tt03",  base:"앉다",    col:"미래",    answer:"앉을 것입니다", hint:"받침 있음 → 을 것입니다" },
-      { id:"tt04",  base:"씻다",    col:"현재(?)", answer:"씻습니까?",     hint:"씻다 → 씻+습니까?" },
-      { id:"tt05",  base:"찾다",    col:"과거",    answer:"찾았습니다",    hint:"찾다 → 찾았습니다" },
-      { id:"tt06",  base:"웃다",    col:"미래",    answer:"웃을 것입니다", hint:"웃다 → 웃을 것입니다" },
-      { id:"tt07",  base:"놓다",    col:"현재",    answer:"놓습니다",      hint:"놓다 → 놓+습니다" },
-      { id:"tt08",  base:"늦다",    col:"과거",    answer:"늦었습니다",    hint:"늦다 → 늦었습니다" },
+      { id:"tt01",  base:"먹다",    col:"현재 .",  colSub:".",  answer:"먹습니다",      hint:"받침 있음 → 먹+습니다" },
+      { id:"tt02",  base:"읽다",    col:"과거 .",  colSub:".",  answer:"읽었습니다",    hint:"읽다 → 읽었습니다" },
+      { id:"tt03",  base:"앉다",    col:"미래 .",  colSub:".",  answer:"앉을 것입니다", hint:"받침 있음 → 을 것입니다" },
+      { id:"tt04",  base:"씻다",    col:"현재 ?",  colSub:"?",  answer:"씻습니까?",     hint:"씻다 → 씻+습니까?" },
+      { id:"tt05",  base:"찾다",    col:"과거 .",  colSub:".",  answer:"찾았습니다",    hint:"찾다 → 찾았습니다" },
+      { id:"tt06",  base:"웃다",    col:"미래 .",  colSub:".",  answer:"웃을 것입니다", hint:"웃다 → 웃을 것입니다" },
+      { id:"tt07",  base:"놓다",    col:"현재 .",  colSub:".",  answer:"놓습니다",      hint:"놓다 → 놓+습니다" },
+      { id:"tt08",  base:"늦다",    col:"과거 .",  colSub:".",  answer:"늦었습니다",    hint:"늦다 → 늦었습니다" },
       // ── 규칙 동사 (받침 없음) ──
-      { id:"tt09",  base:"가다",    col:"과거",    answer:"갔습니다",      hint:"가다 → 갔습니다" },
-      { id:"tt10",  base:"오다",    col:"미래",    answer:"올 것입니다",   hint:"오다 → 올 것입니다 (ㄹ)" },
-      { id:"tt11",  base:"자다",    col:"현재(?)", answer:"잡니까?",       hint:"자다 → 잡니까? (ㅂ 삽입)" },
-      { id:"tt12",  base:"보다",    col:"과거",    answer:"봤습니다",      hint:"보다 → 봤습니다" },
-      { id:"tt13",  base:"서다",    col:"미래",    answer:"설 것입니다",   hint:"서다 → 설 것입니다" },
-      { id:"tt14",  base:"되다",    col:"현재",    answer:"됩니다",        hint:"되다 → 됩니다" },
-      { id:"tt15",  base:"마시다",  col:"과거",    answer:"마셨습니다",    hint:"마시다 → 마셨습니다" },
-      { id:"tt16",  base:"내리다",  col:"현재(?)", answer:"내립니까?",     hint:"내리다 → 내립니까?" },
+      { id:"tt09",  base:"가다",    col:"과거 .",  colSub:".",  answer:"갔습니다",      hint:"가다 → 갔습니다" },
+      { id:"tt10",  base:"오다",    col:"미래 .",  colSub:".",  answer:"올 것입니다",   hint:"오다 → 올 것입니다 (ㄹ)" },
+      { id:"tt11",  base:"자다",    col:"현재 ?",  colSub:"?",  answer:"잡니까?",       hint:"자다 → 잡니까? (ㅂ 삽입)" },
+      { id:"tt12",  base:"보다",    col:"과거 .",  colSub:".",  answer:"봤습니다",      hint:"보다 → 봤습니다" },
+      { id:"tt13",  base:"서다",    col:"미래 .",  colSub:".",  answer:"설 것입니다",   hint:"서다 → 설 것입니다" },
+      { id:"tt14",  base:"되다",    col:"현재 .",  colSub:".",  answer:"됩니다",        hint:"되다 → 됩니다" },
+      { id:"tt15",  base:"마시다",  col:"과거 .",  colSub:".",  answer:"마셨습니다",    hint:"마시다 → 마셨습니다" },
+      { id:"tt16",  base:"내리다",  col:"현재 ?",  colSub:"?",  answer:"내립니까?",     hint:"내리다 → 내립니까?" },
       // ── 2단원: ㄹ탈락 ──
-      { id:"tt17",  base:"살다",    col:"현재",    answer:"삽니다",        hint:"ㄹ탈락 → 살→삽니다" },
-      { id:"tt18",  base:"알다",    col:"현재(?)", answer:"압니까?",       hint:"ㄹ탈락 → 알→압니까?" },
-      { id:"tt19",  base:"울다",    col:"과거",    answer:"울었습니다",    hint:"울다 과거 → 울었습니다" },
-      { id:"tt20",  base:"열다",    col:"미래",    answer:"열 것입니다",   hint:"ㄹ탈락 → 열 것입니다" },
-      { id:"tt21",  base:"팔다",    col:"현재",    answer:"팝니다",        hint:"ㄹ탈락 → 팔→팝니다" },
-      { id:"tt22",  base:"놀다",    col:"현재(?)", answer:"놉니까?",       hint:"ㄹ탈락 → 놀→놉니까?" },
-      { id:"tt23",  base:"만들다",  col:"과거",    answer:"만들었습니다",  hint:"만들다 → 만들었습니다" },
-      { id:"tt24",  base:"들다",    col:"미래",    answer:"들 것입니다",   hint:"ㄹ탈락 → 들 것입니다" },
+      { id:"tt17",  base:"살다",    col:"현재 .",  colSub:".",  answer:"삽니다",        hint:"ㄹ탈락 → 살→삽니다" },
+      { id:"tt18",  base:"알다",    col:"현재 ?",  colSub:"?",  answer:"압니까?",       hint:"ㄹ탈락 → 알→압니까?" },
+      { id:"tt19",  base:"울다",    col:"과거 .",  colSub:".",  answer:"울었습니다",    hint:"울다 과거 → 울었습니다" },
+      { id:"tt20",  base:"열다",    col:"미래 .",  colSub:".",  answer:"열 것입니다",   hint:"ㄹ탈락 → 열 것입니다" },
+      { id:"tt21",  base:"팔다",    col:"현재 .",  colSub:".",  answer:"팝니다",        hint:"ㄹ탈락 → 팔→팝니다" },
+      { id:"tt22",  base:"놀다",    col:"현재 ?",  colSub:"?",  answer:"놉니까?",       hint:"ㄹ탈락 → 놀→놉니까?" },
+      { id:"tt23",  base:"만들다",  col:"과거 .",  colSub:".",  answer:"만들었습니다",  hint:"만들다 → 만들었습니다" },
+      { id:"tt24",  base:"들다",    col:"미래 .",  colSub:".",  answer:"들 것입니다",   hint:"ㄹ탈락 → 들 것입니다" },
       // ── 있다/없다 계열 ──
-      { id:"tt25",  base:"있다",    col:"현재(?)", answer:"있습니까?",     hint:"있다 → 있습니까?" },
-      { id:"tt26",  base:"없다",    col:"과거",    answer:"없었습니다",    hint:"없다 → 없었습니다" },
-      { id:"tt27",  base:"재미있다",col:"미래",    answer:"재미있을 것입니다", hint:"재미있다 → 있을 것" },
-      { id:"tt28",  base:"맛있다",  col:"현재",    answer:"맛있습니다",    hint:"맛있다 → 맛있습니다" },
+      { id:"tt25",  base:"있다",    col:"현재 ?",  colSub:"?",  answer:"있습니까?",     hint:"있다 → 있습니까?" },
+      { id:"tt26",  base:"없다",    col:"과거 .",  colSub:".",  answer:"없었습니다",    hint:"없다 → 없었습니다" },
+      { id:"tt27",  base:"재미있다",col:"미래 .",  colSub:".",  answer:"재미있을 것입니다", hint:"재미있다 → 있을 것" },
+      { id:"tt28",  base:"맛있다",  col:"현재 .",  colSub:".",  answer:"맛있습니다",    hint:"맛있다 → 맛있습니다" },
       // ── 3단원: ㅂ불규칙 ──
-      { id:"tt29",  base:"돕다",    col:"과거",    answer:"도왔습니다",    hint:"ㅂ불규칙 → 도+왔습니다" },
-      { id:"tt30",  base:"눕다",    col:"미래",    answer:"누울 것입니다", hint:"ㅂ불규칙 → 누울 것" },
-      { id:"tt31",  base:"쉽다",    col:"현재",    answer:"쉽습니다",      hint:"쉽다 → 쉽습니다" },
-      { id:"tt32",  base:"어렵다",  col:"과거",    answer:"어려웠습니다",  hint:"ㅂ불규칙 → 어려웠습니다" },
-      { id:"tt33",  base:"어렵다",  col:"현재(?)", answer:"어렵습니까?",   hint:"어렵다 현재 질문" },
+      { id:"tt29",  base:"돕다",    col:"과거 .",  colSub:".",  answer:"도왔습니다",    hint:"ㅂ불규칙 → 도+왔습니다" },
+      { id:"tt30",  base:"눕다",    col:"미래 .",  colSub:".",  answer:"누울 것입니다", hint:"ㅂ불규칙 → 누울 것" },
+      { id:"tt31",  base:"쉽다",    col:"현재 .",  colSub:".",  answer:"쉽습니다",      hint:"쉽다 → 쉽습니다" },
+      { id:"tt32",  base:"어렵다",  col:"과거 .",  colSub:".",  answer:"어려웠습니다",  hint:"ㅂ불규칙 → 어려웠습니다" },
+      { id:"tt33",  base:"어렵다",  col:"현재 ?",  colSub:"?",  answer:"어렵습니까?",   hint:"어렵다 현재 질문" },
       // ── 3단원: 으탈락 형용사 ──
-      { id:"tt34",  base:"크다",    col:"과거",    answer:"컸습니다",      hint:"으탈락 → 크→컸습니다" },
-      { id:"tt35",  base:"기쁘다",  col:"미래",    answer:"기쁠 것입니다", hint:"으탈락 → 기쁠 것" },
-      { id:"tt36",  base:"예쁘다",  col:"과거",    answer:"예뻤습니다",    hint:"으탈락 → 예뻤습니다" },
-      { id:"tt37",  base:"슬프다",  col:"현재(?)", answer:"슬픕니까?",     hint:"슬프다 → 슬픕니까?" },
-      { id:"tt38",  base:"바쁘다",  col:"과거",    answer:"바빴습니다",    hint:"으탈락 → 바빴습니다" },
-      { id:"tt39",  base:"아프다",  col:"미래",    answer:"아플 것입니다", hint:"으탈락 → 아플 것" },
+      { id:"tt34",  base:"크다",    col:"과거 .",  colSub:".",  answer:"컸습니다",      hint:"으탈락 → 크→컸습니다" },
+      { id:"tt35",  base:"기쁘다",  col:"미래 .",  colSub:".",  answer:"기쁠 것입니다", hint:"으탈락 → 기쁠 것" },
+      { id:"tt36",  base:"예쁘다",  col:"과거 .",  colSub:".",  answer:"예뻤습니다",    hint:"으탈락 → 예뻤습니다" },
+      { id:"tt37",  base:"슬프다",  col:"현재 ?",  colSub:"?",  answer:"슬픕니까?",     hint:"슬프다 → 슬픕니까?" },
+      { id:"tt38",  base:"바쁘다",  col:"과거 .",  colSub:".",  answer:"바빴습니다",    hint:"으탈락 → 바빴습니다" },
+      { id:"tt39",  base:"아프다",  col:"미래 .",  colSub:".",  answer:"아플 것입니다", hint:"으탈락 → 아플 것" },
       // ── 4단원: ㄷ불규칙 ──
-      { id:"tt40",  base:"걷다",    col:"과거",    answer:"걸었습니다",    hint:"ㄷ불규칙 → 걸었습니다" },
-      { id:"tt41",  base:"듣다",    col:"현재(?)", answer:"듣습니까?",     hint:"듣다 현재 질문" },
-      { id:"tt42",  base:"묻다",    col:"미래",    answer:"물을 것입니다", hint:"ㄷ불규칙 → 물을 것" },
+      { id:"tt40",  base:"걷다",    col:"과거 .",  colSub:".",  answer:"걸었습니다",    hint:"ㄷ불규칙 → 걸었습니다" },
+      { id:"tt41",  base:"듣다",    col:"현재 ?",  colSub:"?",  answer:"듣습니까?",     hint:"듣다 현재 질문" },
+      { id:"tt42",  base:"묻다",    col:"미래 .",  colSub:".",  answer:"물을 것입니다", hint:"ㄷ불규칙 → 물을 것" },
       // ── 규칙 ㄷ받침 (불규칙 아님 — 혼동 포인트!) ──
-      { id:"tt43",  base:"받다",    col:"과거",    answer:"받았습니다",    hint:"규칙 → 받았습니다 (ㄷ불규칙 아님!)" },
-      { id:"tt44",  base:"닫다",    col:"현재",    answer:"닫습니다",      hint:"규칙 → 닫+습니다" },
+      { id:"tt43",  base:"받다",    col:"과거 .",  colSub:".",  answer:"받았습니다",    hint:"규칙 → 받았습니다 (ㄷ불규칙 아님!)" },
+      { id:"tt44",  base:"닫다",    col:"현재 .",  colSub:".",  answer:"닫습니다",      hint:"규칙 → 닫+습니다" },
       // ── 4단원: 르불규칙 ──
-      { id:"tt45",  base:"모르다",  col:"과거",    answer:"몰랐습니다",    hint:"르불규칙 → ㄹㄹ → 몰랐습니다" },
-      { id:"tt46",  base:"빠르다",  col:"현재(?)", answer:"빠릅니까?",     hint:"르불규칙 현재 질문" },
-      { id:"tt47",  base:"다르다",  col:"미래",    answer:"다를 것입니다", hint:"르불규칙 → 다를 것" },
+      { id:"tt45",  base:"모르다",  col:"과거 .",  colSub:".",  answer:"몰랐습니다",    hint:"르불규칙 → ㄹㄹ → 몰랐습니다" },
+      { id:"tt46",  base:"빠르다",  col:"현재 ?",  colSub:"?",  answer:"빠릅니까?",     hint:"르불규칙 현재 질문" },
+      { id:"tt47",  base:"다르다",  col:"미래 .",  colSub:".",  answer:"다를 것입니다", hint:"르불규칙 → 다를 것" },
       // ── 으탈락 동사 ──
-      { id:"tt48",  base:"쓰다",    col:"과거",    answer:"썼습니다",      hint:"으탈락(동사) → 썼습니다" },
-      { id:"tt49",  base:"끄다",    col:"과거",    answer:"껐습니다",      hint:"으탈락(동사) → 껐습니다" },
-      { id:"tt50",  base:"끄다",    col:"현재(?)", answer:"끕니까?",       hint:"끄다 → 끕니까?" },
+      { id:"tt48",  base:"쓰다",    col:"과거 .",  colSub:".",  answer:"썼습니다",      hint:"으탈락(동사) → 썼습니다" },
+      { id:"tt49",  base:"끄다",    col:"과거 .",  colSub:".",  answer:"껐습니다",      hint:"으탈락(동사) → 껐습니다" },
+      { id:"tt50",  base:"끄다",    col:"현재 ?",  colSub:"?",  answer:"끕니까?",       hint:"끄다 → 끕니까?" },
       // ── 5단원: 규칙 동사 보강 (받침X·ㅏ/ㅗ→았) ──
-      { id:"tt51",  base:"사다",    col:"과거",    answer:"샀습니다",      hint:"사다 → 샀습니다" },
-      { id:"tt52",  base:"만나다",  col:"현재",    answer:"만납니다",      hint:"만나다 → 만납니다" },
-      { id:"tt53",  base:"배우다",  col:"과거",    answer:"배웠습니다",    hint:"배우다 → 배웠습니다" },
-      { id:"tt54",  base:"주다",    col:"미래",    answer:"줄 것입니다",   hint:"주다 → 줄 것입니다" },
-      { id:"tt55",  base:"뛰다",    col:"과거",    answer:"뛰었습니다",    hint:"뛰다 → 뛰었습니다" },
-      { id:"tt56",  base:"쉬다",    col:"현재(?)", answer:"쉽니까?",       hint:"쉬다 → 쉽니까? (ㅂ 삽입)" },
-      { id:"tt57",  base:"기다리다",col:"미래",    answer:"기다릴 것입니다",hint:"기다리다 → 기다릴 것" },
-      { id:"tt58",  base:"고치다",  col:"과거",    answer:"고쳤습니다",    hint:"고치다 → 고쳤습니다" },
+      { id:"tt51",  base:"사다",    col:"과거 .",  colSub:".",  answer:"샀습니다",      hint:"사다 → 샀습니다" },
+      { id:"tt52",  base:"만나다",  col:"현재 .",  colSub:".",  answer:"만납니다",      hint:"만나다 → 만납니다" },
+      { id:"tt53",  base:"배우다",  col:"과거 .",  colSub:".",  answer:"배웠습니다",    hint:"배우다 → 배웠습니다" },
+      { id:"tt54",  base:"주다",    col:"미래 .",  colSub:".",  answer:"줄 것입니다",   hint:"주다 → 줄 것입니다" },
+      { id:"tt55",  base:"뛰다",    col:"과거 .",  colSub:".",  answer:"뛰었습니다",    hint:"뛰다 → 뛰었습니다" },
+      { id:"tt56",  base:"쉬다",    col:"현재 ?",  colSub:"?",  answer:"쉽니까?",       hint:"쉬다 → 쉽니까? (ㅂ 삽입)" },
+      { id:"tt57",  base:"기다리다",col:"미래 .",  colSub:".",  answer:"기다릴 것입니다",hint:"기다리다 → 기다릴 것" },
+      { id:"tt58",  base:"고치다",  col:"과거 .",  colSub:".",  answer:"고쳤습니다",    hint:"고치다 → 고쳤습니다" },
       // ── 6단원: 하다 동사 ──
-      { id:"tt59",  base:"공부하다",col:"과거",    answer:"공부했습니다",  hint:"하다 → 했습니다" },
-      { id:"tt60",  base:"운동하다",col:"현재(?)", answer:"운동합니까?",   hint:"하다 → 합니까?" },
-      { id:"tt61",  base:"청소하다",col:"미래",    answer:"청소할 것입니다",hint:"하다 → 할 것입니다" },
-      { id:"tt62",  base:"전화하다",col:"현재",    answer:"전화합니다",    hint:"하다 → 합니다" },
-      { id:"tt63",  base:"준비하다",col:"과거",    answer:"준비했습니다",  hint:"하다 → 했습니다" },
-      { id:"tt64",  base:"약속하다",col:"현재(?)", answer:"약속합니까?",   hint:"하다 → 합니까?" },
-      { id:"tt65",  base:"연습하다",col:"미래",    answer:"연습할 것입니다",hint:"하다 → 할 것입니다" },
-      { id:"tt66",  base:"못하다",  col:"현재",    answer:"못합니다",      hint:"못하다 → 못합니다" },
+      { id:"tt59",  base:"공부하다",col:"과거 .",  colSub:".",  answer:"공부했습니다",  hint:"하다 → 했습니다" },
+      { id:"tt60",  base:"운동하다",col:"현재 ?",  colSub:"?",  answer:"운동합니까?",   hint:"하다 → 합니까?" },
+      { id:"tt61",  base:"청소하다",col:"미래 .",  colSub:".",  answer:"청소할 것입니다",hint:"하다 → 할 것입니다" },
+      { id:"tt62",  base:"전화하다",col:"현재 .",  colSub:".",  answer:"전화합니다",    hint:"하다 → 합니다" },
+      { id:"tt63",  base:"준비하다",col:"과거 .",  colSub:".",  answer:"준비했습니다",  hint:"하다 → 했습니다" },
+      { id:"tt64",  base:"약속하다",col:"현재 ?",  colSub:"?",  answer:"약속합니까?",   hint:"하다 → 합니까?" },
+      { id:"tt65",  base:"연습하다",col:"미래 .",  colSub:".",  answer:"연습할 것입니다",hint:"하다 → 할 것입니다" },
+      { id:"tt66",  base:"못하다",  col:"현재 .",  colSub:".",  answer:"못합니다",      hint:"못하다 → 못합니다" },
     ];
 
     function gradeTenseTest() {
@@ -4127,8 +4127,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <div style={{fontSize:14, fontWeight:900, color:C.accent, marginBottom:2}}>
             🏆 {vi?"Kiểm tra tổng hợp Thì (Tense 1~6)":en?"Tense Final Test (Units 1~6)":"시제 총합 테스트 (1~6단원)"}
           </div>
-          <div style={{fontSize:12, color:"#555", background:"#F1F8E9", borderRadius:10, padding:"10px 14px", marginBottom:14, lineHeight:1.6}}>
-            {vi?"Điền dạng 합니다체 phù hợp cho mỗi động từ/tính từ.":en?"Write the correct 합니다체 form for each verb/adjective.":"각 동사·형용사의 합니다체를 빈칸에 입력하세요."}
+
+          {/* 합니다체 기본 규칙 설명 */}
+          <div style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:12, fontSize:12, lineHeight:1.8, boxShadow:"0 1px 6px rgba(46,125,50,.08)"}}>
+            <div style={{fontWeight:900, color:C.accent, marginBottom:4}}>📌 합니다체 기본 규칙</div>
+            <div style={{display:"grid", gridTemplateColumns:"auto 1fr", gap:"2px 10px", color:"#444"}}>
+              <span style={{fontWeight:800, color:"#1565C0"}}>현재 .</span><span>받침O → <b>+습니다</b> / 받침X → <b>+ㅂ니다</b></span>
+              <span style={{fontWeight:800, color:"#1565C0"}}>현재 ?</span><span>받침O → <b>+습니까?</b> / 받침X → <b>+ㅂ니까?</b></span>
+              <span style={{fontWeight:800, color:"#6A1B9A"}}>과거 .</span><span>아/어 계열 + <b>았/었습니다</b> (ㅏㅗ→았 / 나머지→었)</span>
+              <span style={{fontWeight:800, color:"#6A1B9A"}}>과거 ?</span><span>아/어 계열 + <b>았/었습니까?</b></span>
+              <span style={{fontWeight:800, color:"#2E7D32"}}>미래 .</span><span>받침O → <b>+을 것입니다</b> / 받침X·ㄹ → <b>+ㄹ 것입니다</b></span>
+              <span style={{fontWeight:800, color:"#2E7D32"}}>미래 ?</span><span>받침O → <b>+을 것입니까?</b> / 받침X·ㄹ → <b>+ㄹ 것입니까?</b></span>
+            </div>
+          </div>
+
+          <div style={{fontSize:12, color:"#888", marginBottom:10, textAlign:"right"}}>
+            {vi?"⚠️ Bất quy tắc: xem gợi ý sau khi nộp bài":en?"⚠️ Irregular verbs: hints shown after grading":"⚠️ 불규칙 힌트는 채점 후 표시"}
           </div>
 
           <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4, marginBottom:6, padding:"0 2px"}}>
@@ -4137,29 +4151,43 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             ))}
           </div>
 
-          {TENSE_TEST_Q.map((q, i) => (
-            <div key={q.id} style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4, marginBottom:6, alignItems:"center"}}>
-              <div style={{background:"white", borderRadius:8, padding:"8px 10px", fontSize:13, fontWeight:900, color:C.accent, textAlign:"center", boxShadow:"0 1px 4px rgba(46,125,50,.08)"}}>{q.base}</div>
-              <div style={{background:"white", borderRadius:8, padding:"8px 6px", fontSize:11, fontWeight:700, color:"#555", textAlign:"center"}}>{q.col}</div>
-              <div>
-                <input type="text"
-                  value={tenseTestAnswers[q.id]||""}
-                  onChange={e => setTenseTestAnswers(prev=>({...prev,[q.id]:e.target.value}))}
-                  onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
-                  readOnly={!!tenseTestResult}
-                  placeholder="..."
-                  style={{width:"100%", border:`2px solid ${tenseTestResult?(((tenseTestAnswers[q.id]||"").trim().replace(/\s+/g,"")===(q.answer.replace(/\s+/g,"")))?"#2E7D32":"#C62828"):"#A5D6A7"}`, borderRadius:8, padding:"7px 6px", fontSize:12, fontWeight:700, textAlign:"center", outline:"none", boxSizing:"border-box",
-                    color: tenseTestResult?(((tenseTestAnswers[q.id]||"").trim().replace(/\s+/g,"")===(q.answer.replace(/\s+/g,"")))?"#2E7D32":"#C62828"):"#333",
-                    background:"white"}}
-                />
-                {tenseTestResult && (tenseTestAnswers[q.id]||"").trim().replace(/\s+/g,"") !== q.answer.replace(/\s+/g,"") && (
-                  <div style={{fontSize:10, color:"#2E7D32", fontWeight:800, marginTop:2, textAlign:"center"}}>
-                    → {q.answer} ({q.hint})
-                  </div>
-                )}
+          {TENSE_TEST_Q.map((q, i) => {
+            const isQ = q.colSub === "?";
+            const tCol = q.col.replace(" .", "").replace(" ?", "");
+            const colColor = tCol==="현재" ? "#1565C0" : tCol==="과거" ? "#6A1B9A" : "#2E7D32";
+            const isCorrect = tenseTestResult && (tenseTestAnswers[q.id]||"").trim().replace(/\s+/g,"") === q.answer.replace(/\s+/g,"");
+            const isWrong = tenseTestResult && !isCorrect;
+            return (
+              <div key={q.id} style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4, marginBottom:6, alignItems:"center"}}>
+                <div style={{background:"white", borderRadius:8, padding:"8px 10px", fontSize:13, fontWeight:900, color:C.accent, textAlign:"center", boxShadow:"0 1px 4px rgba(46,125,50,.08)"}}>{q.base}</div>
+                <div style={{background:"white", borderRadius:8, padding:"6px 4px", textAlign:"center", boxShadow:"0 1px 4px rgba(46,125,50,.06)"}}>
+                  <div style={{fontSize:12, fontWeight:900, color:colColor}}>{tCol}</div>
+                  <div style={{fontSize:14, fontWeight:900, color:isQ?"#E65100":"#555", lineHeight:1}}>{isQ ? "?" : "."}</div>
+                </div>
+                <div>
+                  <input type="text"
+                    value={tenseTestAnswers[q.id]||""}
+                    onChange={e => setTenseTestAnswers(prev=>({...prev,[q.id]:e.target.value}))}
+                    onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
+                    readOnly={!!tenseTestResult}
+                    placeholder="..."
+                    style={{width:"100%", border:`2px solid ${tenseTestResult?(isCorrect?"#2E7D32":"#C62828"):"#A5D6A7"}`, borderRadius:8, padding:"7px 6px", fontSize:12, fontWeight:700, textAlign:"center", outline:"none", boxSizing:"border-box",
+                      color: tenseTestResult?(isCorrect?"#2E7D32":"#C62828"):"#333", background:"white"}}
+                  />
+                  {isWrong && q.hint && (
+                    <div style={{fontSize:10, color:"#2E7D32", fontWeight:800, marginTop:2, textAlign:"center"}}>
+                      → {q.answer} ({q.hint})
+                    </div>
+                  )}
+                  {isWrong && !q.hint && (
+                    <div style={{fontSize:10, color:"#2E7D32", fontWeight:800, marginTop:2, textAlign:"center"}}>
+                      → {q.answer}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           <button type="button" onClick={gradeTenseTest}
             style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:8}}>
