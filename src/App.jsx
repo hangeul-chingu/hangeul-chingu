@@ -3150,7 +3150,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               {/* 조사 행들 — 클릭 전: ?, 클릭 후: 형태+예문 */}
               {COLS.map(col => {
                 const josa = vocab.hasBatchim ? col.josa_yes : col.josa_no;
-                const form = vocab.word + josa;
+                // 저+가(주격) → 제가 불규칙 예외처리
+                const form = (vocab.word === "저" && col.key === "subj") ? "제가" : vocab.word + josa;
+                // 정답 판정에도 제가 허용
+                const correctAnswers = (vocab.word === "저" && col.key === "subj")
+                  ? ["제가", "저가"]
+                  : [form, josa];
                 const exKey = "ex_" + col.key;
                 const ex = vocab[exKey];
                 const mapKey = vocab.word + "_" + col.key;
@@ -3170,7 +3175,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                           if(e.key==="Enter"||e.key==="Tab") {
                             e.preventDefault();
                             const ans = (josaRevealMap[mapKey+"_input"]||"").trim();
-                            if(ans === form || ans === josa) {
+                            if(correctAnswers.includes(ans)) {
                               setJosaRevealMap(prev=>({...prev,[mapKey+"_status"]:"correct"}));
                               if(ex) setTimeout(()=>speak(ex),200);
                             } else {
@@ -3188,7 +3193,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                       />
                       <button onClick={()=>{
                         const ans = (josaRevealMap[mapKey+"_input"]||"").trim();
-                        if(ans === form || ans === josa) {
+                        if(correctAnswers.includes(ans)) {
                           setJosaRevealMap(prev=>({...prev,[mapKey+"_status"]:"correct"}));
                           if(ex) setTimeout(()=>speak(ex),200);
                         } else {
