@@ -1337,6 +1337,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"시제4",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense4"); }},
       { label:"시제5",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense5"); }},
       { label:"시제6",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense6"); }},
+      { label:"시제테스트",action:()=>{ setStep("tenseTest"); }},
       { label:"조사",   action:()=>{ setJosaStep(0); setStep("josa"); }},
       { label:"서술어1A",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit1"); }},
       { label:"서술어1B",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit1b"); }},
@@ -2901,7 +2902,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
               </button>
             ) : (
-              <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setStep("tense3"); }}
+              <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense3"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp theo: Tense 3! 🚀":en?"Next: Tense 3! 🚀":"시제 3단원으로! 🚀"}
               </button>
@@ -3344,7 +3345,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
               </button>
             ) : (
-              <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setStep("tense4"); }}
+              <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense4"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#1565C0,#0D47A1)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp theo: Tense 4! 🚀":en?"Next: Tense 4! 🚀":"시제 4단원으로! 🚀"}
               </button>
@@ -3552,7 +3553,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
               </button>
             ) : (
-              <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense5"); }}
+              <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense5"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#AD1457,#880E4F)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp theo: Tense 5! 🚀":en?"Next: Tense 5! 🚀":"시제 5단원으로! 🚀"}
               </button>
@@ -3745,7 +3746,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
               </button>
             ) : (
-              <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense6"); }}
+              <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense6"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#00695C,#004D40)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp theo: Tense 6! 🚀":en?"Next: Tense 6! 🚀":"시제 6단원으로! 🚀"}
               </button>
@@ -3971,15 +3972,140 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
               </button>
             ) : (
-              <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("josa"); }}
+              <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tenseTest"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#1565C0,#0D47A1)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Hoàn thành Tense! 🎉 → Tiếp theo":en?"Tense Complete! 🎉 → Next":"시제 완료! 🎉 → 조사로 이동"}
+                {vi?"Tense hoàn thành! 🎉 → Kiểm tra":en?"Tense Complete! 🎉 → Final Test":"시제 완료! 🎉 → 최종 테스트"}
               </button>
             )}
           </div>
           <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense5"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại Tense 5":en?"Back to Tense 5":"뒤로 (시제 5단원)"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 시제 누적 테스트 ──
+  if (step === "tenseTest") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const [tenseTestAnswers, setTenseTestAnswers] = React.useState({});
+    const [tenseTestResult, setTenseTestResult] = React.useState(null);
+
+    const TENSE_TEST_Q = [
+      // 1단원: 규칙 동사
+      { id:"tt1",  base:"먹다",   col:"현재",  answer:"먹습니다",   hint:"💡 받침 있음 → +습니다" },
+      { id:"tt2",  base:"가다",   col:"과거",  answer:"갔습니다",   hint:"💡 받침 없음 → 갔습니다" },
+      { id:"tt3",  base:"읽다",   col:"미래",  answer:"읽을 것입니다", hint:"💡 받침 있음 → 을 것입니다" },
+      { id:"tt4",  base:"마시다", col:"현재(?)", answer:"마십니까?", hint:"💡 받침 없음 → +ㅂ니까?" },
+      // 2단원: ㄹ탈락
+      { id:"tt5",  base:"살다",   col:"현재",  answer:"삽니다",     hint:"💡 ㄹ탈락 → 삽니다" },
+      { id:"tt6",  base:"알다",   col:"과거",  answer:"알았습니다", hint:"💡 알다 과거" },
+      { id:"tt7",  base:"있다",   col:"미래",  answer:"있을 것입니다", hint:"💡 있다 미래" },
+      // 3단원: ㅂ불규칙 + 으탈락
+      { id:"tt8",  base:"어렵다", col:"과거",  answer:"어려웠습니다", hint:"💡 ㅂ불규칙 → 어려웠습니다" },
+      { id:"tt9",  base:"예쁘다", col:"과거",  answer:"예뻤습니다", hint:"💡 으탈락 → 예뻤습니다" },
+      { id:"tt10", base:"바쁘다", col:"현재",  answer:"바쁩니다",   hint:"💡 으탈락 → 바쁩니다" },
+      // 4단원: ㄷ불규칙 + 르불규칙
+      { id:"tt11", base:"듣다",   col:"과거",  answer:"들었습니다", hint:"💡 ㄷ불규칙 → 들었습니다" },
+      { id:"tt12", base:"모르다", col:"과거",  answer:"몰랐습니다", hint:"💡 르불규칙 → ㄹㄹ → 몰랐습니다" },
+      { id:"tt13", base:"쓰다",   col:"과거",  answer:"썼습니다",   hint:"💡 으탈락(동사) → 썼습니다" },
+      // 6단원: 하다
+      { id:"tt14", base:"공부하다", col:"과거", answer:"공부했습니다", hint:"💡 하다 과거 → 했습니다" },
+      { id:"tt15", base:"운동하다", col:"현재(?)", answer:"운동합니까?", hint:"💡 하다 현재 질문 → 합니까?" },
+    ];
+
+    function gradeTenseTest() {
+      let ok = 0;
+      TENSE_TEST_Q.forEach(q => {
+        const v = (tenseTestAnswers[q.id]||"").trim().replace(/\s+/g,"");
+        if (v === q.answer.replace(/\s+/g,"")) ok++;
+      });
+      setTenseTestResult({ score:ok, total:TENSE_TEST_Q.length, pass: ok/TENSE_TEST_Q.length >= 0.8 });
+    }
+
+    const C = { bg:"linear-gradient(150deg,#E8F5E9,#DCEDC8)", accent:"#2E7D32", border:"#A5D6A7" };
+
+    if (tenseTestResult) return (
+      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:380, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(46,125,50,.15)"}}>
+          <div style={{fontSize:52, marginBottom:8}}>{tenseTestResult.pass ? "🏆" : "💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:tenseTestResult.pass?"#2E7D32":"#E65100", marginBottom:4}}>
+            {tenseTestResult.score}/{tenseTestResult.total}점
+          </div>
+          <div style={{fontSize:13, color:"#888", marginBottom:6}}>
+            {Math.round(tenseTestResult.score/tenseTestResult.total*100)}% — 통과 기준 80%
+          </div>
+          <div style={{fontSize:15, fontWeight:700, color:"#333", marginBottom:20}}>
+            {tenseTestResult.pass
+              ? (vi?"Xuất sắc! Sang phần Trợ từ! 🎉":en?"Excellent! On to Particles! 🎉":"시제 마스터! 🎉 이제 조사로 넘어가요!")
+              : (vi?"Cần ôn lại! Thử lại nhé 💪":en?"Review needed! Try again 💪":"한 번 더 도전해봐요! 💪")}
+          </div>
+          {tenseTestResult.pass ? (
+            <button onClick={()=>{ setJosaStep(0); setStep("josa"); }}
+              style={{width:"100%", background:"linear-gradient(135deg,#2E7D32,#1B5E20)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+              {vi?"Sang Trợ từ! 🚀":en?"To Particles! 🚀":"조사 학습으로! 🚀"}
+            </button>
+          ) : (
+            <button onClick={()=>{ setTenseTestResult(null); setTenseTestAnswers({}); }}
+              style={{width:"100%", background:"linear-gradient(135deg,#E65100,#BF360C)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+              {vi?"Thử lại 🔄":en?"Try again 🔄":"다시 풀기 🔄"}
+            </button>
+          )}
+          <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense1"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Học lại từ đầu":en?"Review from Tense 1":"시제 1단원부터 다시"}
+          </button>
+        </div>
+      </div>
+    );
+
+    return (
+      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:14, fontWeight:900, color:C.accent, marginBottom:2}}>
+            🏆 {vi?"Kiểm tra tổng hợp Thì (Tense 1~6)":en?"Tense Final Test (Units 1~6)":"시제 총합 테스트 (1~6단원)"}
+          </div>
+          <div style={{fontSize:12, color:"#555", background:"#F1F8E9", borderRadius:10, padding:"10px 14px", marginBottom:14, lineHeight:1.6}}>
+            {vi?"Điền dạng 합니다체 phù hợp cho mỗi động từ/tính từ.":en?"Write the correct 합니다체 form for each verb/adjective.":"각 동사·형용사의 합니다체를 빈칸에 입력하세요."}
+          </div>
+
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4, marginBottom:6, padding:"0 2px"}}>
+            {["단어","시제/종류","내 답"].map((h,i) => (
+              <div key={i} style={{fontSize:11, fontWeight:900, color:"#888", textAlign:"center", padding:"4px 0"}}>{h}</div>
+            ))}
+          </div>
+
+          {TENSE_TEST_Q.map((q, i) => (
+            <div key={q.id} style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4, marginBottom:6, alignItems:"center"}}>
+              <div style={{background:"white", borderRadius:8, padding:"8px 10px", fontSize:13, fontWeight:900, color:C.accent, textAlign:"center", boxShadow:"0 1px 4px rgba(46,125,50,.08)"}}>{q.base}</div>
+              <div style={{background:"white", borderRadius:8, padding:"8px 6px", fontSize:11, fontWeight:700, color:"#555", textAlign:"center"}}>{q.col}</div>
+              <div>
+                <input type="text"
+                  value={tenseTestAnswers[q.id]||""}
+                  onChange={e => setTenseTestAnswers(prev=>({...prev,[q.id]:e.target.value}))}
+                  onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
+                  readOnly={!!tenseTestResult}
+                  placeholder="..."
+                  style={{width:"100%", border:`2px solid ${tenseTestResult?(((tenseTestAnswers[q.id]||"").trim().replace(/\s+/g,"")===(q.answer.replace(/\s+/g,"")))?"#2E7D32":"#C62828"):"#A5D6A7"}`, borderRadius:8, padding:"7px 6px", fontSize:12, fontWeight:700, textAlign:"center", outline:"none", boxSizing:"border-box",
+                    color: tenseTestResult?(((tenseTestAnswers[q.id]||"").trim().replace(/\s+/g,"")===(q.answer.replace(/\s+/g,"")))?"#2E7D32":"#C62828"):"#333",
+                    background:"white"}}
+                />
+                <div style={{fontSize:10, color:"#C62828", fontWeight:800, marginTop:2, textAlign:"center"}}>{q.hint}</div>
+              </div>
+            </div>
+          ))}
+
+          <button type="button" onClick={gradeTenseTest}
+            style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:8}}>
+            {vi?"Nộp bài! 📊":en?"Submit! 📊":"채점하기! 📊"}
+          </button>
+          <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense6"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại Tense 6":en?"Back to Tense 6":"뒤로 (시제 6단원)"}
           </button>
         </div>
       </div>
