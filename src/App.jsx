@@ -2475,6 +2475,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         pres:"기다립니다",presQ:"기다립니까?",past:"기다렸습니다",pastQ:"기다렸습니까?",fut:"기다릴 것입니다",futQ:"기다릴 것입니까?" },
       { base:"보내다",  meaning:{vi:"gửi",      en:"send"},   batchim:false,
         pres:"보냅니다",  presQ:"보냅니까?",  past:"보냈습니다", pastQ:"보냈습니까?",  fut:"보낼 것입니다",  futQ:"보낼 것입니까?" },
+      { base:"늦다",    meaning:{vi:"muộn",    en:"be late"}, batchim:true,
+        pres:"늦습니다",  presQ:"늦습니까?",  past:"늦었습니다", pastQ:"늦었습니까?",  fut:"늦을 것입니다",  futQ:"늦을 것입니까?" },
+      { base:"놓다",    meaning:{vi:"đặt/để",  en:"put down"}, batchim:true,
+        pres:"놓습니다",  presQ:"놓습니까?",  past:"놓았습니다", pastQ:"놓았습니까?",  fut:"놓을 것입니다",  futQ:"놓을 것입니까?" },
+      { base:"신다",    meaning:{vi:"mang (giày)",en:"put on shoes"}, batchim:true,
+        pres:"신습니다",  presQ:"신습니까?",  past:"신었습니다", pastQ:"신었습니까?",  fut:"신을 것입니다",  futQ:"신을 것입니까?" },
     ];
 
     const card = TENSE1_CARDS[tenseCardIdx];
@@ -3849,6 +3855,26 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         pres:"성공합니다",   presQ:"성공합니까?",
         past:"성공했습니다",  pastQ:"성공했습니까?",
         fut:"성공할 것입니다",futQ:"성공할 것입니까?" },
+      { base:"설명하다",  meaning:{vi:"giải thích", en:"explain"},
+        pres:"설명합니다",   presQ:"설명합니까?",
+        past:"설명했습니다",  pastQ:"설명했습니까?",
+        fut:"설명할 것입니다",futQ:"설명할 것입니까?" },
+      { base:"기억하다",  meaning:{vi:"ghi nhớ",   en:"remember"},
+        pres:"기억합니다",   presQ:"기억합니까?",
+        past:"기억했습니다",  pastQ:"기억했습니까?",
+        fut:"기억할 것입니다",futQ:"기억할 것입니까?" },
+      { base:"말하다",    meaning:{vi:"nói",        en:"say/tell"},
+        pres:"말합니다",    presQ:"말합니까?",
+        past:"말했습니다",   pastQ:"말했습니까?",
+        fut:"말할 것입니다", futQ:"말할 것입니까?" },
+      { base:"잘하다",    meaning:{vi:"làm giỏi",   en:"do well"},
+        pres:"잘합니다",    presQ:"잘합니까?",
+        past:"잘했습니다",   pastQ:"잘했습니까?",
+        fut:"잘할 것입니다", futQ:"잘할 것입니까?" },
+      { base:"용서하다",  meaning:{vi:"tha thứ",    en:"forgive"},
+        pres:"용서합니다",   presQ:"용서합니까?",
+        past:"용서했습니다",  pastQ:"용서했습니까?",
+        fut:"용서할 것입니다",futQ:"용서할 것입니까?" },
     ];
 
     const card = TENSE6_CARDS[tenseCardIdx];
