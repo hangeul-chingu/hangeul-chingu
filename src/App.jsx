@@ -1283,6 +1283,8 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   // ✅ V152: 서술어 단원 학습 + 누적 테스트 state
   const [tenseCardIdx, setTenseCardIdx] = useState(0);   // 시제 카드 인덱스
   const [tenseRevealed, setTenseRevealed] = useState(false); // 시제 정답 공개
+  const [tenseTestAnswers, setTenseTestAnswers] = useState({});  // 시제 총합 테스트 입력값
+  const [tenseTestResult, setTenseTestResult] = useState(null);  // 시제 총합 테스트 결과
   const [tenseInputs, setTenseInputs] = useState({});     // 시제 입력값 {pres,presQ,past,pastQ,fut,futQ}
   const [unitCardIdx, setUnitCardIdx] = useState(0);   // 학습 카드 인덱스
   const [unitCardInput, setUnitCardInput] = useState(""); // 카드 타이핑 입력값
@@ -3990,8 +3992,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ── 시제 누적 테스트 ──
   if (step === "tenseTest") {
     const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const [tenseTestAnswers, setTenseTestAnswers] = React.useState({});
-    const [tenseTestResult, setTenseTestResult] = React.useState(null);
 
     const TENSE_TEST_Q = [
       // 1단원: 규칙 동사
