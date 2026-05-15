@@ -2935,24 +2935,24 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     // ── 18개 어휘 (받침 없음 9 / 받침 있음 9) ──
     const VOCAB = [
-      { word:"저",     hasBatchim:false, ex_topic:"저는 학생이에요.", ex_subj:"저가 먼저 갈게요.", ex_obj:"저를 도와주세요.", ex_and:"저와 함께 가요.", ex_or:null, ex_also:"저도 갈게요." },
-      { word:"지수",   hasBatchim:false, ex_topic:"지수는 가수예요.", ex_subj:"지수가 노래해요.", ex_obj:"지수를 좋아해요.", ex_and:"지수와 함께 가요.", ex_or:null, ex_also:"지수도 좋아요." },
-      { word:"그녀",   hasBatchim:false, ex_topic:"그녀는 선생님이에요.", ex_subj:"그녀가 와요.", ex_obj:"그녀를 만나요.", ex_and:"그녀와 이야기해요.", ex_or:null, ex_also:"그녀도 와요." },
-      { word:"우리",   hasBatchim:false, ex_topic:"우리는 친구예요.", ex_subj:"우리가 가요.", ex_obj:"우리를 도와주세요.", ex_and:"우리와 함께 해요.", ex_or:null, ex_also:"우리도 가요." },
-      { word:"여기",   hasBatchim:false, ex_topic:"여기는 학교예요.", ex_subj:"여기가 좋아요.", ex_obj:null, ex_and:null, ex_or:null, ex_also:"여기도 예뻐요." },
-      { word:"사과",   hasBatchim:false, ex_topic:"사과는 맛있어요.", ex_subj:"사과가 있어요.", ex_obj:"사과를 먹어요.", ex_and:"사과와 바나나가 있어요.", ex_or:"사과나 바나나를 드세요.", ex_also:"사과도 맛있어요." },
-      { word:"커피",   hasBatchim:false, ex_topic:"커피는 뜨거워요.", ex_subj:"커피가 있어요.", ex_obj:"커피를 마셔요.", ex_and:"커피와 빵이 있어요.", ex_or:"커피나 주스를 마셔요.", ex_also:"커피도 있어요." },
-      { word:"꽃",     hasBatchim:false, ex_topic:"꽃은 예뻐요.", ex_subj:"꽃이 있어요.", ex_obj:"꽃을 사요.", ex_and:null, ex_or:null, ex_also:"꽃도 좋아요." },
-      { word:"한국",   hasBatchim:false, ex_topic:"한국은 아름다워요.", ex_subj:"한국이 좋아요.", ex_obj:null, ex_and:null, ex_or:null, ex_also:"한국도 가요." },
-      { word:"정국",   hasBatchim:true,  ex_topic:"정국은 가수예요.", ex_subj:"정국이 노래해요.", ex_obj:"정국을 좋아해요.", ex_and:"정국과 함께 가요.", ex_or:null, ex_also:"정국도 좋아요." },
-      { word:"당신",   hasBatchim:true,  ex_topic:"당신은 학생이에요.", ex_subj:"당신이 맞아요.", ex_obj:"당신을 만나요.", ex_and:"당신과 이야기해요.", ex_or:null, ex_also:"당신도 가요." },
-      { word:"그",     hasBatchim:false, ex_topic:"그는 선생님이에요.", ex_subj:"그가 와요.", ex_obj:"그를 만나요.", ex_and:"그와 공부해요.", ex_or:null, ex_also:"그도 와요." },
-      { word:"그들",   hasBatchim:true,  ex_topic:"그들은 학생이에요.", ex_subj:"그들이 가요.", ex_obj:"그들을 만나요.", ex_and:"그들과 공부해요.", ex_or:null, ex_also:"그들도 가요." },
-      { word:"저것",   hasBatchim:true,  ex_topic:"저것은 책이에요.", ex_subj:"저것이 예뻐요.", ex_obj:"저것을 주세요.", ex_and:null, ex_or:"이것이나 저것을 고르세요.", ex_also:"저것도 있어요." },
-      { word:"빵",     hasBatchim:true,  ex_topic:"빵은 맛있어요.", ex_subj:"빵이 있어요.", ex_obj:"빵을 먹어요.", ex_and:"빵과 우유가 있어요.", ex_or:"빵이나 밥을 먹어요.", ex_also:"빵도 맛있어요." },
-      { word:"학생",   hasBatchim:true,  ex_topic:"학생은 바빠요.", ex_subj:"학생이 공부해요.", ex_obj:"학생을 도와요.", ex_and:"학생과 선생님이에요.", ex_or:null, ex_also:"학생도 쉬어요." },
-      { word:"선생님", hasBatchim:true,  ex_topic:"선생님은 바빠요.", ex_subj:"선생님이 와요.", ex_obj:"선생님을 만나요.", ex_and:"선생님과 공부해요.", ex_or:null, ex_also:"선생님도 가요." },
-      { word:"책",     hasBatchim:true,  ex_topic:"책은 재미있어요.", ex_subj:"책이 있어요.", ex_obj:"책을 읽어요.", ex_and:"책과 연필이 있어요.", ex_or:"책이나 연필을 사요.", ex_also:"책도 있어요." },
+      { word:"저",     hasBatchim:false, ex_topic:"저는 학생이에요.", ex_subj:"제가 먼저 갑니다.", ex_obj:"선생님이 저를 부르십니다.", ex_and:"저와 함께 공부합니다.", ex_or:null, ex_also:"저도 갑니다." },
+      { word:"지수",   hasBatchim:false, ex_topic:"지수는 가수예요.", ex_subj:"지수가 노래합니다.", ex_obj:"저는 지수를 좋아합니다.", ex_and:"지수와 함께 공부합니다.", ex_or:null, ex_also:"지수도 좋습니다." },
+      { word:"그녀",   hasBatchim:false, ex_topic:"그녀는 선생님이에요.", ex_subj:"그녀가 옵니다.", ex_obj:"저는 그녀를 만납니다.", ex_and:"그녀와 이야기합니다.", ex_or:null, ex_also:"그녀도 옵니다." },
+      { word:"우리",   hasBatchim:false, ex_topic:"우리는 친구예요.", ex_subj:"우리가 갑니다.", ex_obj:"선생님이 우리를 도와주십니다.", ex_and:"우리와 함께 공부합니다.", ex_or:null, ex_also:"우리도 갑니다." },
+      { word:"여기",   hasBatchim:false, ex_topic:"여기는 학교예요.", ex_subj:"여기가 좋아요.", ex_obj:null, ex_and:null, ex_or:null, ex_also:"여기도 좋습니다." },
+      { word:"사과",   hasBatchim:false, ex_topic:"사과는 맛있어요.", ex_subj:"사과가 있어요.", ex_obj:"사과를 먹습니다.", ex_and:"사과와 바나나가 있습니다.", ex_or:"사과나 바나나를 드십시오.", ex_also:"사과도 맛있습니다." },
+      { word:"커피",   hasBatchim:false, ex_topic:"커피는 뜨거워요.", ex_subj:"커피가 있습니다.", ex_obj:"커피를 마십니다.", ex_and:"커피와 빵이 있습니다.", ex_or:"커피나 주스를 마십니다.", ex_also:"커피도 있습니다." },
+      { word:"꽃",     hasBatchim:false, ex_topic:"꽃은 예뻐요.", ex_subj:"꽃이 있습니다.", ex_obj:"꽃을 삽니다.", ex_and:null, ex_or:null, ex_also:"꽃도 좋습니다." },
+      { word:"한국",   hasBatchim:false, ex_topic:"한국은 아름다워요.", ex_subj:"한국이 좋아요.", ex_obj:null, ex_and:null, ex_or:null, ex_also:"한국도 갑니다." },
+      { word:"정국",   hasBatchim:true,  ex_topic:"정국은 가수예요.", ex_subj:"정국이 노래합니다.", ex_obj:"저는 정국을 좋아합니다.", ex_and:"정국과 함께 공부합니다.", ex_or:null, ex_also:"정국도 좋습니다." },
+      { word:"당신",   hasBatchim:true,  ex_topic:"당신은 학생이에요.", ex_subj:"당신이 맞습니다.", ex_obj:"저는 당신을 만납니다.", ex_and:"당신과 이야기합니다.", ex_or:null, ex_also:"당신도 갑니다." },
+      { word:"그",     hasBatchim:false, ex_topic:"그는 선생님이에요.", ex_subj:"그가 옵니다.", ex_obj:"저는 그를 만납니다.", ex_and:"그와 공부합니다.", ex_or:null, ex_also:"그도 옵니다." },
+      { word:"그들",   hasBatchim:true,  ex_topic:"그들은 학생이에요.", ex_subj:"그들이 갑니다.", ex_obj:"저는 그들을 만납니다.", ex_and:"그들과 공부합니다.", ex_or:null, ex_also:"그들도 갑니다." },
+      { word:"저것",   hasBatchim:true,  ex_topic:"저것은 책이에요.", ex_subj:"저것이 예뻐요.", ex_obj:"저것을 주세요.", ex_and:null, ex_or:"이것이나 저것을 고르십시오.", ex_also:"저것도 있습니다." },
+      { word:"빵",     hasBatchim:true,  ex_topic:"빵은 맛있어요.", ex_subj:"빵이 있습니다.", ex_obj:"빵을 먹습니다.", ex_and:"빵과 우유가 있습니다.", ex_or:"빵이나 밥을 먹습니다.", ex_also:"빵도 맛있습니다." },
+      { word:"학생",   hasBatchim:true,  ex_topic:"학생은 바빠요.", ex_subj:"학생이 공부합니다.", ex_obj:"선생님이 학생을 돕습니다.", ex_and:"학생과 선생님이에요.", ex_or:null, ex_also:"학생도 쉽니다." },
+      { word:"선생님", hasBatchim:true,  ex_topic:"선생님은 바빠요.", ex_subj:"선생님이 오십니다.", ex_obj:"저는 선생님을 만납니다.", ex_and:"선생님과 공부합니다.", ex_or:null, ex_also:"선생님도 가십니다." },
+      { word:"책",     hasBatchim:true,  ex_topic:"책은 재미있어요.", ex_subj:"책이 있습니다.", ex_obj:"책을 읽습니다.", ex_and:"책과 연필이 있습니다.", ex_or:"책이나 연필을 삽니다.", ex_also:"책도 있습니다." },
     ];
 
     const COLS = [
@@ -2968,38 +2968,42 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const QPRON = [
       { word:"누구", meaning:vi?"ai":en?"who":"사람",
         rows:[
-          { role:vi?"Chủ ngữ":en?"Subject":"주어",        form:"누가",     ex:"누가 BTS입니까?" },
-          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어",   form:"누구와",   ex:"당신은 누구와 공부해요?" },
-          { role:vi?"Tân ngữ gián tiếp":en?"Indirect Obj":"간접목적어", form:"누구에게", ex:"당신은 누구에게 선물을 주었습니까?" },
-          { role:vi?"Tân ngữ":en?"Object":"목적어",        form:"누구를",   ex:"당신은 내일 누구를 만날 것입니까?" },
-          { role:vi?"Vị ngữ":en?"Predicate":"서술어",      form:"누구입니까?", ex:"저 사람은 누구입니까?" },
+          { role:vi?"Chủ ngữ":en?"Subject":"주어",                        form:"누가",        ex:"누가 BTS입니까?" },
+          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어",                   form:"누구와",      ex:"당신은 누구와 공부합니까?" },
+          { role:vi?"Tân ngữ gián tiếp":en?"Indirect Obj":"간접목적어",    form:"누구에게",    ex:"당신은 누구에게 선물을 주었습니까?" },
+          { role:vi?"Tân ngữ":en?"Object":"목적어",                        form:"누구를",      ex:"당신은 내일 누구를 만날 것입니까?" },
+          { role:vi?"Vị ngữ":en?"Predicate":"서술어",                      form:"누구입니까?", ex:"저 사람은 누구입니까?" },
         ]
       },
       { word:"언제", meaning:vi?"khi nào":en?"when":"시간",
         rows:[
-          { role:vi?"Chủ ngữ":en?"Subject":"주어",        form:"(언제가)", ex:"당신의 생일은 언제입니까?" },
-          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(시간)", form:"언제",  ex:"당신은 언제 한국에 갔습니까?" },
-          { role:vi?"Vị ngữ":en?"Predicate":"서술어",      form:"언제입니까?", ex:"회의는 언제입니까?" },
+          { role:vi?"Chủ ngữ":en?"Subject":"주어",                        form:"언제가",      ex:"언제가 당신의 생일입니까?" },
+          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(시간)",              form:"언제",        ex:"당신은 언제 한국에 갔습니까?" },
+          { role:vi?"Vị ngữ":en?"Predicate":"서술어",                      form:"언제입니까?", ex:"회의는 언제입니까?" },
         ]
       },
       { word:"어디", meaning:vi?"ở đâu":en?"where":"장소",
         rows:[
-          { role:vi?"Chủ ngữ":en?"Subject":"주어",        form:"어디가",   ex:"어디가 제일 좋아요?" },
-          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(장소)", form:"어디에/어디에서", ex:"당신은 어디에서 공부해요?" },
-          { role:vi?"Vị ngữ":en?"Predicate":"서술어",      form:"어디입니까?", ex:"도서관은 어디입니까?" },
+          { role:vi?"Chủ ngữ":en?"Subject":"주어",                        form:"어디가",      ex:"어디가 제일 좋습니까?" },
+          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(장소·존재)",         form:"어디에",      ex:"학교에 갑니다. → 당신은 어디에 갑니까?" },
+          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(장소·행동)",         form:"어디에서",    ex:"학교에서 공부합니다. → 당신은 어디에서 공부합니까?" },
+          { role:vi?"Vị ngữ":en?"Predicate":"서술어",                      form:"어디입니까?", ex:"도서관은 어디입니까?" },
         ]
       },
       { word:"무엇(뭐)", meaning:vi?"cái gì":en?"what":"사물",
         rows:[
-          { role:vi?"Chủ ngữ":en?"Subject":"주어",        form:"무엇이/뭐가", ex:"이것은 무엇입니까?" },
-          { role:vi?"Tân ngữ":en?"Object":"목적어",        form:"무엇을/뭐를", ex:"당신은 무엇을 공부해요?" },
-          { role:vi?"Vị ngữ":en?"Predicate":"서술어",      form:"무엇입니까?/뭐예요?", ex:"이것은 무엇입니까?" },
+          { role:vi?"Chủ ngữ":en?"Subject":"주어",                        form:"무엇이/뭐가", ex:"이것은 무엇입니까?" },
+          { role:vi?"Tân ngữ":en?"Object":"목적어",                        form:"무엇을",      ex:"당신은 무엇을 공부합니까? (= 무슨 과목을 공부합니까?)" },
+          { role:vi?"Tân ngữ":en?"Object":"목적어(구어)",                   form:"뭐를/뭘",     ex:"오늘 뭘 먹었습니까?" },
+          { role:vi?"Vị ngữ":en?"Predicate":"서술어",                      form:"무엇입니까?", ex:"이것은 무엇입니까? (= 이게 뭐예요?)" },
         ]
       },
       { word:"왜", meaning:vi?"tại sao":en?"why":"이유",
         rows:[
-          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(이유)", form:"왜",    ex:"당신은 왜 한국어를 공부해요?" },
-          { role:"",                                            form:"",      ex:"그는 왜 학교에 갔습니까?" },
+          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(이유·기본)",         form:"왜",          ex:"당신은 왜 한국어를 공부합니까?" },
+          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(시간+이유)",          form:"왜",          ex:"당신은 어제 왜 학교에 갔습니까?" },
+          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(장소+이유)",          form:"왜",          ex:"당신은 왜 도서관에서 공부합니까?" },
+          { role:vi?"Tân ngữ gián tiếp + Tân ngữ":en?"Indirect+Object":"간접목적어+목적어+이유", form:"왜", ex:"당신은 왜 친구에게 선물을 줍니까?" },
         ]
       },
     ];
@@ -3119,39 +3123,65 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 const form = vocab.word + josa;
                 const exKey = "ex_" + col.key;
                 const ex = vocab[exKey];
-                const revealed = isRevealed(vocab.word, col.key);
+                const mapKey = vocab.word + "_" + col.key;
+                const userInput = josaRevealMap[mapKey + "_input"] || "";
+                const status = josaRevealMap[mapKey + "_status"] || "idle"; // idle | correct | wrong
                 return (
-                  <div key={col.key} style={{borderTop:"1px solid #FFF3E0"}}>
-                    <button onClick={()=>{ toggleReveal(vocab.word, col.key); if(!revealed && ex) setTimeout(()=>speak(ex),200); }}
-                      style={{width:"100%", background:"none", border:"none", cursor:"pointer", padding:"10px 14px", textAlign:"left"}}>
-                      <div style={{display:"flex", alignItems:"center", gap:8}}>
-                        {/* 기능 라벨 */}
-                        <span style={{fontSize:10, color:"#aaa", minWidth:56, flexShrink:0}}>{col.label}</span>
-                        {revealed ? (
-                          <>
-                            {/* 공개된 조사 형태 */}
-                            <span style={{fontSize:18, fontWeight:900, color:"#E65100", minWidth:90}}>
-                              {form}
-                              <span style={{fontSize:11, color:"#FF9800", fontWeight:700}}> (-{josa})</span>
-                            </span>
-                            {/* 예문 */}
-                            {ex && <span style={{fontSize:12, color:"#555", flex:1, lineHeight:1.4}}>{ex}</span>}
-                            {/* TTS */}
-                            {ex && (
-                              <span onClick={e=>{e.stopPropagation();speak(ex);}}
-                                style={{background:"#FF9800", borderRadius:50, width:26, height:26, fontSize:12, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, cursor:"pointer"}}>
-                                🔊
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          /* 빈칸 */
-                          <span style={{fontSize:16, fontWeight:900, color:"#ccc", border:"2px dashed #FFE0B2", borderRadius:8, padding:"4px 16px", minWidth:90, display:"inline-block", textAlign:"center"}}>
-                            ?
-                          </span>
-                        )}
-                      </div>
-                    </button>
+                  <div key={col.key} style={{borderTop:"1px solid #FFF3E0", padding:"10px 14px"}}>
+                    <div style={{display:"flex", alignItems:"center", gap:6, flexWrap:"wrap"}}>
+                      {/* 기능 라벨 */}
+                      <span style={{fontSize:10, color:"#aaa", minWidth:56, flexShrink:0}}>{col.label}</span>
+                      {/* 입력칸 */}
+                      <input
+                        type="text"
+                        value={userInput}
+                        onChange={e => setJosaRevealMap(prev=>({...prev, [mapKey+"_input"]: e.target.value, [mapKey+"_status"]: "idle"}))}
+                        onKeyDown={e=>{
+                          if(e.key==="Enter"||e.key==="Tab") {
+                            e.preventDefault();
+                            const ans = (josaRevealMap[mapKey+"_input"]||"").trim();
+                            if(ans === form || ans === josa) {
+                              setJosaRevealMap(prev=>({...prev,[mapKey+"_status"]:"correct"}));
+                              if(ex) setTimeout(()=>speak(ex),200);
+                            } else {
+                              setJosaRevealMap(prev=>({...prev,[mapKey+"_status"]:"wrong"}));
+                            }
+                          }
+                        }}
+                        placeholder={vi?"Nhập vào...":en?"Type here...":vocab.word+"___"}
+                        style={{
+                          width:90, border:`2px solid ${status==="correct"?"#4CAF50":status==="wrong"?"#E53935":"#FFE0B2"}`,
+                          borderRadius:8, padding:"5px 8px", fontSize:13, fontWeight:700,
+                          outline:"none", background: status==="correct"?"#F1F8E9": status==="wrong"?"#FFF3E0":"white",
+                          color: status==="correct"?"#2E7D32": status==="wrong"?"#E53935":"#333"
+                        }}
+                      />
+                      <button onClick={()=>{
+                        const ans = (josaRevealMap[mapKey+"_input"]||"").trim();
+                        if(ans === form || ans === josa) {
+                          setJosaRevealMap(prev=>({...prev,[mapKey+"_status"]:"correct"}));
+                          if(ex) setTimeout(()=>speak(ex),200);
+                        } else {
+                          setJosaRevealMap(prev=>({...prev,[mapKey+"_status"]:"wrong"}));
+                        }
+                      }} style={{background:"#FF9800", border:"none", borderRadius:8, padding:"5px 10px", fontSize:12, fontWeight:800, color:"white", cursor:"pointer", flexShrink:0}}>
+                        {vi?"Kiểm tra":en?"Check":"확인"}
+                      </button>
+                      {/* 정답 공개 후 */}
+                      {status==="correct" && ex && (
+                        <div style={{width:"100%", marginTop:4, display:"flex", alignItems:"center", gap:6}}>
+                          <span style={{fontSize:12, fontWeight:900, color:"#4CAF50"}}>✅ {form} (-{josa})</span>
+                          <span style={{fontSize:12, color:"#555", flex:1}}>{ex}</span>
+                          <button onClick={()=>speak(ex)} style={{background:"#FF9800", border:"none", borderRadius:50, width:26, height:26, fontSize:12, cursor:"pointer", flexShrink:0}}>🔊</button>
+                        </div>
+                      )}
+                      {status==="correct" && !ex && (
+                        <span style={{fontSize:12, fontWeight:900, color:"#4CAF50"}}>✅ {form} (-{josa})</span>
+                      )}
+                      {status==="wrong" && (
+                        <span style={{fontSize:12, color:"#E53935", fontWeight:700}}>❌ {vi?"Thử lại!":en?"Try again!":"다시 도전!"}</span>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -3182,18 +3212,33 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                   <button onClick={()=>speak(qp.word)}
                     style={{background:"#FF9800", border:"none", borderRadius:50, width:24, height:24, fontSize:11, cursor:"pointer", marginLeft:"auto"}}>🔊</button>
                 </div>
-                {/* 문장성분별 행 */}
-                {qp.rows.filter(r=>r.form).map((row, ri) => (
-                  <div key={ri} style={{padding:"6px 14px 6px 24px", borderTop:"1px solid #FFF8F0", display:"flex", alignItems:"flex-start", gap:8}}>
-                    <span style={{fontSize:10, color:"#aaa", minWidth:64, paddingTop:2, flexShrink:0}}>{row.role}</span>
-                    <div style={{flex:1}}>
-                      <span style={{fontSize:14, fontWeight:800, color:"#FF9800"}}>{row.form}</span>
-                      <div style={{fontSize:12, color:"#555", marginTop:2, lineHeight:1.4}}>{row.ex}</div>
+                {/* 문장성분별 행 — 클릭하면 공개 */}
+                {qp.rows.filter(r=>r.form).map((row, ri) => {
+                  const qKey = "q_" + qi + "_" + ri;
+                  const revealed = !!josaRevealMap[qKey];
+                  return (
+                    <div key={ri} style={{padding:"6px 14px 6px 24px", borderTop:"1px solid #FFF8F0"}}>
+                      <div style={{display:"flex", alignItems:"flex-start", gap:8}}>
+                        <span style={{fontSize:10, color:"#aaa", minWidth:64, paddingTop:6, flexShrink:0}}>{row.role}</span>
+                        {revealed ? (
+                          <div style={{flex:1}}>
+                            <span style={{fontSize:14, fontWeight:800, color:"#FF9800"}}>{row.form}</span>
+                            <div style={{fontSize:12, color:"#555", marginTop:3, lineHeight:1.5}}>{row.ex}</div>
+                          </div>
+                        ) : (
+                          <button onClick={()=>{ setJosaRevealMap(prev=>({...prev,[qKey]:true})); setTimeout(()=>speak(row.ex),200); }}
+                            style={{background:"#FFF3E0", border:"2px dashed #FFD54F", borderRadius:8, padding:"5px 18px", fontSize:15, fontWeight:900, color:"#FFB300", cursor:"pointer", marginTop:2}}>
+                            ?
+                          </button>
+                        )}
+                        {revealed && (
+                          <button onClick={()=>speak(row.ex)}
+                            style={{background:"#FF9800", border:"none", borderRadius:50, width:24, height:24, fontSize:11, cursor:"pointer", flexShrink:0, marginTop:4}}>🔊</button>
+                        )}
+                      </div>
                     </div>
-                    <button onClick={()=>speak(row.ex)}
-                      style={{background:"#FF9800", border:"none", borderRadius:50, width:24, height:24, fontSize:11, cursor:"pointer", flexShrink:0, marginTop:2}}>🔊</button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ))}
           </div>
