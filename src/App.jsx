@@ -1266,6 +1266,8 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   // ✅ V145: 발음 화면 state (훅 규칙 — 컴포넌트 최상단에 선언)
   const [pronStep, setPronStep] = useState(0);
   const [josaStep, setJosaStep] = useState(0);   // V147: 조사·대명사 단계
+  const [josaSelWord, setJosaSelWord] = useState(null);  // V197: 조사 선택 어휘
+  const [josaShowRule, setJosaShowRule] = useState(false); // V197: 핵심 규칙 토글
   const [flipped, setFlipped] = useState({});
 
   // ✅ V153: 발음 테스트 state
@@ -2969,9 +2971,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { key:"also",  label: vi?"Cũng":en?"Also":"도 (함께)", josa_no:"도", josa_yes:"도" },
     ];
 
-    const [selWord, setSelWord] = React.useState(null);
-    const [showRule, setShowRule] = React.useState(false);
-    const [ttsKey, setTtsKey] = React.useState(null);
+    const selWord = josaSelWord;
+    const setSelWord = setJosaSelWord;
+    const showRule = josaShowRule;
+    const setShowRule = setJosaShowRule;
 
     function speak(text) {
       if (!window.speechSynthesis) return;
@@ -3014,11 +3017,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                   <div style={{fontWeight:800, color:"#4CAF50", textAlign:"center"}}>받침 없음</div>
                   <div style={{fontWeight:800, color:"#2196F3", textAlign:"center"}}>받침 있음</div>
                   {COLS.map(c=>(
-                    <React.Fragment key={c.key}>
+                    <div key={c.key} style={{display:"contents"}}>
                       <div style={{color:"#666", textAlign:"center", padding:"3px 0"}}>{c.label}</div>
                       <div style={{fontWeight:900, color:"#4CAF50", textAlign:"center", background:"#F1F8E9", borderRadius:6, padding:"3px 0"}}>-{c.josa_no}</div>
                       <div style={{fontWeight:900, color:"#2196F3", textAlign:"center", background:"#E3F2FD", borderRadius:6, padding:"3px 0"}}>-{c.josa_yes}</div>
-                    </React.Fragment>
+                    </div>
                   ))}
                 </div>
               </div>
