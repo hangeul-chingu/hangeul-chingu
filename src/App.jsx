@@ -1374,6 +1374,8 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"테스트11",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test11"); }},
       { label:"서술어12",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit12"); }},
       { label:"테스트12",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test12"); }},
+      { label:"서술어13",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit13"); }},
+      { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
     return (
@@ -8119,6 +8121,107 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           ))}
           <button type="button" onClick={gradeTest12} style={{width:"100%", background:`linear-gradient(135deg,#B71C1C,#7F0000)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit12"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (12단원 학습)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 서술어 13단원: 허락·금지·의무·면제 ──
+  if (step === "unit13") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT13_CARDS = [
+      { front:"여기서 사진을 찍어도 ___? (허락 질문)", blank:"돼요", full:"여기서 사진을 찍어도 돼요?", hint:"💡 -아/어도 돼요? = ~해도 괜찮아요?" },
+      { front:"네, 찍어도 ___. (허락)", blank:"돼요", full:"네, 찍어도 돼요.", hint:"💡 -아/어도 돼요 = 허락할 때" },
+      { front:"아니요, 찍으면 ___ ___. (금지)", blank:"안 돼요", full:"아니요, 찍으면 안 돼요.", hint:"💡 -(으)면 안 돼요 = 금지할 때" },
+      { front:"여기서 사진을 찍지 ___. (명령 금지)", blank:"마세요", full:"여기서 사진을 찍지 마세요.", hint:"💡 -지 마세요 = 직접 금지 명령" },
+      { front:"조용히 해야 ___. (의무)", blank:"해요", full:"조용히 해야 해요.", hint:"💡 -아/어야 해요 = 꼭 해야 함" },
+      { front:"예약하지 않아도 ___. (면제)", blank:"돼요", full:"예약하지 않아도 돼요.", hint:"💡 -지 않아도 돼요 = 안 해도 괜찮아요" },
+    ];
+    const card = UNIT13_CARDS[unitCardIdx];
+    const C13 = { bg:"linear-gradient(150deg,#E0F7FA,#B2EBF2)", accent:"#00838F", border:"#80DEEA" };
+    return (
+      <div style={{minHeight:"100vh", background:C13.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:13, fontWeight:900, color:C13.accent, marginBottom:4}}>
+            📚 {vi?"Bài 13 — Cho phép · Cấm · Nghĩa vụ · Miễn trừ":en?"Unit 13 — Permission · Prohibition · Obligation · Exemption":"13단원 — 허락·금지·의무·면제"}
+          </div>
+          <div style={{fontSize:12, color:"#555", background:"#E0F7FA", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.8}}>
+            {vi ? <>📌 <b>-아/어도 돼요?</b>: hỏi cho phép<br/><b>-(으)면 안 돼요</b>: cấm<br/><b>-아/어야 해요</b>: bắt buộc<br/><b>-지 않아도 돼요</b>: miễn trừ</>
+              : en ? <>📌 <b>-아/어도 돼요?</b>: asking permission<br/><b>-(으)면 안 돼요</b>: prohibition<br/><b>-아/어야 해요</b>: obligation<br/><b>-지 않아도 돼요</b>: exemption</>
+              : <>📌 <b>-아/어도 돼요?</b>: 허락 질문<br/><b>-(으)면 안 돼요</b>: 금지<br/><b>-아/어야 해요</b>: 의무<br/><b>-지 않아도 돼요</b>: 면제</>}
+          </div>
+          <div style={{display:"flex", gap:3, marginBottom:16}}>
+            {UNIT13_CARDS.map((_,i) => <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=unitCardIdx?C13.accent:"#ddd"}} />)}
+          </div>
+          <div style={{background:"white", borderRadius:20, padding:"20px", boxShadow:"0 4px 20px rgba(0,131,143,.12)", marginBottom:16}}>
+            <div style={{fontSize:18, fontWeight:900, color:"#333", marginBottom:12, lineHeight:1.5}}>{card.front}</div>
+            <input type="text" value={unitCardInput} onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} readOnly={unitCardRevealed} placeholder="..." style={{width:"100%", border:`2px solid ${unitCardRevealed?(unitCardInput.trim()===card.blank||unitCardInput.trim()===card.full?"#2E7D32":"#C62828"):C13.border}`, borderRadius:10, padding:"10px 14px", fontSize:15, fontWeight:700, outline:"none", boxSizing:"border-box", color:unitCardRevealed?(unitCardInput.trim()===card.blank||unitCardInput.trim()===card.full?"#2E7D32":"#C62828"):"#333"}} />
+            {unitCardRevealed && <div style={{marginTop:10, fontSize:13, color:C13.accent, fontWeight:800}}>✅ {card.full}</div>}
+            <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:8}}>{card.hint}</div>
+            {!unitCardRevealed && <button onClick={()=>setUnitCardRevealed(true)} style={{width:"100%", marginTop:12, background:`linear-gradient(135deg,${C13.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"11px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Xem đáp án 👀":en?"Show answer 👀":"정답 보기 👀"}</button>}
+          </div>
+          <div style={{display:"flex", gap:8}}>
+            {unitCardIdx > 0 && <button onClick={()=>{ setUnitCardIdx(i=>i-1); setUnitCardInput(""); setUnitCardRevealed(false); }} style={{flex:1, background:"white", border:`2px solid ${C13.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C13.accent, cursor:"pointer"}}>← {vi?"Trước":en?"Prev":"이전"}</button>}
+            {unitCardIdx < UNIT13_CARDS.length-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }} style={{flex:1, background:`linear-gradient(135deg,${C13.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp →":en?"Next →":"다음 카드 →"}</button>
+              : <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }} style={{flex:1, background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Kiểm tra! 📝":en?"Take test! 📝":"테스트하기! 📝"}</button>}
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("test12"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (12단원 테스트)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 테스트13: 1~13단원 누적 ──
+  if (step === "test13") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST13_Q = [
+      { id:"t13_1",  q:"여기서 사진을 찍어도 ___? (허락 질문)",    answer:"돼요",      answers:["돼요","돼요?"],          hint:"💡 -아/어도 돼요?" },
+      { id:"t13_2",  q:"아니요, 찍으면 ___ ___. (금지)",           answer:"안 돼요",   answers:["안 돼요","안 돼요."],     hint:"💡 -(으)면 안 돼요" },
+      { id:"t13_3",  q:"조용히 해야 ___. (의무)",                   answer:"해요",      answers:["해요","해요."],           hint:"💡 -아/어야 해요" },
+      { id:"t13_4",  q:"예약하지 않아도 ___. (면제)",               answer:"돼요",      answers:["돼요","돼요."],           hint:"💡 -지 않아도 돼요" },
+      { id:"t13_5",  q:"저는 고기를 먹지 ___. (부정)",              answer:"않아요",    answers:["않아요","않아요."],        hint:"💡 -지 않다" },
+      { id:"t13_6",  q:"한국에 가고 ___. (희망)",                   answer:"싶어요",    answers:["싶어요","싶어요."],        hint:"💡 -고 싶다" },
+      { id:"t13_7",  q:"지금 공부하고 ___. (진행)",                 answer:"있어요",    answers:["있어요","있어요."],        hint:"💡 -고 있다" },
+      { id:"t13_8",  q:"저는 운전할 ___ ___. (가능)",               answer:"수 있어요", answers:["수 있어요","수 있어요."],  hint:"💡 -(으)ㄹ 수 있다" },
+      { id:"t13_9",  q:"같이 밥 먹___? (제안)",                    answer:"을까요",    answers:["을까요","을까요?","ㄹ까요","ㄹ까요?"], hint:"💡 -(으)ㄹ까요?" },
+      { id:"t13_10", q:"교실에서 떠들지 ___. (함께 금지)",          answer:"맙시다",    answers:["맙시다","맙시다."],        hint:"💡 -지 맙시다" },
+    ];
+    function gradeTest13() {
+      let ok=0;
+      TEST13_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST13_Q.length, pass: ok/TEST13_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E0F7FA,#B2EBF2)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(0,131,143,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#00838F":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(vi?"Xuất sắc! Sang bài 14!":en?"Excellent! Unit 14!":"훌륭해요! 14단원으로!"):(vi?"Thử lại!":en?"Try again!":"다시 도전!")}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit14"); }} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp — Bài 14! 🚀":en?"Next — Unit 14! 🚀":"14단원으로! 🚀"}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit13"); }} style={{width:"100%", background:`linear-gradient(135deg,#00838F,#004D40)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Học lại Bài 13 🔄":en?"Retry Unit 13 🔄":"13단원 다시 학습 🔄"}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Thử lại":en?"Try again":"다시 풀기"}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E0F7FA,#B2EBF2)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#00838F", marginBottom:4}}>📝 누적 테스트 — 1~13단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 이다~허락·금지·의무·면제 (10문제)</div>
+          {TEST13_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."} style={{width:"100%", border:"2px solid #80DEEA", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest13} style={{width:"100%", background:`linear-gradient(135deg,#00838F,#004D40)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit13"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (13단원 학습)"}</button>
         </div>
       </div>
     );
