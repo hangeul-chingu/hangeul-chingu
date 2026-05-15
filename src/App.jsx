@@ -2934,25 +2934,40 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const en = lang?.code === "en";
 
     // ── 18개 어휘 (받침 없음 9 / 받침 있음 9) ──
+    // ── 21개 어휘: 받침 없음/있음 분산 + 연관성 인접 배치 ──
+    // 순서: 인칭대명사 → BTS/블랙핑크 → 인칭대명사2 → 지시/장소 → 음식/사물 → 사람/나라
     const VOCAB = [
-      { word:"저",     hasBatchim:false, ex_topic:"저는 학생이에요.", ex_subj:"제가 먼저 갑니다.", ex_obj:"선생님이 저를 부르십니다.", ex_and:"저와 함께 공부합니다.", ex_or:null, ex_also:"저도 갑니다." },
-      { word:"지수",   hasBatchim:false, ex_topic:"지수는 가수예요.", ex_subj:"지수가 노래합니다.", ex_obj:"저는 지수를 좋아합니다.", ex_and:"지수와 함께 공부합니다.", ex_or:null, ex_also:"지수도 좋습니다." },
-      { word:"그녀",   hasBatchim:false, ex_topic:"그녀는 선생님이에요.", ex_subj:"그녀가 옵니다.", ex_obj:"저는 그녀를 만납니다.", ex_and:"그녀와 이야기합니다.", ex_or:null, ex_also:"그녀도 옵니다." },
-      { word:"우리",   hasBatchim:false, ex_topic:"우리는 친구예요.", ex_subj:"우리가 갑니다.", ex_obj:"선생님이 우리를 도와주십니다.", ex_and:"우리와 함께 공부합니다.", ex_or:null, ex_also:"우리도 갑니다." },
-      { word:"여기",   hasBatchim:false, ex_topic:"여기는 학교예요.", ex_subj:"여기가 좋아요.", ex_obj:null, ex_and:null, ex_or:null, ex_also:"여기도 좋습니다." },
-      { word:"사과",   hasBatchim:false, ex_topic:"사과는 맛있어요.", ex_subj:"사과가 있어요.", ex_obj:"사과를 먹습니다.", ex_and:"사과와 바나나가 있습니다.", ex_or:"사과나 바나나를 드십시오.", ex_also:"사과도 맛있습니다." },
-      { word:"커피",   hasBatchim:false, ex_topic:"커피는 뜨거워요.", ex_subj:"커피가 있습니다.", ex_obj:"커피를 마십니다.", ex_and:"커피와 빵이 있습니다.", ex_or:"커피나 주스를 마십니다.", ex_also:"커피도 있습니다." },
-      { word:"꽃",     hasBatchim:false, ex_topic:"꽃은 예뻐요.", ex_subj:"꽃이 있습니다.", ex_obj:"꽃을 삽니다.", ex_and:null, ex_or:null, ex_also:"꽃도 좋습니다." },
-      { word:"한국",   hasBatchim:false, ex_topic:"한국은 아름다워요.", ex_subj:"한국이 좋아요.", ex_obj:null, ex_and:null, ex_or:null, ex_also:"한국도 갑니다." },
-      { word:"정국",   hasBatchim:true,  ex_topic:"정국은 가수예요.", ex_subj:"정국이 노래합니다.", ex_obj:"저는 정국을 좋아합니다.", ex_and:"정국과 함께 공부합니다.", ex_or:null, ex_also:"정국도 좋습니다." },
-      { word:"당신",   hasBatchim:true,  ex_topic:"당신은 학생이에요.", ex_subj:"당신이 맞습니다.", ex_obj:"저는 당신을 만납니다.", ex_and:"당신과 이야기합니다.", ex_or:null, ex_also:"당신도 갑니다." },
-      { word:"그",     hasBatchim:false, ex_topic:"그는 선생님이에요.", ex_subj:"그가 옵니다.", ex_obj:"저는 그를 만납니다.", ex_and:"그와 공부합니다.", ex_or:null, ex_also:"그도 옵니다." },
-      { word:"그들",   hasBatchim:true,  ex_topic:"그들은 학생이에요.", ex_subj:"그들이 갑니다.", ex_obj:"저는 그들을 만납니다.", ex_and:"그들과 공부합니다.", ex_or:null, ex_also:"그들도 갑니다." },
-      { word:"저것",   hasBatchim:true,  ex_topic:"저것은 책이에요.", ex_subj:"저것이 예뻐요.", ex_obj:"저것을 주세요.", ex_and:null, ex_or:"이것이나 저것을 고르십시오.", ex_also:"저것도 있습니다." },
-      { word:"빵",     hasBatchim:true,  ex_topic:"빵은 맛있어요.", ex_subj:"빵이 있습니다.", ex_obj:"빵을 먹습니다.", ex_and:"빵과 우유가 있습니다.", ex_or:"빵이나 밥을 먹습니다.", ex_also:"빵도 맛있습니다." },
-      { word:"학생",   hasBatchim:true,  ex_topic:"학생은 바빠요.", ex_subj:"학생이 공부합니다.", ex_obj:"선생님이 학생을 돕습니다.", ex_and:"학생과 선생님이에요.", ex_or:null, ex_also:"학생도 쉽니다." },
-      { word:"선생님", hasBatchim:true,  ex_topic:"선생님은 바빠요.", ex_subj:"선생님이 오십니다.", ex_obj:"저는 선생님을 만납니다.", ex_and:"선생님과 공부합니다.", ex_or:null, ex_also:"선생님도 가십니다." },
-      { word:"책",     hasBatchim:true,  ex_topic:"책은 재미있어요.", ex_subj:"책이 있습니다.", ex_obj:"책을 읽습니다.", ex_and:"책과 연필이 있습니다.", ex_or:"책이나 연필을 삽니다.", ex_also:"책도 있습니다." },
+      // [1] 1인칭 — 저(없) · 당신(있): 대화의 시작, 나↔너 쌍
+      { word:"저",     hasBatchim:false, ex_topic:"저는 학생입니다.", ex_subj:"제가 먼저 갑니다.", ex_obj:"선생님이 저를 부르십니다.", ex_and:"저와 함께 공부합니다.", ex_or:null, ex_also:"저도 갑니다." },
+      { word:"당신",   hasBatchim:true,  ex_topic:"당신은 학생입니까?", ex_subj:"당신이 맞습니다.", ex_obj:"저는 당신을 만납니다.", ex_and:"당신과 이야기합니다.", ex_or:null, ex_also:"당신도 갑니까?" },
+      // [2] BTS/블랙핑크 — 정국(있) · 지수(없): 받침 있↔없 대비
+      { word:"정국",   hasBatchim:true,  ex_topic:"정국은 가수입니다.", ex_subj:"정국이 노래합니다.", ex_obj:"저는 정국을 좋아합니다.", ex_and:"정국과 함께 공부합니다.", ex_or:null, ex_also:"정국도 좋습니다." },
+      { word:"지수",   hasBatchim:false, ex_topic:"지수는 가수입니다.", ex_subj:"지수가 노래합니다.", ex_obj:"저는 지수를 좋아합니다.", ex_and:"지수와 함께 공부합니다.", ex_or:null, ex_also:"지수도 좋습니다." },
+      // [3] 3인칭 — 그(없) · 그녀(없) · 그들(있): 인칭 계열 묶음
+      { word:"그",     hasBatchim:false, ex_topic:"그는 선생님입니다.", ex_subj:"그가 옵니다.", ex_obj:"저는 그를 만납니다.", ex_and:"그와 공부합니다.", ex_or:null, ex_also:"그도 옵니다." },
+      { word:"그녀",   hasBatchim:false, ex_topic:"그녀는 의사입니다.", ex_subj:"그녀가 옵니다.", ex_obj:"저는 그녀를 만납니다.", ex_and:"그녀와 이야기합니다.", ex_or:null, ex_also:"그녀도 옵니다." },
+      { word:"그들",   hasBatchim:true,  ex_topic:"그들은 학생입니다.", ex_subj:"그들이 갑니다.", ex_obj:"저는 그들을 만납니다.", ex_and:"그들과 공부합니다.", ex_or:null, ex_also:"그들도 갑니다." },
+      // [4] 복수 1인칭 — 우리(없): 그들과 대비
+      { word:"우리",   hasBatchim:false, ex_topic:"우리는 친구입니다.", ex_subj:"우리가 갑니다.", ex_obj:"선생님이 우리를 도와주십니다.", ex_and:"우리와 함께 공부합니다.", ex_or:null, ex_also:"우리도 갑니다." },
+      // [5] 지시대명사 — 이것(없) · 저것(있): 이↔저 쌍
+      { word:"이것",   hasBatchim:true,  ex_topic:"이것은 책입니다.", ex_subj:"이것이 좋습니다.", ex_obj:"이것을 주십시오.", ex_and:null, ex_or:"이것이나 저것을 고르십시오.", ex_also:"이것도 있습니다." },
+      { word:"저것",   hasBatchim:true,  ex_topic:"저것은 가방입니다.", ex_subj:"저것이 예쁩니다.", ex_obj:"저것을 보십시오.", ex_and:null, ex_or:"이것이나 저것을 고르십시오.", ex_also:"저것도 있습니다." },
+      // [6] 장소대명사 — 여기(없) · 저기(있): 이↔저 장소 쌍
+      { word:"여기",   hasBatchim:false, ex_topic:"여기는 학교입니다.", ex_subj:"여기가 좋습니다.", ex_obj:null, ex_and:null, ex_or:null, ex_also:"여기도 좋습니다." },
+      { word:"저기",   hasBatchim:false, ex_topic:"저기는 병원입니다.", ex_subj:"저기가 좋습니다.", ex_obj:null, ex_and:null, ex_or:null, ex_also:"저기도 좋습니다." },
+      // [7] 음식 쌍 — 사과(없) · 빵(있)
+      { word:"사과",   hasBatchim:false, ex_topic:"사과는 맛있습니다.", ex_subj:"사과가 있습니다.", ex_obj:"사과를 먹습니다.", ex_and:"사과와 바나나가 있습니다.", ex_or:"사과나 바나나를 드십시오.", ex_also:"사과도 맛있습니다." },
+      { word:"빵",     hasBatchim:true,  ex_topic:"빵은 맛있습니다.", ex_subj:"빵이 있습니다.", ex_obj:"빵을 먹습니다.", ex_and:"빵과 우유가 있습니다.", ex_or:"빵이나 밥을 먹습니다.", ex_also:"빵도 맛있습니다." },
+      // [8] 음료/사물 쌍 — 커피(없) · 책(있)
+      { word:"커피",   hasBatchim:false, ex_topic:"커피는 뜨겁습니다.", ex_subj:"커피가 있습니다.", ex_obj:"커피를 마십니다.", ex_and:"커피와 빵이 있습니다.", ex_or:"커피나 주스를 마십니다.", ex_also:"커피도 있습니다." },
+      { word:"책",     hasBatchim:true,  ex_topic:"책은 재미있습니다.", ex_subj:"책이 있습니다.", ex_obj:"책을 읽습니다.", ex_and:"책과 연필이 있습니다.", ex_or:"책이나 연필을 삽니다.", ex_also:"책도 있습니다." },
+      // [9] 자연물 — 꽃(없): 단독
+      { word:"꽃",     hasBatchim:false, ex_topic:"꽃은 예쁩니다.", ex_subj:"꽃이 있습니다.", ex_obj:"꽃을 삽니다.", ex_and:null, ex_or:null, ex_also:"꽃도 좋습니다." },
+      // [10] 사람 쌍 — 학생(있) · 선생님(있): 교실 관계 쌍
+      { word:"학생",   hasBatchim:true,  ex_topic:"학생은 바쁩니다.", ex_subj:"학생이 공부합니다.", ex_obj:"선생님이 학생을 돕습니다.", ex_and:"학생과 선생님이 있습니다.", ex_or:null, ex_also:"학생도 쉽니다." },
+      { word:"선생님", hasBatchim:true,  ex_topic:"선생님은 바쁩니다.", ex_subj:"선생님이 오십니다.", ex_obj:"저는 선생님을 만납니다.", ex_and:"선생님과 공부합니다.", ex_or:null, ex_also:"선생님도 가십니다." },
+      // [11] 나라 — 한국(없): 마무리
+      { word:"한국",   hasBatchim:false, ex_topic:"한국은 아름답습니다.", ex_subj:"한국이 좋습니다.", ex_obj:null, ex_and:null, ex_or:null, ex_also:"한국도 갑니다." },
     ];
 
     const COLS = [
@@ -3048,52 +3063,67 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {vi?"Chọn từ → nhấn ô để xem đáp án":en?"Pick a word → tap each cell to reveal":"어휘 선택 → 각 칸을 눌러서 확인해보세요"}
           </div>
 
-          {/* 핵심 규칙 토글 */}
+          {/* 핵심 규칙 — 항상 표시 */}
           <div style={{background:"white", borderRadius:14, border:"2px solid #FFE0B2", marginBottom:14, overflow:"hidden"}}>
-            <button onClick={()=>setShowRule(r=>!r)}
-              style={{width:"100%", background:"none", border:"none", padding:"11px 16px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer"}}>
+            <div style={{padding:"10px 12px 4px", display:"flex", alignItems:"center", gap:6}}>
               <span style={{fontSize:13, fontWeight:800, color:"#E65100"}}>📌 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙 — 받침 유무"}</span>
-              <span style={{fontSize:14, color:"#FF9800"}}>{showRule?"▲":"▼"}</span>
-            </button>
-            {showRule && (
-              <div style={{padding:"0 12px 12px"}}>
-                <div style={{display:"grid", gridTemplateColumns:"1.2fr 1fr 1fr", gap:5, fontSize:12}}>
-                  <div style={{fontWeight:800, color:"#aaa", textAlign:"center", paddingBottom:4}}>기능</div>
-                  <div style={{fontWeight:800, color:"#4CAF50", textAlign:"center", paddingBottom:4}}>받침 없음</div>
-                  <div style={{fontWeight:800, color:"#2196F3", textAlign:"center", paddingBottom:4}}>받침 있음</div>
-                  {COLS.map(c=>(
-                    <div key={c.key} style={{display:"contents"}}>
-                      <div style={{color:"#666", textAlign:"center", padding:"3px 0", fontSize:11}}>{c.label}</div>
-                      <div style={{fontWeight:900, color:"#4CAF50", textAlign:"center", background:"#F1F8E9", borderRadius:6, padding:"3px 0"}}>-{c.josa_no}</div>
-                      <div style={{fontWeight:900, color:"#2196F3", textAlign:"center", background:"#E3F2FD", borderRadius:6, padding:"3px 0"}}>-{c.josa_yes}</div>
-                    </div>
-                  ))}
-                </div>
+            </div>
+            <div style={{padding:"0 12px 12px"}}>
+              <div style={{display:"grid", gridTemplateColumns:"1.2fr 1fr 1fr", gap:5, fontSize:12}}>
+                <div style={{fontWeight:800, color:"#aaa", textAlign:"center", paddingBottom:4}}>기능</div>
+                <div style={{fontWeight:800, color:"#4CAF50", textAlign:"center", paddingBottom:4}}>받침 없음</div>
+                <div style={{fontWeight:800, color:"#2196F3", textAlign:"center", paddingBottom:4}}>받침 있음</div>
+                {COLS.map(c=>(
+                  <div key={c.key} style={{display:"contents"}}>
+                    <div style={{color:"#666", textAlign:"center", padding:"3px 0", fontSize:11}}>{c.label}</div>
+                    <div style={{fontWeight:900, color:"#4CAF50", textAlign:"center", background:"#F1F8E9", borderRadius:6, padding:"3px 0"}}>-{c.josa_no}</div>
+                    <div style={{fontWeight:900, color:"#2196F3", textAlign:"center", background:"#E3F2FD", borderRadius:6, padding:"3px 0"}}>-{c.josa_yes}</div>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
           </div>
 
           {/* 어휘 선택 그리드 */}
           <div style={{fontSize:13, fontWeight:700, color:"#E65100", marginBottom:8}}>
             📝 {vi?"Chọn một từ:":en?"Select a word:":"어휘를 선택하세요:"}
           </div>
-          <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6, marginBottom:14}}>
-            {VOCAB.map(v => (
-              <button key={v.word} onClick={()=>{ setSelWord(v.word === selWord ? null : v.word); setJosaRevealMap({}); }}
-                style={{
-                  padding:"10px 4px", borderRadius:10,
-                  border:`2px solid ${v.word===selWord?"#E65100":v.hasBatchim?"#90CAF9":"#A5D6A7"}`,
-                  background: v.word===selWord?"#E65100": v.hasBatchim?"#E3F2FD":"#F1F8E9",
-                  color: v.word===selWord?"white": v.hasBatchim?"#1565C0":"#2E7D32",
-                  fontWeight:900, fontSize:15, cursor:"pointer",
-                  boxShadow: v.word===selWord?"0 2px 10px #E6510044":"none",
-                  display:"flex", flexDirection:"column", alignItems:"center", gap:2
-                }}>
-                {v.word===selWord ? v.word : "?"}
-                <div style={{fontSize:9, opacity:0.7}}>{v.hasBatchim?(vi?"batchim":en?"batchim":"받침 있"):(vi?"không":en?"none":"받침 없")}</div>
-              </button>
-            ))}
-          </div>
+          {(() => {
+            // 현재 완료된 어휘 인덱스 계산 (모든 COLS 행이 정답 처리된 것)
+            const completedIdx = VOCAB.reduce((max, v, i) => {
+              const allDone = COLS.every(c => josaRevealMap[v.word+"_"+c.key+"_status"]==="correct");
+              return allDone ? i : max;
+            }, -1);
+            const unlockedIdx = completedIdx + 1; // 현재 풀 수 있는 인덱스
+            const selIdx = VOCAB.findIndex(v => v.word === selWord);
+            return (
+              <div style={{display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6, marginBottom:14}}>
+                {VOCAB.map((v, i) => {
+                  const isSel = v.word === selWord;
+                  const isDone = COLS.every(c => josaRevealMap[v.word+"_"+c.key+"_status"]==="correct");
+                  const isUnlocked = i <= unlockedIdx;
+                  return (
+                    <button key={v.word}
+                      onClick={()=>{ if(!isUnlocked) return; setSelWord(isSel ? null : v.word); }}
+                      style={{
+                        padding:"10px 4px", borderRadius:10,
+                        border:`2px solid ${isSel?"#E65100":isDone?"#4CAF50":isUnlocked?(v.hasBatchim?"#90CAF9":"#A5D6A7"):"#ddd"}`,
+                        background: isSel?"#E65100": isDone?"#E8F5E9": isUnlocked?(v.hasBatchim?"#E3F2FD":"#F1F8E9"):"#f8f8f8",
+                        color: isSel?"white": isDone?"#2E7D32": isUnlocked?(v.hasBatchim?"#1565C0":"#2E7D32"):"#ccc",
+                        fontWeight:900, fontSize:15, cursor:isUnlocked?"pointer":"default",
+                        boxShadow: isSel?"0 2px 10px #E6510044":"none",
+                        display:"flex", flexDirection:"column", alignItems:"center", gap:2
+                      }}>
+                      {isDone ? "✅" : isUnlocked ? v.word : "🔒"}
+                      <div style={{fontSize:9, opacity:0.7}}>
+                        {isDone ? v.word : isUnlocked ? (v.hasBatchim?(vi?"batchim":en?"batchim":"받침 있"):(vi?"không":en?"none":"받침 없")) : ""}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           {/* 결과 테이블 — 빈칸 클릭 공개 */}
           {vocab && (
