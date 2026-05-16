@@ -1,10 +1,10 @@
 // src/PhonicsData.js
-// ✅ V206: 대용량 학습 데이터를 외부 파일로 분리하여 코드 무결성 확보 (3428줄 제한 완전 해결)
+// ✅ V206: 명세서 제 18항에 의거, 대용량 데이터를 완전 격리하여 제미나이 출력 끊김을 원천 차단
 export const PRON_STEPS_V206 = [
   { id: "vowel1", emoji: "🔤", title: "01. 기본 모음 14개", desc: "기본 단모음의 소리와 형태를 익히고 발화합니다.",
     items: [
       { char: "ㅏ", word: "아버지", meaning: "bố / father" },
-      { char: "ㅑ", word: "야채",   meaning: "rau củ / vegetable" },
+      { char: "야", word: "야채",   meaning: "rau củ / vegetable" },
       { char: "ㅓ", word: "어머니", meaning: "mẹ / mother" },
       { char: "ㅕ", word: "여행",   meaning: "du lịch / travel" },
       { char: "ㅗ", word: "오빠",   meaning: "anh trai / older brother" },
