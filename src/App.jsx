@@ -2156,6 +2156,7 @@ ${vocabList}
           { char:"기회",    word:"기회",    meaning:{ko:"기회",    vi:"cơ hội",zh:"机会",en:"chance",ja:"機会",id:"kesempatan",ru:"шанс",th:"โอกาส",mn:"боломж",uz:"imkoniyat"} },
           { char:"최고",    word:"최고",    meaning:{ko:"최고",    vi:"tốt nhất",zh:"最高",en:"best",ja:"最高",id:"terbaik",ru:"лучший",th:"ดีที่สุด",mn:"хамгийн дээд",uz:"eng yaxshi"} },
           { char:"태도",    word:"태도",    meaning:{ko:"태도",    vi:"thái độ",zh:"态度",en:"attitude",ja:"態度",id:"sikap",ru:"отношение",th:"ทัศนคติ",mn:"хандлага",uz:"munosabat"} },
+          { char:"취소",    word:"취소",    meaning:{ko:"취소",    vi:"hủy bỏ",zh:"取消",en:"cancel",ja:"キャンセル",id:"pembatalan",ru:"отмена",th:"การยกเลิก",mn:"цуцлах",uz:"bekor qilish"} },
           { char:"가위",    word:"가위",    meaning:{ko:"가위",    vi:"cái kéo",zh:"剪刀",en:"scissors",ja:"はさみ",id:"gunting",ru:"ножницы",th:"กรรไกร",mn:"хайч",uz:"qaychi"} },
           { char:"제주도",  word:"제주도",  meaning:{ko:"제주도",  vi:"đảo Jeju",zh:"济州岛",en:"Jeju Island",ja:"チェジュ島",id:"Pulau Jeju",ru:"остров Чеджу",th:"เกาะเจจู",mn:"Жежү арал",uz:"Jeju oroli"} },
           { char:"대구",    word:"대구",    meaning:{ko:"대구",    vi:"Daegu",zh:"大邱",en:"Daegu",ja:"テグ",id:"Daegu",ru:"Тэгу",th:"แทกู",mn:"Тэгу",uz:"Daegu"} },
