@@ -1942,7 +1942,9 @@ ${vocabList}
           { char:"ㅡ", word:"음식",   meaning:{ko:"음식",  vi:"thức ăn",zh:"食物",en:"food",ja:"食べ物",id:"makanan",ru:"еда",th:"อาหาร",mn:"хоол",uz:"ovqat"} },
           { char:"ㅣ", word:"이름",   meaning:{ko:"이름",  vi:"tên",zh:"名字",en:"name",ja:"名前",id:"nama",ru:"имя",th:"ชื่อ",mn:"нэр",uz:"ism"} },
         ],
-        tip:"입 모양과 소리의 패턴을 여러 번 듣고 소리 내어 암송하십시오."
+        tip:"입 모양과 소리의 패턴을 여러 번 듣고 소리 내어 암송하십시오.",
+        tipVi:"Hãy nghe nhiều lần rồi đọc to để ghi nhớ hình dạng miệng và âm thanh.",
+        tipEn:"Listen repeatedly and read aloud to memorize the mouth shape and sound pattern.",
       },
       // ── 단계 2: 모음 쓰기 ──
       { id:"vowel1_write", type:"write", emoji:"✏️",
@@ -1958,7 +1960,9 @@ ${vocabList}
           { char:"ㅗ" }, { char:"ㅛ" }, { char:"ㅜ" }, { char:"ㅠ" },
           { char:"ㅡ" }, { char:"ㅣ" },
         ],
-        tip:"획순을 지켜서 천천히 써보세요. 80% 이상 정확하면 다음 단계로 넘어갑니다."
+        tip:"획순을 지켜서 천천히 써보세요. 80% 이상 정확하면 다음 단계로 넘어갑니다.",
+        tipVi:"Viết chậm theo đúng thứ tự nét. Nếu đúng 80% trở lên, bạn sẽ qua bước tiếp theo.",
+        tipEn:"Write slowly following stroke order. 80% or more accuracy moves you to the next step.",
       },
       // ── 단계 3: 모음1 단어 ──
       { id:"vowel1_word", type:"learn", emoji:"📖",
@@ -2043,7 +2047,9 @@ ${vocabList}
           { char:"ㅟ", word:"위험",   meaning:{ko:"위험",  vi:"nguy hiểm",zh:"危险",en:"danger",ja:"危険",id:"bahaya",ru:"опасность",th:"อันตราย",mn:"аюул",uz:"xavf"} },
           { char:"ㅢ", word:"의사",   meaning:{ko:"의사",  vi:"bác sĩ",zh:"医生",en:"doctor",ja:"医者",id:"dokter",ru:"врач",th:"หมอ",mn:"эмч",uz:"shifokor"} },
         ],
-        tip:"복합 모음은 두 소리가 부드럽게 하나로 합쳐지는 소리입니다."
+        tip:"복합 모음은 두 소리가 부드럽게 하나로 합쳐지는 소리입니다.",
+        tipVi:"Nguyên âm phức hợp là âm ghép mượt mà từ hai âm riêng biệt.",
+        tipEn:"Compound vowels are sounds formed by smoothly blending two separate vowel sounds.",
       },
       // ── 단계 5: 모음2 쓰기 ──
       { id:"vowel2_write", type:"write", emoji:"✏️",
@@ -2058,7 +2064,9 @@ ${vocabList}
           { char:"ㅘ" }, { char:"ㅙ" }, { char:"ㅚ" },
           { char:"ㅝ" }, { char:"ㅞ" }, { char:"ㅟ" }, { char:"ㅢ" },
         ],
-        tip:"두 모음이 합쳐진 모양을 천천히 따라 써보세요."
+        tip:"두 모음이 합쳐진 모양을 천천히 따라 써보세요.",
+        tipVi:"Hãy chép chậm theo hình dạng ghép của hai nguyên âm.",
+        tipEn:"Slowly trace the combined shape of the two vowels.",
       },
       // ── 단계 6: 모음2 단어 ──
       { id:"vowel2_word", type:"learn", emoji:"📖",
@@ -2080,7 +2088,9 @@ ${vocabList}
           { char:"귀",   word:"귀",    meaning:{ko:"귀",    vi:"tai",zh:"耳朵",en:"ear",ja:"耳",id:"telinga",ru:"ухо",th:"หู",mn:"чих",uz:"quloq"} },
           { char:"어제", word:"어제",  meaning:{ko:"어제",  vi:"hôm qua",zh:"昨天",en:"yesterday",ja:"昨日",id:"kemarin",ru:"вчера",th:"เมื่อวาน",mn:"өчигдөр",uz:"kecha"} },
         ],
-        tip:"단어를 보면서 뜻을 확인하고, 소리 내어 3번씩 말해보세요."
+        tip:"단어를 보면서 뜻을 확인하고, 소리 내어 3번씩 말해보세요.",
+        tipVi:"Xem từ, kiểm tra nghĩa rồi đọc to mỗi từ 3 lần.",
+        tipEn:"Check the meaning of each word and read it aloud 3 times.",
       },
       // ── 단계 7: 쌍자음 학습 ──
       { id:"ssang", type:"learn", emoji:"💪",
@@ -2095,7 +2105,9 @@ ${vocabList}
           { char:"ㅆ", word:"씩씩하다",meaning:{ko:"씩씩하다",vi:"dũng cảm",zh:"勇敢",en:"brave",ja:"勇ましい",id:"berani",ru:"смелый",th:"กล้าหาญ",mn:"зоригтой",uz:"jasur"} },
           { char:"ㅉ", word:"짜다",   meaning:{ko:"짜다",  vi:"mặn",zh:"咸",en:"salty",ja:"塩辛い",id:"asin",ru:"солёный",th:"เค็ม",mn:"давслаг",uz:"sho'r"} },
         ],
-        tip:"목에 살짝 힘을 주어 소리를 강하게 밀어내며 말해보세요."
+        tip:"목에 살짝 힘을 주어 소리를 강하게 밀어내며 말해보세요.",
+        tipVi:"Căng nhẹ cổ họng và đẩy âm ra mạnh mẽ.",
+        tipEn:"Tighten your throat slightly and push the sound out forcefully.",
       },
       // ── 단계 8: 쌍자음 쓰기 ──
       { id:"ssang_write", type:"write", emoji:"✏️",
@@ -2109,7 +2121,9 @@ ${vocabList}
         items:[
           { char:"ㄲ" }, { char:"ㄸ" }, { char:"ㅃ" }, { char:"ㅆ" }, { char:"ㅉ" },
         ],
-        tip:"같은 자음을 두 번 겹쳐 쓰는 모양입니다. 획순에 맞게 써보세요."
+        tip:"같은 자음을 두 번 겹쳐 쓰는 모양입니다. 획순에 맞게 써보세요.",
+        tipVi:"Đây là hình dạng viết phụ âm giống nhau hai lần. Hãy viết đúng thứ tự nét.",
+        tipEn:"These are consonants written by doubling the same character. Follow the stroke order.",
       },
       // ── 단계 9: 쌍자음 단어 ──
       { id:"ssang_word", type:"learn", emoji:"📖",
@@ -2129,7 +2143,9 @@ ${vocabList}
           { char:"비싸다",word:"비싸다",meaning:{ko:"비싸다",vi:"đắt",zh:"贵",en:"expensive",ja:"高い",id:"mahal",ru:"дорогой",th:"แพง",mn:"үнэтэй",uz:"qimmat"} },
           { char:"기쁘다",word:"기쁘다",meaning:{ko:"기쁘다",vi:"vui vẻ",zh:"高兴",en:"glad/happy",ja:"嬉しい",id:"gembira",ru:"радостный",th:"ดีใจ",mn:"баяртай",uz:"xursand"} },
         ],
-        tip:"쌍자음이 들어간 단어는 강하고 힘찬 소리가 납니다. 과감하게 발음해보세요."
+        tip:"쌍자음이 들어간 단어는 강하고 힘찬 소리가 납니다. 과감하게 발음해보세요.",
+        tipVi:"Từ có phụ âm đôi phát ra âm mạnh và dứt khoát. Hãy phát âm thật tự tin!",
+        tipEn:"Words with double consonants have a strong, forceful sound. Pronounce them boldly!",
       },
       // ── 단계 10: 받침 ㄱ·ㄲ·ㅋ ──
       { id:"batchim_gk", type:"learn", emoji:"🧱",
@@ -2145,7 +2161,9 @@ ${vocabList}
           { char:"국수",  word:"국수",  meaning:{ko:"국수",  vi:"mì",zh:"面条",en:"noodle",ja:"そば",id:"mie",ru:"лапша",th:"เส้นก๋วยเตี๋ยว",mn:"гоймон",uz:"erishtа"} },
           { char:"음악",  word:"음악",  meaning:{ko:"음악",  vi:"âm nhạc",zh:"音乐",en:"music",ja:"音楽",id:"musik",ru:"музыка",th:"ดนตรี",mn:"хөгжим",uz:"musiqa"} },
         ],
-        tip:"받침 ㄱ은 소리가 입 밖으로 나가지 않도록 안으로 모아 닫습니다."
+        tip:"받침 ㄱ은 소리가 입 밖으로 나가지 않도록 안으로 모아 닫습니다.",
+        tipVi:"Phụ âm cuối ㄱ: ngậm miệng lại, không để âm thoát ra ngoài.",
+        tipEn:"Final consonant ㄱ: close your mouth inward so the sound doesn't escape.",
       },
       // ── 단계 11: 받침 ㅇ ──
       { id:"batchim_ng", type:"learn", emoji:"🧱",
@@ -2161,7 +2179,9 @@ ${vocabList}
           { char:"학생",  word:"학생",  meaning:{ko:"학생",  vi:"học sinh",zh:"学生",en:"student",ja:"学生",id:"siswa",ru:"студент",th:"นักเรียน",mn:"сурагч",uz:"talaba"} },
           { char:"경찰",  word:"경찰",  meaning:{ko:"경찰",  vi:"cảnh sát",zh:"警察",en:"police",ja:"警察",id:"polisi",ru:"полиция",th:"ตำรวจ",mn:"цагдаа",uz:"politsiya"} },
         ],
-        tip:"ㅇ받침은 코를 울리며 소리의 꼬리를 부드럽게 이어줍니다."
+        tip:"ㅇ받침은 코를 울리며 소리의 꼬리를 부드럽게 이어줍니다.",
+        tipVi:"Phụ âm cuối ㅇ: âm vang mũi, kéo đuôi âm mượt mà.",
+        tipEn:"Final ㅇ resonates through the nose with a smooth trailing sound.",
       },
       // ── 단계 12: 받침 ㅁ ──
       { id:"batchim_m", type:"learn", emoji:"🧱",
@@ -2177,7 +2197,9 @@ ${vocabList}
           { char:"음식",  word:"음식",  meaning:{ko:"음식",  vi:"thức ăn",zh:"食物",en:"food",ja:"食べ物",id:"makanan",ru:"еда",th:"อาหาร",mn:"хоол",uz:"ovqat"} },
           { char:"사람",  word:"사람",  meaning:{ko:"사람",  vi:"người",zh:"人",en:"person",ja:"人",id:"orang",ru:"человек",th:"คน",mn:"хүн",uz:"odam"} },
         ],
-        tip:"ㅁ받침은 입술을 가볍게 다물어 소리가 입 안에 머물도록 합니다."
+        tip:"ㅁ받침은 입술을 가볍게 다물어 소리가 입 안에 머물도록 합니다.",
+        tipVi:"Phụ âm cuối ㅁ: khép nhẹ môi để âm dừng lại trong miệng.",
+        tipEn:"Final ㅁ: gently close your lips so the sound stays inside your mouth.",
       },
       // ── 단계 13: 받침 ㅂ·ㅍ ──
       { id:"batchim_bp", type:"learn", emoji:"🧱",
@@ -2191,7 +2213,9 @@ ${vocabList}
           { char:"숲",    word:"숲",    meaning:{ko:"숲",    vi:"rừng",zh:"森林",en:"forest",ja:"森",id:"hutan",ru:"лес",th:"ป่า",mn:"ой",uz:"o'rmon"} },
           { char:"무릎",  word:"무릎",  meaning:{ko:"무릎",  vi:"đầu gối",zh:"膝盖",en:"knee",ja:"膝",id:"lutut",ru:"колено",th:"เข่า",mn:"өвдөг",uz:"tizza"} },
         ],
-        tip:"양 입술을 맞부딪치며 소리를 입 안에서 멈추는 소리입니다."
+        tip:"양 입술을 맞부딪치며 소리를 입 안에서 멈추는 소리입니다.",
+        tipVi:"Đây là âm khép hai môi lại, dừng âm bên trong miệng.",
+        tipEn:"This sound is made by pressing both lips together and stopping the sound inside.",
       },
       // ── 단계 14: 받침 ㄹ ⭐ ──
       { id:"batchim_r", type:"learn", emoji:"⭐",
@@ -2209,7 +2233,9 @@ ${vocabList}
           { char:"별",    word:"별",    meaning:{ko:"별",    vi:"ngôi sao",zh:"星星",en:"star",ja:"星",id:"bintang",ru:"звезда",th:"ดาว",mn:"од",uz:"yulduz"} },
           { char:"하늘",  word:"하늘",  meaning:{ko:"하늘",  vi:"bầu trời",zh:"天空",en:"sky",ja:"空",id:"langit",ru:"небо",th:"ท้องฟ้า",mn:"тэнгэр",uz:"osmon"} },
         ],
-        tip:"⭐ 중요 마일스톤! 혀끝을 윗잇몸에 가볍게 대며 소리를 부드럽게 굴려줍니다."
+        tip:"⭐ 중요 마일스톤! 혀끝을 윗잇몸에 가볍게 대며 소리를 부드럽게 굴려줍니다.",
+        tipVi:"⭐ Mốc quan trọng! Chạm nhẹ đầu lưỡi lên nướu trên, lăn âm mượt mà.",
+        tipEn:"⭐ Key milestone! Lightly touch your tongue tip to your upper gum and roll the sound smoothly.",
       },
       // ── 단계 15: 받침 ㄴ ──
       { id:"batchim_n", type:"learn", emoji:"🧱",
@@ -2227,7 +2253,9 @@ ${vocabList}
           { char:"신발",  word:"신발",  meaning:{ko:"신발",  vi:"giày dép",zh:"鞋子",en:"shoes",ja:"靴",id:"alas kaki",ru:"обувь",th:"รองเท้า",mn:"гутал",uz:"oyoq kiyim"} },
           { char:"월요일",word:"월요일",meaning:{ko:"월요일",vi:"thứ hai",zh:"星期一",en:"Monday",ja:"月曜日",id:"Senin",ru:"понедельник",th:"วันจันทร์",mn:"даваа",uz:"dushanba"} },
         ],
-        tip:"혀를 앞니 안쪽에 대며 공기를 코로 살짝 내보내는 소리입니다."
+        tip:"혀를 앞니 안쪽에 대며 공기를 코로 살짝 내보내는 소리입니다.",
+        tipVi:"Chạm lưỡi vào mặt trong răng cửa và thổi nhẹ không khí qua mũi.",
+        tipEn:"Touch your tongue behind your front teeth and gently release air through your nose.",
       },
       // ── 단계 16: 받침 ㄷ계열 ──
       { id:"batchim_d", type:"learn", emoji:"🧱",
@@ -2243,7 +2271,9 @@ ${vocabList}
           { char:"믿다",  word:"믿다",  meaning:{ko:"믿다",  vi:"tin tưởng",zh:"相信",en:"to trust",ja:"信じる",id:"percaya",ru:"верить",th:"เชื่อ",mn:"итгэх",uz:"ishonmoq"} },
           { char:"걷다",  word:"걷다",  meaning:{ko:"걷다",  vi:"đi bộ",zh:"走路",en:"to walk",ja:"歩く",id:"berjalan",ru:"ходить",th:"เดิน",mn:"явах",uz:"yurmoq"} },
         ],
-        tip:"글자 모양은 모두 다르지만 받침 위치에서는 모두 [ㄷ] 음가로 통일됩니다."
+        tip:"글자 모양은 모두 다르지만 받침 위치에서는 모두 [ㄷ] 음가로 통일됩니다.",
+        tipVi:"Dù hình dạng chữ khác nhau, tất cả đều phát âm [ㄷ] ở vị trí phụ âm cuối.",
+        tipEn:"Though the shapes differ, all of these are pronounced as [ㄷ] in the final consonant position.",
       },
       // ── 단계 17: 겹받침 + 연음 ──
       { id:"double_liaison", type:"learn", emoji:"🔗",
@@ -2261,7 +2291,9 @@ ${vocabList}
           { char:"읽어요",word:"읽어요", meaning:{ko:"읽어요",vi:"đọc (thể hiện nay)",zh:"读",en:"(I) read",ja:"読みます",id:"membaca",ru:"читаю",th:"อ่าน",mn:"уншдаг",uz:"o'qiyman"} },
           { char:"앉아요",word:"앉아요", meaning:{ko:"앉아요",vi:"ngồi",zh:"坐下",en:"(I) sit",ja:"座ります",id:"duduk",ru:"сижу",th:"นั่ง",mn:"суудаг",uz:"o'tiraman"} },
         ],
-        tip:"⭐ 받침 뒤에 모음 조사가 오면 받침이 다음 음절 첫소리로 넘어갑니다. '옷이' → [오시]"
+        tip:"⭐ 받침 뒤에 모음 조사가 오면 받침이 다음 음절 첫소리로 넘어갑니다. '옷이' → [오시]",
+        tipVi:"⭐ Khi phụ âm cuối đứng trước nguyên âm, nó chuyển sang đầu âm tiết tiếp. '옷이' → [오시]",
+        tipEn:"⭐ When a final consonant is followed by a vowel, it moves to start the next syllable. '옷이' → [오시]",
       },
     ];
 
@@ -2539,7 +2571,21 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const currentItem = pronTestItems[pronTestIdx];
-    if (!currentItem) return null;
+    if (!currentItem) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3EEFF,#E8E0FF)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 16px"}}>
+        <div style={{fontSize:40, marginBottom:16}}>⚠️</div>
+        <div style={{fontSize:16, fontWeight:900, color:"#9C6FDE", marginBottom:8, textAlign:"center"}}>
+          {vi?"Không có từ để kiểm tra":en?"No words to test yet":"테스트할 단어가 없어요"}
+        </div>
+        <div style={{fontSize:13, color:"#aaa", marginBottom:24, textAlign:"center", lineHeight:1.6}}>
+          {vi?"Hãy học ít nhất một bước trước khi kiểm tra":en?"Please complete at least one learning step first":"먼저 단어 학습 단계를 완료해 주세요"}
+        </div>
+        <button onClick={()=>{ setPronStep(0); setFlipped({}); setStep("pronunciation"); }}
+          style={{background:"linear-gradient(135deg,#9C6FDE,#C084FC)", color:"white", border:"none", borderRadius:50, padding:"12px 32px", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+          ← {vi?"Quay lại học":en?"Back to study":"학습으로 돌아가기"}
+        </button>
+      </div>
+    );
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3EEFF,#E8E0FF)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -2563,7 +2609,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               {currentItem.word}
             </div>
             <div style={{fontSize:14, color:"#aaa"}}>
-              {currentItem.meaning}
+              {typeof currentItem.meaning === "object"
+                ? (currentItem.meaning?.[lang?.code] ?? currentItem.meaning?.en ?? "")
+                : (currentItem.meaning ?? "")}
             </div>
             {/* 예시 듣기 버튼 */}
             <button onClick={()=>{
