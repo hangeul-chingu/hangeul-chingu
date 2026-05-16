@@ -1908,115 +1908,318 @@ ${vocabList}
 
     // 발음 단계 목록
     const PRON_STEPS = [
-      { id:"vowel1",  emoji:"🔤", title:vi?"Nguyên âm 1":en?"Vowels 1":"모음 1",
-        desc:vi?"14 nguyên âm cơ bản":en?"14 basic vowels":"기본 모음 14개",
+      // ── 단계 1: 모음1 학습 ──
+      { id:"vowel1", type:"learn", emoji:"🔤",
+        title:"01. 기본 모음",
+        desc:"한국어 기본 모음 10개의 소리와 형태를 익히고 소리 내어 말합니다.",
         items:[
-          {char:"ㅏ", word:"아버지", meaning:vi?"bố":en?"father":"아버지"},
-          {char:"ㅑ", word:"야채",   meaning:vi?"rau củ":en?"vegetable":"야채"},
-          {char:"ㅓ", word:"어머니", meaning:vi?"mẹ":en?"mother":"어머니"},
-          {char:"ㅕ", word:"여행",   meaning:vi?"du lịch":en?"travel":"여행"},
-          {char:"ㅗ", word:"오빠",   meaning:vi?"anh trai":en?"older brother":"오빠"},
-          {char:"ㅛ", word:"요리",   meaning:vi?"nấu ăn":en?"cooking":"요리"},
-          {char:"ㅜ", word:"우리",   meaning:vi?"chúng ta":en?"we/our":"우리"},
-          {char:"ㅠ", word:"유리",   meaning:vi?"thủy tinh":en?"glass":"유리"},
-          {char:"ㅡ", word:"음식",   meaning:vi?"thức ăn":en?"food":"음식"},
-          {char:"ㅣ", word:"이름",   meaning:vi?"tên":en?"name":"이름"},
-          {char:"ㅐ", word:"지우개", meaning:vi?"cục tẩy":en?"eraser":"지우개"},
-          {char:"ㅔ", word:"가게",   meaning:vi?"cửa hàng":en?"store":"가게"},
-          {char:"ㅒ", word:"얘기",   meaning:vi?"câu chuyện":en?"story":"얘기"},
-          {char:"ㅖ", word:"예쁘다", meaning:vi?"đẹp":en?"pretty":"예쁘다"},
+          { char:"ㅏ", word:"아버지", meaning:{ko:"아버지",vi:"bố",zh:"父亲",en:"father",ja:"お父さん",id:"ayah",ru:"отец",th:"พ่อ",mn:"аав",uz:"ota"} },
+          { char:"ㅑ", word:"야채",   meaning:{ko:"야채",  vi:"rau củ",zh:"蔬菜",en:"vegetable",ja:"野菜",id:"sayuran",ru:"овощи",th:"ผัก",mn:"ногоо",uz:"sabzavot"} },
+          { char:"ㅓ", word:"어머니", meaning:{ko:"어머니",vi:"mẹ",zh:"母亲",en:"mother",ja:"お母さん",id:"ibu",ru:"мать",th:"แม่",mn:"ээж",uz:"ona"} },
+          { char:"ㅕ", word:"여자",   meaning:{ko:"여자",  vi:"phụ nữ",zh:"女子",en:"woman",ja:"女性",id:"wanita",ru:"женщина",th:"ผู้หญิง",mn:"эмэгтэй",uz:"ayol"} },
+          { char:"ㅗ", word:"오빠",   meaning:{ko:"오빠",  vi:"anh trai",zh:"哥哥",en:"older brother",ja:"お兄さん",id:"kakak laki-laki",ru:"старший брат",th:"พี่ชาย",mn:"ах",uz:"aka"} },
+          { char:"ㅛ", word:"요리",   meaning:{ko:"요리",  vi:"nấu ăn",zh:"料理",en:"cooking",ja:"料理",id:"memasak",ru:"приготовление пищи",th:"การทำอาหาร",mn:"хоол хийх",uz:"ovqat pishirish"} },
+          { char:"ㅜ", word:"우리",   meaning:{ko:"우리",  vi:"chúng ta",zh:"我们",en:"we/us",ja:"私たち",id:"kita",ru:"мы",th:"เรา",mn:"бид",uz:"biz"} },
+          { char:"ㅠ", word:"유리",   meaning:{ko:"유리",  vi:"thủy tinh",zh:"玻璃",en:"glass",ja:"ガラス",id:"kaca",ru:"стекло",th:"กระจก",mn:"шил",uz:"shisha"} },
+          { char:"ㅡ", word:"음식",   meaning:{ko:"음식",  vi:"thức ăn",zh:"食物",en:"food",ja:"食べ物",id:"makanan",ru:"еда",th:"อาหาร",mn:"хоол",uz:"ovqat"} },
+          { char:"ㅣ", word:"이름",   meaning:{ko:"이름",  vi:"tên",zh:"名字",en:"name",ja:"名前",id:"nama",ru:"имя",th:"ชื่อ",mn:"нэр",uz:"ism"} },
         ],
-        tip: vi?"ㅐ và ㅔ nghe gần giống nhau — đừng lo!":en?"ㅐ and ㅔ sound similar — don't worry!":"ㅐ와 ㅔ는 발음이 비슷해요 — 걱정 마세요! 😊"
+        tip:"입 모양과 소리의 패턴을 여러 번 듣고 소리 내어 암송하십시오."
       },
-      { id:"vowel2",  emoji:"🔤", title:vi?"Nguyên âm 2":en?"Vowels 2":"모음 2",
-        desc:vi?"Nguyên âm kép — đã quen rồi!":en?"Compound vowels — already familiar!":"복합 모음 — 이미 아는 발음이에요!",
+      // ── 단계 2: 모음 쓰기 ──
+      { id:"vowel1_write", type:"write", emoji:"✏️",
+        title:"02. 모음 쓰기",
+        desc:"기본 모음 10개를 순서에 맞게 써봅니다.",
+        writeTask:"ㅏ ㅑ ㅓ ㅕ ㅗ ㅛ ㅜ ㅠ ㅡ ㅣ 를 각각 5번씩 써서 사진으로 제출하세요.",
         items:[
-          {char:"ㅘ", word:"화요일", meaning:vi?"thứ ba":en?"Tuesday":"화요일"},
-          {char:"ㅙ", word:"왜",     meaning:vi?"tại sao":en?"why":"왜"},
-          {char:"ㅚ", word:"최고",   meaning:vi?"tốt nhất":en?"the best":"최고"},
-          {char:"ㅝ", word:"원하다", meaning:vi?"muốn":en?"to want":"원하다"},
-          {char:"ㅞ", word:"웨이터", meaning:vi?"bồi bàn":en?"waiter":"웨이터"},
-          {char:"ㅟ", word:"위험",   meaning:vi?"nguy hiểm":en?"danger":"위험"},
-          {char:"ㅢ", word:"의사",   meaning:vi?"bác sĩ":en?"doctor":"의사"},
+          { char:"ㅏ" }, { char:"ㅑ" }, { char:"ㅓ" }, { char:"ㅕ" },
+          { char:"ㅗ" }, { char:"ㅛ" }, { char:"ㅜ" }, { char:"ㅠ" },
+          { char:"ㅡ" }, { char:"ㅣ" },
         ],
-        tip: vi?"Nguyên âm kép = 2 âm ghép lại — đơn giản thôi!":en?"Compound vowels = 2 sounds combined — simple!":"복합 모음 = 두 소리가 합쳐진 것 — 쉬워요!"
+        tip:"획순을 지켜서 천천히 써보세요. 80% 이상 정확하면 다음 단계로 넘어갑니다."
       },
-      { id:"ssang", emoji:"💪", title:vi?"Phụ âm đôi":en?"Double consonants":"쌍자음",
-        desc:vi?"Mạnh hơn — căng hơn!":en?"Stronger — more tense!":"더 강하게! 긴장음이에요",
+      // ── 단계 3: 모음1 단어 ──
+      { id:"vowel1_word", type:"learn", emoji:"📖",
+        title:"03. 모음1 단어",
+        desc:"배운 모음이 들어간 실생활 단어를 읽고 뜻을 익힙니다. (놀라운 한국어 기준 120% 이상)",
         items:[
-          {char:"ㄲ", word:"까치",   meaning:vi?"chim ác là":en?"magpie":"까치"},
-          {char:"ㄸ", word:"딸기",   meaning:vi?"dâu tây":en?"strawberry":"딸기"},
-          {char:"ㅃ", word:"빠르다", meaning:vi?"nhanh":en?"fast":"빠르다"},
-          {char:"ㅆ", word:"씩씩하다",meaning:vi?"dũng cảm":en?"brave":"씩씩하다"},
-          {char:"ㅉ", word:"짜다",   meaning:vi?"mặn":en?"salty":"짜다"},
+          // ── 가족 (6개) ──
+          { char:"어머니", word:"어머니", meaning:{ko:"어머니",vi:"mẹ",zh:"母亲",en:"mother",ja:"お母さん",id:"ibu",ru:"мать",th:"แม่",mn:"ээж",uz:"ona"} },
+          { char:"아버지", word:"아버지", meaning:{ko:"아버지",vi:"bố",zh:"父亲",en:"father",ja:"お父さん",id:"ayah",ru:"отец",th:"พ่อ",mn:"аав",uz:"ota"} },
+          { char:"누나",   word:"누나",   meaning:{ko:"누나",  vi:"chị gái",zh:"姐姐",en:"older sister",ja:"お姉さん",id:"kakak perempuan",ru:"старшая сестра",th:"พี่สาว",mn:"эгч",uz:"opa"} },
+          { char:"아가",   word:"아가",   meaning:{ko:"아가",  vi:"em bé",zh:"婴儿",en:"baby",ja:"赤ちゃん",id:"bayi",ru:"малыш",th:"ทารก",mn:"нялх хүүхэд",uz:"chaqaloq"} },
+          { char:"아이",   word:"아이",   meaning:{ko:"아이",  vi:"trẻ em",zh:"孩子",en:"child",ja:"子供",id:"anak",ru:"ребёнок",th:"เด็ก",mn:"хүүхэд",uz:"bola"} },
+          { char:"여자",   word:"여자",   meaning:{ko:"여자",  vi:"phụ nữ",zh:"女子",en:"woman",ja:"女性",id:"wanita",ru:"женщина",th:"ผู้หญิง",mn:"эмэгтэй",uz:"ayol"} },
+          // ── 직업 (4개) ──
+          { char:"의사",   word:"의사",   meaning:{ko:"의사",  vi:"bác sĩ",zh:"医生",en:"doctor",ja:"医者",id:"dokter",ru:"врач",th:"หมอ",mn:"эмч",uz:"shifokor"} },
+          { char:"가수",   word:"가수",   meaning:{ko:"가수",  vi:"ca sĩ",zh:"歌手",en:"singer",ja:"歌手",id:"penyanyi",ru:"певец",th:"นักร้อง",mn:"дуучин",uz:"qo'shiqchi"} },
+          { char:"기자",   word:"기자",   meaning:{ko:"기자",  vi:"phóng viên",zh:"记者",en:"reporter",ja:"記者",id:"jurnalis",ru:"журналист",th:"นักข่าว",mn:"сэтгүүлч",uz:"jurnalist"} },
+          { char:"교수",   word:"교수",   meaning:{ko:"교수",  vi:"giáo sư",zh:"教授",en:"professor",ja:"教授",id:"profesor",ru:"профессор",th:"ศาสตราจารย์",mn:"профессор",uz:"professor"} },
+          // ── 시간·일상 (4개) ──
+          { char:"오후",   word:"오후",   meaning:{ko:"오후",  vi:"buổi chiều",zh:"下午",en:"afternoon",ja:"午後",id:"sore",ru:"послеполудень",th:"บ่าย",mn:"үд хойно",uz:"tushdan keyin"} },
+          { char:"하루",   word:"하루",   meaning:{ko:"하루",  vi:"một ngày",zh:"一天",en:"one day",ja:"一日",id:"satu hari",ru:"один день",th:"หนึ่งวัน",mn:"нэг өдөр",uz:"bir kun"} },
+          { char:"휴가",   word:"휴가",   meaning:{ko:"휴가",  vi:"kỳ nghỉ",zh:"休假",en:"vacation",ja:"休暇",id:"liburan",ru:"отпуск",th:"วันหยุด",mn:"амралт",uz:"ta'til"} },
+          { char:"자주",   word:"자주",   meaning:{ko:"자주",  vi:"thường xuyên",zh:"经常",en:"often",ja:"よく",id:"sering",ru:"часто",th:"บ่อยๆ",mn:"байнга",uz:"tez-tez"} },
+          // ── 장소·주거 (5개) ──
+          { char:"도시",   word:"도시",   meaning:{ko:"도시",  vi:"thành phố",zh:"都市",en:"city",ja:"都市",id:"kota",ru:"город",th:"เมือง",mn:"хот",uz:"shahar"} },
+          { char:"아파트", word:"아파트", meaning:{ko:"아파트",vi:"căn hộ",zh:"公寓",en:"apartment",ja:"アパート",id:"apartemen",ru:"квартира",th:"อพาร์ตเมนต์",mn:"орон сууц",uz:"kvartira"} },
+          { char:"주소",   word:"주소",   meaning:{ko:"주소",  vi:"địa chỉ",zh:"地址",en:"address",ja:"住所",id:"alamat",ru:"адрес",th:"ที่อยู่",mn:"хаяг",uz:"manzil"} },
+          { char:"가구",   word:"가구",   meaning:{ko:"가구",  vi:"đồ nội thất",zh:"家具",en:"furniture",ja:"家具",id:"furnitur",ru:"мебель",th:"เฟอร์นิเจอร์",mn:"тавилга",uz:"mebel"} },
+          { char:"비누",   word:"비누",   meaning:{ko:"비누",  vi:"xà phòng",zh:"肥皂",en:"soap",ja:"石鹸",id:"sabun",ru:"мыло",th:"สบู่",mn:"саван",uz:"sovun"} },
+          // ── 의류 (5개) ──
+          { char:"치마",   word:"치마",   meaning:{ko:"치마",  vi:"váy",zh:"裙子",en:"skirt",ja:"スカート",id:"rok",ru:"юбка",th:"กระโปรง",mn:"банзал",uz:"yubka"} },
+          { char:"바지",   word:"바지",   meaning:{ko:"바지",  vi:"quần",zh:"裤子",en:"pants",ja:"ズボン",id:"celana",ru:"брюки",th:"กางเกง",mn:"өмд",uz:"shim"} },
+          { char:"구두",   word:"구두",   meaning:{ko:"구두",  vi:"giày",zh:"皮鞋",en:"shoes",ja:"靴",id:"sepatu",ru:"туфли",th:"รองเท้า",mn:"гутал",uz:"tufli"} },
+          { char:"모자",   word:"모자",   meaning:{ko:"모자",  vi:"mũ",zh:"帽子",en:"hat",ja:"帽子",id:"topi",ru:"шапка",th:"หมวก",mn:"малгай",uz:"shapka"} },
+          { char:"우표",   word:"우표",   meaning:{ko:"우표",  vi:"tem thư",zh:"邮票",en:"stamp",ja:"切手",id:"perangko",ru:"марка",th:"แสตมป์",mn:"марк",uz:"marka"} },
+          // ── 신체 (8개) ──
+          { char:"머리",   word:"머리",   meaning:{ko:"머리",  vi:"đầu",zh:"头",en:"head",ja:"頭",id:"kepala",ru:"голова",th:"หัว",mn:"толгой",uz:"bosh"} },
+          { char:"이마",   word:"이마",   meaning:{ko:"이마",  vi:"trán",zh:"额头",en:"forehead",ja:"額",id:"dahi",ru:"лоб",th:"หน้าผาก",mn:"дух",uz:"peshona"} },
+          { char:"코",     word:"코",     meaning:{ko:"코",    vi:"mũi",zh:"鼻子",en:"nose",ja:"鼻",id:"hidung",ru:"нос",th:"จมูก",mn:"хамар",uz:"burun"} },
+          { char:"허리",   word:"허리",   meaning:{ko:"허리",  vi:"eo",zh:"腰",en:"waist",ja:"腰",id:"pinggang",ru:"талия",th:"เอว",mn:"бүсэлхий",uz:"bel"} },
+          { char:"다리",   word:"다리",   meaning:{ko:"다리",  vi:"chân",zh:"腿",en:"leg",ja:"足",id:"kaki",ru:"нога",th:"ขา",mn:"хөл",uz:"oyoq"} },
+          { char:"혀",     word:"혀",     meaning:{ko:"혀",    vi:"lưỡi",zh:"舌头",en:"tongue",ja:"舌",id:"lidah",ru:"язык",th:"ลิ้น",mn:"хэл",uz:"til"} },
+          { char:"키",     word:"키",     meaning:{ko:"키",    vi:"chiều cao",zh:"身高",en:"height",ja:"身長",id:"tinggi",ru:"рост",th:"ส่วนสูง",mn:"өндөр",uz:"bo'y"} },
+          { char:"이",     word:"이",     meaning:{ko:"이",    vi:"răng",zh:"牙齿",en:"tooth",ja:"歯",id:"gigi",ru:"зуб",th:"ฟัน",mn:"шүд",uz:"tish"} },
+          // ── 음식·음료 (10개) ──
+          { char:"피자",   word:"피자",   meaning:{ko:"피자",  vi:"pizza",zh:"披萨",en:"pizza",ja:"ピザ",id:"pizza",ru:"пицца",th:"พิซซ่า",mn:"пицца",uz:"pitsa"} },
+          { char:"소고기", word:"소고기", meaning:{ko:"소고기",vi:"thịt bò",zh:"牛肉",en:"beef",ja:"牛肉",id:"daging sapi",ru:"говядина",th:"เนื้อวัว",mn:"үхрийн мах",uz:"mol go'shti"} },
+          { char:"오이",   word:"오이",   meaning:{ko:"오이",  vi:"dưa chuột",zh:"黄瓜",en:"cucumber",ja:"きゅうり",id:"mentimun",ru:"огурец",th:"แตงกวา",mn:"өргөст хэмх",uz:"bodring"} },
+          { char:"고구마", word:"고구마", meaning:{ko:"고구마",vi:"khoai lang",zh:"地瓜",en:"sweet potato",ja:"サツマイモ",id:"ubi jalar",ru:"батат",th:"มันเทศ",mn:"батат",uz:"battat"} },
+          { char:"두부",   word:"두부",   meaning:{ko:"두부",  vi:"đậu phụ",zh:"豆腐",en:"tofu",ja:"豆腐",id:"tahu",ru:"тофу",th:"เต้าหู้",mn:"тофу",uz:"tofu"} },
+          { char:"포도",   word:"포도",   meaning:{ko:"포도",  vi:"nho",zh:"葡萄",en:"grape",ja:"ブドウ",id:"anggur",ru:"виноград",th:"องุ่น",mn:"усан үзэм",uz:"uzum"} },
+          { char:"바나나", word:"바나나", meaning:{ko:"바나나",vi:"chuối",zh:"香蕉",en:"banana",ja:"バナナ",id:"pisang",ru:"банан",th:"กล้วย",mn:"банан",uz:"banan"} },
+          { char:"우유",   word:"우유",   meaning:{ko:"우유",  vi:"sữa",zh:"牛奶",en:"milk",ja:"牛乳",id:"susu",ru:"молоко",th:"นม",mn:"сүү",uz:"sut"} },
+          { char:"주스",   word:"주스",   meaning:{ko:"주스",  vi:"nước trái cây",zh:"果汁",en:"juice",ja:"ジュース",id:"jus",ru:"сок",th:"น้ำผลไม้",mn:"шүүс",uz:"sharbat"} },
+          { char:"커피",   word:"커피",   meaning:{ko:"커피",  vi:"cà phê",zh:"咖啡",en:"coffee",ja:"コーヒー",id:"kopi",ru:"кофе",th:"กาแฟ",mn:"кофе",uz:"qahva"} },
+          // ── 교통·기기 (5개) ──
+          { char:"버스",   word:"버스",   meaning:{ko:"버스",  vi:"xe buýt",zh:"巴士",en:"bus",ja:"バス",id:"bus",ru:"автобус",th:"รถบัส",mn:"автобус",uz:"avtobus"} },
+          { char:"오토바이",word:"오토바이",meaning:{ko:"오토바이",vi:"xe máy",zh:"摩托车",en:"motorcycle",ja:"バイク",id:"motor",ru:"мотоцикл",th:"มอเตอร์ไซค์",mn:"мотоцикл",uz:"mototsikl"} },
+          { char:"라디오", word:"라디오", meaning:{ko:"라디오",vi:"đài phát thanh",zh:"收音机",en:"radio",ja:"ラジオ",id:"radio",ru:"радио",th:"วิทยุ",mn:"радио",uz:"radio"} },
+          { char:"키보드", word:"키보드", meaning:{ko:"키보드",vi:"bàn phím",zh:"键盘",en:"keyboard",ja:"キーボード",id:"keyboard",ru:"клавиатура",th:"คีย์บอร์ด",mn:"гар",uz:"klaviatura"} },
+          { char:"마우스", word:"마우스", meaning:{ko:"마우스",vi:"chuột máy tính",zh:"鼠标",en:"mouse",ja:"マウス",id:"mouse",ru:"мышка",th:"เมาส์",mn:"хулгана",uz:"sichqoncha"} },
         ],
-        tip: vi?"Phụ âm đôi = phụ âm bình thường nhưng căng hơn — đừng lo!":en?"Double consonants = same but more tense — just push harder!":"쌍자음 = 같은 자음을 더 강하게! 아는 소리예요 😊"
+        tip:"단어의 뜻을 이해한 채로 소리 내어 읽으면 기억에 훨씬 오래 남습니다. 놀라운 한국어 모음1 단어 전체 반영!"
       },
-      { id:"batchim1", emoji:"🧱", title:vi?"Phụ âm cuối 1":en?"Final consonants 1":"받침 1",
-        desc:vi?"ㄱ · ㅇ · ㅁ":en?"ㄱ · ㅇ · ㅁ":"ㄱ · ㅇ · ㅁ 받침",
+
+      // ── 단계 4: 모음2 학습 ──
+      { id:"vowel2", type:"learn", emoji:"🔤",
+        title:"04. 복합 모음",
+        desc:"두 모음이 합쳐진 복합 모음의 소리를 익힙니다.",
         items:[
-          {char:"국", word:"국",     meaning:vi?"canh":en?"soup":"국"},
-          {char:"책", word:"책",     meaning:vi?"sách":en?"book":"책"},
-          {char:"학교",word:"학교",  meaning:vi?"trường học":en?"school":"학교"},
-          {char:"영어",word:"영어",  meaning:vi?"tiếng Anh":en?"English":"영어"},
-          {char:"방",  word:"방",    meaning:vi?"phòng":en?"room":"방"},
-          {char:"강",  word:"강",    meaning:vi?"sông":en?"river":"강"},
-          {char:"밥",  word:"밥",    meaning:vi?"cơm":en?"rice":"밥"},
-          {char:"몸",  word:"몸",    meaning:vi?"cơ thể":en?"body":"몸"},
-          {char:"봄",  word:"봄",    meaning:vi?"mùa xuân":en?"spring":"봄"},
+          { char:"ㅘ", word:"화요일", meaning:{ko:"화요일",vi:"thứ ba",zh:"星期二",en:"Tuesday",ja:"火曜日",id:"Selasa",ru:"вторник",th:"วันอังคาร",mn:"мягмар",uz:"seshanba"} },
+          { char:"ㅙ", word:"왜",     meaning:{ko:"왜",    vi:"tại sao",zh:"为什么",en:"why",ja:"なぜ",id:"mengapa",ru:"почему",th:"ทำไม",mn:"яагаад",uz:"nima uchun"} },
+          { char:"ㅚ", word:"최고",   meaning:{ko:"최고",  vi:"tốt nhất",zh:"最好",en:"the best",ja:"最高",id:"terbaik",ru:"лучший",th:"ดีที่สุด",mn:"хамгийн сайн",uz:"eng yaxshi"} },
+          { char:"ㅝ", word:"원하다", meaning:{ko:"원하다",vi:"muốn",zh:"想要",en:"to want",ja:"欲しい",id:"ingin",ru:"хотеть",th:"ต้องการ",mn:"хүсэх",uz:"xohlamoq"} },
+          { char:"ㅞ", word:"웨이터", meaning:{ko:"웨이터",vi:"bồi bàn",zh:"服务生",en:"waiter",ja:"ウェイター",id:"pelayan",ru:"официант",th:"บริกร",mn:"зөөгч",uz:"ofitsiant"} },
+          { char:"ㅟ", word:"위험",   meaning:{ko:"위험",  vi:"nguy hiểm",zh:"危险",en:"danger",ja:"危険",id:"bahaya",ru:"опасность",th:"อันตราย",mn:"аюул",uz:"xavf"} },
+          { char:"ㅢ", word:"의사",   meaning:{ko:"의사",  vi:"bác sĩ",zh:"医生",en:"doctor",ja:"医者",id:"dokter",ru:"врач",th:"หมอ",mn:"эмч",uz:"shifokor"} },
         ],
-        tip: vi?"Phụ âm cuối = âm nhẹ ở cuối — chỉ cần khép miệng!":en?"Final consonant = soft sound at the end!":"받침은 마지막에 살짝 닫는 소리예요 😊"
+        tip:"복합 모음은 두 소리가 부드럽게 하나로 합쳐지는 소리입니다."
       },
-      { id:"batchim2", emoji:"🧱", title:vi?"Phụ âm cuối 2":en?"Final consonants 2":"받침 2",
-        desc:vi?"ㅂ · ㄹ · ㄴ":en?"ㅂ · ㄹ · ㄴ":"ㅂ · ㄹ · ㄴ 받침",
+      // ── 단계 5: 모음2 쓰기 ──
+      { id:"vowel2_write", type:"write", emoji:"✏️",
+        title:"05. 복합 모음 쓰기",
+        desc:"복합 모음 7개를 써봅니다.",
+        writeTask:"ㅘ ㅙ ㅚ ㅝ ㅞ ㅟ ㅢ 를 각각 5번씩 써서 사진으로 제출하세요.",
         items:[
-          {char:"입",  word:"입",    meaning:vi?"miệng":en?"mouth":"입"},
-          {char:"집",  word:"집",    meaning:vi?"nhà":en?"house":"집"},
-          {char:"앞",  word:"앞",    meaning:vi?"phía trước":en?"front":"앞"},
-          {char:"말",  word:"말",    meaning:vi?"ngựa/lời":en?"horse/word":"말"},
-          {char:"글",  word:"글",    meaning:vi?"chữ viết":en?"writing":"글"},
-          {char:"일",  word:"일",    meaning:vi?"công việc":en?"work":"일"},
-          {char:"눈",  word:"눈",    meaning:vi?"mắt/tuyết":en?"eye/snow":"눈"},
-          {char:"손",  word:"손",    meaning:vi?"tay":en?"hand":"손"},
-          {char:"문",  word:"문",    meaning:vi?"cửa":en?"door":"문"},
+          { char:"ㅘ" }, { char:"ㅙ" }, { char:"ㅚ" },
+          { char:"ㅝ" }, { char:"ㅞ" }, { char:"ㅟ" }, { char:"ㅢ" },
         ],
-        tip: vi?"ㄹ cuối = lưỡi chạm nhẹ — nghe như L nhẹ!":en?"ㄹ at end = soft L sound!":"ㄹ받침은 혀를 살짝 굴리는 소리예요 😊"
+        tip:"두 모음이 합쳐진 모양을 천천히 따라 써보세요."
       },
-      { id:"batchim3", emoji:"🧱", title:vi?"Phụ âm cuối 3":en?"Final consonants 3":"받침 3",
-        desc:vi?"ㄷ · ㅅ · ㅈ · ㅎ 계열":en?"ㄷ · ㅅ · ㅈ · ㅎ group":"ㄷ·ㅅ·ㅈ·ㅎ 계열",
+      // ── 단계 6: 모음2 단어 ──
+      { id:"vowel2_word", type:"learn", emoji:"📖",
+        title:"06. 복합 모음 단어",
+        desc:"복합 모음이 들어간 실생활 단어를 익힙니다.",
         items:[
-          {char:"낮",  word:"낮",    meaning:vi?"ban ngày":en?"daytime":"낮"},
-          {char:"꽃",  word:"꽃",    meaning:vi?"hoa":en?"flower":"꽃"},
-          {char:"빛",  word:"빛",    meaning:vi?"ánh sáng":en?"light":"빛"},
-          {char:"옷",  word:"옷",    meaning:vi?"quần áo":en?"clothes":"옷"},
-          {char:"밖",  word:"밖",    meaning:vi?"bên ngoài":en?"outside":"밖"},
-          {char:"부엌",word:"부엌",  meaning:vi?"nhà bếp":en?"kitchen":"부엌"},
+          { char:"회사", word:"회사",  meaning:{ko:"회사",  vi:"công ty",zh:"公司",en:"company",ja:"会社",id:"perusahaan",ru:"компания",th:"บริษัท",mn:"компани",uz:"kompaniya"} },
+          { char:"회의", word:"회의",  meaning:{ko:"회의",  vi:"cuộc họp",zh:"会议",en:"meeting",ja:"会議",id:"rapat",ru:"собрание",th:"การประชุม",mn:"хурал",uz:"yig'ilish"} },
+          { char:"카페", word:"카페",  meaning:{ko:"카페",  vi:"quán cà phê",zh:"咖啡厅",en:"cafe",ja:"カフェ",id:"kafe",ru:"кафе",th:"คาเฟ่",mn:"кафе",uz:"kafe"} },
+          { char:"의자", word:"의자",  meaning:{ko:"의자",  vi:"ghế",zh:"椅子",en:"chair",ja:"椅子",id:"kursi",ru:"стул",th:"เก้าอี้",mn:"сандал",uz:"stul"} },
+          { char:"시계", word:"시계",  meaning:{ko:"시계",  vi:"đồng hồ",zh:"手表",en:"watch/clock",ja:"時計",id:"jam",ru:"часы",th:"นาฬิกา",mn:"цаг",uz:"soat"} },
+          { char:"카메라",word:"카메라",meaning:{ko:"카메라",vi:"máy ảnh",zh:"相机",en:"camera",ja:"カメラ",id:"kamera",ru:"камера",th:"กล้อง",mn:"камер",uz:"kamera"} },
+          { char:"샤워", word:"샤워",  meaning:{ko:"샤워",  vi:"tắm vòi sen",zh:"淋浴",en:"shower",ja:"シャワー",id:"mandi",ru:"душ",th:"อาบน้ำฝักบัว",mn:"шүршүүр",uz:"dush"} },
+          { char:"사과", word:"사과",  meaning:{ko:"사과",  vi:"táo",zh:"苹果",en:"apple",ja:"りんご",id:"apel",ru:"яблоко",th:"แอปเปิ้ล",mn:"алим",uz:"olma"} },
+          { char:"야채", word:"야채",  meaning:{ko:"야채",  vi:"rau",zh:"蔬菜",en:"vegetable",ja:"野菜",en:"vegetable",id:"sayuran",ru:"овощи",th:"ผัก",mn:"ногоо",uz:"sabzavot"} },
+          { char:"배추", word:"배추",  meaning:{ko:"배추",  vi:"cải thảo",zh:"白菜",en:"cabbage",ja:"白菜",id:"sawi putih",ru:"пекинская капуста",th:"กะหล่ำปลีจีน",mn:"Хятад байцаа",uz:"xitoy karam"} },
+          { char:"귀",   word:"귀",    meaning:{ko:"귀",    vi:"tai",zh:"耳朵",en:"ear",ja:"耳",id:"telinga",ru:"ухо",th:"หู",mn:"чих",uz:"quloq"} },
+          { char:"어제", word:"어제",  meaning:{ko:"어제",  vi:"hôm qua",zh:"昨天",en:"yesterday",ja:"昨日",id:"kemarin",ru:"вчера",th:"เมื่อวาน",mn:"өчигдөр",uz:"kecha"} },
         ],
-        tip: vi?"Nhóm này đều phát âm như ㄷ ở cuối — cùng một âm!":en?"This group all sound like ㄷ at the end — same sound!":"이 계열은 모두 받침에서 ㄷ처럼 소리나요 😊"
+        tip:"단어를 보면서 뜻을 확인하고, 소리 내어 3번씩 말해보세요."
       },
-      { id:"double", emoji:"🔀", title:vi?"Phụ âm cuối kép":en?"Double final consonants":"겹받침",
-        desc:vi?"2 phụ âm — chỉ đọc 1!":en?"2 consonants — only read 1!":"두 개지만 하나만 읽어요!",
+      // ── 단계 7: 쌍자음 학습 ──
+      { id:"ssang", type:"learn", emoji:"💪",
+        title:"07. 쌍자음",
+        desc:"된소리(긴장음) 쌍자음 5개의 발음을 연습합니다.",
         items:[
-          {char:"닭",  word:"닭",    meaning:vi?"con gà":en?"chicken":"닭"},
-          {char:"삶",  word:"삶",    meaning:vi?"cuộc sống":en?"life":"삶"},
-          {char:"읽다",word:"읽다",  meaning:vi?"đọc":en?"to read":"읽다"},
-          {char:"젊다",word:"젊다",  meaning:vi?"trẻ":en?"young":"젊다"},
-          {char:"넓다",word:"넓다",  meaning:vi?"rộng":en?"wide":"넓다"},
-          {char:"많다",word:"많다",  meaning:vi?"nhiều":en?"many":"많다"},
+          { char:"ㄲ", word:"까치",   meaning:{ko:"까치",  vi:"chim ác là",zh:"喜鹊",en:"magpie",ja:"カチ",id:"burung murai",ru:"сорока",th:"นกสาลิกา",mn:"шаазгай",uz:"urriq"} },
+          { char:"ㄸ", word:"딸기",   meaning:{ko:"딸기",  vi:"dâu tây",zh:"草莓",en:"strawberry",ja:"いちご",id:"stroberi",ru:"клубника",th:"สตรอเบอร์รี่",mn:"гүзээлзгэнэ",uz:"qulupnay"} },
+          { char:"ㅃ", word:"빠르다", meaning:{ko:"빠르다",vi:"nhanh",zh:"快速",en:"fast",ja:"速い",id:"cepat",ru:"быстрый",th:"เร็ว",mn:"хурдан",uz:"tez"} },
+          { char:"ㅆ", word:"씩씩하다",meaning:{ko:"씩씩하다",vi:"dũng cảm",zh:"勇敢",en:"brave",ja:"勇ましい",id:"berani",ru:"смелый",th:"กล้าหาญ",mn:"зоригтой",uz:"jasur"} },
+          { char:"ㅉ", word:"짜다",   meaning:{ko:"짜다",  vi:"mặn",zh:"咸",en:"salty",ja:"塩辛い",id:"asin",ru:"солёный",th:"เค็ม",mn:"давслаг",uz:"sho'r"} },
         ],
-        tip: vi?"Đừng lo — chỉ cần đọc 1 trong 2 phụ âm!":en?"Don't worry — just read one of the two!":"어렵게 생각 말아요 — 둘 중 하나만 읽어요! 😊"
+        tip:"목에 살짝 힘을 주어 소리를 강하게 밀어내며 말해보세요."
       },
-      { id:"liaison", emoji:"🔗", title:vi?"Liên âm":en?"Liaison":"연음",
-        desc:vi?"Kết nối âm — nói tự nhiên hơn!":en?"Sound linking — speak naturally!":"소리가 이어져요 — 실전 발음!",
+      // ── 단계 8: 쌍자음 쓰기 ──
+      { id:"ssang_write", type:"write", emoji:"✏️",
+        title:"08. 쌍자음 쓰기",
+        desc:"쌍자음 5개를 써봅니다.",
+        writeTask:"ㄲ ㄸ ㅃ ㅆ ㅉ 를 각각 5번씩 써서 사진으로 제출하세요.",
         items:[
-          {char:"국이",  word:"국이",   meaning:vi?"canh (chủ ngữ)":en?"soup (subject)":"국+이"},
-          {char:"집에",  word:"집에",   meaning:vi?"ở nhà":en?"at home":"집+에"},
-          {char:"옷을",  word:"옷을",   meaning:vi?"quần áo (tân ngữ)":en?"clothes (object)":"옷+을"},
-          {char:"밥을",  word:"밥을",   meaning:vi?"cơm (tân ngữ)":en?"rice (object)":"밥+을"},
-          {char:"책이",  word:"책이",   meaning:vi?"sách (chủ ngữ)":en?"book (subject)":"책+이"},
-          {char:"일이",  word:"일이",   meaning:vi?"công việc":en?"work (subject)":"일+이"},
+          { char:"ㄲ" }, { char:"ㄸ" }, { char:"ㅃ" }, { char:"ㅆ" }, { char:"ㅉ" },
         ],
-        tip: vi?"Khi có nguyên âm theo sau — phụ âm cuối chuyển sang!":en?"When a vowel follows — the final consonant moves over!":"모음이 오면 받침이 다음 음절로 넘어가요 😊"
+        tip:"같은 자음을 두 번 겹쳐 쓰는 모양입니다. 획순에 맞게 써보세요."
+      },
+      // ── 단계 9: 쌍자음 단어 ──
+      { id:"ssang_word", type:"learn", emoji:"📖",
+        title:"09. 쌍자음 단어",
+        desc:"쌍자음이 들어간 실생활 단어를 익힙니다.",
+        items:[
+          { char:"오빠", word:"오빠",  meaning:{ko:"오빠",  vi:"anh trai (em gái gọi)",zh:"哥哥",en:"older brother",ja:"お兄さん",id:"kakak laki-laki",ru:"старший брат",th:"พี่ชาย",mn:"ах",uz:"aka"} },
+          { char:"아빠", word:"아빠",  meaning:{ko:"아빠",  vi:"bố",zh:"爸爸",en:"dad",ja:"パパ",id:"ayah",ru:"папа",th:"พ่อ",mn:"аав",uz:"dada"} },
+          { char:"토끼", word:"토끼",  meaning:{ko:"토끼",  vi:"con thỏ",zh:"兔子",en:"rabbit",ja:"ウサギ",id:"kelinci",ru:"кролик",th:"กระต่าย",mn:"туулай",uz:"quyon"} },
+          { char:"코끼리",word:"코끼리",meaning:{ko:"코끼리",vi:"con voi",zh:"大象",en:"elephant",ja:"ゾウ",id:"gajah",ru:"слон",th:"ช้าง",mn:"заан",uz:"fil"} },
+          { char:"찌개", word:"찌개",  meaning:{ko:"찌개",  vi:"canh hầm",zh:"炖菜",en:"stew",ja:"チゲ",id:"sup rebus",ru:"чигэ",th:"ซุปเกาหลี",mn:"шөл",uz:"qozon osh"} },
+          { char:"예쁘다",word:"예쁘다",meaning:{ko:"예쁘다",vi:"xinh đẹp",zh:"漂亮",en:"pretty",ja:"きれいだ",id:"cantik",ru:"красивый",th:"สวยงาม",mn:"үзэсгэлэнтэй",uz:"chiroyli"} },
+          { char:"바쁘다",word:"바쁘다",meaning:{ko:"바쁘다",vi:"bận rộn",zh:"忙",en:"busy",ja:"忙しい",id:"sibuk",ru:"занятый",th:"ยุ่ง",mn:"завгүй",uz:"band"} },
+          { char:"싸다", word:"싸다",  meaning:{ko:"싸다",  vi:"rẻ",zh:"便宜",en:"cheap",ja:"安い",id:"murah",ru:"дешёвый",th:"ถูก",mn:"хямд",uz:"arzon"} },
+          { char:"비싸다",word:"비싸다",meaning:{ko:"비싸다",vi:"đắt",zh:"贵",en:"expensive",ja:"高い",id:"mahal",ru:"дорогой",th:"แพง",mn:"үнэтэй",uz:"qimmat"} },
+          { char:"기쁘다",word:"기쁘다",meaning:{ko:"기쁘다",vi:"vui vẻ",zh:"高兴",en:"glad/happy",ja:"嬉しい",id:"gembira",ru:"радостный",th:"ดีใจ",mn:"баяртай",uz:"xursand"} },
+        ],
+        tip:"쌍자음이 들어간 단어는 강하고 힘찬 소리가 납니다. 과감하게 발음해보세요."
+      },
+      // ── 단계 10: 받침 ㄱ·ㄲ·ㅋ ──
+      { id:"batchim_gk", type:"learn", emoji:"🧱",
+        title:"10. 받침 [ㄱ·ㄲ·ㅋ]",
+        desc:"교육·장소·음식 관련 어휘로 ㄱ계열 받침을 익힙니다.",
+        items:[
+          { char:"국",    word:"국",    meaning:{ko:"국",    vi:"canh",zh:"汤",en:"soup",ja:"スープ",id:"sup",ru:"суп",th:"ซุป",mn:"шөл",uz:"sho'rva"} },
+          { char:"학교",  word:"학교",  meaning:{ko:"학교",  vi:"trường học",zh:"学校",en:"school",ja:"学校",id:"sekolah",ru:"школа",th:"โรงเรียน",mn:"сургууль",uz:"maktab"} },
+          { char:"약국",  word:"약국",  meaning:{ko:"약국",  vi:"hiệu thuốc",zh:"药店",en:"pharmacy",ja:"薬局",id:"apotek",ru:"аптека",th:"ร้านขายยา",mn:"эмийн сан",uz:"dorixona"} },
+          { char:"역",    word:"역",    meaning:{ko:"역",    vi:"ga",zh:"车站",en:"station",ja:"駅",id:"stasiun",ru:"станция",th:"สถานี",mn:"буудал",uz:"stansiya"} },
+          { char:"수박",  word:"수박",  meaning:{ko:"수박",  vi:"dưa hấu",zh:"西瓜",en:"watermelon",ja:"スイカ",id:"semangka",ru:"арбуз",th:"แตงโม",mn:"тарвас",uz:"tarvuz"} },
+          { char:"책",    word:"책",    meaning:{ko:"책",    vi:"sách",zh:"书",en:"book",ja:"本",id:"buku",ru:"книга",th:"หนังสือ",mn:"ном",uz:"kitob"} },
+          { char:"국수",  word:"국수",  meaning:{ko:"국수",  vi:"mì",zh:"面条",en:"noodle",ja:"そば",id:"mie",ru:"лапша",th:"เส้นก๋วยเตี๋ยว",mn:"гоймон",uz:"erishtа"} },
+          { char:"음악",  word:"음악",  meaning:{ko:"음악",  vi:"âm nhạc",zh:"音乐",en:"music",ja:"音楽",id:"musik",ru:"музыка",th:"ดนตรี",mn:"хөгжим",uz:"musiqa"} },
+        ],
+        tip:"받침 ㄱ은 소리가 입 밖으로 나가지 않도록 안으로 모아 닫습니다."
+      },
+      // ── 단계 11: 받침 ㅇ ──
+      { id:"batchim_ng", type:"learn", emoji:"🧱",
+        title:"11. 받침 [ㅇ]",
+        desc:"가족·사회생활 관련 어휘로 ㅇ받침을 익힙니다.",
+        items:[
+          { char:"가족",  word:"가족",  meaning:{ko:"가족",  vi:"gia đình",zh:"家庭",en:"family",ja:"家族",id:"keluarga",ru:"семья",th:"ครอบครัว",mn:"гэр бүл",uz:"oila"} },
+          { char:"방",    word:"방",    meaning:{ko:"방",    vi:"phòng",zh:"房间",en:"room",ja:"部屋",id:"kamar",ru:"комната",th:"ห้อง",mn:"өрөө",uz:"xona"} },
+          { char:"강",    word:"강",    meaning:{ko:"강",    vi:"sông",zh:"河流",en:"river",ja:"川",id:"sungai",ru:"река",th:"แม่น้ำ",mn:"гол",uz:"daryo"} },
+          { char:"영어",  word:"영어",  meaning:{ko:"영어",  vi:"tiếng Anh",zh:"英语",en:"English",ja:"英語",id:"bahasa Inggris",ru:"английский",th:"ภาษาอังกฤษ",mn:"англи хэл",uz:"ingliz tili"} },
+          { char:"병원",  word:"병원",  meaning:{ko:"병원",  vi:"bệnh viện",zh:"医院",en:"hospital",ja:"病院",id:"rumah sakit",ru:"больница",th:"โรงพยาบาล",mn:"эмнэлэг",uz:"kasalxona"} },
+          { char:"공항",  word:"공항",  meaning:{ko:"공항",  vi:"sân bay",zh:"机场",en:"airport",ja:"空港",id:"bandara",ru:"аэропорт",th:"สนามบิน",mn:"нисэх онгоцны буудал",uz:"aeroport"} },
+          { char:"학생",  word:"학생",  meaning:{ko:"학생",  vi:"học sinh",zh:"学生",en:"student",ja:"学生",id:"siswa",ru:"студент",th:"นักเรียน",mn:"сурагч",uz:"talaba"} },
+          { char:"경찰",  word:"경찰",  meaning:{ko:"경찰",  vi:"cảnh sát",zh:"警察",en:"police",ja:"警察",id:"polisi",ru:"полиция",th:"ตำรวจ",mn:"цагдаа",uz:"politsiya"} },
+        ],
+        tip:"ㅇ받침은 코를 울리며 소리의 꼬리를 부드럽게 이어줍니다."
+      },
+      // ── 단계 12: 받침 ㅁ ──
+      { id:"batchim_m", type:"learn", emoji:"🧱",
+        title:"12. 받침 [ㅁ]",
+        desc:"가족·음식·감정 관련 어휘로 ㅁ받침을 익힙니다.",
+        items:[
+          { char:"엄마",  word:"엄마",  meaning:{ko:"엄마",  vi:"mẹ",zh:"妈妈",en:"mom",ja:"ママ",id:"mama",ru:"мама",th:"แม่",mn:"ээж",uz:"oyi"} },
+          { char:"몸",    word:"몸",    meaning:{ko:"몸",    vi:"cơ thể",zh:"身体",en:"body",ja:"体",id:"tubuh",ru:"тело",th:"ร่างกาย",mn:"бие",uz:"tana"} },
+          { char:"봄",    word:"봄",    meaning:{ko:"봄",    vi:"mùa xuân",zh:"春天",en:"spring",ja:"春",id:"musim semi",ru:"весна",th:"ฤดูใบไม้ผลิ",mn:"хавар",uz:"bahor"} },
+          { char:"이름",  word:"이름",  meaning:{ko:"이름",  vi:"tên",zh:"名字",en:"name",ja:"名前",id:"nama",ru:"имя",th:"ชื่อ",mn:"нэр",uz:"ism"} },
+          { char:"마음",  word:"마음",  meaning:{ko:"마음",  vi:"tâm hồn",zh:"心",en:"heart/mind",ja:"心",id:"hati",ru:"сердце",th:"ใจ",mn:"сэтгэл",uz:"yurak"} },
+          { char:"꿈",    word:"꿈",    meaning:{ko:"꿈",    vi:"giấc mơ",zh:"梦想",en:"dream",ja:"夢",id:"mimpi",ru:"мечта",th:"ความฝัน",mn:"мөрөөдөл",uz:"orzu"} },
+          { char:"음식",  word:"음식",  meaning:{ko:"음식",  vi:"thức ăn",zh:"食物",en:"food",ja:"食べ物",id:"makanan",ru:"еда",th:"อาหาร",mn:"хоол",uz:"ovqat"} },
+          { char:"사람",  word:"사람",  meaning:{ko:"사람",  vi:"người",zh:"人",en:"person",ja:"人",id:"orang",ru:"человек",th:"คน",mn:"хүн",uz:"odam"} },
+        ],
+        tip:"ㅁ받침은 입술을 가볍게 다물어 소리가 입 안에 머물도록 합니다."
+      },
+      // ── 단계 13: 받침 ㅂ·ㅍ ──
+      { id:"batchim_bp", type:"learn", emoji:"🧱",
+        title:"13. 받침 [ㅂ·ㅍ]",
+        desc:"직업·장소·신체 관련 어휘로 ㅂ계열 받침을 익힙니다.",
+        items:[
+          { char:"밥",    word:"밥",    meaning:{ko:"밥",    vi:"cơm",zh:"米饭",en:"rice",ja:"ご飯",id:"nasi",ru:"рис",th:"ข้าว",mn:"цагаан будаа",uz:"guruch"} },
+          { char:"집",    word:"집",    meaning:{ko:"집",    vi:"nhà",zh:"家",en:"house/home",ja:"家",id:"rumah",ru:"дом",th:"บ้าน",mn:"гэр",uz:"uy"} },
+          { char:"앞",    word:"앞",    meaning:{ko:"앞",    vi:"phía trước",zh:"前面",en:"front",ja:"前",id:"depan",ru:"перед",th:"ข้างหน้า",mn:"өмнө",uz:"oldi"} },
+          { char:"입",    word:"입",    meaning:{ko:"입",    vi:"miệng",zh:"嘴",en:"mouth",ja:"口",id:"mulut",ru:"рот",th:"ปาก",mn:"ам",uz:"og'iz"} },
+          { char:"숲",    word:"숲",    meaning:{ko:"숲",    vi:"rừng",zh:"森林",en:"forest",ja:"森",id:"hutan",ru:"лес",th:"ป่า",mn:"ой",uz:"o'rmon"} },
+          { char:"무릎",  word:"무릎",  meaning:{ko:"무릎",  vi:"đầu gối",zh:"膝盖",en:"knee",ja:"膝",id:"lutut",ru:"колено",th:"เข่า",mn:"өвдөг",uz:"tizza"} },
+        ],
+        tip:"양 입술을 맞부딪치며 소리를 입 안에서 멈추는 소리입니다."
+      },
+      // ── 단계 14: 받침 ㄹ ⭐ ──
+      { id:"batchim_r", type:"learn", emoji:"⭐",
+        title:"14. 받침 [ㄹ] — 일상 대화 분기점!",
+        desc:"이 단계를 마치면 일상적인 한국어 대화가 가능합니다!",
+        items:[
+          { char:"말",    word:"말",    meaning:{ko:"말",    vi:"lời nói",zh:"话语",en:"word/speech",ja:"言葉",id:"kata",ru:"слово",th:"คำพูด",mn:"үг",uz:"so'z"} },
+          { char:"글",    word:"글",    meaning:{ko:"글",    vi:"chữ viết",zh:"文字",en:"writing",ja:"文字",id:"tulisan",ru:"письмо",th:"การเขียน",mn:"бичиг",uz:"yozuv"} },
+          { char:"일",    word:"일",    meaning:{ko:"일",    vi:"công việc",zh:"工作",en:"work/job",ja:"仕事",id:"pekerjaan",ru:"работа",th:"งาน",mn:"ажил",uz:"ish"} },
+          { char:"불",    word:"불",    meaning:{ko:"불",    vi:"lửa",zh:"火",en:"fire",ja:"火",id:"api",ru:"огонь",th:"ไฟ",mn:"гал",uz:"olov"} },
+          { char:"발",    word:"발",    meaning:{ko:"발",    vi:"bàn chân",zh:"脚",en:"foot",ja:"足",id:"kaki",ru:"нога/стопа",th:"เท้า",mn:"хөл",uz:"oyoq"} },
+          { char:"물",    word:"물",    meaning:{ko:"물",    vi:"nước",zh:"水",en:"water",ja:"水",id:"air",ru:"вода",th:"น้ำ",mn:"ус",uz:"suv"} },
+          { char:"길",    word:"길",    meaning:{ko:"길",    vi:"đường",zh:"路",en:"road/way",ja:"道",id:"jalan",ru:"дорога",th:"ถนน",mn:"зам",uz:"yo'l"} },
+          { char:"달",    word:"달",    meaning:{ko:"달",    vi:"mặt trăng",zh:"月亮",en:"moon",ja:"月",id:"bulan",ru:"луна",th:"พระจันทร์",mn:"сар",uz:"oy"} },
+          { char:"별",    word:"별",    meaning:{ko:"별",    vi:"ngôi sao",zh:"星星",en:"star",ja:"星",id:"bintang",ru:"звезда",th:"ดาว",mn:"од",uz:"yulduz"} },
+          { char:"하늘",  word:"하늘",  meaning:{ko:"하늘",  vi:"bầu trời",zh:"天空",en:"sky",ja:"空",id:"langit",ru:"небо",th:"ท้องฟ้า",mn:"тэнгэр",uz:"osmon"} },
+        ],
+        tip:"⭐ 중요 마일스톤! 혀끝을 윗잇몸에 가볍게 대며 소리를 부드럽게 굴려줍니다."
+      },
+      // ── 단계 15: 받침 ㄴ ──
+      { id:"batchim_n", type:"learn", emoji:"🧱",
+        title:"15. 받침 [ㄴ]",
+        desc:"요일·나라·일상 어휘로 ㄴ받침을 익힙니다.",
+        items:[
+          { char:"눈",    word:"눈",    meaning:{ko:"눈",    vi:"mắt / tuyết",zh:"眼睛 / 雪",en:"eye / snow",ja:"目 / 雪",id:"mata / salju",ru:"глаз / снег",th:"ตา / หิมะ",mn:"нүд / цас",uz:"ko'z / qor"} },
+          { char:"손",    word:"손",    meaning:{ko:"손",    vi:"bàn tay",zh:"手",en:"hand",ja:"手",id:"tangan",ru:"рука",th:"มือ",mn:"гар",uz:"qo'l"} },
+          { char:"문",    word:"문",    meaning:{ko:"문",    vi:"cửa",zh:"门",en:"door",ja:"ドア",id:"pintu",ru:"дверь",th:"ประตู",mn:"хаалга",uz:"eshik"} },
+          { char:"돈",    word:"돈",    meaning:{ko:"돈",    vi:"tiền",zh:"钱",en:"money",ja:"お金",id:"uang",ru:"деньги",th:"เงิน",mn:"мөнгө",uz:"pul"} },
+          { char:"친구",  word:"친구",  meaning:{ko:"친구",  vi:"bạn bè",zh:"朋友",en:"friend",ja:"友達",id:"teman",ru:"друг",th:"เพื่อน",mn:"найз",uz:"do'st"} },
+          { char:"전화",  word:"전화",  meaning:{ko:"전화",  vi:"điện thoại",zh:"电话",en:"phone",ja:"電話",id:"telepon",ru:"телефон",th:"โทรศัพท์",mn:"утас",uz:"telefon"} },
+          { char:"인생",  word:"인생",  meaning:{ko:"인생",  vi:"cuộc đời",zh:"人生",en:"life",ja:"人生",id:"kehidupan",ru:"жизнь",th:"ชีวิต",mn:"амьдрал",uz:"hayot"} },
+          { char:"한국",  word:"한국",  meaning:{ko:"한국",  vi:"Hàn Quốc",zh:"韩国",en:"Korea",ja:"韓国",id:"Korea",ru:"Корея",th:"เกาหลี",mn:"Солонгос",uz:"Koreya"} },
+          { char:"신발",  word:"신발",  meaning:{ko:"신발",  vi:"giày dép",zh:"鞋子",en:"shoes",ja:"靴",id:"alas kaki",ru:"обувь",th:"รองเท้า",mn:"гутал",uz:"oyoq kiyim"} },
+          { char:"월요일",word:"월요일",meaning:{ko:"월요일",vi:"thứ hai",zh:"星期一",en:"Monday",ja:"月曜日",id:"Senin",ru:"понедельник",th:"วันจันทร์",mn:"даваа",uz:"dushanba"} },
+        ],
+        tip:"혀를 앞니 안쪽에 대며 공기를 코로 살짝 내보내는 소리입니다."
+      },
+      // ── 단계 16: 받침 ㄷ계열 ──
+      { id:"batchim_d", type:"learn", emoji:"🧱",
+        title:"16. 받침 [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",
+        desc:"모양은 달라도 받침에서는 모두 같은 [ㄷ] 소리가 납니다.",
+        items:[
+          { char:"옷",    word:"옷",    meaning:{ko:"옷",    vi:"quần áo",zh:"衣服",en:"clothes",ja:"服",id:"pakaian",ru:"одежда",th:"เสื้อผ้า",mn:"хувцас",uz:"kiyim"} },
+          { char:"꽃",    word:"꽃",    meaning:{ko:"꽃",    vi:"hoa",zh:"花",en:"flower",ja:"花",id:"bunga",ru:"цветок",th:"ดอกไม้",mn:"цэцэг",uz:"gul"} },
+          { char:"빛",    word:"빛",    meaning:{ko:"빛",    vi:"ánh sáng",zh:"光",en:"light",ja:"光",id:"cahaya",ru:"свет",th:"แสง",mn:"гэрэл",uz:"nur"} },
+          { char:"낮",    word:"낮",    meaning:{ko:"낮",    vi:"ban ngày",zh:"白天",en:"daytime",ja:"昼",id:"siang hari",ru:"день",th:"กลางวัน",mn:"өдөр",uz:"kunduz"} },
+          { char:"밖",    word:"밖",    meaning:{ko:"밖",    vi:"bên ngoài",zh:"外面",en:"outside",ja:"外",id:"luar",ru:"снаружи",th:"ข้างนอก",mn:"гадаа",uz:"tashqari"} },
+          { char:"듣다",  word:"듣다",  meaning:{ko:"듣다",  vi:"nghe",zh:"听",en:"to listen",ja:"聞く",id:"mendengar",ru:"слушать",th:"ฟัง",mn:"сонсох",uz:"eshitmoq"} },
+          { char:"믿다",  word:"믿다",  meaning:{ko:"믿다",  vi:"tin tưởng",zh:"相信",en:"to trust",ja:"信じる",id:"percaya",ru:"верить",th:"เชื่อ",mn:"итгэх",uz:"ishonmoq"} },
+          { char:"걷다",  word:"걷다",  meaning:{ko:"걷다",  vi:"đi bộ",zh:"走路",en:"to walk",ja:"歩く",id:"berjalan",ru:"ходить",th:"เดิน",mn:"явах",uz:"yurmoq"} },
+        ],
+        tip:"글자 모양은 모두 다르지만 받침 위치에서는 모두 [ㄷ] 음가로 통일됩니다."
+      },
+      // ── 단계 17: 겹받침 + 연음 ──
+      { id:"double_liaison", type:"learn", emoji:"🔗",
+        title:"17. 겹받침 + 연음법칙 — 최종 관문!",
+        desc:"겹받침과 조사 결합 시 소리 변화(연음)를 익힙니다.",
+        items:[
+          { char:"닭",    word:"닭",    meaning:{ko:"닭",    vi:"con gà",zh:"鸡",en:"chicken",ja:"鶏",id:"ayam",ru:"курица",th:"ไก่",mn:"тахиа",uz:"tovuq"} },
+          { char:"앉다",  word:"앉다",  meaning:{ko:"앉다",  vi:"ngồi",zh:"坐",en:"to sit",ja:"座る",id:"duduk",ru:"сидеть",th:"นั่ง",mn:"суух",uz:"o'tirmoq"} },
+          { char:"읽다",  word:"읽다",  meaning:{ko:"읽다",  vi:"đọc",zh:"读",en:"to read",ja:"読む",id:"membaca",ru:"читать",th:"อ่าน",mn:"унших",uz:"o'qimoq"} },
+          { char:"없다",  word:"없다",  meaning:{ko:"없다",  vi:"không có",zh:"没有",en:"to not exist",ja:"ない",id:"tidak ada",ru:"нет",th:"ไม่มี",mn:"байхгүй",uz:"yo'q"} },
+          { char:"가족이",word:"가족이", meaning:{ko:"가족이",vi:"gia đình (chủ ngữ)",zh:"家庭(主语)",en:"family (subject)",ja:"家族が",id:"keluarga (subjek)",ru:"семья (субъект)",th:"ครอบครัว (ประธาน)",mn:"гэр бүл (эзэн)",uz:"oila (ega)"} },
+          { char:"옷이",  word:"옷이",  meaning:{ko:"옷이",  vi:"quần áo (chủ ngữ)",zh:"衣服(主语)",en:"clothes (subject)",ja:"服が",id:"pakaian (subjek)",ru:"одежда (субъект)",th:"เสื้อผ้า (ประธาน)",mn:"хувцас (эзэн)",uz:"kiyim (ega)"} },
+          { char:"꽃이",  word:"꽃이",  meaning:{ko:"꽃이",  vi:"hoa (chủ ngữ)",zh:"花(主语)",en:"flower (subject)",ja:"花が",id:"bunga (subjek)",ru:"цветок (субъект)",th:"ดอกไม้ (ประธาน)",mn:"цэцэг (эзэн)",uz:"gul (ega)"} },
+          { char:"밥을",  word:"밥을",  meaning:{ko:"밥을",  vi:"cơm (tân ngữ)",zh:"米饭(宾语)",en:"rice (object)",ja:"ご飯を",id:"nasi (objek)",ru:"рис (объект)",th:"ข้าว (กรรม)",mn:"будаа (тэсвэрлэгч)",uz:"guruch (to'ldiruvchi)"} },
+          { char:"읽어요",word:"읽어요", meaning:{ko:"읽어요",vi:"đọc (thể hiện nay)",zh:"读",en:"(I) read",ja:"読みます",id:"membaca",ru:"читаю",th:"อ่าน",mn:"уншдаг",uz:"o'qiyman"} },
+          { char:"앉아요",word:"앉아요", meaning:{ko:"앉아요",vi:"ngồi",zh:"坐下",en:"(I) sit",ja:"座ります",id:"duduk",ru:"сижу",th:"นั่ง",mn:"суудаг",uz:"o'tiraman"} },
+        ],
+        tip:"⭐ 받침 뒤에 모음 조사가 오면 받침이 다음 음절 첫소리로 넘어갑니다. '옷이' → [오시]"
       },
     ];
 
@@ -2056,7 +2259,37 @@ ${vocabList}
           💡 {current.tip}
         </div>
 
-        {/* 모음 카드 그리드 */}
+        {/* 쓰기 단계 / 학습 단계 분기 */}
+        {current.type === "write" ? (
+          <div style={{width:"100%", maxWidth:380, marginBottom:20}}>
+            <div style={{background:"#FFF8E7", border:"2px solid #FFC107", borderRadius:16, padding:"18px 16px", marginBottom:16, textAlign:"center"}}>
+              <div style={{fontSize:16, fontWeight:900, color:"#E65100", marginBottom:8}}>✏️ {vi?"Bài tập viết":en?"Writing task":"쓰기 과제"}</div>
+              <div style={{fontSize:13, color:"#5D4037", lineHeight:1.7, marginBottom:12}}>{current.writeTask}</div>
+              <div style={{display:"flex", flexWrap:"wrap", gap:8, justifyContent:"center"}}>
+                {current.items.map((item,i)=>(
+                  <div key={i} style={{background:"white", border:"2px solid #FFC107", borderRadius:10, padding:"8px 14px", fontSize:28, fontWeight:900, color:"#9C6FDE"}}>{item.char}</div>
+                ))}
+              </div>
+            </div>
+            <div style={{background:"#F5F5F5", border:"2px dashed #ccc", borderRadius:16, padding:"20px", textAlign:"center", marginBottom:12}}>
+              <div style={{fontSize:24, marginBottom:8}}>📷</div>
+              <div style={{fontSize:13, color:"#888", marginBottom:12}}>
+                {vi?"Chụp ảnh bài viết và tải lên":en?"Take a photo of your writing and upload":"쓴 것을 사진으로 찍어서 업로드하세요"}
+              </div>
+              <div style={{background:"#9C6FDE", color:"white", borderRadius:50, padding:"10px 24px", fontSize:13, fontWeight:700, display:"inline-block", opacity:0.6}}>
+                📤 {vi?"Tải lên (sắp có)":en?"Upload (coming soon)":"업로드 (준비중)"}
+              </div>
+            </div>
+            <button onClick={()=>{
+              if(pronStep < PRON_STEPS.length - 1){ setPronStep(s=>s+1); setFlipped({}); }
+              else setStep("pronResult");
+            }} style={{width:"100%", background:"linear-gradient(135deg,#9C6FDE,#C084FC)", color:"white", border:"none", borderRadius:50, padding:"13px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+              ✅ {vi?"Hoàn thành — Tiếp theo":en?"Done — Next step":"완료 — 다음 단계로"}
+            </button>
+          </div>
+        ) : (
+        <>
+        {/* 학습 카드 그리드 */}
         <div style={{display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, maxWidth:380, width:"100%", marginBottom:20}}>
           {current.items.map((item,i)=>(
             <div key={i} onClick={()=>{ setFlipped(f=>({...f,[i]:!f[i]})); playSound(flipped[i] ? item.char : item.word); }}
@@ -2064,7 +2297,7 @@ ${vocabList}
               {flipped[i] ? (
                 <>
                   <div style={{fontSize:12, color:"white", fontWeight:700, marginBottom:2, wordBreak:"keep-all"}}>{item.word}</div>
-                  <div style={{fontSize:10, color:"rgba(255,255,255,.85)"}}>{item.meaning}</div>
+                  <div style={{fontSize:10, color:"rgba(255,255,255,.85)"}}>{item.meaning?.[lang?.code] ?? item.meaning?.en ?? ""}</div>
                 </>
               ) : (
                 <>
@@ -2079,6 +2312,8 @@ ${vocabList}
         <div style={{fontSize:11, color:"#bbb", marginBottom:20, textAlign:"center"}}>
           {vi?"Chạm vào thẻ để xem từ ví dụ":en?"Tap a card to see example word":"카드를 탭하면 예시 단어가 나와요 😊"}
         </div>
+        </>
+        )}
 
         {/* 발음 테스트 버튼 — 각 단계마다 테스트 후 다음으로 */}
         <button onClick={()=>{
@@ -2110,7 +2345,7 @@ ${vocabList}
   if (step === "pronTest") {
     const vi = lang?.code === "vi";
     const en = lang?.code === "en";
-    const PRON_STEPS_COUNT = 8; // 총 발음 단계 수
+    const PRON_STEPS_COUNT = 17; // 총 발음 단계 수
 
     // 유사도 계산 함수 (레벤슈타인 거리 기반)
     function calcSimilarity(a, b) {
@@ -2358,7 +2593,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const details = pronTestResults.filter(r=>!r._summary);
     const passed = summary?.score >= 80;
     const fromStep = summary?.fromStep ?? 0;
-    const PRON_STEPS_COUNT = 8;
+    const PRON_STEPS_COUNT = 17;
 
     return (
       <div style={{minHeight:"100vh", background: passed?"linear-gradient(150deg,#E8F8F2,#D0F0E4)":"linear-gradient(150deg,#FFF0F0,#FFE0E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
