@@ -65,7 +65,7 @@ function AuthScreen({ onLogin }) {
       if (tab === "signup") {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(cred.user, { displayName: name });
-        await setDoc(doc(doc(db, "users", cred.user.uid)), {
+        await setDoc(doc(db, "users", cred.user.uid), {
           name, email, role,
           dataOwnershipAgreed: true,
           emailAgreed,
@@ -96,8 +96,7 @@ function AuthScreen({ onLogin }) {
             <button key={k} onClick={()=>{setTab(k);setError("");setDataOwnershipAgreed(false);setEmailAgreed(false);}} style={{flex:1,padding:"9px 0",border:"none",borderRadius:10,background:tab===k?"white":"transparent",fontWeight:tab===k?800:500,color:tab===k?C.pink:"#999",cursor:"pointer",fontSize:14,transition:"all .2s"}}>{l}</button>
           ))}
         </div>
-
-        {tab === "signup" && (<>
+        {tab==="signup"&&(<>
           <div style={{marginBottom:12}}>
             <div style={{fontSize:12,color:"#888",marginBottom:6,fontWeight:600}}>가입 유형</div>
             <div style={{display:"flex",gap:8}}>
@@ -108,11 +107,9 @@ function AuthScreen({ onLogin }) {
           </div>
           <input value={name} onChange={e=>setName(e.target.value)} placeholder={role==="instructor"?"교수자 이름":"이름"} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
         </>)}
-
         <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="이메일" type="email" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
         <input value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} placeholder="비밀번호 (6자 이상)" type="password" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:error&&tab==="login"?10:tab==="signup"?14:16,boxSizing:"border-box"}}/>
-
-        {tab === "signup" && (<>
+        {tab==="signup"&&(<>
           <div onClick={()=>setDataOwnershipAgreed(p=>!p)} style={{display:"flex",alignItems:"flex-start",gap:10,background:dataOwnershipAgreed?"#F0FBF7":"#FAFAFA",border:`1.5px solid ${dataOwnershipAgreed?"#00C896":"#e0e0e0"}`,borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",transition:"all .2s"}}>
             <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${dataOwnershipAgreed?"#00C896":"#ccc"}`,background:dataOwnershipAgreed?"#00C896":"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1,transition:"all .2s"}}>
               {dataOwnershipAgreed&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
@@ -122,7 +119,6 @@ function AuthScreen({ onLogin }) {
               <div style={{fontSize:11,color:"#777",lineHeight:1.6}}>학습자와 나눈 모든 대화 및 학습 데이터의 소유권은 한글 친구에 귀속되며, 이는 <strong>서비스의 고도화 및 인공지능 모델 업그레이드 연구</strong>를 위해 소중하게 사용됩니다.</div>
             </div>
           </div>
-
           <div onClick={()=>setEmailAgreed(p=>!p)} style={{display:"flex",alignItems:"center",gap:10,background:emailAgreed?"#FFF8F0":"#FAFAFA",border:`1.5px solid ${emailAgreed?C.orange:"#e0e0e0"}`,borderRadius:12,padding:"11px 14px",marginBottom:14,cursor:"pointer",transition:"all .2s"}}>
             <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${emailAgreed?C.orange:"#ccc"}`,background:emailAgreed?C.orange:"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
               {emailAgreed&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
@@ -130,21 +126,10 @@ function AuthScreen({ onLogin }) {
             <div style={{fontSize:12,fontWeight:600,color:"#555"}}>(선택) 업데이트 소식 이메일 수신 동의</div>
           </div>
         </>)}
-
         {error&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{error}</div>}
         <button onClick={handleSubmit} disabled={loading} style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:16,fontWeight:900,cursor:"pointer",opacity:loading?0.5:1}}>
           {loading?"처리 중...":tab==="login"?"로그인":`${roleLabel[role]}으로 가입하기`}
         </button>
-      </div>
-      <div style={{marginTop:24,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
-        <div style={{fontSize:12,color:"#bbb",marginBottom:2}}>한글 친구가 처음이세요?</div>
-        <a href="https://padlet.com/roh053068/breakout-room/Arng4MkerXZDqK6p-k2qlv36MmRprX5Rx" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.pink}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.pink,fontWeight:800,fontSize:14,boxShadow:`0 4px 16px ${C.pink}25`,WebkitTapHighlightColor:"transparent"}}>
-          📚 소개자료 · 사용 메뉴얼 보기
-        </a>
-        <a href="https://padlet.com/roh053068/breakout-room/d6AO26JdBPgP2ojL-k2qlv36MmRprX5Rx" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.teal,fontWeight:800,fontSize:14,boxShadow:`0 4px 16px ${C.teal}25`,WebkitTapHighlightColor:"transparent"}}>
-          ✨ 이 앱이 나한테 어떤 도움이 될까?
-        </a>
-        <CertRequestButton />
       </div>
     </div>
   );
@@ -184,10 +169,6 @@ function AdminDashboard({ user, onLogout, onExitAdmin }) {
     await updateDoc(doc(db, "topik_submissions", subId), { status: "rejected", rejectedAt: serverTimestamp(), rejectedReason: reason || "재제출 요청" });
   }
 
-  const pending   = submissions.filter(s => s.status === "ai_reviewed");
-  const approved  = submissions.filter(s => s.status === "approved");
-  const rejected  = submissions.filter(s => s.status === "rejected");
-
   return (
     <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#1A1A2E,#16213E)", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{background:"linear-gradient(135deg,#0F3460,#1A1A2E)", padding:"20px 20px 0", color:"white", borderBottom:"1px solid #ffffff15"}}>
@@ -213,7 +194,6 @@ function AdminDashboard({ user, onLogout, onExitAdmin }) {
 function SubmissionCard({ sub, onApprove, onReject }) {
   const [expanded, setExpanded] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  const [acting, setActing] = useState(false);
   const col = sub.status === "approved" ? "#00C896" : sub.status === "rejected" ? "#E53935" : "#F5A623";
 
   return (
@@ -227,23 +207,15 @@ function SubmissionCard({ sub, onApprove, onReject }) {
       {expanded && (
         <div style={{padding:"0 18px 18px", borderTop:"1px solid rgba(255,255,255,0.06)"}}>
           <p style={{color:"white", fontSize:13}}>{sub.aiResult}</p>
-          {sub.status === "ai_reviewed" && (
-            <div style={{marginTop:12}}>
-              <button onClick={handleApprove} style={{padding:"10px 20px", background:"#00C896", color:"white", border:"none", borderRadius:12, cursor:"pointer", marginRight:8}}>최종 승인</button>
-              <button onClick={handleReject} style={{padding:"10px 20px", background:"#E53935", color:"white", border:"none", borderRadius:12, cursor:"pointer"}}>반려</button>
-            </div>
-          )}
         </div>
       )}
     </div>
   );
 }
 
-function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin }) {
+function InstructorDashboard({ user, onLogout }) {
   const [teacherData, setTeacherData] = useState(null);
   const [classCode, setClassCode] = useState(null);
-  const [students, setStudents] = useState([]);
-  const [tab, setTab] = useState("class"); 
 
   useEffect(() => {
     if (!user) return;
@@ -391,8 +363,8 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
                   <span>문항 스케줄러 가동</span>
                   <span>{phonicsTestIdx + 1} / {currentStageData.items.length} 문항</span>
                 </div>
-                <h3 style={{fontSize:22, textAlign:"center", color:"#2E75B6", margin:"30px 0", fontWeight:900}}>
-                  다음을 소리 내어 암송하십시오:<br/>[ {currentStageData.items[phonicsTestIdx]?.word} ]
+                <h3 style={{fontSize:22, textAlign:"center", color:"#2E7E32", margin:"30px 0", fontWeight:900}}>
+                  다음을 소리 내어 암송하십시오:<br/>[ {currentPhonicsStage.items[phonicsTestIdx]?.word} ]
                 </h3>
                 <div style={{display:"flex", gap:12}}>
                   <button onClick={() => handlePhonicsTestNext(false)} style={{flex:1, padding:"14px", backgroundColor:"#FFF0F0", color:"#E53935", border:"none", borderRadius:12, fontWeight:"bold"}}>❌ 불일치</button>
