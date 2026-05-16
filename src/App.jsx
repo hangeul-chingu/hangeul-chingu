@@ -5,7 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile,
+  updateProfile
 } from "firebase/auth";
 import {
   doc,
@@ -19,10 +19,10 @@ import {
   where,
   getDocs,
   onSnapshot,
-  deleteField,
+  deleteField
 } from "firebase/firestore";
 
-// ✅ V206: 외부 발음 데이터 뱅크 자원을 안정적으로 동적 연결
+// ✅ V206: 외부 데이터 파일(PhonicsData.js)에서 발음 매트릭스를 안전하게 수입
 import { PRON_STEPS_V206 } from "./PhonicsData";
 
 const ADMIN_EMAIL = "roh053068@gmail.com";
@@ -175,7 +175,7 @@ function AdminDashboard({ user, onLogout, onExitAdmin }) {
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", maxWidth:800, margin:"0 auto"}}>
           <div>
             <div style={{fontSize:11, opacity:0.6, marginBottom:4, letterSpacing:2}}>🔐 ADMIN ONLY</div>
-            <div style={{fontSize:20, fontWeight:900}}>최고 관리자 페이지</div>
+            <div style={{fontSize:20, fontWeight:900 suicide}}>최고 관리자 페이지</div>
             <div style={{fontSize:12, opacity:0.6, marginTop:2}}>{user.email}</div>
           </div>
           <div style={{display:"flex", flexDirection:"column", gap:6, alignItems:"flex-end"}}>
@@ -362,7 +362,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
                   <span>문항 스케줄러 가동</span>
                   <span>{phonicsTestIdx + 1} / {currentStageData.items.length} 문항</span>
                 </div>
-                <h3 style={{fontSize:22, textAlign:"center", color:"#2E75B6", margin:"30px 0", fontWeight:900}}>
+                <h3 style={{fontSize:22, textAlign:"center", color:"#2E7D32", margin:"30px 0", fontWeight:900}}>
                   다음을 소리 내어 암송하십시오:<br/>[ {currentStageData.items[phonicsTestIdx]?.word} ]
                 </h3>
                 <div style={{display:"flex", gap:12}}>
