@@ -1928,6 +1928,8 @@ ${vocabList}
       { id:"vowel1", type:"learn", emoji:"🔤",
         title:"01. 기본 모음",
         desc:"한국어 기본 모음 10개의 소리와 형태를 익히고 소리 내어 말합니다.",
+        descVi:"Học hình dạng và âm thanh của 10 nguyên âm cơ bản tiếng Hàn.",
+        descEn:"Learn the shapes and sounds of 10 basic Korean vowels.",
         items:[
           { char:"ㅏ", word:"아버지", meaning:{ko:"아버지",vi:"bố",zh:"父亲",en:"father",ja:"お父さん",id:"ayah",ru:"отец",th:"พ่อ",mn:"аав",uz:"ota"} },
           { char:"ㅑ", word:"야채",   meaning:{ko:"야채",  vi:"rau củ",zh:"蔬菜",en:"vegetable",ja:"野菜",id:"sayuran",ru:"овощи",th:"ผัก",mn:"ногоо",uz:"sabzavot"} },
@@ -1946,7 +1948,11 @@ ${vocabList}
       { id:"vowel1_write", type:"write", emoji:"✏️",
         title:"02. 모음 쓰기",
         desc:"기본 모음 10개를 순서에 맞게 써봅니다.",
-        writeTask:"ㅏ ㅑ ㅓ ㅕ ㅗ ㅛ ㅜ ㅠ ㅡ ㅣ 를 각각 5번씩 써서 사진으로 제출하세요.",
+        descVi:"Viết 10 nguyên âm cơ bản theo đúng thứ tự nét.",
+        descEn:"Write the 10 basic vowels in the correct stroke order.",
+        writeTask:"아 야 어 여 오 요 우 유 으 이 를 각각 5번씩 써보세요.",
+        writeTaskVi:"Hãy viết mỗi chữ sau 5 lần: 아 야 어 여 오 요 우 유 으 이",
+        writeTaskEn:"Write each of the following 5 times: 아 야 어 여 오 요 우 유 으 이",
         items:[
           { char:"ㅏ" }, { char:"ㅑ" }, { char:"ㅓ" }, { char:"ㅕ" },
           { char:"ㅗ" }, { char:"ㅛ" }, { char:"ㅜ" }, { char:"ㅠ" },
@@ -1957,7 +1963,9 @@ ${vocabList}
       // ── 단계 3: 모음1 단어 ──
       { id:"vowel1_word", type:"learn", emoji:"📖",
         title:"03. 모음1 단어",
-        desc:"배운 모음이 들어간 실생활 단어를 읽고 뜻을 익힙니다. (놀라운 한국어 기준 120% 이상)",
+        desc:"배운 모음이 들어간 실생활 단어를 읽고 뜻을 익힙니다.",
+        descVi:"Đọc và ghi nhớ ý nghĩa các từ thực tế có chứa nguyên âm đã học.",
+        descEn:"Read and learn the meaning of everyday words containing the vowels you learned.",
         items:[
           // ── 가족 (6개) ──
           { char:"어머니", word:"어머니", meaning:{ko:"어머니",vi:"mẹ",zh:"母亲",en:"mother",ja:"お母さん",id:"ibu",ru:"мать",th:"แม่",mn:"ээж",uz:"ona"} },
@@ -2015,13 +2023,17 @@ ${vocabList}
           { char:"키보드", word:"키보드", meaning:{ko:"키보드",vi:"bàn phím",zh:"键盘",en:"keyboard",ja:"キーボード",id:"keyboard",ru:"клавиатура",th:"คีย์บอร์ด",mn:"гар",uz:"klaviatura"} },
           { char:"마우스", word:"마우스", meaning:{ko:"마우스",vi:"chuột máy tính",zh:"鼠标",en:"mouse",ja:"マウス",id:"mouse",ru:"мышка",th:"เมาส์",mn:"хулгана",uz:"sichqoncha"} },
         ],
-        tip:"단어의 뜻을 이해한 채로 소리 내어 읽으면 기억에 훨씬 오래 남습니다. 놀라운 한국어 모음1 단어 전체 반영!"
+        tip:"단어의 뜻을 이해한 채로 소리 내어 읽으면 기억에 훨씬 오래 남습니다.",
+        tipVi:"Đọc to khi đã hiểu nghĩa từ sẽ giúp ghi nhớ lâu hơn nhiều.",
+        tipEn:"Reading aloud while understanding the meaning helps you remember much longer.",
       },
 
       // ── 단계 4: 모음2 학습 ──
       { id:"vowel2", type:"learn", emoji:"🔤",
         title:"04. 복합 모음",
         desc:"두 모음이 합쳐진 복합 모음의 소리를 익힙니다.",
+        descVi:"Học âm thanh của các nguyên âm phức hợp ghép từ hai nguyên âm.",
+        descEn:"Learn the sounds of compound vowels formed by combining two vowels.",
         items:[
           { char:"ㅘ", word:"화요일", meaning:{ko:"화요일",vi:"thứ ba",zh:"星期二",en:"Tuesday",ja:"火曜日",id:"Selasa",ru:"вторник",th:"วันอังคาร",mn:"мягмар",uz:"seshanba"} },
           { char:"ㅙ", word:"왜",     meaning:{ko:"왜",    vi:"tại sao",zh:"为什么",en:"why",ja:"なぜ",id:"mengapa",ru:"почему",th:"ทำไม",mn:"яагаад",uz:"nima uchun"} },
@@ -2037,7 +2049,11 @@ ${vocabList}
       { id:"vowel2_write", type:"write", emoji:"✏️",
         title:"05. 복합 모음 쓰기",
         desc:"복합 모음 7개를 써봅니다.",
-        writeTask:"ㅘ ㅙ ㅚ ㅝ ㅞ ㅟ ㅢ 를 각각 5번씩 써서 사진으로 제출하세요.",
+        descVi:"Viết 7 nguyên âm phức hợp tiếng Hàn.",
+        descEn:"Write the 7 compound Korean vowels.",
+        writeTask:"와 왜 외 워 웨 위 의 를 각각 5번씩 써보세요.",
+        writeTaskVi:"Hãy viết mỗi chữ sau 5 lần: 와 왜 외 워 웨 위 의",
+        writeTaskEn:"Write each of the following 5 times: 와 왜 외 워 웨 위 의",
         items:[
           { char:"ㅘ" }, { char:"ㅙ" }, { char:"ㅚ" },
           { char:"ㅝ" }, { char:"ㅞ" }, { char:"ㅟ" }, { char:"ㅢ" },
@@ -2048,6 +2064,8 @@ ${vocabList}
       { id:"vowel2_word", type:"learn", emoji:"📖",
         title:"06. 복합 모음 단어",
         desc:"복합 모음이 들어간 실생활 단어를 익힙니다.",
+        descVi:"Học từ vựng thực tế có chứa nguyên âm phức hợp.",
+        descEn:"Learn everyday words containing compound vowels.",
         items:[
           { char:"회사", word:"회사",  meaning:{ko:"회사",  vi:"công ty",zh:"公司",en:"company",ja:"会社",id:"perusahaan",ru:"компания",th:"บริษัท",mn:"компани",uz:"kompaniya"} },
           { char:"회의", word:"회의",  meaning:{ko:"회의",  vi:"cuộc họp",zh:"会议",en:"meeting",ja:"会議",id:"rapat",ru:"собрание",th:"การประชุม",mn:"хурал",uz:"yig'ilish"} },
@@ -2068,6 +2086,8 @@ ${vocabList}
       { id:"ssang", type:"learn", emoji:"💪",
         title:"07. 쌍자음",
         desc:"된소리(긴장음) 쌍자음 5개의 발음을 연습합니다.",
+        descVi:"Luyện phát âm 5 phụ âm đôi (âm căng) tiếng Hàn.",
+        descEn:"Practice the pronunciation of 5 tense double consonants.",
         items:[
           { char:"ㄲ", word:"까치",   meaning:{ko:"까치",  vi:"chim ác là",zh:"喜鹊",en:"magpie",ja:"カチ",id:"burung murai",ru:"сорока",th:"นกสาลิกา",mn:"шаазгай",uz:"urriq"} },
           { char:"ㄸ", word:"딸기",   meaning:{ko:"딸기",  vi:"dâu tây",zh:"草莓",en:"strawberry",ja:"いちご",id:"stroberi",ru:"клубника",th:"สตรอเบอร์รี่",mn:"гүзээлзгэнэ",uz:"qulupnay"} },
@@ -2081,7 +2101,11 @@ ${vocabList}
       { id:"ssang_write", type:"write", emoji:"✏️",
         title:"08. 쌍자음 쓰기",
         desc:"쌍자음 5개를 써봅니다.",
-        writeTask:"ㄲ ㄸ ㅃ ㅆ ㅉ 를 각각 5번씩 써서 사진으로 제출하세요.",
+        descVi:"Viết 5 phụ âm đôi tiếng Hàn.",
+        descEn:"Write the 5 double consonants in Korean.",
+        writeTask:"까 따 빠 싸 짜 를 각각 5번씩 써보세요.",
+        writeTaskVi:"Hãy viết mỗi chữ sau 5 lần: 까 따 빠 싸 짜",
+        writeTaskEn:"Write each of the following 5 times: 까 따 빠 싸 짜",
         items:[
           { char:"ㄲ" }, { char:"ㄸ" }, { char:"ㅃ" }, { char:"ㅆ" }, { char:"ㅉ" },
         ],
@@ -2091,6 +2115,8 @@ ${vocabList}
       { id:"ssang_word", type:"learn", emoji:"📖",
         title:"09. 쌍자음 단어",
         desc:"쌍자음이 들어간 실생활 단어를 익힙니다.",
+        descVi:"Học từ vựng thực tế có phụ âm đôi. Hãy phát âm thật dứt khoát!",
+        descEn:"Learn everyday words with double consonants. Pronounce them boldly!",
         items:[
           { char:"오빠", word:"오빠",  meaning:{ko:"오빠",  vi:"anh trai (em gái gọi)",zh:"哥哥",en:"older brother",ja:"お兄さん",id:"kakak laki-laki",ru:"старший брат",th:"พี่ชาย",mn:"ах",uz:"aka"} },
           { char:"아빠", word:"아빠",  meaning:{ko:"아빠",  vi:"bố",zh:"爸爸",en:"dad",ja:"パパ",id:"ayah",ru:"папа",th:"พ่อ",mn:"аав",uz:"dada"} },
@@ -2259,7 +2285,7 @@ ${vocabList}
         <div style={{fontSize:17, fontWeight:900, color:"#9C6FDE", marginBottom:2, textAlign:"center"}}>
           {vi?"Phát âm":en?"Pronunciation":"발음 학습"} — {current.title}
         </div>
-        <div style={{fontSize:12, color:"#aaa", marginBottom:6, textAlign:"center"}}>{current.desc}</div>
+        <div style={{fontSize:12, color:"#aaa", marginBottom:6, textAlign:"center"}}>{current[vi?"descVi":en?"descEn":"desc"] || current.desc}</div>
 
         {/* 진행 표시 */}
         <div style={{display:"flex", gap:6, marginBottom:16}}>
@@ -2272,7 +2298,7 @@ ${vocabList}
 
         {/* 팁 배너 */}
         <div style={{background:"#F3EEFF", border:"1.5px solid #C084FC44", borderRadius:12, padding:"8px 14px", marginBottom:14, maxWidth:360, width:"100%", fontSize:12, color:"#9C6FDE", fontWeight:600, textAlign:"center"}}>
-          💡 {current.tip}
+          💡 {current[vi?"tipVi":en?"tipEn":"tip"] || current.tip}
         </div>
 
         {/* 쓰기 단계 / 학습 단계 분기 */}
@@ -2280,27 +2306,27 @@ ${vocabList}
           <div style={{width:"100%", maxWidth:380, marginBottom:20}}>
             <div style={{background:"#FFF8E7", border:"2px solid #FFC107", borderRadius:16, padding:"18px 16px", marginBottom:16, textAlign:"center"}}>
               <div style={{fontSize:16, fontWeight:900, color:"#E65100", marginBottom:8}}>✏️ {vi?"Bài tập viết":en?"Writing task":"쓰기 과제"}</div>
-              <div style={{fontSize:13, color:"#5D4037", lineHeight:1.7, marginBottom:12}}>{current.writeTask}</div>
+              <div style={{fontSize:13, color:"#5D4037", lineHeight:1.7, marginBottom:12}}>{current[vi?"writeTaskVi":en?"writeTaskEn":"writeTask"] || current.writeTask}</div>
               <div style={{display:"flex", flexWrap:"wrap", gap:8, justifyContent:"center"}}>
                 {current.items.map((item,i)=>(
                   <div key={i} style={{background:"white", border:"2px solid #FFC107", borderRadius:10, padding:"8px 14px", fontSize:28, fontWeight:900, color:"#9C6FDE"}}>{item.char}</div>
                 ))}
               </div>
             </div>
-            <div style={{background:"#F5F5F5", border:"2px dashed #ccc", borderRadius:16, padding:"20px", textAlign:"center", marginBottom:12}}>
-              <div style={{fontSize:24, marginBottom:8}}>📷</div>
-              <div style={{fontSize:13, color:"#888", marginBottom:12}}>
-                {vi?"Chụp ảnh bài viết và tải lên":en?"Take a photo of your writing and upload":"쓴 것을 사진으로 찍어서 업로드하세요"}
+            <div style={{background:"#F0FFF4", border:"2px solid #4CAF50", borderRadius:16, padding:"20px", textAlign:"center", marginBottom:12}}>
+              <div style={{fontSize:24, marginBottom:8}}>✍️</div>
+              <div style={{fontSize:13, color:"#2E7D32", fontWeight:700, marginBottom:4}}>
+                {vi?"Bạn đã viết xong chưa?":en?"Have you completed the writing?":"과제를 완료했나요?"}
               </div>
-              <div style={{background:"#9C6FDE", color:"white", borderRadius:50, padding:"10px 24px", fontSize:13, fontWeight:700, display:"inline-block", opacity:0.6}}>
-                📤 {vi?"Tải lên (sắp có)":en?"Upload (coming soon)":"업로드 (준비중)"}
+              <div style={{fontSize:12, color:"#888", lineHeight:1.6}}>
+                {vi?"Hãy tự đánh giá thật lòng và nhấn nút bên dưới nhé 😊":en?"Be honest with yourself and press the button below 😊":"스스로 양심적으로 판단해서 완료했으면 아래 버튼을 눌러요 😊"}
               </div>
             </div>
             <button onClick={()=>{
               if(pronStep < PRON_STEPS.length - 1){ setPronStep(s=>s+1); setFlipped({}); }
               else setStep("pronResult");
-            }} style={{width:"100%", background:"linear-gradient(135deg,#9C6FDE,#C084FC)", color:"white", border:"none", borderRadius:50, padding:"13px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-              ✅ {vi?"Hoàn thành — Tiếp theo":en?"Done — Next step":"완료 — 다음 단계로"}
+            }} style={{width:"100%", background:"linear-gradient(135deg,#4CAF50,#66BB6A)", color:"white", border:"none", borderRadius:50, padding:"13px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+              ✅ {vi?"Hoàn thành — Tiếp theo":en?"Done — Next step":"완료했어요 — 다음 단계로"}
             </button>
           </div>
         ) : (
@@ -2317,8 +2343,8 @@ ${vocabList}
                 </>
               ) : (
                 <>
-                  <div style={{fontSize:34, fontWeight:900, color:"#9C6FDE", marginBottom:2, lineHeight:1.1}}>{item.char}</div>
-                  <div style={{fontSize:9, color:"#bbb"}}>탭하세요</div>
+                  <div style={{fontSize:22, fontWeight:900, color:"#9C6FDE", marginBottom:2, lineHeight:1.2, wordBreak:"keep-all"}}>{item.char}</div>
+                  <div style={{fontSize:9, color:"#bbb"}}>{vi?"Nhấn":en?"Tap":"탭하세요"}</div>
                 </>
               )}
             </div>
@@ -2333,9 +2359,16 @@ ${vocabList}
 
         {/* 발음 테스트 버튼 — 각 단계마다 테스트 후 다음으로 */}
         <button onClick={()=>{
-          // ✅ V153: 누적 반복 원칙 — 현재 단계 + 이전 모든 단계 단어 전체
+          // ✅ V208: write 타입(쓰기 과제)은 word 없으므로 제외 — learn 타입만 수집
           const accumulated = PRON_STEPS.slice(0, pronStep + 1)
-            .flatMap(s => s.items || []);
+            .filter(s => s.type === "learn")
+            .flatMap(s => (s.items || []).filter(it => it.word));
+          if (accumulated.length === 0) {
+            // 단어가 없는 단계(쓰기 전용)면 다음 단계로 바로 이동
+            if(pronStep < PRON_STEPS.length - 1){ setPronStep(s=>s+1); setFlipped({}); }
+            else setStep("pronResult");
+            return;
+          }
           // 순서를 섞어서 제시 (전체 단어, 랜덤 순서)
           const picked = [...accumulated].sort(() => Math.random() - 0.5);
           setPronTestItems(picked);
