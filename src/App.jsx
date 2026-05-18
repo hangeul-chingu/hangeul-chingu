@@ -6103,7 +6103,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                   />
                   {isWrong && q.hint && (
                     <div style={{fontSize:10, color:"#2E7D32", fontWeight:800, marginTop:2, textAlign:"center"}}>
-                      → {q.answer} ({q.hint})
+                      → {q.answer} ({typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint})
                     </div>
                   )}
                   {isWrong && !q.hint && (
@@ -6272,7 +6272,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {josaTestQuestions.map(q=>(
             <div key={q.id} style={{background:"white",borderRadius:12,padding:"12px 14px",marginBottom:8,border:"1px solid #FFE0B2"}}>
               <div style={{fontSize:14,fontWeight:700,color:"#333",marginBottom:6}}>{q.sentence}</div>
-              <div style={{fontSize:11,color:"#FF9800",marginBottom:6}}>💡 {q.hint}</div>
+              <div style={{fontSize:11,color:"#FF9800",marginBottom:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
               <input
                 type="text"
                 value={josaTestAnswers[q.id]||""}
@@ -6673,8 +6673,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 <div key={q.id} style={{background:"white", borderRadius:16, padding:16, marginBottom:12, boxShadow:"0 2px 8px #E64A0011"}}>
                   <div style={{fontSize:12, color:"#aaa", marginBottom:6}}>문제 {qi+1}</div>
                   <div style={{fontSize:16, fontWeight:700, color:"#333", marginBottom:4}}>{q.sentence}</div>
-                  {q.hint && <div style={{fontSize:12, color:"#888", marginBottom:8}}>
-                    💡 {q.hint.split(/(→|·|:)/).map((part, i) =>
+                  {(typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint) && <div style={{fontSize:12, color:"#888", marginBottom:8}}>
+                    💡 {(typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint).split(/(→|·|:)/).map((part, i) =>
                       i === 0
                         ? <strong key={i} style={{color:"#E64A00", fontWeight:900}}>{part}</strong>
                         : <span key={i} style={{color:"#888"}}>{part}</span>
@@ -6826,38 +6826,38 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     const TEST2_QUESTIONS = [
       // ── 1단원 복습 10문제 (이에요/예요/이다)
-      { id:"t2_1",  q:"저는 학생___.",         answer:"입니다",  answers:["입니다","입니다."],  hint:"💡 학생 → 받침 있음 → 입니다" },
-      { id:"t2_2",  q:"여기는 학교___.",        answer:"입니다",  answers:["입니다","입니다."],  hint:"💡 학교 → 입니다" },
-      { id:"t2_3",  q:"오늘은 월요일___.",       answer:"입니다",  answers:["입니다","입니다."],  hint:"💡 월요일 → 받침 있음 → 입니다" },
-      { id:"t2_4",  q:"저는 의사___.",          answer:"입니다",  answers:["입니다","입니다."],  hint:"💡 의사 → 입니다" },
-      { id:"t2_5",  q:"이분은 선생님___.",       answer:"이세요",  answers:["이세요","이세요."],  hint:"💡 높임말 (어른께 쓰는 말)" },
-      { id:"t2_6",  q:"저는 베트남 사람___.",    answer:"입니다",  answers:["입니다","입니다."],  hint:"💡 사람 → 받침 있음" },
-      { id:"t2_7",  q:"여기는 회사___.",         answer:"입니다",  answers:["입니다","입니다."],      hint:"💡 회사 → 받침 없음" },
-      { id:"t2_8",  q:"저 분은 친구___.",        answer:"입니다",  answers:["입니다","입니다."],      hint:"💡 친구 → 받침 없음" },
-      { id:"t2_9",  q:"오늘은 화요일___.",       answer:"입니다",  answers:["입니다","입니다."],  hint:"💡 화요일 → 받침 있음" },
-      { id:"t2_10", q:"저는 한국어 선생님___.",  answer:"입니다",  answers:["입니다","입니다."],  hint:"💡 선생님 → 받침 있음" },
+      { id:"t2_1",  q:"저는 학생___.",         answer:"입니다",  answers:["입니다","입니다."],  hint:{ko:"💡 학생 → 받침 있음 → 입니다", vi:"💡 학생 → có phụ âm cuối → 입니다", en:"💡 학생 → has batchim → 입니다"} },
+      { id:"t2_2",  q:"여기는 학교___.",        answer:"입니다",  answers:["입니다","입니다."],  hint:{ko:"💡 학교 → 입니다", vi:"💡 학교 → không có phụ âm cuối → 입니다", en:"💡 학교 → no batchim → 입니다"} },
+      { id:"t2_3",  q:"오늘은 월요일___.",       answer:"입니다",  answers:["입니다","입니다."],  hint:{ko:"💡 월요일 → 받침 있음 → 입니다", vi:"💡 월요일 → có phụ âm cuối → 입니다", en:"💡 월요일 → has batchim → 입니다"} },
+      { id:"t2_4",  q:"저는 의사___.",          answer:"입니다",  answers:["입니다","입니다."],  hint:{ko:"💡 의사 → 받침 없음 → 입니다", vi:"💡 의사 → không có phụ âm cuối → 입니다", en:"💡 의사 → no batchim → 입니다"} },
+      { id:"t2_5",  q:"이분은 선생님___.",       answer:"이세요",  answers:["이세요","이세요."],  hint:{ko:"💡 높임말 (어른께 쓰는 말)", vi:"💡 Kính ngữ (dùng với người lớn tuổi hơn)", en:"💡 Honorific form (use with elders/seniors)"} },
+      { id:"t2_6",  q:"저는 베트남 사람___.",    answer:"입니다",  answers:["입니다","입니다."],  hint:{ko:"💡 사람 → 받침 있음", vi:"💡 사람 → có phụ âm cuối", en:"💡 사람 → has batchim"} },
+      { id:"t2_7",  q:"여기는 회사___.",         answer:"입니다",  answers:["입니다","입니다."],      hint:{ko:"💡 회사 → 받침 없음", vi:"💡 회사 → không có phụ âm cuối", en:"💡 회사 → no batchim"} },
+      { id:"t2_8",  q:"저 분은 친구___.",        answer:"입니다",  answers:["입니다","입니다."],      hint:{ko:"💡 친구 → 받침 없음", vi:"💡 친구 → không có phụ âm cuối", en:"💡 친구 → no batchim"} },
+      { id:"t2_9",  q:"오늘은 화요일___.",       answer:"입니다",  answers:["입니다","입니다."],  hint:{ko:"💡 화요일 → 받침 있음", vi:"💡 화요일 → có phụ âm cuối", en:"💡 화요일 → has batchim"} },
+      { id:"t2_10", q:"저는 한국어 선생님___.",  answer:"입니다",  answers:["입니다","입니다."],  hint:{ko:"💡 선생님 → 받침 있음", vi:"💡 선생님 → có phụ âm cuối", en:"💡 선생님 → has batchim"} },
       // ── 2단원 10문제 (있다·없다·많다·적다)
-      { id:"t2_11", q:"시간이 ___.",            answer:"있습니다",  answers:["있습니다","있습니다."],  hint:"💡 있다" },
-      { id:"t2_12", q:"돈이 ___.",              answer:"없습니다",  answers:["없습니다","없습니다."],  hint:"💡 없다" },
-      { id:"t2_13", q:"친구가 ___.",            answer:"많습니다",  answers:["많습니다","많습니다."],  hint:"💡 많다" },
-      { id:"t2_14", q:"학생이 ___.",            answer:"적습니다",  answers:["적습니다","적습니다."],  hint:"💡 적다" },
-      { id:"t2_15", q:"숙제가 ___.",            answer:"많습니다",  answers:["많습니다","많습니다."],  hint:"💡 많다" },
-      { id:"t2_16", q:"오늘 시간이 ___.",       answer:"없습니다",  answers:["없습니다","없습니다."],  hint:"💡 없다" },
-      { id:"t2_17", q:"교실에 의자가 ___.",     answer:"있습니다",  answers:["있습니다","있습니다."],  hint:"💡 있다" },
-      { id:"t2_18", q:"오늘 사람이 ___.",       answer:"적습니다",  answers:["적습니다","적습니다."],  hint:"💡 적다" },
-      { id:"t2_19", q:"냉장고에 음식이 ___.",   answer:"없습니다",  answers:["없습니다","없습니다."],  hint:"💡 없다" },
-      { id:"t2_20", q:"우리 반 학생이 ___.",    answer:"많습니다",  answers:["많습니다","많습니다."],  hint:"💡 많다" },
+      { id:"t2_11", q:"시간이 ___.",            answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 있다 (존재)", vi:"💡 있다 = tồn tại, có mặt", en:"💡 있다 = to exist, to be present"} },
+      { id:"t2_12", q:"돈이 ___.",              answer:"없습니다",  answers:["없습니다","없습니다."],  hint:{ko:"💡 없다 (부재)", vi:"💡 없다 = không có, vắng mặt", en:"💡 없다 = to not exist, to be absent"} },
+      { id:"t2_13", q:"친구가 ___.",            answer:"많습니다",  answers:["많습니다","많습니다."],  hint:{ko:"💡 많다 (수량 많음)", vi:"💡 많다 = nhiều", en:"💡 많다 = to be many/much"} },
+      { id:"t2_14", q:"학생이 ___.",            answer:"적습니다",  answers:["적습니다","적습니다."],  hint:{ko:"💡 적다 (수량 적음)", vi:"💡 적다 = ít", en:"💡 적다 = to be few/little"} },
+      { id:"t2_15", q:"숙제가 ___.",            answer:"많습니다",  answers:["많습니다","많습니다."],  hint:{ko:"💡 많다 (수량 많음)", vi:"💡 많다 = nhiều", en:"💡 많다 = to be many/much"} },
+      { id:"t2_16", q:"오늘 시간이 ___.",       answer:"없습니다",  answers:["없습니다","없습니다."],  hint:{ko:"💡 없다 (부재)", vi:"💡 없다 = không có, vắng mặt", en:"💡 없다 = to not exist, to be absent"} },
+      { id:"t2_17", q:"교실에 의자가 ___.",     answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 있다 (존재)", vi:"💡 있다 = tồn tại, có mặt", en:"💡 있다 = to exist, to be present"} },
+      { id:"t2_18", q:"오늘 사람이 ___.",       answer:"적습니다",  answers:["적습니다","적습니다."],  hint:{ko:"💡 적다 (수량 적음)", vi:"💡 적다 = ít", en:"💡 적다 = to be few/little"} },
+      { id:"t2_19", q:"냉장고에 음식이 ___.",   answer:"없습니다",  answers:["없습니다","없습니다."],  hint:{ko:"💡 없다 (부재)", vi:"💡 없다 = không có, vắng mặt", en:"💡 없다 = to not exist, to be absent"} },
+      { id:"t2_20", q:"우리 반 학생이 ___.",    answer:"많습니다",  answers:["많습니다","많습니다."],  hint:{ko:"💡 많다 (수량 많음)", vi:"💡 많다 = nhiều", en:"💡 많다 = to be many/much"} },
       // ── 2B단원 10문제 (위치 표현)
-      { id:"t2_21", q:"책상 위에 책이 ___.",         answer:"있습니다",  answers:["있습니다","있습니다."],  hint:"💡 위치 표현 → 있습니다" },
-      { id:"t2_22", q:"화장실이 어디에 ___?",         answer:"있습니까",  answers:["있습니까","있습니까?"],  hint:"💡 장소를 물을 때 → 있습니까?" },
-      { id:"t2_23", q:"가방 안에 지갑이 ___.",        answer:"있습니다",  answers:["있습니다","있습니다."],  hint:"💡 안(inside) → 있습니다" },
-      { id:"t2_24", q:"은행 옆에 편의점이 ___.",      answer:"있습니다",  answers:["있습니다","있습니다."],  hint:"💡 옆(beside) → 있습니다" },
-      { id:"t2_25", q:"냉장고 앞에 고양이가 ___.",    answer:"있습니다",  answers:["있습니다","있습니다."],  hint:"💡 앞(in front) → 있습니다" },
-      { id:"t2_26", q:"의자 아래에 가방이 ___.",      answer:"있습니다",  answers:["있습니다","있습니다."],  hint:"💡 아래(below) → 있습니다" },
-      { id:"t2_27", q:"학교 앞에 카페가 ___.",        answer:"있습니다",  answers:["있습니다","있습니다."],  hint:"💡 앞(정면) → 있습니다" },
-      { id:"t2_28", q:"마트가 어디에 ___?",           answer:"있어요",  answers:["있어요","있어요?","있어요."],  hint:"💡 장소를 물을 때 → 있습니까?" },
-      { id:"t2_29", q:"방 안에 침대가 ___.",          answer:"있습니다",  answers:["있습니다","있습니다."],  hint:"💡 안(속) → 뭐가 있어요?" },
-      { id:"t2_30", q:"소파 위에 고양이가 ___.",      answer:"있습니다",  answers:["있습니다","있습니다."],  hint:"💡 위(above) → 뭐가 있어요?" },
+      { id:"t2_21", q:"책상 위에 책이 ___.",         answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 위치 표현 → 있습니다", vi:"💡 Diễn đạt vị trí → 있습니다", en:"💡 Location expression → 있습니다"} },
+      { id:"t2_22", q:"화장실이 어디에 ___?",         answer:"있습니까",  answers:["있습니까","있습니까?"],  hint:{ko:"💡 장소를 물을 때 → 있습니까?", vi:"💡 Hỏi địa điểm → 있습니까?", en:"💡 Asking about location → 있습니까?"} },
+      { id:"t2_23", q:"가방 안에 지갑이 ___.",        answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 안(inside) → 있습니다", vi:"💡 안 = bên trong → 있습니다", en:"💡 안 = inside → 있습니다"} },
+      { id:"t2_24", q:"은행 옆에 편의점이 ___.",      answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 옆(beside) → 있습니다", vi:"💡 옆 = bên cạnh → 있습니다", en:"💡 옆 = beside → 있습니다"} },
+      { id:"t2_25", q:"냉장고 앞에 고양이가 ___.",    answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 앞(in front) → 있습니다", vi:"💡 앞 = phía trước → 있습니다", en:"💡 앞 = in front → 있습니다"} },
+      { id:"t2_26", q:"의자 아래에 가방이 ___.",      answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 아래(below) → 있습니다", vi:"💡 아래 = phía dưới → 있습니다", en:"💡 아래 = below → 있습니다"} },
+      { id:"t2_27", q:"학교 앞에 카페가 ___.",        answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 앞(정면) → 있습니다", vi:"💡 앞 = phía trước → 있습니다", en:"💡 앞 = in front → 있습니다"} },
+      { id:"t2_28", q:"마트가 어디에 ___?",           answer:"있어요",  answers:["있어요","있어요?","있어요."],  hint:{ko:"💡 장소를 물을 때 → 있습니까?", vi:"💡 Hỏi địa điểm → 있습니까?", en:"💡 Asking about location → 있습니까?"} },
+      { id:"t2_29", q:"방 안에 침대가 ___.",          answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 안(속) → 있습니다", vi:"💡 안 = bên trong → 있습니다", en:"💡 안 = inside → 있습니다"} },
+      { id:"t2_30", q:"소파 위에 고양이가 ___.",      answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 위(above) → 있습니다", vi:"💡 위 = phía trên → 있습니다", en:"💡 위 = above → 있습니다"} },
     ];
 
     function gradeTest2() {
@@ -6955,7 +6955,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
                 style={{width:"100%", border:"2px solid #BBDEFB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest2}
@@ -7192,49 +7192,49 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     const TEST3_QUESTIONS = [
       // ── 1단원 복습 10문제
-      { id:"t3_1",  q:"저는 학생___.",         answer:"이에요",     answers:["이에요","이에요."],     hint:"💡 학생 → 받침 있음" },
-      { id:"t3_2",  q:"여기는 학교___.",        answer:"예요",       answers:["예요","예요."],         hint:"💡 학교 → 받침 없음" },
-      { id:"t3_3",  q:"오늘은 목요일___.",       answer:"이에요",     answers:["이에요","이에요."],     hint:"💡 목요일 → 받침 있음" },
-      { id:"t3_4",  q:"저는 간호사___.",         answer:"예요",       answers:["예요","예요."],         hint:"💡 간호사 → 받침 없음" },
-      { id:"t3_5",  q:"이분은 교수님___.",        answer:"이세요",     answers:["이세요","이세요."],     hint:"💡 높임말 (어른께 쓰는 말)" },
-      { id:"t3_6",  q:"저는 중국 사람___.",      answer:"이에요",     answers:["이에요","이에요."],     hint:"💡 사람 → 받침 있음" },
-      { id:"t3_7",  q:"여기는 병원___.",          answer:"이에요",     answers:["이에요","이에요."],     hint:"💡 병원 → 받침 있음" },
-      { id:"t3_8",  q:"저 분은 동료___.",         answer:"예요",       answers:["예요","예요."],         hint:"💡 동료 → 받침 없음" },
-      { id:"t3_9",  q:"오늘은 수요일___.",        answer:"이에요",     answers:["이에요","이에요."],     hint:"💡 수요일 → 받침 있음" },
-      { id:"t3_10", q:"저는 요리사___.",          answer:"예요",       answers:["예요","예요."],         hint:"💡 요리사 → 받침 없음" },
+      { id:"t3_1",  q:"저는 학생___.",         answer:"이에요",     answers:["이에요","이에요."],     hint:{ko:"💡 학생 → 받침 있음 → 입니다", vi:"💡 학생 → có phụ âm cuối → 입니다", en:"💡 학생 → has batchim → 입니다"} },
+      { id:"t3_2",  q:"여기는 학교___.",        answer:"예요",       answers:["예요","예요."],         hint:{ko:"💡 학교 → 받침 없음", vi:"💡 학교 → không có phụ âm cuối", en:"💡 학교 → no batchim"} },
+      { id:"t3_3",  q:"오늘은 목요일___.",       answer:"이에요",     answers:["이에요","이에요."],     hint:{ko:"💡 목요일 → 받침 있음 → 이에요", vi:"💡 목요일 → có phụ âm cuối → 이에요", en:"💡 목요일 → has batchim → 이에요"} },
+      { id:"t3_4",  q:"저는 간호사___.",         answer:"예요",       answers:["예요","예요."],         hint:{ko:"💡 간호사 → 받침 없음 → 예요", vi:"💡 간호사 → không có phụ âm cuối → 예요", en:"💡 간호사 → no batchim → 예요"} },
+      { id:"t3_5",  q:"이분은 교수님___.",        answer:"이세요",     answers:["이세요","이세요."],     hint:{ko:"💡 높임말 (어른께 쓰는 말)", vi:"💡 Kính ngữ (dùng với người lớn tuổi hơn)", en:"💡 Honorific form (use with elders/seniors)"} },
+      { id:"t3_6",  q:"저는 중국 사람___.",      answer:"이에요",     answers:["이에요","이에요."],     hint:{ko:"💡 사람 → 받침 있음", vi:"💡 사람 → có phụ âm cuối", en:"💡 사람 → has batchim"} },
+      { id:"t3_7",  q:"여기는 병원___.",          answer:"이에요",     answers:["이에요","이에요."],     hint:{ko:"💡 병원 → 받침 있음 → 이에요", vi:"💡 병원 → có phụ âm cuối → 이에요", en:"💡 병원 → has batchim → 이에요"} },
+      { id:"t3_8",  q:"저 분은 동료___.",         answer:"예요",       answers:["예요","예요."],         hint:{ko:"💡 동료 → 받침 없음 → 예요", vi:"💡 동료 → không có phụ âm cuối → 예요", en:"💡 동료 → no batchim → 예요"} },
+      { id:"t3_9",  q:"오늘은 수요일___.",        answer:"이에요",     answers:["이에요","이에요."],     hint:{ko:"💡 수요일 → 받침 있음 → 이에요", vi:"💡 수요일 → có phụ âm cuối → 이에요", en:"💡 수요일 → has batchim → 이에요"} },
+      { id:"t3_10", q:"저는 요리사___.",          answer:"예요",       answers:["예요","예요."],         hint:{ko:"💡 요리사 → 받침 없음 → 예요", vi:"💡 요리사 → không có phụ âm cuối → 예요", en:"💡 요리사 → no batchim → 예요"} },
       // ── 2단원 복습 10문제
-      { id:"t3_11", q:"시간이 ___.",             answer:"있어요",     answers:["있어요","있어요."],     hint:"💡 있다" },
-      { id:"t3_12", q:"돈이 ___.",               answer:"없어요",     answers:["없어요","없어요."],     hint:"💡 없다" },
-      { id:"t3_13", q:"친구가 ___.",             answer:"많아요",     answers:["많아요","많아요."],     hint:"💡 많다" },
-      { id:"t3_14", q:"학생이 ___.",             answer:"적어요",     answers:["적어요","적어요."],     hint:"💡 적다" },
-      { id:"t3_15", q:"오늘 숙제가 ___.",        answer:"없어요",     answers:["없어요","없어요."],     hint:"💡 없다" },
-      { id:"t3_16", q:"냉장고에 음식이 ___.",    answer:"있어요",     answers:["있어요","있어요."],     hint:"💡 있다" },
-      { id:"t3_17", q:"오늘 손님이 ___.",        answer:"많아요",     answers:["많아요","많아요."],     hint:"💡 많다" },
-      { id:"t3_18", q:"오늘 수업이 ___.",        answer:"없어요",     answers:["없어요","없어요."],     hint:"💡 없다" },
-      { id:"t3_19", q:"우리 반에 남자가 ___.",   answer:"적어요",     answers:["적어요","적어요."],     hint:"💡 적다" },
-      { id:"t3_20", q:"오늘 할 일이 ___.",       answer:"많아요",     answers:["많아요","많아요."],     hint:"💡 많다" },
+      { id:"t3_11", q:"시간이 ___.",             answer:"있어요",     answers:["있어요","있어요."],     hint:{ko:"💡 있다 (존재)", vi:"💡 있다 = tồn tại, có mặt", en:"💡 있다 = to exist, to be present"} },
+      { id:"t3_12", q:"돈이 ___.",               answer:"없어요",     answers:["없어요","없어요."],     hint:{ko:"💡 없다 (부재)", vi:"💡 없다 = không có, vắng mặt", en:"💡 없다 = to not exist, to be absent"} },
+      { id:"t3_13", q:"친구가 ___.",             answer:"많아요",     answers:["많아요","많아요."],     hint:{ko:"💡 많다 (수량 많음)", vi:"💡 많다 = nhiều", en:"💡 많다 = to be many/much"} },
+      { id:"t3_14", q:"학생이 ___.",             answer:"적어요",     answers:["적어요","적어요."],     hint:{ko:"💡 적다 (수량 적음)", vi:"💡 적다 = ít", en:"💡 적다 = to be few/little"} },
+      { id:"t3_15", q:"오늘 숙제가 ___.",        answer:"없어요",     answers:["없어요","없어요."],     hint:{ko:"💡 없다 (부재)", vi:"💡 없다 = không có, vắng mặt", en:"💡 없다 = to not exist, to be absent"} },
+      { id:"t3_16", q:"냉장고에 음식이 ___.",    answer:"있어요",     answers:["있어요","있어요."],     hint:{ko:"💡 있다 (존재)", vi:"💡 있다 = tồn tại, có mặt", en:"💡 있다 = to exist, to be present"} },
+      { id:"t3_17", q:"오늘 손님이 ___.",        answer:"많아요",     answers:["많아요","많아요."],     hint:{ko:"💡 많다 (수량 많음)", vi:"💡 많다 = nhiều", en:"💡 많다 = to be many/much"} },
+      { id:"t3_18", q:"오늘 수업이 ___.",        answer:"없어요",     answers:["없어요","없어요."],     hint:{ko:"💡 없다 (부재)", vi:"💡 없다 = không có, vắng mặt", en:"💡 없다 = to not exist, to be absent"} },
+      { id:"t3_19", q:"우리 반에 남자가 ___.",   answer:"적어요",     answers:["적어요","적어요."],     hint:{ko:"💡 적다 (수량 적음)", vi:"💡 적다 = ít", en:"💡 적다 = to be few/little"} },
+      { id:"t3_20", q:"오늘 할 일이 ___.",       answer:"많아요",     answers:["많아요","많아요."],     hint:{ko:"💡 많다 (수량 많음)", vi:"💡 많다 = nhiều", en:"💡 많다 = to be many/much"} },
       // ── 3단원 10문제 (형용사)
-      { id:"t3_21", q:"이 가방이 ___.",          answer:"커요",       answers:["커요","커요."],         hint:"💡 크다" },
-      { id:"t3_22", q:"저 가방이 ___.",          answer:"작아요",     answers:["작아요","작아요."],     hint:"💡 작다" },
-      { id:"t3_23", q:"날씨가 ___.",             answer:"좋아요",     answers:["좋아요","좋아요."],     hint:"💡 좋다" },
-      { id:"t3_24", q:"음식이 ___.",             answer:"맛있어요",   answers:["맛있어요","맛있어요."], hint:"💡 맛있다" },
-      { id:"t3_25", q:"한국어가 ___.",           answer:"재미있어요", answers:["재미있어요","재미있어요."], hint:"💡 재미있다" },
-      { id:"t3_26", q:"오늘 너무 ___.",          answer:"바빠요",     answers:["바빠요","바빠요."],     hint:"💡 바쁘다" },
-      { id:"t3_27", q:"머리가 ___.",             answer:"아파요",     answers:["아파요","아파요."],     hint:"💡 아프다" },
-      { id:"t3_28", q:"오늘 날씨가 ___.",        answer:"싫어요",     answers:["싫어요","싫어요."],     hint:"💡 싫다" },
-      { id:"t3_29", q:"이 음식이 ___.",          answer:"맛없어요",   answers:["맛없어요","맛없어요."], hint:"💡 맛없다" },
-      { id:"t3_30", q:"한국어가 ___.",           answer:"어려워요",   answers:["어려워요","어려워요."], hint:"💡 어렵다" },
+      { id:"t3_21", q:"이 가방이 ___.",          answer:"커요",       answers:["커요","커요."],         hint:{ko:"💡 크다 → 큽니다", vi:"💡 크다 = to/lớn", en:"💡 크다 = big/tall"} },
+      { id:"t3_22", q:"저 가방이 ___.",          answer:"작아요",     answers:["작아요","작아요."],     hint:{ko:"💡 작다 → 작습니다", vi:"💡 작다 = nhỏ", en:"💡 작다 = small"} },
+      { id:"t3_23", q:"날씨가 ___.",             answer:"좋아요",     answers:["좋아요","좋아요."],     hint:{ko:"💡 좋다 → 좋습니다", vi:"💡 좋다 = tốt/thích", en:"💡 좋다 = good/like"} },
+      { id:"t3_24", q:"음식이 ___.",             answer:"맛있어요",   answers:["맛있어요","맛있어요."], hint:{ko:"💡 맛있다 → 맛있습니다", vi:"💡 맛있다 = ngon", en:"💡 맛있다 = delicious"} },
+      { id:"t3_25", q:"한국어가 ___.",           answer:"재미있어요", answers:["재미있어요","재미있어요."], hint:{ko:"💡 재미있다 → 재미있습니다", vi:"💡 재미있다 = thú vị", en:"💡 재미있다 = interesting/fun"} },
+      { id:"t3_26", q:"오늘 너무 ___.",          answer:"바빠요",     answers:["바빠요","바빠요."],     hint:{ko:"💡 바쁘다 → 바쁩니다", vi:"💡 바쁘다 = bận", en:"💡 바쁘다 = busy"} },
+      { id:"t3_27", q:"머리가 ___.",             answer:"아파요",     answers:["아파요","아파요."],     hint:{ko:"💡 아프다 → 아픕니다", vi:"💡 아프다 = đau/bệnh", en:"💡 아프다 = to be sick/hurt"} },
+      { id:"t3_28", q:"오늘 날씨가 ___.",        answer:"싫어요",     answers:["싫어요","싫어요."],     hint:{ko:"💡 싫다 → 싫습니다", vi:"💡 싫다 = ghét/không thích", en:"💡 싫다 = to dislike"} },
+      { id:"t3_29", q:"이 음식이 ___.",          answer:"맛없어요",   answers:["맛없어요","맛없어요."], hint:{ko:"💡 맛없다 → 맛없습니다", vi:"💡 맛없다 = không ngon", en:"💡 맛없다 = not delicious"} },
+      { id:"t3_30", q:"한국어가 ___.",           answer:"어려워요",   answers:["어려워요","어려워요."], hint:{ko:"💡 어렵다 → 어렵습니다", vi:"💡 어렵다 = khó", en:"💡 어렵다 = difficult"} },
       // ── 3B단원 10문제 (ㅂ불규칙)
-      { id:"t3_31", q:"오늘 날씨가 ___.",          answer:"추워요",     answers:["추워요","추워요."],     hint:"💡 춥다 → ㅂ불규칙" },
-      { id:"t3_32", q:"여름에 날씨가 ___.",         answer:"더워요",     answers:["더워요","더워요."],     hint:"💡 덥다 → ㅂ불규칙" },
-      { id:"t3_33", q:"한국어가 ___.",              answer:"어려워요",   answers:["어려워요","어려워요."], hint:"💡 어렵다 → ㅂ불규칙" },
-      { id:"t3_34", q:"이 가방이 ___.",             answer:"가벼워요",   answers:["가벼워요","가벼워요."], hint:"💡 가볍다 → ㅂ불규칙" },
-      { id:"t3_35", q:"이 짐이 ___.",               answer:"무거워요",   answers:["무거워요","무거워요."], hint:"💡 무겁다 → ㅂ불규칙" },
-      { id:"t3_36", q:"이 음식이 ___.",             answer:"매워요",     answers:["매워요","매워요."],     hint:"💡 맵다 → ㅂ불규칙" },
-      { id:"t3_37", q:"겨울에 날씨가 ___.",         answer:"추워요",     answers:["추워요","추워요."],     hint:"💡 춥다 → 추+워요" },
-      { id:"t3_38", q:"이 책이 ___.",               answer:"어려워요",   answers:["어려워요","어려워요."], hint:"💡 어렵다 → 어려+워요" },
-      { id:"t3_39", q:"이 짐이 너무 ___.",          answer:"무거워요",   answers:["무거워요","무거워요."], hint:"💡 무겁다 → 무거+워요" },
-      { id:"t3_40", q:"김치가 ___.",                answer:"매워요",     answers:["매워요","매워요."],     hint:"💡 맵다 → 매+워요" },
+      { id:"t3_31", q:"오늘 날씨가 ___.",          answer:"추워요",     answers:["추워요","추워요."],     hint:{ko:"💡 춥다 → ㅂ불규칙 → 춥습니다", vi:"💡 춥다 = lạnh → bất quy tắc ㅂ", en:"💡 춥다 = cold → ㅂ irregular"} },
+      { id:"t3_32", q:"여름에 날씨가 ___.",         answer:"더워요",     answers:["더워요","더워요."],     hint:{ko:"💡 덥다 → ㅂ불규칙 → 덥습니다", vi:"💡 덥다 = nóng → bất quy tắc ㅂ", en:"💡 덥다 = hot → ㅂ irregular"} },
+      { id:"t3_33", q:"한국어가 ___.",              answer:"어려워요",   answers:["어려워요","어려워요."], hint:{ko:"💡 어렵다 → ㅂ불규칙 → 어렵습니다", vi:"💡 어렵다 → bất quy tắc ㅂ", en:"💡 어렵다 → ㅂ irregular"} },
+      { id:"t3_34", q:"이 가방이 ___.",             answer:"가벼워요",   answers:["가벼워요","가벼워요."], hint:{ko:"💡 가볍다 → ㅂ불규칙 → 가볍습니다", vi:"💡 가볍다 = nhẹ → bất quy tắc ㅂ", en:"💡 가볍다 = light → ㅂ irregular"} },
+      { id:"t3_35", q:"이 짐이 ___.",               answer:"무거워요",   answers:["무거워요","무거워요."], hint:{ko:"💡 무겁다 → ㅂ불규칙 → 무겁습니다", vi:"💡 무겁다 = nặng → bất quy tắc ㅂ", en:"💡 무겁다 = heavy → ㅂ irregular"} },
+      { id:"t3_36", q:"이 음식이 ___.",             answer:"매워요",     answers:["매워요","매워요."],     hint:{ko:"💡 맵다 → ㅂ불규칙 → 맵습니다", vi:"💡 맵다 = cay → bất quy tắc ㅂ", en:"💡 맵다 = spicy → ㅂ irregular"} },
+      { id:"t3_37", q:"겨울에 날씨가 ___.",         answer:"추워요",     answers:["추워요","추워요."],     hint:{ko:"💡 춥다 → 추+워요 (해요체 ㅂ불규칙)", vi:"💡 춥다 → 추+워요 (ㅂ bất quy tắc thể 해요)", en:"💡 춥다 → 추+워요 (해요 ㅂ irregular)"} },
+      { id:"t3_38", q:"이 책이 ___.",               answer:"어려워요",   answers:["어려워요","어려워요."], hint:{ko:"💡 어렵다 → 어려+워요 (해요체)", vi:"💡 어렵다 → 어려+워요 (thể 해요)", en:"💡 어렵다 → 어려+워요 (해요 form)"} },
+      { id:"t3_39", q:"이 짐이 너무 ___.",          answer:"무거워요",   answers:["무거워요","무거워요."], hint:{ko:"💡 무겁다 → 무거+워요 (해요체)", vi:"💡 무겁다 → 무거+워요 (thể 해요)", en:"💡 무겁다 → 무거+워요 (해요 form)"} },
+      { id:"t3_40", q:"김치가 ___.",                answer:"매워요",     answers:["매워요","매워요."],     hint:{ko:"💡 맵다 → 매+워요 (해요체)", vi:"💡 맵다 → 매+워요 (thể 해요)", en:"💡 맵다 → 매+워요 (해요 form)"} },
     ];
 
     function gradeTest3() {
@@ -7319,7 +7319,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
                 style={{width:"100%", border:"2px solid #E1BEE7", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest3}
@@ -7659,38 +7659,38 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // 포함 단원: 3·4·5단원 (2단원 졸업 — 3회 졸업 규칙 적용)
     const TEST5_QUESTIONS = [
       // ── 3단원 복습 (8문항) ──
-      { id:"t5_1",  q:"날씨가 ___. (좋다)",              answer:"좋습니다",   answers:["좋습니다","좋습니다."],   hint:"💡 좋다 → 좋습니다" },
-      { id:"t5_2",  q:"오늘 날씨가 ___. (춥다)",          answer:"춥습니다",   answers:["춥습니다","춥습니다."],   hint:"💡 춥다 → ㅂ불규칙 → 춥습니다" },
-      { id:"t5_3",  q:"이 음식이 ___. (맵다)",            answer:"맵습니다",   answers:["맵습니다","맵습니다."],   hint:"💡 맵다 → ㅂ불규칙 → 맵습니다" },
-      { id:"t5_4",  q:"한국어가 ___. (어렵다)",           answer:"어렵습니다", answers:["어렵습니다","어렵습니다."],hint:"💡 어렵다 → ㅂ불규칙 → 어렵습니다" },
-      { id:"t5_5",  q:"이 가방이 ___. (가볍다)",          answer:"가볍습니다", answers:["가볍습니다","가볍습니다."],hint:"💡 가볍다 → ㅂ불규칙 → 가볍습니다" },
-      { id:"t5_6",  q:"여름에 날씨가 ___. (덥다)",        answer:"덥습니다",   answers:["덥습니다","덥습니다."],   hint:"💡 덥다 → ㅂ불규칙 → 덥습니다" },
-      { id:"t5_7",  q:"이 식당이 ___. (비싸다)",          answer:"비쌉니다",   answers:["비쌉니다","비쌉니다."],   hint:"💡 비싸다 → 비쌉니다" },
-      { id:"t5_8",  q:"오늘 기분이 ___. (좋다)",          answer:"좋습니다",   answers:["좋습니다","좋습니다."],   hint:"💡 좋다 → 좋습니다" },
+      { id:"t5_1",  q:"날씨가 ___. (좋다)",              answer:"좋습니다",   answers:["좋습니다","좋습니다."],   hint:{ko:"💡 좋다 → 좋습니다", vi:"💡 좋다 → 좋습니다 (tốt)", en:"💡 좋다 → 좋습니다 (good)"} },
+      { id:"t5_2",  q:"오늘 날씨가 ___. (춥다)",          answer:"춥습니다",   answers:["춥습니다","춥습니다."],   hint:{ko:"💡 춥다 → ㅂ불규칙 → 춥습니다", vi:"💡 춥다 → bất quy tắc ㅂ → 춥습니다", en:"💡 춥다 → ㅂ irregular → 춥습니다"} },
+      { id:"t5_3",  q:"이 음식이 ___. (맵다)",            answer:"맵습니다",   answers:["맵습니다","맵습니다."],   hint:{ko:"💡 맵다 → ㅂ불규칙 → 맵습니다", vi:"💡 맵다 → bất quy tắc ㅂ → 맵습니다", en:"💡 맵다 → ㅂ irregular → 맵습니다"} },
+      { id:"t5_4",  q:"한국어가 ___. (어렵다)",           answer:"어렵습니다", answers:["어렵습니다","어렵습니다."],hint:{ko:"💡 어렵다 → ㅂ불규칙 → 어렵습니다", vi:"💡 어렵다 → bất quy tắc ㅂ → 어렵습니다", en:"💡 어렵다 → ㅂ irregular → 어렵습니다"} },
+      { id:"t5_5",  q:"이 가방이 ___. (가볍다)",          answer:"가볍습니다", answers:["가볍습니다","가볍습니다."],hint:{ko:"💡 가볍다 → ㅂ불규칙 → 가볍습니다", vi:"💡 가볍다 → bất quy tắc ㅂ → 가볍습니다", en:"💡 가볍다 → ㅂ irregular → 가볍습니다"} },
+      { id:"t5_6",  q:"여름에 날씨가 ___. (덥다)",        answer:"덥습니다",   answers:["덥습니다","덥습니다."],   hint:{ko:"💡 덥다 → ㅂ불규칙 → 덥습니다", vi:"💡 덥다 → bất quy tắc ㅂ → 덥습니다", en:"💡 덥다 → ㅂ irregular → 덥습니다"} },
+      { id:"t5_7",  q:"이 식당이 ___. (비싸다)",          answer:"비쌉니다",   answers:["비쌉니다","비쌉니다."],   hint:{ko:"💡 비싸다 → 비쌉니다", vi:"💡 비싸다 = đắt → 비쌉니다", en:"💡 비싸다 = expensive → 비쌉니다"} },
+      { id:"t5_8",  q:"오늘 기분이 ___. (좋다)",          answer:"좋습니다",   answers:["좋습니다","좋습니다."],   hint:{ko:"💡 좋다 → 좋습니다", vi:"💡 좋다 → 좋습니다 (tốt)", en:"💡 좋다 → 좋습니다 (good)"} },
       // ── 4단원 복습 (8문항) ──
-      { id:"t5_9",  q:"___ 갑니까? (장소)",               answer:"어디",       answers:["어디"],                   hint:"💡 장소 의문대명사" },
-      { id:"t5_10", q:"___ 입니까? (사람)",               answer:"누구",       answers:["누구"],                   hint:"💡 사람 의문대명사" },
-      { id:"t5_11", q:"___ 먹습니까? (사물)",             answer:"무엇을",     answers:["무엇을","뭐"],             hint:"💡 사물 의문대명사" },
-      { id:"t5_12", q:"___ 합니까? (때)",                 answer:"언제",       answers:["언제"],                   hint:"💡 시간 의문대명사" },
-      { id:"t5_13", q:"___ 왔습니까? (방법)",             answer:"어떻게",     answers:["어떻게"],                 hint:"💡 방법 의문대명사" },
-      { id:"t5_14", q:"___ 한국어를 공부합니까? (이유)",  answer:"왜",         answers:["왜"],                     hint:"💡 이유 의문대명사" },
-      { id:"t5_15", q:"이게 ___ 입니까? (값)",            answer:"얼마",       answers:["얼마"],                   hint:"💡 가격 의문대명사" },
-      { id:"t5_16", q:"___ 이 더 큽니까? (비교)",         answer:"어느 것",    answers:["어느 것","어느것"],        hint:"💡 어느 것 = which one" },
+      { id:"t5_9",  q:"___ 갑니까? (장소)",               answer:"어디",       answers:["어디"],                   hint:{ko:"💡 장소를 물을 때 → 어디", vi:"💡 Hỏi về địa điểm → 어디 (ở đâu)", en:"💡 Asking about place → 어디 (where)"} },
+      { id:"t5_10", q:"___ 입니까? (사람)",               answer:"누구",       answers:["누구"],                   hint:{ko:"💡 사람을 물을 때 → 누구/누가", vi:"💡 Hỏi về người → 누구/누가 (ai)", en:"💡 Asking about person → 누구/누가 (who)"} },
+      { id:"t5_11", q:"___ 먹습니까? (사물)",             answer:"무엇을",     answers:["무엇을","뭐"],             hint:{ko:"💡 사물을 물을 때 → 무엇/뭐", vi:"💡 Hỏi về vật → 무엇/뭐 (cái gì)", en:"💡 Asking about thing → 무엇/뭐 (what)"} },
+      { id:"t5_12", q:"___ 합니까? (때)",                 answer:"언제",       answers:["언제"],                   hint:{ko:"💡 시간을 물을 때 → 언제", vi:"💡 Hỏi về thời gian → 언제 (khi nào)", en:"💡 Asking about time → 언제 (when)"} },
+      { id:"t5_13", q:"___ 왔습니까? (방법)",             answer:"어떻게",     answers:["어떻게"],                 hint:{ko:"💡 방법을 물을 때 → 어떻게", vi:"💡 Hỏi về cách → 어떻게 (như thế nào)", en:"💡 Asking about method → 어떻게 (how)"} },
+      { id:"t5_14", q:"___ 한국어를 공부합니까? (이유)",  answer:"왜",         answers:["왜"],                     hint:{ko:"💡 이유를 물을 때 → 왜", vi:"💡 Hỏi về lý do → 왜 (tại sao)", en:"💡 Asking about reason → 왜 (why)"} },
+      { id:"t5_15", q:"이게 ___ 입니까? (값)",            answer:"얼마",       answers:["얼마"],                   hint:{ko:"💡 가격을 물을 때 → 얼마", vi:"💡 Hỏi về giá → 얼마 (bao nhiêu tiền)", en:"💡 Asking about price → 얼마 (how much)"} },
+      { id:"t5_16", q:"___ 이 더 큽니까? (비교)",         answer:"어느 것",    answers:["어느 것","어느것"],        hint:{ko:"💡 어느 것 = which one (비교 선택)", vi:"💡 어느 것 = cái nào (so sánh chọn lựa)", en:"💡 어느 것 = which one (comparison)"} },
       // ── 5단원 신규 (14문항) ──
-      { id:"t5_17", q:"앉다 → ___",                       answer:"앉으세요",   answers:["앉으세요","앉으세요."],   hint:"💡 받침 있음 → 으세요" },
-      { id:"t5_18", q:"읽다 → ___",                       answer:"읽으세요",   answers:["읽으세요","읽으세요."],   hint:"💡 받침 있음 → 으세요" },
-      { id:"t5_19", q:"오다 → ___",                       answer:"오세요",     answers:["오세요","오세요."],       hint:"💡 받침 없음 → 세요" },
-      { id:"t5_20", q:"먹다 → ___ (높임)",                answer:"드세요",     answers:["드세요","드세요."],       hint:"💡 먹다 높임말 → 드세요" },
-      { id:"t5_21", q:"알다 → ___",                       answer:"아세요",     answers:["아세요","아세요."],       hint:"💡 알다 → ㄹ탈락 → 아세요" },
-      { id:"t5_22", q:"살다 → ___",                       answer:"사세요",     answers:["사세요","사세요."],       hint:"💡 살다 → ㄹ탈락 → 사세요" },
-      { id:"t5_23", q:"천천히 ___. (걷다)",               answer:"걸으세요",   answers:["걸으세요","걸으세요."],   hint:"💡 걷다 → ㄷ불규칙 → 걸으세요" },
-      { id:"t5_24", q:"말하다 → ___",                     answer:"말하세요",   answers:["말하세요","말하세요."],   hint:"💡 받침 없음 → 세요" },
-      { id:"t5_25", q:"잠깐 기다려 ___. (부탁)",          answer:"주세요",     answers:["주세요","주세요."],       hint:"💡 주다 → 주세요 (부탁)" },
-      { id:"t5_26", q:"여기에 ___. (앉다)",               answer:"앉으세요",   answers:["앉으세요","앉으세요."],   hint:"💡 앉다 → 앉으세요" },
-      { id:"t5_27", q:"천천히 ___. (말하다)",             answer:"말하세요",   answers:["말하세요","말하세요."],   hint:"💡 말하다 → 말하세요" },
-      { id:"t5_28", q:"이쪽으로 ___. (오다)",             answer:"오세요",     answers:["오세요","오세요."],       hint:"💡 오다 → 오세요" },
-      { id:"t5_29", q:"한국어를 ___. (공부하다)",         answer:"공부하세요", answers:["공부하세요","공부하세요."],hint:"💡 공부하다 → 공부하세요" },
-      { id:"t5_30", q:"이 음식을 ___. (먹다·높임)",       answer:"드세요",     answers:["드세요","드세요."],       hint:"💡 먹다 높임말 → 드세요" },
+      { id:"t5_17", q:"앉다 → ___",                       answer:"앉으세요",   answers:["앉으세요","앉으세요."],   hint:{ko:"💡 받침 있음 → 으세요", vi:"💡 Có phụ âm cuối → 으세요", en:"💡 Has batchim → 으세요"} },
+      { id:"t5_18", q:"읽다 → ___",                       answer:"읽으세요",   answers:["읽으세요","읽으세요."],   hint:{ko:"💡 받침 있음 → 으세요", vi:"💡 Có phụ âm cuối → 으세요", en:"💡 Has batchim → 으세요"} },
+      { id:"t5_19", q:"오다 → ___",                       answer:"오세요",     answers:["오세요","오세요."],       hint:{ko:"💡 받침 없음 → 세요", vi:"💡 Không có phụ âm cuối → 세요", en:"💡 No batchim → 세요"} },
+      { id:"t5_20", q:"먹다 → ___ (높임)",                answer:"드세요",     answers:["드세요","드세요."],       hint:{ko:"💡 먹다 높임말 → 드세요 (불규칙)", vi:"💡 먹다 kính ngữ → 드세요 (bất quy tắc)", en:"💡 먹다 honorific → 드세요 (irregular)"} },
+      { id:"t5_21", q:"알다 → ___",                       answer:"아세요",     answers:["아세요","아세요."],       hint:{ko:"💡 알다 → ㄹ탈락 → 아세요", vi:"💡 알다 → ㄹ rơi → 아세요", en:"💡 알다 → ㄹ drop → 아세요"} },
+      { id:"t5_22", q:"살다 → ___",                       answer:"사세요",     answers:["사세요","사세요."],       hint:{ko:"💡 살다 → ㄹ탈락 → 사세요", vi:"💡 살다 → ㄹ rơi → 사세요", en:"💡 살다 → ㄹ drop → 사세요"} },
+      { id:"t5_23", q:"천천히 ___. (걷다)",               answer:"걸으세요",   answers:["걸으세요","걸으세요."],   hint:{ko:"💡 걷다 → ㄷ불규칙 → 걸으세요", vi:"💡 걷다 → bất quy tắc ㄷ → 걸으세요", en:"💡 걷다 → ㄷ irregular → 걸으세요"} },
+      { id:"t5_24", q:"말하다 → ___",                     answer:"말하세요",   answers:["말하세요","말하세요."],   hint:{ko:"💡 받침 없음 → 세요", vi:"💡 Không có phụ âm cuối → 세요", en:"💡 No batchim → 세요"} },
+      { id:"t5_25", q:"잠깐 기다려 ___. (부탁)",          answer:"주세요",     answers:["주세요","주세요."],       hint:{ko:"💡 주다 → 주세요 (부탁)", vi:"💡 주다 → 주세요 (nhờ vả)", en:"💡 주다 → 주세요 (request)"} },
+      { id:"t5_26", q:"여기에 ___. (앉다)",               answer:"앉으세요",   answers:["앉으세요","앉으세요."],   hint:{ko:"💡 앉다 → 받침 있음 → 앉으세요", vi:"💡 앉다 = ngồi → 앉으세요", en:"💡 앉다 = sit → 앉으세요"} },
+      { id:"t5_27", q:"천천히 ___. (말하다)",             answer:"말하세요",   answers:["말하세요","말하세요."],   hint:{ko:"💡 말하다 → 말하세요", vi:"💡 말하다 = nói → 말하세요", en:"💡 말하다 = speak → 말하세요"} },
+      { id:"t5_28", q:"이쪽으로 ___. (오다)",             answer:"오세요",     answers:["오세요","오세요."],       hint:{ko:"💡 오다 → 받침 없음 → 오세요", vi:"💡 오다 = đến → 오세요", en:"💡 오다 = come → 오세요"} },
+      { id:"t5_29", q:"한국어를 ___. (공부하다)",         answer:"공부하세요", answers:["공부하세요","공부하세요."],hint:{ko:"💡 공부하다 → 공부하세요", vi:"💡 공부하다 = học → 공부하세요", en:"💡 공부하다 = study → 공부하세요"} },
+      { id:"t5_30", q:"이 음식을 ___. (먹다·높임)",       answer:"드세요",     answers:["드세요","드세요."],       hint:{ko:"💡 먹다 높임말 → 드세요 (불규칙)", vi:"💡 먹다 kính ngữ → 드세요 (bất quy tắc)", en:"💡 먹다 honorific → 드세요 (irregular)"} },
     ];
 
     function gradeTest5() {
@@ -7775,7 +7775,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
                 style={{width:"100%", border:"2px solid #C8E6C9", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest5}
@@ -8144,38 +8144,38 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // 포함 단원: 4·5·6단원 (3단원 졸업 — 3회 졸업 규칙 적용)
     const TEST6_QUESTIONS = [
       // ── 4단원 복습 (8문항) ──
-      { id:"t6_1",  q:"___ 갑니까? (장소)",              answer:"어디",      answers:["어디"],                  hint:"💡 장소 의문대명사" },
-      { id:"t6_2",  q:"___ 입니까? (사람)",              answer:"누구",      answers:["누구"],                  hint:"💡 사람 의문대명사" },
-      { id:"t6_3",  q:"___ 먹습니까? (사물)",            answer:"무엇을",    answers:["무엇을","뭐"],            hint:"💡 사물 의문대명사" },
-      { id:"t6_4",  q:"___ 합니까? (때)",                answer:"언제",      answers:["언제"],                  hint:"💡 시간 의문대명사" },
-      { id:"t6_5",  q:"___ 왔습니까? (방법)",            answer:"어떻게",    answers:["어떻게"],                hint:"💡 방법 의문대명사" },
-      { id:"t6_6",  q:"이게 ___ 입니까? (값)",           answer:"얼마",      answers:["얼마"],                  hint:"💡 가격 의문대명사" },
-      { id:"t6_7",  q:"___ 한국어를 공부합니까? (이유)", answer:"왜",        answers:["왜"],                    hint:"💡 이유 의문대명사" },
-      { id:"t6_8",  q:"___ 이 더 큽니까? (비교)",        answer:"어느 것",   answers:["어느 것","어느것"],       hint:"💡 어느 것 = which one" },
+      { id:"t6_1",  q:"___ 갑니까? (장소)",              answer:"어디",      answers:["어디"],                  hint:{ko:"💡 장소를 물을 때 → 어디", vi:"💡 Hỏi về địa điểm → 어디 (ở đâu)", en:"💡 Asking about place → 어디 (where)"} },
+      { id:"t6_2",  q:"___ 입니까? (사람)",              answer:"누구",      answers:["누구"],                  hint:{ko:"💡 사람을 물을 때 → 누구/누가", vi:"💡 Hỏi về người → 누구/누가 (ai)", en:"💡 Asking about person → 누구/누가 (who)"} },
+      { id:"t6_3",  q:"___ 먹습니까? (사물)",            answer:"무엇을",    answers:["무엇을","뭐"],            hint:{ko:"💡 사물을 물을 때 → 무엇/뭐", vi:"💡 Hỏi về vật → 무엇/뭐 (cái gì)", en:"💡 Asking about thing → 무엇/뭐 (what)"} },
+      { id:"t6_4",  q:"___ 합니까? (때)",                answer:"언제",      answers:["언제"],                  hint:{ko:"💡 시간을 물을 때 → 언제", vi:"💡 Hỏi về thời gian → 언제 (khi nào)", en:"💡 Asking about time → 언제 (when)"} },
+      { id:"t6_5",  q:"___ 왔습니까? (방법)",            answer:"어떻게",    answers:["어떻게"],                hint:{ko:"💡 방법을 물을 때 → 어떻게", vi:"💡 Hỏi về cách → 어떻게 (như thế nào)", en:"💡 Asking about method → 어떻게 (how)"} },
+      { id:"t6_6",  q:"이게 ___ 입니까? (값)",           answer:"얼마",      answers:["얼마"],                  hint:{ko:"💡 가격을 물을 때 → 얼마", vi:"💡 Hỏi về giá → 얼마 (bao nhiêu tiền)", en:"💡 Asking about price → 얼마 (how much)"} },
+      { id:"t6_7",  q:"___ 한국어를 공부합니까? (이유)", answer:"왜",        answers:["왜"],                    hint:{ko:"💡 이유를 물을 때 → 왜", vi:"💡 Hỏi về lý do → 왜 (tại sao)", en:"💡 Asking about reason → 왜 (why)"} },
+      { id:"t6_8",  q:"___ 이 더 큽니까? (비교)",        answer:"어느 것",   answers:["어느 것","어느것"],       hint:{ko:"💡 어느 것 = which one (비교 선택)", vi:"💡 어느 것 = cái nào (so sánh chọn lựa)", en:"💡 어느 것 = which one (comparison)"} },
       // ── 5단원 복습 (8문항) ──
-      { id:"t6_9",  q:"앉다 → ___",                      answer:"앉으세요",  answers:["앉으세요","앉으세요."],  hint:"💡 받침 있음 → 으세요" },
-      { id:"t6_10", q:"읽다 → ___",                      answer:"읽으세요",  answers:["읽으세요","읽으세요."],  hint:"💡 받침 있음 → 읽으세요" },
-      { id:"t6_11", q:"오다 → ___",                      answer:"오세요",    answers:["오세요","오세요."],      hint:"💡 받침 없음 → 세요" },
-      { id:"t6_12", q:"먹다 → ___ (높임)",               answer:"드세요",    answers:["드세요","드세요."],      hint:"💡 먹다 높임말 → 드세요" },
-      { id:"t6_13", q:"알다 → ___",                      answer:"아세요",    answers:["아세요","아세요."],      hint:"💡 알다 → ㄹ탈락 → 아세요" },
-      { id:"t6_14", q:"천천히 ___. (걷다)",              answer:"걸으세요",  answers:["걸으세요","걸으세요."],  hint:"💡 걷다 → ㄷ불규칙 → 걸으세요" },
-      { id:"t6_15", q:"잠깐 기다려 ___. (부탁)",         answer:"주세요",    answers:["주세요","주세요."],      hint:"💡 주다 → 주세요" },
-      { id:"t6_16", q:"한국어를 ___. (공부하다)",        answer:"공부하세요",answers:["공부하세요","공부하세요."],hint:"💡 공부하다 → 공부하세요" },
+      { id:"t6_9",  q:"앉다 → ___",                      answer:"앉으세요",  answers:["앉으세요","앉으세요."],  hint:{ko:"💡 받침 있음 → 으세요", vi:"💡 Có phụ âm cuối → 으세요", en:"💡 Has batchim → 으세요"} },
+      { id:"t6_10", q:"읽다 → ___",                      answer:"읽으세요",  answers:["읽으세요","읽으세요."],  hint:{ko:"💡 읽다 → 받침 있음 → 읽으세요", vi:"💡 읽다 → có phụ âm cuối → 읽으세요", en:"💡 읽다 → has batchim → 읽으세요"} },
+      { id:"t6_11", q:"오다 → ___",                      answer:"오세요",    answers:["오세요","오세요."],      hint:{ko:"💡 받침 없음 → 세요", vi:"💡 Không có phụ âm cuối → 세요", en:"💡 No batchim → 세요"} },
+      { id:"t6_12", q:"먹다 → ___ (높임)",               answer:"드세요",    answers:["드세요","드세요."],      hint:{ko:"💡 먹다 높임말 → 드세요 (불규칙)", vi:"💡 먹다 kính ngữ → 드세요 (bất quy tắc)", en:"💡 먹다 honorific → 드세요 (irregular)"} },
+      { id:"t6_13", q:"알다 → ___",                      answer:"아세요",    answers:["아세요","아세요."],      hint:{ko:"💡 알다 → ㄹ탈락 → 아세요", vi:"💡 알다 → ㄹ rơi → 아세요", en:"💡 알다 → ㄹ drop → 아세요"} },
+      { id:"t6_14", q:"천천히 ___. (걷다)",              answer:"걸으세요",  answers:["걸으세요","걸으세요."],  hint:{ko:"💡 걷다 → ㄷ불규칙 → 걸으세요", vi:"💡 걷다 → bất quy tắc ㄷ → 걸으세요", en:"💡 걷다 → ㄷ irregular → 걸으세요"} },
+      { id:"t6_15", q:"잠깐 기다려 ___. (부탁)",         answer:"주세요",    answers:["주세요","주세요."],      hint:{ko:"💡 주다 → 주세요", vi:"💡 주다 = cho → 주세요", en:"💡 주다 = give → 주세요"} },
+      { id:"t6_16", q:"한국어를 ___. (공부하다)",        answer:"공부하세요",answers:["공부하세요","공부하세요."],hint:{ko:"💡 공부하다 → 공부하세요", vi:"💡 공부하다 = học → 공부하세요", en:"💡 공부하다 = study → 공부하세요"} },
       // ── 6단원 신규 (14문항) ──
-      { id:"t6_17", q:"저는 커피를 좋아합니다. ___ 차도 좋아합니다.", answer:"그리고", answers:["그리고"], hint:"💡 그리고 = and (나열)" },
-      { id:"t6_18", q:"날씨가 좋습니다. ___ 바람이 붑니다.",          answer:"그런데", answers:["그런데"], hint:"💡 그런데 = but/however (전환)" },
-      { id:"t6_19", q:"한국어가 재미있습니다. ___ 어렵습니다.",       answer:"하지만", answers:["하지만"], hint:"💡 하지만 = but (대조)" },
-      { id:"t6_20", q:"비가 옵니다. ___ 우산을 가져왔습니다.",        answer:"그래서", answers:["그래서"], hint:"💡 그래서 = so/therefore (결과)" },
-      { id:"t6_21", q:"비쌉니다. ___ 삽니다.",                        answer:"그래도", answers:["그래도"], hint:"💡 그래도 = even so (양보)" },
-      { id:"t6_22", q:"커피입니까, ___ 차입니까?",                    answer:"아니면", answers:["아니면"], hint:"💡 아니면 = or (선택)" },
-      { id:"t6_23", q:"비싸___ 좋습니다. (대조)",                     answer:"지만",   answers:["지만"],   hint:"💡 -지만 = but" },
-      { id:"t6_24", q:"배가 고파___ 밥 먹습니다. (이유)",             answer:"서",     answers:["서"],     hint:"💡 고파서 = 이유" },
-      { id:"t6_25", q:"밥을 먹___ 커피를 마십니다. (나열)",           answer:"고",     answers:["고"],     hint:"💡 -고 = and (나열)" },
-      { id:"t6_26", q:"학교에 가___ 한국어를 배웁니다. (순서)",       answer:"서",     answers:["서"],     hint:"💡 가서 = 순서·이유" },
-      { id:"t6_27", q:"날씨가 좋___ 산책합니다. (이유)",              answer:"아서",   answers:["아서"],   hint:"💡 좋다 + 아서 → 좋아서" },
-      { id:"t6_28", q:"시간이 있___ 도와드릴게요. (조건)",            answer:"으면",   answers:["으면"],   hint:"💡 있다 + 으면 → 있으면" },
-      { id:"t6_29", q:"피곤하___ 일합니다. (대조)",                   answer:"지만",   answers:["지만"],   hint:"💡 -지만 = but" },
-      { id:"t6_30", q:"비가 오___ 우산 있습니까? (배경)",             answer:"는데",   answers:["는데"],   hint:"💡 -는데 = 배경 설명" },
+      { id:"t6_17", q:"저는 커피를 좋아합니다. ___ 차도 좋아합니다.", answer:"그리고", answers:["그리고"], hint:{ko:"💡 그리고 = 추가 (and)", vi:"💡 그리고 = và (thêm thông tin)", en:"💡 그리고 = and (adding info)"} },
+      { id:"t6_18", q:"날씨가 좋습니다. ___ 바람이 붑니다.",          answer:"그런데", answers:["그런데"], hint:{ko:"💡 그런데 = 화제 전환 (but/however)", vi:"💡 그런데 = nhưng mà (chuyển chủ đề)", en:"💡 그런데 = but/however (topic shift)"} },
+      { id:"t6_19", q:"한국어가 재미있습니다. ___ 어렵습니다.",       answer:"하지만", answers:["하지만"], hint:{ko:"💡 하지만 = 강한 대조 (but)", vi:"💡 하지만 = nhưng (đối lập mạnh)", en:"💡 하지만 = but (strong contrast)"} },
+      { id:"t6_20", q:"비가 옵니다. ___ 우산을 가져왔습니다.",        answer:"그래서", answers:["그래서"], hint:{ko:"💡 그래서 = 원인→결과 (so/therefore)", vi:"💡 그래서 = vì vậy (nguyên nhân → kết quả)", en:"💡 그래서 = so/therefore (cause→result)"} },
+      { id:"t6_21", q:"비쌉니다. ___ 삽니다.",                        answer:"그래도", answers:["그래도"], hint:{ko:"💡 그래도 = 불구하고 (even so)", vi:"💡 그래도 = dù vậy (mặc dù)", en:"💡 그래도 = even so (concession)"} },
+      { id:"t6_22", q:"커피입니까, ___ 차입니까?",                    answer:"아니면", answers:["아니면"], hint:{ko:"💡 아니면 = 선택 (or)", vi:"💡 아니면 = hoặc là (lựa chọn)", en:"💡 아니면 = or (choice)"} },
+      { id:"t6_23", q:"비싸___ 좋습니다. (대조)",                     answer:"지만",   answers:["지만"],   hint:{ko:"💡 -지만 = 대조 어미 (but)", vi:"💡 -지만 = nhưng (đuôi đối lập)", en:"💡 -지만 = but (contrasting ending)"} },
+      { id:"t6_24", q:"배가 고파___ 밥 먹습니다. (이유)",             answer:"서",     answers:["서"],     hint:{ko:"💡 고파서 = 배고프다 + 아서 (이유)", vi:"💡 고파서 = đói + vì (lý do)", en:"💡 고파서 = hungry + because (reason)"} },
+      { id:"t6_25", q:"밥을 먹___ 커피를 마십니다. (나열)",           answer:"고",     answers:["고"],     hint:{ko:"💡 -고 = 나열·순서 어미 (and)", vi:"💡 -고 = và (liệt kê/thứ tự)", en:"💡 -고 = and (listing/sequential)"} },
+      { id:"t6_26", q:"학교에 가___ 한국어를 배웁니다. (순서)",       answer:"서",     answers:["서"],     hint:{ko:"💡 가서 = 가다 + 아서 (순서·이유)", vi:"💡 가서 = 가다 + 아서 (thứ tự/lý do)", en:"💡 가서 = 가다 + 아서 (sequence/reason)"} },
+      { id:"t6_27", q:"날씨가 좋___ 산책합니다. (이유)",              answer:"아서",   answers:["아서"],   hint:{ko:"💡 좋다 + 아서 → 좋아서 (이유)", vi:"💡 좋다 + 아서 → 좋아서 (vì thích)", en:"💡 좋다 + 아서 → 좋아서 (because it is good)"} },
+      { id:"t6_28", q:"시간이 있___ 도와드릴게요. (조건)",            answer:"으면",   answers:["으면"],   hint:{ko:"💡 있다 + (으)면 → 있으면 (조건)", vi:"💡 있다 + (으)면 → 있으면 (điều kiện)", en:"💡 있다 + (으)면 → 있으면 (if condition)"} },
+      { id:"t6_29", q:"피곤하___ 일합니다. (대조)",                   answer:"지만",   answers:["지만"],   hint:{ko:"💡 -지만 = 대조 어미 (but)", vi:"💡 -지만 = nhưng (đuôi đối lập)", en:"💡 -지만 = but (contrasting ending)"} },
+      { id:"t6_30", q:"비가 오___ 우산 있습니까? (배경)",             answer:"는데",   answers:["는데"],   hint:{ko:"💡 -는데 = 배경·상황 설명", vi:"💡 -는데 = nền/bối cảnh (đưa ra tình huống)", en:"💡 -는데 = background/context setting"} },
     ];
 
     function gradeTest6() {
@@ -8261,7 +8261,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
                 style={{width:"100%", border:"2px solid #FFE082", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest6}
@@ -8646,38 +8646,38 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // 포함 단원: 7·8·9단원 (6단원 졸업 — 3회 졸업 규칙 적용)
     const TEST9_Q = [
       // ── 7단원 복습 (8문항) ──
-      { id:"t9_1",  q:"지금 밥 먹___ 있습니다.",           answer:"고",        answers:["고"],                     hint:"💡 동사 + 고 있다" },
-      { id:"t9_2",  q:"아이가 자고 ___.",                  answer:"있습니다",  answers:["있습니다","있습니다."],   hint:"💡 -고 있___" },
-      { id:"t9_3",  q:"저는 한국어 공부하___ 있습니다.",   answer:"고",        answers:["고"],                     hint:"💡 공부하다 + 고" },
-      { id:"t9_4",  q:"엄마가 요리하고 ___.",              answer:"있습니다",  answers:["있습니다","있습니다."],   hint:"💡 -고 있___" },
-      { id:"t9_5",  q:"동생이 음악 듣___ 있습니다.",       answer:"고",        answers:["고"],                     hint:"💡 듣다 + 고" },
-      { id:"t9_6",  q:"지금 눈이 오___ 있습니다.",         answer:"고",        answers:["고"],                     hint:"💡 오다 + 고" },
-      { id:"t9_7",  q:"선생님이 책을 읽___ 있습니다.",     answer:"고",        answers:["고"],                     hint:"💡 읽다 + 고" },
-      { id:"t9_8",  q:"저는 지금 영화를 보___ 있습니다.",  answer:"고",        answers:["고"],                     hint:"💡 보다 + 고" },
+      { id:"t9_1",  q:"지금 밥 먹___ 있습니다.",           answer:"고",        answers:["고"],                     hint:{ko:"💡 동사 + -고 있습니다 = 진행 중", vi:"💡 Động từ + -고 있습니다 = đang làm", en:"💡 Verb + -고 있습니다 = in progress"} },
+      { id:"t9_2",  q:"아이가 자고 ___.",                  answer:"있습니다",  answers:["있습니다","있습니다."],   hint:{ko:"💡 동사 + -고 있습니다 (진행형)", vi:"💡 Động từ + -고 있습니다 (tiến hành)", en:"💡 Verb + -고 있습니다 (progressive)"} },
+      { id:"t9_3",  q:"저는 한국어 공부하___ 있습니다.",   answer:"고",        answers:["고"],                     hint:{ko:"💡 공부하다 + -고 있습니다 = 진행", vi:"💡 공부하다 + -고 있습니다 = đang học", en:"💡 공부하다 + -고 있습니다 = studying"} },
+      { id:"t9_4",  q:"엄마가 요리하고 ___.",              answer:"있습니다",  answers:["있습니다","있습니다."],   hint:{ko:"💡 동사 + -고 있습니다 (진행형)", vi:"💡 Động từ + -고 있습니다 (tiến hành)", en:"💡 Verb + -고 있습니다 (progressive)"} },
+      { id:"t9_5",  q:"동생이 음악 듣___ 있습니다.",       answer:"고",        answers:["고"],                     hint:{ko:"💡 듣다 + -고 있습니다 = 진행", vi:"💡 듣다 + -고 있습니다 = đang nghe", en:"💡 듣다 + -고 있습니다 = listening"} },
+      { id:"t9_6",  q:"지금 눈이 오___ 있습니다.",         answer:"고",        answers:["고"],                     hint:{ko:"💡 오다 + -고 있습니다 = 진행", vi:"💡 오다 + -고 있습니다 = đang đến", en:"💡 오다 + -고 있습니다 = coming"} },
+      { id:"t9_7",  q:"선생님이 책을 읽___ 있습니다.",     answer:"고",        answers:["고"],                     hint:{ko:"💡 읽다 + -고 있습니다 = 진행", vi:"💡 읽다 + -고 있습니다 = đang đọc", en:"💡 읽다 + -고 있습니다 = reading"} },
+      { id:"t9_8",  q:"저는 지금 영화를 보___ 있습니다.",  answer:"고",        answers:["고"],                     hint:{ko:"💡 보다 + -고 있습니다 = 진행", vi:"💡 보다 + -고 있습니다 = đang xem", en:"💡 보다 + -고 있습니다 = watching"} },
       // ── 8단원 복습 (8문항) ──
-      { id:"t9_9",  q:"같이 밥 먹___. (함께·격식)",        answer:"읍시다",    answers:["읍시다","읍시다."],       hint:"💡 먹다 → 받침+읍시다" },
-      { id:"t9_10", q:"빨리 ___. (가자·격식)",              answer:"갑시다",    answers:["갑시다","갑시다."],       hint:"💡 가다 → ㅂ시다" },
-      { id:"t9_11", q:"영화 볼___? (제안·의향)",            answer:"까요",      answers:["까요","까요?"],           hint:"💡 -(으)ㄹ까요?" },
-      { id:"t9_12", q:"같이 공부할___? (권유)",             answer:"래요",      answers:["래요","래요?"],           hint:"💡 -(으)ㄹ래요?" },
-      { id:"t9_13", q:"함께 청소합___. (격식 청유)",        answer:"시다",      answers:["시다","시다."],           hint:"💡 하다 → 합시다" },
-      { id:"t9_14", q:"같이 운동할___? (권유)",             answer:"래요",      answers:["래요","래요?"],           hint:"💡 -(으)ㄹ래요?" },
-      { id:"t9_15", q:"어디서 먹을___? (장소 제안)",        answer:"까요",      answers:["까요","까요?"],           hint:"💡 -(으)ㄹ까요?" },
-      { id:"t9_16", q:"같이 여행 갑___. (격식 청유)",       answer:"시다",      answers:["시다","시다."],           hint:"💡 가다 → 갑시다" },
+      { id:"t9_9",  q:"같이 밥 먹___. (함께·격식)",        answer:"읍시다",    answers:["읍시다","읍시다."],       hint:{ko:"💡 먹다 → 받침 있음 → 먹읍시다", vi:"💡 먹다 → có phụ âm → 먹읍시다", en:"💡 먹다 → has batchim → 먹읍시다"} },
+      { id:"t9_10", q:"빨리 ___. (가자·격식)",              answer:"갑시다",    answers:["갑시다","갑시다."],       hint:{ko:"💡 가다 → 받침 없음 → 갑시다", vi:"💡 가다 → không có phụ âm → 갑시다", en:"💡 가다 → no batchim → 갑시다"} },
+      { id:"t9_11", q:"영화 볼___? (제안·의향)",            answer:"까요",      answers:["까요","까요?"],           hint:{ko:"💡 -(으)ㄹ까요? = 제안·의향", vi:"💡 -(으)ㄹ까요? = đề nghị/ý kiến", en:"💡 -(으)ㄹ까요? = shall we / what about"} },
+      { id:"t9_12", q:"같이 공부할___? (권유)",             answer:"래요",      answers:["래요","래요?"],           hint:{ko:"💡 -(으)ㄹ래요? = 의지·권유", vi:"💡 -(으)ㄹ래요? = ý muốn/rủ nhau", en:"💡 -(으)ㄹ래요? = want to / shall we"} },
+      { id:"t9_13", q:"함께 청소합___. (격식 청유)",        answer:"시다",      answers:["시다","시다."],           hint:{ko:"💡 하다 → 합시다 (청유)", vi:"💡 하다 → 합시다 (rủ nhau)", en:"💡 하다 → 합시다 (let's do)"} },
+      { id:"t9_14", q:"같이 운동할___? (권유)",             answer:"래요",      answers:["래요","래요?"],           hint:{ko:"💡 -(으)ㄹ래요? = 의지·권유", vi:"💡 -(으)ㄹ래요? = ý muốn/rủ nhau", en:"💡 -(으)ㄹ래요? = want to / shall we"} },
+      { id:"t9_15", q:"어디서 먹을___? (장소 제안)",        answer:"까요",      answers:["까요","까요?"],           hint:{ko:"💡 -(으)ㄹ까요? = 제안·의향", vi:"💡 -(으)ㄹ까요? = đề nghị/ý kiến", en:"💡 -(으)ㄹ까요? = shall we / what about"} },
+      { id:"t9_16", q:"같이 여행 갑___. (격식 청유)",       answer:"시다",      answers:["시다","시다."],           hint:{ko:"💡 가다 → 갑시다 (받침 없음)", vi:"💡 가다 → 갑시다 (không có phụ âm)", en:"💡 가다 → 갑시다 (no batchim)"} },
       // ── 9단원 신규 (14문항) ──
-      { id:"t9_17", q:"저는 한국어를 말할 ___ ___. (가능)",  answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:"💡 -(으)ㄹ 수 있다 → 있습니다" },
-      { id:"t9_18", q:"저는 수영을 할 ___ ___. (불가능)",    answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:"💡 -(으)ㄹ 수 없다 → 없습니다" },
-      { id:"t9_19", q:"이 음식을 먹을 ___ ___? (가능 여부)", answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:"💡 먹다 → 먹을 수 있습니까?" },
-      { id:"t9_20", q:"저는 피아노를 칠 ___ ___. (가능)",    answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:"💡 치다 → 칠 수 있습니다" },
-      { id:"t9_21", q:"오늘 만날 ___ ___? (가능 여부)",      answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:"💡 만나다 → 만날 수 있습니까?" },
-      { id:"t9_22", q:"저는 운전을 할 ___ ___. (불가능)",    answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:"💡 할 수 없다 → 없습니다" },
-      { id:"t9_23", q:"한국어를 읽을 ___ ___? (가능)",       answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:"💡 읽다 → 읽을 수 있습니까?" },
-      { id:"t9_24", q:"자전거를 탈 ___ ___. (가능)",         answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:"💡 타다 → 탈 수 있습니다" },
-      { id:"t9_25", q:"김치를 먹을 ___ ___? (가능)",         answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:"💡 먹다 → 먹을 수 있습니까?" },
-      { id:"t9_26", q:"저는 일찍 올 ___ ___. (불가능)",      answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:"💡 오다 → 올 수 없습니다" },
-      { id:"t9_27", q:"한국 노래를 부를 ___ ___? (가능)",    answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:"💡 부르다 → 부를 수 있습니까?" },
-      { id:"t9_28", q:"저는 요리를 할 ___ ___. (가능)",      answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:"💡 하다 → 할 수 있습니다" },
-      { id:"t9_29", q:"태권도를 할 ___ ___? (가능 여부)",    answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:"💡 하다 → 할 수 있습니까?" },
-      { id:"t9_30", q:"혼자 갈 ___ ___. (불가능)",           answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:"💡 가다 → 갈 수 없습니다" },
+      { id:"t9_17", q:"저는 한국어를 말할 ___ ___. (가능)",  answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:{ko:"💡 -(으)ㄹ 수 있습니다 = 가능", vi:"💡 -(으)ㄹ 수 있습니다 = có thể", en:"💡 -(으)ㄹ 수 있습니다 = can/able to"} },
+      { id:"t9_18", q:"저는 수영을 할 ___ ___. (불가능)",    answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:{ko:"💡 -(으)ㄹ 수 없습니다 = 불가능", vi:"💡 -(으)ㄹ 수 없습니다 = không thể", en:"💡 -(으)ㄹ 수 없습니다 = cannot"} },
+      { id:"t9_19", q:"이 음식을 먹을 ___ ___? (가능 여부)", answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:{ko:"💡 먹다 → -을 수 있습니까? (받침)", vi:"💡 먹다 → -을 수 있습니까? (có phụ âm)", en:"💡 먹다 → -을 수 있습니까? (has batchim)"} },
+      { id:"t9_20", q:"저는 피아노를 칠 ___ ___. (가능)",    answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:{ko:"💡 치다 → -ㄹ 수 있습니다", vi:"💡 치다 → -ㄹ 수 있습니다 = có thể chơi", en:"💡 치다 → -ㄹ 수 있습니다 = can play"} },
+      { id:"t9_21", q:"오늘 만날 ___ ___? (가능 여부)",      answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:{ko:"💡 만나다 → -ㄹ 수 있습니까?", vi:"💡 만나다 → -ㄹ 수 있습니까? = có thể gặp?", en:"💡 만나다 → -ㄹ 수 있습니까? = can (you) meet?"} },
+      { id:"t9_22", q:"저는 운전을 할 ___ ___. (불가능)",    answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:{ko:"💡 할 수 없습니다 = 불가능", vi:"💡 할 수 없습니다 = không thể làm", en:"💡 할 수 없습니다 = cannot do"} },
+      { id:"t9_23", q:"한국어를 읽을 ___ ___? (가능)",       answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:{ko:"💡 읽다 → -을 수 있습니까? (받침)", vi:"💡 읽다 → -을 수 있습니까? = có thể đọc?", en:"💡 읽다 → -을 수 있습니까? = can read?"} },
+      { id:"t9_24", q:"자전거를 탈 ___ ___. (가능)",         answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:{ko:"💡 타다 → -ㄹ 수 있습니다", vi:"💡 타다 → -ㄹ 수 있습니다 = có thể đi", en:"💡 타다 → -ㄹ 수 있습니다 = can ride"} },
+      { id:"t9_25", q:"김치를 먹을 ___ ___? (가능)",         answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:{ko:"💡 먹다 → -을 수 있습니까? (받침)", vi:"💡 먹다 → -을 수 있습니까? (có phụ âm)", en:"💡 먹다 → -을 수 있습니까? (has batchim)"} },
+      { id:"t9_26", q:"저는 일찍 올 ___ ___. (불가능)",      answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:{ko:"💡 오다 → -ㄹ 수 없습니다 = 불가능", vi:"💡 오다 → -ㄹ 수 없습니다 = không thể đến", en:"💡 오다 → -ㄹ 수 없습니다 = cannot come"} },
+      { id:"t9_27", q:"한국 노래를 부를 ___ ___? (가능)",    answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:{ko:"💡 부르다 → -ㄹ 수 있습니까?", vi:"💡 부르다 → -ㄹ 수 있습니까? = có thể hát?", en:"💡 부르다 → -ㄹ 수 있습니까? = can sing?"} },
+      { id:"t9_28", q:"저는 요리를 할 ___ ___. (가능)",      answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:{ko:"💡 하다 → -ㄹ 수 있습니다", vi:"💡 하다 → -ㄹ 수 있습니다 = có thể", en:"💡 하다 → -ㄹ 수 있습니다 = can"} },
+      { id:"t9_29", q:"태권도를 할 ___ ___? (가능 여부)",    answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:{ko:"💡 하다 → -ㄹ 수 있습니까? (가능 여부)", vi:"💡 하다 → -ㄹ 수 있습니까? (hỏi khả năng)", en:"💡 하다 → -ㄹ 수 있습니까? (asking ability)"} },
+      { id:"t9_30", q:"혼자 갈 ___ ___. (불가능)",           answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:{ko:"💡 가다 → -ㄹ 수 없습니다", vi:"💡 가다 → -ㄹ 수 없습니다 = không thể đi", en:"💡 가다 → -ㄹ 수 없습니다 = cannot go"} },
     ];;
     function gradeTest9() {
       let ok=0;
@@ -8708,7 +8708,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
               <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
               <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."} style={{width:"100%", border:"2px solid #CE93D8", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest9} style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
@@ -8719,423 +8719,381 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   // ── 10단원: 희망1 -고 싶다 ──
+  // ════════════════════════════════════════════════════════
+  // ✅ V220: 서술어 10단원 — 희망 -고 싶습니다 (모국어→한국어)
+  // ════════════════════════════════════════════════════════
   if (step === "unit10") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    function handleUnit10Submit() {
+      if (!unitCardInput.trim()) return;
+      setUnitCardRevealed(true);
+      speakKo(unitCardInput.trim());
+    }
+
     const UNIT10_CARDS = [
-      { front:"저는 한국에 가고 ___. (희망)", blank:"싶습니다", full:"저는 한국에 가고 싶습니다.", hint:"💡 동사+고 싶다 = 원함" },
-      { front:"저는 한국어를 잘하고 ___. (희망)", blank:"싶습니다", full:"저는 한국어를 잘하고 싶습니다.", hint:"💡 잘하다+고 싶다" },
-      { front:"무엇을 먹고 ___? (의향)", blank:"싶습니까", full:"무엇을 먹고 싶습니까?", hint:"💡 먹다+고 싶다 → 질문" },
-      { front:"저는 친구를 만나고 ___. (희망)", blank:"싶습니다", full:"저는 친구를 만나고 싶습니다.", hint:"💡 만나다+고 싶다" },
-      { front:"저는 쉬고 ___. (희망)", blank:"싶습니다", full:"저는 쉬고 싶습니다.", hint:"💡 쉬다+고 싶다" },
-      { front:"무슨 영화를 보고 ___? (의향)", blank:"싶습니까", full:"무슨 영화를 보고 싶습니까?", hint:"💡 보다+고 싶다" },
-      {
-        front: "저는 선생님이 ___ 싶습니다.",
-        blank: "되고",
-        full: "저는 선생님이 되고 싶습니다.",
-        hint: vi?"되다 + 고 싶다 = muốn trở thành":en?"되다 + 고 싶다 = want to become":"되다 + 고 싶습니다",
-      },
-      {
-        front: "한국 친구를 ___ 싶습니다.",
-        blank: "사귀고",
-        full: "한국 친구를 사귀고 싶습니다.",
-        hint: vi?"사귀다 = kết bạn":en?"사귀다 = make friends":"사귀다 + 고 싶습니다",
-      },
-      {
-        front: "한국 문화를 ___ 싶습니다.",
-        blank: "배우고",
-        full: "한국 문화를 배우고 싶습니다.",
-        hint: vi?"배우다 + 고 싶다":en?"배우다 + 고 싶다":"배우다 + 고 싶습니다",
-      },
-      {
-        front: "제주도에 ___ 싶습니다.",
-        blank: "가고",
-        full: "제주도에 가고 싶습니다.",
-        hint: vi?"가다 + 고 싶다":en?"가다 + 고 싶다":"가다 + 고 싶습니다",
-      },
-      {
-        front: "한국 음식을 ___ 싶습니다.",
-        blank: "먹고",
-        full: "한국 음식을 먹고 싶습니다.",
-        hint: vi?"먹다 + 고 싶다":en?"먹다 + 고 싶다":"먹다 + 고 싶습니다",
-      },
-      {
-        front: "집에서 ___ 싶습니다.",
-        blank: "쉬고",
-        full: "집에서 쉬고 싶습니다.",
-        hint: vi?"쉬다 + 고 싶다":en?"쉬다 + 고 싶다":"쉬다 + 고 싶습니다",
-      },
-      {
-        front: "한국어를 잘 ___ 싶습니다.",
-        blank: "하고",
-        full: "한국어를 잘 하고 싶습니다.",
-        hint: vi?"하다 + 고 싶다 = muốn nói giỏi":en?"하다 + 고 싶다 = want to do well":"하다 + 고 싶습니다",
-      },
+      { native:{vi:"Tôi muốn đến Hàn Quốc.",            en:"I want to go to Korea.",             ko:"나는 한국에 가고 싶다."},
+        full:"저는 한국에 가고 싶습니다.", rule:{vi:"가다 + -고 싶습니다 = muốn đi", en:"가다 + -고 싶습니다 = want to go", ko:"동사 + -고 싶습니다 = 희망"} },
+      { native:{vi:"Tôi muốn giỏi tiếng Hàn.",           en:"I want to be good at Korean.",       ko:"나는 한국어를 잘하고 싶다."},
+        full:"저는 한국어를 잘하고 싶습니다.", rule:{vi:"잘하다 + -고 싶습니다 = muốn giỏi", en:"잘하다 + -고 싶습니다 = want to be good at", ko:"잘하다 + -고 싶습니다"} },
+      { native:{vi:"Bạn muốn ăn gì?",                    en:"What do you want to eat?",           ko:"무엇을 먹고 싶어?"},
+        full:"무엇을 먹고 싶습니까?", rule:{vi:"먹다 + -고 싶습니까? = muốn ăn gì?", en:"먹다 + -고 싶습니까? = want to eat?", ko:"먹다 + -고 싶습니까? (희망 질문)"} },
+      { native:{vi:"Tôi muốn gặp bạn bè.",               en:"I want to meet friends.",            ko:"나는 친구를 만나고 싶다."},
+        full:"저는 친구를 만나고 싶습니다.", rule:{vi:"만나다 + -고 싶습니다 = muốn gặp", en:"만나다 + -고 싶습니다 = want to meet", ko:"만나다 + -고 싶습니다"} },
+      { native:{vi:"Tôi muốn nghỉ ngơi.",                 en:"I want to rest.",                   ko:"나는 쉬고 싶다."},
+        full:"저는 쉬고 싶습니다.", rule:{vi:"쉬다 + -고 싶습니다 = muốn nghỉ", en:"쉬다 + -고 싶습니다 = want to rest", ko:"쉬다 + -고 싶습니다"} },
+      { native:{vi:"Bạn muốn xem phim gì?",              en:"What movie do you want to watch?",  ko:"무슨 영화를 보고 싶어?"},
+        full:"무슨 영화를 보고 싶습니까?", rule:{vi:"보다 + -고 싶습니까? = muốn xem gì?", en:"보다 + -고 싶습니까? = want to watch?", ko:"보다 + -고 싶습니까?"} },
+      { native:{vi:"Tôi muốn trở thành giáo viên.",      en:"I want to become a teacher.",       ko:"나는 선생님이 되고 싶다."},
+        full:"저는 선생님이 되고 싶습니다.", rule:{vi:"되다 + -고 싶습니다 = muốn trở thành", en:"되다 + -고 싶습니다 = want to become", ko:"되다 + -고 싶습니다"} },
+      { native:{vi:"Tôi muốn kết bạn người Hàn.",        en:"I want to make Korean friends.",    ko:"나는 한국 친구를 사귀고 싶다."},
+        full:"한국 친구를 사귀고 싶습니다.", rule:{vi:"사귀다 + -고 싶습니다 = muốn kết bạn", en:"사귀다 + -고 싶습니다 = want to make friends", ko:"사귀다 + -고 싶습니다"} },
+      { native:{vi:"Tôi muốn uống cà phê.",              en:"I want to drink coffee.",            ko:"나는 커피를 마시고 싶다."},
+        full:"저는 커피를 마시고 싶습니다.", rule:{vi:"마시다 + -고 싶습니다 = muốn uống", en:"마시다 + -고 싶습니다 = want to drink", ko:"마시다 + -고 싶습니다"} },
+      { native:{vi:"Bạn muốn học cái gì?",               en:"What do you want to learn?",        ko:"무엇을 배우고 싶어?"},
+        full:"무엇을 배우고 싶습니까?", rule:{vi:"배우다 + -고 싶습니까? = muốn học gì?", en:"배우다 + -고 싶습니까? = want to learn what?", ko:"배우다 + -고 싶습니까?"} },
+      { native:{vi:"Tôi muốn sống ở Hàn Quốc.",          en:"I want to live in Korea.",          ko:"나는 한국에 살고 싶다."},
+        full:"저는 한국에 살고 싶습니다.", rule:{vi:"살다 + -고 싶습니다 = muốn sống", en:"살다 + -고 싶습니다 = want to live", ko:"살다 + -고 싶습니다"} },
+      { native:{vi:"Tôi muốn nghe nhạc Hàn.",            en:"I want to listen to Korean music.", ko:"나는 한국 음악을 듣고 싶다."},
+        full:"저는 한국 음악을 듣고 싶습니다.", rule:{vi:"듣다 + -고 싶습니다 = muốn nghe", en:"듣다 + -고 싶습니다 = want to listen", ko:"듣다 + -고 싶습니다"} },
+      { native:{vi:"Tôi muốn nói chuyện với bạn.",       en:"I want to talk with you.",          ko:"나는 너와 이야기하고 싶다."},
+        full:"저는 이야기하고 싶습니다.", rule:{vi:"이야기하다 + -고 싶습니다 = muốn nói", en:"이야기하다 + -고 싶습니다 = want to talk", ko:"이야기하다 + -고 싶습니다"} },
+      { native:{vi:"Bạn muốn đi đâu?",                   en:"Where do you want to go?",          ko:"어디에 가고 싶어?"},
+        full:"어디에 가고 싶습니까?", rule:{vi:"가다 + -고 싶습니까? = muốn đi đâu?", en:"가다 + -고 싶습니까? = where want to go?", ko:"가다 + -고 싶습니까?"} },
     ];
-    const card = UNIT10_CARDS[unitCardIdx];
-    const C = { bg:"linear-gradient(150deg,#FFF8E1,#FFECB3)", accent:"#F57F17", border:"#FFD54F" };
-    return (
-      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:400}}>
-          <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:4}}>
-            📚 {vi?"Bài 10 — Mong muốn (-고 싶다)":en?"Unit 10 — Want to (-고 싶다)":"10단원 — 희망1 (-고 싶다)"}
-          </div>
-          <div style={{fontSize:12, color:"#555", background:"#FFF8E1", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
-            {vi ? <>📌 동사 + <b>-고 싶다</b> = muốn làm gì đó<br/>예: 가다 → 가<b>고 싶습니다</b> (muốn đi)</> : en ? <>📌 Verb + <b>-고 싶다</b> = want to do something<br/>e.g. 가다 → 가<b>고 싶습니다</b> (want to go)</> : <>📌 동사 + <b>-고 싶다</b> = ~하고 싶어요<br/>예: 가다 → 가<b>고 싶습니다</b> (가고 싶음)</>}
-          </div>
-          <div style={{display:"flex", gap:3, marginBottom:16}}>
-            {UNIT10_CARDS.map((_,i) => <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=unitCardIdx?C.accent:"#ddd"}} />)}
-          </div>
-          <div style={{background:"white", borderRadius:20, padding:"20px", boxShadow:"0 4px 20px rgba(245,127,23,.12)", marginBottom:16}}>
-            <div style={{fontSize:18, fontWeight:900, color:"#333", marginBottom:12, lineHeight:1.5}}>{card.front}</div>
-            <input type="text" value={unitCardInput} onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} readOnly={unitCardRevealed} placeholder="..." style={{width:"100%", border:`2px solid ${unitCardRevealed?(unitCardInput.trim()===card.blank||unitCardInput.trim()===card.full?"#2E7D32":"#C62828"):"#FFD54F"}`, borderRadius:10, padding:"10px 14px", fontSize:15, fontWeight:700, outline:"none", boxSizing:"border-box", color:unitCardRevealed?(unitCardInput.trim()===card.blank||unitCardInput.trim()===card.full?"#2E7D32":"#C62828"):"#333"}} />
-            {unitCardRevealed && <div style={{marginTop:10, fontSize:13, color:C.accent, fontWeight:800}}>✅ {card.full}</div>}
-            <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:8}}>{card.hint}</div>
-            {!unitCardRevealed && <button onClick={()=>setUnitCardRevealed(true)} style={{width:"100%", marginTop:12, background:`linear-gradient(135deg,${C.accent},#E65100)`, color:"white", border:"none", borderRadius:50, padding:"11px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Xem đáp án 👀":en?"Show answer 👀":"정답 보기 👀"}</button>}
-          </div>
-          <div style={{display:"flex", gap:8}}>
-            {unitCardIdx > 0 && <button onClick={()=>{ setUnitCardIdx(i=>i-1); setUnitCardInput(""); setUnitCardRevealed(false); }} style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>← {vi?"Trước":en?"Prev":"이전"}</button>}
-            {unitCardIdx < UNIT10_CARDS.length-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }} style={{flex:1, background:`linear-gradient(135deg,${C.accent},#E65100)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp →":en?"Next →":"다음 카드 →"}</button>
-              : <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test10"); }} style={{flex:1, background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Kiểm tra! 📝":en?"Take test! 📝":"테스트하기! 📝"}</button>}
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("test9"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (9단원 테스트)"}</button>
-        </div>
-      </div>
-    );
-  }
 
-  // ── 테스트10: 1~10단원 누적 ──
-  if (step === "test10") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    // 포함 단원: 8·9·10단원 (7단원 졸업 — 3회 졸업 규칙 적용)
-    const TEST10_Q = [
-      // ── 8단원 복습 (8문항) ──
-      { id:"t10_1", q:"같이 밥 먹___. (함께·격식)",        answer:"읍시다",    answers:["읍시다","읍시다."],       hint:"💡 먹다 → 받침+읍시다" },
-      { id:"t10_2", q:"빨리 ___. (가자·격식)",              answer:"갑시다",    answers:["갑시다","갑시다."],       hint:"💡 가다 → ㅂ시다" },
-      { id:"t10_3", q:"영화 볼___? (제안·의향)",            answer:"까요",      answers:["까요","까요?"],           hint:"💡 -(으)ㄹ까요?" },
-      { id:"t10_4", q:"같이 공부할___? (권유)",             answer:"래요",      answers:["래요","래요?"],           hint:"💡 -(으)ㄹ래요?" },
-      { id:"t10_5", q:"함께 청소합___. (격식 청유)",        answer:"시다",      answers:["시다","시다."],           hint:"💡 하다 → 합시다" },
-      { id:"t10_6", q:"같이 운동할___? (권유)",             answer:"래요",      answers:["래요","래요?"],           hint:"💡 -(으)ㄹ래요?" },
-      { id:"t10_7", q:"어디서 먹을___? (장소 제안)",        answer:"까요",      answers:["까요","까요?"],           hint:"💡 -(으)ㄹ까요?" },
-      { id:"t10_8", q:"같이 여행 갑___. (격식 청유)",       answer:"시다",      answers:["시다","시다."],           hint:"💡 가다 → 갑시다" },
-      // ── 9단원 복습 (8문항) ──
-      { id:"t10_9",  q:"저는 한국어를 말할 ___ ___. (가능)",  answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:"💡 말할 수 있습니다" },
-      { id:"t10_10", q:"저는 수영을 할 ___ ___. (불가능)",    answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:"💡 할 수 없습니다" },
-      { id:"t10_11", q:"이 음식을 먹을 ___ ___? (가능)",      answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:"💡 먹을 수 있습니까?" },
-      { id:"t10_12", q:"오늘 만날 ___ ___? (가능)",           answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:"💡 만날 수 있습니까?" },
-      { id:"t10_13", q:"저는 운전을 할 ___ ___. (불가능)",    answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:"💡 할 수 없습니다" },
-      { id:"t10_14", q:"자전거를 탈 ___ ___. (가능)",         answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:"💡 탈 수 있습니다" },
-      { id:"t10_15", q:"저는 요리를 할 ___ ___. (가능)",      answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:"💡 할 수 있습니다" },
-      { id:"t10_16", q:"혼자 갈 ___ ___. (불가능)",           answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:"💡 갈 수 없습니다" },
-      // ── 10단원 신규 (14문항) ──
-      { id:"t10_17", q:"저는 한국에 가고 ___. (희망)",        answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 -고 싶다 → 싶습니다" },
-      { id:"t10_18", q:"무엇을 먹고 ___? (의향)",             answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 먹다+고 싶다 → 싶습니까?" },
-      { id:"t10_19", q:"저는 친구를 만나고 ___. (희망)",      answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 만나다+고 싶다 → 싶습니다" },
-      { id:"t10_20", q:"저는 쉬고 ___. (희망)",               answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 쉬다+고 싶다 → 싶습니다" },
-      { id:"t10_21", q:"무슨 영화를 보고 ___? (의향)",        answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 보다+고 싶다 → 싶습니까?" },
-      { id:"t10_22", q:"저는 한국어를 잘하고 ___. (희망)",    answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 잘하다+고 싶다 → 싶습니다" },
-      { id:"t10_23", q:"어디에 가고 ___? (의향)",             answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 가다+고 싶다 → 싶습니까?" },
-      { id:"t10_24", q:"저는 피아노를 배우고 ___. (희망)",    answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 배우다+고 싶다 → 싶습니다" },
-      { id:"t10_25", q:"저는 한국 음식을 먹고 ___. (희망)",   answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 먹다+고 싶다 → 싶습니다" },
-      { id:"t10_26", q:"무엇을 마시고 ___? (의향)",           answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 마시다+고 싶다 → 싶습니까?" },
-      { id:"t10_27", q:"저는 한국에서 살고 ___. (희망)",      answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 살다+고 싶다 → 싶습니다" },
-      { id:"t10_28", q:"누구를 만나고 ___? (의향)",           answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 만나다+고 싶다 → 싶습니까?" },
-      { id:"t10_29", q:"저는 의사가 되고 ___. (희망)",        answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 되다+고 싶다 → 싶습니다" },
-      { id:"t10_30", q:"어떤 음악을 듣고 ___? (의향)",        answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 듣다+고 싶다 → 싶습니까?" },
-    ];;
-    function gradeTest10() {
-      let ok=0;
-      TEST10_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
-      setTestResult({score:ok, total:TEST10_Q.length, pass: ok/TEST10_Q.length>=0.8});
-    }
-    if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8E1,#FFECB3)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
-        <DevJumpPanel />
-        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(245,127,23,.12)"}}>
-          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
-          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#F57F17":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
-          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(vi?"Xuất sắc! Sang bài 11!":en?"Excellent! On to Unit 11!":"훌륭해요! 11단원으로!"):(vi?"Thử lại!":en?"Try again!":"다시 도전!")}</div>
-          {testResult.pass
-            ? <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit11"); }} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp — Bài 11! 🚀":en?"Next — Unit 11! 🚀":"11단원으로! 🚀"}</button>
-            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit10"); }} style={{width:"100%", background:`linear-gradient(135deg,#F57F17,#E65100)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Học lại Bài 10 🔄":en?"Retry Unit 10 🔄":"10단원 다시 학습 🔄"}</button>}
-          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Thử lại":en?"Try again":"다시 풀기"}</button>
-        </div>
-      </div>
-    );
+    const card  = UNIT10_CARDS[unitCardIdx];
+    const total = UNIT10_CARDS.length;
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
+    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
+    const correct  = (card.full||"").replace(/\s+/g,"");
+    const isCorrect = unitCardRevealed && userAns === correct;
+
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8E1,#FFECB3)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FCE4EC,#F48FB1)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:400}}>
-          <div style={{fontSize:14, fontWeight:900, color:"#F57F17", marginBottom:4}}>📝 누적 테스트 — 1~10단원</div>
-          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 이다~희망1 (10문제)</div>
-          {TEST10_Q.map((q,i) => (
-            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
-              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
-              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."} style={{width:"100%", border:"2px solid #FFD54F", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:"#888", marginBottom:4}}>
+              {vi?"Bài 10 — Muốn làm (-고 싶습니다)":en?"Unit 10 — Want to (-고 싶습니다)":"서술어 10단원 — 희망 -고 싶습니다"}
             </div>
-          ))}
-          <button type="button" onClick={gradeTest10} style={{width:"100%", background:`linear-gradient(135deg,#F57F17,#E65100)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit10"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (10단원 학습)"}</button>
+            <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+            <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
+              <div style={{height:4, background:"#E91E63", borderRadius:4, width:`${((unitCardIdx+1)/total)*100}%`, transition:"width 0.3s"}} />
+            </div>
+          </div>
+          <div style={{background:"#FCE4EC", border:"2px solid #E91E63", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
+            <div style={{fontSize:12, fontWeight:900, color:"#880E4F", marginBottom:6}}>📌 {vi?"Quy tắc muốn làm":en?"Want to Rules":"희망 핵심 규칙"}</div>
+            <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
+              <div>· 모든 동사 + <b>-고 싶습니다</b> = ~하고 싶다</div>
+              <div>· 예: 가고 싶습니다 &nbsp;/&nbsp; 먹고 싶습니다</div>
+              <div>· 질문: 동사 + <b>-고 싶습니까?</b></div>
+            </div>
+          </div>
+          <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
+          <div style={{background:"white", borderRadius:16, border:"2px solid #F48FB1", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #E91E6322"}}>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
+          </div>
+          <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
+            ✍️ {vi?"-고 싶습니다 형태로 완성하세요":en?"Write with -고 싶습니다":"-고 싶습니다로 완성하세요"}
+          </div>
+          <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#F48FB1"}`, padding:"14px 16px", marginBottom:12}}>
+            <input type="text" value={unitCardInput}
+              onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
+              onKeyDown={e=>{ if(e.key==="Enter") handleUnit10Submit(); }}
+              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
+            {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
+              <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
+                <button onClick={()=>{ if(unitCardRevealed) return; const SR=window.SpeechRecognition||window.webkitSpeechRecognition; const r=new SR(); r.lang="ko-KR"; r.interimResults=false; r.onresult=(e)=>{setUnitCardInput(e.results[0][0].transcript);}; r.start(); }} disabled={unitCardRevealed}
+                  style={{background:"#880E4F", color:"white", border:"none", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>🎤 말하기</button>
+              </div>
+            ) : null}
+          </div>
+          {unitCardRevealed && (
+            <div style={{background:isCorrect?"#E8F5E9":"#FFEBEE", border:`1.5px solid ${isCorrect?"#2E7D32":"#C62828"}`, borderRadius:12, padding:"12px 16px", marginBottom:12}}>
+              <div style={{fontSize:13, fontWeight:900, color:isCorrect?"#2E7D32":"#C62828", marginBottom:4}}>{isCorrect?"✅ 정답!":"❌ 정답은:"}</div>
+              <div style={{fontSize:16, fontWeight:700, color:"#333"}}>{card.full}</div>
+              <button onClick={()=>speakKo(card.full)} style={{marginTop:6, background:"none", border:"1px solid #aaa", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer"}}>🔊 듣기</button>
+            </div>
+          )}
+          {!unitCardRevealed ? (
+            <button onClick={handleUnit10Submit} disabled={!unitCardInput.trim()}
+              style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#E91E63,#880E4F)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
+              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+            </button>
+          ) : (
+            unitCardIdx < total-1 ? (
+              <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
+                style={{width:"100%", background:"linear-gradient(135deg,#E91E63,#880E4F)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+              </button>
+            ) : (
+              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit11"); }}
+                style={{width:"100%", background:"linear-gradient(135deg,#E91E63,#880E4F)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp tục — Bài 11! 🚀":en?"Continue — Unit 11! 🚀":"11단원으로 계속하기 🚀"}
+              </button>
+            )
+          )}
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
   }
 
-  // ── 11단원: 희망2 -았/었으면 좋겠다 ──
+  // ════════════════════════════════════════════════════════
+  // ✅ V220: 서술어 11단원 — 소망 -았/었으면 좋겠습니다 (모국어→한국어)
+  // ════════════════════════════════════════════════════════
   if (step === "unit11") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT11_CARDS = [
-      { front:"날씨가 좋___으면 좋겠습니다. (희망)", blank:"았", full:"날씨가 좋았으면 좋겠습니다.", hint:"💡 좋다(아계열)+았으면 좋겠다" },
-      { front:"빨리 방학이 ___으면 좋겠습니다. (희망)", blank:"됐", full:"빨리 방학이 됐으면 좋겠습니다.", hint:"💡 되다 → 됐으면 좋겠다" },
-      { front:"돈이 많___으면 좋겠습니다. (희망)", blank:"았", full:"돈이 많았으면 좋겠습니다.", hint:"💡 많다+았으면 좋겠다" },
-      { front:"건강___으면 좋겠습니다. (희망·건강)", blank:"했", full:"건강했으면 좋겠습니다.", hint:"💡 건강하다 → 했으면 좋겠다" },
-      { front:"걱정이 없___으면 좋겠습니다. (희망)", blank:"었", full:"걱정이 없었으면 좋겠습니다.", hint:"💡 없다(어계열)+었으면 좋겠다" },
-      { front:"부모님이 오래 사셨___으면 좋겠습니다.", blank:"으면 좋겠습니다", full:"부모님이 오래 사셨으면 좋겠습니다.", hint:"💡 -셨으면 좋겠다 (높임+희망)" },
-    ];
-    const card = UNIT11_CARDS[unitCardIdx];
-    const C = { bg:"linear-gradient(150deg,#E8EAF6,#C5CAE9)", accent:"#283593", border:"#9FA8DA" };
-    return (
-      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:400}}>
-          <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:4}}>
-            📚 {vi?"Bài 11 — Ước gì (-았/었으면 좋겠다)":en?"Unit 11 — I wish (-았/었으면 좋겠다)":"11단원 — 희망2 (-았/었으면 좋겠다)"}
-          </div>
-          <div style={{fontSize:12, color:"#555", background:"#E8EAF6", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
-            {vi ? <>📌 동사/형용사 + <b>-았/었으면 좋겠다</b> = ước muốn<br/>아 계열 → <b>았으면</b> / 어 계열 → <b>었으면</b><br/>하다 계열 → <b>했으면 좋겠다</b></> : en ? <>📌 Verb + <b>-았/었으면 좋겠다</b> = "I wish..."<br/>아 stem → <b>았으면</b> / 어 stem → <b>었으면</b><br/>하다 → <b>했으면 좋겠다</b></> : <>📌 동사/형용사 + <b>-았/었으면 좋겠다</b><br/>아 계열 → <b>았으면</b> / 어 계열 → <b>었으면</b><br/>하다 계열 → <b>했으면 좋겠다</b></>}
-          </div>
-          <div style={{display:"flex", gap:3, marginBottom:16}}>
-            {UNIT11_CARDS.map((_,i) => <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=unitCardIdx?C.accent:"#ddd"}} />)}
-          </div>
-          <div style={{background:"white", borderRadius:20, padding:"20px", boxShadow:"0 4px 20px rgba(40,53,147,.12)", marginBottom:16}}>
-            <div style={{fontSize:18, fontWeight:900, color:"#333", marginBottom:12, lineHeight:1.5}}>{card.front}</div>
-            <input type="text" value={unitCardInput} onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} readOnly={unitCardRevealed} placeholder="..." style={{width:"100%", border:`2px solid ${unitCardRevealed?(unitCardInput.trim()===card.blank||unitCardInput.trim()===card.full?"#2E7D32":"#C62828"):"#9FA8DA"}`, borderRadius:10, padding:"10px 14px", fontSize:15, fontWeight:700, outline:"none", boxSizing:"border-box", color:unitCardRevealed?(unitCardInput.trim()===card.blank||unitCardInput.trim()===card.full?"#2E7D32":"#C62828"):"#333"}} />
-            {unitCardRevealed && <div style={{marginTop:10, fontSize:13, color:C.accent, fontWeight:800}}>✅ {card.full}</div>}
-            <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:8}}>{card.hint}</div>
-            {!unitCardRevealed && <button onClick={()=>setUnitCardRevealed(true)} style={{width:"100%", marginTop:12, background:`linear-gradient(135deg,${C.accent},#1A237E)`, color:"white", border:"none", borderRadius:50, padding:"11px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Xem đáp án 👀":en?"Show answer 👀":"정답 보기 👀"}</button>}
-          </div>
-          <div style={{display:"flex", gap:8}}>
-            {unitCardIdx > 0 && <button onClick={()=>{ setUnitCardIdx(i=>i-1); setUnitCardInput(""); setUnitCardRevealed(false); }} style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>← {vi?"Trước":en?"Prev":"이전"}</button>}
-            {unitCardIdx < UNIT11_CARDS.length-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }} style={{flex:1, background:`linear-gradient(135deg,${C.accent},#1A237E)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp →":en?"Next →":"다음 카드 →"}</button>
-              : <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test11"); }} style={{flex:1, background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Kiểm tra! 📝":en?"Take test! 📝":"테스트하기! 📝"}</button>}
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("test10"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (10단원 테스트)"}</button>
-        </div>
-      </div>
-    );
-  }
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
 
-  // ── 테스트11: 1~11단원 누적 ──
-  if (step === "test11") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    // 포함 단원: 9·10·11단원 (8단원 졸업 — 3회 졸업 규칙 적용)
-    const TEST11_Q = [
-      // ── 9단원 복습 (8문항) ──
-      { id:"t11_1",  q:"저는 한국어를 말할 ___ ___. (가능)",  answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:"💡 말할 수 있습니다" },
-      { id:"t11_2",  q:"저는 수영을 할 ___ ___. (불가능)",    answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:"💡 할 수 없습니다" },
-      { id:"t11_3",  q:"이 음식을 먹을 ___ ___? (가능)",      answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:"💡 먹을 수 있습니까?" },
-      { id:"t11_4",  q:"저는 운전을 할 ___ ___. (불가능)",    answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:"💡 할 수 없습니다" },
-      { id:"t11_5",  q:"자전거를 탈 ___ ___. (가능)",         answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:"💡 탈 수 있습니다" },
-      { id:"t11_6",  q:"저는 요리를 할 ___ ___. (가능)",      answer:"수 있습니다",  answers:["수 있습니다","수 있습니다."],  hint:"💡 할 수 있습니다" },
-      { id:"t11_7",  q:"혼자 갈 ___ ___. (불가능)",           answer:"수 없습니다",  answers:["수 없습니다","수 없습니다."],  hint:"💡 갈 수 없습니다" },
-      { id:"t11_8",  q:"한국 노래를 부를 ___ ___? (가능)",    answer:"수 있습니까",  answers:["수 있습니까","수 있습니까?"],  hint:"💡 부를 수 있습니까?" },
-      // ── 10단원 복습 (8문항) ──
-      { id:"t11_9",  q:"저는 한국에 가고 ___. (희망)",        answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 -고 싶다 → 싶습니다" },
-      { id:"t11_10", q:"무엇을 먹고 ___? (의향)",             answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 먹다+고 싶다 → 싶습니까?" },
-      { id:"t11_11", q:"저는 쉬고 ___. (희망)",               answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 쉬다+고 싶다 → 싶습니다" },
-      { id:"t11_12", q:"저는 한국어를 잘하고 ___. (희망)",    answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 잘하다+고 싶다 → 싶습니다" },
-      { id:"t11_13", q:"어디에 가고 ___? (의향)",             answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 가다+고 싶다 → 싶습니까?" },
-      { id:"t11_14", q:"저는 한국에서 살고 ___. (희망)",      answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 살다+고 싶다 → 싶습니다" },
-      { id:"t11_15", q:"저는 의사가 되고 ___. (희망)",        answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 되다+고 싶다 → 싶습니다" },
-      { id:"t11_16", q:"누구를 만나고 ___? (의향)",           answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 만나다+고 싶다 → 싶습니까?" },
-      // ── 11단원 신규 (14문항) ──
-      { id:"t11_17", q:"날씨가 좋___으면 좋겠습니다. (희망)", answer:"았",  answers:["았"],  hint:"💡 좋다(아계열) → 았으면" },
-      { id:"t11_18", q:"빨리 방학이 ___으면 좋겠습니다.",     answer:"됐",  answers:["됐"],  hint:"💡 되다 → 됐으면 좋겠다" },
-      { id:"t11_19", q:"돈이 많___으면 좋겠습니다.",          answer:"았",  answers:["았"],  hint:"💡 많다(아계열) → 았으면" },
-      { id:"t11_20", q:"건강___으면 좋겠습니다.",             answer:"했",  answers:["했"],  hint:"💡 건강하다 → 했으면" },
-      { id:"t11_21", q:"걱정이 없___으면 좋겠습니다.",        answer:"었",  answers:["었"],  hint:"💡 없다(어계열) → 었으면" },
-      { id:"t11_22", q:"한국어를 잘했___으면 좋겠습니다.",    answer:"으면 좋겠습니다", answers:["으면 좋겠습니다","으면 좋겠습니다."], hint:"💡 -았/었으면 좋겠다" },
-      { id:"t11_23", q:"날씨가 따뜻했___으면 좋겠습니다.",   answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 따뜻하다 → 했으면" },
-      { id:"t11_24", q:"비가 안 왔___으면 좋겠습니다.",       answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 오다 + 았/었으면" },
-      { id:"t11_25", q:"친구가 빨리 나았___으면 좋겠습니다.",answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 낫다(아계열) → 나았으면" },
-      { id:"t11_26", q:"시험이 쉬웠___으면 좋겠습니다.",      answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 쉽다 → 쉬웠으면" },
-      { id:"t11_27", q:"봄이 빨리 왔___으면 좋겠습니다.",     answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 오다 → 왔으면" },
-      { id:"t11_28", q:"모두가 행복했___으면 좋겠습니다.",    answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 행복하다 → 행복했으면" },
-      { id:"t11_29", q:"일이 잘 됐___으면 좋겠습니다.",       answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 되다 → 됐으면" },
-      { id:"t11_30", q:"부모님이 건강하셨___으면 좋겠습니다.",answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 -셨으면 좋겠다 (높임)" },
-    ];;
-    function gradeTest11() {
-      let ok=0;
-      TEST11_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
-      setTestResult({score:ok, total:TEST11_Q.length, pass: ok/TEST11_Q.length>=0.8});
+    function handleUnit11Submit() {
+      if (!unitCardInput.trim()) return;
+      setUnitCardRevealed(true);
+      speakKo(unitCardInput.trim());
     }
-    if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8EAF6,#C5CAE9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
-        <DevJumpPanel />
-        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(40,53,147,.12)"}}>
-          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
-          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#283593":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
-          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(vi?"Tuyệt! Sang bài 12!":en?"Great! Unit 12!":"훌륭해요! 12단원으로!"):(vi?"Thử lại!":en?"Try again!":"다시 도전!")}</div>
-          {testResult.pass
-            ? <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit12"); }} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp — Bài 12! 🚀":en?"Next — Unit 12! 🚀":"12단원으로! 🚀"}</button>
-            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit11"); }} style={{width:"100%", background:`linear-gradient(135deg,#283593,#1A237E)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Học lại Bài 11 🔄":en?"Retry Unit 11 🔄":"11단원 다시 학습 🔄"}</button>}
-          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Thử lại":en?"Try again":"다시 풀기"}</button>
-        </div>
-      </div>
-    );
+
+    const UNIT11_CARDS = [
+      { native:{vi:"Giá mà thời tiết đẹp.",             en:"I wish the weather were nice.",      ko:"날씨가 좋으면 좋겠다."},
+        full:"날씨가 좋았으면 좋겠습니다.", rule:{vi:"좋다 + 았으면 좋겠습니다 (ㅏ계열)", en:"좋다 + 았으면 좋겠습니다 (ㅏ vowel)", ko:"좋다 + -았으면 좋겠습니다"} },
+      { native:{vi:"Giá mà nhanh được nghỉ hè.",        en:"I hope vacation comes soon.",        ko:"빨리 방학이 되면 좋겠다."},
+        full:"빨리 방학이 됐으면 좋겠습니다.", rule:{vi:"되다 → 됐으면 좋겠습니다 (ㅚ→됐)", en:"되다 → 됐으면 좋겠습니다", ko:"되다 → 됐으면 좋겠습니다"} },
+      { native:{vi:"Giá mà có nhiều tiền.",              en:"I wish I had a lot of money.",       ko:"돈이 많으면 좋겠다."},
+        full:"돈이 많았으면 좋겠습니다.", rule:{vi:"많다 + 았으면 좋겠습니다", en:"많다 + 았으면 좋겠습니다", ko:"많다 + -았으면 좋겠습니다"} },
+      { native:{vi:"Mong bạn được khỏe mạnh.",          en:"I hope you are healthy.",            ko:"건강하면 좋겠다."},
+        full:"건강했으면 좋겠습니다.", rule:{vi:"건강하다 → 건강했으면 좋겠습니다", en:"건강하다 → 건강했으면 좋겠습니다", ko:"건강하다 + -했으면 좋겠습니다"} },
+      { native:{vi:"Giá mà không có lo lắng.",           en:"I wish there were no worries.",      ko:"걱정이 없으면 좋겠다."},
+        full:"걱정이 없었으면 좋겠습니다.", rule:{vi:"없다 + 었으면 좋겠습니다 (ㅓ계열)", en:"없다 + 었으면 좋겠습니다", ko:"없다 + -었으면 좋겠습니다"} },
+      { native:{vi:"Mong bố mẹ sống lâu trăm tuổi.",    en:"I hope my parents live long.",       ko:"부모님이 오래 사시면 좋겠다."},
+        full:"부모님이 오래 사셨으면 좋겠습니다.", rule:{vi:"사시다 → 사셨으면 좋겠습니다 (높임)", en:"사시다 → 사셨으면 좋겠습니다 (honorific)", ko:"-셨으면 좋겠습니다 (높임 희망)"} },
+    ];
+
+    const card  = UNIT11_CARDS[unitCardIdx];
+    const total = UNIT11_CARDS.length;
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
+    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
+    const correct  = (card.full||"").replace(/\s+/g,"");
+    const isCorrect = unitCardRevealed && userAns === correct;
+
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8EAF6,#C5CAE9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#BA68C8)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:400}}>
-          <div style={{fontSize:14, fontWeight:900, color:"#283593", marginBottom:4}}>📝 누적 테스트 — 1~11단원</div>
-          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 이다~희망2 (10문제)</div>
-          {TEST11_Q.map((q,i) => (
-            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
-              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
-              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."} style={{width:"100%", border:"2px solid #9FA8DA", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:"#888", marginBottom:4}}>
+              {vi?"Bài 11 — Ước gì (-았/었으면 좋겠습니다)":en?"Unit 11 — I Wish (-았/었으면 좋겠습니다)":"서술어 11단원 — 소망 -았/었으면 좋겠습니다"}
             </div>
-          ))}
-          <button type="button" onClick={gradeTest11} style={{width:"100%", background:`linear-gradient(135deg,#283593,#1A237E)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit11"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (11단원 학습)"}</button>
+            <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+            <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
+              <div style={{height:4, background:"#7B1FA2", borderRadius:4, width:`${((unitCardIdx+1)/total)*100}%`, transition:"width 0.3s"}} />
+            </div>
+          </div>
+          <div style={{background:"#F3E5F5", border:"2px solid #7B1FA2", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
+            <div style={{fontSize:12, fontWeight:900, color:"#4A148C", marginBottom:6}}>📌 {vi?"Quy tắc ước gì":en?"I Wish Rules":"소망 핵심 규칙"}</div>
+            <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
+              <div>· ㅏ/ㅗ 계열: 동사 + <b>-았으면 좋겠습니다</b></div>
+              <div>· 그 외: 동사 + <b>-었으면 좋겠습니다</b></div>
+              <div>· 하다: 동사 + <b>-했으면 좋겠습니다</b></div>
+              <div>· 높임: <b>-셨으면 좋겠습니다</b></div>
+            </div>
+          </div>
+          <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
+          <div style={{background:"white", borderRadius:16, border:"2px solid #BA68C8", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #7B1FA222"}}>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
+          </div>
+          <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
+            ✍️ {vi?"-았/었으면 좋겠습니다로 완성하세요":en?"Write with -았/었으면 좋겠습니다":"-았/었으면 좋겠습니다로 완성하세요"}
+          </div>
+          <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#BA68C8"}`, padding:"14px 16px", marginBottom:12}}>
+            <input type="text" value={unitCardInput}
+              onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
+              onKeyDown={e=>{ if(e.key==="Enter") handleUnit11Submit(); }}
+              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
+            {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
+              <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
+                <button onClick={()=>{ if(unitCardRevealed) return; const SR=window.SpeechRecognition||window.webkitSpeechRecognition; const r=new SR(); r.lang="ko-KR"; r.interimResults=false; r.onresult=(e)=>{setUnitCardInput(e.results[0][0].transcript);}; r.start(); }} disabled={unitCardRevealed}
+                  style={{background:"#4A148C", color:"white", border:"none", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>🎤 말하기</button>
+              </div>
+            ) : null}
+          </div>
+          {unitCardRevealed && (
+            <div style={{background:isCorrect?"#E8F5E9":"#FFEBEE", border:`1.5px solid ${isCorrect?"#2E7D32":"#C62828"}`, borderRadius:12, padding:"12px 16px", marginBottom:12}}>
+              <div style={{fontSize:13, fontWeight:900, color:isCorrect?"#2E7D32":"#C62828", marginBottom:4}}>{isCorrect?"✅ 정답!":"❌ 정답은:"}</div>
+              <div style={{fontSize:16, fontWeight:700, color:"#333"}}>{card.full}</div>
+              <button onClick={()=>speakKo(card.full)} style={{marginTop:6, background:"none", border:"1px solid #aaa", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer"}}>🔊 듣기</button>
+            </div>
+          )}
+          {!unitCardRevealed ? (
+            <button onClick={handleUnit11Submit} disabled={!unitCardInput.trim()}
+              style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#7B1FA2,#4A148C)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
+              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+            </button>
+          ) : (
+            unitCardIdx < total-1 ? (
+              <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
+                style={{width:"100%", background:"linear-gradient(135deg,#7B1FA2,#4A148C)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+              </button>
+            ) : (
+              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit12"); }}
+                style={{width:"100%", background:"linear-gradient(135deg,#7B1FA2,#4A148C)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp tục — Bài 12! 🚀":en?"Continue — Unit 12! 🚀":"12단원으로 계속하기 🚀"}
+              </button>
+            )
+          )}
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
   }
 
-  // ── 12단원: 부정 (안·못·-지 않다·-지 못하다·-지 마세요·-지 맙시다) ──
+  // ════════════════════════════════════════════════════════
+  // ✅ V220: 서술어 12단원 — 부정 안/못/-지 않다/-지 못하다/-지 마세요 (모국어→한국어)
+  // ════════════════════════════════════════════════════════
   if (step === "unit12") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    function handleUnit12Submit() {
+      if (!unitCardInput.trim()) return;
+      setUnitCardRevealed(true);
+      speakKo(unitCardInput.trim());
+    }
+
     const UNIT12_CARDS = [
-      { front:"저는 오늘 밥을 ___ 먹습니다. (의지 부정)", blank:"안", full:"저는 오늘 밥을 안 먹습니다.", hint:"💡 안 + 동사 = 의지로 안 함" },
-      { front:"저는 수영을 ___ 합니다. (능력 부정)", blank:"못", full:"저는 수영을 못 합니다.", hint:"💡 못 + 동사 = 능력이 없어서" },
-      { front:"저는 고기를 먹지 ___. (의지 부정·정중)", blank:"않습니다", full:"저는 고기를 먹지 않습니다.", hint:"💡 -지 않다 = 안 하다(정중)" },
-      { front:"저는 운전을 하지 ___. (능력 부정·정중)", blank:"못합니다", full:"저는 운전을 하지 못합니다.", hint:"💡 -지 못하다 = 못 하다(정중)" },
-      { front:"여기서 사진을 찍지 ___. (금지)", blank:"마세요", full:"여기서 사진을 찍지 마세요.", hint:"💡 -지 마세요 = 금지" },
-      { front:"교실에서 떠들지 ___. (금지·함께)", blank:"맙시다", full:"교실에서 떠들지 맙시다.", hint:"💡 -지 맙시다 = 함께 하지 말자" },
-      {
-        front: "저는 오늘 학교에 ___ 갑니다.",
-        blank: "안",
-        full: "저는 오늘 학교에 안 갑니다.",
-        hint: vi?"'안' = không (부정 부사)":en?"'안' = not (adverb)":"안 + 동사 = 단순 부정",
-      },
-      {
-        front: "저는 매운 음식을 ___ 먹습니다.",
-        blank: "못",
-        full: "저는 매운 음식을 못 먹습니다.",
-        hint: vi?"'못' = không thể (bất năng)":en?"'못' = cannot (inability)":"못 + 동사 = 능력 부정",
-      },
-      {
-        front: "저는 술을 ___ 마십니다.",
-        blank: "안",
-        full: "저는 술을 안 마십니다.",
-        hint: vi?"안 마시다 = không uống":en?"안 마시다 = don't drink":"안 + 마시다",
-      },
-      {
-        front: "저는 운전을 ___ 합니다.",
-        blank: "못",
-        full: "저는 운전을 못 합니다.",
-        hint: vi?"못 하다 = không thể làm":en?"못 하다 = can't do":"못 + 하다 = 능력 부정",
-      },
-      {
-        front: "오늘은 시간이 ___ 있습니다.",
-        blank: "없습니다 / 안",
-        full: "오늘은 시간이 없습니다.",
-        hint: vi?"없다 = không có":en?"없다 = don't have":"없다 = 소유/존재 부정",
-      },
-      {
-        front: "저는 아직 한국어를 ___ 합니다.",
-        blank: "잘 못",
-        full: "저는 아직 한국어를 잘 못합니다.",
-        hint: vi?"잘 못하다 = chưa làm tốt":en?"잘 못하다 = not good at yet":"잘 못하다 = 능력 부족",
-      },
-      {
-        front: "수업 시간에 휴대폰을 ___ 합니다.",
-        blank: "사용하지 않",
-        full: "수업 시간에 휴대폰을 사용하지 않습니다.",
-        hint: vi?"~지 않다 = không (dài hơn)":en?"~지 않다 = long-form negation":"~지 않습니다 = 긴 부정형",
-      },
-      {
-        front: "저는 고기를 ___ 습니다.",
-        blank: "먹지 않",
-        full: "저는 고기를 먹지 않습니다.",
-        hint: vi?"먹지 않다 = không ăn":en?"먹지 않다 = don't eat":"~지 않습니다 = 긴 부정형",
-      },
-      {
-        front: "오늘은 비가 ___ 습니다.",
-        blank: "오지 않",
-        full: "오늘은 비가 오지 않습니다.",
-        hint: vi?"오지 않다 = không đến/rơi":en?"오지 않다 = not coming":"~지 않습니다 = 긴 부정형",
-      },
-      {
-        front: "저는 아직 결혼을 ___ 했습니다.",
-        blank: "안",
-        full: "저는 아직 결혼을 안 했습니다.",
-        hint: vi?"안 하다 = không làm":en?"안 하다 = didn't do":"안 + 하다 과거",
-      },
-      {
-        front: "시험 준비가 ___ 됩니다.",
-        blank: "잘 안",
-        full: "시험 준비가 잘 안 됩니다.",
-        hint: vi?"잘 안 되다 = không ổn":en?"잘 안 되다 = not going well":"잘 안 되다 = 부정 + 부사",
-      },
-      {
-        front: "여기서는 사진을 ___ 됩니다.",
-        blank: "찍으면 안",
-        full: "여기서는 사진을 찍으면 안 됩니다.",
-        hint: vi?"~면 안 되다 = không được":en?"~면 안 되다 = must not":"금지 표현 (13단원 예습)",
-      },
-      {
-        front: "저는 어제 잠을 ___ 잤습니다.",
-        blank: "잘 못",
-        full: "저는 어제 잠을 잘 못 잤습니다.",
-        hint: vi?"잘 못 자다 = ngủ không tốt":en?"잘 못 자다 = didn't sleep well":"잘 못 + 동사",
-      },
-      {
-        front: "이 한국어 책은 ___ 어렵지 않습니다.",
-        blank: "그렇게",
-        full: "이 한국어 책은 그렇게 어렵지 않습니다.",
-        hint: vi?"그렇게 ~ 않다 = không đến nỗi":en?"그렇게 ~ 않다 = not that ~":"그렇게 + 부정 = 완화 표현",
-      },
+      { native:{vi:"Hôm nay tôi không ăn cơm. (chủ động)",  en:"I'm not eating today. (on purpose)", ko:"오늘 나는 밥을 먹지 않는다. (의지)"},
+        full:"저는 오늘 밥을 안 먹습니다.", rule:{vi:"안 + 동사 = chủ động không làm", en:"안 + verb = intentionally not doing", ko:"안 + 동사 = 의지 부정"} },
+      { native:{vi:"Tôi không thể bơi. (không có khả năng)", en:"I can't swim. (inability)",           ko:"나는 수영을 할 수 없다. (능력)"},
+        full:"저는 수영을 못 합니다.", rule:{vi:"못 + 동사 = không có khả năng", en:"못 + verb = inability", ko:"못 + 동사 = 능력 부정"} },
+      { native:{vi:"Tôi không ăn thịt. (lịch sự)",          en:"I don't eat meat. (polite)",         ko:"나는 고기를 먹지 않는다. (정중)"},
+        full:"저는 고기를 먹지 않습니다.", rule:{vi:"-지 않습니다 = phủ định lịch sự", en:"-지 않습니다 = polite negation", ko:"-지 않습니다 = 정중한 부정"} },
+      { native:{vi:"Tôi không thể lái xe. (lịch sự)",       en:"I cannot drive. (polite)",           ko:"나는 운전을 할 수 없다. (정중)"},
+        full:"저는 운전을 하지 못합니다.", rule:{vi:"-지 못합니다 = không thể (lịch sự)", en:"-지 못합니다 = cannot (polite)", ko:"-지 못합니다 = 정중한 능력 부정"} },
+      { native:{vi:"Đừng chụp ảnh ở đây.",                  en:"Please don't take photos here.",     ko:"여기서 사진을 찍으면 안 된다."},
+        full:"여기서 사진을 찍지 마세요.", rule:{vi:"-지 마세요 = đừng/cấm trực tiếp", en:"-지 마세요 = please don't (direct)", ko:"-지 마세요 = 직접 금지"} },
+      { native:{vi:"Hãy cùng đừng ồn ào trong lớp.",        en:"Let's not make noise in class.",     ko:"교실에서 떠들지 말자."},
+        full:"교실에서 떠들지 맙시다.", rule:{vi:"-지 맙시다 = hãy cùng đừng làm", en:"-지 맙시다 = let's not together", ko:"-지 맙시다 = 함께 하지 말자"} },
+      { native:{vi:"Hôm nay tôi không đến trường.",          en:"I'm not going to school today.",     ko:"오늘 나는 학교에 가지 않는다."},
+        full:"저는 오늘 학교에 안 갑니다.", rule:{vi:"안 + 가다 = không đi (chủ động)", en:"안 + 가다 = not going (intentional)", ko:"안 + 가다 = 의지 부정"} },
+      { native:{vi:"Tôi không thể ăn đồ cay.",               en:"I can't eat spicy food.",            ko:"나는 매운 음식을 먹을 수 없다."},
+        full:"저는 매운 음식을 못 먹습니다.", rule:{vi:"못 + 먹다 = không thể ăn", en:"못 + 먹다 = cannot eat", ko:"못 + 먹다 = 능력 부정"} },
+      { native:{vi:"Tôi không uống rượu.",                    en:"I don't drink alcohol.",             ko:"나는 술을 마시지 않는다."},
+        full:"저는 술을 마시지 않습니다.", rule:{vi:"마시다 + -지 않습니다 = không uống", en:"마시다 + -지 않습니다 = don't drink", ko:"마시다 + -지 않습니다 = 정중 부정"} },
+      { native:{vi:"Tôi không thể hát.",                      en:"I can't sing.",                     ko:"나는 노래를 못 한다."},
+        full:"저는 노래를 못 합니다.", rule:{vi:"못 + 하다 = không thể làm", en:"못 + 하다 = cannot do", ko:"못 + 하다 = 능력 부정"} },
+      { native:{vi:"Đừng chạy trong hành lang.",              en:"Please don't run in the hallway.",  ko:"복도에서 뛰면 안 된다."},
+        full:"복도에서 뛰지 마세요.", rule:{vi:"뛰다 + -지 마세요 = đừng chạy", en:"뛰다 + -지 마세요 = don't run", ko:"뛰다 + -지 마세요 = 금지"} },
+      { native:{vi:"Hãy cùng đừng đến muộn.",                en:"Let's not be late.",                 ko:"늦지 말자."},
+        full:"늦지 맙시다.", rule:{vi:"늦다 + -지 맙시다 = hãy cùng không muộn", en:"늦다 + -지 맙시다 = let's not be late", ko:"늦다 + -지 맙시다 = 함께 하지 말자"} },
+      { native:{vi:"Tôi không thể nói tiếng Trung.",          en:"I cannot speak Chinese.",           ko:"나는 중국어를 못 한다."},
+        full:"저는 중국어를 못 합니다.", rule:{vi:"못 + 하다 = không thể nói", en:"못 + 하다 = cannot speak", ko:"못 + 하다 = 언어 능력 부정"} },
+      { native:{vi:"Tôi không hút thuốc.",                    en:"I don't smoke.",                    ko:"나는 담배를 피우지 않는다."},
+        full:"저는 담배를 피우지 않습니다.", rule:{vi:"피우다 + -지 않습니다 = không hút", en:"피우다 + -지 않습니다 = don't smoke", ko:"피우다 + -지 않습니다 = 부정"} },
+      { native:{vi:"Tôi không thể ngủ.",                      en:"I can't sleep.",                    ko:"나는 잠을 못 잔다."},
+        full:"저는 잠을 못 잡니다.", rule:{vi:"못 + 자다 = không thể ngủ", en:"못 + 자다 = cannot sleep", ko:"못 + 자다 = 능력 부정"} },
+      { native:{vi:"Đừng sử dụng điện thoại trong lớp.",     en:"Please don't use phones in class.", ko:"수업 중에 전화를 사용하면 안 된다."},
+        full:"수업 중에 전화하지 마세요.", rule:{vi:"전화하다 + -지 마세요 = đừng gọi điện", en:"전화하다 + -지 마세요 = don't call", ko:"전화하다 + -지 마세요 = 금지"} },
+      { native:{vi:"Tôi không ăn sáng.",                      en:"I don't eat breakfast.",            ko:"나는 아침을 먹지 않는다."},
+        full:"저는 아침을 먹지 않습니다.", rule:{vi:"먹다 + -지 않습니다 = không ăn", en:"먹다 + -지 않습니다 = don't eat", ko:"먹다 + -지 않습니다 = 부정"} },
+      { native:{vi:"Tôi không thể chơi đàn.",                 en:"I can't play the instrument.",      ko:"나는 악기를 못 다룬다."},
+        full:"저는 악기를 못 다룹니다.", rule:{vi:"못 + 다루다 = không thể chơi nhạc", en:"못 + 다루다 = cannot play", ko:"못 + 다루다 = 능력 부정"} },
+      { native:{vi:"Hãy cùng đừng lãng phí.",                en:"Let's not waste.",                   ko:"낭비하지 말자."},
+        full:"낭비하지 맙시다.", rule:{vi:"낭비하다 + -지 맙시다 = đừng lãng phí", en:"낭비하다 + -지 맙시다 = let's not waste", ko:"낭비하다 + -지 맙시다 = 함께 하지 말자"} },
+      { native:{vi:"Tôi không thể đi hôm nay.",               en:"I can't go today.",                 ko:"오늘 나는 갈 수 없다."},
+        full:"저는 오늘 가지 못합니다.", rule:{vi:"가다 + -지 못합니다 = không thể đi", en:"가다 + -지 못합니다 = cannot go", ko:"가다 + -지 못합니다 = 정중 능력 부정"} },
     ];
-    const card = UNIT12_CARDS[unitCardIdx];
-    const C = { bg:"linear-gradient(150deg,#FFEBEE,#FFCDD2)", accent:"#B71C1C", border:"#EF9A9A" };
+
+    const card  = UNIT12_CARDS[unitCardIdx];
+    const total = UNIT12_CARDS.length;
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
+    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
+    const correct  = (card.full||"").replace(/\s+/g,"");
+    const isCorrect = unitCardRevealed && userAns === correct;
+
     return (
-      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#ECEFF1,#90A4AE)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:400}}>
-          <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:4}}>
-            📚 {vi?"Bài 12 — Phủ định (안·못·-지 않다·-지 마세요)":en?"Unit 12 — Negation (안·못·-지 않다·-지 마세요)":"12단원 — 부정 (안·못·-지 않다·-지 못하다·-지 마세요·-지 맙시다)"}
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:"#888", marginBottom:4}}>
+              {vi?"Bài 12 — Phủ định (안/못/-지 않다/-지 못하다/-지 마세요)":en?"Unit 12 — Negation (안/못/-지 않다/-지 못하다/-지 마세요)":"서술어 12단원 — 부정 표현"}
+            </div>
+            <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+            <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
+              <div style={{height:4, background:"#546E7A", borderRadius:4, width:`${((unitCardIdx+1)/total)*100}%`, transition:"width 0.3s"}} />
+            </div>
           </div>
-          <div style={{fontSize:12, color:"#555", background:"#FFEBEE", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
-            {vi ? <>📌 <b>안</b> + 동사: không làm (ý muốn)<br/><b>못</b> + 동사: không thể làm (năng lực)<br/><b>-지 않다</b>: phủ định lịch sự / <b>-지 마세요</b>: cấm</>
-              : en ? <>📌 <b>안</b> + verb: don't (by choice)<br/><b>못</b> + verb: can't (lack of ability)<br/><b>-지 않다</b>: polite negation / <b>-지 마세요</b>: prohibition</>
-              : <>📌 <b>안</b> + 동사: 의지로 안 함<br/><b>못</b> + 동사: 능력이 없어서 못 함<br/><b>-지 않다</b>: 정중한 부정 / <b>-지 마세요</b>: 금지</>}
+          <div style={{background:"#ECEFF1", border:"2px solid #546E7A", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
+            <div style={{fontSize:12, fontWeight:900, color:"#263238", marginBottom:6}}>📌 {vi?"Quy tắc phủ định":en?"Negation Rules":"부정 핵심 규칙"}</div>
+            <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
+              <div>· <b>안</b> + 동사: 의지 부정 (하기 싫어서)</div>
+              <div>· <b>못</b> + 동사: 능력 부정 (할 수 없어서)</div>
+              <div>· 동사 + <b>-지 않습니다</b>: 정중한 의지 부정</div>
+              <div>· 동사 + <b>-지 못합니다</b>: 정중한 능력 부정</div>
+              <div>· 동사 + <b>-지 마세요</b>: 금지 명령</div>
+              <div>· 동사 + <b>-지 맙시다</b>: 함께 하지 말자</div>
+            </div>
           </div>
-          <div style={{display:"flex", gap:3, marginBottom:16}}>
-            {UNIT12_CARDS.map((_,i) => <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=unitCardIdx?C.accent:"#ddd"}} />)}
+          <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
+          <div style={{background:"white", borderRadius:16, border:"2px solid #90A4AE", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #546E7A22"}}>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
-          <div style={{background:"white", borderRadius:20, padding:"20px", boxShadow:"0 4px 20px rgba(183,28,28,.12)", marginBottom:16}}>
-            <div style={{fontSize:18, fontWeight:900, color:"#333", marginBottom:12, lineHeight:1.5}}>{card.front}</div>
-            <input type="text" value={unitCardInput} onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} readOnly={unitCardRevealed} placeholder="..." style={{width:"100%", border:`2px solid ${unitCardRevealed?(unitCardInput.trim()===card.blank||unitCardInput.trim()===card.full?"#2E7D32":"#C62828"):"#EF9A9A"}`, borderRadius:10, padding:"10px 14px", fontSize:15, fontWeight:700, outline:"none", boxSizing:"border-box", color:unitCardRevealed?(unitCardInput.trim()===card.blank||unitCardInput.trim()===card.full?"#2E7D32":"#C62828"):"#333"}} />
-            {unitCardRevealed && <div style={{marginTop:10, fontSize:13, color:C.accent, fontWeight:800}}>✅ {card.full}</div>}
-            <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:8}}>{card.hint}</div>
-            {!unitCardRevealed && <button onClick={()=>setUnitCardRevealed(true)} style={{width:"100%", marginTop:12, background:`linear-gradient(135deg,${C.accent},#7F0000)`, color:"white", border:"none", borderRadius:50, padding:"11px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Xem đáp án 👀":en?"Show answer 👀":"정답 보기 👀"}</button>}
+          <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
+            ✍️ {vi?"Viết câu phủ định bằng thể 합니다":en?"Write negation in 합니다 style":"부정 표현을 사용해 합니다체로 완성하세요"}
           </div>
-          <div style={{display:"flex", gap:8}}>
-            {unitCardIdx > 0 && <button onClick={()=>{ setUnitCardIdx(i=>i-1); setUnitCardInput(""); setUnitCardRevealed(false); }} style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>← {vi?"Trước":en?"Prev":"이전"}</button>}
-            {unitCardIdx < UNIT12_CARDS.length-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }} style={{flex:1, background:`linear-gradient(135deg,${C.accent},#7F0000)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp →":en?"Next →":"다음 카드 →"}</button>
-              : <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test12"); }} style={{flex:1, background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Kiểm tra! 📝":en?"Take test! 📝":"테스트하기! 📝"}</button>}
+          <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#90A4AE"}`, padding:"14px 16px", marginBottom:12}}>
+            <input type="text" value={unitCardInput}
+              onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
+              onKeyDown={e=>{ if(e.key==="Enter") handleUnit12Submit(); }}
+              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
+            {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
+              <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
+                <button onClick={()=>{ if(unitCardRevealed) return; const SR=window.SpeechRecognition||window.webkitSpeechRecognition; const r=new SR(); r.lang="ko-KR"; r.interimResults=false; r.onresult=(e)=>{setUnitCardInput(e.results[0][0].transcript);}; r.start(); }} disabled={unitCardRevealed}
+                  style={{background:"#263238", color:"white", border:"none", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>🎤 말하기</button>
+              </div>
+            ) : null}
           </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("test11"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (11단원 테스트)"}</button>
+          {unitCardRevealed && (
+            <div style={{background:isCorrect?"#E8F5E9":"#FFEBEE", border:`1.5px solid ${isCorrect?"#2E7D32":"#C62828"}`, borderRadius:12, padding:"12px 16px", marginBottom:12}}>
+              <div style={{fontSize:13, fontWeight:900, color:isCorrect?"#2E7D32":"#C62828", marginBottom:4}}>{isCorrect?"✅ 정답!":"❌ 정답은:"}</div>
+              <div style={{fontSize:16, fontWeight:700, color:"#333"}}>{card.full}</div>
+              <button onClick={()=>speakKo(card.full)} style={{marginTop:6, background:"none", border:"1px solid #aaa", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer"}}>🔊 듣기</button>
+            </div>
+          )}
+          {!unitCardRevealed ? (
+            <button onClick={handleUnit12Submit} disabled={!unitCardInput.trim()}
+              style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#546E7A,#263238)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
+              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+            </button>
+          ) : (
+            unitCardIdx < total-1 ? (
+              <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
+                style={{width:"100%", background:"linear-gradient(135deg,#546E7A,#263238)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+              </button>
+            ) : (
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(true); setStep("test1"); }}
+                style={{width:"100%", background:"linear-gradient(135deg,#546E7A,#263238)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Kiểm tra tổng hợp! 🚀":en?"Cumulative test! 🚀":"누적 테스트로! 🚀"}
+              </button>
+            )
+          )}
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
   }
+
 
   // ── 테스트12: 1~12단원 누적 ──
   if (step === "test12") {
@@ -9143,38 +9101,38 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // 포함 단원: 10·11·12단원 (9단원 졸업 — 3회 졸업 규칙 적용)
     const TEST12_Q = [
       // ── 10단원 복습 (8문항) ──
-      { id:"t12_1",  q:"저는 한국에 가고 ___. (희망)",        answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 -고 싶다 → 싶습니다" },
-      { id:"t12_2",  q:"무엇을 먹고 ___? (의향)",             answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 먹다+고 싶다 → 싶습니까?" },
-      { id:"t12_3",  q:"저는 쉬고 ___. (희망)",               answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 쉬다+고 싶다 → 싶습니다" },
-      { id:"t12_4",  q:"저는 한국어를 잘하고 ___. (희망)",    answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 잘하다+고 싶다 → 싶습니다" },
-      { id:"t12_5",  q:"어디에 가고 ___? (의향)",             answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 가다+고 싶다 → 싶습니까?" },
-      { id:"t12_6",  q:"저는 의사가 되고 ___. (희망)",        answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 되다+고 싶다 → 싶습니다" },
-      { id:"t12_7",  q:"저는 피아노를 배우고 ___. (희망)",    answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:"💡 배우다+고 싶다 → 싶습니다" },
-      { id:"t12_8",  q:"누구를 만나고 ___? (의향)",           answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:"💡 만나다+고 싶다 → 싶습니까?" },
+      { id:"t12_1",  q:"저는 한국에 가고 ___. (희망)",        answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:{ko:"💡 동사 + -고 싶습니다 = 희망", vi:"💡 Động từ + -고 싶습니다 = muốn làm", en:"💡 Verb + -고 싶습니다 = want to"} },
+      { id:"t12_2",  q:"무엇을 먹고 ___? (의향)",             answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:{ko:"💡 먹다 + -고 싶습니까? (희망 질문)", vi:"💡 먹다 + -고 싶습니까? = có muốn ăn không?", en:"💡 먹다 + -고 싶습니까? = do you want to eat?"} },
+      { id:"t12_3",  q:"저는 쉬고 ___. (희망)",               answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:{ko:"💡 쉬다 + -고 싶습니다", vi:"💡 쉬다 + -고 싶습니다 = muốn nghỉ", en:"💡 쉬다 + -고 싶습니다 = want to rest"} },
+      { id:"t12_4",  q:"저는 한국어를 잘하고 ___. (희망)",    answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:{ko:"💡 잘하다 + -고 싶습니다", vi:"💡 잘하다 + -고 싶습니다 = muốn giỏi", en:"💡 잘하다 + -고 싶습니다 = want to do well"} },
+      { id:"t12_5",  q:"어디에 가고 ___? (의향)",             answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:{ko:"💡 가다 + -고 싶습니까? (희망 질문)", vi:"💡 가다 + -고 싶습니까? = có muốn đi?", en:"💡 가다 + -고 싶습니까? = want to go?"} },
+      { id:"t12_6",  q:"저는 의사가 되고 ___. (희망)",        answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:{ko:"💡 되다 + -고 싶습니다", vi:"💡 되다 + -고 싶습니다 = muốn trở thành", en:"💡 되다 + -고 싶습니다 = want to become"} },
+      { id:"t12_7",  q:"저는 피아노를 배우고 ___. (희망)",    answer:"싶습니다",  answers:["싶습니다","싶습니다."],   hint:{ko:"💡 배우다 + -고 싶습니다", vi:"💡 배우다 + -고 싶습니다 = muốn học", en:"💡 배우다 + -고 싶습니다 = want to learn"} },
+      { id:"t12_8",  q:"누구를 만나고 ___? (의향)",           answer:"싶습니까",  answers:["싶습니까","싶습니까?"],   hint:{ko:"💡 만나다 + -고 싶습니까?", vi:"💡 만나다 + -고 싶습니까? = muốn gặp không?", en:"💡 만나다 + -고 싶습니까? = want to meet?"} },
       // ── 11단원 복습 (8문항) ──
-      { id:"t12_9",  q:"날씨가 좋___으면 좋겠습니다.",        answer:"았",  answers:["았"],  hint:"💡 좋다(아계열) → 았으면" },
-      { id:"t12_10", q:"돈이 많___으면 좋겠습니다.",          answer:"았",  answers:["았"],  hint:"💡 많다(아계열) → 았으면" },
-      { id:"t12_11", q:"걱정이 없___으면 좋겠습니다.",        answer:"었",  answers:["었"],  hint:"💡 없다(어계열) → 었으면" },
-      { id:"t12_12", q:"건강___으면 좋겠습니다.",             answer:"했",  answers:["했"],  hint:"💡 건강하다 → 했으면" },
-      { id:"t12_13", q:"봄이 빨리 왔___으면 좋겠습니다.",     answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 오다 → 왔으면" },
-      { id:"t12_14", q:"일이 잘 됐___으면 좋겠습니다.",       answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 되다 → 됐으면" },
-      { id:"t12_15", q:"시험이 쉬웠___으면 좋겠습니다.",      answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 쉽다 → 쉬웠으면" },
-      { id:"t12_16", q:"모두가 행복했___으면 좋겠습니다.",    answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 행복하다 → 행복했으면" },
+      { id:"t12_9",  q:"날씨가 좋___으면 좋겠습니다.",        answer:"았",  answers:["았"],  hint:{ko:"💡 좋다 + 았으면 좋겠다", vi:"💡 좋다 + 았으면 좋겠다 = giá mà tốt", en:"💡 좋다 + 았으면 좋겠다 = I wish it were good"} },
+      { id:"t12_10", q:"돈이 많___으면 좋겠습니다.",          answer:"았",  answers:["았"],  hint:{ko:"💡 많다 + 았으면 좋겠다", vi:"💡 많다 + 았으면 좋겠다 = giá mà nhiều", en:"💡 많다 + 았으면 좋겠다 = I wish there were more"} },
+      { id:"t12_11", q:"걱정이 없___으면 좋겠습니다.",        answer:"었",  answers:["었"],  hint:{ko:"💡 없다 + 었으면 좋겠다", vi:"💡 없다 + 었으면 좋겠다 = giá mà không có", en:"💡 없다 + 었으면 좋겠다 = I wish there were none"} },
+      { id:"t12_12", q:"건강___으면 좋겠습니다.",             answer:"했",  answers:["했"],  hint:{ko:"💡 건강하다 → 건강했으면 좋겠다", vi:"💡 건강하다 → 건강했으면 좋겠다 = mong được khỏe", en:"💡 건강하다 → 건강했으면 좋겠다 = I hope (you) are healthy"} },
+      { id:"t12_13", q:"봄이 빨리 왔___으면 좋겠습니다.",     answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 오다 → 왔으면 좋겠다", vi:"💡 오다 → 왔으면 좋겠다 = giá mà đến", en:"💡 오다 → 왔으면 좋겠다 = I wish came"} },
+      { id:"t12_14", q:"일이 잘 됐___으면 좋겠습니다.",       answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 되다 → 됐으면 좋겠다", vi:"💡 되다 → 됐으면 좋겠다 = giá mà được", en:"💡 되다 → 됐으면 좋겠다 = I wish it works out"} },
+      { id:"t12_15", q:"시험이 쉬웠___으면 좋겠습니다.",      answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 쉽다 → 쉬웠으면 좋겠다 (ㅂ불규칙)", vi:"💡 쉽다 → 쉬웠으면 좋겠다 (bất quy tắc ㅂ)", en:"💡 쉽다 → 쉬웠으면 좋겠다 (ㅂ irregular)"} },
+      { id:"t12_16", q:"모두가 행복했___으면 좋겠습니다.",    answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 행복하다 → 행복했으면 좋겠다", vi:"💡 행복하다 → 행복했으면 좋겠다 = mong hạnh phúc", en:"💡 행복하다 → 행복했으면 좋겠다 = I wish happiness"} },
       // ── 12단원 신규 (14문항) ──
-      { id:"t12_17", q:"저는 오늘 밥을 ___ 먹습니다. (의지 부정)", answer:"안",         answers:["안"],                       hint:"💡 안 + 동사 = 의지로 안 함" },
-      { id:"t12_18", q:"저는 수영을 ___ 합니다. (능력 부정)",       answer:"못",         answers:["못"],                       hint:"💡 못 + 동사 = 능력이 없어서" },
-      { id:"t12_19", q:"저는 고기를 먹지 ___. (정중 부정)",          answer:"않습니다",   answers:["않습니다","않습니다."],      hint:"💡 -지 않다 → 않습니다" },
-      { id:"t12_20", q:"저는 운전을 하지 ___. (능력 부정·정중)",     answer:"못합니다",   answers:["못합니다","못합니다."],      hint:"💡 -지 못하다 → 못합니다" },
-      { id:"t12_21", q:"여기서 사진을 찍지 ___. (금지)",             answer:"마세요",     answers:["마세요","마세요."],          hint:"💡 -지 마세요 = 금지" },
-      { id:"t12_22", q:"교실에서 떠들지 ___. (함께 금지)",           answer:"맙시다",     answers:["맙시다","맙시다."],          hint:"💡 -지 맙시다 = 함께 하지 말자" },
-      { id:"t12_23", q:"저는 커피를 ___ 마십니다. (의지 부정)",      answer:"안",         answers:["안"],                       hint:"💡 안 + 동사" },
-      { id:"t12_24", q:"저는 야채를 먹지 ___. (정중 부정)",          answer:"않습니다",   answers:["않습니다","않습니다."],      hint:"💡 -지 않다 → 않습니다" },
-      { id:"t12_25", q:"저는 한국어를 ___ 합니다. (능력 부정)",      answer:"못",         answers:["못"],                       hint:"💡 못 + 동사" },
-      { id:"t12_26", q:"수업 중에 전화를 받지 ___. (정중 부정)",     answer:"않습니다",   answers:["않습니다","않습니다."],      hint:"💡 -지 않다 → 않습니다" },
-      { id:"t12_27", q:"늦게 일어나지 ___. (금지 명령)",             answer:"마세요",     answers:["마세요","마세요."],          hint:"💡 -지 마세요" },
-      { id:"t12_28", q:"길에서 달리지 ___. (함께 금지)",             answer:"맙시다",     answers:["맙시다","맙시다."],          hint:"💡 -지 맙시다" },
-      { id:"t12_29", q:"저는 매운 음식을 먹지 ___. (능력 부정)",     answer:"못합니다",   answers:["못합니다","못합니다."],      hint:"💡 -지 못하다 → 못합니다" },
-      { id:"t12_30", q:"수업 시간에 핸드폰을 보지 ___. (금지)",      answer:"마세요",     answers:["마세요","마세요."],          hint:"💡 -지 마세요" },
+      { id:"t12_17", q:"저는 오늘 밥을 ___ 먹습니다. (의지 부정)", answer:"안",         answers:["안"],                       hint:{ko:"💡 안 + 동사 = 의지 부정", vi:"💡 안 + động từ = cố ý không làm", en:"💡 안 + verb = volitional negation"} },
+      { id:"t12_18", q:"저는 수영을 ___ 합니다. (능력 부정)",       answer:"못",         answers:["못"],                       hint:{ko:"💡 못 + 동사 = 능력이 없어서", vi:"💡 못 + động từ = vì không có khả năng", en:"💡 못 + verb = because unable to"} },
+      { id:"t12_19", q:"저는 고기를 먹지 ___. (정중 부정)",          answer:"않습니다",   answers:["않습니다","않습니다."],      hint:{ko:"💡 -지 않습니다 (정중 부정)", vi:"💡 -지 않습니다 = không làm (lịch sự)", en:"💡 -지 않습니다 = do not (polite)"} },
+      { id:"t12_20", q:"저는 운전을 하지 ___. (능력 부정·정중)",     answer:"못합니다",   answers:["못합니다","못합니다."],      hint:{ko:"💡 -지 못합니다 (정중 능력 부정)", vi:"💡 -지 못합니다 = không thể làm", en:"💡 -지 못합니다 = unable to (polite)"} },
+      { id:"t12_21", q:"여기서 사진을 찍지 ___. (금지)",             answer:"마세요",     answers:["마세요","마세요."],          hint:{ko:"💡 -지 마세요 = 금지 명령", vi:"💡 -지 마세요 = đừng/cấm", en:"💡 -지 마세요 = don't (prohibition)"} },
+      { id:"t12_22", q:"교실에서 떠들지 ___. (함께 금지)",           answer:"맙시다",     answers:["맙시다","맙시다."],          hint:{ko:"💡 -지 맙시다 = 공동 금지 청유", vi:"💡 -지 맙시다 = cùng nhau đừng làm", en:"💡 -지 맙시다 = let's refrain together"} },
+      { id:"t12_23", q:"저는 커피를 ___ 마십니다. (의지 부정)",      answer:"안",         answers:["안"],                       hint:{ko:"💡 안 + 동사 = 의지로 안 함", vi:"💡 안 + động từ = chủ động không làm", en:"💡 안 + verb = intentionally not doing"} },
+      { id:"t12_24", q:"저는 야채를 먹지 ___. (정중 부정)",          answer:"않습니다",   answers:["않습니다","않습니다."],      hint:{ko:"💡 -지 않습니다 (정중 부정)", vi:"💡 -지 않습니다 = không làm (lịch sự)", en:"💡 -지 않습니다 = do not (polite)"} },
+      { id:"t12_25", q:"저는 한국어를 ___ 합니다. (능력 부정)",      answer:"못",         answers:["못"],                       hint:{ko:"💡 못 + 동사 = 능력 부정", vi:"💡 못 + động từ = không có khả năng", en:"💡 못 + verb = inability"} },
+      { id:"t12_26", q:"수업 중에 전화를 받지 ___. (정중 부정)",     answer:"않습니다",   answers:["않습니다","않습니다."],      hint:{ko:"💡 -지 않습니다 (정중 부정)", vi:"💡 -지 않습니다 = không làm (lịch sự)", en:"💡 -지 않습니다 = do not (polite)"} },
+      { id:"t12_27", q:"늦게 일어나지 ___. (금지 명령)",             answer:"마세요",     answers:["마세요","마세요."],          hint:{ko:"💡 -지 마세요 = 직접 금지 명령", vi:"💡 -지 마세요 = đừng làm (cấm trực tiếp)", en:"💡 -지 마세요 = please don't (direct prohibition)"} },
+      { id:"t12_28", q:"길에서 달리지 ___. (함께 금지)",             answer:"맙시다",     answers:["맙시다","맙시다."],          hint:{ko:"💡 -지 맙시다 = 함께 하지 말자", vi:"💡 -지 맙시다 = hãy cùng đừng làm", en:"💡 -지 맙시다 = let's not do it together"} },
+      { id:"t12_29", q:"저는 매운 음식을 먹지 ___. (능력 부정)",     answer:"못합니다",   answers:["못합니다","못합니다."],      hint:{ko:"💡 -지 못합니다 (정중 능력 부정)", vi:"💡 -지 못합니다 = không thể làm", en:"💡 -지 못합니다 = unable to (polite)"} },
+      { id:"t12_30", q:"수업 시간에 핸드폰을 보지 ___. (금지)",      answer:"마세요",     answers:["마세요","마세요."],          hint:{ko:"💡 -지 마세요 = 직접 금지 명령", vi:"💡 -지 마세요 = đừng làm (cấm trực tiếp)", en:"💡 -지 마세요 = please don't (direct prohibition)"} },
     ];;
     function gradeTest12() {
       let ok=0;
@@ -9205,7 +9163,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
               <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
               <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."} style={{width:"100%", border:"2px solid #EF9A9A", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest12} style={{width:"100%", background:`linear-gradient(135deg,#B71C1C,#7F0000)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
@@ -9219,12 +9177,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   if (step === "unit13") {
     const vi = lang?.code === "vi"; const en = lang?.code === "en";
     const UNIT13_CARDS = [
-      { front:"여기서 사진을 찍어도 ___? (허락 질문)", blank:"됩니까", full:"여기서 사진을 찍어도 됩니까?", hint:"💡 -아/어도 됩니까? = ~해도 괜찮습니까?" },
-      { front:"네, 찍어도 ___. (허락)", blank:"됩니다", full:"네, 찍어도 됩니다.", hint:"💡 -아/어도 됩니다 = 허락할 때" },
-      { front:"아니요, 찍으면 ___ ___. (금지)", blank:"안 됩니다", full:"아니요, 찍으면 안 됩니다.", hint:"💡 -(으)면 안 됩니다 = 금지할 때" },
-      { front:"여기서 사진을 찍지 ___. (명령 금지)", blank:"마세요", full:"여기서 사진을 찍지 마세요.", hint:"💡 -지 마세요 = 직접 금지 명령" },
-      { front:"조용히 해야 ___. (의무)", blank:"합니다", full:"조용히 해야 합니다.", hint:"💡 -아/어야 합니다 = 꼭 해야 함" },
-      { front:"예약하지 않아도 ___. (면제)", blank:"됩니다", full:"예약하지 않아도 됩니다.", hint:"💡 -지 않아도 됩니다 = 안 해도 괜찮습니다" },
+      { front:"여기서 사진을 찍어도 ___? (허락 질문)", blank:"됩니까", full:"여기서 사진을 찍어도 됩니까?", hint:{ko:"💡 -아/어도 됩니까? = 해도 괜찮아요?", vi:"💡 -아/어도 됩니까? = có được phép không?", en:"💡 -아/어도 됩니까? = is it okay to?"} },
+      { front:"네, 찍어도 ___. (허락)", blank:"됩니다", full:"네, 찍어도 됩니다.", hint:{ko:"💡 -아/어도 됩니다 = 허락 표현", vi:"💡 -아/어도 됩니다 = cho phép", en:"💡 -아/어도 됩니다 = granting permission"} },
+      { front:"아니요, 찍으면 ___ ___. (금지)", blank:"안 됩니다", full:"아니요, 찍으면 안 됩니다.", hint:{ko:"💡 -(으)면 안 됩니다 = 금지 표현", vi:"💡 -(으)면 안 됩니다 = cấm", en:"💡 -(으)면 안 됩니다 = prohibition"} },
+      { front:"여기서 사진을 찍지 ___. (명령 금지)", blank:"마세요", full:"여기서 사진을 찍지 마세요.", hint:{ko:"💡 -지 마세요 = 직접 금지", vi:"💡 -지 마세요 = cấm trực tiếp", en:"💡 -지 마세요 = direct prohibition"} },
+      { front:"조용히 해야 ___. (의무)", blank:"합니다", full:"조용히 해야 합니다.", hint:{ko:"💡 -아/어야 합니다 = 꼭 해야 함 (의무)", vi:"💡 -아/어야 합니다 = nhất định phải làm", en:"💡 -아/어야 합니다 = must do (obligation)"} },
+      { front:"예약하지 않아도 ___. (면제)", blank:"됩니다", full:"예약하지 않아도 됩니다.", hint:{ko:"💡 -지 않아도 됩니다 = 면제 표현", vi:"💡 -지 않아도 됩니다 = không cần, được rồi", en:"💡 -지 않아도 됩니다 = it's okay not to"} },
       {
         front: "들어___ 됩니까? (허락 요청)",
         blank: "와도",
@@ -9427,7 +9385,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:900, color:"#333", marginBottom:12, lineHeight:1.5}}>{card.front}</div>
             <input type="text" value={unitCardInput} onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} readOnly={unitCardRevealed} placeholder="..." style={{width:"100%", border:`2px solid ${unitCardRevealed?(unitCardInput.trim()===card.blank||unitCardInput.trim()===card.full?"#2E7D32":"#C62828"):C13.border}`, borderRadius:10, padding:"10px 14px", fontSize:15, fontWeight:700, outline:"none", boxSizing:"border-box", color:unitCardRevealed?(unitCardInput.trim()===card.blank||unitCardInput.trim()===card.full?"#2E7D32":"#C62828"):"#333"}} />
             {unitCardRevealed && <div style={{marginTop:10, fontSize:13, color:C13.accent, fontWeight:800}}>✅ {card.full}</div>}
-            <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:8}}>{card.hint}</div>
+            <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:8}}>{typeof card.hint === "object" ? (lang?.code==="vi"?card.hint.vi:lang?.code==="en"?card.hint.en:card.hint.ko) : card.hint}</div>
             {!unitCardRevealed && <button onClick={()=>setUnitCardRevealed(true)} style={{width:"100%", marginTop:12, background:`linear-gradient(135deg,${C13.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"11px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>{vi?"Xem đáp án 👀":en?"Show answer 👀":"정답 보기 👀"}</button>}
           </div>
           <div style={{display:"flex", gap:8}}>
@@ -9448,38 +9406,38 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // 포함 단원: 11·12·13단원 (10단원 졸업 — 3회 졸업 규칙 적용)
     const TEST13_Q = [
       // ── 11단원 복습 (8문항) ──
-      { id:"t13_1",  q:"날씨가 좋___으면 좋겠습니다.",        answer:"았",  answers:["았"],  hint:"💡 좋다(아계열) → 았으면" },
-      { id:"t13_2",  q:"돈이 많___으면 좋겠습니다.",          answer:"았",  answers:["았"],  hint:"💡 많다(아계열) → 았으면" },
-      { id:"t13_3",  q:"걱정이 없___으면 좋겠습니다.",        answer:"었",  answers:["었"],  hint:"💡 없다(어계열) → 었으면" },
-      { id:"t13_4",  q:"건강___으면 좋겠습니다.",             answer:"했",  answers:["했"],  hint:"💡 건강하다 → 했으면" },
-      { id:"t13_5",  q:"봄이 빨리 왔___으면 좋겠습니다.",     answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 오다 → 왔으면" },
-      { id:"t13_6",  q:"일이 잘 됐___으면 좋겠습니다.",       answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 되다 → 됐으면" },
-      { id:"t13_7",  q:"시험이 쉬웠___으면 좋겠습니다.",      answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 쉽다 → 쉬웠으면" },
-      { id:"t13_8",  q:"모두가 행복했___으면 좋겠습니다.",    answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:"💡 행복하다 → 행복했으면" },
+      { id:"t13_1",  q:"날씨가 좋___으면 좋겠습니다.",        answer:"았",  answers:["았"],  hint:{ko:"💡 좋다 + 았으면 좋겠다", vi:"💡 좋다 + 았으면 좋겠다 = giá mà tốt", en:"💡 좋다 + 았으면 좋겠다 = I wish it were good"} },
+      { id:"t13_2",  q:"돈이 많___으면 좋겠습니다.",          answer:"았",  answers:["았"],  hint:{ko:"💡 많다 + 았으면 좋겠다", vi:"💡 많다 + 았으면 좋겠다 = giá mà nhiều", en:"💡 많다 + 았으면 좋겠다 = I wish there were more"} },
+      { id:"t13_3",  q:"걱정이 없___으면 좋겠습니다.",        answer:"었",  answers:["었"],  hint:{ko:"💡 없다 + 었으면 좋겠다", vi:"💡 없다 + 었으면 좋겠다 = giá mà không có", en:"💡 없다 + 었으면 좋겠다 = I wish there were none"} },
+      { id:"t13_4",  q:"건강___으면 좋겠습니다.",             answer:"했",  answers:["했"],  hint:{ko:"💡 건강하다 → 건강했으면 좋겠다", vi:"💡 건강하다 → 건강했으면 좋겠다 = mong được khỏe", en:"💡 건강하다 → 건강했으면 좋겠다 = I hope (you) are healthy"} },
+      { id:"t13_5",  q:"봄이 빨리 왔___으면 좋겠습니다.",     answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 오다 → 왔으면 좋겠다", vi:"💡 오다 → 왔으면 좋겠다 = giá mà đến", en:"💡 오다 → 왔으면 좋겠다 = I wish came"} },
+      { id:"t13_6",  q:"일이 잘 됐___으면 좋겠습니다.",       answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 되다 → 됐으면 좋겠다", vi:"💡 되다 → 됐으면 좋겠다 = giá mà được", en:"💡 되다 → 됐으면 좋겠다 = I wish it works out"} },
+      { id:"t13_7",  q:"시험이 쉬웠___으면 좋겠습니다.",      answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 쉽다 → 쉬웠으면 좋겠다 (ㅂ불규칙)", vi:"💡 쉽다 → 쉬웠으면 좋겠다 (bất quy tắc ㅂ)", en:"💡 쉽다 → 쉬웠으면 좋겠다 (ㅂ irregular)"} },
+      { id:"t13_8",  q:"모두가 행복했___으면 좋겠습니다.",    answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 행복하다 → 행복했으면 좋겠다", vi:"💡 행복하다 → 행복했으면 좋겠다 = mong hạnh phúc", en:"💡 행복하다 → 행복했으면 좋겠다 = I wish happiness"} },
       // ── 12단원 복습 (8문항) ──
-      { id:"t13_9",  q:"저는 오늘 밥을 ___ 먹습니다. (의지)", answer:"안",        answers:["안"],                   hint:"💡 안 + 동사" },
-      { id:"t13_10", q:"저는 수영을 ___ 합니다. (능력)",      answer:"못",        answers:["못"],                   hint:"💡 못 + 동사" },
-      { id:"t13_11", q:"저는 고기를 먹지 ___. (정중 부정)",   answer:"않습니다",  answers:["않습니다","않습니다."], hint:"💡 -지 않다 → 않습니다" },
-      { id:"t13_12", q:"저는 운전을 하지 ___. (능력 부정)",   answer:"못합니다",  answers:["못합니다","못합니다."], hint:"💡 -지 못하다 → 못합니다" },
-      { id:"t13_13", q:"여기서 사진을 찍지 ___. (금지)",      answer:"마세요",    answers:["마세요","마세요."],     hint:"💡 -지 마세요 = 금지" },
-      { id:"t13_14", q:"교실에서 떠들지 ___. (함께 금지)",    answer:"맙시다",    answers:["맙시다","맙시다."],     hint:"💡 -지 맙시다" },
-      { id:"t13_15", q:"수업 중에 전화를 받지 ___. (부정)",   answer:"않습니다",  answers:["않습니다","않습니다."], hint:"💡 -지 않다 → 않습니다" },
-      { id:"t13_16", q:"수업 시간에 핸드폰을 보지 ___. (금지)",answer:"마세요",   answers:["마세요","마세요."],     hint:"💡 -지 마세요" },
+      { id:"t13_9",  q:"저는 오늘 밥을 ___ 먹습니다. (의지)", answer:"안",        answers:["안"],                   hint:{ko:"💡 안 + 동사 = 의지로 안 함", vi:"💡 안 + động từ = chủ động không làm", en:"💡 안 + verb = intentionally not doing"} },
+      { id:"t13_10", q:"저는 수영을 ___ 합니다. (능력)",      answer:"못",        answers:["못"],                   hint:{ko:"💡 못 + 동사 = 능력 부정", vi:"💡 못 + động từ = không có khả năng", en:"💡 못 + verb = inability"} },
+      { id:"t13_11", q:"저는 고기를 먹지 ___. (정중 부정)",   answer:"않습니다",  answers:["않습니다","않습니다."], hint:{ko:"💡 -지 않습니다 (정중 부정)", vi:"💡 -지 않습니다 = không làm (lịch sự)", en:"💡 -지 않습니다 = do not (polite)"} },
+      { id:"t13_12", q:"저는 운전을 하지 ___. (능력 부정)",   answer:"못합니다",  answers:["못합니다","못합니다."], hint:{ko:"💡 -지 못합니다 (정중 능력 부정)", vi:"💡 -지 못합니다 = không thể làm", en:"💡 -지 못합니다 = unable to (polite)"} },
+      { id:"t13_13", q:"여기서 사진을 찍지 ___. (금지)",      answer:"마세요",    answers:["마세요","마세요."],     hint:{ko:"💡 -지 마세요 = 금지 명령", vi:"💡 -지 마세요 = đừng/cấm", en:"💡 -지 마세요 = don't (prohibition)"} },
+      { id:"t13_14", q:"교실에서 떠들지 ___. (함께 금지)",    answer:"맙시다",    answers:["맙시다","맙시다."],     hint:{ko:"💡 -지 맙시다 = 함께 하지 말자", vi:"💡 -지 맙시다 = hãy cùng đừng làm", en:"💡 -지 맙시다 = let's not do it together"} },
+      { id:"t13_15", q:"수업 중에 전화를 받지 ___. (부정)",   answer:"않습니다",  answers:["않습니다","않습니다."], hint:{ko:"💡 -지 않습니다 (정중 부정)", vi:"💡 -지 않습니다 = không làm (lịch sự)", en:"💡 -지 않습니다 = do not (polite)"} },
+      { id:"t13_16", q:"수업 시간에 핸드폰을 보지 ___. (금지)",answer:"마세요",   answers:["마세요","마세요."],     hint:{ko:"💡 -지 마세요 = 직접 금지 명령", vi:"💡 -지 마세요 = đừng làm (cấm trực tiếp)", en:"💡 -지 마세요 = please don't (direct prohibition)"} },
       // ── 13단원 신규 (14문항) ──
-      { id:"t13_17", q:"여기서 사진을 찍어도 ___? (허락 질문)", answer:"됩니까",    answers:["됩니까","됩니까?"],     hint:"💡 -아/어도 됩니까?" },
-      { id:"t13_18", q:"네, 찍어도 ___. (허락)",                answer:"됩니다",    answers:["됩니다","됩니다."],     hint:"💡 -아/어도 됩니다" },
-      { id:"t13_19", q:"아니요, 찍으면 ___ ___. (금지)",        answer:"안 됩니다", answers:["안 됩니다","안 됩니다."],hint:"💡 -(으)면 안 됩니다" },
-      { id:"t13_20", q:"여기서 사진을 찍지 ___. (명령 금지)",   answer:"마세요",    answers:["마세요","마세요."],     hint:"💡 -지 마세요 (세요 유지)" },
-      { id:"t13_21", q:"조용히 해야 ___. (의무)",               answer:"합니다",    answers:["합니다","합니다."],     hint:"💡 -아/어야 합니다" },
-      { id:"t13_22", q:"예약하지 않아도 ___. (면제)",           answer:"됩니다",    answers:["됩니다","됩니다."],     hint:"💡 -지 않아도 됩니다" },
-      { id:"t13_23", q:"수업 중에 자도 ___? (허락 질문)",       answer:"됩니까",    answers:["됩니까","됩니까?"],     hint:"💡 -아/어도 됩니까?" },
-      { id:"t13_24", q:"아니요, 자면 ___ ___. (금지)",          answer:"안 됩니다", answers:["안 됩니다","안 됩니다."],hint:"💡 -(으)면 안 됩니다" },
-      { id:"t13_25", q:"숙제를 해야 ___. (의무)",               answer:"합니다",    answers:["합니다","합니다."],     hint:"💡 -아/어야 합니다" },
-      { id:"t13_26", q:"준비하지 않아도 ___. (면제)",           answer:"됩니다",    answers:["됩니다","됩니다."],     hint:"💡 -지 않아도 됩니다" },
-      { id:"t13_27", q:"여기서 음식을 먹어도 ___? (허락)",      answer:"됩니까",    answers:["됩니까","됩니까?"],     hint:"💡 -아/어도 됩니까?" },
-      { id:"t13_28", q:"아니요, 먹으면 ___ ___. (금지)",        answer:"안 됩니다", answers:["안 됩니다","안 됩니다."],hint:"💡 -(으)면 안 됩니다" },
-      { id:"t13_29", q:"매일 운동해야 ___. (의무)",             answer:"합니다",    answers:["합니다","합니다."],     hint:"💡 -아/어야 합니다" },
-      { id:"t13_30", q:"걱정하지 않아도 ___. (면제)",           answer:"됩니다",    answers:["됩니다","됩니다."],     hint:"💡 -지 않아도 됩니다" },
+      { id:"t13_17", q:"여기서 사진을 찍어도 ___? (허락 질문)", answer:"됩니까",    answers:["됩니까","됩니까?"],     hint:{ko:"💡 -아/어도 됩니까? = 허락 요청", vi:"💡 -아/어도 됩니까? = xin phép", en:"💡 -아/어도 됩니까? = may I? (asking permission)"} },
+      { id:"t13_18", q:"네, 찍어도 ___. (허락)",                answer:"됩니다",    answers:["됩니다","됩니다."],     hint:{ko:"💡 -아/어도 됩니다 = 허락", vi:"💡 -아/어도 됩니다 = được phép", en:"💡 -아/어도 됩니다 = you may / it's okay"} },
+      { id:"t13_19", q:"아니요, 찍으면 ___ ___. (금지)",        answer:"안 됩니다", answers:["안 됩니다","안 됩니다."],hint:{ko:"💡 -(으)면 안 됩니다 = 금지", vi:"💡 -(으)면 안 됩니다 = không được phép", en:"💡 -(으)면 안 됩니다 = must not / not allowed"} },
+      { id:"t13_20", q:"여기서 사진을 찍지 ___. (명령 금지)",   answer:"마세요",    answers:["마세요","마세요."],     hint:{ko:"💡 -지 마세요 (마 + 세요)", vi:"💡 -지 마세요 = đừng (kính ngữ)", en:"💡 -지 마세요 = please don't (polite)"} },
+      { id:"t13_21", q:"조용히 해야 ___. (의무)",               answer:"합니다",    answers:["합니다","합니다."],     hint:{ko:"💡 -아/어야 합니다 = 의무", vi:"💡 -아/어야 합니다 = phải làm (bắt buộc)", en:"💡 -아/어야 합니다 = must / have to"} },
+      { id:"t13_22", q:"예약하지 않아도 ___. (면제)",           answer:"됩니다",    answers:["됩니다","됩니다."],     hint:{ko:"💡 -지 않아도 됩니다 = 면제", vi:"💡 -지 않아도 됩니다 = không cần làm", en:"💡 -지 않아도 됩니다 = don't have to"} },
+      { id:"t13_23", q:"수업 중에 자도 ___? (허락 질문)",       answer:"됩니까",    answers:["됩니까","됩니까?"],     hint:{ko:"💡 -아/어도 됩니까? = 허락 요청", vi:"💡 -아/어도 됩니까? = xin phép", en:"💡 -아/어도 됩니까? = may I? (asking permission)"} },
+      { id:"t13_24", q:"아니요, 자면 ___ ___. (금지)",          answer:"안 됩니다", answers:["안 됩니다","안 됩니다."],hint:{ko:"💡 -(으)면 안 됩니다 = 금지", vi:"💡 -(으)면 안 됩니다 = không được phép", en:"💡 -(으)면 안 됩니다 = must not / not allowed"} },
+      { id:"t13_25", q:"숙제를 해야 ___. (의무)",               answer:"합니다",    answers:["합니다","합니다."],     hint:{ko:"💡 -아/어야 합니다 = 의무", vi:"💡 -아/어야 합니다 = phải làm (bắt buộc)", en:"💡 -아/어야 합니다 = must / have to"} },
+      { id:"t13_26", q:"준비하지 않아도 ___. (면제)",           answer:"됩니다",    answers:["됩니다","됩니다."],     hint:{ko:"💡 -지 않아도 됩니다 = 면제", vi:"💡 -지 않아도 됩니다 = không cần làm", en:"💡 -지 않아도 됩니다 = don't have to"} },
+      { id:"t13_27", q:"여기서 음식을 먹어도 ___? (허락)",      answer:"됩니까",    answers:["됩니까","됩니까?"],     hint:{ko:"💡 -아/어도 됩니까? = 허락 요청", vi:"💡 -아/어도 됩니까? = xin phép", en:"💡 -아/어도 됩니까? = may I? (asking permission)"} },
+      { id:"t13_28", q:"아니요, 먹으면 ___ ___. (금지)",        answer:"안 됩니다", answers:["안 됩니다","안 됩니다."],hint:{ko:"💡 -(으)면 안 됩니다 = 금지", vi:"💡 -(으)면 안 됩니다 = không được phép", en:"💡 -(으)면 안 됩니다 = must not / not allowed"} },
+      { id:"t13_29", q:"매일 운동해야 ___. (의무)",             answer:"합니다",    answers:["합니다","합니다."],     hint:{ko:"💡 -아/어야 합니다 = 의무", vi:"💡 -아/어야 합니다 = phải làm (bắt buộc)", en:"💡 -아/어야 합니다 = must / have to"} },
+      { id:"t13_30", q:"걱정하지 않아도 ___. (면제)",           answer:"됩니다",    answers:["됩니다","됩니다."],     hint:{ko:"💡 -지 않아도 됩니다 = 면제", vi:"💡 -지 않아도 됩니다 = không cần làm", en:"💡 -지 않아도 됩니다 = don't have to"} },
     ];;
     function gradeTest13() {
       let ok=0;
@@ -9510,7 +9468,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
               <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
               <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."} style={{width:"100%", border:"2px solid #80DEEA", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest13} style={{width:"100%", background:`linear-gradient(135deg,#00838F,#004D40)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
