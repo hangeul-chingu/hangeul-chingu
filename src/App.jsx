@@ -8268,7 +8268,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         blank: "하지만",
         blanks: ["하지만","그러나","그렇지만"],
         full: "저는 한국 음식을 좋아합니다. 하지만 매운 건 못 먹습니다.",
-        hint: vi?"Yêu thích nhưng không ăn được → cảm giác đối lập?":en?"Like it but can't eat it → contrast word?":"좋아하지만 못 먹어요: 좋다 ↔ 못 먹다, 이럴 때 → ___",
+        hint: vi?"Yêu thích nhưng không ăn được → cảm giác đối lập?":en?"Like it but can't eat it → contrast word?":"좋아하지만 못 먹습니다: 좋다 ↔ 못 먹다, 이럴 때 → ___",
       },
       {
         front: "시간이 있습니다. ___ 같이 갑시다.",
@@ -8280,7 +8280,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         front: "비쌉니다. ___ 살 겁니다.",
         blank: "그래도",
         full: "비쌉니다. 그래도 살 겁니다.",
-        hint: vi?"Dù đắt vẫn mua → vẫn cứ làm → ___?":en?"Expensive but buying anyway → which word?":"비싸도 포기 안 해요: 불구하고 계속할 때 → ___",
+        hint: vi?"Dù đắt vẫn mua → vẫn cứ làm → ___?":en?"Expensive but buying anyway → which word?":"비싸도 포기 안 합니다: 불구하고 계속할 때 → ___",
       },
       {
         front: "커피입니까, ___ 차입니까?",
@@ -8420,13 +8420,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         front: "값이 비싸___ 좋습니다.",
         blank: "지만",
         full: "값이 비싸지만 좋습니다.",
-        hint: vi?"비싸다 + ___ (đối lập trong câu)":en?"비싸다 + ___ (contrast within sentence)":"비싸다 ↔ 좋아요: 한 문장 안에서 반대 → ___",
+        hint: vi?"비싸다 + ___ (đối lập trong câu)":en?"비싸다 + ___ (contrast within sentence)":"비싸다 ↔ 좋습니다: 한 문장 안에서 반대 → ___",
       },
       {
         front: "배가 고파___ 밥을 먹습니다.",
         blank: "서",
         full: "배가 고파서 밥을 먹습니다.",
-        hint: vi?"배가 고프다 → 왜 밥 먹어요? (nguyên nhân)":en?"Hungry → why eat? (reason)":"배가 고파서 먹어요: 이유를 말할 때 어미는 → ___",
+        hint: vi?"배가 고프다 → 왜 밥 먹습니까? (nguyên nhân)":en?"Hungry → why eat? (reason)":"배가 고파서 먹습니다: 이유를 말할 때 어미는 → ___",
       },
       {
         front: "저는 노래를 좋아하___ 춤도 좋아합니다.",
@@ -8692,7 +8692,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         front: "시간이 있___ 옵니다.",
         blank: "으면",
         full: "시간이 있으면 옵니다.",
-        hint: vi?"Nếu có thời gian thì... → điều kiện → ___?":en?"If there's time → condition ending → ___?":"시간이 있다면 올 거예요: 조건(if)을 붙일 때, 받침 있으면 → ___?",
+        hint: vi?"Nếu có thời gian thì... → điều kiện → ___?":en?"If there's time → condition ending → ___?":"시간이 있다면 옵니다: 조건(if)을 붙일 때, 받침 있으면 → ___?",
       },
       {
         front: "날씨가 좋___ 공원에 갑니다.",
@@ -8965,15 +8965,15 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         base: "먹다",
         blank: "먹고 있습니다",
         full: "지금 밥 먹고 있습니다.",
-        hint: vi?"먹다 + ___ + 있어요 → 지금 하는 중":en?"먹다 + ___ + 있어요 → action in progress":"동사 원형 + ___ + 있어요 → 지금 하는 중",
-        rule: vi?"동사 기본형 + 고 있어요 = 지금 ~하는 중":en?"Verb stem + 고 있어요 = currently doing ~":"동사 원형 + 고 있어요 = 지금 ~하는 중이에요",
+        hint: vi?"먹다 + ___ + 있습니다 → 지금 하는 중":en?"먹다 + ___ + 있습니다 → action in progress":"동사 원형 + ___ + 있습니다 → 지금 하는 중",
+        rule: vi?"동사 기본형 + 고 있습니다 = 지금 ~하는 중":en?"Verb stem + 고 있습니다 = currently doing ~":"동사 원형 + 고 있어요 = 지금 ~하는 중이에요",
       },
       {
         front: "친구가 전화___.",
         base: "하다 / 걸다",
         blank: "하고 있습니다",
         alts: ["걸고 있어요"],
-        full: "친구가 전화하고 있어요. / 전화 걸고 있어요.",
+        full: "친구가 전화하고 있습니다. / 전화 걸고 있습니다.",
         hint: vi?"하다 + ___ + 있어요 → 지금 진행 중":en?"하다 + ___ → ongoing right now":"하다 → 하+고 있어요 → ___?",
         rule: vi?"하다 → 하+고 있어요":en?"하다 → 하+고 있어요":"하다 → 하+고 있어요",
       },
@@ -9499,7 +9499,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             📚 {vi?"Bài 9 — Có thể / Không thể (-(으)ㄹ 수 있다/없다)":en?"Unit 9 — Can / Cannot (-(으)ㄹ 수 있다/없다)":"9단원 — 능력·가능 (-(으)ㄹ 수 있다/없다)"}
           </div>
           <div style={{fontSize:12, color:"#555", background:"#F3E5F5", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
-            {vi ? <>📌 동사 + <b>(으)ㄹ 수 있다</b> = có thể làm<br/>동사 + <b>(으)ㄹ 수 없다</b> = không thể làm<br/>받침 있음 → <b>을 수</b> / 없음 → <b>ㄹ 수</b></> : en ? <>📌 Verb + <b>(으)ㄹ 수 있다</b> = can do<br/>Verb + <b>(으)ㄹ 수 없다</b> = cannot do<br/>With batchim → <b>을 수</b> / Without → <b>ㄹ 수</b></> : <>📌 동사 + <b>(으)ㄹ 수 있다</b> = ~할 수 있어요<br/>동사 + <b>(으)ㄹ 수 없다</b> = ~할 수 없어요<br/>받침 있음 → <b>을 수</b> / 없음 → <b>ㄹ 수</b></>}
+            {vi ? <>📌 동사 + <b>(으)ㄹ 수 있다</b> = có thể làm<br/>동사 + <b>(으)ㄹ 수 없다</b> = không thể làm<br/>받침 있음 → <b>을 수</b> / 없음 → <b>ㄹ 수</b></> : en ? <>📌 Verb + <b>(으)ㄹ 수 있다</b> = can do<br/>Verb + <b>(으)ㄹ 수 없다</b> = cannot do<br/>With batchim → <b>을 수</b> / Without → <b>ㄹ 수</b></> : <>📌 동사 + <b>(으)ㄹ 수 있다</b> = ~할 수 있습니다<br/>동사 + <b>(으)ㄹ 수 없다</b> = ~할 수 없습니다<br/>받침 있음 → <b>을 수</b> / 없음 → <b>ㄹ 수</b></>}
           </div>
           <div style={{display:"flex", gap:3, marginBottom:16}}>
             {UNIT9_CARDS.map((_,i) => <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=unitCardIdx?C.accent:"#ddd"}} />)}
@@ -9664,7 +9664,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             📚 {vi?"Bài 10 — Mong muốn (-고 싶다)":en?"Unit 10 — Want to (-고 싶다)":"10단원 — 희망1 (-고 싶다)"}
           </div>
           <div style={{fontSize:12, color:"#555", background:"#FFF8E1", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
-            {vi ? <>📌 동사 + <b>-고 싶다</b> = muốn làm gì đó<br/>예: 가다 → 가<b>고 싶어요</b> (muốn đi)</> : en ? <>📌 Verb + <b>-고 싶다</b> = want to do something<br/>e.g. 가다 → 가<b>고 싶어요</b> (want to go)</> : <>📌 동사 + <b>-고 싶다</b> = ~하고 싶어요<br/>예: 가다 → 가<b>고 싶어요</b> (가고 싶음)</>}
+            {vi ? <>📌 동사 + <b>-고 싶다</b> = muốn làm gì đó<br/>예: 가다 → 가<b>고 싶습니다</b> (muốn đi)</> : en ? <>📌 Verb + <b>-고 싶다</b> = want to do something<br/>e.g. 가다 → 가<b>고 싶습니다</b> (want to go)</> : <>📌 동사 + <b>-고 싶다</b> = ~하고 싶어요<br/>예: 가다 → 가<b>고 싶습니다</b> (가고 싶음)</>}
           </div>
           <div style={{display:"flex", gap:3, marginBottom:16}}>
             {UNIT10_CARDS.map((_,i) => <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=unitCardIdx?C.accent:"#ddd"}} />)}
@@ -10299,9 +10299,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             📚 {vi?"Bài 13 — Cho phép · Cấm · Nghĩa vụ · Miễn trừ":en?"Unit 13 — Permission · Prohibition · Obligation · Exemption":"13단원 — 허락·금지·의무·면제"}
           </div>
           <div style={{fontSize:12, color:"#555", background:"#E0F7FA", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.8}}>
-            {vi ? <>📌 <b>-아/어도 돼요?</b>: hỏi cho phép<br/><b>-(으)면 안 돼요</b>: cấm<br/><b>-아/어야 해요</b>: bắt buộc<br/><b>-지 않아도 돼요</b>: miễn trừ</>
-              : en ? <>📌 <b>-아/어도 돼요?</b>: asking permission<br/><b>-(으)면 안 돼요</b>: prohibition<br/><b>-아/어야 해요</b>: obligation<br/><b>-지 않아도 돼요</b>: exemption</>
-              : <>📌 <b>-아/어도 돼요?</b>: 허락 질문<br/><b>-(으)면 안 돼요</b>: 금지<br/><b>-아/어야 해요</b>: 의무<br/><b>-지 않아도 돼요</b>: 면제</>}
+            {vi ? <>📌 <b>-아/어도 됩니까?</b>: hỏi cho phép<br/><b>-(으)면 안 됩니다</b>: cấm<br/><b>-아/어야 합니다</b>: bắt buộc<br/><b>-지 않아도 됩니다</b>: miễn trừ</>
+              : en ? <>📌 <b>-아/어도 됩니까?</b>: asking permission<br/><b>-(으)면 안 됩니다</b>: prohibition<br/><b>-아/어야 합니다</b>: obligation<br/><b>-지 않아도 됩니다</b>: exemption</>
+              : <>📌 <b>-아/어도 됩니까?</b>: 허락 질문<br/><b>-(으)면 안 됩니다</b>: 금지<br/><b>-아/어야 합니다</b>: 의무<br/><b>-지 않아도 됩니다</b>: 면제</>}
           </div>
           <div style={{display:"flex", gap:3, marginBottom:16}}>
             {UNIT13_CARDS.map((_,i) => <div key={i} style={{flex:1, height:4, borderRadius:2, background:i<=unitCardIdx?C13.accent:"#ddd"}} />)}
