@@ -6363,49 +6363,57 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT1_CARDS = [
-      { native:{vi:"Tôi là học sinh.",      en:"I am a student.",          ko:"나는 학생이다."},
-        full:"저는 학생입니다.", rule:{vi:"받침 있음 → 이__요 (학생+이에요→학생입니다)", en:"Final consonant → 이__요", ko:"받침 있음 → 이__요"} },
-      { native:{vi:"Đây là trường học.",    en:"This is a school.",         ko:"여기는 학교이다."},
-        full:"여기는 학교입니다.", rule:{vi:"받침 없음 → __요 (학교+예요→학교입니다)", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
-      { native:{vi:"Tôi là bác sĩ.",        en:"I am a doctor.",            ko:"나는 의사이다."},
-        full:"저는 의사입니다.", rule:{vi:"받침 없음 → __요", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
-      { native:{vi:"Hôm nay là thứ Hai.",   en:"Today is Monday.",          ko:"오늘은 월요일이다."},
-        full:"오늘은 월요일입니다.", rule:{vi:"받침 있음(ㄹ) → 이__요", en:"Final consonant ㄹ → 이__요", ko:"받침 있음(ㄹ) → 이__요"} },
-      { native:{vi:"Tôi là người Việt Nam.",en:"I am Vietnamese.",           ko:"나는 베트남 사람이다."},
-        full:"저는 베트남 사람입니다.", rule:{vi:"받침 있음(ㅁ) → 이__요", en:"Final consonant ㅁ → 이__요", ko:"받침 있음(ㅁ) → 이__요"} },
-      { native:{vi:"Tên tôi là Majung.",    en:"My name is Majung.",        ko:"내 이름은 마중이다."},
-        full:"제 이름은 마중입니다.", rule:{vi:"받침 있음(ㅇ) → 이__요", en:"Final consonant ㅇ → 이__요", ko:"받침 있음(ㅇ) → 이__요"} },
-      { native:{vi:"Đây là quyển sách.",    en:"This is a book.",           ko:"이것은 책이다."},
-        full:"이것은 책입니다.", rule:{vi:"받침 있음(ㄱ) → 이__요", en:"Final consonant ㄱ → 이__요", ko:"받침 있음(ㄱ) → 이__요"} },
-      { native:{vi:"Tôi là nhân viên công ty.",en:"I am an office worker.", ko:"나는 회사원이다."},
-        full:"저는 회사원입니다.", rule:{vi:"받침 있음(ㄴ) → 이__요", en:"Final consonant ㄴ → 이__요", ko:"받침 있음(ㄴ) → 이__요"} },
-      { native:{vi:"Người đó là giáo viên.",en:"That person is a teacher.", ko:"저분은 선생님이다."},
-        full:"저분은 선생님입니다.", rule:{vi:"받침 있음(ㅁ) → 이__요", en:"Final consonant ㅁ → 이__요", ko:"받침 있음(ㅁ) → 이__요"} },
-      { native:{vi:"Bây giờ là buổi sáng.", en:"It is morning now.",        ko:"지금은 아침이다."},
-        full:"지금은 아침입니다.", rule:{vi:"받침 있음(ㅁ) → 이__요", en:"Final consonant ㅁ → 이__요", ko:"받침 있음(ㅁ) → 이__요"} },
-      { native:{vi:"Tôi là người học tiếng Hàn.",en:"I am a Korean learner.",ko:"나는 한국어 학습자이다."},
-        full:"저는 한국어 학습자입니다.", rule:{vi:"받침 없음 → __요", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
-      { native:{vi:"Tôi là sinh viên đại học.",en:"I am a university student.",ko:"나는 대학교 학생이다."},
-        full:"저는 대학교 학생입니다.", rule:{vi:"받침 있음(ㅇ) → 이__요", en:"Final consonant ㅇ → 이__요", ko:"받침 있음(ㅇ) → 이__요"} },
-      { native:{vi:"Hôm nay là sinh nhật tôi.",en:"Today is my birthday.",  ko:"오늘은 내 생일이다."},
-        full:"오늘은 제 생일입니다.", rule:{vi:"받침 있음(ㄹ) → 이__요", en:"Final consonant ㄹ → 이__요", ko:"받침 있음(ㄹ) → 이__요"} },
-      { native:{vi:"Đây là túi xách của tôi.",en:"This is my bag.",          ko:"이것은 내 가방이다."},
-        full:"이것은 제 가방입니다.", rule:{vi:"받침 있음(ㅇ) → 이__요", en:"Final consonant ㅇ → 이__요", ko:"받침 있음(ㅇ) → 이__요"} },
-      { native:{vi:"Người đó là mẹ tôi.",   en:"That person is my mother.", ko:"저분은 우리 어머니이다."},
-        full:"저분은 우리 어머니입니다.", rule:{vi:"받침 없음 → __요", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
-      { native:{vi:"Hôm nay là thứ Bảy.",   en:"Today is Saturday.",        ko:"오늘은 토요일이다."},
-        full:"오늘은 토요일입니다.", rule:{vi:"받침 있음(ㄹ) → 이__요", en:"Final consonant ㄹ → 이__요", ko:"받침 있음(ㄹ) → 이__요"} },
-      { native:{vi:"Tôi là tài xế.",         en:"I am a driver.",            ko:"나는 운전기사이다."},
-        full:"저는 운전기사입니다.", rule:{vi:"받침 없음 → __요", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
-      { native:{vi:"Đây là Seoul.",           en:"This is Seoul.",            ko:"여기는 서울이다."},
-        full:"여기는 서울입니다.", rule:{vi:"받침 있음(ㄹ) → 이__요", en:"Final consonant ㄹ → 이__요", ko:"받침 있음(ㄹ) → 이__요"} },
-      { native:{vi:"Tôi là y tá.",            en:"I am a nurse.",             ko:"나는 간호사이다."},
-        full:"저는 간호사입니다.", rule:{vi:"받침 없음 → __요", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
-      { native:{vi:"Tôi là người Trung Quốc.",en:"I am Chinese.",             ko:"나는 중국 사람이다."},
-        full:"저는 중국 사람입니다.", rule:{vi:"받침 있음(ㅁ) → 이__요", en:"Final consonant ㅁ → 이__요", ko:"받침 있음(ㅁ) → 이__요"} },
+      // ── 직업·신분 ──
+      { native:{vi:"Tôi là học sinh.",           en:"I am a student.",               ko:"저는 학생입니다."},
+        full:"저는 학생입니다.", rule:{vi:"학생 + 이에요 / 입니다", en:"학생 + 이에요 / 입니다", ko:"학생 + 이에요 / 입니다"} },
+      { native:{vi:"Tôi là nhân viên công ty.",  en:"I am an office worker.",        ko:"저는 회사원입니다."},
+        full:"저는 회사원입니다.", rule:{vi:"회사원 + 이에요 / 입니다", en:"회사원 + 이에요 / 입니다", ko:"회사원 + 이에요 / 입니다"} },
+      { native:{vi:"Tôi là bác sĩ.",              en:"I am a doctor.",                ko:"저는 의사입니다."},
+        full:"저는 의사입니다.", rule:{vi:"의사 + 예요 / 입니다", en:"의사 + 예요 / 입니다", ko:"의사 + 예요 / 입니다"} },
+      { native:{vi:"Người đó là giáo viên.",     en:"That person is a teacher.",     ko:"저분은 선생님이세요."},
+        full:"저분은 선생님이세요.", rule:{vi:"선생님 + 이세요 (존댓말)", en:"선생님 + 이세요 (존댓말)", ko:"선생님 + 이세요 (존댓말)"} },
+      { native:{vi:"Tôi là y tá.",                en:"I am a nurse.",                 ko:"저는 간호사입니다."},
+        full:"저는 간호사입니다.", rule:{vi:"간호사 + 예요 / 입니다", en:"간호사 + 예요 / 입니다", ko:"간호사 + 예요 / 입니다"} },
+      { native:{vi:"Tôi là đầu bếp.",             en:"I am a cook.",                  ko:"저는 요리사입니다."},
+        full:"저는 요리사입니다.", rule:{vi:"요리사 + 예요 / 입니다", en:"요리사 + 예요 / 입니다", ko:"요리사 + 예요 / 입니다"} },
+      // ── 국적·출신 ──
+      { native:{vi:"Tôi là người Việt Nam.",     en:"I am Vietnamese.",              ko:"저는 베트남 사람입니다."},
+        full:"저는 베트남 사람입니다.", rule:{vi:"사람 + 이에요 / 입니다", en:"사람 + 이에요 / 입니다", ko:"사람 + 이에요 / 입니다"} },
+      { native:{vi:"Tôi là người Hàn Quốc.",     en:"I am Korean.",                  ko:"저는 한국 사람입니다."},
+        full:"저는 한국 사람입니다.", rule:{vi:"사람 + 이에요 / 입니다", en:"사람 + 이에요 / 입니다", ko:"사람 + 이에요 / 입니다"} },
+      // ── 장소·물건 ──
+      { native:{vi:"Đây là trường học.",          en:"This is a school.",             ko:"여기는 학교입니다."},
+        full:"여기는 학교입니다.", rule:{vi:"학교 + 예요 / 입니다", en:"학교 + 예요 / 입니다", ko:"학교 + 예요 / 입니다"} },
+      { native:{vi:"Đây là bệnh viện.",           en:"This is a hospital.",           ko:"여기는 병원입니다."},
+        full:"여기는 병원입니다.", rule:{vi:"병원 + 이에요 / 입니다", en:"병원 + 이에요 / 입니다", ko:"병원 + 이에요 / 입니다"} },
+      { native:{vi:"Đây là điện thoại của tôi.",  en:"This is my phone.",             ko:"이것은 제 전화기입니다."},
+        full:"이것은 제 전화기입니다.", rule:{vi:"전화기 + 예요 / 입니다", en:"전화기 + 예요 / 입니다", ko:"전화기 + 예요 / 입니다"} },
+      { native:{vi:"Đây là túi xách của tôi.",   en:"This is my bag.",               ko:"이것은 제 가방입니다."},
+        full:"이것은 제 가방입니다.", rule:{vi:"가방 + 이에요 / 입니다", en:"가방 + 이에요 / 입니다", ko:"가방 + 이에요 / 입니다"} },
+      // ── 날짜·시간 ──
+      { native:{vi:"Hôm nay là thứ Hai.",        en:"Today is Monday.",              ko:"오늘은 월요일입니다."},
+        full:"오늘은 월요일입니다.", rule:{vi:"월요일 + 이에요 / 입니다", en:"월요일 + 이에요 / 입니다", ko:"월요일 + 이에요 / 입니다"} },
+      { native:{vi:"Hôm nay là sinh nhật tôi.",  en:"Today is my birthday.",         ko:"오늘은 제 생일입니다."},
+        full:"오늘은 제 생일입니다.", rule:{vi:"생일 + 이에요 / 입니다", en:"생일 + 이에요 / 입니다", ko:"생일 + 이에요 / 입니다"} },
+      { native:{vi:"Bây giờ là buổi sáng.",       en:"It is morning now.",            ko:"지금은 아침입니다."},
+        full:"지금은 아침입니다.", rule:{vi:"아침 + 이에요 / 입니다", en:"아침 + 이에요 / 입니다", ko:"아침 + 이에요 / 입니다"} },
+      // ── 가족·관계 ──
+      { native:{vi:"Người đó là mẹ tôi.",        en:"That person is my mother.",     ko:"저분은 우리 어머니세요."},
+        full:"저분은 우리 어머니세요.", rule:{vi:"어머니 + 세요 (존댓말)", en:"어머니 + 세요 (존댓말)", ko:"어머니 + 세요 (존댓말)"} },
+      { native:{vi:"Đây là bạn tôi.",             en:"This is my friend.",            ko:"이 사람은 제 친구입니다."},
+        full:"이 사람은 제 친구입니다.", rule:{vi:"친구 + 예요 / 입니다", en:"친구 + 예요 / 입니다", ko:"친구 + 예요 / 입니다"} },
+      // ── 자기소개 실전 ──
+      { native:{vi:"Tên tôi là Minh.",            en:"My name is Minh.",              ko:"제 이름은 민입니다."},
+        full:"제 이름은 민입니다.", rule:{vi:"이름 + 이에요 / 입니다", en:"이름 + 이에요 / 입니다", ko:"이름 + 이에요 / 입니다"} },
+      { native:{vi:"Đây là Seoul.",               en:"This is Seoul.",                ko:"여기는 서울입니다."},
+        full:"여기는 서울입니다.", rule:{vi:"서울 + 이에요 / 입니다", en:"서울 + 이에요 / 입니다", ko:"서울 + 이에요 / 입니다"} },
+      { native:{vi:"Tôi là tài xế.",              en:"I am a driver.",                ko:"저는 운전기사입니다."},
+        full:"저는 운전기사입니다.", rule:{vi:"운전기사 + 예요 / 입니다", en:"운전기사 + 예요 / 입니다", ko:"운전기사 + 예요 / 입니다"} },
+      { native:{vi:"Tôi là người học tiếng Hàn.",en:"I am a Korean learner.",        ko:"저는 한국어 학습자입니다."},
+        full:"저는 한국어 학습자입니다.", rule:{vi:"학습자 + 예요 / 입니다", en:"학습자 + 예요 / 입니다", ko:"학습자 + 예요 / 입니다"} },
     ];
 
-    const card = UNIT1_CARDS[unitCardIdx];
+        const card = UNIT1_CARDS[unitCardIdx];
     const total = UNIT1_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
@@ -6716,29 +6724,42 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT2_CARDS = [
-      { native:{vi:"Tôi có thời gian.",              en:"I have time.",                    ko:"나는 시간이 있다."},
-        full:"시간이 있습니다.", rule:{vi:"있다 → 있습니다", en:"있다 → 있습니다", ko:"있다 → 있습니다"} },
-      { native:{vi:"Tôi không có tiền.",             en:"I don't have money.",              ko:"나는 돈이 없다."},
-        full:"돈이 없습니다.", rule:{vi:"없다 → 없습니다", en:"없다 → 없습니다", ko:"없다 → 없습니다"} },
-      { native:{vi:"Tôi có nhiều bạn bè.",           en:"I have many friends.",             ko:"나는 친구가 많다."},
-        full:"친구가 많습니다.", rule:{vi:"많다 → 많습니다", en:"많다 → 많습니다", ko:"많다 → 많습니다"} },
-      { native:{vi:"Tôi không có thời gian.",         en:"I don't have time.",               ko:"나는 시간이 없다."},
-        full:"시간이 없습니다.", rule:{vi:"없다 → 없습니다", en:"없다 → 없습니다", ko:"없다 → 없습니다"} },
-      { native:{vi:"Có nhiều người.",                 en:"There are many people.",           ko:"사람이 많다."},
-        full:"사람이 많습니다.", rule:{vi:"많다 → 많습니다", en:"많다 → 많습니다", ko:"많다 → 많습니다"} },
-      { native:{vi:"Có ít học sinh.",                 en:"There are few students.",          ko:"학생이 적다."},
-        full:"학생이 적습니다.", rule:{vi:"적다 → 적습니다", en:"적다 → 적습니다", ko:"적다 → 적습니다"} },
-      { native:{vi:"Trong lớp học có học sinh.",      en:"There are students in the classroom.", ko:"교실에 학생이 있다."},
-        full:"교실에 학생이 있습니다.", rule:{vi:"있다 → 있습니다", en:"있다 → 있습니다", ko:"있다 → 있습니다"} },
-      { native:{vi:"Hôm nay không có bài tập về nhà.",en:"There is no homework today.",     ko:"오늘은 숙제가 없다."},
-        full:"오늘은 숙제가 없습니다.", rule:{vi:"없다 → 없습니다", en:"없다 → 없습니다", ko:"없다 → 없습니다"} },
-      { native:{vi:"Trong lớp tôi có nhiều bạn bè.", en:"There are many friends in my class.", ko:"우리 반에 친구가 많다."},
-        full:"우리 반에 친구가 많습니다.", rule:{vi:"많다 → 많습니다", en:"많다 → 많습니다", ko:"많다 → 많습니다"} },
-      { native:{vi:"Trong tủ lạnh có ít thức ăn.",   en:"There is little food in the fridge.", ko:"냉장고에 음식이 적다."},
-        full:"냉장고에 음식이 적습니다.", rule:{vi:"적다 → 적습니다", en:"적다 → 적습니다", ko:"적다 → 적습니다"} },
+      // ── 있다 ──
+      { native:{vi:"Tôi có thời gian.",                      en:"I have time.",                          ko:"저는 시간이 있습니다."},
+        full:"저는 시간이 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
+      { native:{vi:"Trong phòng có điện thoại.",             en:"There is a phone in the room.",         ko:"방에 전화기가 있습니다."},
+        full:"방에 전화기가 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
+      { native:{vi:"Có xe buýt ở đây.",                      en:"There is a bus here.",                  ko:"여기에 버스가 있습니다."},
+        full:"여기에 버스가 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
+      { native:{vi:"Trong túi có tiền.",                     en:"There is money in the bag.",            ko:"가방에 돈이 있습니다."},
+        full:"가방에 돈이 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
+      // ── 없다 ──
+      { native:{vi:"Tôi không có tiền.",                     en:"I don't have money.",                   ko:"저는 돈이 없습니다."},
+        full:"저는 돈이 없습니다.", rule:{vi:"없다 → 없어요 / 없습니다", en:"없다 → 없어요 / 없습니다", ko:"없다 → 없어요 / 없습니다"} },
+      { native:{vi:"Hôm nay không có bài tập về nhà.",       en:"There is no homework today.",           ko:"오늘은 숙제가 없습니다."},
+        full:"오늘은 숙제가 없습니다.", rule:{vi:"없다 → 없어요 / 없습니다", en:"없다 → 없어요 / 없습니다", ko:"없다 → 없어요 / 없습니다"} },
+      { native:{vi:"Không có nước trong tủ lạnh.",           en:"There is no water in the fridge.",      ko:"냉장고에 물이 없습니다."},
+        full:"냉장고에 물이 없습니다.", rule:{vi:"없다 → 없어요 / 없습니다", en:"없다 → 없어요 / 없습니다", ko:"없다 → 없어요 / 없습니다"} },
+      // ── 많다 ──
+      { native:{vi:"Tôi có nhiều bạn bè.",                   en:"I have many friends.",                  ko:"저는 친구가 많습니다."},
+        full:"저는 친구가 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
+      { native:{vi:"Hôm nay có nhiều người ở công ty.",      en:"There are many people at the company today.", ko:"오늘 회사에 사람이 많습니다."},
+        full:"오늘 회사에 사람이 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
+      { native:{vi:"Siêu thị có nhiều đồ ăn.",               en:"The supermarket has a lot of food.",    ko:"마트에 음식이 많습니다."},
+        full:"마트에 음식이 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
+      // ── 적다 ──
+      { native:{vi:"Có ít học sinh trong lớp.",               en:"There are few students in class.",      ko:"반에 학생이 적습니다."},
+        full:"반에 학생이 적습니다.", rule:{vi:"적다 → 적어요 / 적습니다", en:"적다 → 적어요 / 적습니다", ko:"적다 → 적어요 / 적습니다"} },
+      { native:{vi:"Trong tủ lạnh có ít thức ăn.",           en:"There is little food in the fridge.",   ko:"냉장고에 음식이 적습니다."},
+        full:"냉장고에 음식이 적습니다.", rule:{vi:"적다 → 적어요 / 적습니다", en:"적다 → 적어요 / 적습니다", ko:"적다 → 적어요 / 적습니다"} },
+      // ── 혼합 실전 ──
+      { native:{vi:"Hôm nay có nhiều xe ở đường.",           en:"There are many cars on the road today.", ko:"오늘 길에 차가 많습니다."},
+        full:"오늘 길에 차가 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
+      { native:{vi:"Bệnh viện này có ít bác sĩ.",            en:"This hospital has few doctors.",         ko:"이 병원에 의사가 적습니다."},
+        full:"이 병원에 의사가 적습니다.", rule:{vi:"적다 → 적어요 / 적습니다", en:"적다 → 적어요 / 적습니다", ko:"적다 → 적어요 / 적습니다"} },
     ];
 
-    const card  = UNIT2_CARDS[unitCardIdx];
+        const card  = UNIT2_CARDS[unitCardIdx];
     const total = UNIT2_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
@@ -6985,21 +7006,42 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT3_CARDS = [
-      { native:{vi:"Cái túi này to.",          en:"This bag is big.",          ko:"이 가방이 크다."},
-        full:"이 가방이 큽니다.", rule:{vi:"크다 → 큽니다 (ㅡ탈락)", en:"크다 → 큽니다 (ㅡ drops)", ko:"크다 → 큽니다 (ㅡ탈락)"} },
-      { native:{vi:"Cái túi kia nhỏ.",         en:"That bag is small.",        ko:"저 가방이 작다."},
-        full:"저 가방이 작습니다.", rule:{vi:"작다 → 작습니다", en:"작다 → 작습니다", ko:"작다 → 작습니다"} },
-      { native:{vi:"Thời tiết tốt.",            en:"The weather is nice.",      ko:"날씨가 좋다."},
-        full:"날씨가 좋습니다.", rule:{vi:"좋다 → 좋습니다", en:"좋다 → 좋습니다", ko:"좋다 → 좋습니다"} },
-      { native:{vi:"Thức ăn ngon.",             en:"The food is delicious.",    ko:"음식이 맛있다."},
-        full:"음식이 맛있습니다.", rule:{vi:"맛있다 → 맛있습니다", en:"맛있다 → 맛있습니다", ko:"맛있다 → 맛있습니다"} },
-      { native:{vi:"Nhà hàng này rẻ.",          en:"This restaurant is cheap.", ko:"이 식당이 싸다."},
-        full:"이 식당이 쌉니다.", rule:{vi:"싸다 → 쌉니다 (ㅏ+ㅂ니다)", en:"싸다 → 쌉니다", ko:"싸다 → 쌉니다"} },
-      { native:{vi:"Tiếng Hàn thú vị.",         en:"Korean is interesting.",    ko:"한국어가 재미있다."},
-        full:"한국어가 재미있습니다.", rule:{vi:"재미있다 → 재미있습니다", en:"재미있다 → 재미있습니다", ko:"재미있다 → 재미있습니다"} },
+      // ── 크기·상태 ──
+      { native:{vi:"Cái túi này to.",             en:"This bag is big.",              ko:"이 가방이 큽니다."},
+        full:"이 가방이 큽니다.", rule:{vi:"크다 → 큽니다 (ㅡ 탈락)", en:"크다 → 큽니다 (ㅡ drops)", ko:"크다 → 큽니다 (ㅡ 탈락)"} },
+      { native:{vi:"Phòng này nhỏ.",              en:"This room is small.",           ko:"이 방이 작습니다."},
+        full:"이 방이 작습니다.", rule:{vi:"작다 → 작아요 / 작습니다", en:"작다 → 작아요 / 작습니다", ko:"작다 → 작아요 / 작습니다"} },
+      { native:{vi:"Cái áo này dài.",             en:"This shirt is long.",           ko:"이 옷이 깁니다."},
+        full:"이 옷이 깁니다.", rule:{vi:"길다 → 깁니다 (ㄹ 탈락)", en:"길다 → 깁니다 (ㄹ drops)", ko:"길다 → 깁니다 (ㄹ 탈락)"} },
+      // ── 날씨·온도 ──
+      { native:{vi:"Thời tiết hôm nay tốt.",      en:"The weather is nice today.",    ko:"오늘 날씨가 좋습니다."},
+        full:"오늘 날씨가 좋습니다.", rule:{vi:"좋다 → 좋아요 / 좋습니다", en:"좋다 → 좋아요 / 좋습니다", ko:"좋다 → 좋아요 / 좋습니다"} },
+      { native:{vi:"Trời hôm nay nóng.",          en:"It is hot today.",              ko:"오늘 날씨가 덥습니다."},
+        full:"오늘 날씨가 덥습니다.", rule:{vi:"덥다 → 덥습니다 (ㅂ 불규칙)", en:"덥다 → 덥습니다 (ㅂ irregular)", ko:"덥다 → 덥습니다 (ㅂ 불규칙)"} },
+      { native:{vi:"Nước lạnh.",                  en:"The water is cold.",            ko:"물이 차갑습니다."},
+        full:"물이 차갑습니다.", rule:{vi:"차갑다 → 차갑습니다", en:"차갑다 → 차갑습니다", ko:"차갑다 → 차갑습니다"} },
+      // ── 음식·맛 ──
+      { native:{vi:"Thức ăn ngon.",               en:"The food is delicious.",        ko:"음식이 맛있습니다."},
+        full:"음식이 맛있습니다.", rule:{vi:"맛있다 → 맛있어요 / 맛있습니다", en:"맛있다 → 맛있어요 / 맛있습니다", ko:"맛있다 → 맛있어요 / 맛있습니다"} },
+      { native:{vi:"Thức ăn không ngon.",         en:"The food is not good.",         ko:"음식이 맛없습니다."},
+        full:"음식이 맛없습니다.", rule:{vi:"맛없다 → 맛없어요 / 맛없습니다", en:"맛없다 → 맛없어요 / 맛없습니다", ko:"맛없다 → 맛없어요 / 맛없습니다"} },
+      // ── 가격·상황 ──
+      { native:{vi:"Nhà hàng này rẻ.",            en:"This restaurant is cheap.",     ko:"이 식당이 쌉니다."},
+        full:"이 식당이 쌉니다.", rule:{vi:"싸다 → 싸요 / 쌉니다", en:"싸다 → 싸요 / 쌉니다", ko:"싸다 → 싸요 / 쌉니다"} },
+      { native:{vi:"Xe buýt nhanh.",              en:"The bus is fast.",              ko:"버스가 빠릅니다."},
+        full:"버스가 빠릅니다.", rule:{vi:"빠르다 → 빠릅니다 (ㅡ 탈락)", en:"빠르다 → 빠릅니다 (ㅡ drops)", ko:"빠르다 → 빠릅니다 (ㅡ 탈락)"} },
+      // ── 감정·학습 ──
+      { native:{vi:"Tiếng Hàn thú vị.",           en:"Korean is interesting.",        ko:"한국어가 재미있습니다."},
+        full:"한국어가 재미있습니다.", rule:{vi:"재미있다 → 재미있어요 / 재미있습니다", en:"재미있다 → 재미있어요 / 재미있습니다", ko:"재미있다 → 재미있어요 / 재미있습니다"} },
+      { native:{vi:"Công việc này khó.",          en:"This work is difficult.",       ko:"이 일이 어렵습니다."},
+        full:"이 일이 어렵습니다.", rule:{vi:"어렵다 → 어려워요 / 어렵습니다 (ㅂ 불규칙)", en:"어렵다 → 어려워요 / 어렵습니다 (ㅂ irregular)", ko:"어렵다 → 어려워요 / 어렵습니다 (ㅂ 불규칙)"} },
+      { native:{vi:"Tôi mệt.",                    en:"I am tired.",                   ko:"저는 피곤합니다."},
+        full:"저는 피곤합니다.", rule:{vi:"피곤하다 → 피곤해요 / 피곤합니다", en:"피곤하다 → 피곤해요 / 피곤합니다", ko:"피곤하다 → 피곤해요 / 피곤합니다"} },
+      { native:{vi:"Bệnh viện gần nhà tôi.",      en:"The hospital is close to my house.", ko:"병원이 가깝습니다."},
+        full:"병원이 가깝습니다.", rule:{vi:"가깝다 → 가까워요 / 가깝습니다 (ㅂ 불규칙)", en:"가깝다 → 가까워요 / 가깝습니다 (ㅂ irregular)", ko:"가깝다 → 가까워요 / 가깝습니다 (ㅂ 불규칙)"} },
     ];
 
-    const card  = UNIT3_CARDS[unitCardIdx];
+        const card  = UNIT3_CARDS[unitCardIdx];
     const total = UNIT3_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
