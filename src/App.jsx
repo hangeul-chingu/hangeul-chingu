@@ -6356,240 +6356,188 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const vi = lang?.code === "vi";
     const en = lang?.code === "en";
 
-    // 확인하기 버튼 — 입력값 TTS로 읽고 정답 공개
+    // STT 훅
+    const { transcript, listening, startListening, stopListening, supported: sttSupported } = useSTT("ko-KR");
+
+    // STT 결과를 입력창에 반영
+    React.useEffect(() => {
+      if (transcript) setUnitCardInput(transcript);
+    }, [transcript]);
+
     function handleUnitCardSubmit() {
       if (!unitCardInput.trim()) return;
       setUnitCardRevealed(true);
-      // 학습자가 쓴 답을 TTS로 읽어줌
       speakKo(unitCardInput.trim());
     }
 
     const UNIT1_CARDS = [
-      {
-        front: "저는 학생___.",
-        blank: "입니다",
-        full: "저는 학생입니다.",
-        hint: vi?"받침 ㅇ 있어요 → 이__요":en?"Has final consonant ㅇ → 이__요":"받침 ㅇ 있어요 → 이__요",
-      },
-      {
-        front: "여기는 학교___.",
-        blank: "입니다",
-        full: "여기는 학교입니다.",
-        hint: vi?"받침 없어요 → __요":en?"No final consonant → __요":"받침 없어요 → __요",
-      },
-      {
-        front: "저는 의사___.",
-        blank: "입니다",
-        full: "저는 의사입니다.",
-        hint: vi?"받침 없어요 → __요":en?"No final consonant → __요":"받침 없어요 → __요",
-      },
-      {
-        front: "오늘은 월요일___.",
-        blank: "입니다",
-        full: "오늘은 월요일입니다.",
-        hint: vi?"받침 ㄹ 있어요 → 이__요":en?"Has final consonant ㄹ → 이__요":"받침 ㄹ 있어요 → 이__요",
-      },
-      {
-        front: "저는 베트남 사람___.",
-        blank: "입니다",
-        full: "저는 베트남 사람입니다.",
-        hint: vi?"받침 ㅁ 있어요 → 이__요":en?"Has final consonant ㅁ → 이__요":"받침 ㅁ 있어요 → 이__요",
-      },
-      {
-        front: "제 이름은 마중___.",
-        blank: "입니다",
-        full: "제 이름은 마중입니다.",
-        hint: vi?"받침 ㅇ 있어요 → 이__요":en?"Has final consonant ㅇ → 이__요":"받침 ㅇ 있어요 → 이__요",
-      },
-      {
-        front: "이것은 책___.",
-        blank: "입니다",
-        full: "이것은 책입니다.",
-        hint: vi?"받침 ㄱ 있어요 → 이__요":en?"Has final consonant → 이__요":"받침 ㄱ 있어요 → 이__요",
-      },
-      {
-        front: "저는 회사원___.",
-        blank: "입니다",
-        full: "저는 회사원입니다.",
-        hint: vi?"받침 ㄴ 있어요 → 이__요":en?"Has final consonant ㄴ → 이__요":"받침 ㄴ 있어요 → 이__요",
-      },
-      {
-        front: "저분은 선생님___.",
-        blank: "입니다",
-        full: "저분은 선생님입니다.",
-        hint: vi?"받침 ㅁ 있어요 → 이__요":en?"Has final consonant ㅁ → 이__요":"받침 ㅁ 있어요 → 이__요",
-      },
-      {
-        front: "지금은 아침___.",
-        blank: "입니다",
-        full: "지금은 아침입니다.",
-        hint: vi?"받침 ㅁ 있어요 → 이__요":en?"Has final consonant → 이__요":"받침 ㅁ 있어요 → 이__요",
-      },
-      {
-        front: "저는 한국어 학습자___.",
-        blank: "입니다",
-        full: "저는 한국어 학습자입니다.",
-        hint: vi?"받침 없어요 → __예요":en?"No final consonant → __예요":"받침 없어요 → __예요",
-      },
-      {
-        front: "저는 대학교 학생___.",
-        blank: "입니다",
-        full: "저는 대학교 학생입니다.",
-        hint: vi?"받침 ㅇ 있어요 → 이__요":en?"Has final consonant ㅇ → 이__요":"받침 ㅇ 있어요 → 이__요",
-      },
-      {
-        front: "오늘은 제 생일___.",
-        blank: "입니다",
-        full: "오늘은 제 생일입니다.",
-        hint: vi?"받침 ㄹ 있어요 → 이__요":en?"Has final consonant ㄹ → 이__요":"받침 ㄹ 있어요 → 이__요",
-      },
-      {
-        front: "이것은 제 가방___.",
-        blank: "입니다",
-        full: "이것은 제 가방입니다.",
-        hint: vi?"받침 ㅇ 있어요 → 이__요":en?"Has final consonant ㅇ → 이__요":"받침 ㅇ 있어요 → 이__요",
-      },
-      {
-        front: "저분은 우리 어머니___.",
-        blank: "입니다",
-        full: "저분은 우리 어머니입니다.",
-        hint: vi?"받침 없어요 → __예요":en?"No final consonant → __예요":"받침 없어요 → __예요",
-      },
-      {
-        front: "오늘은 토요일___.",
-        blank: "입니다",
-        full: "오늘은 토요일입니다.",
-        hint: vi?"받침 ㄹ 있어요 → 이__요":en?"Has final consonant ㄹ → 이__요":"받침 ㄹ 있어요 → 이__요",
-      },
-      {
-        front: "저는 운전기사___.",
-        blank: "입니다",
-        full: "저는 운전기사입니다.",
-        hint: vi?"받침 없어요 → __예요":en?"No final consonant → __예요":"받침 없어요 → __예요",
-      },
-      {
-        front: "여기는 서울___.",
-        blank: "입니다",
-        full: "여기는 서울입니다.",
-        hint: vi?"받침 ㄹ 있어요 → 이__요":en?"Has final consonant ㄹ → 이__요":"받침 ㄹ 있어요 → 이__요",
-      },
-      {
-        front: "저는 간호사___.",
-        blank: "입니다",
-        full: "저는 간호사입니다.",
-        hint: vi?"받침 없어요 → __예요":en?"No final consonant → __예요":"받침 없어요 → __예요",
-      },
-      {
-        front: "저는 중국 사람___.",
-        blank: "입니다",
-        full: "저는 중국 사람입니다.",
-        hint: vi?"받침 ㅁ 있어요 → 이__요":en?"Has final consonant ㅁ → 이__요":"받침 ㅁ 있어요 → 이__요",
-      },
+      { native:{vi:"Tôi là học sinh.",      en:"I am a student.",          ko:"나는 학생이다."},
+        full:"저는 학생입니다.", rule:{vi:"받침 있음 → 이__요 (학생+이에요→학생입니다)", en:"Final consonant → 이__요", ko:"받침 있음 → 이__요"} },
+      { native:{vi:"Đây là trường học.",    en:"This is a school.",         ko:"여기는 학교이다."},
+        full:"여기는 학교입니다.", rule:{vi:"받침 없음 → __요 (학교+예요→학교입니다)", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
+      { native:{vi:"Tôi là bác sĩ.",        en:"I am a doctor.",            ko:"나는 의사이다."},
+        full:"저는 의사입니다.", rule:{vi:"받침 없음 → __요", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
+      { native:{vi:"Hôm nay là thứ Hai.",   en:"Today is Monday.",          ko:"오늘은 월요일이다."},
+        full:"오늘은 월요일입니다.", rule:{vi:"받침 있음(ㄹ) → 이__요", en:"Final consonant ㄹ → 이__요", ko:"받침 있음(ㄹ) → 이__요"} },
+      { native:{vi:"Tôi là người Việt Nam.",en:"I am Vietnamese.",           ko:"나는 베트남 사람이다."},
+        full:"저는 베트남 사람입니다.", rule:{vi:"받침 있음(ㅁ) → 이__요", en:"Final consonant ㅁ → 이__요", ko:"받침 있음(ㅁ) → 이__요"} },
+      { native:{vi:"Tên tôi là Majung.",    en:"My name is Majung.",        ko:"내 이름은 마중이다."},
+        full:"제 이름은 마중입니다.", rule:{vi:"받침 있음(ㅇ) → 이__요", en:"Final consonant ㅇ → 이__요", ko:"받침 있음(ㅇ) → 이__요"} },
+      { native:{vi:"Đây là quyển sách.",    en:"This is a book.",           ko:"이것은 책이다."},
+        full:"이것은 책입니다.", rule:{vi:"받침 있음(ㄱ) → 이__요", en:"Final consonant ㄱ → 이__요", ko:"받침 있음(ㄱ) → 이__요"} },
+      { native:{vi:"Tôi là nhân viên công ty.",en:"I am an office worker.", ko:"나는 회사원이다."},
+        full:"저는 회사원입니다.", rule:{vi:"받침 있음(ㄴ) → 이__요", en:"Final consonant ㄴ → 이__요", ko:"받침 있음(ㄴ) → 이__요"} },
+      { native:{vi:"Người đó là giáo viên.",en:"That person is a teacher.", ko:"저분은 선생님이다."},
+        full:"저분은 선생님입니다.", rule:{vi:"받침 있음(ㅁ) → 이__요", en:"Final consonant ㅁ → 이__요", ko:"받침 있음(ㅁ) → 이__요"} },
+      { native:{vi:"Bây giờ là buổi sáng.", en:"It is morning now.",        ko:"지금은 아침이다."},
+        full:"지금은 아침입니다.", rule:{vi:"받침 있음(ㅁ) → 이__요", en:"Final consonant ㅁ → 이__요", ko:"받침 있음(ㅁ) → 이__요"} },
+      { native:{vi:"Tôi là người học tiếng Hàn.",en:"I am a Korean learner.",ko:"나는 한국어 학습자이다."},
+        full:"저는 한국어 학습자입니다.", rule:{vi:"받침 없음 → __요", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
+      { native:{vi:"Tôi là sinh viên đại học.",en:"I am a university student.",ko:"나는 대학교 학생이다."},
+        full:"저는 대학교 학생입니다.", rule:{vi:"받침 있음(ㅇ) → 이__요", en:"Final consonant ㅇ → 이__요", ko:"받침 있음(ㅇ) → 이__요"} },
+      { native:{vi:"Hôm nay là sinh nhật tôi.",en:"Today is my birthday.",  ko:"오늘은 내 생일이다."},
+        full:"오늘은 제 생일입니다.", rule:{vi:"받침 있음(ㄹ) → 이__요", en:"Final consonant ㄹ → 이__요", ko:"받침 있음(ㄹ) → 이__요"} },
+      { native:{vi:"Đây là túi xách của tôi.",en:"This is my bag.",          ko:"이것은 내 가방이다."},
+        full:"이것은 제 가방입니다.", rule:{vi:"받침 있음(ㅇ) → 이__요", en:"Final consonant ㅇ → 이__요", ko:"받침 있음(ㅇ) → 이__요"} },
+      { native:{vi:"Người đó là mẹ tôi.",   en:"That person is my mother.", ko:"저분은 우리 어머니이다."},
+        full:"저분은 우리 어머니입니다.", rule:{vi:"받침 없음 → __요", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
+      { native:{vi:"Hôm nay là thứ Bảy.",   en:"Today is Saturday.",        ko:"오늘은 토요일이다."},
+        full:"오늘은 토요일입니다.", rule:{vi:"받침 있음(ㄹ) → 이__요", en:"Final consonant ㄹ → 이__요", ko:"받침 있음(ㄹ) → 이__요"} },
+      { native:{vi:"Tôi là tài xế.",         en:"I am a driver.",            ko:"나는 운전기사이다."},
+        full:"저는 운전기사입니다.", rule:{vi:"받침 없음 → __요", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
+      { native:{vi:"Đây là Seoul.",           en:"This is Seoul.",            ko:"여기는 서울이다."},
+        full:"여기는 서울입니다.", rule:{vi:"받침 있음(ㄹ) → 이__요", en:"Final consonant ㄹ → 이__요", ko:"받침 있음(ㄹ) → 이__요"} },
+      { native:{vi:"Tôi là y tá.",            en:"I am a nurse.",             ko:"나는 간호사이다."},
+        full:"저는 간호사입니다.", rule:{vi:"받침 없음 → __요", en:"No final consonant → __요", ko:"받침 없음 → __요"} },
+      { native:{vi:"Tôi là người Trung Quốc.",en:"I am Chinese.",             ko:"나는 중국 사람이다."},
+        full:"저는 중국 사람입니다.", rule:{vi:"받침 있음(ㅁ) → 이__요", en:"Final consonant ㅁ → 이__요", ko:"받침 있음(ㅁ) → 이__요"} },
     ];
+
     const card = UNIT1_CARDS[unitCardIdx];
     const total = UNIT1_CARDS.length;
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
+
+    // 정답 채점
+    const userAns = (unitCardInput || "").trim().replace(/\s+/g, "");
+    const correct  = (card.full || "").replace(/\s+/g, "");
+    const isCorrect = unitCardRevealed && userAns === correct;
+
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8F8F2,#D0F0E4)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F0FFF4,#E8F5E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-        {/* 헤더 */}
-        <div style={{width:"100%", maxWidth:400, marginBottom:16}}>
-          <div style={{fontSize:12, color:"#00A876", fontWeight:700, marginBottom:6}}>
-            📘 {vi?"Bài 1 — Trợ từ 이에요/이다":en?"Unit 1 — Predicate 이에요/이다":"서술어 1단원 — 이에요/이다 (A=B)"}
-          </div>
-          {/* 진행 바 */}
-          <div style={{display:"flex", gap:4}}>
-            {UNIT1_CARDS.map((_,i)=>(
-              <div key={i} style={{flex:1, height:5, borderRadius:3, background: i<unitCardIdx?"#00C896": i===unitCardIdx?"#00A876":"#cce8dc", transition:"all .3s"}}/>
-            ))}
-          </div>
-          <div style={{fontSize:11, color:"#aaa", marginTop:4, textAlign:"right"}}>{unitCardIdx+1} / {total}</div>
-        </div>
+        <div style={{width:"100%", maxWidth:420}}>
 
-        {/* 카드 */}
-        <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:20, padding:28, boxShadow:"0 8px 32px #00C89622", marginBottom:16}}>
-          <div style={{fontSize:13, color:"#aaa", marginBottom:16, textAlign:"center"}}>
-            {vi?"Điền vào chỗ trống":en?"Fill in the blank":"빈칸을 채워보세요 ✍️"}
+          {/* 헤더 */}
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:"#888", marginBottom:4}}>
+              {vi?"Bài 1 — A là B (A=B)":en?"Unit 1 — A is B (A=B)":"서술어 1단원 — A는 B이다 (A=B)"}
+            </div>
+            <div style={{fontSize:11, color:"#aaa"}}>
+              {unitCardIdx + 1} / {total}
+            </div>
+            {/* 진행 바 */}
+            <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
+              <div style={{height:4, background:"#00C896", borderRadius:4, width:`${((unitCardIdx+1)/total)*100}%`, transition:"width 0.3s"}} />
+            </div>
           </div>
 
-          {/* 빈칸 문장 — ___ 부분을 input으로 */}
-          <div style={{fontSize:20, fontWeight:900, color:"#1A3A2A", textAlign:"center", marginBottom:16, lineHeight:1.8}}>
-            {card.front.split("___")[0]}
+          {/* 핵심 규칙 박스 */}
+          <div style={{background:"#FFF9C4", border:"2px solid #F9A825", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
+            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>
+              📌 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}
+            </div>
+            <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
+              <div>· 받침 <b>있음</b> → <b>이에요 / 입니다</b> &nbsp;예: 학생 → 학생<b>입니다</b></div>
+              <div>· 받침 <b>없음</b> → <b>예요 / 입니다</b> &nbsp;&nbsp;예: 의사 → 의사<b>입니다</b></div>
+              <div>· 높임 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <b>이세요</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;예: 선생님 → 선생님<b>이세요</b></div>
+            </div>
+          </div>
+
+          {/* 이 카드의 규칙 힌트 */}
+          <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>
+            💡 {ruleText}
+          </div>
+
+          {/* 모국어 예문 카드 */}
+          <div style={{background:"white", borderRadius:16, border:"2px solid #A5D6A7", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #00C89622"}}>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8, letterSpacing:0.5}}>
+              🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}
+            </div>
+            <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>
+              {nativeText}
+            </div>
+          </div>
+
+          {/* 합니다체 안내 */}
+          <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
+            ✍️ {vi?"Viết bằng thể 합니다 (lịch sự)":en?"Write in 합니다 formal style":"합니다체로 작성하세요 (예: ~입니다, ~합니다)"}
+          </div>
+
+          {/* 입력창 */}
+          <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed ? (isCorrect?"#2E7D32":"#C62828") : "#A5D6A7"}`, padding:"14px 16px", marginBottom:12}}>
             <input
               type="text"
               value={unitCardInput}
-              onChange={e=>setUnitCardInput(e.target.value)}
-              onKeyDown={e=>{ if(e.key==="Enter" && !unitCardRevealed && unitCardInput.trim()) { e.preventDefault(); handleUnitCardSubmit(); } }}
-              disabled={unitCardRevealed}
-              placeholder="..."
-              style={{
-                display:"inline-block", width:80, textAlign:"center",
-                border:"none", borderBottom:`3px solid ${unitCardRevealed?(unitCardInput.trim()===card.blank?"#00C896":"#FF6B35"):"#00C896"}`,
-                fontSize:20, fontWeight:900, color:"#00A876", background:"transparent",
-                outline:"none", padding:"0 4px"
-              }}
+              onChange={e => { if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
+              onKeyDown={e => { if(e.key==="Enter") handleUnitCardSubmit(); }}
+              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}}
             />
-            {card.front.split("___")[1]}
+            {/* STT 마이크 버튼 */}
+            {sttSupported && (
+              <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
+                <button
+                  onClick={()=>{ if(listening) stopListening(); else { setUnitCardInput(""); startListening(); } }}
+                  disabled={unitCardRevealed}
+                  style={{background: listening?"#C62828":"#1565C0", color:"white", border:"none", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                  {listening ? "⏹ 중지" : "🎤 말하기"}
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* 정답 공개 후: 전체 문장 + TTS 듣기 버튼 */}
+          {/* 정답 공개 후 */}
           {unitCardRevealed && (
-            <div style={{textAlign:"center", marginBottom:12}}>
-              <div style={{fontSize:15, color: unitCardInput.trim()===card.blank?"#00A876":"#FF6B35", fontWeight:700, marginBottom:8}}>
-                {unitCardInput.trim()===card.blank ? "✅ 정답!" : `❌ 정답: ${card.blank}`}
+            <div style={{background: isCorrect?"#E8F5E9":"#FFEBEE", border:`1.5px solid ${isCorrect?"#2E7D32":"#C62828"}`, borderRadius:12, padding:"12px 16px", marginBottom:12}}>
+              <div style={{fontSize:13, fontWeight:900, color: isCorrect?"#2E7D32":"#C62828", marginBottom:4}}>
+                {isCorrect ? "✅ 정답!" : "❌ 정답은:"}
               </div>
-              <div style={{fontSize:14, color:"#555", marginBottom:12}}>→ {card.full}</div>
-              <button onClick={()=>{
-                speakKo(card.full);
-              }} style={{background:"#00C896", border:"none", borderRadius:50, padding:"8px 20px", color:"white", fontSize:13, fontWeight:700, cursor:"pointer"}}>
-                🔊 {vi?"Nghe lại":en?"Listen":"전체 문장 듣기"}
+              <div style={{fontSize:16, fontWeight:700, color:"#333"}}>{card.full}</div>
+              <button onClick={()=>speakKo(card.full)} style={{marginTop:6, background:"none", border:"1px solid #aaa", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer"}}>
+                🔊 듣기
               </button>
             </div>
           )}
 
-          {/* 힌트 */}
-          <div style={{background:"#F0FBF6", borderRadius:12, padding:"10px 14px", fontSize:13, color:"#555", textAlign:"center"}}>
-            💡 {card.hint}
-          </div>
+          {/* 버튼 */}
+          {!unitCardRevealed ? (
+            <button onClick={handleUnitCardSubmit} disabled={!unitCardInput.trim()}
+              style={{width:"100%", background: unitCardInput.trim()?"linear-gradient(135deg,#00C896,#00A876)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor: unitCardInput.trim()?"pointer":"not-allowed"}}>
+              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+            </button>
+          ) : (
+            unitCardIdx < total - 1 ? (
+              <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
+                style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+              </button>
+            ) : (
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(true); setStep("test1"); }}
+                style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
+                {vi?"Kiểm tra tổng hợp! →":en?"Cumulative test! →":"누적 테스트로! 🚀"}
+              </button>
+            )
+          )}
+
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
         </div>
-
-        {/* 규칙 요약 (첫 카드에만, 정답 공개 전) */}
-        {!unitCardRevealed && (
-          <div style={{width:"100%", maxWidth:400, background:"white", borderRadius:16, padding:16, marginBottom:16, fontSize:12, color:"#444"}}>
-            <div style={{fontWeight:900, color:"#00A876", marginBottom:8}}>📌 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
-            <div>· 받침 <b>있음</b> → <b>이__요</b> &nbsp;(학생, 사람, 월요일 + ?)</div>
-            <div>· 받침 <b>없음</b> → <b>__요</b> &nbsp;(학교, 의사, 커피 + ?)</div>
-            <div>· 높임 → <b>이세요</b> &nbsp;(선생님, 교수님 + ?)</div>
-          </div>
-        )}
-
-        {/* 버튼 — 입력 전: 확인하기 / 정답 공개 후: 다음 */}
-        {!unitCardRevealed ? (
-          <button onClick={handleUnitCardSubmit} disabled={!unitCardInput.trim()}
-            style={{width:"100%", maxWidth:400, background: unitCardInput.trim()?"linear-gradient(135deg,#00C896,#00A876)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor: unitCardInput.trim()?"pointer":"default", boxShadow: unitCardInput.trim()?"0 4px 16px #00C89644":"none"}}>
-            {vi?"Kiểm tra":en?"Check":"확인하기 ✓"}
-          </button>
-        ) : unitCardIdx < total - 1 ? (
-          <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
-            style={{width:"100%", maxWidth:400, background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #00C89644"}}>
-            {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
-          </button>
-        ) : (
-          <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(true); setStep("test1"); }}
-            style={{width:"100%", maxWidth:400, background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #00C89644"}}>
-            {vi?"Kiểm tra tổng hợp! →":en?"Cumulative test! →":"누적 테스트로! 🚀"}
-          </button>
-        )}
-        <button onClick={()=>{setStep("josa"); setJosaStep(5);}}
-          style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer"}}>
-          ← {vi?"Quay lại":en?"Back":"뒤로"}
-        </button>
       </div>
     );
   }
 
-  // ════════════════════════════════════════════════════════
-  // ✅ V180: 1B단원 — 아니에요 + 묻고 답하기
-  // ════════════════════════════════════════════════════════
   if (step === "test1") {
     const vi = lang?.code === "vi";
     const en = lang?.code === "en";
