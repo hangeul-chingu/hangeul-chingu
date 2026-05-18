@@ -6356,14 +6356,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const vi = lang?.code === "vi";
     const en = lang?.code === "en";
 
-    // STT 훅
-    const { transcript, listening, startListening, stopListening, supported: sttSupported } = useSTT("ko-KR");
-
-    // STT 결과를 입력창에 반영
-    React.useEffect(() => {
-      if (transcript) setUnitCardInput(transcript);
-    }, [transcript]);
-
     function handleUnitCardSubmit() {
       if (!unitCardInput.trim()) return;
       setUnitCardRevealed(true);
@@ -6484,17 +6476,24 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}}
             />
-            {/* STT 마이크 버튼 */}
-            {sttSupported && (
+            {/* STT 마이크 버튼 — 인라인 Web Speech API */}
+            {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
                 <button
-                  onClick={()=>{ if(listening) stopListening(); else { setUnitCardInput(""); startListening(); } }}
+                  onClick={()=>{
+                    if(unitCardRevealed) return;
+                    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    const r = new SR();
+                    r.lang = "ko-KR"; r.interimResults = false; r.maxAlternatives = 1;
+                    r.onresult = (e) => { setUnitCardInput(e.results[0][0].transcript); };
+                    r.start();
+                  }}
                   disabled={unitCardRevealed}
-                  style={{background: listening?"#C62828":"#1565C0", color:"white", border:"none", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
-                  {listening ? "⏹ 중지" : "🎤 말하기"}
+                  style={{background:"#1565C0", color:"white", border:"none", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+                  🎤 말하기
                 </button>
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* 정답 공개 후 */}
