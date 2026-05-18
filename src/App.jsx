@@ -4102,6 +4102,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         pres:"놓습니다",  presQ:"놓습니까?",  past:"놓았습니다", pastQ:"놓았습니까?",  fut:"놓을 것입니다",  futQ:"놓을 것입니까?" },
       { base:"신다",    meaning:{vi:"mang (giày)",en:"put on shoes"}, batchim:true,
         pres:"신습니다",  presQ:"신습니까?",  past:"신었습니다", pastQ:"신었습니까?",  fut:"신을 것입니다",  futQ:"신을 것입니까?" },
+      { base:"끝나다",    meaning:{vi:"kết thúc",       en:"end/finish"},    batchim:false,
+        pres:"끝납니다",  presQ:"끝납니까?",  past:"끝났습니다", pastQ:"끝났습니까?",  fut:"끝날 것입니다",  futQ:"끝날 것입니까?" },
+      { base:"만들다",    meaning:{vi:"làm/tạo",       en:"make/create"},    batchim:false,
+        pres:"만듭니다",  presQ:"만듭니까?",  past:"만들었습니다", pastQ:"만들었습니까?",  fut:"만들 것입니다",  futQ:"만들 것입니까?" },
+      { base:"다니다",    meaning:{vi:"đi lại/thông qua",       en:"commute/attend"},    batchim:false,
+        pres:"다닙니다",  presQ:"다닙니까?",  past:"다녔습니다", pastQ:"다녔습니까?",  fut:"다닐 것입니다",  futQ:"다닐 것입니까?" },
+      { base:"고치다",    meaning:{vi:"sửa chữa",       en:"fix/repair"},    batchim:false,
+        pres:"고칩니다",  presQ:"고칩니까?",  past:"고쳤습니다", pastQ:"고쳤습니까?",  fut:"고칠 것입니다",  futQ:"고칠 것입니까?" },
+      { base:"버리다",    meaning:{vi:"bỏ đi/vứt",       en:"throw away"},    batchim:false,
+        pres:"버립니다",  presQ:"버립니까?",  past:"버렸습니다", pastQ:"버렸습니까?",  fut:"버릴 것입니다",  futQ:"버릴 것입니까?" },
     ];
 
     const card = TENSE1_CARDS[tenseCardIdx];
@@ -4383,6 +4393,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         past:"비쌌습니다",pastQ:"비쌌습니까?",
         fut:"비쌀 것입니다",futQ:"비쌀 것입니까?",
         rule:vi?"비싸다 → 비싸+ㅂ니다 → ㄹ탈락 → 비쌉니다":en?"비싸다 → 비싸+ㅂ니다 → ㄹ drop → 비쌉니다":"비싸다 → 비싸+ㅂ니다 → ㄹ탈락 → 비쌉니다" },
+      { base:"들어가다",    meaning:{vi:"đi vào",       en:"enter"},    batchim:false,
+        pres:"들어갑니다",  presQ:"들어갑니까?",  past:"들어갔습니다", pastQ:"들어갔습니까?",  fut:"들어갈 것입니다",  futQ:"들어갈 것입니까?" },
+      { base:"올라가다",    meaning:{vi:"đi lên",       en:"go up"},    batchim:false,
+        pres:"올라갑니다",  presQ:"올라갑니까?",  past:"올라갔습니다", pastQ:"올라갔습니까?",  fut:"올라갈 것입니다",  futQ:"올라갈 것입니까?" },
+      { base:"내려가다",    meaning:{vi:"đi xuống",       en:"go down"},    batchim:false,
+        pres:"내려갑니다",  presQ:"내려갑니까?",  past:"내려갔습니다", pastQ:"내려갔습니까?",  fut:"내려갈 것입니다",  futQ:"내려갈 것입니까?" },
+      { base:"일어나다",    meaning:{vi:"thức dậy",       en:"get up"},    batchim:false,
+        pres:"일어납니다",  presQ:"일어납니까?",  past:"일어났습니다", pastQ:"일어났습니까?",  fut:"일어날 것입니다",  futQ:"일어날 것입니까?" },
     ];
 
     const card = TENSE2_CARDS[tenseCardIdx];
@@ -5285,6 +5303,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         fut:"끌 것입니다", futQ:"끌 것입니까?",
         rule:vi?"끄다 → 으탈락 → 끄+어 → 껐습니다":en?"끄다 → 으-drop → 끄+어 → 껐습니다":"끄다 → 으탈락 → 끄+어 → 껐습니다",
         type:"으탈락" },
+      { base:"받다",    meaning:{vi:"nhận",       en:"receive"},    batchim:true,
+        pres:"받습니다",  presQ:"받습니까?",  past:"받았습니다", pastQ:"받았습니까?",  fut:"받을 것입니다",  futQ:"받을 것입니까?" },
+      { base:"잡다",    meaning:{vi:"bắt/nắm",       en:"catch/hold"},    batchim:true,
+        pres:"잡습니다",  presQ:"잡습니까?",  past:"잡았습니다", pastQ:"잡았습니까?",  fut:"잡을 것입니다",  futQ:"잡을 것입니까?" },
+      { base:"입다",    meaning:{vi:"mặc",       en:"wear/put on"},    batchim:true,
+        pres:"입습니다",  presQ:"입습니까?",  past:"입었습니다", pastQ:"입었습니까?",  fut:"입을 것입니다",  futQ:"입을 것입니까?" },
+      { base:"닫다",    meaning:{vi:"đóng",       en:"close"},    batchim:true,
+        pres:"닫습니다",  presQ:"닫습니까?",  past:"닫았습니다", pastQ:"닫았습니까?",  fut:"닫을 것입니다",  futQ:"닫을 것입니까?" },
+      { base:"묻다",    meaning:{vi:"hỏi",       en:"ask/bury"},    batchim:true,
+        pres:"묻습니다",  presQ:"묻습니까?",  past:"물었습니다", pastQ:"물었습니까?",  fut:"물을 것입니다",  futQ:"물을 것입니까?" },
+      { base:"싣다",    meaning:{vi:"chở/chất",       en:"load"},    batchim:true,
+        pres:"싣습니다",  presQ:"싣습니까?",  past:"실었습니다", pastQ:"실었습니까?",  fut:"실을 것입니다",  futQ:"실을 것입니까?" },
     ];
 
     const card = TENSE4_CARDS[tenseCardIdx];
@@ -5489,6 +5519,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         fut:"그릴 것입니다",futQ:"그릴 것입니까?",
         rule:vi?"그리다 → 그리+어 → 그렸습니다":en?"그리다 → 그리+어 → 그렸습니다":"그리다 → 그리+어 → 그렸습니다",
         type:"규칙" },
+      { base:"켜다",    meaning:{vi:"bật",       en:"turn on"},    batchim:false,
+        pres:"켭니다",  presQ:"켭니까?",  past:"켰습니다", pastQ:"켰습니까?",  fut:"켤 것입니다",  futQ:"켤 것입니까?" },
+      { base:"끄다",    meaning:{vi:"tắt",       en:"turn off"},    batchim:false,
+        pres:"끕니다",  presQ:"끕니까?",  past:"껐습니다", pastQ:"껐습니까?",  fut:"끌 것입니다",  futQ:"끌 것입니까?" },
+      { base:"지우다",    meaning:{vi:"xóa",       en:"erase"},    batchim:false,
+        pres:"지웁니다",  presQ:"지웁니까?",  past:"지웠습니다", pastQ:"지웠습니까?",  fut:"지울 것입니다",  futQ:"지울 것입니까?" },
+      { base:"바꾸다",    meaning:{vi:"thay đổi",       en:"change/exchange"},    batchim:false,
+        pres:"바꿉니다",  presQ:"바꿉니까?",  past:"바꿨습니다", pastQ:"바꿨습니까?",  fut:"바꿀 것입니다",  futQ:"바꿀 것입니까?" },
+      { base:"그리다",    meaning:{vi:"vẽ",       en:"draw"},    batchim:false,
+        pres:"그립니다",  presQ:"그립니까?",  past:"그렸습니다", pastQ:"그렸습니까?",  fut:"그릴 것입니다",  futQ:"그릴 것입니까?" },
+      { base:"가르치다",    meaning:{vi:"dạy",       en:"teach"},    batchim:false,
+        pres:"가르칩니다",  presQ:"가르칩니까?",  past:"가르쳤습니다", pastQ:"가르쳤습니까?",  fut:"가르칠 것입니다",  futQ:"가르칠 것입니까?" },
     ];
 
     const card = TENSE5_CARDS[tenseCardIdx];
@@ -6359,6 +6401,90 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full: "제 이름은 마중입니다.",
         hint: vi?"받침 ㅇ 있어요 → 이__요":en?"Has final consonant ㅇ → 이__요":"받침 ㅇ 있어요 → 이__요",
       },
+      {
+        front: "이것은 책___.",
+        blank: "입니다",
+        full: "이것은 책입니다.",
+        hint: vi?"받침 ㄱ 있어요 → 이__요":en?"Has final consonant → 이__요":"받침 ㄱ 있어요 → 이__요",
+      },
+      {
+        front: "저는 회사원___.",
+        blank: "입니다",
+        full: "저는 회사원입니다.",
+        hint: vi?"받침 ㄴ 있어요 → 이__요":en?"Has final consonant ㄴ → 이__요":"받침 ㄴ 있어요 → 이__요",
+      },
+      {
+        front: "저분은 선생님___.",
+        blank: "입니다",
+        full: "저분은 선생님입니다.",
+        hint: vi?"받침 ㅁ 있어요 → 이__요":en?"Has final consonant ㅁ → 이__요":"받침 ㅁ 있어요 → 이__요",
+      },
+      {
+        front: "지금은 아침___.",
+        blank: "입니다",
+        full: "지금은 아침입니다.",
+        hint: vi?"받침 ㅁ 있어요 → 이__요":en?"Has final consonant → 이__요":"받침 ㅁ 있어요 → 이__요",
+      },
+      {
+        front: "저는 한국어 학습자___.",
+        blank: "입니다",
+        full: "저는 한국어 학습자입니다.",
+        hint: vi?"받침 없어요 → __예요":en?"No final consonant → __예요":"받침 없어요 → __예요",
+      },
+      {
+        front: "저는 대학교 학생___.",
+        blank: "입니다",
+        full: "저는 대학교 학생입니다.",
+        hint: vi?"받침 ㅇ 있어요 → 이__요":en?"Has final consonant ㅇ → 이__요":"받침 ㅇ 있어요 → 이__요",
+      },
+      {
+        front: "오늘은 제 생일___.",
+        blank: "입니다",
+        full: "오늘은 제 생일입니다.",
+        hint: vi?"받침 ㄹ 있어요 → 이__요":en?"Has final consonant ㄹ → 이__요":"받침 ㄹ 있어요 → 이__요",
+      },
+      {
+        front: "이것은 제 가방___.",
+        blank: "입니다",
+        full: "이것은 제 가방입니다.",
+        hint: vi?"받침 ㅇ 있어요 → 이__요":en?"Has final consonant ㅇ → 이__요":"받침 ㅇ 있어요 → 이__요",
+      },
+      {
+        front: "저분은 우리 어머니___.",
+        blank: "입니다",
+        full: "저분은 우리 어머니입니다.",
+        hint: vi?"받침 없어요 → __예요":en?"No final consonant → __예요":"받침 없어요 → __예요",
+      },
+      {
+        front: "오늘은 토요일___.",
+        blank: "입니다",
+        full: "오늘은 토요일입니다.",
+        hint: vi?"받침 ㄹ 있어요 → 이__요":en?"Has final consonant ㄹ → 이__요":"받침 ㄹ 있어요 → 이__요",
+      },
+      {
+        front: "저는 운전기사___.",
+        blank: "입니다",
+        full: "저는 운전기사입니다.",
+        hint: vi?"받침 없어요 → __예요":en?"No final consonant → __예요":"받침 없어요 → __예요",
+      },
+      {
+        front: "여기는 서울___.",
+        blank: "입니다",
+        full: "여기는 서울입니다.",
+        hint: vi?"받침 ㄹ 있어요 → 이__요":en?"Has final consonant ㄹ → 이__요":"받침 ㄹ 있어요 → 이__요",
+      },
+      {
+        front: "저는 간호사___.",
+        blank: "입니다",
+        full: "저는 간호사입니다.",
+        hint: vi?"받침 없어요 → __예요":en?"No final consonant → __예요":"받침 없어요 → __예요",
+      },
+      {
+        front: "저는 중국 사람___.",
+        blank: "입니다",
+        full: "저는 중국 사람입니다.",
+        hint: vi?"받침 ㅁ 있어요 → 이__요":en?"Has final consonant ㅁ → 이__요":"받침 ㅁ 있어요 → 이__요",
+      },
     ];
     const card = UNIT1_CARDS[unitCardIdx];
     const total = UNIT1_CARDS.length;
@@ -6678,6 +6804,30 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         blank: "적습니다",
         full: "학생이 적습니다.",
         hint: vi?"Ít người → ngược với '많다'":en?"Few → opposite of '많다'":"'많다'의 반대말",
+      },
+      {
+        front: "교실에 학생이 ___.",
+        blank: "있습니다",
+        full: "교실에 학생이 있습니다.",
+        hint: vi?"'있다' = có (tồn tại)":en?"'있다' = exist/have":"있다 = 존재/소유",
+      },
+      {
+        front: "오늘은 숙제가 ___.",
+        blank: "없습니다",
+        full: "오늘은 숙제가 없습니다.",
+        hint: vi?"'없다' = không có":en?"'없다' = don't have":"없다 = 없음/부재",
+      },
+      {
+        front: "우리 반에 친구가 ___.",
+        blank: "많습니다",
+        full: "우리 반에 친구가 많습니다.",
+        hint: vi?"'많다' = nhiều":en?"'많다' = many":"많다 = 수가 많음",
+      },
+      {
+        front: "냉장고에 음식이 ___.",
+        blank: "적습니다",
+        full: "냉장고에 음식이 적습니다.",
+        hint: vi?"'적다' = ít":en?"'적다' = few/little":"적다 = 수가 적음",
       },
     ];
 
@@ -7415,6 +7565,210 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full: "누가 친구입니까?",
         hint: vi?"'누구' + 이/가 → 누가 (rút gọn)":en?"'누구' + 이/가 → 누가 (shortened)":"누구 + 가 → 누가 (줄여서 써요)",
       },
+      {
+        front: "___이 선생님입니까? (주어 위치)",
+        blank: "누가",
+        full: "누가 선생님입니까?",
+        hint: vi?"'누가' = ai (chủ ngữ)":en?"'누가' = who (subject)":"누가 = 주어 위치의 '누구'",
+      },
+      {
+        front: "이분은 ___입니까? (보어 위치)",
+        blank: "누구",
+        full: "이분은 누구입니까?",
+        hint: vi?"'누구' = ai (bổ ngữ)":en?"'누구' = who (predicate)":"누구 = 보어/목적어 위치",
+      },
+      {
+        front: "저는 ___을 만납니까? (목적어)",
+        blank: "누구",
+        full: "저는 누구를 만납니까?",
+        hint: vi?"'누구를' = gặp ai":en?"'누구를' = meet who":"누구 + 를 = 목적어",
+      },
+      {
+        front: "___에 옵니까? (날짜/시간)",
+        blank: "언제",
+        full: "언제 옵니까?",
+        hint: vi?"Hỏi về thời gian":en?"Asking about time":"언제 = 시간을 물을 때",
+      },
+      {
+        front: "시험이 ___ 있습니까?",
+        blank: "언제",
+        full: "시험이 언제 있습니까?",
+        hint: vi?"Khi nào có kỳ thi?":en?"When is the exam?":"언제 = 시간 의문사",
+      },
+      {
+        front: "방학이 ___ 끝납니까?",
+        blank: "언제",
+        full: "방학이 언제 끝납니까?",
+        hint: vi?"Kỳ nghỉ kết thúc khi nào?":en?"When does vacation end?":"언제 = 시간 의문사",
+      },
+      {
+        front: "___ 삽니까? (장소)",
+        blank: "어디",
+        full: "어디 삽니까?",
+        hint: vi?"Hỏi về địa điểm":en?"Asking about place":"어디 = 장소를 물을 때",
+      },
+      {
+        front: "학교가 ___ 있습니까?",
+        blank: "어디",
+        full: "학교가 어디 있습니까?",
+        hint: vi?"Trường ở đâu?":en?"Where is the school?":"어디 = 장소 의문사",
+      },
+      {
+        front: "___ 에서 공부합니까?",
+        blank: "어디",
+        full: "어디에서 공부합니까?",
+        hint: vi?"'어디에서' = ở đâu (hành động)":en?"'어디에서' = where (action)":"어디에서 = 행동 장소",
+      },
+      {
+        front: "지금 ___ 먹습니까?",
+        blank: "무엇을",
+        full: "지금 무엇을 먹습니까?",
+        hint: vi?"'무엇을' = ăn gì":en?"'무엇을' = eat what":"무엇 + 을 = 목적어",
+      },
+      {
+        front: "취미가 ___ 입니까?",
+        blank: "무엇",
+        full: "취미가 무엇입니까?",
+        hint: vi?"Sở thích là gì?":en?"What is your hobby?":"무엇 = 서술어 위치",
+      },
+      {
+        front: "가방 안에 ___ 있습니까?",
+        blank: "무엇이",
+        full: "가방 안에 무엇이 있습니까?",
+        hint: vi?"'무엇이' = cái gì (chủ ngữ)":en?"'무엇이' = what (subject)":"무엇 + 이 = 주어",
+      },
+      {
+        front: "___ 웁니까? (이유)",
+        blank: "왜",
+        full: "왜 웁니까?",
+        hint: vi?"'왜' = tại sao":en?"'왜' = why":"왜 = 이유를 물을 때",
+      },
+      {
+        front: "___ 학교에 안 갑니까?",
+        blank: "왜",
+        full: "왜 학교에 안 갑니까?",
+        hint: vi?"Tại sao không đến trường?":en?"Why don't you go to school?":"왜 = 이유 의문사",
+      },
+      {
+        front: "___ 늦었습니까?",
+        blank: "왜",
+        full: "왜 늦었습니까?",
+        hint: vi?"Tại sao đến muộn?":en?"Why were you late?":"왜 = 이유 의문사",
+      },
+      {
+        front: "지금 ___ 몇 시입니까?",
+        blank: "몇",
+        full: "지금 몇 시입니까?",
+        hint: vi?"Bây giờ là mấy giờ?":en?"What time is it now?":"몇 = 수/시간을 물을 때",
+      },
+      {
+        front: "오늘 날씨가 ___입니까?",
+        blank: "어떻습니까",
+        full: "오늘 날씨가 어떻습니까?",
+        hint: vi?"'어떻다' = thế nào":en?"'어떻다' = how is it?":"어떻다 = 상태/방식을 물을 때",
+      },
+      {
+        front: "이름이 ___입니까?",
+        blank: "무엇",
+        full: "이름이 무엇입니까?",
+        hint: vi?"Tên là gì?":en?"What is your name?":"무엇 = 정보를 물을 때",
+      },
+      {
+        front: "가족이 ___명입니까?",
+        blank: "몇",
+        full: "가족이 몇 명입니까?",
+        hint: vi?"Gia đình có bao nhiêu người?":en?"How many family members?":"몇 = 숫자를 물을 때",
+      },
+      {
+        front: "___ 한국어를 공부합니까?",
+        blank: "왜",
+        full: "왜 한국어를 공부합니까?",
+        hint: vi?"Tại sao học tiếng Hàn?":en?"Why do you study Korean?":"왜 = 이유를 물을 때",
+      },
+      {
+        front: "지금 ___ 합니까?",
+        blank: "무엇을",
+        full: "지금 무엇을 합니까?",
+        hint: vi?"Bây giờ đang làm gì?":en?"What are you doing now?":"무엇을 = 동작 목적어",
+      },
+      {
+        front: "어머니는 ___ 계십니까?",
+        blank: "어디",
+        full: "어머니는 어디 계십니까?",
+        hint: vi?"Mẹ ở đâu?":en?"Where is your mother?":"어디 = 장소 의문사",
+      },
+      {
+        front: "___ 사람을 좋아합니까?",
+        blank: "어떤",
+        full: "어떤 사람을 좋아합니까?",
+        hint: vi?"'어떤' = loại nào, như thế nào":en?"'어떤' = what kind of":"어떤 = 종류/성격을 물을 때",
+      },
+      {
+        front: "오늘 수업이 ___ 개 있습니까?",
+        blank: "몇",
+        full: "오늘 수업이 몇 개 있습니까?",
+        hint: vi?"Hôm nay có bao nhiêu tiết?":en?"How many classes today?":"몇 = 수를 물을 때",
+      },
+      {
+        front: "친구 이름이 ___입니까?",
+        blank: "무엇",
+        full: "친구 이름이 무엇입니까?",
+        hint: vi?"Tên bạn là gì?":en?"What is your friend's name?":"무엇 = 이름/정보",
+      },
+      {
+        front: "선생님은 ___ 분이십니까?",
+        blank: "어떤",
+        full: "선생님은 어떤 분이십니까?",
+        hint: vi?"Thầy/cô là người như thế nào?":en?"What kind of teacher is he/she?":"어떤 = 사람 성격을 물을 때",
+      },
+      {
+        front: "___ 한국에 왔습니까?",
+        blank: "언제",
+        full: "언제 한국에 왔습니까?",
+        hint: vi?"Khi nào đến Hàn Quốc?":en?"When did you come to Korea?":"언제 = 과거 시간",
+      },
+      {
+        front: "집에서 학교까지 ___ 멉니까?",
+        blank: "얼마나",
+        full: "집에서 학교까지 얼마나 멉니까?",
+        hint: vi?"'얼마나' = bao xa/bao nhiêu":en?"'얼마나' = how much/far":"얼마나 = 정도를 물을 때",
+      },
+      {
+        front: "이 가방이 ___입니까?",
+        blank: "누구 것",
+        full: "이 가방이 누구 것입니까?",
+        hint: vi?"'누구 것' = của ai":en?"'누구 것' = whose":"누구 것 = 소유를 물을 때",
+      },
+      {
+        front: "___ 와 함께 공부합니까?",
+        blank: "누구",
+        full: "누구와 함께 공부합니까?",
+        hint: vi?"Học cùng với ai?":en?"Who do you study with?":"누구 + 와 = 동반",
+      },
+      {
+        front: "지하철역이 ___ 있습니까?",
+        blank: "어디",
+        full: "지하철역이 어디 있습니까?",
+        hint: vi?"Ga tàu điện ngầm ở đâu?":en?"Where is the subway station?":"어디 = 장소",
+      },
+      {
+        front: "요즘 한국 드라마를 ___ 봅니까?",
+        blank: "왜",
+        full: "요즘 한국 드라마를 왜 봅니까?",
+        hint: vi?"Tại sao xem phim Hàn?":en?"Why do you watch Korean dramas?":"왜 = 이유",
+      },
+      {
+        front: "___ 을 제일 좋아합니까?",
+        blank: "무엇",
+        full: "무엇을 제일 좋아합니까?",
+        hint: vi?"Thích gì nhất?":en?"What do you like most?":"무엇 = 선호 의문",
+      },
+      {
+        front: "오늘 ___ 와 만납니까?",
+        blank: "누구",
+        full: "오늘 누구와 만납니까?",
+        hint: vi?"Hôm nay gặp ai?":en?"Who are you meeting today?":"누구 + 와 = 동반/대상",
+      },
     ];
 
     const card = UNIT4_CARDS[unitCardIdx];
@@ -7690,6 +8044,90 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         blank: "사세요",
         full: "사세요.",
         hint: vi?"살다: ㄹ받침 → 어떻게 될까요?":en?"살다: ㄹ drops → ___세요?":"살다 → ㄹ 빠지면 → ___세요?",
+      },
+      {
+        front: "문을 ___. (닫다)",
+        blank: "닫으세요",
+        full: "문을 닫으세요.",
+        hint: vi?"받침 있으면 → 으세요":en?"Final consonant → 으세요":"받침 있음 → 으세요",
+      },
+      {
+        front: "이쪽으로 ___. (오다)",
+        blank: "오세요",
+        full: "이쪽으로 오세요.",
+        hint: vi?"'오세요' = hãy đến đây":en?"'오세요' = please come":"오다 → 오세요",
+      },
+      {
+        front: "천천히 ___. (말하다)",
+        blank: "말하세요",
+        full: "천천히 말하세요.",
+        hint: vi?"받침 없음 → 세요":en?"No final consonant → 세요":"말하다 → 말하세요",
+      },
+      {
+        front: "여기에 이름을 ___. (쓰다)",
+        blank: "쓰세요",
+        full: "여기에 이름을 쓰세요.",
+        hint: vi?"받침 없음 → 세요":en?"No final consonant → 세요":"쓰다 → 쓰세요",
+      },
+      {
+        front: "물을 많이 ___. (마시다)",
+        blank: "마시세요",
+        full: "물을 많이 마시세요.",
+        hint: vi?"받침 없음 → 세요":en?"No final consonant → 세요":"마시다 → 마시세요",
+      },
+      {
+        front: "교과서를 ___. (읽다)",
+        blank: "읽으세요",
+        full: "교과서를 읽으세요.",
+        hint: vi?"받침 있음 → 으세요":en?"Final consonant → 으세요":"읽다 → 읽으세요",
+      },
+      {
+        front: "손을 ___. (씻다)",
+        blank: "씻으세요",
+        full: "손을 씻으세요.",
+        hint: vi?"받침 있음 → 으세요":en?"Final consonant → 으세요":"씻다 → 씻으세요",
+      },
+      {
+        front: "빨리 ___. (일어나다)",
+        blank: "일어나세요",
+        full: "빨리 일어나세요.",
+        hint: vi?"받침 없음 → 세요":en?"No final consonant → 세요":"일어나다 → 일어나세요",
+      },
+      {
+        front: "여기에 ___. (앉다)",
+        blank: "앉으세요",
+        full: "여기에 앉으세요.",
+        hint: vi?"받침 있음 → 으세요":en?"Final consonant → 으세요":"앉다 → 앉으세요",
+      },
+      {
+        front: "창문을 ___. (열다)",
+        blank: "여세요",
+        full: "창문을 여세요.",
+        hint: vi?"'열다' → ㄹ 탈락 → 여세요":en?"'열다' → ㄹ drop → 여세요":"열다 → ㄹ 탈락 → 여세요",
+      },
+      {
+        front: "숙제를 ___. (하다)",
+        blank: "하세요",
+        full: "숙제를 하세요.",
+        hint: vi?"하다 → 하세요":en?"하다 → 하세요":"하다 → 하세요",
+      },
+      {
+        front: "조용히 ___. (기다리다)",
+        blank: "기다리세요",
+        full: "조용히 기다리세요.",
+        hint: vi?"받침 없음 → 세요":en?"No final consonant → 세요":"기다리다 → 기다리세요",
+      },
+      {
+        front: "약을 ___. (먹다)",
+        blank: "드세요",
+        full: "약을 드세요.",
+        hint: vi?"'드세요' = 먹으세요 (높임말)":en?"'드세요' = honorific of 먹으세요":"먹다 높임 → 드세요",
+      },
+      {
+        front: "집에 빨리 ___. (가다)",
+        blank: "가세요",
+        full: "집에 빨리 가세요.",
+        hint: vi?"받침 없음 → 세요":en?"No final consonant → 세요":"가다 → 가세요",
       },
     ];
 
@@ -7989,6 +8427,24 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         blank: "서",
         full: "배가 고파서 밥을 먹습니다.",
         hint: vi?"배가 고프다 → 왜 밥 먹어요? (nguyên nhân)":en?"Hungry → why eat? (reason)":"배가 고파서 먹어요: 이유를 말할 때 어미는 → ___",
+      },
+      {
+        front: "저는 노래를 좋아하___ 춤도 좋아합니다.",
+        blank: "고",
+        full: "저는 노래를 좋아하고 춤도 좋아합니다.",
+        hint: vi?"~고: liệt kê đồng thời":en?"~고: simultaneous listing":"~고: 두 가지를 함께 나열할 때",
+      },
+      {
+        front: "아침을 먹___ 학교에 갑니다.",
+        blank: "고",
+        full: "아침을 먹고 학교에 갑니다.",
+        hint: vi?"~고: hành động liên tiếp":en?"~고: sequential actions":"~고: 앞 행동 후 뒤 행동",
+      },
+      {
+        front: "저는 학생이___ 동생도 학생입니다.",
+        blank: "고",
+        full: "저는 학생이고 동생도 학생입니다.",
+        hint: vi?"이다+고=이고":en?"이다+고=이고":"이다 + 고 → 이고",
       },
     ];
 
@@ -8553,6 +9009,54 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         hint: vi?"오다(đến/rơi): 줄기 '오' + ___":en?"오다: stem '오' + ___ + 있어요":"비가 내리고 있어요 = 비가 오+고 있어요",
         rule: vi?"오다: 오+고 있어요 → 지금 비가 내리고 있어요":en?"비가 오고 있어요 = It's raining right now":"오다 → 오+고 있어요 = 지금 비가 내리는 중이에요",
       },
+      {
+        front: "친구가 노래를 ___.",
+        blank: "부르고 있습니다",
+        full: "친구가 노래를 부르고 있습니다.",
+        hint: vi?"~고 있다 = đang làm":en?"~고 있다 = in progress":"동사 + 고 있습니다",
+      },
+      {
+        front: "어머니가 요리를 ___.",
+        blank: "하고 있습니다",
+        full: "어머니가 요리를 하고 있습니다.",
+        hint: vi?"하다 + 고 있다":en?"하다 + 고 있다":"하다 + 고 있습니다",
+      },
+      {
+        front: "학생들이 시험을 ___.",
+        blank: "보고 있습니다",
+        full: "학생들이 시험을 보고 있습니다.",
+        hint: vi?"보다 + 고 있다":en?"보다 + 고 있다":"보다 + 고 있습니다",
+      },
+      {
+        front: "아이가 TV를 ___.",
+        blank: "보고 있습니다",
+        full: "아이가 TV를 보고 있습니다.",
+        hint: vi?"'보고 있다' = đang xem":en?"'보고 있다' = watching":"보다 + 고 있습니다",
+      },
+      {
+        front: "선생님이 칠판에 ___.",
+        blank: "쓰고 있습니다",
+        full: "선생님이 칠판에 쓰고 있습니다.",
+        hint: vi?"쓰다 + 고 있다":en?"쓰다 + 고 있다":"쓰다 + 고 있습니다",
+      },
+      {
+        front: "지금 비가 ___.",
+        blank: "오고 있습니다",
+        full: "지금 비가 오고 있습니다.",
+        hint: vi?"오다 + 고 있다 = đang rơi":en?"오다 + 고 있다 = falling":"오다 + 고 있습니다",
+      },
+      {
+        front: "형이 방에서 ___.",
+        blank: "자고 있습니다",
+        full: "형이 방에서 자고 있습니다.",
+        hint: vi?"자다 + 고 있다 = đang ngủ":en?"자다 + 고 있다 = sleeping":"자다 + 고 있습니다",
+      },
+      {
+        front: "언니가 전화를 ___.",
+        blank: "하고 있습니다",
+        full: "언니가 전화를 하고 있습니다.",
+        hint: vi?"전화하다 + 고 있다":en?"전화하다 + 고 있다":"전화하다 + 고 있습니다",
+      },
     ];
     const card = UNIT7_CARDS[unitCardIdx];
     const total = UNIT7_CARDS.length;
@@ -8799,6 +9303,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { front:"뭐 먹을___? (의향 물음)", blank:"까요", full:"뭐 먹을까요?", hint:"💡 먹다 → 먹을까요?" },
       { front:"같이 공부할___? (함께 하자)", blank:"래요", full:"같이 공부할래요?", hint:"💡 -(으)ㄹ래요? 의지·권유" },
       { front:"커피 마실___? (권유)", blank:"래요", full:"커피 마실래요?", hint:"💡 마시다 → 마실래요?" },
+      {
+        front: "함께 운동___. (~ㄹ까요)",
+        blank: "할까요",
+        full: "함께 운동할까요?",
+        hint: vi?"'~ㄹ까요' = mình ... nhé?":en?"'~ㄹ까요' = shall we?":"제안/청유 표현",
+      },
+      {
+        front: "커피 한 잔 ___. (~ㄹ래요)",
+        blank: "마실래요",
+        full: "커피 한 잔 마실래요?",
+        hint: vi?"'~ㄹ래요' = bạn có muốn không?":en?"'~ㄹ래요' = do you want to?":"의향 확인 표현",
+      },
     ];
     const card = UNIT8_CARDS[unitCardIdx];
     const C = { bg:"linear-gradient(150deg,#E3F2FD,#BBDEFB)", accent:"#1565C0", border:"#90CAF9" };
@@ -8936,6 +9452,42 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { front:"저는 피아노를 칠 ___ ___. (가능)", blank:"수 있습니다", full:"저는 피아노를 칠 수 있습니다.", hint:"💡 치다 → 칠 수 있다" },
       { front:"오늘 만날 ___ ___? (가능 여부)", blank:"수 있습니까", full:"오늘 만날 수 있습니까?", hint:"💡 만나다 → 만날 수 있다" },
       { front:"저는 운전을 할 ___ ___. (불가능)", blank:"수 없습니다", full:"저는 운전을 할 수 없습니다.", hint:"💡 할 수 없다 = 못함" },
+      {
+        front: "저는 자전거를 ___.",
+        blank: "탈 수 있습니다",
+        full: "저는 자전거를 탈 수 있습니다.",
+        hint: vi?"'~ㄹ 수 있다' = có thể":en?"'~ㄹ 수 있다' = can":"동사 + ㄹ 수 있습니다",
+      },
+      {
+        front: "저는 수영을 ___.",
+        blank: "할 수 없습니다",
+        full: "저는 수영을 할 수 없습니다.",
+        hint: vi?"'~ㄹ 수 없다' = không thể":en?"'~ㄹ 수 없다' = cannot":"동사 + ㄹ 수 없습니다",
+      },
+      {
+        front: "한국 음식을 ___.",
+        blank: "만들 수 있습니다",
+        full: "한국 음식을 만들 수 있습니다.",
+        hint: vi?"만들다 → 만들 수 있다":en?"만들다 → can make":"만들다 + ㄹ 수 있습니다",
+      },
+      {
+        front: "이 문제를 ___.",
+        blank: "이해할 수 있습니다",
+        full: "이 문제를 이해할 수 있습니다.",
+        hint: vi?"이해하다 → 이해할 수 있다":en?"이해하다 → can understand":"이해하다 + ㄹ 수 있습니다",
+      },
+      {
+        front: "내일 올 ___?",
+        blank: "수 있습니까",
+        full: "내일 올 수 있습니까?",
+        hint: vi?"Ngày mai có thể đến không?":en?"Can you come tomorrow?":"올 수 있다 = 가능 의문",
+      },
+      {
+        front: "지금은 도움을 ___.",
+        blank: "드릴 수 없습니다",
+        full: "지금은 도움을 드릴 수 없습니다.",
+        hint: vi?"드리다 → 드릴 수 없다 (kính ngữ)":en?"드리다 → cannot help (formal)":"드리다 높임 + 수 없습니다",
+      },
     ];
     const card = UNIT9_CARDS[unitCardIdx];
     const C = { bg:"linear-gradient(150deg,#F3E5F5,#E1BEE7)", accent:"#6A1B9A", border:"#CE93D8" };
@@ -9059,6 +9611,48 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { front:"저는 친구를 만나고 ___. (희망)", blank:"싶습니다", full:"저는 친구를 만나고 싶습니다.", hint:"💡 만나다+고 싶다" },
       { front:"저는 쉬고 ___. (희망)", blank:"싶습니다", full:"저는 쉬고 싶습니다.", hint:"💡 쉬다+고 싶다" },
       { front:"무슨 영화를 보고 ___? (의향)", blank:"싶습니까", full:"무슨 영화를 보고 싶습니까?", hint:"💡 보다+고 싶다" },
+      {
+        front: "저는 선생님이 ___ 싶습니다.",
+        blank: "되고",
+        full: "저는 선생님이 되고 싶습니다.",
+        hint: vi?"되다 + 고 싶다 = muốn trở thành":en?"되다 + 고 싶다 = want to become":"되다 + 고 싶습니다",
+      },
+      {
+        front: "한국 친구를 ___ 싶습니다.",
+        blank: "사귀고",
+        full: "한국 친구를 사귀고 싶습니다.",
+        hint: vi?"사귀다 = kết bạn":en?"사귀다 = make friends":"사귀다 + 고 싶습니다",
+      },
+      {
+        front: "한국 문화를 ___ 싶습니다.",
+        blank: "배우고",
+        full: "한국 문화를 배우고 싶습니다.",
+        hint: vi?"배우다 + 고 싶다":en?"배우다 + 고 싶다":"배우다 + 고 싶습니다",
+      },
+      {
+        front: "제주도에 ___ 싶습니다.",
+        blank: "가고",
+        full: "제주도에 가고 싶습니다.",
+        hint: vi?"가다 + 고 싶다":en?"가다 + 고 싶다":"가다 + 고 싶습니다",
+      },
+      {
+        front: "한국 음식을 ___ 싶습니다.",
+        blank: "먹고",
+        full: "한국 음식을 먹고 싶습니다.",
+        hint: vi?"먹다 + 고 싶다":en?"먹다 + 고 싶다":"먹다 + 고 싶습니다",
+      },
+      {
+        front: "집에서 ___ 싶습니다.",
+        blank: "쉬고",
+        full: "집에서 쉬고 싶습니다.",
+        hint: vi?"쉬다 + 고 싶다":en?"쉬다 + 고 싶다":"쉬다 + 고 싶습니다",
+      },
+      {
+        front: "한국어를 잘 ___ 싶습니다.",
+        blank: "하고",
+        full: "한국어를 잘 하고 싶습니다.",
+        hint: vi?"하다 + 고 싶다 = muốn nói giỏi":en?"하다 + 고 싶다 = want to do well":"하다 + 고 싶습니다",
+      },
     ];
     const card = UNIT10_CARDS[unitCardIdx];
     const C = { bg:"linear-gradient(150deg,#FFF8E1,#FFECB3)", accent:"#F57F17", border:"#FFD54F" };
@@ -9305,6 +9899,90 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { front:"저는 운전을 하지 ___. (능력 부정·정중)", blank:"못합니다", full:"저는 운전을 하지 못합니다.", hint:"💡 -지 못하다 = 못 하다(정중)" },
       { front:"여기서 사진을 찍지 ___. (금지)", blank:"마세요", full:"여기서 사진을 찍지 마세요.", hint:"💡 -지 마세요 = 금지" },
       { front:"교실에서 떠들지 ___. (금지·함께)", blank:"맙시다", full:"교실에서 떠들지 맙시다.", hint:"💡 -지 맙시다 = 함께 하지 말자" },
+      {
+        front: "저는 오늘 학교에 ___ 갑니다.",
+        blank: "안",
+        full: "저는 오늘 학교에 안 갑니다.",
+        hint: vi?"'안' = không (부정 부사)":en?"'안' = not (adverb)":"안 + 동사 = 단순 부정",
+      },
+      {
+        front: "저는 매운 음식을 ___ 먹습니다.",
+        blank: "못",
+        full: "저는 매운 음식을 못 먹습니다.",
+        hint: vi?"'못' = không thể (bất năng)":en?"'못' = cannot (inability)":"못 + 동사 = 능력 부정",
+      },
+      {
+        front: "저는 술을 ___ 마십니다.",
+        blank: "안",
+        full: "저는 술을 안 마십니다.",
+        hint: vi?"안 마시다 = không uống":en?"안 마시다 = don't drink":"안 + 마시다",
+      },
+      {
+        front: "저는 운전을 ___ 합니다.",
+        blank: "못",
+        full: "저는 운전을 못 합니다.",
+        hint: vi?"못 하다 = không thể làm":en?"못 하다 = can't do":"못 + 하다 = 능력 부정",
+      },
+      {
+        front: "오늘은 시간이 ___ 있습니다.",
+        blank: "없습니다 / 안",
+        full: "오늘은 시간이 없습니다.",
+        hint: vi?"없다 = không có":en?"없다 = don't have":"없다 = 소유/존재 부정",
+      },
+      {
+        front: "저는 아직 한국어를 ___ 합니다.",
+        blank: "잘 못",
+        full: "저는 아직 한국어를 잘 못합니다.",
+        hint: vi?"잘 못하다 = chưa làm tốt":en?"잘 못하다 = not good at yet":"잘 못하다 = 능력 부족",
+      },
+      {
+        front: "수업 시간에 휴대폰을 ___ 합니다.",
+        blank: "사용하지 않",
+        full: "수업 시간에 휴대폰을 사용하지 않습니다.",
+        hint: vi?"~지 않다 = không (dài hơn)":en?"~지 않다 = long-form negation":"~지 않습니다 = 긴 부정형",
+      },
+      {
+        front: "저는 고기를 ___ 습니다.",
+        blank: "먹지 않",
+        full: "저는 고기를 먹지 않습니다.",
+        hint: vi?"먹지 않다 = không ăn":en?"먹지 않다 = don't eat":"~지 않습니다 = 긴 부정형",
+      },
+      {
+        front: "오늘은 비가 ___ 습니다.",
+        blank: "오지 않",
+        full: "오늘은 비가 오지 않습니다.",
+        hint: vi?"오지 않다 = không đến/rơi":en?"오지 않다 = not coming":"~지 않습니다 = 긴 부정형",
+      },
+      {
+        front: "저는 아직 결혼을 ___ 했습니다.",
+        blank: "안",
+        full: "저는 아직 결혼을 안 했습니다.",
+        hint: vi?"안 하다 = không làm":en?"안 하다 = didn't do":"안 + 하다 과거",
+      },
+      {
+        front: "시험 준비가 ___ 됩니다.",
+        blank: "잘 안",
+        full: "시험 준비가 잘 안 됩니다.",
+        hint: vi?"잘 안 되다 = không ổn":en?"잘 안 되다 = not going well":"잘 안 되다 = 부정 + 부사",
+      },
+      {
+        front: "여기서는 사진을 ___ 됩니다.",
+        blank: "찍으면 안",
+        full: "여기서는 사진을 찍으면 안 됩니다.",
+        hint: vi?"~면 안 되다 = không được":en?"~면 안 되다 = must not":"금지 표현 (13단원 예습)",
+      },
+      {
+        front: "저는 어제 잠을 ___ 잤습니다.",
+        blank: "잘 못",
+        full: "저는 어제 잠을 잘 못 잤습니다.",
+        hint: vi?"잘 못 자다 = ngủ không tốt":en?"잘 못 자다 = didn't sleep well":"잘 못 + 동사",
+      },
+      {
+        front: "이 한국어 책은 ___ 어렵지 않습니다.",
+        blank: "그렇게",
+        full: "이 한국어 책은 그렇게 어렵지 않습니다.",
+        hint: vi?"그렇게 ~ 않다 = không đến nỗi":en?"그렇게 ~ 않다 = not that ~":"그렇게 + 부정 = 완화 표현",
+      },
     ];
     const card = UNIT12_CARDS[unitCardIdx];
     const C = { bg:"linear-gradient(150deg,#FFEBEE,#FFCDD2)", accent:"#B71C1C", border:"#EF9A9A" };
@@ -9430,6 +10108,186 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { front:"여기서 사진을 찍지 ___. (명령 금지)", blank:"마세요", full:"여기서 사진을 찍지 마세요.", hint:"💡 -지 마세요 = 직접 금지 명령" },
       { front:"조용히 해야 ___. (의무)", blank:"합니다", full:"조용히 해야 합니다.", hint:"💡 -아/어야 합니다 = 꼭 해야 함" },
       { front:"예약하지 않아도 ___. (면제)", blank:"됩니다", full:"예약하지 않아도 됩니다.", hint:"💡 -지 않아도 됩니다 = 안 해도 괜찮습니다" },
+      {
+        front: "들어___ 됩니까? (허락 요청)",
+        blank: "와도",
+        full: "들어와도 됩니까?",
+        hint: vi?"~아도 되다 = có được không?":en?"~아도 되다 = is it okay to?":"~아도 됩니까? = 허락 요청",
+      },
+      {
+        front: "네, 들어___ 됩니다. (허락)",
+        blank: "와도",
+        full: "네, 들어와도 됩니다.",
+        hint: vi?"~아도 됩니다 = được phép":en?"~아도 됩니다 = it's okay":"~아도 됩니다 = 허락",
+      },
+      {
+        front: "음식을 가져___ 됩니다. (허락)",
+        blank: "와도",
+        full: "음식을 가져와도 됩니다.",
+        hint: vi?"가져오다 → 가져와도 됩니다":en?"가져오다 → may bring":"가져오다 + 아도 됩니다",
+      },
+      {
+        front: "앉___ 됩니까? (허락 요청)",
+        blank: "아도",
+        full: "앉아도 됩니까?",
+        hint: vi?"앉다 → 앉아도 됩니까?":en?"앉다 → may I sit?":"앉다 + 아도 됩니까?",
+      },
+      {
+        front: "창문을 ___ 됩니까? (열다)",
+        blank: "열어도",
+        full: "창문을 열어도 됩니까?",
+        hint: vi?"열다 → 열어도 됩니까?":en?"열다 → may I open?":"열다 + 어도 됩니까?",
+      },
+      {
+        front: "나중에 ___ 됩니다. (내다)",
+        blank: "내도",
+        full: "나중에 내도 됩니다.",
+        hint: vi?"내다 → 내도 됩니다":en?"내다 → may pay later":"내다 + 어도 됩니다",
+      },
+      {
+        front: "여기서 담배를 ___ 안 됩니다. (금지)",
+        blank: "피우면",
+        full: "여기서 담배를 피우면 안 됩니다.",
+        hint: vi?"~면 안 됩니다 = không được":en?"~면 안 됩니다 = must not":"~면 안 됩니다 = 금지",
+      },
+      {
+        front: "수업 중에 전화를 ___ 안 됩니다.",
+        blank: "받으면",
+        full: "수업 중에 전화를 받으면 안 됩니다.",
+        hint: vi?"받다 → 받으면 안 됩니다":en?"받다 → must not answer":"받다 + 으면 안 됩니다",
+      },
+      {
+        front: "늦게 ___ 안 됩니다. (오다)",
+        blank: "오면",
+        full: "늦게 오면 안 됩니다.",
+        hint: vi?"오다 → 오면 안 됩니다":en?"오다 → must not be late":"오다 + 면 안 됩니다",
+      },
+      {
+        front: "여기에 차를 ___ 안 됩니다. (주차)",
+        blank: "세우면",
+        full: "여기에 차를 세우면 안 됩니다.",
+        hint: vi?"세우다 → 세우면 안 됩니다":en?"세우다 → no parking":"세우다 + 면 안 됩니다",
+      },
+      {
+        front: "밥을 먹고 약을 ___ 마세요. (금지, ~지 마)",
+        blank: "안 먹지",
+        full: "밥을 먹고 약을 빠뜨리지 마세요.",
+        hint: vi?"~지 마세요 = đừng ~":en?"~지 마세요 = don't ~":"~지 마세요 = 금지 명령",
+      },
+      {
+        front: "뛰___ 마세요. (금지)",
+        blank: "지",
+        full: "뛰지 마세요.",
+        hint: vi?"뛰다 → 뛰지 마세요":en?"뛰다 → don't run":"~지 마세요 = 금지",
+      },
+      {
+        front: "큰 소리로 말하___ 마세요.",
+        blank: "지",
+        full: "큰 소리로 말하지 마세요.",
+        hint: vi?"말하다 → 말하지 마세요":en?"말하다 → don't speak loudly":"~지 마세요 = 금지",
+      },
+      {
+        front: "걱정하___ 마세요.",
+        blank: "지",
+        full: "걱정하지 마세요.",
+        hint: vi?"걱정하다 → 걱정하지 마세요":en?"걱정하다 → don't worry":"~지 마세요 = 금지",
+      },
+      {
+        front: "매일 운동을 ___ 합니다. (의무)",
+        blank: "해야",
+        full: "매일 운동을 해야 합니다.",
+        hint: vi?"~아야 하다 = phải ~":en?"~아야 하다 = must ~":"~아야 합니다 = 의무",
+      },
+      {
+        front: "숙제를 ___ 합니다. (하다, 의무)",
+        blank: "해야",
+        full: "숙제를 해야 합니다.",
+        hint: vi?"해야 합니다 = phải làm":en?"해야 합니다 = must do":"하다 + 아야 합니다",
+      },
+      {
+        front: "비자를 ___ 합니다. (받다, 의무)",
+        blank: "받아야",
+        full: "비자를 받아야 합니다.",
+        hint: vi?"받다 → 받아야 합니다":en?"받다 → must receive":"받다 + 아야 합니다",
+      },
+      {
+        front: "한국어 시험에 ___ 합니다. (합격, 의무)",
+        blank: "합격해야",
+        full: "한국어 시험에 합격해야 합니다.",
+        hint: vi?"합격하다 → 합격해야 합니다":en?"합격하다 → must pass":"합격하다 + 아야 합니다",
+      },
+      {
+        front: "약을 제때 ___ 합니다. (먹다, 의무)",
+        blank: "먹어야",
+        full: "약을 제때 먹어야 합니다.",
+        hint: vi?"먹다 → 먹어야 합니다":en?"먹다 → must take (medicine)":"먹다 + 어야 합니다",
+      },
+      {
+        front: "지금 바로 ___ 합니다. (출발, 의무)",
+        blank: "출발해야",
+        full: "지금 바로 출발해야 합니다.",
+        hint: vi?"출발하다 → 출발해야 합니다":en?"출발하다 → must depart now":"출발하다 + 아야 합니다",
+      },
+      {
+        front: "교복을 ___ 않아도 됩니다. (면제)",
+        blank: "입지",
+        full: "교복을 입지 않아도 됩니다.",
+        hint: vi?"~지 않아도 됩니다 = không cần ~":en?"~지 않아도 됩니다 = don't have to":"~지 않아도 됩니다 = 면제",
+      },
+      {
+        front: "내일은 일찍 ___ 않아도 됩니다. (일어나다)",
+        blank: "일어나지",
+        full: "내일은 일찍 일어나지 않아도 됩니다.",
+        hint: vi?"일어나지 않아도 됩니다":en?"일어나지 않아도 됩니다 = don't have to wake up early":"~지 않아도 됩니다 = 면제",
+      },
+      {
+        front: "지금 ___ 않아도 됩니다. (대답, 면제)",
+        blank: "대답하지",
+        full: "지금 대답하지 않아도 됩니다.",
+        hint: vi?"대답하지 않아도 됩니다":en?"don't have to answer now":"~지 않아도 됩니다 = 면제",
+      },
+      {
+        front: "오늘은 요리___ 않아도 됩니다. (면제)",
+        blank: "하지",
+        full: "오늘은 요리하지 않아도 됩니다.",
+        hint: vi?"요리하지 않아도 됩니다":en?"don't have to cook today":"~지 않아도 됩니다 = 면제",
+      },
+      {
+        front: "현금을 ___ 않아도 됩니다. (가져오다)",
+        blank: "가져오지",
+        full: "현금을 가져오지 않아도 됩니다.",
+        hint: vi?"현금 가져오지 않아도 됩니다":en?"don't have to bring cash":"~지 않아도 됩니다 = 면제",
+      },
+      {
+        front: "카드로 ___ 됩니다. (결제, 허락)",
+        blank: "결제해도",
+        full: "카드로 결제해도 됩니다.",
+        hint: vi?"결제하다 → 결제해도 됩니다":en?"결제하다 → may pay by card":"~아도 됩니다 = 허락",
+      },
+      {
+        front: "복도에서 뛰___ 마십시오. (공식 금지)",
+        blank: "지",
+        full: "복도에서 뛰지 마십시오.",
+        hint: vi?"~지 마십시오 = cấm (trang trọng)":en?"~지 마십시오 = do not (formal)":"~지 마십시오 = 공식 금지",
+      },
+      {
+        front: "안전벨트를 ___ 합니다. (매다, 의무)",
+        blank: "매야",
+        full: "안전벨트를 매야 합니다.",
+        hint: vi?"매다 → 매야 합니다":en?"매다 → must fasten":"매다 + 아야 합니다",
+      },
+      {
+        front: "영수증을 ___ 않아도 됩니다. (받다, 면제)",
+        blank: "받지",
+        full: "영수증을 받지 않아도 됩니다.",
+        hint: vi?"영수증 받지 않아도 됩니다":en?"don't have to get receipt":"~지 않아도 됩니다 = 면제",
+      },
+      {
+        front: "신발을 ___ 됩니다. (벗다, 허락)",
+        blank: "벗어도",
+        full: "신발을 벗어도 됩니다.",
+        hint: vi?"벗다 → 벗어도 됩니다":en?"벗다 → may take off shoes":"벗다 + 어도 됩니다",
+      },
     ];
     const card = UNIT13_CARDS[unitCardIdx];
     const C13 = { bg:"linear-gradient(150deg,#E0F7FA,#B2EBF2)", accent:"#00838F", border:"#80DEEA" };
