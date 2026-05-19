@@ -1374,7 +1374,6 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"서술어5",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit5"); }},
       { label:"서술어6A",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6a"); }},
       { label:"서술어6B",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6b"); }},
-      { label:"서술어6C",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6c"); }},
       { label:"테스트5",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test5"); }},
       { label:"테스트6",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test6"); }},
       { label:"서술어7",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit7"); }},
@@ -7391,91 +7390,116 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT4_CARDS = [
-      { native:{vi:"Ai đó đang gọi bạn.",         en:"Someone is calling you.",         ko:"누군가 당신을 부른다."},
-        full:"누가 부릅니까?", rule:{vi:"Hỏi về người (chủ ngữ) → 누가", en:"Asking about a person (subject) → 누가", ko:"사람(주어)을 물을 때 → 누가"} },
-      { native:{vi:"Bạn không biết người đó là ai.", en:"You don't know who that person is.", ko:"저 사람이 누구인지 모른다."},
-        full:"저분은 누구입니까?", rule:{vi:"Hỏi về người (bổ ngữ) → 누구", en:"Asking who (predicate) → 누구", ko:"사람(서술어 위치)을 물을 때 → 누구"} },
-      { native:{vi:"Bạn muốn gặp ai?",             en:"Who do you want to meet?",         ko:"누구를 만나고 싶다."},
-        full:"누구를 만납니까?", rule:{vi:"Gặp ai (tân ngữ) → 누구를", en:"Meet whom (object) → 누구를", ko:"목적어 위치 → 누구를"} },
-      { native:{vi:"Bạn học cùng ai?",              en:"Who do you study with?",           ko:"누구와 함께 공부한다."},
-        full:"누구와 함께 공부합니까?", rule:{vi:"Cùng với ai → 누구와", en:"With whom → 누구와", ko:"함께 하는 사람 → 누구와"} },
-      { native:{vi:"Cái túi này là của ai?",        en:"Whose bag is this?",               ko:"이 가방은 누구의 것이다."},
-        full:"이 가방이 누구 것입니까?", rule:{vi:"Của ai → 누구 것", en:"Whose → 누구 것", ko:"소유를 물을 때 → 누구 것"} },
-      { native:{vi:"Bạn không biết khi nào kỳ thi.",  en:"You don't know when the exam is.", ko:"시험이 언제인지 모른다."},
-        full:"시험이 언제 있습니까?", rule:{vi:"Hỏi về thời gian → 언제", en:"Asking about time → 언제", ko:"시간을 물을 때 → 언제"} },
-      { native:{vi:"Bạn không biết khi nào nghỉ hè.", en:"You don't know when vacation ends.", ko:"방학이 언제 끝나는지 모른다."},
-        full:"방학이 언제 끝납니까?", rule:{vi:"Kỳ nghỉ kết thúc khi nào → 언제", en:"When does vacation end → 언제", ko:"끝나는 시간 → 언제"} },
-      { native:{vi:"Bạn hỏi khi nào anh ấy đến.",   en:"You ask when he is coming.",       ko:"그가 언제 오는지 묻는다."},
-        full:"언제 옵니까?", rule:{vi:"Hỏi thời điểm đến → 언제", en:"When is he coming → 언제", ko:"오는 시간 → 언제"} },
-      { native:{vi:"Bạn hỏi khi nào anh ấy đến Hàn Quốc.", en:"You ask when he came to Korea.", ko:"한국에 언제 왔는지 묻는다."},
-        full:"언제 한국에 왔습니까?", rule:{vi:"Khi nào đến Hàn Quốc → 언제", en:"When did you come to Korea → 언제", ko:"한국 도착 시간 → 언제"} },
-      { native:{vi:"Bạn hỏi bạn thường đến thư viện khi nào.", en:"You ask when you usually go to the library.", ko:"보통 언제 도서관에 가는지 묻는다."},
-        full:"보통 언제 도서관에 갑니까?", rule:{vi:"Thường khi nào → 언제", en:"Usually when → 언제", ko:"습관적 시간 → 언제"} },
-      { native:{vi:"Bạn không biết trường học ở đâu.", en:"You don't know where the school is.", ko:"학교가 어디 있는지 모른다."},
-        full:"학교가 어디 있습니까?", rule:{vi:"Hỏi về địa điểm → 어디", en:"Asking about place → 어디", ko:"장소를 물을 때 → 어디"} },
-      { native:{vi:"Bạn hỏi bạn đang ở đâu.",       en:"You ask where you live.",           ko:"어디에 사는지 묻는다."},
-        full:"어디 삽니까?", rule:{vi:"Hỏi nơi ở → 어디", en:"Where do you live → 어디", ko:"사는 장소 → 어디"} },
-      { native:{vi:"Bạn hỏi nơi học bài.",           en:"You ask where you study.",         ko:"어디에서 공부하는지 묻는다."},
-        full:"어디에서 공부합니까?", rule:{vi:"Học ở đâu (hành động) → 어디에서", en:"Study where (action) → 어디에서", ko:"행동 장소 → 어디에서"} },
-      { native:{vi:"Bạn không biết ga tàu điện ngầm ở đâu.", en:"You don't know where the subway station is.", ko:"지하철역이 어디 있는지 모른다."},
-        full:"지하철역이 어디 있습니까?", rule:{vi:"Ga ở đâu → 어디", en:"Where is the station → 어디", ko:"위치 → 어디"} },
-      { native:{vi:"Bạn hỏi nơi bạn đến.",           en:"You ask where you are going.",     ko:"어디로 가는지 묻는다."},
-        full:"어디로 갑니까?", rule:{vi:"Đi đâu → 어디로", en:"Going where → 어디로", ko:"방향 → 어디로"} },
-      { native:{vi:"Bạn không biết bạn đang ăn gì.", en:"You don't know what you're eating.", ko:"무엇을 먹는지 모른다."},
-        full:"무엇을 먹습니까?", rule:{vi:"Hỏi về vật (tân ngữ) → 무엇을", en:"Asking what (object) → 무엇을", ko:"먹는 것(목적어) → 무엇을"} },
-      { native:{vi:"Bạn hỏi sở thích là gì.",        en:"You ask what the hobby is.",       ko:"취미가 무엇인지 묻는다."},
-        full:"취미가 무엇입니까?", rule:{vi:"Sở thích là gì → 무엇", en:"What is the hobby → 무엇", ko:"서술어 위치 → 무엇"} },
-      { native:{vi:"Bạn hỏi trong túi có gì.",        en:"You ask what's in the bag.",       ko:"가방 안에 무엇이 있는지 묻는다."},
-        full:"가방 안에 무엇이 있습니까?", rule:{vi:"Trong túi có gì (chủ ngữ) → 무엇이", en:"What is in the bag (subject) → 무엇이", ko:"주어 위치 → 무엇이"} },
-      { native:{vi:"Bạn hỏi bạn thích nhất cái gì.", en:"You ask what you like most.",      ko:"무엇을 제일 좋아하는지 묻는다."},
-        full:"무엇을 제일 좋아합니까?", rule:{vi:"Thích nhất cái gì → 무엇을", en:"What do you like most → 무엇을", ko:"가장 좋아하는 것 → 무엇을"} },
-      { native:{vi:"Bạn hỏi tên bạn bè là gì.",      en:"You ask what the friend's name is.", ko:"친구 이름이 무엇인지 묻는다."},
-        full:"친구 이름이 무엇입니까?", rule:{vi:"Tên là gì → 무엇", en:"What is the name → 무엇", ko:"이름 → 무엇"} },
-      { native:{vi:"Bạn không biết tại sao bạn ấy khóc.", en:"You don't know why he is crying.", ko:"왜 우는지 모른다."},
-        full:"왜 웁니까?", rule:{vi:"Hỏi về lý do → 왜", en:"Asking about reason → 왜", ko:"이유를 물을 때 → 왜"} },
-      { native:{vi:"Bạn hỏi tại sao không đến trường.", en:"You ask why you don't go to school.", ko:"왜 학교에 안 가는지 묻는다."},
-        full:"왜 학교에 안 갑니까?", rule:{vi:"Tại sao không đến trường → 왜", en:"Why don't you go to school → 왜", ko:"학교 불참 이유 → 왜"} },
-      { native:{vi:"Bạn hỏi tại sao thích xem phim Hàn.", en:"You ask why you watch Korean dramas.", ko:"한국 드라마를 왜 보는지 묻는다."},
-        full:"요즘 한국 드라마를 왜 봅니까?", rule:{vi:"Tại sao xem → 왜", en:"Why watch → 왜", ko:"시청 이유 → 왜"} },
-      { native:{vi:"Bạn hỏi tại sao bạn học tiếng Hàn.", en:"You ask why you study Korean.", ko:"한국어를 왜 배우는지 묻는다."},
-        full:"왜 한국어를 배웁니까?", rule:{vi:"Tại sao học → 왜", en:"Why study → 왜", ko:"학습 이유 → 왜"} },
-      { native:{vi:"Bạn hỏi tại sao bạn ăn ít.",     en:"You ask why you eat little.",      ko:"왜 적게 먹는지 묻는다."},
-        full:"왜 적게 먹습니까?", rule:{vi:"Tại sao ăn ít → 왜", en:"Why eat little → 왜", ko:"소식 이유 → 왜"} },
-      { native:{vi:"Bạn hỏi xem đó là loại người như thế nào.", en:"You ask what kind of person the teacher is.", ko:"선생님이 어떤 분인지 묻는다."},
-        full:"선생님은 어떤 분이십니까?", rule:{vi:"Loại người nào → 어떤", en:"What kind of person → 어떤", ko:"어떤 사람인지 → 어떤"} },
-      { native:{vi:"Bạn hỏi muốn ăn loại thức ăn nào.", en:"You ask what kind of food you want.", ko:"어떤 음식을 먹고 싶은지 묻는다."},
-        full:"어떤 음식을 좋아합니까?", rule:{vi:"Loại thức ăn nào → 어떤", en:"What kind of food → 어떤", ko:"음식 종류 → 어떤"} },
-      { native:{vi:"Bạn hỏi muốn mua loại sách nào.", en:"You ask what kind of book to buy.", ko:"어떤 책을 사고 싶은지 묻는다."},
-        full:"어떤 책을 삽니까?", rule:{vi:"Loại sách nào → 어떤", en:"What kind of book → 어떤", ko:"책 종류 → 어떤"} },
-      { native:{vi:"Bạn hỏi bao xa từ nhà đến trường.", en:"You ask how far from home to school.", ko:"집에서 학교까지 얼마나 먼지 묻는다."},
-        full:"집에서 학교까지 얼마나 멉니까?", rule:{vi:"Xa bao nhiêu → 얼마나", en:"How far → 얼마나", ko:"거리 정도 → 얼마나"} },
-      { native:{vi:"Bạn hỏi bao lâu đến trường.",     en:"You ask how long it takes to school.", ko:"학교까지 얼마나 걸리는지 묻는다."},
-        full:"학교까지 얼마나 걸립니까?", rule:{vi:"Mất bao lâu → 얼마나", en:"How long does it take → 얼마나", ko:"소요 시간 → 얼마나"} },
-      { native:{vi:"Bạn hỏi bao nhiêu tuổi.",          en:"You ask how old someone is.",      ko:"나이가 몇 살인지 묻는다."},
-        full:"몇 살입니까?", rule:{vi:"Bao nhiêu tuổi → 몇 살", en:"How old → 몇 살", ko:"나이 → 몇 살"} },
-      { native:{vi:"Bạn hỏi có bao nhiêu người.",      en:"You ask how many people there are.", ko:"몇 명인지 묻는다."},
-        full:"몇 명입니까?", rule:{vi:"Bao nhiêu người → 몇 명", en:"How many people → 몇 명", ko:"사람 수 → 몇 명"} },
-      { native:{vi:"Bạn hỏi đến vào lúc mấy giờ.",    en:"You ask what time to arrive.",    ko:"몇 시에 오는지 묻는다."},
-        full:"몇 시에 옵니까?", rule:{vi:"Mấy giờ đến → 몇 시에", en:"What time to come → 몇 시에", ko:"도착 시간 → 몇 시에"} },
-      { native:{vi:"Bạn hỏi hôm nay là thứ mấy.",     en:"You ask what day of the week today is.", ko:"오늘이 무슨 요일인지 묻는다."},
-        full:"오늘이 무슨 요일입니까?", rule:{vi:"Thứ mấy → 무슨 요일", en:"What day of the week → 무슨 요일", ko:"요일 → 무슨 요일"} },
-      { native:{vi:"Bạn hỏi điện thoại này là loại gì.", en:"You ask what kind of phone this is.", ko:"이 전화기가 무슨 종류인지 묻는다."},
-        full:"이것이 무슨 전화입니까?", rule:{vi:"Loại gì → 무슨", en:"What kind → 무슨", ko:"종류 → 무슨"} },
-      { native:{vi:"Bạn hỏi bạn đến hôm nay với ai.", en:"You ask who you're meeting today.", ko:"오늘 누구와 만나는지 묻는다."},
-        full:"오늘 누구와 만납니까?", rule:{vi:"Gặp với ai hôm nay → 누구와", en:"Whom to meet today → 누구와", ko:"만남 상대 → 누구와"} },
-      { native:{vi:"Bạn hỏi cái áo này của ai.",       en:"You ask whose jacket this is.",    ko:"이 재킷이 누구 것인지 묻는다."},
-        full:"이 재킷이 누구 것입니까?", rule:{vi:"Của ai → 누구 것", en:"Whose → 누구 것", ko:"소유 → 누구 것"} },
-      { native:{vi:"Bạn hỏi bao nhiêu tiền cái túi này.", en:"You ask how much this bag costs.", ko:"이 가방이 얼마인지 묻는다."},
-        full:"이 가방이 얼마입니까?", rule:{vi:"Bao nhiêu tiền → 얼마", en:"How much → 얼마", ko:"가격 → 얼마"} },
-      { native:{vi:"Bạn hỏi chương trình tivi yêu thích là gì.", en:"You ask what TV program you like.", ko:"어떤 텔레비전 프로그램을 좋아하는지 묻는다."},
-        full:"어떤 텔레비전 프로그램을 좋아합니까?", rule:{vi:"Chương trình nào → 어떤", en:"What program → 어떤", ko:"프로그램 종류 → 어떤"} },
-      { native:{vi:"Bạn hỏi từ nhà đến đây bao lâu.",  en:"You ask how long it took to get here.", ko:"여기까지 오는 데 얼마나 걸렸는지 묻는다."},
-        full:"여기까지 얼마나 걸렸습니까?", rule:{vi:"Mất bao lâu → 얼마나", en:"How long did it take → 얼마나", ko:"소요 시간(과거) → 얼마나"} },
-      { native:{vi:"Bạn hỏi giờ này đang ở đâu.",      en:"You ask where someone is right now.", ko:"지금 어디 있는지 묻는다."},
-        full:"지금 어디 있습니까?", rule:{vi:"Bây giờ ở đâu → 어디", en:"Where are you now → 어디", ko:"현재 위치 → 어디"} },
+      // ── 누구 ──
+      { native:{vi:"Ai đang gọi?",                          en:"Who is calling?",                      ko:"누가 전화해요?"},
+        full:"누가 부릅니까?", rule:{vi:"누구 (주격: 누가)", en:"누구 (subject: 누가)", ko:"누구 (주격: 누가)"} },
+      { native:{vi:"Người kia là ai?",                      en:"Who is that person?",                  ko:"저분은 누구예요?"},
+        full:"저분은 누구입니까?", rule:{vi:"누구 + 입니까?", en:"누구 + 입니까?", ko:"누구 + 입니까?"} },
+      { native:{vi:"Bạn gặp ai?",                           en:"Who do you meet?",                     ko:"누구를 만나요?"},
+        full:"누구를 만납니까?", rule:{vi:"누구 (목적격: 누구를)", en:"누구 (object: 누구를)", ko:"누구 (목적격: 누구를)"} },
+      { native:{vi:"Bạn học cùng với ai?",                  en:"Who do you study with?",               ko:"누구와 같이 공부해요?"},
+        full:"누구와 함께 공부합니까?", rule:{vi:"누구와 (함께 = together)", en:"누구와 (함께 = together)", ko:"누구와 함께"} },
+      { native:{vi:"Cái túi này của ai?",                   en:"Whose bag is this?",                   ko:"이 가방이 누구 거예요?"},
+        full:"이 가방이 누구 것입니까?", rule:{vi:"누구 것 = của ai", en:"누구 것 = whose", ko:"누구 것 = ~의 것"} },
+      // ── 언제 ──
+      { native:{vi:"Bài thi khi nào?",                      en:"When is the exam?",                    ko:"시험이 언제 있어요?"},
+        full:"시험이 언제 있습니까?", rule:{vi:"언제 = khi nào", en:"언제 = when", ko:"언제 = when"} },
+      { native:{vi:"Kỳ nghỉ kết thúc khi nào?",            en:"When does vacation end?",              ko:"방학이 언제 끝나요?"},
+        full:"방학이 언제 끝납니까?", rule:{vi:"언제 + 동사?", en:"언제 + verb?", ko:"언제 + 동사?"} },
+      { native:{vi:"Bạn đến khi nào?",                      en:"When do you come?",                    ko:"언제 와요?"},
+        full:"언제 옵니까?", rule:{vi:"언제 + 옵니까?", en:"언제 + 옵니까?", ko:"언제 + 옵니까?"} },
+      { native:{vi:"Bạn đến Hàn Quốc khi nào?",            en:"When did you come to Korea?",          ko:"언제 한국에 왔어요?"},
+        full:"언제 한국에 왔습니까?", rule:{vi:"언제 + 과거형?", en:"언제 + past tense?", ko:"언제 + 과거형?"} },
+      { native:{vi:"Bình thường bạn đến thư viện khi nào?", en:"When do you usually go to the library?", ko:"보통 언제 도서관에 가요?"},
+        full:"보통 언제 도서관에 갑니까?", rule:{vi:"보통 언제 = thường khi nào", en:"보통 언제 = when usually", ko:"보통 언제"} },
+      // ── 어디 ──
+      { native:{vi:"Trường học ở đâu?",                     en:"Where is the school?",                 ko:"학교가 어디 있어요?"},
+        full:"학교가 어디 있습니까?", rule:{vi:"어디 = ở đâu", en:"어디 = where", ko:"어디 = where"} },
+      { native:{vi:"Bạn sống ở đâu?",                       en:"Where do you live?",                   ko:"어디 살아요?"},
+        full:"어디 삽니까?", rule:{vi:"어디 + 동사?", en:"어디 + verb?", ko:"어디 + 동사?"} },
+      { native:{vi:"Bạn học ở đâu?",                        en:"Where do you study?",                  ko:"어디에서 공부해요?"},
+        full:"어디에서 공부합니까?", rule:{vi:"어디에서 = ở đâu (hành động)", en:"어디에서 = where (action)", ko:"어디에서 = 동작 장소"} },
+      { native:{vi:"Ga tàu điện ngầm ở đâu?",               en:"Where is the subway station?",         ko:"지하철역이 어디 있어요?"},
+        full:"지하철역이 어디 있습니까?", rule:{vi:"어디 있습니까? = ở đâu?", en:"어디 있습니까? = where is?", ko:"어디 있습니까?"} },
+      { native:{vi:"Bạn đi đâu?",                           en:"Where are you going?",                 ko:"어디로 가요?"},
+        full:"어디로 갑니까?", rule:{vi:"어디로 = đi đâu (hướng)", en:"어디로 = where (direction)", ko:"어디로 = 방향"} },
+      // ── 무엇 ──
+      { native:{vi:"Bạn ăn gì?",                            en:"What do you eat?",                     ko:"무엇을 먹어요?"},
+        full:"무엇을 먹습니까?", rule:{vi:"무엇 / 뭐 = cái gì", en:"무엇 / 뭐 = what", ko:"무엇 / 뭐 = what"} },
+      { native:{vi:"Sở thích của bạn là gì?",               en:"What is your hobby?",                  ko:"취미가 뭐예요?"},
+        full:"취미가 무엇입니까?", rule:{vi:"무엇입니까? = là gì?", en:"무엇입니까? = what is?", ko:"무엇입니까?"} },
+      { native:{vi:"Trong túi có gì?",                       en:"What is in the bag?",                  ko:"가방 안에 뭐 있어요?"},
+        full:"가방 안에 무엇이 있습니까?", rule:{vi:"무엇이 있습니까? = có gì?", en:"무엇이 있습니까? = what is there?", ko:"무엇이 있습니까?"} },
+      { native:{vi:"Bạn thích gì nhất?",                    en:"What do you like most?",               ko:"무엇을 제일 좋아해요?"},
+        full:"무엇을 제일 좋아합니까?", rule:{vi:"제일 = nhất (most)", en:"제일 = most", ko:"제일 = 가장"} },
+      { native:{vi:"Tên bạn bè của bạn là gì?",             en:"What is your friend's name?",          ko:"친구 이름이 뭐예요?"},
+        full:"친구 이름이 무엇입니까?", rule:{vi:"이름이 무엇입니까? = tên là gì?", en:"이름이 무엇입니까? = what is the name?", ko:"이름이 무엇입니까?"} },
+      // ── 왜 ──
+      { native:{vi:"Tại sao bạn khóc?",                     en:"Why are you crying?",                  ko:"왜 울어요?"},
+        full:"왜 웁니까?", rule:{vi:"왜 = tại sao", en:"왜 = why", ko:"왜 = why"} },
+      { native:{vi:"Tại sao bạn không đến trường?",         en:"Why don't you go to school?",          ko:"왜 학교에 안 가요?"},
+        full:"왜 학교에 안 갑니까?", rule:{vi:"왜 + 안 + 동사", en:"왜 + 안 + verb", ko:"왜 + 안 + 동사"} },
+      { native:{vi:"Tại sao bạn xem phim Hàn Quốc?",        en:"Why do you watch Korean dramas?",      ko:"왜 한국 드라마를 봐요?"},
+        full:"요즘 한국 드라마를 왜 봅니까?", rule:{vi:"왜 + 동사?", en:"왜 + verb?", ko:"왜 + 동사?"} },
+      { native:{vi:"Tại sao bạn học tiếng Hàn?",            en:"Why do you learn Korean?",             ko:"왜 한국어를 배워요?"},
+        full:"왜 한국어를 배웁니까?", rule:{vi:"왜 + 동사?", en:"왜 + verb?", ko:"왜 + 동사?"} },
+      { native:{vi:"Tại sao bạn ăn ít?",                    en:"Why do you eat little?",               ko:"왜 적게 먹어요?"},
+        full:"왜 적게 먹습니까?", rule:{vi:"왜 + 적게 = tại sao ít", en:"왜 + 적게 = why little", ko:"왜 + 적게"} },
+      // ── 어떤 / 얼마나 ──
+      { native:{vi:"Thầy/cô giáo là người như thế nào?",    en:"What kind of person is the teacher?",  ko:"선생님은 어떤 분이세요?"},
+        full:"선생님은 어떤 분이십니까?", rule:{vi:"어떤 = như thế nào (loại)", en:"어떤 = what kind of", ko:"어떤 = what kind of"} },
+      { native:{vi:"Bạn thích món ăn nào?",                  en:"What kind of food do you like?",       ko:"어떤 음식을 좋아해요?"},
+        full:"어떤 음식을 좋아합니까?", rule:{vi:"어떤 + 명사 = loại nào", en:"어떤 + noun = what kind", ko:"어떤 + 명사"} },
+      { native:{vi:"Bạn mua sách loại nào?",                 en:"What kind of book do you buy?",        ko:"어떤 책을 사요?"},
+        full:"어떤 책을 삽니까?", rule:{vi:"어떤 + 명사?", en:"어떤 + noun?", ko:"어떤 + 명사?"} },
+      { native:{vi:"Từ nhà đến trường xa bao nhiêu?",        en:"How far is it from home to school?",   ko:"집에서 학교까지 얼마나 멀어요?"},
+        full:"집에서 학교까지 얼마나 멉니까?", rule:{vi:"얼마나 = bao nhiêu (mức độ)", en:"얼마나 = how much/far", ko:"얼마나 = how much"} },
+      { native:{vi:"Đến trường mất bao lâu?",                en:"How long does it take to school?",     ko:"학교까지 얼마나 걸려요?"},
+        full:"학교까지 얼마나 걸립니까?", rule:{vi:"얼마나 걸립니까? = mất bao lâu?", en:"얼마나 걸립니까? = how long does it take?", ko:"얼마나 걸립니까?"} },
+      // ── 몇 / 무슨 ──
+      { native:{vi:"Bạn bao nhiêu tuổi?",                    en:"How old are you?",                     ko:"몇 살이에요?"},
+        full:"몇 살입니까?", rule:{vi:"몇 = bao nhiêu (số lượng)", en:"몇 = how many", ko:"몇 = how many"} },
+      { native:{vi:"Có bao nhiêu người?",                    en:"How many people are there?",           ko:"몇 명이에요?"},
+        full:"몇 명입니까?", rule:{vi:"몇 명 = bao nhiêu người", en:"몇 명 = how many people", ko:"몇 명 = how many people"} },
+      { native:{vi:"Bạn đến lúc mấy giờ?",                  en:"What time do you come?",               ko:"몇 시에 와요?"},
+        full:"몇 시에 옵니까?", rule:{vi:"몇 시 = mấy giờ", en:"몇 시 = what time", ko:"몇 시 = what time"} },
+      { native:{vi:"Hôm nay là thứ mấy?",                   en:"What day of the week is today?",       ko:"오늘이 무슨 요일이에요?"},
+        full:"오늘이 무슨 요일입니까?", rule:{vi:"무슨 = loại nào / gì", en:"무슨 = what (type)", ko:"무슨 = 어떤 종류의"} },
+      { native:{vi:"Đây là điện thoại gì?",                  en:"What kind of phone is this?",          ko:"이것이 무슨 전화예요?"},
+        full:"이것이 무슨 전화입니까?", rule:{vi:"무슨 + 명사?", en:"무슨 + noun?", ko:"무슨 + 명사?"} },
+      // ── 혼합 실전 ──
+      { native:{vi:"Hôm nay bạn gặp ai?",                   en:"Who do you meet today?",               ko:"오늘 누구와 만나요?"},
+        full:"오늘 누구와 만납니까?", rule:{vi:"누구와 = với ai", en:"누구와 = with whom", ko:"누구와 = with whom"} },
+      { native:{vi:"Cái áo khoác này của ai?",               en:"Whose jacket is this?",                ko:"이 재킷이 누구 거예요?"},
+        full:"이 재킷이 누구 것입니까?", rule:{vi:"누구 것 = của ai", en:"누구 것 = whose", ko:"누구 것 = ~의 것"} },
+      { native:{vi:"Cái túi này bao nhiêu tiền?",            en:"How much is this bag?",                ko:"이 가방이 얼마예요?"},
+        full:"이 가방이 얼마입니까?", rule:{vi:"얼마 = bao nhiêu (tiền)", en:"얼마 = how much (price)", ko:"얼마 = 가격이 얼마?"} },
+      { native:{vi:"Bạn thích chương trình TV nào?",         en:"What TV program do you like?",         ko:"어떤 TV 프로그램을 좋아해요?"},
+        full:"어떤 텔레비전 프로그램을 좋아합니까?", rule:{vi:"어떤 + 명사?", en:"어떤 + noun?", ko:"어떤 + 명사?"} },
+      { native:{vi:"Đến đây mất bao lâu?",                   en:"How long did it take to get here?",    ko:"여기까지 얼마나 걸렸어요?"},
+        full:"여기까지 얼마나 걸렸습니까?", rule:{vi:"얼마나 걸렸습니까? = mất bao lâu?", en:"얼마나 걸렸습니까? = how long did it take?", ko:"얼마나 걸렸습니까?"} },
+      { native:{vi:"Bây giờ bạn đang ở đâu?",               en:"Where are you now?",                   ko:"지금 어디 있어요?"},
+        full:"지금 어디 있습니까?", rule:{vi:"지금 어디 = bây giờ ở đâu", en:"지금 어디 = where now", ko:"지금 어디"} },
+      // ── 추가 8개 (48개 이상 달성) ──
+      { native:{vi:"Bạn ăn cơm ở đâu?",                     en:"Where do you eat?",                    ko:"어디에서 밥 먹어요?"},
+        full:"어디에서 밥을 먹습니까?", rule:{vi:"어디에서 + 동사?", en:"어디에서 + verb?", ko:"어디에서 + 동사?"} },
+      { native:{vi:"Tiền lương của bạn là bao nhiêu?",       en:"What is your salary?",                 ko:"월급이 얼마예요?"},
+        full:"월급이 얼마입니까?", rule:{vi:"얼마 = bao nhiêu", en:"얼마 = how much", ko:"얼마 = how much"} },
+      { native:{vi:"Bệnh viện ở đâu?",                       en:"Where is the hospital?",               ko:"병원이 어디 있어요?"},
+        full:"병원이 어디 있습니까?", rule:{vi:"어디 있습니까? = ở đâu?", en:"어디 있습니까? = where is?", ko:"어디 있습니까?"} },
+      { native:{vi:"Bạn làm việc ở đâu?",                    en:"Where do you work?",                   ko:"어디에서 일해요?"},
+        full:"어디에서 일합니까?", rule:{vi:"어디에서 = ở đâu", en:"어디에서 = where", ko:"어디에서 = where"} },
+      { native:{vi:"Cuộc họp là khi nào?",                   en:"When is the meeting?",                 ko:"회의가 언제예요?"},
+        full:"회의가 언제 있습니까?", rule:{vi:"언제 있습니까? = khi nào có?", en:"언제 있습니까? = when is?", ko:"언제 있습니까?"} },
+      { native:{vi:"Bạn đến bằng phương tiện gì?",           en:"How did you come? (by what)",          ko:"무엇을 타고 왔어요?"},
+        full:"무엇을 타고 왔습니까?", rule:{vi:"무엇을 타고 = đi bằng gì", en:"무엇을 타고 = by what", ko:"무엇을 타고 = 교통수단"} },
+      { native:{vi:"Siêu thị gần nhất ở đâu?",              en:"Where is the nearest supermarket?",    ko:"가까운 마트가 어디 있어요?"},
+        full:"가까운 마트가 어디 있습니까?", rule:{vi:"어디 있습니까? = ở đâu?", en:"어디 있습니까? = where is?", ko:"어디 있습니까?"} },
+      { native:{vi:"Nhà vệ sinh ở đâu?",                     en:"Where is the restroom?",               ko:"화장실이 어디 있어요?"},
+        full:"화장실이 어디 있습니까?", rule:{vi:"어디 있습니까? = ở đâu?", en:"어디 있습니까? = where is?", ko:"어디 있습니까?"} },
     ];
 
-    const card  = UNIT4_CARDS[unitCardIdx];
+        const card  = UNIT4_CARDS[unitCardIdx];
     const total = UNIT4_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
@@ -7569,49 +7593,59 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT5_CARDS = [
-      { native:{vi:"Hãy ngồi xuống.",              en:"Please sit down.",                ko:"앉아라."},
-        full:"앉으세요.", rule:{vi:"앉다 → 앉으세요 (받침 있음 → 으세요)", en:"앉다 → 앉으세요 (batchim → 으세요)", ko:"받침 있는 동사 → 으세요"} },
-      { native:{vi:"Hãy đến đây.",                  en:"Please come here.",               ko:"이리 와."},
-        full:"오세요.", rule:{vi:"오다 → 오세요 (오 + 세요)", en:"오다 → 오세요", ko:"받침 없는 동사 → 세요"} },
-      { native:{vi:"Hãy ăn nhiều vào.",             en:"Please eat a lot.",               ko:"많이 먹어."},
-        full:"많이 드세요.", rule:{vi:"먹다 높임말 → 드세요 (불규칙)", en:"먹다 honorific → 드세요", ko:"먹다의 높임 명령 → 드세요"} },
-      { native:{vi:"Bạn có biết không?",            en:"Do you know?",                    ko:"알아?"},
-        full:"아세요?", rule:{vi:"알다 → 아세요 (ㄹ탈락)", en:"알다 → 아세요 (ㄹ drop)", ko:"ㄹ받침 → ㄹ 빠지고 세요"} },
-      { native:{vi:"Hãy đọc bài này.",              en:"Please read this.",               ko:"이거 읽어."},
-        full:"읽으세요.", rule:{vi:"읽다 → 읽으세요 (받침 있음)", en:"읽다 → 읽으세요 (has batchim)", ko:"받침 있음 → 으세요"} },
-      { native:{vi:"Hãy sống lâu dài.",             en:"Please live long.",               ko:"오래 살아."},
-        full:"오래 사세요.", rule:{vi:"살다 → 사세요 (ㄹ탈락)", en:"살다 → 사세요 (ㄹ drop)", ko:"살다 → ㄹ 탈락 → 사세요"} },
-      { native:{vi:"Hãy đóng cửa lại.",             en:"Please close the door.",          ko:"문 닫아."},
-        full:"문을 닫으세요.", rule:{vi:"닫다 → 닫으세요", en:"닫다 → 닫으세요", ko:"받침 있음 → 으세요"} },
-      { native:{vi:"Hãy đến phía này.",             en:"Please come this way.",           ko:"이쪽으로 와."},
-        full:"이쪽으로 오세요.", rule:{vi:"오다 → 오세요", en:"오다 → 오세요", ko:"오다 → 세요"} },
-      { native:{vi:"Hãy nói chậm thôi.",            en:"Please speak slowly.",            ko:"천천히 말해."},
-        full:"천천히 말하세요.", rule:{vi:"말하다 → 말하세요 (하 + 세요)", en:"말하다 → 말하세요", ko:"하다 동사 → 하세요"} },
-      { native:{vi:"Hãy viết tên ở đây.",           en:"Please write your name here.",    ko:"여기에 이름 써."},
-        full:"여기에 이름을 쓰세요.", rule:{vi:"쓰다 → 쓰세요 (으 탈락)", en:"쓰다 → 쓰세요 (으 drop)", ko:"쓰다 → 으 탈락 → 쓰세요"} },
-      { native:{vi:"Hãy uống nhiều nước vào.",      en:"Please drink plenty of water.",   ko:"물 많이 마셔."},
-        full:"물을 많이 마시세요.", rule:{vi:"마시다 → 마시세요 (이 + 세요)", en:"마시다 → 마시세요", ko:"받침 없음 → 세요"} },
-      { native:{vi:"Hãy đọc sách giáo khoa.",       en:"Please read the textbook.",      ko:"교과서 읽어."},
-        full:"교과서를 읽으세요.", rule:{vi:"읽다 → 읽으세요", en:"읽다 → 읽으세요", ko:"받침 있음 → 으세요"} },
-      { native:{vi:"Hãy rửa tay sạch sẽ.",          en:"Please wash your hands.",        ko:"손 씻어."},
-        full:"손을 씻으세요.", rule:{vi:"씻다 → 씻으세요", en:"씻다 → 씻으세요", ko:"받침 있음 → 으세요"} },
-      { native:{vi:"Hãy đứng ở đây.",               en:"Please stand here.",             ko:"여기 서."},
-        full:"여기에 서세요.", rule:{vi:"서다 → 서세요 (받침 없음)", en:"서다 → 서세요", ko:"받침 없음 → 세요"} },
-      { native:{vi:"Hãy cẩn thận.",                 en:"Please be careful.",             ko:"조심해."},
-        full:"조심하세요.", rule:{vi:"조심하다 → 조심하세요 (하다 동사)", en:"조심하다 → 조심하세요", ko:"하다 동사 → 하세요"} },
-      { native:{vi:"Hãy nghỉ ngơi đi.",             en:"Please rest.",                   ko:"쉬어."},
-        full:"쉬세요.", rule:{vi:"쉬다 → 쉬세요 (받침 없음)", en:"쉬다 → 쉬세요", ko:"받침 없음 → 세요"} },
-      { native:{vi:"Hãy nhìn vào đây.",             en:"Please look here.",              ko:"여기 봐."},
-        full:"여기를 보세요.", rule:{vi:"보다 → 보세요 (받침 없음)", en:"보다 → 보세요", ko:"보다 → 세요"} },
-      { native:{vi:"Hãy nhanh lên.",                en:"Please hurry up.",               ko:"빨리 해."},
+      // ── 기본 지시 ──
+      { native:{vi:"Hãy ngồi xuống.",               en:"Please sit down.",              ko:"앉으세요."},
+        full:"앉으세요.", rule:{vi:"앉다 → 앉으세요 (받침+으세요)", en:"앉다 → 앉으세요 (consonant+으세요)", ko:"앉다 → 앉으세요"} },
+      { native:{vi:"Hãy đến đây.",                   en:"Please come.",                  ko:"오세요."},
+        full:"오세요.", rule:{vi:"오다 → 오세요 (모음+세요)", en:"오다 → 오세요 (vowel+세요)", ko:"오다 → 오세요"} },
+      { native:{vi:"Hãy ăn nhiều.",                  en:"Please eat a lot.",             ko:"많이 드세요."},
+        full:"많이 드세요.", rule:{vi:"드시다 → 드세요 (높임)", en:"드시다 → 드세요 (honorific)", ko:"드시다 → 드세요 (높임)"} },
+      { native:{vi:"Bạn có biết không?",             en:"Do you know?",                  ko:"아세요?"},
+        full:"아세요?", rule:{vi:"알다 → 아세요 (ㄹ탈락+세요)", en:"알다 → 아세요 (ㄹ drops)", ko:"알다 → 아세요 (ㄹ 탈락)"} },
+      { native:{vi:"Hãy đọc sách.",                  en:"Please read.",                  ko:"읽으세요."},
+        full:"읽으세요.", rule:{vi:"읽다 → 읽으세요 (받침+으세요)", en:"읽다 → 읽으세요 (consonant+으세요)", ko:"읽다 → 읽으세요"} },
+      { native:{vi:"Hãy sống lâu.",                  en:"Please live long.",             ko:"오래 사세요."},
+        full:"오래 사세요.", rule:{vi:"살다 → 사세요 (ㄹ탈락+세요)", en:"살다 → 사세요 (ㄹ drops)", ko:"살다 → 사세요 (ㄹ 탈락)"} },
+      { native:{vi:"Hãy đóng cửa lại.",              en:"Please close the door.",        ko:"문을 닫으세요."},
+        full:"문을 닫으세요.", rule:{vi:"닫다 → 닫으세요 (받침+으세요)", en:"닫다 → 닫으세요 (consonant+으세요)", ko:"닫다 → 닫으세요"} },
+      { native:{vi:"Hãy đi hướng này.",              en:"Please come this way.",         ko:"이쪽으로 오세요."},
+        full:"이쪽으로 오세요.", rule:{vi:"오다 → 오세요 (모음+세요)", en:"오다 → 오세요 (vowel+세요)", ko:"오다 → 오세요"} },
+      { native:{vi:"Hãy nói chậm thôi.",             en:"Please speak slowly.",          ko:"천천히 말하세요."},
+        full:"천천히 말하세요.", rule:{vi:"말하다 → 말하세요 (하다→하세요)", en:"말하다 → 말하세요 (하다→하세요)", ko:"말하다 → 말하세요"} },
+      { native:{vi:"Hãy viết tên vào đây.",          en:"Please write your name here.",  ko:"여기에 이름을 쓰세요."},
+        full:"여기에 이름을 쓰세요.", rule:{vi:"쓰다 → 쓰세요 (ㅡ탈락+세요)", en:"쓰다 → 쓰세요 (ㅡ drops)", ko:"쓰다 → 쓰세요 (ㅡ 탈락)"} },
+      { native:{vi:"Hãy uống nhiều nước.",           en:"Please drink a lot of water.",  ko:"물을 많이 드세요."},
+        full:"물을 많이 마시세요.", rule:{vi:"마시다 → 마시세요 (모음+세요)", en:"마시다 → 마시세요 (vowel+세요)", ko:"마시다 → 마시세요"} },
+      { native:{vi:"Hãy đọc sách giáo khoa.",        en:"Please read the textbook.",     ko:"교과서를 읽으세요."},
+        full:"교과서를 읽으세요.", rule:{vi:"읽다 → 읽으세요 (받침+으세요)", en:"읽다 → 읽으세요 (consonant+으세요)", ko:"읽다 → 읽으세요"} },
+      { native:{vi:"Hãy rửa tay.",                   en:"Please wash your hands.",       ko:"손을 씻으세요."},
+        full:"손을 씻으세요.", rule:{vi:"씻다 → 씻으세요 (받침+으세요)", en:"씻다 → 씻으세요 (consonant+으세요)", ko:"씻다 → 씻으세요"} },
+      { native:{vi:"Hãy đứng ở đây.",                en:"Please stand here.",            ko:"여기에 서세요."},
+        full:"여기에 서세요.", rule:{vi:"서다 → 서세요 (모음+세요)", en:"서다 → 서세요 (vowel+세요)", ko:"서다 → 서세요"} },
+      { native:{vi:"Hãy cẩn thận.",                  en:"Please be careful.",            ko:"조심하세요."},
+        full:"조심하세요.", rule:{vi:"조심하다 → 조심하세요", en:"조심하다 → 조심하세요", ko:"조심하다 → 조심하세요"} },
+      { native:{vi:"Hãy nghỉ ngơi.",                 en:"Please rest.",                  ko:"쉬세요."},
+        full:"쉬세요.", rule:{vi:"쉬다 → 쉬세요 (모음+세요)", en:"쉬다 → 쉬세요 (vowel+세요)", ko:"쉬다 → 쉬세요"} },
+      { native:{vi:"Hãy nhìn vào đây.",              en:"Please look here.",             ko:"여기를 보세요."},
+        full:"여기를 보세요.", rule:{vi:"보다 → 보세요 (모음+세요)", en:"보다 → 보세요 (vowel+세요)", ko:"보다 → 보세요"} },
+      { native:{vi:"Hãy làm nhanh lên.",             en:"Please do it quickly.",         ko:"빨리 하세요."},
         full:"빨리 하세요.", rule:{vi:"하다 → 하세요", en:"하다 → 하세요", ko:"하다 → 하세요"} },
-      { native:{vi:"Hãy nói tiếng Hàn.",            en:"Please speak Korean.",           ko:"한국어로 말해."},
-        full:"한국어로 말하세요.", rule:{vi:"말하다 → 말하세요", en:"말하다 → 말하세요", ko:"하다 동사 → 하세요"} },
-      { native:{vi:"Hãy mở sách ra trang 10.",      en:"Please open the book to page 10.", ko:"책 10페이지 펴."},
-        full:"책 10페이지를 여세요.", rule:{vi:"열다 → 여세요 (ㄹ탈락)", en:"열다 → 여세요 (ㄹ drop)", ko:"열다 → ㄹ 탈락 → 여세요"} },
+      { native:{vi:"Hãy nói bằng tiếng Hàn.",        en:"Please speak in Korean.",       ko:"한국어로 말하세요."},
+        full:"한국어로 말하세요.", rule:{vi:"말하다 → 말하세요", en:"말하다 → 말하세요", ko:"말하다 → 말하세요"} },
+      { native:{vi:"Hãy mở trang 10 sách.",          en:"Please open page 10 of the book.", ko:"책 10페이지를 여세요."},
+        full:"책 10페이지를 여세요.", rule:{vi:"열다 → 여세요 (ㄹ탈락+세요)", en:"열다 → 여세요 (ㄹ drops)", ko:"열다 → 여세요 (ㄹ 탈락)"} },
+      // ── 추가 4개 (24개 달성) ──
+      { native:{vi:"Hãy gọi điện cho tôi.",          en:"Please call me.",               ko:"전화해 주세요."},
+        full:"전화해 주세요.", rule:{vi:"전화하다 → 전화해 주세요 (요청)", en:"전화하다 → 전화해 주세요 (request)", ko:"전화해 주세요 (부탁)"} },
+      { native:{vi:"Hãy chờ một chút.",              en:"Please wait a moment.",         ko:"잠깐 기다리세요."},
+        full:"잠깐 기다리세요.", rule:{vi:"기다리다 → 기다리세요 (모음+세요)", en:"기다리다 → 기다리세요 (vowel+세요)", ko:"기다리다 → 기다리세요"} },
+      { native:{vi:"Hãy lên xe buýt.",               en:"Please get on the bus.",        ko:"버스를 타세요."},
+        full:"버스를 타세요.", rule:{vi:"타다 → 타세요 (모음+세요)", en:"타다 → 타세요 (vowel+세요)", ko:"타다 → 타세요"} },
+      { native:{vi:"Hãy đến bệnh viện.",             en:"Please go to the hospital.",    ko:"병원에 가세요."},
+        full:"병원에 가세요.", rule:{vi:"가다 → 가세요 (모음+세요)", en:"가다 → 가세요 (vowel+세요)", ko:"가다 → 가세요"} },
     ];
 
-    const card  = UNIT5_CARDS[unitCardIdx];
+        const card  = UNIT5_CARDS[unitCardIdx];
     const total = UNIT5_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
@@ -7850,27 +7884,33 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT6A_CARDS = [
-      { native:{vi:"Tôi thích cà phê. Tôi cũng thích trà.",               en:"I like coffee. I also like tea.",             ko:"나는 커피를 좋아한다. 차도 좋아한다."},
-        full:"저는 커피를 좋아합니다. 그리고 차도 좋아합니다.", rule:{vi:"Thêm thông tin → 그리고 (và)", en:"Adding more info → 그리고 (and)", ko:"정보 추가 → 그리고"} },
-      { native:{vi:"Thời tiết đẹp. Nhưng có gió.",                        en:"The weather is nice. But it's windy.",        ko:"날씨가 좋다. 그런데 바람이 분다."},
-        full:"날씨가 좋습니다. 그런데 바람이 붑니다.", rule:{vi:"Chuyển chủ đề nhẹ → 그런데 (nhưng mà)", en:"Soft topic shift → 그런데", ko:"화제 전환 → 그런데"} },
-      { native:{vi:"Tiếng Hàn thú vị. Nhưng khó.",                        en:"Korean is fun. But it's hard.",               ko:"한국어가 재미있다. 하지만 어렵다."},
-        full:"한국어가 재미있습니다. 하지만 어렵습니다.", rule:{vi:"Đối lập mạnh → 하지만 (nhưng)", en:"Strong contrast → 하지만", ko:"강한 대조 → 하지만"} },
-      { native:{vi:"Trời mưa. Vì vậy tôi mang ô.",                        en:"It rains. So I brought an umbrella.",         ko:"비가 온다. 그래서 우산을 가져왔다."},
-        full:"비가 옵니다. 그래서 우산을 가져왔습니다.", rule:{vi:"Nguyên nhân → kết quả: 그래서", en:"Cause → result: 그래서", ko:"원인→결과 → 그래서"} },
-      { native:{vi:"Tôi đói bụng. Vì vậy tôi ăn cơm.",                   en:"I'm hungry. So I ate.",                      ko:"배가 고프다. 그래서 밥을 먹었다."},
-        full:"배가 고픕니다. 그래서 밥을 먹었습니다.", rule:{vi:"Đói → ăn: 그래서", en:"Hungry → eat: 그래서", ko:"배고프다→먹다: 그래서"} },
-      { native:{vi:"Tôi thích đồ ăn Hàn. Nhưng tôi không ăn được cay.",  en:"I like Korean food but can't eat spicy.",    ko:"한국 음식을 좋아한다. 하지만 매운 건 못 먹는다."},
-        full:"저는 한국 음식을 좋아합니다. 하지만 매운 건 못 먹습니다.", rule:{vi:"Thích nhưng không ăn được → 하지만", en:"Like but can't → 하지만", ko:"좋아하지만 못 먹다 → 하지만"} },
-      { native:{vi:"Bạn có thời gian. Vậy thì đi cùng đi.",              en:"You have time. Then let's go together.",      ko:"시간이 있다. 그러면 같이 가자."},
-        full:"시간이 있습니다. 그러면 같이 갑시다.", rule:{vi:"Điều kiện đã có → đề xuất: 그러면", en:"Given condition → suggestion: 그러면", ko:"상황 확인→제안 → 그러면"} },
-      { native:{vi:"Đắt. Nhưng tôi vẫn mua.",                            en:"It's expensive. But I'll buy it anyway.",    ko:"비싸다. 그래도 살 것이다."},
-        full:"비쌉니다. 그래도 살 겁니다.", rule:{vi:"Dù vậy vẫn làm → 그래도", en:"Even so → 그래도", ko:"불구하고 계속 → 그래도"} },
-      { native:{vi:"Cà phê hay trà?",                                     en:"Coffee or tea?",                             ko:"커피 아니면 차?"},
-        full:"커피입니까, 아니면 차입니까?", rule:{vi:"Chọn một trong hai → 아니면", en:"Choose one of two → 아니면", ko:"둘 중 선택 → 아니면"} },
+      { native:{vi:"Tôi thích cà phê. Và tôi cũng thích trà.",              en:"I like coffee. And I also like tea.",               ko:"저는 커피를 좋아합니다. 그리고 차도 좋아합니다."},
+        full:"저는 커피를 좋아합니다. 그리고 차도 좋아합니다.", rule:{vi:"그리고 = và (thêm vào)", en:"그리고 = and (addition)", ko:"그리고 = 덧붙이기"} },
+      { native:{vi:"Thời tiết tốt. Nhưng có gió.",                           en:"The weather is nice. But it's windy.",              ko:"날씨가 좋습니다. 그런데 바람이 붑니다."},
+        full:"날씨가 좋습니다. 그런데 바람이 붑니다.", rule:{vi:"그런데 = nhưng mà (chuyển chủ đề)", en:"그런데 = but/however", ko:"그런데 = 전환·대조"} },
+      { native:{vi:"Tiếng Hàn thú vị. Nhưng khó.",                          en:"Korean is interesting. But it's difficult.",        ko:"한국어가 재미있습니다. 하지만 어렵습니다."},
+        full:"한국어가 재미있습니다. 하지만 어렵습니다.", rule:{vi:"하지만 = nhưng (đối lập mạnh)", en:"하지만 = but (strong contrast)", ko:"하지만 = 강한 대조"} },
+      { native:{vi:"Trời mưa. Vì vậy tôi mang ô.",                          en:"It's raining. So I brought an umbrella.",           ko:"비가 옵니다. 그래서 우산을 가져왔습니다."},
+        full:"비가 옵니다. 그래서 우산을 가져왔습니다.", rule:{vi:"그래서 = vì vậy (kết quả)", en:"그래서 = so/therefore", ko:"그래서 = 원인→결과"} },
+      { native:{vi:"Tôi đói bụng. Vì vậy tôi ăn cơm.",                     en:"I'm hungry. So I ate.",                             ko:"배가 고픕니다. 그래서 밥을 먹었습니다."},
+        full:"배가 고픕니다. 그래서 밥을 먹었습니다.", rule:{vi:"그래서 = vì vậy", en:"그래서 = so", ko:"그래서 = 원인→결과"} },
+      { native:{vi:"Tôi thích đồ ăn Hàn. Nhưng không ăn được cay.",        en:"I like Korean food. But I can't eat spicy.",        ko:"한국 음식을 좋아합니다. 하지만 매운 건 못 먹습니다."},
+        full:"저는 한국 음식을 좋아합니다. 하지만 매운 건 못 먹습니다.", rule:{vi:"하지만 = nhưng", en:"하지만 = but", ko:"하지만 = 대조"} },
+      { native:{vi:"Nếu vậy thì hãy cùng đi.",                              en:"If so, let's go together.",                         ko:"그러면 같이 갑시다."},
+        full:"시간이 있습니다. 그러면 같이 갑시다.", rule:{vi:"그러면 = vậy thì / nếu vậy", en:"그러면 = then/if so", ko:"그러면 = 조건→제안"} },
+      { native:{vi:"Đắt tiền. Nhưng dù sao tôi vẫn mua.",                  en:"It's expensive. But I'll buy it anyway.",           ko:"비쌉니다. 그래도 살 겁니다."},
+        full:"비쌉니다. 그래도 살 겁니다.", rule:{vi:"그래도 = dù vậy (양보)", en:"그래도 = even so (concession)", ko:"그래도 = 양보"} },
+      { native:{vi:"Cà phê hay trà?",                                        en:"Coffee or tea?",                                    ko:"커피입니까, 아니면 차입니까?"},
+        full:"커피입니까, 아니면 차입니까?", rule:{vi:"아니면 = hay là (lựa chọn)", en:"아니면 = or (choice)", ko:"아니면 = 선택"} },
+      { native:{vi:"Tôi mệt. Nhưng tôi vẫn phải đi làm.",                  en:"I'm tired. But I still have to go to work.",        ko:"피곤합니다. 그래도 회사에 가야 합니다."},
+        full:"피곤합니다. 그래도 회사에 가야 합니다.", rule:{vi:"그래도 = dù vậy", en:"그래도 = even so", ko:"그래도 = 양보"} },
+      { native:{vi:"Hôm nay trời lạnh. Và ngày mai cũng lạnh.",             en:"It's cold today. And tomorrow too.",                ko:"오늘은 춥습니다. 그리고 내일도 춥습니다."},
+        full:"오늘은 춥습니다. 그리고 내일도 춥습니다.", rule:{vi:"그리고 = và (liệt kê thêm)", en:"그리고 = and (addition)", ko:"그리고 = 덧붙이기"} },
+      { native:{vi:"Phở hay cơm?",                                           en:"Noodles or rice?",                                  ko:"국수입니까, 아니면 밥입니까?"},
+        full:"국수입니까, 아니면 밥입니까?", rule:{vi:"아니면 = hay là (lựa chọn)", en:"아니면 = or (choice)", ko:"아니면 = 선택"} },
     ];
 
-    const card  = UNIT6A_CARDS[unitCardIdx];
+        const card  = UNIT6A_CARDS[unitCardIdx];
     const total = UNIT6A_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
@@ -7965,27 +8005,33 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT6B_CARDS = [
-      { native:{vi:"Tôi ăn cơm rồi xem phim.",                en:"I eat and then watch a movie.",           ko:"밥을 먹고 나서 영화를 본다."},
-        full:"밥을 먹고 영화를 봅니다.", rule:{vi:"Hành động nối tiếp → -고", en:"Sequential actions → -고", ko:"동작 나열 → -고"} },
-      { native:{vi:"Tôi cao và gầy.",                         en:"I am tall and thin.",                     ko:"나는 키가 크고 말랐다."},
-        full:"저는 키가 크고 마릅니다.", rule:{vi:"Liệt kê đặc điểm → -고", en:"Listing traits → -고", ko:"특징 나열 → -고"} },
-      { native:{vi:"Trời mưa và có gió.",                     en:"It rains and is windy.",                  ko:"비가 오고 바람이 분다."},
-        full:"비가 오고 바람이 붑니다.", rule:{vi:"Hiện tượng nối tiếp → -고", en:"Simultaneous events → -고", ko:"현상 나열 → -고"} },
-      { native:{vi:"Tiếng Hàn thú vị nhưng khó.",             en:"Korean is fun but difficult.",            ko:"한국어가 재미있지만 어렵다."},
-        full:"한국어가 재미있지만 어렵습니다.", rule:{vi:"Đối lập → -지만 (nhưng)", en:"Contrast → -지만", ko:"대조 → -지만"} },
-      { native:{vi:"Giá đắt nhưng chất lượng tốt.",           en:"It's expensive but good quality.",        ko:"값이 비싸지만 품질이 좋다."},
-        full:"값이 비싸지만 좋습니다.", rule:{vi:"Đắt nhưng tốt → -지만", en:"Expensive but good → -지만", ko:"비싸다+좋다 대조 → -지만"} },
-      { native:{vi:"Tôi đói nên ăn cơm.",                     en:"I was hungry so I ate.",                  ko:"배가 고파서 밥을 먹었다."},
-        full:"배가 고파서 밥을 먹습니다.", rule:{vi:"Lý do → kết quả: -아서/-어서", en:"Reason → result: -아서/-어서", ko:"이유→결과 → -아서"} },
-      { native:{vi:"Tôi thích hát và cũng thích nhảy.",       en:"I like singing and also dancing.",        ko:"나는 노래를 좋아하고 춤도 좋아한다."},
-        full:"저는 노래를 좋아하고 춤도 좋아합니다.", rule:{vi:"Liệt kê sở thích → -고", en:"Listing likes → -고", ko:"취미 나열 → -고"} },
-      { native:{vi:"Tôi ăn sáng xong rồi đến trường.",        en:"I eat breakfast and go to school.",       ko:"아침을 먹고 학교에 간다."},
-        full:"아침을 먹고 학교에 갑니다.", rule:{vi:"Ăn rồi đi học → -고", en:"Eat then go → -고", ko:"먹고 나서 가다 → -고"} },
-      { native:{vi:"Tôi là học sinh và em tôi cũng là học sinh.", en:"I'm a student and my sibling too.", ko:"나는 학생이고 동생도 학생이다."},
-        full:"저는 학생이고 동생도 학생입니다.", rule:{vi:"Cả hai đều → -이고", en:"Both are → -이고", ko:"둘 다 → -이고"} },
+      { native:{vi:"Tôi ăn cơm rồi xem phim.",                  en:"I eat and then watch a movie.",           ko:"밥을 먹고 영화를 봅니다."},
+        full:"밥을 먹고 영화를 봅니다.", rule:{vi:"동사+고 = rồi (nối tiếp)", en:"동사+고 = and then (sequence)", ko:"동사+고 = 순서 연결"} },
+      { native:{vi:"Tôi cao và gầy.",                            en:"I am tall and thin.",                     ko:"저는 키가 크고 마릅니다."},
+        full:"저는 키가 크고 마릅니다.", rule:{vi:"형용사+고 = và (liệt kê)", en:"형용사+고 = and (listing)", ko:"형용사+고 = 나열"} },
+      { native:{vi:"Trời mưa và có gió.",                        en:"It's raining and windy.",                 ko:"비가 오고 바람이 붑니다."},
+        full:"비가 오고 바람이 붑니다.", rule:{vi:"동사+고 = và (đồng thời)", en:"동사+고 = and (simultaneous)", ko:"동사+고 = 나열"} },
+      { native:{vi:"Tiếng Hàn thú vị nhưng khó.",               en:"Korean is fun but difficult.",            ko:"한국어가 재미있지만 어렵습니다."},
+        full:"한국어가 재미있지만 어렵습니다.", rule:{vi:"지만 = nhưng (đối lập)", en:"지만 = but (contrast)", ko:"지만 = 대조"} },
+      { native:{vi:"Giá đắt nhưng chất lượng tốt.",             en:"The price is expensive but good quality.", ko:"값이 비싸지만 좋습니다."},
+        full:"값이 비싸지만 좋습니다.", rule:{vi:"지만 = nhưng", en:"지만 = but", ko:"지만 = 대조"} },
+      { native:{vi:"Tôi đói nên ăn cơm.",                       en:"I'm hungry so I eat.",                   ko:"배가 고파서 밥을 먹습니다."},
+        full:"배가 고파서 밥을 먹습니다.", rule:{vi:"아/어서 = vì/nên (nguyên nhân)", en:"아/어서 = because (reason)", ko:"아/어서 = 이유"} },
+      { native:{vi:"Tôi thích hát và cũng thích nhảy.",         en:"I like singing and also dancing.",        ko:"저는 노래를 좋아하고 춤도 좋아합니다."},
+        full:"저는 노래를 좋아하고 춤도 좋아합니다.", rule:{vi:"동사+고 = và (liệt kê)", en:"동사+고 = and (listing)", ko:"동사+고 = 나열"} },
+      { native:{vi:"Tôi ăn sáng rồi đến trường.",               en:"I eat breakfast and go to school.",       ko:"아침을 먹고 학교에 갑니다."},
+        full:"아침을 먹고 학교에 갑니다.", rule:{vi:"동사+고 = rồi (nối tiếp)", en:"동사+고 = and then", ko:"동사+고 = 순서"} },
+      { native:{vi:"Tôi là học sinh và em tôi cũng là học sinh.", en:"I am a student and my sibling is too.", ko:"저는 학생이고 동생도 학생입니다."},
+        full:"저는 학생이고 동생도 학생입니다.", rule:{vi:"이고 = và (nối danh từ)", en:"이고 = and (noun linking)", ko:"이고 = 명사 나열"} },
+      { native:{vi:"Trời lạnh nên tôi mặc áo khoác.",           en:"It's cold so I wear a jacket.",          ko:"날씨가 추워서 외투를 입습니다."},
+        full:"날씨가 추워서 외투를 입습니다.", rule:{vi:"아/어서 = vì/nên", en:"아/어서 = because", ko:"아/어서 = 이유"} },
+      { native:{vi:"Tôi bận nhưng hạnh phúc.",                  en:"I'm busy but happy.",                    ko:"바쁘지만 행복합니다."},
+        full:"바쁘지만 행복합니다.", rule:{vi:"지만 = nhưng (đối lập)", en:"지만 = but (contrast)", ko:"지만 = 대조"} },
+      { native:{vi:"Trời mưa nên tôi ở nhà.",                   en:"It's raining so I stay home.",           ko:"비가 와서 집에 있습니다."},
+        full:"비가 와서 집에 있습니다.", rule:{vi:"아/어서 = vì/nên", en:"아/어서 = because", ko:"아/어서 = 이유"} },
     ];
 
-    const card  = UNIT6B_CARDS[unitCardIdx];
+        const card  = UNIT6B_CARDS[unitCardIdx];
     const total = UNIT6B_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
@@ -8055,270 +8101,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6c"); }}
+              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit7"); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#AB47BC,#6A1B9A)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp tục — Bài 6C! 🚀":en?"Continue — Unit 6C! 🚀":"6C단원으로 계속하기 🚀"}
-              </button>
-            )
-          )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  // ════════════════════════════════════════════════════════
-  // ✅ V219: 서술어 6C단원 — -(으)면·-(으)니까·-는데 (모국어→한국어)
-  // ════════════════════════════════════════════════════════
-  if (step === "unit6c") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
-
-    function handleUnit6cSubmit() {
-      if (!unitCardInput.trim()) return;
-      setUnitCardRevealed(true);
-      speakKo(unitCardInput.trim());
-    }
-
-    const UNIT6C_CARDS = [
-      { native:{vi:"Nếu có thời gian, tôi sẽ đến.",           en:"If I have time, I'll come.",              ko:"시간이 있으면 간다."},
-        full:"시간이 있으면 옵니다.", rule:{vi:"Điều kiện → -(으)면 (nếu)", en:"Condition → -(으)면 (if)", ko:"조건 → -(으)면"} },
-      { native:{vi:"Nếu trời đẹp, tôi sẽ đi công viên.",      en:"If the weather is nice, I'll go to the park.", ko:"날씨가 좋으면 공원에 간다."},
-        full:"날씨가 좋으면 공원에 갑니다.", rule:{vi:"Điều kiện thời tiết → -(으)면", en:"Weather condition → -(으)면", ko:"날씨 조건 → -(으)면"} },
-      { native:{vi:"Nếu đến Hàn Quốc, tôi sẽ học tiếng Hàn.", en:"If I go to Korea, I'll learn Korean.",     ko:"한국에 가면 한국어를 배운다."},
-        full:"한국에 가면 한국어를 배웁니다.", rule:{vi:"Đến Hàn → học → -(으)면", en:"Go to Korea → learn → -(으)면", ko:"한국행 조건 → -(으)면"} },
-      { native:{vi:"Vì bận nên không thể đi.",                 en:"I'm busy so I can't go.",                 ko:"바쁘니까 못 간다."},
-        full:"바쁘니까 못 갑니다.", rule:{vi:"Lý do → -(으)니까 (vì...nên)", en:"Reason → -(으)니까 (because)", ko:"이유 → -(으)니까"} },
-      { native:{vi:"Vì muộn rồi nên đi nhanh thôi.",           en:"It's late so let's hurry.",               ko:"늦었으니까 빨리 가자."},
-        full:"늦었으니까 빨리 갑니다.", rule:{vi:"Muộn → đi nhanh → -(으)니까", en:"Late → hurry → -(으)니까", ko:"늦음→빨리 → -(으)니까"} },
-      { native:{vi:"Trời đang mưa đấy. Bạn có ô không?",       en:"It's raining. Do you have an umbrella?",  ko:"비가 오는데 우산 있어?"},
-        full:"비가 오는데 우산 있습니까?", rule:{vi:"Bối cảnh → câu hỏi: -는데", en:"Background → question: -는데", ko:"배경 제시 → 질문: -는데"} },
-    ];
-
-    const card  = UNIT6C_CARDS[unitCardIdx];
-    const total = UNIT6C_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
-    const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
-
-    return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8EAF6,#9FA8DA)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:420}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 6C — Đuôi điều kiện/lý do/nền":en?"Unit 6C — Condition/Reason/Background":"서술어 6C단원 — -(으)면·-(으)니까·-는데"}
-            </div>
-            <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-            <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
-              <div style={{height:4, background:"#3949AB", borderRadius:4, width:`${((unitCardIdx+1)/total)*100}%`, transition:"width 0.3s"}} />
-            </div>
-          </div>
-          <div style={{background:"#E8EAF6", border:"2px solid #3949AB", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#1A237E", marginBottom:6}}>📌 {vi?"Đuôi câu cốt lõi":en?"Core Endings":"핵심 연결어미"}</div>
-            <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
-              <div>· <b>-(으)면</b>: 조건 (if) &nbsp;&nbsp;예: 있으면·가면</div>
-              <div>· <b>-(으)니까</b>: 이유 (because) &nbsp;예: 바쁘니까·늦었으니까</div>
-              <div>· <b>-는데</b>: 배경 제시 (given that) &nbsp;예: 오는데</div>
-            </div>
-          </div>
-          <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
-          <div style={{background:"white", borderRadius:16, border:"2px solid #9FA8DA", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #3949AB22"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
-            <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
-          </div>
-          <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết bằng thể 합니다":en?"Write in 합니다 style":"합니다체로 완성하세요"}
-          </div>
-          <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#9FA8DA"}`, padding:"14px 16px", marginBottom:12}}>
-            <input type="text" value={unitCardInput}
-              onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
-              onKeyDown={e=>{ if(e.key==="Enter") handleUnit6cSubmit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
-              style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
-            {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
-              <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
-                <button onClick={()=>{ if(unitCardRevealed) return; const SR=window.SpeechRecognition||window.webkitSpeechRecognition; const r=new SR(); r.lang="ko-KR"; r.interimResults=false; r.onresult=(e)=>{setUnitCardInput(e.results[0][0].transcript);}; r.start(); }} disabled={unitCardRevealed}
-                  style={{background:"#1A237E", color:"white", border:"none", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>🎤 말하기</button>
-              </div>
-            ) : null}
-          </div>
-          {unitCardRevealed && (
-            <div style={{background:isCorrect?"#E8F5E9":"#FFEBEE", border:`1.5px solid ${isCorrect?"#2E7D32":"#C62828"}`, borderRadius:12, padding:"12px 16px", marginBottom:12}}>
-              <div style={{fontSize:13, fontWeight:900, color:isCorrect?"#2E7D32":"#C62828", marginBottom:4}}>{isCorrect?"✅ 정답!":"❌ 정답은:"}</div>
-              <div style={{fontSize:16, fontWeight:700, color:"#333"}}>{card.full}</div>
-              <button onClick={()=>speakKo(card.full)} style={{marginTop:6, background:"none", border:"1px solid #aaa", borderRadius:8, padding:"4px 10px", fontSize:11, cursor:"pointer"}}>🔊 듣기</button>
-            </div>
-          )}
-          {!unitCardRevealed ? (
-            <button onClick={handleUnit6cSubmit} disabled={!unitCardInput.trim()}
-              style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#3949AB,#1A237E)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
-            </button>
-          ) : (
-            unitCardIdx < total-1 ? (
-              <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
-                style={{width:"100%", background:"linear-gradient(135deg,#3949AB,#1A237E)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
-              </button>
-            ) : (
-              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(true); setStep("test1"); }}
-                style={{width:"100%", background:"linear-gradient(135deg,#3949AB,#1A237E)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Kiểm tra tổng hợp! 🚀":en?"Cumulative test! 🚀":"누적 테스트로! 🚀"}
-              </button>
-            )
-          )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  // ════════════════════════════════════════════════════════
-  // ✅ V183: 누적 테스트 6 — 1·2A·2B·3A·3B·4·5·6단원
-  // ════════════════════════════════════════════════════════
-  if (step === "test6") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
-
-    // 포함 단원: 4·5·6단원 (3단원 졸업 — 3회 졸업 규칙 적용)
-    const TEST6_QUESTIONS = [
-      // ── 4단원 복습 (8문항) ──
-      { id:"t6_1",  q:"___ 갑니까? (장소)",              answer:"어디",      answers:["어디"],                  hint:{ko:"💡 장소를 물을 때 → 어디", vi:"💡 Hỏi về địa điểm → 어디 (ở đâu)", en:"💡 Asking about place → 어디 (where)"} },
-      { id:"t6_2",  q:"___ 입니까? (사람)",              answer:"누구",      answers:["누구"],                  hint:{ko:"💡 사람을 물을 때 → 누구/누가", vi:"💡 Hỏi về người → 누구/누가 (ai)", en:"💡 Asking about person → 누구/누가 (who)"} },
-      { id:"t6_3",  q:"___ 먹습니까? (사물)",            answer:"무엇을",    answers:["무엇을","뭐"],            hint:{ko:"💡 사물을 물을 때 → 무엇/뭐", vi:"💡 Hỏi về vật → 무엇/뭐 (cái gì)", en:"💡 Asking about thing → 무엇/뭐 (what)"} },
-      { id:"t6_4",  q:"___ 합니까? (때)",                answer:"언제",      answers:["언제"],                  hint:{ko:"💡 시간을 물을 때 → 언제", vi:"💡 Hỏi về thời gian → 언제 (khi nào)", en:"💡 Asking about time → 언제 (when)"} },
-      { id:"t6_5",  q:"___ 왔습니까? (방법)",            answer:"어떻게",    answers:["어떻게"],                hint:{ko:"💡 방법을 물을 때 → 어떻게", vi:"💡 Hỏi về cách → 어떻게 (như thế nào)", en:"💡 Asking about method → 어떻게 (how)"} },
-      { id:"t6_6",  q:"이게 ___ 입니까? (값)",           answer:"얼마",      answers:["얼마"],                  hint:{ko:"💡 가격을 물을 때 → 얼마", vi:"💡 Hỏi về giá → 얼마 (bao nhiêu tiền)", en:"💡 Asking about price → 얼마 (how much)"} },
-      { id:"t6_7",  q:"___ 한국어를 공부합니까? (이유)", answer:"왜",        answers:["왜"],                    hint:{ko:"💡 이유를 물을 때 → 왜", vi:"💡 Hỏi về lý do → 왜 (tại sao)", en:"💡 Asking about reason → 왜 (why)"} },
-      { id:"t6_8",  q:"___ 이 더 큽니까? (비교)",        answer:"어느 것",   answers:["어느 것","어느것"],       hint:{ko:"💡 어느 것 = which one (비교 선택)", vi:"💡 어느 것 = cái nào (so sánh chọn lựa)", en:"💡 어느 것 = which one (comparison)"} },
-      // ── 5단원 복습 (8문항) ──
-      { id:"t6_9",  q:"앉다 → ___",                      answer:"앉으세요",  answers:["앉으세요","앉으세요."],  hint:{ko:"💡 받침 있음 → 으세요", vi:"💡 Có phụ âm cuối → 으세요", en:"💡 Has batchim → 으세요"} },
-      { id:"t6_10", q:"읽다 → ___",                      answer:"읽으세요",  answers:["읽으세요","읽으세요."],  hint:{ko:"💡 읽다 → 받침 있음 → 읽으세요", vi:"💡 읽다 → có phụ âm cuối → 읽으세요", en:"💡 읽다 → has batchim → 읽으세요"} },
-      { id:"t6_11", q:"오다 → ___",                      answer:"오세요",    answers:["오세요","오세요."],      hint:{ko:"💡 받침 없음 → 세요", vi:"💡 Không có phụ âm cuối → 세요", en:"💡 No batchim → 세요"} },
-      { id:"t6_12", q:"먹다 → ___ (높임)",               answer:"드세요",    answers:["드세요","드세요."],      hint:{ko:"💡 먹다 높임말 → 드세요 (불규칙)", vi:"💡 먹다 kính ngữ → 드세요 (bất quy tắc)", en:"💡 먹다 honorific → 드세요 (irregular)"} },
-      { id:"t6_13", q:"알다 → ___",                      answer:"아세요",    answers:["아세요","아세요."],      hint:{ko:"💡 알다 → ㄹ탈락 → 아세요", vi:"💡 알다 → ㄹ rơi → 아세요", en:"💡 알다 → ㄹ drop → 아세요"} },
-      { id:"t6_14", q:"천천히 ___. (걷다)",              answer:"걸으세요",  answers:["걸으세요","걸으세요."],  hint:{ko:"💡 걷다 → ㄷ불규칙 → 걸으세요", vi:"💡 걷다 → bất quy tắc ㄷ → 걸으세요", en:"💡 걷다 → ㄷ irregular → 걸으세요"} },
-      { id:"t6_15", q:"잠깐 기다려 ___. (부탁)",         answer:"주세요",    answers:["주세요","주세요."],      hint:{ko:"💡 주다 → 주세요", vi:"💡 주다 = cho → 주세요", en:"💡 주다 = give → 주세요"} },
-      { id:"t6_16", q:"한국어를 ___. (공부하다)",        answer:"공부하세요",answers:["공부하세요","공부하세요."],hint:{ko:"💡 공부하다 → 공부하세요", vi:"💡 공부하다 = học → 공부하세요", en:"💡 공부하다 = study → 공부하세요"} },
-      // ── 6단원 신규 (14문항) ──
-      { id:"t6_17", q:"저는 커피를 좋아합니다. ___ 차도 좋아합니다.", answer:"그리고", answers:["그리고"], hint:{ko:"💡 그리고 = 추가 (and)", vi:"💡 그리고 = và (thêm thông tin)", en:"💡 그리고 = and (adding info)"} },
-      { id:"t6_18", q:"날씨가 좋습니다. ___ 바람이 붑니다.",          answer:"그런데", answers:["그런데"], hint:{ko:"💡 그런데 = 화제 전환 (but/however)", vi:"💡 그런데 = nhưng mà (chuyển chủ đề)", en:"💡 그런데 = but/however (topic shift)"} },
-      { id:"t6_19", q:"한국어가 재미있습니다. ___ 어렵습니다.",       answer:"하지만", answers:["하지만"], hint:{ko:"💡 하지만 = 강한 대조 (but)", vi:"💡 하지만 = nhưng (đối lập mạnh)", en:"💡 하지만 = but (strong contrast)"} },
-      { id:"t6_20", q:"비가 옵니다. ___ 우산을 가져왔습니다.",        answer:"그래서", answers:["그래서"], hint:{ko:"💡 그래서 = 원인→결과 (so/therefore)", vi:"💡 그래서 = vì vậy (nguyên nhân → kết quả)", en:"💡 그래서 = so/therefore (cause→result)"} },
-      { id:"t6_21", q:"비쌉니다. ___ 삽니다.",                        answer:"그래도", answers:["그래도"], hint:{ko:"💡 그래도 = 불구하고 (even so)", vi:"💡 그래도 = dù vậy (mặc dù)", en:"💡 그래도 = even so (concession)"} },
-      { id:"t6_22", q:"커피입니까, ___ 차입니까?",                    answer:"아니면", answers:["아니면"], hint:{ko:"💡 아니면 = 선택 (or)", vi:"💡 아니면 = hoặc là (lựa chọn)", en:"💡 아니면 = or (choice)"} },
-      { id:"t6_23", q:"비싸___ 좋습니다. (대조)",                     answer:"지만",   answers:["지만"],   hint:{ko:"💡 -지만 = 대조 어미 (but)", vi:"💡 -지만 = nhưng (đuôi đối lập)", en:"💡 -지만 = but (contrasting ending)"} },
-      { id:"t6_24", q:"배가 고파___ 밥 먹습니다. (이유)",             answer:"서",     answers:["서"],     hint:{ko:"💡 고파서 = 배고프다 + 아서 (이유)", vi:"💡 고파서 = đói + vì (lý do)", en:"💡 고파서 = hungry + because (reason)"} },
-      { id:"t6_25", q:"밥을 먹___ 커피를 마십니다. (나열)",           answer:"고",     answers:["고"],     hint:{ko:"💡 -고 = 나열·순서 어미 (and)", vi:"💡 -고 = và (liệt kê/thứ tự)", en:"💡 -고 = and (listing/sequential)"} },
-      { id:"t6_26", q:"학교에 가___ 한국어를 배웁니다. (순서)",       answer:"서",     answers:["서"],     hint:{ko:"💡 가서 = 가다 + 아서 (순서·이유)", vi:"💡 가서 = 가다 + 아서 (thứ tự/lý do)", en:"💡 가서 = 가다 + 아서 (sequence/reason)"} },
-      { id:"t6_27", q:"날씨가 좋___ 산책합니다. (이유)",              answer:"아서",   answers:["아서"],   hint:{ko:"💡 좋다 + 아서 → 좋아서 (이유)", vi:"💡 좋다 + 아서 → 좋아서 (vì thích)", en:"💡 좋다 + 아서 → 좋아서 (because it is good)"} },
-      { id:"t6_28", q:"시간이 있___ 도와드릴게요. (조건)",            answer:"으면",   answers:["으면"],   hint:{ko:"💡 있다 + (으)면 → 있으면 (조건)", vi:"💡 있다 + (으)면 → 있으면 (điều kiện)", en:"💡 있다 + (으)면 → 있으면 (if condition)"} },
-      { id:"t6_29", q:"피곤하___ 일합니다. (대조)",                   answer:"지만",   answers:["지만"],   hint:{ko:"💡 -지만 = 대조 어미 (but)", vi:"💡 -지만 = nhưng (đuôi đối lập)", en:"💡 -지만 = but (contrasting ending)"} },
-      { id:"t6_30", q:"비가 오___ 우산 있습니까? (배경)",             answer:"는데",   answers:["는데"],   hint:{ko:"💡 -는데 = 배경·상황 설명", vi:"💡 -는데 = nền/bối cảnh (đưa ra tình huống)", en:"💡 -는데 = background/context setting"} },
-    ];
-
-    function gradeTest6() {
-      let correct = 0;
-      const feedback = TEST6_QUESTIONS.map(q => {
-        const userAns = (testAnswers[q.id] || "").trim();
-        const ok = (q.answers || [q.answer]).some(a => userAns === a || userAns.replace(/\s/g,"") === a.replace(/\s/g,""));
-        if (ok) correct++;
-        return {...q, userAns, ok};
-      });
-      const score = Math.round((correct / TEST6_QUESTIONS.length) * 100);
-      const passed = score >= 80;
-      if (passed) {
-        const newPassed = [...new Set([...unitsPassed, 1,2,3,4,5,6,"2b","3b","6b"])];
-        setUnitsPassed(newPassed);
-        try { localStorage.setItem("hc_unitsPassed", JSON.stringify(newPassed)); } catch(e) {}
-      }
-      setTestResult({ score, passed, feedback });
-    }
-
-    if (testResult) {
-      return (
-        <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-          <DevJumpPanel />
-          <div style={{width:"100%", maxWidth:400}}>
-            <div style={{textAlign:"center", marginBottom:20}}>
-              <div style={{fontSize:40}}>{testResult.passed?"🎉":"💪"}</div>
-              <div style={{fontSize:22, fontWeight:900, color: testResult.passed?"#E65100":"#E64A00", marginBottom:4}}>
-                {testResult.score}점 {testResult.passed?"— 통과!":"— 다시 도전!"}
-              </div>
-              <div style={{fontSize:13, color:"#888"}}>범위: 서술어 1·2A·2B·3A·3B·4·5·6단원 (76문제)</div>
-            </div>
-            <div style={{background:"white", borderRadius:16, padding:16, marginBottom:16}}>
-              {testResult.feedback.map((q,i)=>(
-                <div key={i} style={{padding:"8px 0", borderBottom: i<testResult.feedback.length-1?"1px solid #f0f0f0":"none"}}>
-                  <div style={{fontSize:13, color:"#333", fontWeight:600}}>{i+1}. {q.q}</div>
-                  <div style={{fontSize:12, marginTop:4}}>
-                    {q.ok
-                      ? <span style={{color:"#E65100", fontWeight:700}}>✅ {q.answer}</span>
-                      : <><span style={{color:"#E64A00"}}>❌ 내 답: {q.userAns||"(없음)"}</span> → <span style={{color:"#E65100", fontWeight:700}}>정답: {q.answer}</span></>
-                    }
-                  </div>
-                </div>
-              ))}
-            </div>
-            {testResult.passed ? (
-              <button onClick={()=>{setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit7");}}
-                style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp tục — Bài 7! 🚀":en?"Continue — Unit 7! 🚀":"7단원으로 계속하기 🚀"}
               </button>
-            ) : (
-              <button onClick={()=>{setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit6a");}}
-                style={{width:"100%", background:"linear-gradient(135deg,#FF8C42,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Học lại Bài 6A 🔄":en?"Study Unit 6A again 🔄":"6A단원 처음부터 다시 학습 🔄"}
-              </button>
-            )}
-            <button onClick={()=>{setTestResult(null); setTestAnswers({});}}
-              style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-              ← {vi?"Thử lại":en?"Try again":"다시 풀기"}
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:400}}>
-          <div style={{fontSize:14, fontWeight:900, color:"#E65100", marginBottom:4}}>
-            📝 누적 테스트 — 1·2A·2B·3A·3B·4·5·6단원
-          </div>
-          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
-            범위: 서술어 1단원 ~ 6단원 전체 (62문제)
-          </div>
-          {TEST6_QUESTIONS.map((q,i)=>(
-            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
-              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
-              <input type="text"
-                value={testAnswers[q.id]||""}
-                onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))}
-                onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
-                placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
-                style={{width:"100%", border:"2px solid #FFE082", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
-              />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
-            </div>
-          ))}
-          <button type="button" onClick={gradeTest6}
-            style={{width:"100%", background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>
-            {vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}
-          </button>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6b"); }}
-            style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로 (6B단원 학습)"}
-          </button>
+            )
+          )}
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
   }
 
+  // ════════════════════════════════════════════════════════
   // ── 7단원: 현재진행 -고 있다 ──
   // ════════════════════════════════════════════════════════
   // ✅ V220: 서술어 7단원 — 진행형 -고 있습니다 (모국어→한국어)
