@@ -9298,6 +9298,864 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     );
   }
 
+
+// ── 14~25단원 전체 블록 ──
+
+  if (step === "unit14") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT14_CARDS = [
+      // ── 경험 있다 ──
+      { native:{vi:"Bạn đã từng ăn kim chi chưa?",          en:"Have you ever eaten kimchi?",          ko:"김치를 먹은 적이 있습니까?"},
+        full:"김치를 먹은 적이 있습니까?", rule:{vi:"동사+은/ㄴ 적이 있다 (đã từng)", en:"verb+은/ㄴ 적이 있다 (have ever)", ko:"동사+은/ㄴ 적이 있습니다"} },
+      { native:{vi:"Vâng, tôi đã từng ăn.",                 en:"Yes, I have eaten it before.",         ko:"네, 먹은 적이 있습니다."},
+        full:"네, 먹은 적이 있습니다.", rule:{vi:"먹다 → 먹은 적이 있습니다", en:"먹다 → 먹은 적이 있습니다", ko:"먹다 → 먹은 적이 있습니다"} },
+      { native:{vi:"Không, tôi chưa từng ăn.",              en:"No, I have never eaten it.",           ko:"아니요, 먹은 적이 없습니다."},
+        full:"아니요, 먹은 적이 없습니다.", rule:{vi:"동사+은/ㄴ 적이 없다 (chưa từng)", en:"verb+은/ㄴ 적이 없다 (have never)", ko:"동사+은/ㄴ 적이 없습니다"} },
+      { native:{vi:"Bạn đã từng đến Hàn Quốc chưa?",        en:"Have you ever been to Korea?",         ko:"한국에 간 적이 있습니까?"},
+        full:"한국에 간 적이 있습니까?", rule:{vi:"가다 → 간 적이 있습니까?", en:"가다 → 간 적이 있습니까?", ko:"가다 → 간 적이 있습니까?"} },
+      { native:{vi:"Tôi đã từng xem phim Hàn Quốc.",        en:"I have watched Korean movies before.", ko:"한국 영화를 본 적이 있습니다."},
+        full:"한국 영화를 본 적이 있습니다.", rule:{vi:"보다 → 본 적이 있습니다", en:"보다 → 본 적이 있습니다", ko:"보다 → 본 적이 있습니다"} },
+      { native:{vi:"Tôi chưa từng uống rượu Hàn Quốc.",     en:"I have never drunk Korean alcohol.",   ko:"한국 술을 마신 적이 없습니다."},
+        full:"한국 술을 마신 적이 없습니다.", rule:{vi:"마시다 → 마신 적이 없습니다", en:"마시다 → 마신 적이 없습니다", ko:"마시다 → 마신 적이 없습니다"} },
+      { native:{vi:"Bạn đã từng đi xe buýt ở Hàn Quốc chưa?", en:"Have you taken a bus in Korea?",   ko:"한국에서 버스를 탄 적이 있습니까?"},
+        full:"한국에서 버스를 탄 적이 있습니까?", rule:{vi:"타다 → 탄 적이 있습니까?", en:"타다 → 탄 적이 있습니까?", ko:"타다 → 탄 적이 있습니까?"} },
+      { native:{vi:"Tôi đã từng làm việc ở Hàn Quốc.",      en:"I have worked in Korea before.",       ko:"한국에서 일한 적이 있습니다."},
+        full:"한국에서 일한 적이 있습니다.", rule:{vi:"일하다 → 일한 적이 있습니다", en:"일하다 → 일한 적이 있습니다", ko:"일하다 → 일한 적이 있습니다"} },
+      { native:{vi:"Bạn đã từng đến bệnh viện ở Hàn Quốc chưa?", en:"Have you been to a Korean hospital?", ko:"한국 병원에 간 적이 있습니까?"},
+        full:"한국 병원에 간 적이 있습니까?", rule:{vi:"가다 → 간 적이 있습니까?", en:"가다 → 간 적이 있습니까?", ko:"가다 → 간 적이 있습니까?"} },
+      { native:{vi:"Tôi chưa từng nói chuyện bằng tiếng Hàn.", en:"I have never spoken in Korean.",   ko:"한국어로 말한 적이 없습니다."},
+        full:"한국어로 말한 적이 없습니다.", rule:{vi:"말하다 → 말한 적이 없습니다", en:"말하다 → 말한 적이 없습니다", ko:"말하다 → 말한 적이 없습니다"} },
+      { native:{vi:"Tôi đã từng học tiếng Hàn một lần.",    en:"I have studied Korean once.",          ko:"한국어를 배운 적이 있습니다."},
+        full:"한국어를 배운 적이 있습니다.", rule:{vi:"배우다 → 배운 적이 있습니다", en:"배우다 → 배운 적이 있습니다", ko:"배우다 → 배운 적이 있습니다"} },
+      { native:{vi:"Bạn đã từng gặp người Hàn Quốc chưa?",  en:"Have you ever met a Korean person?",  ko:"한국 사람을 만난 적이 있습니까?"},
+        full:"한국 사람을 만난 적이 있습니까?", rule:{vi:"만나다 → 만난 적이 있습니까?", en:"만나다 → 만난 적이 있습니까?", ko:"만나다 → 만난 적이 있습니까?"} },
+    ];
+    const card = UNIT14_CARDS[unitCardIdx];
+    const total = UNIT14_CARDS.length;
+    const C14 = { bg:"linear-gradient(150deg,#F3E5F5,#E1BEE7)", accent:"#6A1B9A", border:"#CE93D8" };
+    return (
+      <div style={{minHeight:"100vh", background:C14.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C14.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 14 — Kinh nghiệm (đã từng)":en?"Unit 14 — Experience (have ever)":"14단원 — 경험 (은/ㄴ 적이 있다·없다)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C14.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #6A1B9A22"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C14.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#F3E5F5", borderRadius:10, padding:"10px 14px", fontSize:13, color:C14.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C14.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C14.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn quy tắc":en?"Hide rule":"규칙 숨기기"):(vi?"Xem quy tắc":en?"Show rule":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C14.accent},#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit15"); }} style={{flex:2, background:`linear-gradient(135deg,${C14.accent},#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp — Bài 15! 🚀":en?"Continue — Unit 15! 🚀":"15단원으로 계속하기 🚀"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("test13"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (13단원 테스트)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit15") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT15_CARDS = [
+      // ── ~아/어 주다 (남을 위한 행동) ──
+      { native:{vi:"Tôi sẽ giúp bạn.",                      en:"I will help you.",                    ko:"제가 도와줄게요."},
+        full:"제가 도와줄게요.", rule:{vi:"돕다 → 도와줄게요 (ㅂ불규칙+줄게요)", en:"돕다 → 도와줄게요 (ㅂ irregular)", ko:"돕다 → 도와줄게요"} },
+      { native:{vi:"Tôi sẽ giải thích cho bạn.",            en:"I will explain to you.",               ko:"제가 설명해 줄게요."},
+        full:"제가 설명해 줄게요.", rule:{vi:"설명하다 → 설명해 줄게요", en:"설명하다 → 설명해 줄게요", ko:"설명하다 → 설명해 줄게요"} },
+      { native:{vi:"Tôi mua cho mẹ.",                       en:"I buy it for mom.",                   ko:"어머니께 사드릴게요."},
+        full:"어머니께 사드릴게요.", rule:{vi:"사다 → 사드릴게요 (드리다=높임)", en:"사다 → 사드릴게요 (드리다=honorific)", ko:"사다 → 사드릴게요 (높임)"} },
+      { native:{vi:"Tôi sẽ mang hộ bạn.",                   en:"I'll carry it for you.",              ko:"제가 들어 줄게요."},
+        full:"제가 들어 줄게요.", rule:{vi:"들다 → 들어 줄게요", en:"들다 → 들어 줄게요", ko:"들다 → 들어 줄게요"} },
+      { native:{vi:"Tôi dịch cho bạn.",                     en:"I will translate for you.",            ko:"제가 번역해 줄게요."},
+        full:"제가 번역해 줄게요.", rule:{vi:"번역하다 → 번역해 줄게요", en:"번역하다 → 번역해 줄게요", ko:"번역하다 → 번역해 줄게요"} },
+      { native:{vi:"Bạn tôi chụp ảnh cho tôi.",             en:"My friend took a photo for me.",      ko:"친구가 사진을 찍어 줬습니다."},
+        full:"친구가 사진을 찍어 줬습니다.", rule:{vi:"찍다 → 찍어 줬습니다 (과거)", en:"찍다 → 찍어 줬습니다 (past)", ko:"찍다 → 찍어 줬습니다"} },
+      { native:{vi:"Tôi sẽ gọi điện cho bạn.",              en:"I will call you.",                    ko:"제가 전화해 줄게요."},
+        full:"제가 전화해 줄게요.", rule:{vi:"전화하다 → 전화해 줄게요", en:"전화하다 → 전화해 줄게요", ko:"전화하다 → 전화해 줄게요"} },
+      { native:{vi:"Tôi sẽ chờ cho bạn.",                   en:"I will wait for you.",                ko:"제가 기다려 줄게요."},
+        full:"제가 기다려 줄게요.", rule:{vi:"기다리다 → 기다려 줄게요", en:"기다리다 → 기다려 줄게요", ko:"기다리다 → 기다려 줄게요"} },
+      { native:{vi:"Anh ấy dạy tiếng Hàn cho tôi.",         en:"He taught me Korean.",                ko:"그분이 한국어를 가르쳐 주셨습니다."},
+        full:"그분이 한국어를 가르쳐 주셨습니다.", rule:{vi:"가르치다 → 가르쳐 주셨습니다 (높임)", en:"가르치다 → 가르쳐 주셨습니다 (honorific)", ko:"가르치다 → 가르쳐 주셨습니다"} },
+      { native:{vi:"Tôi sẽ đặt vé máy bay cho bạn.",        en:"I will book a ticket for you.",       ko:"제가 비행기표를 예약해 줄게요."},
+        full:"제가 비행기표를 예약해 줄게요.", rule:{vi:"예약하다 → 예약해 줄게요", en:"예약하다 → 예약해 줄게요", ko:"예약하다 → 예약해 줄게요"} },
+      { native:{vi:"Tôi sẽ dẫn đường cho bạn.",             en:"I will show you the way.",            ko:"제가 길을 안내해 줄게요."},
+        full:"제가 길을 안내해 줄게요.", rule:{vi:"안내하다 → 안내해 줄게요", en:"안내하다 → 안내해 줄게요", ko:"안내하다 → 안내해 줄게요"} },
+      { native:{vi:"Tôi sẽ gửi tài liệu cho bạn.",          en:"I will send you the document.",       ko:"제가 서류를 보내 줄게요."},
+        full:"제가 서류를 보내 줄게요.", rule:{vi:"보내다 → 보내 줄게요", en:"보내다 → 보내 줄게요", ko:"보내다 → 보내 줄게요"} },
+    ];
+    const card = UNIT15_CARDS[unitCardIdx];
+    const total = UNIT15_CARDS.length;
+    const C15 = { bg:"linear-gradient(150deg,#E8F5E9,#C8E6C9)", accent:"#2E7D32", border:"#81C784" };
+    return (
+      <div style={{minHeight:"100vh", background:C15.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C15.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 15 — Hành động vì người khác (~아/어 주다)":en?"Unit 15 — Doing for others (~아/어 주다)":"15단원 — 다른 사람을 위한 행동 (~아/어 주다·드리다)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C15.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #2E7D3222"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C15.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#E8F5E9", borderRadius:10, padding:"10px 14px", fontSize:13, color:C15.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C15.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C15.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C15.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit16"); }} style={{flex:2, background:`linear-gradient(135deg,${C15.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp — Bài 16! 🚀":en?"Continue — Unit 16! 🚀":"16단원으로 계속하기 🚀"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit14"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (14단원)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit16") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT16_CARDS = [
+      { native:{vi:"Hãy nói một lần nữa.",                  en:"Please say it again.",                ko:"한 번 더 말해 주세요."},
+        full:"한 번 더 말해 주세요.", rule:{vi:"말하다 → 말해 주세요 (부탁)", en:"말하다 → 말해 주세요 (request)", ko:"말하다 → 말해 주세요"} },
+      { native:{vi:"Hãy nói chậm hơn.",                     en:"Please speak more slowly.",           ko:"천천히 말해 주세요."},
+        full:"천천히 말해 주세요.", rule:{vi:"말하다 → 말해 주세요", en:"말하다 → 말해 주세요", ko:"말하다 → 말해 주세요"} },
+      { native:{vi:"Hãy gọi cho tôi.",                      en:"Please call me.",                     ko:"전화해 주세요."},
+        full:"전화해 주세요.", rule:{vi:"전화하다 → 전화해 주세요", en:"전화하다 → 전화해 주세요", ko:"전화하다 → 전화해 주세요"} },
+      { native:{vi:"Hãy chờ một chút.",                     en:"Please wait a moment.",               ko:"잠깐 기다려 주세요."},
+        full:"잠깐 기다려 주세요.", rule:{vi:"기다리다 → 기다려 주세요", en:"기다리다 → 기다려 주세요", ko:"기다리다 → 기다려 주세요"} },
+      { native:{vi:"Hãy viết địa chỉ vào đây.",             en:"Please write your address here.",     ko:"여기에 주소를 써 주세요."},
+        full:"여기에 주소를 써 주세요.", rule:{vi:"쓰다 → 써 주세요", en:"쓰다 → 써 주세요", ko:"쓰다 → 써 주세요"} },
+      { native:{vi:"Hãy đến đúng giờ.",                     en:"Please come on time.",                ko:"제시간에 와 주세요."},
+        full:"제시간에 와 주세요.", rule:{vi:"오다 → 와 주세요", en:"오다 → 와 주세요", ko:"오다 → 와 주세요"} },
+      { native:{vi:"Hãy mở cửa sổ.",                        en:"Please open the window.",             ko:"창문을 열어 주세요."},
+        full:"창문을 열어 주세요.", rule:{vi:"열다 → 열어 주세요 (ㄹ탈락)", en:"열다 → 열어 주세요 (ㄹ drops)", ko:"열다 → 열어 주세요"} },
+      { native:{vi:"Hãy đóng cửa lại.",                     en:"Please close the door.",              ko:"문을 닫아 주세요."},
+        full:"문을 닫아 주세요.", rule:{vi:"닫다 → 닫아 주세요", en:"닫다 → 닫아 주세요", ko:"닫다 → 닫아 주세요"} },
+      { native:{vi:"Hãy kiểm tra lại.",                     en:"Please check it again.",              ko:"다시 확인해 주세요."},
+        full:"다시 확인해 주세요.", rule:{vi:"확인하다 → 확인해 주세요", en:"확인하다 → 확인해 주세요", ko:"확인하다 → 확인해 주세요"} },
+      { native:{vi:"Hãy gửi email cho tôi.",                 en:"Please send me an email.",            ko:"이메일을 보내 주세요."},
+        full:"이메일을 보내 주세요.", rule:{vi:"보내다 → 보내 주세요", en:"보내다 → 보내 주세요", ko:"보내다 → 보내 주세요"} },
+      { native:{vi:"Xin hãy giải thích thêm.",              en:"Could you explain more?",             ko:"좀 더 설명해 주시겠어요?"},
+        full:"좀 더 설명해 주시겠어요?", rule:{vi:"설명하다 → 설명해 주시겠어요? (정중)", en:"설명하다 → 설명해 주시겠어요? (polite)", ko:"설명해 주시겠어요? (정중 요청)"} },
+      { native:{vi:"Xin hãy dịch giúp tôi.",                en:"Could you translate for me?",         ko:"번역해 주시겠어요?"},
+        full:"번역해 주시겠어요?", rule:{vi:"번역하다 → 번역해 주시겠어요?", en:"번역하다 → 번역해 주시겠어요?", ko:"번역해 주시겠어요?"} },
+      { native:{vi:"Xin hãy đưa cho tôi cái này.",          en:"Could you give me this?",             ko:"이것을 주시겠어요?"},
+        full:"이것을 주시겠어요?", rule:{vi:"주다 → 주시겠어요?", en:"주다 → 주시겠어요?", ko:"주다 → 주시겠어요?"} },
+      { native:{vi:"Hãy ký tên vào đây.",                    en:"Please sign here.",                   ko:"여기에 사인해 주세요."},
+        full:"여기에 사인해 주세요.", rule:{vi:"사인하다 → 사인해 주세요", en:"사인하다 → 사인해 주세요", ko:"사인하다 → 사인해 주세요"} },
+      { native:{vi:"Hãy gọi xe cứu thương.",                 en:"Please call an ambulance.",           ko:"구급차를 불러 주세요."},
+        full:"구급차를 불러 주세요.", rule:{vi:"부르다 → 불러 주세요 (르불규칙)", en:"부르다 → 불러 주세요 (르 irregular)", ko:"부르다 → 불러 주세요"} },
+      { native:{vi:"Hãy chụp ảnh cho tôi.",                  en:"Please take a photo of me.",          ko:"사진을 찍어 주세요."},
+        full:"사진을 찍어 주세요.", rule:{vi:"찍다 → 찍어 주세요", en:"찍다 → 찍어 주세요", ko:"찍다 → 찍어 주세요"} },
+      { native:{vi:"Xin hãy nói to hơn.",                   en:"Could you speak louder?",             ko:"좀 더 크게 말해 주시겠어요?"},
+        full:"좀 더 크게 말해 주시겠어요?", rule:{vi:"말하다 → 말해 주시겠어요?", en:"말하다 → 말해 주시겠어요?", ko:"말해 주시겠어요?"} },
+      { native:{vi:"Hãy mang theo hộ chiếu.",                en:"Please bring your passport.",         ko:"여권을 가져와 주세요."},
+        full:"여권을 가져와 주세요.", rule:{vi:"가져오다 → 가져와 주세요", en:"가져오다 → 가져와 주세요", ko:"가져오다 → 가져와 주세요"} },
+      { native:{vi:"Xin hãy giúp tôi.",                     en:"Could you help me?",                  ko:"도와주시겠어요?"},
+        full:"도와주시겠어요?", rule:{vi:"돕다 → 도와주시겠어요? (ㅂ불규칙)", en:"돕다 → 도와주시겠어요? (ㅂ irregular)", ko:"돕다 → 도와주시겠어요?"} },
+      { native:{vi:"Hãy ghi số điện thoại vào đây.",         en:"Please write your phone number here.", ko:"전화번호를 적어 주세요."},
+        full:"전화번호를 적어 주세요.", rule:{vi:"적다 → 적어 주세요", en:"적다 → 적어 주세요", ko:"적다 → 적어 주세요"} },
+      { native:{vi:"Hãy tắt điện thoại.",                    en:"Please turn off your phone.",         ko:"휴대폰을 꺼 주세요."},
+        full:"휴대폰을 꺼 주세요.", rule:{vi:"끄다 → 꺼 주세요 (ㅡ탈락)", en:"끄다 → 꺼 주세요 (ㅡ drops)", ko:"끄다 → 꺼 주세요"} },
+      { native:{vi:"Hãy dọn phòng.",                         en:"Please clean the room.",              ko:"방을 청소해 주세요."},
+        full:"방을 청소해 주세요.", rule:{vi:"청소하다 → 청소해 주세요", en:"청소하다 → 청소해 주세요", ko:"청소하다 → 청소해 주세요"} },
+    ];
+    const card = UNIT16_CARDS[unitCardIdx];
+    const total = UNIT16_CARDS.length;
+    const C16 = { bg:"linear-gradient(150deg,#FFF8E1,#FFECB3)", accent:"#F57F17", border:"#FFD54F" };
+    return (
+      <div style={{minHeight:"100vh", background:C16.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C16.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 16 — Yêu cầu · Nhờ vả (~아/어 주세요)":en?"Unit 16 — Requests (~아/어 주세요)":"16단원 — 요구·부탁 (~아/어 주세요·주시겠어요?)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C16.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #F57F1722"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C16.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#FFF8E1", borderRadius:10, padding:"10px 14px", fontSize:13, color:C16.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C16.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C16.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C16.accent},#E65100)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit17"); }} style={{flex:2, background:`linear-gradient(135deg,${C16.accent},#E65100)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp — Bài 17! 🚀":en?"Continue — Unit 17! 🚀":"17단원으로 계속하기 🚀"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit15"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (15단원)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit17") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT17_CARDS = [
+      { native:{vi:"Hôm nay có vẻ trời sẽ mưa.",            en:"It seems like it will rain today.",   ko:"오늘 비가 올 것 같습니다."},
+        full:"오늘 비가 올 것 같습니다.", rule:{vi:"동사 + -(으)ㄹ 것 같다 (tương lai suy đoán)", en:"verb + -(으)ㄹ 것 같다 (future guess)", ko:"동사 + -(으)ㄹ 것 같습니다"} },
+      { native:{vi:"Có vẻ bạn đang bận.",                   en:"It seems like you are busy.",         ko:"지금 바쁜 것 같습니다."},
+        full:"지금 바쁜 것 같습니다.", rule:{vi:"형용사 + -ㄴ 것 같다 (hiện tại suy đoán)", en:"adjective + -ㄴ 것 같다 (present guess)", ko:"형용사 + -ㄴ 것 같습니다"} },
+      { native:{vi:"Hình như anh ấy đã về nhà rồi.",        en:"It seems like he has gone home.",     ko:"그 사람은 집에 간 것 같습니다."},
+        full:"그 사람은 집에 간 것 같습니다.", rule:{vi:"동사 + -ㄴ/은 것 같다 (quá khứ suy đoán)", en:"verb + -ㄴ/은 것 같다 (past guess)", ko:"동사 + -ㄴ/은 것 같습니다"} },
+      { native:{vi:"Có vẻ món ăn này ngon.",                en:"This food seems delicious.",          ko:"이 음식이 맛있는 것 같습니다."},
+        full:"이 음식이 맛있는 것 같습니다.", rule:{vi:"형용사 + -는 것 같다 (현재)", en:"adjective + -는 것 같다 (present)", ko:"맛있다 → 맛있는 것 같습니다"} },
+      { native:{vi:"Có vẻ bạn ấy đang ngủ.",               en:"It seems like she is sleeping.",      ko:"그 사람이 자고 있는 것 같습니다."},
+        full:"그 사람이 자고 있는 것 같습니다.", rule:{vi:"동사 + -고 있는 것 같다 (진행 추측)", en:"verb + -고 있는 것 같다 (progressive guess)", ko:"-고 있는 것 같습니다 (진행 추측)"} },
+      { native:{vi:"Có vẻ giá này đắt.",                    en:"This price seems expensive.",         ko:"이 가격이 비싼 것 같습니다."},
+        full:"이 가격이 비싼 것 같습니다.", rule:{vi:"비싸다 → 비싼 것 같습니다", en:"비싸다 → 비싼 것 같습니다", ko:"비싸다 → 비싼 것 같습니다"} },
+      { native:{vi:"Hình như xe buýt chưa đến.",            en:"The bus doesn't seem to have come.",  ko:"버스가 아직 안 온 것 같습니다."},
+        full:"버스가 아직 안 온 것 같습니다.", rule:{vi:"오다 → 온 것 같습니다 (부정+추측)", en:"오다 → 온 것 같습니다 (negative+guess)", ko:"-ㄴ 것 같습니다 (과거 추측)"} },
+      { native:{vi:"Có vẻ học tiếng Hàn sẽ khó.",          en:"Learning Korean seems difficult.",    ko:"한국어를 배우는 것이 어려운 것 같습니다."},
+        full:"한국어를 배우는 것이 어려운 것 같습니다.", rule:{vi:"어렵다 → 어려운 것 같습니다", en:"어렵다 → 어려운 것 같습니다", ko:"어렵다 → 어려운 것 같습니다"} },
+      { native:{vi:"Hình như anh ấy biết điều đó.",         en:"It seems like he knows that.",        ko:"그 사람이 그것을 아는 것 같습니다."},
+        full:"그 사람이 그것을 아는 것 같습니다.", rule:{vi:"알다 → 아는 것 같습니다 (ㄹ탈락)", en:"알다 → 아는 것 같습니다 (ㄹ drops)", ko:"알다 → 아는 것 같습니다"} },
+      { native:{vi:"Có vẻ bệnh viện còn xa.",               en:"The hospital seems far.",             ko:"병원이 먼 것 같습니다."},
+        full:"병원이 먼 것 같습니다.", rule:{vi:"멀다 → 먼 것 같습니다 (ㄹ탈락)", en:"멀다 → 먼 것 같습니다 (ㄹ drops)", ko:"멀다 → 먼 것 같습니다"} },
+      { native:{vi:"Có vẻ hôm nay nhiều người.",            en:"There seem to be many people today.", ko:"오늘 사람이 많은 것 같습니다."},
+        full:"오늘 사람이 많은 것 같습니다.", rule:{vi:"많다 → 많은 것 같습니다", en:"많다 → 많은 것 같습니다", ko:"많다 → 많은 것 같습니다"} },
+    ];
+    const card = UNIT17_CARDS[unitCardIdx];
+    const total = UNIT17_CARDS.length;
+    const C17 = { bg:"linear-gradient(150deg,#E3F2FD,#BBDEFB)", accent:"#1565C0", border:"#90CAF9" };
+    return (
+      <div style={{minHeight:"100vh", background:C17.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C17.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 17 — Suy đoán (~것 같다)":en?"Unit 17 — Guessing (~것 같다)":"17단원 — 추측 (~은/ㄴ/는 것 같습니다)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C17.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #1565C022"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C17.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#E3F2FD", borderRadius:10, padding:"10px 14px", fontSize:13, color:C17.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C17.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C17.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C17.accent},#0D47A1)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit18"); }} style={{flex:2, background:`linear-gradient(135deg,${C17.accent},#0D47A1)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp — Bài 18! 🚀":en?"Continue — Unit 18! 🚀":"18단원으로 계속하기 🚀"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit16"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (16단원)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit18") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT18_CARDS = [
+      { native:{vi:"Bạn có vẻ đói.",                        en:"You must be hungry.",                 ko:"배고프시겠어요."},
+        full:"배고프시겠어요.", rule:{vi:"배고프다 → 배고프시겠어요 (cảm thông+높임)", en:"배고프다 → 배고프시겠어요 (empathy+honorific)", ko:"배고프다 + -시겠어요 (공감 추측)"} },
+      { native:{vi:"Chắc bạn mệt lắm.",                    en:"You must be very tired.",             ko:"많이 힘드시겠어요."},
+        full:"많이 힘드시겠어요.", rule:{vi:"힘들다 → 힘드시겠어요", en:"힘들다 → 힘드시겠어요", ko:"힘들다 + -시겠어요"} },
+      { native:{vi:"Chắc trời sẽ lạnh.",                   en:"It must be cold.",                   ko:"춥겠습니다."},
+        full:"춥겠습니다.", rule:{vi:"춥다 → 춥겠습니다 (suy đoán khách quan)", en:"춥다 → 춥겠습니다 (objective guess)", ko:"춥다 + -겠습니다"} },
+      { native:{vi:"Chắc bạn vui lắm.",                    en:"You must be happy.",                 ko:"기쁘시겠어요."},
+        full:"기쁘시겠어요.", rule:{vi:"기쁘다 → 기쁘시겠어요", en:"기쁘다 → 기쁘시겠어요", ko:"기쁘다 + -시겠어요"} },
+      { native:{vi:"Chắc bạn lo lắng.",                    en:"You must be worried.",               ko:"걱정이 되시겠어요."},
+        full:"걱정이 되시겠어요.", rule:{vi:"되다 → 되시겠어요 (높임)", en:"되다 → 되시겠어요 (honorific)", ko:"되다 + -시겠어요"} },
+      { native:{vi:"Chắc bạn buồn lắm.",                   en:"You must be very sad.",              ko:"많이 슬프시겠어요."},
+        full:"많이 슬프시겠어요.", rule:{vi:"슬프다 → 슬프시겠어요", en:"슬프다 → 슬프시겠어요", ko:"슬프다 + -시겠어요"} },
+      { native:{vi:"Chắc sẽ ngon lắm.",                    en:"It must be delicious.",              ko:"맛있겠습니다."},
+        full:"맛있겠습니다.", rule:{vi:"맛있다 → 맛있겠습니다", en:"맛있다 → 맛있겠습니다", ko:"맛있다 + -겠습니다"} },
+      { native:{vi:"Chắc bạn bận lắm.",                    en:"You must be very busy.",             ko:"많이 바쁘시겠어요."},
+        full:"많이 바쁘시겠어요.", rule:{vi:"바쁘다 → 바쁘시겠어요", en:"바쁘다 → 바쁘시겠어요", ko:"바쁘다 + -시겠어요"} },
+      { native:{vi:"Chắc sẽ khó.",                         en:"It must be difficult.",              ko:"어렵겠습니다."},
+        full:"어렵겠습니다.", rule:{vi:"어렵다 → 어렵겠습니다", en:"어렵다 → 어렵겠습니다", ko:"어렵다 + -겠습니다"} },
+      { native:{vi:"Chắc bạn thích lắm.",                  en:"You must like it a lot.",            ko:"많이 좋으시겠어요."},
+        full:"많이 좋으시겠어요.", rule:{vi:"좋다 → 좋으시겠어요", en:"좋다 → 좋으시겠어요", ko:"좋다 + -시겠어요"} },
+    ];
+    const card = UNIT18_CARDS[unitCardIdx];
+    const total = UNIT18_CARDS.length;
+    const C18 = { bg:"linear-gradient(150deg,#FCE4EC,#F8BBD0)", accent:"#AD1457", border:"#F48FB1" };
+    return (
+      <div style={{minHeight:"100vh", background:C18.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C18.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 18 — Đồng cảm · Suy đoán (~겠어요)":en?"Unit 18 — Empathy · Guessing (~겠어요)":"18단원 — 다른 사람 마음 추측 (~겠습니다·겠어요)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C18.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #AD145722"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C18.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#FCE4EC", borderRadius:10, padding:"10px 14px", fontSize:13, color:C18.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C18.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C18.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C18.accent},#880E4F)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit19"); }} style={{flex:2, background:`linear-gradient(135deg,${C18.accent},#880E4F)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp — Bài 19! 🚀":en?"Continue — Unit 19! 🚀":"19단원으로 계속하기 🚀"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit17"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (17단원)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit19") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT19_CARDS = [
+      { native:{vi:"Tôi định đi Hàn Quốc năm sau.",         en:"I plan to go to Korea next year.",    ko:"내년에 한국에 가려고 합니다."},
+        full:"내년에 한국에 가려고 합니다.", rule:{vi:"가다 + -(으)려고 하다 (kế hoạch)", en:"가다 + -(으)려고 하다 (plan)", ko:"가다 + -(으)려고 합니다"} },
+      { native:{vi:"Tôi định học tiếng Hàn.",               en:"I plan to study Korean.",             ko:"한국어를 배우려고 합니다."},
+        full:"한국어를 배우려고 합니다.", rule:{vi:"배우다 + -려고 하다", en:"배우다 + -려고 하다", ko:"배우다 + -려고 합니다"} },
+      { native:{vi:"Tôi sắp xuất phát rồi.",                en:"I am about to leave.",                ko:"지금 막 출발하려고 합니다."},
+        full:"지금 막 출발하려고 합니다.", rule:{vi:"출발하다 + -려고 하다 (sắp làm)", en:"출발하다 + -려고 하다 (about to)", ko:"출발하다 + -려고 합니다 (임박)"} },
+      { native:{vi:"Tôi định mua điện thoại mới.",          en:"I plan to buy a new phone.",          ko:"새 전화기를 사려고 합니다."},
+        full:"새 전화기를 사려고 합니다.", rule:{vi:"사다 + -려고 하다", en:"사다 + -려고 하다", ko:"사다 + -려고 합니다"} },
+      { native:{vi:"Tôi định tìm việc làm mới.",            en:"I plan to look for a new job.",       ko:"새 직장을 찾으려고 합니다."},
+        full:"새 직장을 찾으려고 합니다.", rule:{vi:"찾다 + -으려고 하다 (받침)", en:"찾다 + -으려고 하다 (consonant)", ko:"찾다 + -으려고 합니다"} },
+      { native:{vi:"Tôi sắp đi ngủ rồi.",                   en:"I am about to go to sleep.",          ko:"이제 자려고 합니다."},
+        full:"이제 자려고 합니다.", rule:{vi:"자다 + -려고 하다", en:"자다 + -려고 하다", ko:"자다 + -려고 합니다"} },
+      { native:{vi:"Tôi định gặp bạn bè cuối tuần.",        en:"I plan to meet friends on the weekend.", ko:"주말에 친구를 만나려고 합니다."},
+        full:"주말에 친구를 만나려고 합니다.", rule:{vi:"만나다 + -려고 하다", en:"만나다 + -려고 하다", ko:"만나다 + -려고 합니다"} },
+      { native:{vi:"Tôi định đăng ký lớp tiếng Hàn.",       en:"I plan to register for Korean class.", ko:"한국어 수업을 등록하려고 합니다."},
+        full:"한국어 수업을 등록하려고 합니다.", rule:{vi:"등록하다 + -려고 하다", en:"등록하다 + -려고 하다", ko:"등록하다 + -려고 합니다"} },
+    ];
+    const card = UNIT19_CARDS[unitCardIdx];
+    const total = UNIT19_CARDS.length;
+    const C19 = { bg:"linear-gradient(150deg,#E8EAF6,#C5CAE9)", accent:"#283593", border:"#9FA8DA" };
+    return (
+      <div style={{minHeight:"100vh", background:C19.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C19.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 19 — Kế hoạch · Tương lai gần (~려고 하다)":en?"Unit 19 — Plans · Near Future (~려고 하다)":"19단원 — 계획·가까운 미래 (~(으)려고 합니다)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C19.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #28359322"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C19.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#E8EAF6", borderRadius:10, padding:"10px 14px", fontSize:13, color:C19.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C19.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C19.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C19.accent},#1A237E)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit20"); }} style={{flex:2, background:`linear-gradient(135deg,${C19.accent},#1A237E)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp — Bài 20! 🚀":en?"Continue — Unit 20! 🚀":"20단원으로 계속하기 🚀"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit18"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (18단원)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit20") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT20_CARDS = [
+      { native:{vi:"Bạn học giỏi quá!",                     en:"Wow, you studied so well!",           ko:"공부를 정말 잘했네요!"},
+        full:"공부를 정말 잘했네요!", rule:{vi:"동사+았/었+네요! (phát hiện mới)", en:"동사+았/었+네요! (new discovery)", ko:"동사 + -았/었네요! (감탄)"} },
+      { native:{vi:"Ồ, tiếng Hàn của bạn giỏi lên nhiều rồi!", en:"Oh, your Korean has improved a lot!", ko:"한국어가 많이 늘었네요!"},
+        full:"한국어가 많이 늘었네요!", rule:{vi:"늘다 → 늘었네요", en:"늘다 → 늘었네요", ko:"늘다 → 늘었네요"} },
+      { native:{vi:"Ôi, trời đẹp quá!",                     en:"Oh, the weather is so nice!",         ko:"날씨가 정말 좋네요!"},
+        full:"날씨가 정말 좋네요!", rule:{vi:"형용사 + -네요! (cảm thán hiện tại)", en:"adjective + -네요! (present exclamation)", ko:"좋다 → 좋네요!"} },
+      { native:{vi:"Ồ, ở đây nhiều người quá!",             en:"Wow, there are so many people here!", ko:"여기 사람이 많네요!"},
+        full:"여기 사람이 많네요!", rule:{vi:"많다 → 많네요", en:"많다 → 많네요", ko:"많다 → 많네요"} },
+      { native:{vi:"Ồ, đồ ăn ngon quá!",                    en:"Wow, the food is so delicious!",      ko:"음식이 정말 맛있네요!"},
+        full:"음식이 정말 맛있네요!", rule:{vi:"맛있다 → 맛있네요", en:"맛있다 → 맛있네요", ko:"맛있다 → 맛있네요"} },
+      { native:{vi:"Ồ, bạn đến rồi à!",                     en:"Oh, you have arrived!",               ko:"왔군요!"},
+        full:"왔군요!", rule:{vi:"오다 → 왔군요 (-군요: ngạc nhiên)", en:"오다 → 왔군요 (-군요: surprise)", ko:"오다 → 왔군요 (새로운 사실)"} },
+      { native:{vi:"Ồ, hoá ra đây là bệnh viện!",           en:"Oh, so this is a hospital!",          ko:"여기가 병원이군요!"},
+        full:"여기가 병원이군요!", rule:{vi:"이다 → 이군요 (phát hiện)", en:"이다 → 이군요 (discovery)", ko:"이다 → 이군요"} },
+      { native:{vi:"Ôi, nhà bạn gần thật!",                  en:"Oh, your house is so close!",        ko:"집이 가깝네요!"},
+        full:"집이 가깝네요!", rule:{vi:"가깝다 → 가깝네요", en:"가깝다 → 가깝네요", ko:"가깝다 → 가깝네요"} },
+    ];
+    const card = UNIT20_CARDS[unitCardIdx];
+    const total = UNIT20_CARDS.length;
+    const C20 = { bg:"linear-gradient(150deg,#FFFDE7,#FFF9C4)", accent:"#F9A825", border:"#FFF176" };
+    return (
+      <div style={{minHeight:"100vh", background:C20.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C20.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 20 — Cảm thán · Phát hiện mới (~네요·군요)":en?"Unit 20 — Exclamation · Discovery (~네요·군요)":"20단원 — 감탄·새로운 사실 발견 (~네요·군요)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C20.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #F9A82522"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C20.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#FFFDE7", borderRadius:10, padding:"10px 14px", fontSize:13, color:C20.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C20.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C20.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C20.accent},#F57F17)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit21"); }} style={{flex:2, background:`linear-gradient(135deg,${C20.accent},#F57F17)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp — Bài 21! 🚀":en?"Continue — Unit 21! 🚀":"21단원으로 계속하기 🚀"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit19"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (19단원)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit21") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT21_CARDS = [
+      { native:{vi:"Bạn đang học tiếng Hàn, phải không?",   en:"You are studying Korean, right?",    ko:"한국어를 공부하고 있죠?"},
+        full:"한국어를 공부하고 있죠?", rule:{vi:"동사 + -죠? (xác nhận)", en:"verb + -죠? (confirmation)", ko:"동사 + -죠? (확인)"} },
+      { native:{vi:"Đây là bệnh viện, phải không?",          en:"This is a hospital, right?",          ko:"여기가 병원이죠?"},
+        full:"여기가 병원이죠?", rule:{vi:"이다 → 이죠? (xác nhận)", en:"이다 → 이죠? (confirmation)", ko:"이다 → 이죠?"} },
+      { native:{vi:"Bạn đến từ Việt Nam, phải không?",       en:"You are from Vietnam, right?",        ko:"베트남에서 왔죠?"},
+        full:"베트남에서 왔죠?", rule:{vi:"오다 → 왔죠? (과거 확인)", en:"오다 → 왔죠? (past confirmation)", ko:"오다 → 왔죠?"} },
+      { native:{vi:"Ngày mai có buổi họp, phải không?",      en:"There is a meeting tomorrow, right?", ko:"내일 회의가 있지요?"},
+        full:"내일 회의가 있지요?", rule:{vi:"있다 → 있지요? (정중 확인)", en:"있다 → 있지요? (polite confirmation)", ko:"있다 → 있지요? (정중형)"} },
+      { native:{vi:"Bạn biết cô ấy, phải không?",            en:"You know her, right?",                ko:"그 사람을 알죠?"},
+        full:"그 사람을 알죠?", rule:{vi:"알다 → 알죠? (ㄹ탈락)", en:"알다 → 알죠? (ㄹ drops)", ko:"알다 → 알죠?"} },
+      { native:{vi:"Đây là tiếng Hàn khó, phải không?",     en:"Korean is difficult, right?",         ko:"한국어가 어렵죠?"},
+        full:"한국어가 어렵죠?", rule:{vi:"어렵다 → 어렵죠?", en:"어렵다 → 어렵죠?", ko:"어렵다 → 어렵죠?"} },
+      { native:{vi:"Bạn thích đồ ăn Hàn, phải không?",      en:"You like Korean food, right?",        ko:"한국 음식을 좋아하죠?"},
+        full:"한국 음식을 좋아하죠?", rule:{vi:"좋아하다 → 좋아하죠?", en:"좋아하다 → 좋아하죠?", ko:"좋아하다 → 좋아하죠?"} },
+      { native:{vi:"Cửa hàng đóng cửa rồi, phải không?",    en:"The store is closed, right?",         ko:"가게가 문을 닫았죠?"},
+        full:"가게가 문을 닫았죠?", rule:{vi:"닫다 → 닫았죠? (과거 확인)", en:"닫다 → 닫았죠? (past confirmation)", ko:"닫다 → 닫았죠?"} },
+    ];
+    const card = UNIT21_CARDS[unitCardIdx];
+    const total = UNIT21_CARDS.length;
+    const C21 = { bg:"linear-gradient(150deg,#E0F2F1,#B2DFDB)", accent:"#00695C", border:"#80CBC4" };
+    return (
+      <div style={{minHeight:"100vh", background:C21.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C21.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 21 — Xác nhận (~죠?·지요?)":en?"Unit 21 — Confirmation (~죠?·지요?)":"21단원 — 확인 (~죠?·지요?)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C21.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #00695C22"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C21.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#E0F2F1", borderRadius:10, padding:"10px 14px", fontSize:13, color:C21.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C21.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C21.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C21.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit22"); }} style={{flex:2, background:`linear-gradient(135deg,${C21.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp — Bài 22! 🚀":en?"Continue — Unit 22! 🚀":"22단원으로 계속하기 🚀"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit20"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (20단원)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit22") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT22_CARDS = [
+      { native:{vi:"Cửa đang mở.",                          en:"The door is open.",                   ko:"문이 열려 있습니다."},
+        full:"문이 열려 있습니다.", rule:{vi:"열다 → 열려 있다 (trạng thái kết quả)", en:"열다 → 열려 있다 (resultant state)", ko:"열다 → 열려 있습니다"} },
+      { native:{vi:"Cửa đang đóng.",                        en:"The door is closed.",                 ko:"문이 닫혀 있습니다."},
+        full:"문이 닫혀 있습니다.", rule:{vi:"닫다 → 닫혀 있다", en:"닫다 → 닫혀 있다", ko:"닫다 → 닫혀 있습니다"} },
+      { native:{vi:"Bạn tôi đang ngồi ở ghế.",              en:"My friend is seated on the chair.",   ko:"친구가 의자에 앉아 있습니다."},
+        full:"친구가 의자에 앉아 있습니다.", rule:{vi:"앉다 → 앉아 있다 (상태 지속)", en:"앉다 → 앉아 있다 (state duration)", ko:"앉다 → 앉아 있습니다"} },
+      { native:{vi:"Đèn đang bật.",                         en:"The light is on.",                   ko:"불이 켜져 있습니다."},
+        full:"불이 켜져 있습니다.", rule:{vi:"켜다 → 켜져 있다", en:"켜다 → 켜져 있다", ko:"켜다 → 켜져 있습니다"} },
+      { native:{vi:"Đèn đang tắt.",                         en:"The light is off.",                  ko:"불이 꺼져 있습니다."},
+        full:"불이 꺼져 있습니다.", rule:{vi:"끄다 → 꺼져 있다", en:"끄다 → 꺼져 있다", ko:"끄다 → 꺼져 있습니다"} },
+      { native:{vi:"Xe đang đỗ ở đó.",                      en:"The car is parked there.",            ko:"차가 거기에 세워져 있습니다."},
+        full:"차가 거기에 세워져 있습니다.", rule:{vi:"세우다 → 세워져 있다", en:"세우다 → 세워져 있다", ko:"세우다 → 세워져 있습니다"} },
+      { native:{vi:"Anh ấy đang đứng ở cửa.",               en:"He is standing at the door.",        ko:"그 사람이 문 앞에 서 있습니다."},
+        full:"그 사람이 문 앞에 서 있습니다.", rule:{vi:"서다 → 서 있다", en:"서다 → 서 있다", ko:"서다 → 서 있습니다"} },
+      { native:{vi:"Hàng hoá được sắp xếp.",                en:"The items are arranged.",             ko:"물건이 정리되어 있습니다."},
+        full:"물건이 정리되어 있습니다.", rule:{vi:"정리되다 → 정리되어 있다", en:"정리되다 → 정리되어 있다", ko:"정리되다 → 정리되어 있습니다"} },
+      { native:{vi:"Tên tôi được viết ở đây.",              en:"My name is written here.",           ko:"여기에 이름이 쓰여 있습니다."},
+        full:"여기에 이름이 쓰여 있습니다.", rule:{vi:"쓰다 → 쓰여 있다 (수동)", en:"쓰다 → 쓰여 있다 (passive state)", ko:"쓰다 → 쓰여 있습니다"} },
+      { native:{vi:"Giỏ hàng đã đầy.",                      en:"The shopping cart is full.",          ko:"카트에 물건이 가득 담겨 있습니다."},
+        full:"카트에 물건이 가득 담겨 있습니다.", rule:{vi:"담다 → 담겨 있다", en:"담다 → 담겨 있다", ko:"담다 → 담겨 있습니다"} },
+      { native:{vi:"Bệnh nhân đang nằm trên giường.",        en:"The patient is lying on the bed.",   ko:"환자가 침대에 누워 있습니다."},
+        full:"환자가 침대에 누워 있습니다.", rule:{vi:"눕다 → 누워 있다 (ㅂ불규칙)", en:"눕다 → 누워 있다 (ㅂ irregular)", ko:"눕다 → 누워 있습니다"} },
+      { native:{vi:"Áo treo trên móc.",                     en:"The clothes are hung on the hook.",  ko:"옷이 걸려 있습니다."},
+        full:"옷이 걸려 있습니다.", rule:{vi:"걸다 → 걸려 있다 (ㄹ탈락)", en:"걸다 → 걸려 있다 (ㄹ drops)", ko:"걸다 → 걸려 있습니다"} },
+      { native:{vi:"Cửa hàng đóng cửa.",                    en:"The store is closed.",               ko:"가게 문이 잠겨 있습니다."},
+        full:"가게 문이 잠겨 있습니다.", rule:{vi:"잠그다 → 잠겨 있다", en:"잠그다 → 잠겨 있다", ko:"잠그다 → 잠겨 있습니다"} },
+      { native:{vi:"Điện thoại đã được sạc.",                en:"The phone is charged.",              ko:"전화기가 충전되어 있습니다."},
+        full:"전화기가 충전되어 있습니다.", rule:{vi:"충전되다 → 충전되어 있다", en:"충전되다 → 충전되어 있다", ko:"충전되다 → 충전되어 있습니다"} },
+      { native:{vi:"Ghế đã được đặt sẵn.",                  en:"The seat is reserved.",              ko:"자리가 예약되어 있습니다."},
+        full:"자리가 예약되어 있습니다.", rule:{vi:"예약되다 → 예약되어 있다", en:"예약되다 → 예약되어 있다", ko:"예약되다 → 예약되어 있습니다"} },
+    ];
+    const card = UNIT22_CARDS[unitCardIdx];
+    const total = UNIT22_CARDS.length;
+    const C22 = { bg:"linear-gradient(150deg,#E1F5FE,#B3E5FC)", accent:"#01579B", border:"#81D4FA" };
+    return (
+      <div style={{minHeight:"100vh", background:C22.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C22.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 22 — Trạng thái 1 (~아/어 있다)":en?"Unit 22 — State 1 (~아/어 있다)":"22단원 — 상태1 (동사+~아/어 있습니다)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C22.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #01579B22"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C22.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#E1F5FE", borderRadius:10, padding:"10px 14px", fontSize:13, color:C22.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C22.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C22.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C22.accent},#003D6B)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit23"); }} style={{flex:2, background:`linear-gradient(135deg,${C22.accent},#003D6B)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp — Bài 23! 🚀":en?"Continue — Unit 23! 🚀":"23단원으로 계속하기 🚀"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit21"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (21단원)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit23") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT23_CARDS = [
+      { native:{vi:"Bạn đang mặc áo đỏ.",                   en:"You are wearing a red shirt.",        ko:"빨간 옷을 입고 있습니다."},
+        full:"빨간 옷을 입고 있습니다.", rule:{vi:"입다 + -고 있다 (mặc — trạng thái)", en:"입다 + -고 있다 (wearing — state)", ko:"입다 + -고 있습니다 (착용 상태)"} },
+      { native:{vi:"Anh ấy đang đội mũ.",                   en:"He is wearing a hat.",                ko:"모자를 쓰고 있습니다."},
+        full:"모자를 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있다 (đội mũ)", en:"쓰다 + -고 있다 (wearing hat)", ko:"쓰다 + -고 있습니다"} },
+      { native:{vi:"Cô ấy đang đeo kính.",                  en:"She is wearing glasses.",             ko:"안경을 쓰고 있습니다."},
+        full:"안경을 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있다 (đeo kính)", en:"쓰다 + -고 있다 (wearing glasses)", ko:"쓰다 + -고 있습니다"} },
+      { native:{vi:"Tôi đang xách túi.",                    en:"I am carrying a bag.",                ko:"가방을 들고 있습니다."},
+        full:"가방을 들고 있습니다.", rule:{vi:"들다 + -고 있다 (xách)", en:"들다 + -고 있다 (carrying)", ko:"들다 + -고 있습니다"} },
+      { native:{vi:"Anh ấy đang đi giày.",                  en:"He is wearing shoes.",                ko:"구두를 신고 있습니다."},
+        full:"구두를 신고 있습니다.", rule:{vi:"신다 + -고 있다 (đi giày)", en:"신다 + -고 있다 (wearing shoes)", ko:"신다 + -고 있습니다"} },
+      { native:{vi:"Cô ấy đang đeo nhẫn.",                  en:"She is wearing a ring.",              ko:"반지를 끼고 있습니다."},
+        full:"반지를 끼고 있습니다.", rule:{vi:"끼다 + -고 있다 (đeo nhẫn)", en:"끼다 + -고 있다 (wearing ring)", ko:"끼다 + -고 있습니다"} },
+      { native:{vi:"Anh ấy đang đeo khẩu trang.",           en:"He is wearing a mask.",              ko:"마스크를 쓰고 있습니다."},
+        full:"마스크를 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있다 (đeo khẩu trang)", en:"쓰다 + -고 있다 (wearing mask)", ko:"쓰다 + -고 있습니다"} },
+      { native:{vi:"Cô ấy đang mặc váy.",                   en:"She is wearing a skirt.",            ko:"치마를 입고 있습니다."},
+        full:"치마를 입고 있습니다.", rule:{vi:"입다 + -고 있다 (mặc váy)", en:"입다 + -고 있다 (wearing skirt)", ko:"입다 + -고 있습니다"} },
+      { native:{vi:"Bạn đang đeo tai nghe.",                 en:"You are wearing earphones.",          ko:"이어폰을 끼고 있습니다."},
+        full:"이어폰을 끼고 있습니다.", rule:{vi:"끼다 + -고 있다 (đeo tai nghe)", en:"끼다 + -고 있다 (wearing earphones)", ko:"끼다 + -고 있습니다"} },
+      { native:{vi:"Anh ấy đang đeo thắt lưng.",            en:"He is wearing a belt.",              ko:"벨트를 하고 있습니다."},
+        full:"벨트를 하고 있습니다.", rule:{vi:"하다 + -고 있다 (đeo)", en:"하다 + -고 있다 (wearing)", ko:"하다 + -고 있습니다"} },
+    ];
+    const card = UNIT23_CARDS[unitCardIdx];
+    const total = UNIT23_CARDS.length;
+    const C23 = { bg:"linear-gradient(150deg,#F1F8E9,#DCEDC8)", accent:"#558B2F", border:"#AED581" };
+    return (
+      <div style={{minHeight:"100vh", background:C23.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C23.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 23 — Trạng thái 2 — Trang phục (~고 있다)":en?"Unit 23 — State 2 — Clothing (~고 있다)":"23단원 — 상태2 착용 (착용동사+~고 있습니다)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C23.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #558B2F22"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C23.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#F1F8E9", borderRadius:10, padding:"10px 14px", fontSize:13, color:C23.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C23.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C23.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C23.accent},#33691E)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit24"); }} style={{flex:2, background:`linear-gradient(135deg,${C23.accent},#33691E)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp — Bài 24! 🚀":en?"Continue — Unit 24! 🚀":"24단원으로 계속하기 🚀"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit22"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (22단원)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit24") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT24_CARDS = [
+      { native:{vi:"Chúng ta cùng học nhé!",                en:"Let's study together!",               ko:"같이 공부하기로 해요!"},
+        full:"같이 공부하기로 해요!", rule:{vi:"공부하다 + -기로 하다 (quyết định)", en:"공부하다 + -기로 하다 (decide to)", ko:"동사 + -기로 합니다"} },
+      { native:{vi:"Tôi đã quyết định học tiếng Hàn chăm chỉ.", en:"I decided to study Korean hard.", ko:"한국어를 열심히 공부하기로 했습니다."},
+        full:"한국어를 열심히 공부하기로 했습니다.", rule:{vi:"공부하다 + -기로 했습니다 (과거 결정)", en:"공부하다 + -기로 했습니다 (decided)", ko:"공부하다 + -기로 했습니다"} },
+      { native:{vi:"Chúng ta gặp nhau vào thứ Bảy nhé.",    en:"Let's meet on Saturday.",             ko:"토요일에 만나기로 해요."},
+        full:"토요일에 만나기로 해요.", rule:{vi:"만나다 + -기로 하다", en:"만나다 + -기로 하다", ko:"만나다 + -기로 해요"} },
+      { native:{vi:"Tôi quyết định không uống rượu.",       en:"I decided not to drink alcohol.",     ko:"술을 마시지 않기로 했습니다."},
+        full:"술을 마시지 않기로 했습니다.", rule:{vi:"-지 않기로 했습니다 (quyết định phủ định)", en:"-지 않기로 했습니다 (decided not to)", ko:"-지 않기로 했습니다"} },
+      { native:{vi:"Tôi quyết định đi làm bằng xe buýt.",   en:"I decided to go to work by bus.",    ko:"버스로 출근하기로 했습니다."},
+        full:"버스로 출근하기로 했습니다.", rule:{vi:"출근하다 + -기로 했습니다", en:"출근하다 + -기로 했습니다", ko:"출근하다 + -기로 했습니다"} },
+      { native:{vi:"Chúng ta ăn ở đây nhé.",                en:"Let's eat here.",                    ko:"여기서 먹기로 해요."},
+        full:"여기서 먹기로 해요.", rule:{vi:"먹다 + -기로 하다", en:"먹다 + -기로 하다", ko:"먹다 + -기로 해요"} },
+      { native:{vi:"Tôi quyết định tiết kiệm tiền.",        en:"I decided to save money.",           ko:"돈을 아끼기로 했습니다."},
+        full:"돈을 아끼기로 했습니다.", rule:{vi:"아끼다 + -기로 했습니다", en:"아끼다 + -기로 했습니다", ko:"아끼다 + -기로 했습니다"} },
+      { native:{vi:"Chúng ta cùng nhau cố gắng nhé.",       en:"Let's do our best together.",        ko:"함께 열심히 하기로 해요."},
+        full:"함께 열심히 하기로 해요.", rule:{vi:"하다 + -기로 하다", en:"하다 + -기로 하다", ko:"하다 + -기로 해요"} },
+    ];
+    const card = UNIT24_CARDS[unitCardIdx];
+    const total = UNIT24_CARDS.length;
+    const C24 = { bg:"linear-gradient(150deg,#FFF3E0,#FFE0B2)", accent:"#E65100", border:"#FFCC80" };
+    return (
+      <div style={{minHeight:"100vh", background:C24.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C24.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 24 — Quyết định · Cam kết (~기로 하다)":en?"Unit 24 — Decision · Commitment (~기로 하다)":"24단원 — 결정·결심·약속 (~기로 합니다)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C24.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #E6510022"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C24.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#FFF3E0", borderRadius:10, padding:"10px 14px", fontSize:13, color:C24.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C24.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C24.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C24.accent},#BF360C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit25"); }} style={{flex:2, background:`linear-gradient(135deg,${C24.accent},#BF360C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp — Bài 25! 🚀":en?"Continue — Unit 25! 🚀":"25단원으로 계속하기 🚀"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit23"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (23단원)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit25") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const UNIT25_CARDS = [
+      // ── 기간: ~ㄴ지 + 시간 + 되다 ──
+      { native:{vi:"Bạn học tiếng Hàn được bao lâu rồi?",   en:"How long have you studied Korean?",  ko:"한국어를 배운 지 얼마나 됐습니까?"},
+        full:"한국어를 배운 지 얼마나 됐습니까?", rule:{vi:"배우다 → 배운 지 + 시간 + 됐습니다", en:"배우다 → 배운 지 + time + 됐습니다", ko:"동사+ㄴ 지 얼마나 됐습니까?"} },
+      { native:{vi:"Tôi học tiếng Hàn được 6 tháng rồi.",   en:"I have studied Korean for 6 months.", ko:"한국어를 배운 지 6개월 됐습니다."},
+        full:"한국어를 배운 지 6개월 됐습니다.", rule:{vi:"배운 지 6개월 됐습니다", en:"배운 지 6개월 됐습니다", ko:"배운 지 + 기간 + 됐습니다"} },
+      { native:{vi:"Bạn đến Hàn Quốc được bao lâu rồi?",    en:"How long have you been in Korea?",   ko:"한국에 온 지 얼마나 됐습니까?"},
+        full:"한국에 온 지 얼마나 됐습니까?", rule:{vi:"오다 → 온 지 얼마나 됐습니까?", en:"오다 → 온 지 얼마나 됐습니까?", ko:"온 지 얼마나 됐습니까?"} },
+      { native:{vi:"Tôi đến Hàn Quốc được 2 năm rồi.",      en:"I have been in Korea for 2 years.",  ko:"한국에 온 지 2년 됐습니다."},
+        full:"한국에 온 지 2년 됐습니다.", rule:{vi:"온 지 2년 됐습니다", en:"온 지 2년 됐습니다", ko:"온 지 + 기간 + 됐습니다"} },
+      { native:{vi:"Bạn làm việc ở đây được bao lâu rồi?",  en:"How long have you worked here?",    ko:"여기서 일한 지 얼마나 됐습니까?"},
+        full:"여기서 일한 지 얼마나 됐습니까?", rule:{vi:"일하다 → 일한 지 얼마나 됐습니까?", en:"일하다 → 일한 지 얼마나 됐습니까?", ko:"일한 지 얼마나 됐습니까?"} },
+      { native:{vi:"Tôi làm việc ở đây được 3 năm rồi.",    en:"I have worked here for 3 years.",   ko:"여기서 일한 지 3년 됐습니다."},
+        full:"여기서 일한 지 3년 됐습니다.", rule:{vi:"일한 지 3년 됐습니다", en:"일한 지 3년 됐습니다", ko:"일한 지 + 기간 + 됐습니다"} },
+      // ── 시간: 걸리다 ──
+      { native:{vi:"Từ đây đến bệnh viện mất bao lâu?",     en:"How long does it take to the hospital?", ko:"여기에서 병원까지 얼마나 걸립니까?"},
+        full:"여기에서 병원까지 얼마나 걸립니까?", rule:{vi:"걸리다 = mất (bao lâu)", en:"걸리다 = take (how long)", ko:"얼마나 걸립니까?"} },
+      { native:{vi:"Mất khoảng 30 phút.",                   en:"It takes about 30 minutes.",          ko:"30분쯤 걸립니다."},
+        full:"30분쯤 걸립니다.", rule:{vi:"30분쯤 걸립니다 (쯤=khoảng)", en:"30분쯤 걸립니다 (쯤=about)", ko:"시간+쯤 걸립니다"} },
+      { native:{vi:"Từ nhà đến trường mất bao lâu?",        en:"How long from home to school?",      ko:"집에서 학교까지 얼마나 걸립니까?"},
+        full:"집에서 학교까지 얼마나 걸립니까?", rule:{vi:"에서 ~ 까지 걸립니까? (từ ~ đến)", en:"에서 ~ 까지 걸립니까? (from ~ to)", ko:"에서~까지 얼마나 걸립니까?"} },
+      { native:{vi:"Mất 1 tiếng.",                          en:"It takes 1 hour.",                   ko:"1시간 걸립니다."},
+        full:"1시간 걸립니다.", rule:{vi:"1시간 걸립니다", en:"1시간 걸립니다", ko:"시간 걸립니다"} },
+      // ── 돈: 들다 ──
+      { native:{vi:"Đi taxi từ đây đến sân bay hết bao nhiêu tiền?", en:"How much does a taxi to the airport cost?", ko:"여기서 공항까지 택시비가 얼마나 듭니까?"},
+        full:"여기서 공항까지 택시비가 얼마나 듭니까?", rule:{vi:"들다 = tốn (tiền/thời gian)", en:"들다 = cost/take", ko:"얼마나 듭니까? (비용)"} },
+      { native:{vi:"Hết khoảng 50.000 won.",                en:"It costs about 50,000 won.",          ko:"5만 원쯤 듭니다."},
+        full:"5만 원쯤 듭니다.", rule:{vi:"5만 원쯤 듭니다 (쯤=khoảng)", en:"5만 원쯤 듭니다 (쯤=about)", ko:"금액+쯤 듭니다"} },
+      { native:{vi:"Tiền thuê nhà một tháng hết bao nhiêu?", en:"How much is the monthly rent?",     ko:"한 달 방값이 얼마나 듭니까?"},
+        full:"한 달 방값이 얼마나 듭니까?", rule:{vi:"얼마나 듭니까? = hết bao nhiêu?", en:"얼마나 듭니까? = how much does it cost?", ko:"얼마나 듭니까?"} },
+      { native:{vi:"Học tiếng Hàn hết bao nhiêu tiền?",     en:"How much does Korean class cost?",   ko:"한국어 수업이 얼마나 듭니까?"},
+        full:"한국어 수업이 얼마나 듭니까?", rule:{vi:"얼마나 듭니까?", en:"얼마나 듭니까?", ko:"얼마나 듭니까?"} },
+      { native:{vi:"Mỗi tháng hết khoảng 300.000 won.",     en:"It costs about 300,000 won per month.", ko:"한 달에 30만 원쯤 듭니다."},
+        full:"한 달에 30만 원쯤 듭니다.", rule:{vi:"한 달에 + 금액 + 쯤 듭니다", en:"한 달에 + amount + 쯤 듭니다", ko:"한 달에 금액쯤 듭니다"} },
+      { native:{vi:"Từ đây đến đó hết bao nhiêu tiền xe buýt?", en:"How much is the bus fare from here?", ko:"여기서 거기까지 버스비가 얼마나 듭니까?"},
+        full:"여기서 거기까지 버스비가 얼마나 듭니까?", rule:{vi:"버스비가 얼마나 듭니까?", en:"버스비가 얼마나 듭니까?", ko:"비용이 얼마나 듭니까?"} },
+      { native:{vi:"Hết 1.500 won.",                        en:"It costs 1,500 won.",                ko:"1,500원 듭니다."},
+        full:"1,500원 듭니다.", rule:{vi:"금액 + 듭니다", en:"amount + 듭니다", ko:"금액 + 듭니다"} },
+    ];
+    const card = UNIT25_CARDS[unitCardIdx];
+    const total = UNIT25_CARDS.length;
+    const C25 = { bg:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", accent:"#4527A0", border:"#B39DDB" };
+    return (
+      <div style={{minHeight:"100vh", background:C25.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+          <div style={{textAlign:"center", marginBottom:16}}>
+            <div style={{fontSize:13, color:C25.accent, fontWeight:700, marginBottom:4}}>
+              {vi?"Bài 25 — Thời gian · Khoảng cách · Chi phí (~ㄴ지·걸리다·들다)":en?"Unit 25 — Duration · Time · Cost (~ㄴ지·걸리다·들다)":"25단원 — 기간·시간·돈 (~ㄴ지 됐다·걸리다·들다)"}
+            </div>
+            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
+          </div>
+          <div style={{background:"white", borderRadius:20, border:`2px solid ${C25.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #4527A022"}}>
+            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
+              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
+            </div>
+            <div style={{fontSize:22, fontWeight:900, color:C25.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
+            {unitCardRevealed && (
+              <div style={{background:"#EDE7F6", borderRadius:10, padding:"10px 14px", fontSize:13, color:C25.accent, textAlign:"center"}}>
+                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex", gap:10, marginBottom:12}}>
+            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C25.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C25.accent, cursor:"pointer"}}>
+              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
+            </button>
+            {unitCardIdx < total-1
+              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C25.accent},#311B92)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
+                </button>
+              : <button onClick={()=>{ setStep("learn"); }} style={{flex:2, background:`linear-gradient(135deg,#00C896,#00897B)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
+                  🎉 {vi?"Hoàn thành 25 bài! →":en?"Complete 25 Units! →":"서술어 25단원 완료! 🎊"}
+                </button>
+            }
+          </div>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit24"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (24단원)"}</button>
+        </div>
+      </div>
+    );
+  }
+
+
+
+
+
   if (step === "topic") return (
     <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:36,marginBottom:8,marginTop:24}}>🌸</div>
@@ -10342,865 +11200,7 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
         그냥 바로 시작할게요 →
       </button>
     </div>
-  );
-
-// ── 14~25단원 전체 블록 ──
-
-  if (step === "unit14") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT14_CARDS = [
-      // ── 경험 있다 ──
-      { native:{vi:"Bạn đã từng ăn kim chi chưa?",          en:"Have you ever eaten kimchi?",          ko:"김치를 먹은 적이 있습니까?"},
-        full:"김치를 먹은 적이 있습니까?", rule:{vi:"동사+은/ㄴ 적이 있다 (đã từng)", en:"verb+은/ㄴ 적이 있다 (have ever)", ko:"동사+은/ㄴ 적이 있습니다"} },
-      { native:{vi:"Vâng, tôi đã từng ăn.",                 en:"Yes, I have eaten it before.",         ko:"네, 먹은 적이 있습니다."},
-        full:"네, 먹은 적이 있습니다.", rule:{vi:"먹다 → 먹은 적이 있습니다", en:"먹다 → 먹은 적이 있습니다", ko:"먹다 → 먹은 적이 있습니다"} },
-      { native:{vi:"Không, tôi chưa từng ăn.",              en:"No, I have never eaten it.",           ko:"아니요, 먹은 적이 없습니다."},
-        full:"아니요, 먹은 적이 없습니다.", rule:{vi:"동사+은/ㄴ 적이 없다 (chưa từng)", en:"verb+은/ㄴ 적이 없다 (have never)", ko:"동사+은/ㄴ 적이 없습니다"} },
-      { native:{vi:"Bạn đã từng đến Hàn Quốc chưa?",        en:"Have you ever been to Korea?",         ko:"한국에 간 적이 있습니까?"},
-        full:"한국에 간 적이 있습니까?", rule:{vi:"가다 → 간 적이 있습니까?", en:"가다 → 간 적이 있습니까?", ko:"가다 → 간 적이 있습니까?"} },
-      { native:{vi:"Tôi đã từng xem phim Hàn Quốc.",        en:"I have watched Korean movies before.", ko:"한국 영화를 본 적이 있습니다."},
-        full:"한국 영화를 본 적이 있습니다.", rule:{vi:"보다 → 본 적이 있습니다", en:"보다 → 본 적이 있습니다", ko:"보다 → 본 적이 있습니다"} },
-      { native:{vi:"Tôi chưa từng uống rượu Hàn Quốc.",     en:"I have never drunk Korean alcohol.",   ko:"한국 술을 마신 적이 없습니다."},
-        full:"한국 술을 마신 적이 없습니다.", rule:{vi:"마시다 → 마신 적이 없습니다", en:"마시다 → 마신 적이 없습니다", ko:"마시다 → 마신 적이 없습니다"} },
-      { native:{vi:"Bạn đã từng đi xe buýt ở Hàn Quốc chưa?", en:"Have you taken a bus in Korea?",   ko:"한국에서 버스를 탄 적이 있습니까?"},
-        full:"한국에서 버스를 탄 적이 있습니까?", rule:{vi:"타다 → 탄 적이 있습니까?", en:"타다 → 탄 적이 있습니까?", ko:"타다 → 탄 적이 있습니까?"} },
-      { native:{vi:"Tôi đã từng làm việc ở Hàn Quốc.",      en:"I have worked in Korea before.",       ko:"한국에서 일한 적이 있습니다."},
-        full:"한국에서 일한 적이 있습니다.", rule:{vi:"일하다 → 일한 적이 있습니다", en:"일하다 → 일한 적이 있습니다", ko:"일하다 → 일한 적이 있습니다"} },
-      { native:{vi:"Bạn đã từng đến bệnh viện ở Hàn Quốc chưa?", en:"Have you been to a Korean hospital?", ko:"한국 병원에 간 적이 있습니까?"},
-        full:"한국 병원에 간 적이 있습니까?", rule:{vi:"가다 → 간 적이 있습니까?", en:"가다 → 간 적이 있습니까?", ko:"가다 → 간 적이 있습니까?"} },
-      { native:{vi:"Tôi chưa từng nói chuyện bằng tiếng Hàn.", en:"I have never spoken in Korean.",   ko:"한국어로 말한 적이 없습니다."},
-        full:"한국어로 말한 적이 없습니다.", rule:{vi:"말하다 → 말한 적이 없습니다", en:"말하다 → 말한 적이 없습니다", ko:"말하다 → 말한 적이 없습니다"} },
-      { native:{vi:"Tôi đã từng học tiếng Hàn một lần.",    en:"I have studied Korean once.",          ko:"한국어를 배운 적이 있습니다."},
-        full:"한국어를 배운 적이 있습니다.", rule:{vi:"배우다 → 배운 적이 있습니다", en:"배우다 → 배운 적이 있습니다", ko:"배우다 → 배운 적이 있습니다"} },
-      { native:{vi:"Bạn đã từng gặp người Hàn Quốc chưa?",  en:"Have you ever met a Korean person?",  ko:"한국 사람을 만난 적이 있습니까?"},
-        full:"한국 사람을 만난 적이 있습니까?", rule:{vi:"만나다 → 만난 적이 있습니까?", en:"만나다 → 만난 적이 있습니까?", ko:"만나다 → 만난 적이 있습니까?"} },
-    ];
-    const card = UNIT14_CARDS[unitCardIdx];
-    const total = UNIT14_CARDS.length;
-    const C14 = { bg:"linear-gradient(150deg,#F3E5F5,#E1BEE7)", accent:"#6A1B9A", border:"#CE93D8" };
-    return (
-      <div style={{minHeight:"100vh", background:C14.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C14.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 14 — Kinh nghiệm (đã từng)":en?"Unit 14 — Experience (have ever)":"14단원 — 경험 (은/ㄴ 적이 있다·없다)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C14.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #6A1B9A22"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C14.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#F3E5F5", borderRadius:10, padding:"10px 14px", fontSize:13, color:C14.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C14.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C14.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn quy tắc":en?"Hide rule":"규칙 숨기기"):(vi?"Xem quy tắc":en?"Show rule":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C14.accent},#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit15"); }} style={{flex:2, background:`linear-gradient(135deg,${C14.accent},#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp — Bài 15! 🚀":en?"Continue — Unit 15! 🚀":"15단원으로 계속하기 🚀"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("test13"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (13단원 테스트)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "unit15") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT15_CARDS = [
-      // ── ~아/어 주다 (남을 위한 행동) ──
-      { native:{vi:"Tôi sẽ giúp bạn.",                      en:"I will help you.",                    ko:"제가 도와줄게요."},
-        full:"제가 도와줄게요.", rule:{vi:"돕다 → 도와줄게요 (ㅂ불규칙+줄게요)", en:"돕다 → 도와줄게요 (ㅂ irregular)", ko:"돕다 → 도와줄게요"} },
-      { native:{vi:"Tôi sẽ giải thích cho bạn.",            en:"I will explain to you.",               ko:"제가 설명해 줄게요."},
-        full:"제가 설명해 줄게요.", rule:{vi:"설명하다 → 설명해 줄게요", en:"설명하다 → 설명해 줄게요", ko:"설명하다 → 설명해 줄게요"} },
-      { native:{vi:"Tôi mua cho mẹ.",                       en:"I buy it for mom.",                   ko:"어머니께 사드릴게요."},
-        full:"어머니께 사드릴게요.", rule:{vi:"사다 → 사드릴게요 (드리다=높임)", en:"사다 → 사드릴게요 (드리다=honorific)", ko:"사다 → 사드릴게요 (높임)"} },
-      { native:{vi:"Tôi sẽ mang hộ bạn.",                   en:"I'll carry it for you.",              ko:"제가 들어 줄게요."},
-        full:"제가 들어 줄게요.", rule:{vi:"들다 → 들어 줄게요", en:"들다 → 들어 줄게요", ko:"들다 → 들어 줄게요"} },
-      { native:{vi:"Tôi dịch cho bạn.",                     en:"I will translate for you.",            ko:"제가 번역해 줄게요."},
-        full:"제가 번역해 줄게요.", rule:{vi:"번역하다 → 번역해 줄게요", en:"번역하다 → 번역해 줄게요", ko:"번역하다 → 번역해 줄게요"} },
-      { native:{vi:"Bạn tôi chụp ảnh cho tôi.",             en:"My friend took a photo for me.",      ko:"친구가 사진을 찍어 줬습니다."},
-        full:"친구가 사진을 찍어 줬습니다.", rule:{vi:"찍다 → 찍어 줬습니다 (과거)", en:"찍다 → 찍어 줬습니다 (past)", ko:"찍다 → 찍어 줬습니다"} },
-      { native:{vi:"Tôi sẽ gọi điện cho bạn.",              en:"I will call you.",                    ko:"제가 전화해 줄게요."},
-        full:"제가 전화해 줄게요.", rule:{vi:"전화하다 → 전화해 줄게요", en:"전화하다 → 전화해 줄게요", ko:"전화하다 → 전화해 줄게요"} },
-      { native:{vi:"Tôi sẽ chờ cho bạn.",                   en:"I will wait for you.",                ko:"제가 기다려 줄게요."},
-        full:"제가 기다려 줄게요.", rule:{vi:"기다리다 → 기다려 줄게요", en:"기다리다 → 기다려 줄게요", ko:"기다리다 → 기다려 줄게요"} },
-      { native:{vi:"Anh ấy dạy tiếng Hàn cho tôi.",         en:"He taught me Korean.",                ko:"그분이 한국어를 가르쳐 주셨습니다."},
-        full:"그분이 한국어를 가르쳐 주셨습니다.", rule:{vi:"가르치다 → 가르쳐 주셨습니다 (높임)", en:"가르치다 → 가르쳐 주셨습니다 (honorific)", ko:"가르치다 → 가르쳐 주셨습니다"} },
-      { native:{vi:"Tôi sẽ đặt vé máy bay cho bạn.",        en:"I will book a ticket for you.",       ko:"제가 비행기표를 예약해 줄게요."},
-        full:"제가 비행기표를 예약해 줄게요.", rule:{vi:"예약하다 → 예약해 줄게요", en:"예약하다 → 예약해 줄게요", ko:"예약하다 → 예약해 줄게요"} },
-      { native:{vi:"Tôi sẽ dẫn đường cho bạn.",             en:"I will show you the way.",            ko:"제가 길을 안내해 줄게요."},
-        full:"제가 길을 안내해 줄게요.", rule:{vi:"안내하다 → 안내해 줄게요", en:"안내하다 → 안내해 줄게요", ko:"안내하다 → 안내해 줄게요"} },
-      { native:{vi:"Tôi sẽ gửi tài liệu cho bạn.",          en:"I will send you the document.",       ko:"제가 서류를 보내 줄게요."},
-        full:"제가 서류를 보내 줄게요.", rule:{vi:"보내다 → 보내 줄게요", en:"보내다 → 보내 줄게요", ko:"보내다 → 보내 줄게요"} },
-    ];
-    const card = UNIT15_CARDS[unitCardIdx];
-    const total = UNIT15_CARDS.length;
-    const C15 = { bg:"linear-gradient(150deg,#E8F5E9,#C8E6C9)", accent:"#2E7D32", border:"#81C784" };
-    return (
-      <div style={{minHeight:"100vh", background:C15.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C15.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 15 — Hành động vì người khác (~아/어 주다)":en?"Unit 15 — Doing for others (~아/어 주다)":"15단원 — 다른 사람을 위한 행동 (~아/어 주다·드리다)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C15.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #2E7D3222"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C15.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#E8F5E9", borderRadius:10, padding:"10px 14px", fontSize:13, color:C15.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C15.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C15.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C15.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit16"); }} style={{flex:2, background:`linear-gradient(135deg,${C15.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp — Bài 16! 🚀":en?"Continue — Unit 16! 🚀":"16단원으로 계속하기 🚀"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit14"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (14단원)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "unit16") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT16_CARDS = [
-      { native:{vi:"Hãy nói một lần nữa.",                  en:"Please say it again.",                ko:"한 번 더 말해 주세요."},
-        full:"한 번 더 말해 주세요.", rule:{vi:"말하다 → 말해 주세요 (부탁)", en:"말하다 → 말해 주세요 (request)", ko:"말하다 → 말해 주세요"} },
-      { native:{vi:"Hãy nói chậm hơn.",                     en:"Please speak more slowly.",           ko:"천천히 말해 주세요."},
-        full:"천천히 말해 주세요.", rule:{vi:"말하다 → 말해 주세요", en:"말하다 → 말해 주세요", ko:"말하다 → 말해 주세요"} },
-      { native:{vi:"Hãy gọi cho tôi.",                      en:"Please call me.",                     ko:"전화해 주세요."},
-        full:"전화해 주세요.", rule:{vi:"전화하다 → 전화해 주세요", en:"전화하다 → 전화해 주세요", ko:"전화하다 → 전화해 주세요"} },
-      { native:{vi:"Hãy chờ một chút.",                     en:"Please wait a moment.",               ko:"잠깐 기다려 주세요."},
-        full:"잠깐 기다려 주세요.", rule:{vi:"기다리다 → 기다려 주세요", en:"기다리다 → 기다려 주세요", ko:"기다리다 → 기다려 주세요"} },
-      { native:{vi:"Hãy viết địa chỉ vào đây.",             en:"Please write your address here.",     ko:"여기에 주소를 써 주세요."},
-        full:"여기에 주소를 써 주세요.", rule:{vi:"쓰다 → 써 주세요", en:"쓰다 → 써 주세요", ko:"쓰다 → 써 주세요"} },
-      { native:{vi:"Hãy đến đúng giờ.",                     en:"Please come on time.",                ko:"제시간에 와 주세요."},
-        full:"제시간에 와 주세요.", rule:{vi:"오다 → 와 주세요", en:"오다 → 와 주세요", ko:"오다 → 와 주세요"} },
-      { native:{vi:"Hãy mở cửa sổ.",                        en:"Please open the window.",             ko:"창문을 열어 주세요."},
-        full:"창문을 열어 주세요.", rule:{vi:"열다 → 열어 주세요 (ㄹ탈락)", en:"열다 → 열어 주세요 (ㄹ drops)", ko:"열다 → 열어 주세요"} },
-      { native:{vi:"Hãy đóng cửa lại.",                     en:"Please close the door.",              ko:"문을 닫아 주세요."},
-        full:"문을 닫아 주세요.", rule:{vi:"닫다 → 닫아 주세요", en:"닫다 → 닫아 주세요", ko:"닫다 → 닫아 주세요"} },
-      { native:{vi:"Hãy kiểm tra lại.",                     en:"Please check it again.",              ko:"다시 확인해 주세요."},
-        full:"다시 확인해 주세요.", rule:{vi:"확인하다 → 확인해 주세요", en:"확인하다 → 확인해 주세요", ko:"확인하다 → 확인해 주세요"} },
-      { native:{vi:"Hãy gửi email cho tôi.",                 en:"Please send me an email.",            ko:"이메일을 보내 주세요."},
-        full:"이메일을 보내 주세요.", rule:{vi:"보내다 → 보내 주세요", en:"보내다 → 보내 주세요", ko:"보내다 → 보내 주세요"} },
-      { native:{vi:"Xin hãy giải thích thêm.",              en:"Could you explain more?",             ko:"좀 더 설명해 주시겠어요?"},
-        full:"좀 더 설명해 주시겠어요?", rule:{vi:"설명하다 → 설명해 주시겠어요? (정중)", en:"설명하다 → 설명해 주시겠어요? (polite)", ko:"설명해 주시겠어요? (정중 요청)"} },
-      { native:{vi:"Xin hãy dịch giúp tôi.",                en:"Could you translate for me?",         ko:"번역해 주시겠어요?"},
-        full:"번역해 주시겠어요?", rule:{vi:"번역하다 → 번역해 주시겠어요?", en:"번역하다 → 번역해 주시겠어요?", ko:"번역해 주시겠어요?"} },
-      { native:{vi:"Xin hãy đưa cho tôi cái này.",          en:"Could you give me this?",             ko:"이것을 주시겠어요?"},
-        full:"이것을 주시겠어요?", rule:{vi:"주다 → 주시겠어요?", en:"주다 → 주시겠어요?", ko:"주다 → 주시겠어요?"} },
-      { native:{vi:"Hãy ký tên vào đây.",                    en:"Please sign here.",                   ko:"여기에 사인해 주세요."},
-        full:"여기에 사인해 주세요.", rule:{vi:"사인하다 → 사인해 주세요", en:"사인하다 → 사인해 주세요", ko:"사인하다 → 사인해 주세요"} },
-      { native:{vi:"Hãy gọi xe cứu thương.",                 en:"Please call an ambulance.",           ko:"구급차를 불러 주세요."},
-        full:"구급차를 불러 주세요.", rule:{vi:"부르다 → 불러 주세요 (르불규칙)", en:"부르다 → 불러 주세요 (르 irregular)", ko:"부르다 → 불러 주세요"} },
-      { native:{vi:"Hãy chụp ảnh cho tôi.",                  en:"Please take a photo of me.",          ko:"사진을 찍어 주세요."},
-        full:"사진을 찍어 주세요.", rule:{vi:"찍다 → 찍어 주세요", en:"찍다 → 찍어 주세요", ko:"찍다 → 찍어 주세요"} },
-      { native:{vi:"Xin hãy nói to hơn.",                   en:"Could you speak louder?",             ko:"좀 더 크게 말해 주시겠어요?"},
-        full:"좀 더 크게 말해 주시겠어요?", rule:{vi:"말하다 → 말해 주시겠어요?", en:"말하다 → 말해 주시겠어요?", ko:"말해 주시겠어요?"} },
-      { native:{vi:"Hãy mang theo hộ chiếu.",                en:"Please bring your passport.",         ko:"여권을 가져와 주세요."},
-        full:"여권을 가져와 주세요.", rule:{vi:"가져오다 → 가져와 주세요", en:"가져오다 → 가져와 주세요", ko:"가져오다 → 가져와 주세요"} },
-      { native:{vi:"Xin hãy giúp tôi.",                     en:"Could you help me?",                  ko:"도와주시겠어요?"},
-        full:"도와주시겠어요?", rule:{vi:"돕다 → 도와주시겠어요? (ㅂ불규칙)", en:"돕다 → 도와주시겠어요? (ㅂ irregular)", ko:"돕다 → 도와주시겠어요?"} },
-      { native:{vi:"Hãy ghi số điện thoại vào đây.",         en:"Please write your phone number here.", ko:"전화번호를 적어 주세요."},
-        full:"전화번호를 적어 주세요.", rule:{vi:"적다 → 적어 주세요", en:"적다 → 적어 주세요", ko:"적다 → 적어 주세요"} },
-      { native:{vi:"Hãy tắt điện thoại.",                    en:"Please turn off your phone.",         ko:"휴대폰을 꺼 주세요."},
-        full:"휴대폰을 꺼 주세요.", rule:{vi:"끄다 → 꺼 주세요 (ㅡ탈락)", en:"끄다 → 꺼 주세요 (ㅡ drops)", ko:"끄다 → 꺼 주세요"} },
-      { native:{vi:"Hãy dọn phòng.",                         en:"Please clean the room.",              ko:"방을 청소해 주세요."},
-        full:"방을 청소해 주세요.", rule:{vi:"청소하다 → 청소해 주세요", en:"청소하다 → 청소해 주세요", ko:"청소하다 → 청소해 주세요"} },
-    ];
-    const card = UNIT16_CARDS[unitCardIdx];
-    const total = UNIT16_CARDS.length;
-    const C16 = { bg:"linear-gradient(150deg,#FFF8E1,#FFECB3)", accent:"#F57F17", border:"#FFD54F" };
-    return (
-      <div style={{minHeight:"100vh", background:C16.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C16.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 16 — Yêu cầu · Nhờ vả (~아/어 주세요)":en?"Unit 16 — Requests (~아/어 주세요)":"16단원 — 요구·부탁 (~아/어 주세요·주시겠어요?)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C16.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #F57F1722"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C16.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#FFF8E1", borderRadius:10, padding:"10px 14px", fontSize:13, color:C16.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C16.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C16.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C16.accent},#E65100)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit17"); }} style={{flex:2, background:`linear-gradient(135deg,${C16.accent},#E65100)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp — Bài 17! 🚀":en?"Continue — Unit 17! 🚀":"17단원으로 계속하기 🚀"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit15"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (15단원)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "unit17") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT17_CARDS = [
-      { native:{vi:"Hôm nay có vẻ trời sẽ mưa.",            en:"It seems like it will rain today.",   ko:"오늘 비가 올 것 같습니다."},
-        full:"오늘 비가 올 것 같습니다.", rule:{vi:"동사 + -(으)ㄹ 것 같다 (tương lai suy đoán)", en:"verb + -(으)ㄹ 것 같다 (future guess)", ko:"동사 + -(으)ㄹ 것 같습니다"} },
-      { native:{vi:"Có vẻ bạn đang bận.",                   en:"It seems like you are busy.",         ko:"지금 바쁜 것 같습니다."},
-        full:"지금 바쁜 것 같습니다.", rule:{vi:"형용사 + -ㄴ 것 같다 (hiện tại suy đoán)", en:"adjective + -ㄴ 것 같다 (present guess)", ko:"형용사 + -ㄴ 것 같습니다"} },
-      { native:{vi:"Hình như anh ấy đã về nhà rồi.",        en:"It seems like he has gone home.",     ko:"그 사람은 집에 간 것 같습니다."},
-        full:"그 사람은 집에 간 것 같습니다.", rule:{vi:"동사 + -ㄴ/은 것 같다 (quá khứ suy đoán)", en:"verb + -ㄴ/은 것 같다 (past guess)", ko:"동사 + -ㄴ/은 것 같습니다"} },
-      { native:{vi:"Có vẻ món ăn này ngon.",                en:"This food seems delicious.",          ko:"이 음식이 맛있는 것 같습니다."},
-        full:"이 음식이 맛있는 것 같습니다.", rule:{vi:"형용사 + -는 것 같다 (현재)", en:"adjective + -는 것 같다 (present)", ko:"맛있다 → 맛있는 것 같습니다"} },
-      { native:{vi:"Có vẻ bạn ấy đang ngủ.",               en:"It seems like she is sleeping.",      ko:"그 사람이 자고 있는 것 같습니다."},
-        full:"그 사람이 자고 있는 것 같습니다.", rule:{vi:"동사 + -고 있는 것 같다 (진행 추측)", en:"verb + -고 있는 것 같다 (progressive guess)", ko:"-고 있는 것 같습니다 (진행 추측)"} },
-      { native:{vi:"Có vẻ giá này đắt.",                    en:"This price seems expensive.",         ko:"이 가격이 비싼 것 같습니다."},
-        full:"이 가격이 비싼 것 같습니다.", rule:{vi:"비싸다 → 비싼 것 같습니다", en:"비싸다 → 비싼 것 같습니다", ko:"비싸다 → 비싼 것 같습니다"} },
-      { native:{vi:"Hình như xe buýt chưa đến.",            en:"The bus doesn't seem to have come.",  ko:"버스가 아직 안 온 것 같습니다."},
-        full:"버스가 아직 안 온 것 같습니다.", rule:{vi:"오다 → 온 것 같습니다 (부정+추측)", en:"오다 → 온 것 같습니다 (negative+guess)", ko:"-ㄴ 것 같습니다 (과거 추측)"} },
-      { native:{vi:"Có vẻ học tiếng Hàn sẽ khó.",          en:"Learning Korean seems difficult.",    ko:"한국어를 배우는 것이 어려운 것 같습니다."},
-        full:"한국어를 배우는 것이 어려운 것 같습니다.", rule:{vi:"어렵다 → 어려운 것 같습니다", en:"어렵다 → 어려운 것 같습니다", ko:"어렵다 → 어려운 것 같습니다"} },
-      { native:{vi:"Hình như anh ấy biết điều đó.",         en:"It seems like he knows that.",        ko:"그 사람이 그것을 아는 것 같습니다."},
-        full:"그 사람이 그것을 아는 것 같습니다.", rule:{vi:"알다 → 아는 것 같습니다 (ㄹ탈락)", en:"알다 → 아는 것 같습니다 (ㄹ drops)", ko:"알다 → 아는 것 같습니다"} },
-      { native:{vi:"Có vẻ bệnh viện còn xa.",               en:"The hospital seems far.",             ko:"병원이 먼 것 같습니다."},
-        full:"병원이 먼 것 같습니다.", rule:{vi:"멀다 → 먼 것 같습니다 (ㄹ탈락)", en:"멀다 → 먼 것 같습니다 (ㄹ drops)", ko:"멀다 → 먼 것 같습니다"} },
-      { native:{vi:"Có vẻ hôm nay nhiều người.",            en:"There seem to be many people today.", ko:"오늘 사람이 많은 것 같습니다."},
-        full:"오늘 사람이 많은 것 같습니다.", rule:{vi:"많다 → 많은 것 같습니다", en:"많다 → 많은 것 같습니다", ko:"많다 → 많은 것 같습니다"} },
-    ];
-    const card = UNIT17_CARDS[unitCardIdx];
-    const total = UNIT17_CARDS.length;
-    const C17 = { bg:"linear-gradient(150deg,#E3F2FD,#BBDEFB)", accent:"#1565C0", border:"#90CAF9" };
-    return (
-      <div style={{minHeight:"100vh", background:C17.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C17.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 17 — Suy đoán (~것 같다)":en?"Unit 17 — Guessing (~것 같다)":"17단원 — 추측 (~은/ㄴ/는 것 같습니다)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C17.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #1565C022"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C17.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#E3F2FD", borderRadius:10, padding:"10px 14px", fontSize:13, color:C17.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C17.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C17.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C17.accent},#0D47A1)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit18"); }} style={{flex:2, background:`linear-gradient(135deg,${C17.accent},#0D47A1)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp — Bài 18! 🚀":en?"Continue — Unit 18! 🚀":"18단원으로 계속하기 🚀"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit16"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (16단원)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "unit18") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT18_CARDS = [
-      { native:{vi:"Bạn có vẻ đói.",                        en:"You must be hungry.",                 ko:"배고프시겠어요."},
-        full:"배고프시겠어요.", rule:{vi:"배고프다 → 배고프시겠어요 (cảm thông+높임)", en:"배고프다 → 배고프시겠어요 (empathy+honorific)", ko:"배고프다 + -시겠어요 (공감 추측)"} },
-      { native:{vi:"Chắc bạn mệt lắm.",                    en:"You must be very tired.",             ko:"많이 힘드시겠어요."},
-        full:"많이 힘드시겠어요.", rule:{vi:"힘들다 → 힘드시겠어요", en:"힘들다 → 힘드시겠어요", ko:"힘들다 + -시겠어요"} },
-      { native:{vi:"Chắc trời sẽ lạnh.",                   en:"It must be cold.",                   ko:"춥겠습니다."},
-        full:"춥겠습니다.", rule:{vi:"춥다 → 춥겠습니다 (suy đoán khách quan)", en:"춥다 → 춥겠습니다 (objective guess)", ko:"춥다 + -겠습니다"} },
-      { native:{vi:"Chắc bạn vui lắm.",                    en:"You must be happy.",                 ko:"기쁘시겠어요."},
-        full:"기쁘시겠어요.", rule:{vi:"기쁘다 → 기쁘시겠어요", en:"기쁘다 → 기쁘시겠어요", ko:"기쁘다 + -시겠어요"} },
-      { native:{vi:"Chắc bạn lo lắng.",                    en:"You must be worried.",               ko:"걱정이 되시겠어요."},
-        full:"걱정이 되시겠어요.", rule:{vi:"되다 → 되시겠어요 (높임)", en:"되다 → 되시겠어요 (honorific)", ko:"되다 + -시겠어요"} },
-      { native:{vi:"Chắc bạn buồn lắm.",                   en:"You must be very sad.",              ko:"많이 슬프시겠어요."},
-        full:"많이 슬프시겠어요.", rule:{vi:"슬프다 → 슬프시겠어요", en:"슬프다 → 슬프시겠어요", ko:"슬프다 + -시겠어요"} },
-      { native:{vi:"Chắc sẽ ngon lắm.",                    en:"It must be delicious.",              ko:"맛있겠습니다."},
-        full:"맛있겠습니다.", rule:{vi:"맛있다 → 맛있겠습니다", en:"맛있다 → 맛있겠습니다", ko:"맛있다 + -겠습니다"} },
-      { native:{vi:"Chắc bạn bận lắm.",                    en:"You must be very busy.",             ko:"많이 바쁘시겠어요."},
-        full:"많이 바쁘시겠어요.", rule:{vi:"바쁘다 → 바쁘시겠어요", en:"바쁘다 → 바쁘시겠어요", ko:"바쁘다 + -시겠어요"} },
-      { native:{vi:"Chắc sẽ khó.",                         en:"It must be difficult.",              ko:"어렵겠습니다."},
-        full:"어렵겠습니다.", rule:{vi:"어렵다 → 어렵겠습니다", en:"어렵다 → 어렵겠습니다", ko:"어렵다 + -겠습니다"} },
-      { native:{vi:"Chắc bạn thích lắm.",                  en:"You must like it a lot.",            ko:"많이 좋으시겠어요."},
-        full:"많이 좋으시겠어요.", rule:{vi:"좋다 → 좋으시겠어요", en:"좋다 → 좋으시겠어요", ko:"좋다 + -시겠어요"} },
-    ];
-    const card = UNIT18_CARDS[unitCardIdx];
-    const total = UNIT18_CARDS.length;
-    const C18 = { bg:"linear-gradient(150deg,#FCE4EC,#F8BBD0)", accent:"#AD1457", border:"#F48FB1" };
-    return (
-      <div style={{minHeight:"100vh", background:C18.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C18.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 18 — Đồng cảm · Suy đoán (~겠어요)":en?"Unit 18 — Empathy · Guessing (~겠어요)":"18단원 — 다른 사람 마음 추측 (~겠습니다·겠어요)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C18.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #AD145722"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C18.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#FCE4EC", borderRadius:10, padding:"10px 14px", fontSize:13, color:C18.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C18.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C18.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C18.accent},#880E4F)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit19"); }} style={{flex:2, background:`linear-gradient(135deg,${C18.accent},#880E4F)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp — Bài 19! 🚀":en?"Continue — Unit 19! 🚀":"19단원으로 계속하기 🚀"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit17"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (17단원)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "unit19") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT19_CARDS = [
-      { native:{vi:"Tôi định đi Hàn Quốc năm sau.",         en:"I plan to go to Korea next year.",    ko:"내년에 한국에 가려고 합니다."},
-        full:"내년에 한국에 가려고 합니다.", rule:{vi:"가다 + -(으)려고 하다 (kế hoạch)", en:"가다 + -(으)려고 하다 (plan)", ko:"가다 + -(으)려고 합니다"} },
-      { native:{vi:"Tôi định học tiếng Hàn.",               en:"I plan to study Korean.",             ko:"한국어를 배우려고 합니다."},
-        full:"한국어를 배우려고 합니다.", rule:{vi:"배우다 + -려고 하다", en:"배우다 + -려고 하다", ko:"배우다 + -려고 합니다"} },
-      { native:{vi:"Tôi sắp xuất phát rồi.",                en:"I am about to leave.",                ko:"지금 막 출발하려고 합니다."},
-        full:"지금 막 출발하려고 합니다.", rule:{vi:"출발하다 + -려고 하다 (sắp làm)", en:"출발하다 + -려고 하다 (about to)", ko:"출발하다 + -려고 합니다 (임박)"} },
-      { native:{vi:"Tôi định mua điện thoại mới.",          en:"I plan to buy a new phone.",          ko:"새 전화기를 사려고 합니다."},
-        full:"새 전화기를 사려고 합니다.", rule:{vi:"사다 + -려고 하다", en:"사다 + -려고 하다", ko:"사다 + -려고 합니다"} },
-      { native:{vi:"Tôi định tìm việc làm mới.",            en:"I plan to look for a new job.",       ko:"새 직장을 찾으려고 합니다."},
-        full:"새 직장을 찾으려고 합니다.", rule:{vi:"찾다 + -으려고 하다 (받침)", en:"찾다 + -으려고 하다 (consonant)", ko:"찾다 + -으려고 합니다"} },
-      { native:{vi:"Tôi sắp đi ngủ rồi.",                   en:"I am about to go to sleep.",          ko:"이제 자려고 합니다."},
-        full:"이제 자려고 합니다.", rule:{vi:"자다 + -려고 하다", en:"자다 + -려고 하다", ko:"자다 + -려고 합니다"} },
-      { native:{vi:"Tôi định gặp bạn bè cuối tuần.",        en:"I plan to meet friends on the weekend.", ko:"주말에 친구를 만나려고 합니다."},
-        full:"주말에 친구를 만나려고 합니다.", rule:{vi:"만나다 + -려고 하다", en:"만나다 + -려고 하다", ko:"만나다 + -려고 합니다"} },
-      { native:{vi:"Tôi định đăng ký lớp tiếng Hàn.",       en:"I plan to register for Korean class.", ko:"한국어 수업을 등록하려고 합니다."},
-        full:"한국어 수업을 등록하려고 합니다.", rule:{vi:"등록하다 + -려고 하다", en:"등록하다 + -려고 하다", ko:"등록하다 + -려고 합니다"} },
-    ];
-    const card = UNIT19_CARDS[unitCardIdx];
-    const total = UNIT19_CARDS.length;
-    const C19 = { bg:"linear-gradient(150deg,#E8EAF6,#C5CAE9)", accent:"#283593", border:"#9FA8DA" };
-    return (
-      <div style={{minHeight:"100vh", background:C19.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C19.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 19 — Kế hoạch · Tương lai gần (~려고 하다)":en?"Unit 19 — Plans · Near Future (~려고 하다)":"19단원 — 계획·가까운 미래 (~(으)려고 합니다)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C19.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #28359322"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C19.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#E8EAF6", borderRadius:10, padding:"10px 14px", fontSize:13, color:C19.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C19.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C19.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C19.accent},#1A237E)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit20"); }} style={{flex:2, background:`linear-gradient(135deg,${C19.accent},#1A237E)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp — Bài 20! 🚀":en?"Continue — Unit 20! 🚀":"20단원으로 계속하기 🚀"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit18"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (18단원)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "unit20") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT20_CARDS = [
-      { native:{vi:"Bạn học giỏi quá!",                     en:"Wow, you studied so well!",           ko:"공부를 정말 잘했네요!"},
-        full:"공부를 정말 잘했네요!", rule:{vi:"동사+았/었+네요! (phát hiện mới)", en:"동사+았/었+네요! (new discovery)", ko:"동사 + -았/었네요! (감탄)"} },
-      { native:{vi:"Ồ, tiếng Hàn của bạn giỏi lên nhiều rồi!", en:"Oh, your Korean has improved a lot!", ko:"한국어가 많이 늘었네요!"},
-        full:"한국어가 많이 늘었네요!", rule:{vi:"늘다 → 늘었네요", en:"늘다 → 늘었네요", ko:"늘다 → 늘었네요"} },
-      { native:{vi:"Ôi, trời đẹp quá!",                     en:"Oh, the weather is so nice!",         ko:"날씨가 정말 좋네요!"},
-        full:"날씨가 정말 좋네요!", rule:{vi:"형용사 + -네요! (cảm thán hiện tại)", en:"adjective + -네요! (present exclamation)", ko:"좋다 → 좋네요!"} },
-      { native:{vi:"Ồ, ở đây nhiều người quá!",             en:"Wow, there are so many people here!", ko:"여기 사람이 많네요!"},
-        full:"여기 사람이 많네요!", rule:{vi:"많다 → 많네요", en:"많다 → 많네요", ko:"많다 → 많네요"} },
-      { native:{vi:"Ồ, đồ ăn ngon quá!",                    en:"Wow, the food is so delicious!",      ko:"음식이 정말 맛있네요!"},
-        full:"음식이 정말 맛있네요!", rule:{vi:"맛있다 → 맛있네요", en:"맛있다 → 맛있네요", ko:"맛있다 → 맛있네요"} },
-      { native:{vi:"Ồ, bạn đến rồi à!",                     en:"Oh, you have arrived!",               ko:"왔군요!"},
-        full:"왔군요!", rule:{vi:"오다 → 왔군요 (-군요: ngạc nhiên)", en:"오다 → 왔군요 (-군요: surprise)", ko:"오다 → 왔군요 (새로운 사실)"} },
-      { native:{vi:"Ồ, hoá ra đây là bệnh viện!",           en:"Oh, so this is a hospital!",          ko:"여기가 병원이군요!"},
-        full:"여기가 병원이군요!", rule:{vi:"이다 → 이군요 (phát hiện)", en:"이다 → 이군요 (discovery)", ko:"이다 → 이군요"} },
-      { native:{vi:"Ôi, nhà bạn gần thật!",                  en:"Oh, your house is so close!",        ko:"집이 가깝네요!"},
-        full:"집이 가깝네요!", rule:{vi:"가깝다 → 가깝네요", en:"가깝다 → 가깝네요", ko:"가깝다 → 가깝네요"} },
-    ];
-    const card = UNIT20_CARDS[unitCardIdx];
-    const total = UNIT20_CARDS.length;
-    const C20 = { bg:"linear-gradient(150deg,#FFFDE7,#FFF9C4)", accent:"#F9A825", border:"#FFF176" };
-    return (
-      <div style={{minHeight:"100vh", background:C20.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C20.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 20 — Cảm thán · Phát hiện mới (~네요·군요)":en?"Unit 20 — Exclamation · Discovery (~네요·군요)":"20단원 — 감탄·새로운 사실 발견 (~네요·군요)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C20.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #F9A82522"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C20.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#FFFDE7", borderRadius:10, padding:"10px 14px", fontSize:13, color:C20.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C20.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C20.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C20.accent},#F57F17)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit21"); }} style={{flex:2, background:`linear-gradient(135deg,${C20.accent},#F57F17)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp — Bài 21! 🚀":en?"Continue — Unit 21! 🚀":"21단원으로 계속하기 🚀"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit19"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (19단원)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "unit21") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT21_CARDS = [
-      { native:{vi:"Bạn đang học tiếng Hàn, phải không?",   en:"You are studying Korean, right?",    ko:"한국어를 공부하고 있죠?"},
-        full:"한국어를 공부하고 있죠?", rule:{vi:"동사 + -죠? (xác nhận)", en:"verb + -죠? (confirmation)", ko:"동사 + -죠? (확인)"} },
-      { native:{vi:"Đây là bệnh viện, phải không?",          en:"This is a hospital, right?",          ko:"여기가 병원이죠?"},
-        full:"여기가 병원이죠?", rule:{vi:"이다 → 이죠? (xác nhận)", en:"이다 → 이죠? (confirmation)", ko:"이다 → 이죠?"} },
-      { native:{vi:"Bạn đến từ Việt Nam, phải không?",       en:"You are from Vietnam, right?",        ko:"베트남에서 왔죠?"},
-        full:"베트남에서 왔죠?", rule:{vi:"오다 → 왔죠? (과거 확인)", en:"오다 → 왔죠? (past confirmation)", ko:"오다 → 왔죠?"} },
-      { native:{vi:"Ngày mai có buổi họp, phải không?",      en:"There is a meeting tomorrow, right?", ko:"내일 회의가 있지요?"},
-        full:"내일 회의가 있지요?", rule:{vi:"있다 → 있지요? (정중 확인)", en:"있다 → 있지요? (polite confirmation)", ko:"있다 → 있지요? (정중형)"} },
-      { native:{vi:"Bạn biết cô ấy, phải không?",            en:"You know her, right?",                ko:"그 사람을 알죠?"},
-        full:"그 사람을 알죠?", rule:{vi:"알다 → 알죠? (ㄹ탈락)", en:"알다 → 알죠? (ㄹ drops)", ko:"알다 → 알죠?"} },
-      { native:{vi:"Đây là tiếng Hàn khó, phải không?",     en:"Korean is difficult, right?",         ko:"한국어가 어렵죠?"},
-        full:"한국어가 어렵죠?", rule:{vi:"어렵다 → 어렵죠?", en:"어렵다 → 어렵죠?", ko:"어렵다 → 어렵죠?"} },
-      { native:{vi:"Bạn thích đồ ăn Hàn, phải không?",      en:"You like Korean food, right?",        ko:"한국 음식을 좋아하죠?"},
-        full:"한국 음식을 좋아하죠?", rule:{vi:"좋아하다 → 좋아하죠?", en:"좋아하다 → 좋아하죠?", ko:"좋아하다 → 좋아하죠?"} },
-      { native:{vi:"Cửa hàng đóng cửa rồi, phải không?",    en:"The store is closed, right?",         ko:"가게가 문을 닫았죠?"},
-        full:"가게가 문을 닫았죠?", rule:{vi:"닫다 → 닫았죠? (과거 확인)", en:"닫다 → 닫았죠? (past confirmation)", ko:"닫다 → 닫았죠?"} },
-    ];
-    const card = UNIT21_CARDS[unitCardIdx];
-    const total = UNIT21_CARDS.length;
-    const C21 = { bg:"linear-gradient(150deg,#E0F2F1,#B2DFDB)", accent:"#00695C", border:"#80CBC4" };
-    return (
-      <div style={{minHeight:"100vh", background:C21.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C21.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 21 — Xác nhận (~죠?·지요?)":en?"Unit 21 — Confirmation (~죠?·지요?)":"21단원 — 확인 (~죠?·지요?)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C21.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #00695C22"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C21.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#E0F2F1", borderRadius:10, padding:"10px 14px", fontSize:13, color:C21.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C21.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C21.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C21.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit22"); }} style={{flex:2, background:`linear-gradient(135deg,${C21.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp — Bài 22! 🚀":en?"Continue — Unit 22! 🚀":"22단원으로 계속하기 🚀"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit20"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (20단원)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "unit22") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT22_CARDS = [
-      { native:{vi:"Cửa đang mở.",                          en:"The door is open.",                   ko:"문이 열려 있습니다."},
-        full:"문이 열려 있습니다.", rule:{vi:"열다 → 열려 있다 (trạng thái kết quả)", en:"열다 → 열려 있다 (resultant state)", ko:"열다 → 열려 있습니다"} },
-      { native:{vi:"Cửa đang đóng.",                        en:"The door is closed.",                 ko:"문이 닫혀 있습니다."},
-        full:"문이 닫혀 있습니다.", rule:{vi:"닫다 → 닫혀 있다", en:"닫다 → 닫혀 있다", ko:"닫다 → 닫혀 있습니다"} },
-      { native:{vi:"Bạn tôi đang ngồi ở ghế.",              en:"My friend is seated on the chair.",   ko:"친구가 의자에 앉아 있습니다."},
-        full:"친구가 의자에 앉아 있습니다.", rule:{vi:"앉다 → 앉아 있다 (상태 지속)", en:"앉다 → 앉아 있다 (state duration)", ko:"앉다 → 앉아 있습니다"} },
-      { native:{vi:"Đèn đang bật.",                         en:"The light is on.",                   ko:"불이 켜져 있습니다."},
-        full:"불이 켜져 있습니다.", rule:{vi:"켜다 → 켜져 있다", en:"켜다 → 켜져 있다", ko:"켜다 → 켜져 있습니다"} },
-      { native:{vi:"Đèn đang tắt.",                         en:"The light is off.",                  ko:"불이 꺼져 있습니다."},
-        full:"불이 꺼져 있습니다.", rule:{vi:"끄다 → 꺼져 있다", en:"끄다 → 꺼져 있다", ko:"끄다 → 꺼져 있습니다"} },
-      { native:{vi:"Xe đang đỗ ở đó.",                      en:"The car is parked there.",            ko:"차가 거기에 세워져 있습니다."},
-        full:"차가 거기에 세워져 있습니다.", rule:{vi:"세우다 → 세워져 있다", en:"세우다 → 세워져 있다", ko:"세우다 → 세워져 있습니다"} },
-      { native:{vi:"Anh ấy đang đứng ở cửa.",               en:"He is standing at the door.",        ko:"그 사람이 문 앞에 서 있습니다."},
-        full:"그 사람이 문 앞에 서 있습니다.", rule:{vi:"서다 → 서 있다", en:"서다 → 서 있다", ko:"서다 → 서 있습니다"} },
-      { native:{vi:"Hàng hoá được sắp xếp.",                en:"The items are arranged.",             ko:"물건이 정리되어 있습니다."},
-        full:"물건이 정리되어 있습니다.", rule:{vi:"정리되다 → 정리되어 있다", en:"정리되다 → 정리되어 있다", ko:"정리되다 → 정리되어 있습니다"} },
-      { native:{vi:"Tên tôi được viết ở đây.",              en:"My name is written here.",           ko:"여기에 이름이 쓰여 있습니다."},
-        full:"여기에 이름이 쓰여 있습니다.", rule:{vi:"쓰다 → 쓰여 있다 (수동)", en:"쓰다 → 쓰여 있다 (passive state)", ko:"쓰다 → 쓰여 있습니다"} },
-      { native:{vi:"Giỏ hàng đã đầy.",                      en:"The shopping cart is full.",          ko:"카트에 물건이 가득 담겨 있습니다."},
-        full:"카트에 물건이 가득 담겨 있습니다.", rule:{vi:"담다 → 담겨 있다", en:"담다 → 담겨 있다", ko:"담다 → 담겨 있습니다"} },
-      { native:{vi:"Bệnh nhân đang nằm trên giường.",        en:"The patient is lying on the bed.",   ko:"환자가 침대에 누워 있습니다."},
-        full:"환자가 침대에 누워 있습니다.", rule:{vi:"눕다 → 누워 있다 (ㅂ불규칙)", en:"눕다 → 누워 있다 (ㅂ irregular)", ko:"눕다 → 누워 있습니다"} },
-      { native:{vi:"Áo treo trên móc.",                     en:"The clothes are hung on the hook.",  ko:"옷이 걸려 있습니다."},
-        full:"옷이 걸려 있습니다.", rule:{vi:"걸다 → 걸려 있다 (ㄹ탈락)", en:"걸다 → 걸려 있다 (ㄹ drops)", ko:"걸다 → 걸려 있습니다"} },
-      { native:{vi:"Cửa hàng đóng cửa.",                    en:"The store is closed.",               ko:"가게 문이 잠겨 있습니다."},
-        full:"가게 문이 잠겨 있습니다.", rule:{vi:"잠그다 → 잠겨 있다", en:"잠그다 → 잠겨 있다", ko:"잠그다 → 잠겨 있습니다"} },
-      { native:{vi:"Điện thoại đã được sạc.",                en:"The phone is charged.",              ko:"전화기가 충전되어 있습니다."},
-        full:"전화기가 충전되어 있습니다.", rule:{vi:"충전되다 → 충전되어 있다", en:"충전되다 → 충전되어 있다", ko:"충전되다 → 충전되어 있습니다"} },
-      { native:{vi:"Ghế đã được đặt sẵn.",                  en:"The seat is reserved.",              ko:"자리가 예약되어 있습니다."},
-        full:"자리가 예약되어 있습니다.", rule:{vi:"예약되다 → 예약되어 있다", en:"예약되다 → 예약되어 있다", ko:"예약되다 → 예약되어 있습니다"} },
-    ];
-    const card = UNIT22_CARDS[unitCardIdx];
-    const total = UNIT22_CARDS.length;
-    const C22 = { bg:"linear-gradient(150deg,#E1F5FE,#B3E5FC)", accent:"#01579B", border:"#81D4FA" };
-    return (
-      <div style={{minHeight:"100vh", background:C22.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C22.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 22 — Trạng thái 1 (~아/어 있다)":en?"Unit 22 — State 1 (~아/어 있다)":"22단원 — 상태1 (동사+~아/어 있습니다)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C22.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #01579B22"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C22.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#E1F5FE", borderRadius:10, padding:"10px 14px", fontSize:13, color:C22.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C22.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C22.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C22.accent},#003D6B)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit23"); }} style={{flex:2, background:`linear-gradient(135deg,${C22.accent},#003D6B)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp — Bài 23! 🚀":en?"Continue — Unit 23! 🚀":"23단원으로 계속하기 🚀"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit21"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (21단원)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "unit23") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT23_CARDS = [
-      { native:{vi:"Bạn đang mặc áo đỏ.",                   en:"You are wearing a red shirt.",        ko:"빨간 옷을 입고 있습니다."},
-        full:"빨간 옷을 입고 있습니다.", rule:{vi:"입다 + -고 있다 (mặc — trạng thái)", en:"입다 + -고 있다 (wearing — state)", ko:"입다 + -고 있습니다 (착용 상태)"} },
-      { native:{vi:"Anh ấy đang đội mũ.",                   en:"He is wearing a hat.",                ko:"모자를 쓰고 있습니다."},
-        full:"모자를 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있다 (đội mũ)", en:"쓰다 + -고 있다 (wearing hat)", ko:"쓰다 + -고 있습니다"} },
-      { native:{vi:"Cô ấy đang đeo kính.",                  en:"She is wearing glasses.",             ko:"안경을 쓰고 있습니다."},
-        full:"안경을 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있다 (đeo kính)", en:"쓰다 + -고 있다 (wearing glasses)", ko:"쓰다 + -고 있습니다"} },
-      { native:{vi:"Tôi đang xách túi.",                    en:"I am carrying a bag.",                ko:"가방을 들고 있습니다."},
-        full:"가방을 들고 있습니다.", rule:{vi:"들다 + -고 있다 (xách)", en:"들다 + -고 있다 (carrying)", ko:"들다 + -고 있습니다"} },
-      { native:{vi:"Anh ấy đang đi giày.",                  en:"He is wearing shoes.",                ko:"구두를 신고 있습니다."},
-        full:"구두를 신고 있습니다.", rule:{vi:"신다 + -고 있다 (đi giày)", en:"신다 + -고 있다 (wearing shoes)", ko:"신다 + -고 있습니다"} },
-      { native:{vi:"Cô ấy đang đeo nhẫn.",                  en:"She is wearing a ring.",              ko:"반지를 끼고 있습니다."},
-        full:"반지를 끼고 있습니다.", rule:{vi:"끼다 + -고 있다 (đeo nhẫn)", en:"끼다 + -고 있다 (wearing ring)", ko:"끼다 + -고 있습니다"} },
-      { native:{vi:"Anh ấy đang đeo khẩu trang.",           en:"He is wearing a mask.",              ko:"마스크를 쓰고 있습니다."},
-        full:"마스크를 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있다 (đeo khẩu trang)", en:"쓰다 + -고 있다 (wearing mask)", ko:"쓰다 + -고 있습니다"} },
-      { native:{vi:"Cô ấy đang mặc váy.",                   en:"She is wearing a skirt.",            ko:"치마를 입고 있습니다."},
-        full:"치마를 입고 있습니다.", rule:{vi:"입다 + -고 있다 (mặc váy)", en:"입다 + -고 있다 (wearing skirt)", ko:"입다 + -고 있습니다"} },
-      { native:{vi:"Bạn đang đeo tai nghe.",                 en:"You are wearing earphones.",          ko:"이어폰을 끼고 있습니다."},
-        full:"이어폰을 끼고 있습니다.", rule:{vi:"끼다 + -고 있다 (đeo tai nghe)", en:"끼다 + -고 있다 (wearing earphones)", ko:"끼다 + -고 있습니다"} },
-      { native:{vi:"Anh ấy đang đeo thắt lưng.",            en:"He is wearing a belt.",              ko:"벨트를 하고 있습니다."},
-        full:"벨트를 하고 있습니다.", rule:{vi:"하다 + -고 있다 (đeo)", en:"하다 + -고 있다 (wearing)", ko:"하다 + -고 있습니다"} },
-    ];
-    const card = UNIT23_CARDS[unitCardIdx];
-    const total = UNIT23_CARDS.length;
-    const C23 = { bg:"linear-gradient(150deg,#F1F8E9,#DCEDC8)", accent:"#558B2F", border:"#AED581" };
-    return (
-      <div style={{minHeight:"100vh", background:C23.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C23.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 23 — Trạng thái 2 — Trang phục (~고 있다)":en?"Unit 23 — State 2 — Clothing (~고 있다)":"23단원 — 상태2 착용 (착용동사+~고 있습니다)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C23.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #558B2F22"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C23.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#F1F8E9", borderRadius:10, padding:"10px 14px", fontSize:13, color:C23.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C23.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C23.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C23.accent},#33691E)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit24"); }} style={{flex:2, background:`linear-gradient(135deg,${C23.accent},#33691E)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp — Bài 24! 🚀":en?"Continue — Unit 24! 🚀":"24단원으로 계속하기 🚀"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit22"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (22단원)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "unit24") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT24_CARDS = [
-      { native:{vi:"Chúng ta cùng học nhé!",                en:"Let's study together!",               ko:"같이 공부하기로 해요!"},
-        full:"같이 공부하기로 해요!", rule:{vi:"공부하다 + -기로 하다 (quyết định)", en:"공부하다 + -기로 하다 (decide to)", ko:"동사 + -기로 합니다"} },
-      { native:{vi:"Tôi đã quyết định học tiếng Hàn chăm chỉ.", en:"I decided to study Korean hard.", ko:"한국어를 열심히 공부하기로 했습니다."},
-        full:"한국어를 열심히 공부하기로 했습니다.", rule:{vi:"공부하다 + -기로 했습니다 (과거 결정)", en:"공부하다 + -기로 했습니다 (decided)", ko:"공부하다 + -기로 했습니다"} },
-      { native:{vi:"Chúng ta gặp nhau vào thứ Bảy nhé.",    en:"Let's meet on Saturday.",             ko:"토요일에 만나기로 해요."},
-        full:"토요일에 만나기로 해요.", rule:{vi:"만나다 + -기로 하다", en:"만나다 + -기로 하다", ko:"만나다 + -기로 해요"} },
-      { native:{vi:"Tôi quyết định không uống rượu.",       en:"I decided not to drink alcohol.",     ko:"술을 마시지 않기로 했습니다."},
-        full:"술을 마시지 않기로 했습니다.", rule:{vi:"-지 않기로 했습니다 (quyết định phủ định)", en:"-지 않기로 했습니다 (decided not to)", ko:"-지 않기로 했습니다"} },
-      { native:{vi:"Tôi quyết định đi làm bằng xe buýt.",   en:"I decided to go to work by bus.",    ko:"버스로 출근하기로 했습니다."},
-        full:"버스로 출근하기로 했습니다.", rule:{vi:"출근하다 + -기로 했습니다", en:"출근하다 + -기로 했습니다", ko:"출근하다 + -기로 했습니다"} },
-      { native:{vi:"Chúng ta ăn ở đây nhé.",                en:"Let's eat here.",                    ko:"여기서 먹기로 해요."},
-        full:"여기서 먹기로 해요.", rule:{vi:"먹다 + -기로 하다", en:"먹다 + -기로 하다", ko:"먹다 + -기로 해요"} },
-      { native:{vi:"Tôi quyết định tiết kiệm tiền.",        en:"I decided to save money.",           ko:"돈을 아끼기로 했습니다."},
-        full:"돈을 아끼기로 했습니다.", rule:{vi:"아끼다 + -기로 했습니다", en:"아끼다 + -기로 했습니다", ko:"아끼다 + -기로 했습니다"} },
-      { native:{vi:"Chúng ta cùng nhau cố gắng nhé.",       en:"Let's do our best together.",        ko:"함께 열심히 하기로 해요."},
-        full:"함께 열심히 하기로 해요.", rule:{vi:"하다 + -기로 하다", en:"하다 + -기로 하다", ko:"하다 + -기로 해요"} },
-    ];
-    const card = UNIT24_CARDS[unitCardIdx];
-    const total = UNIT24_CARDS.length;
-    const C24 = { bg:"linear-gradient(150deg,#FFF3E0,#FFE0B2)", accent:"#E65100", border:"#FFCC80" };
-    return (
-      <div style={{minHeight:"100vh", background:C24.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C24.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 24 — Quyết định · Cam kết (~기로 하다)":en?"Unit 24 — Decision · Commitment (~기로 하다)":"24단원 — 결정·결심·약속 (~기로 합니다)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C24.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #E6510022"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C24.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#FFF3E0", borderRadius:10, padding:"10px 14px", fontSize:13, color:C24.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C24.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C24.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C24.accent},#BF360C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit25"); }} style={{flex:2, background:`linear-gradient(135deg,${C24.accent},#BF360C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp — Bài 25! 🚀":en?"Continue — Unit 25! 🚀":"25단원으로 계속하기 🚀"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit23"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (23단원)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === "unit25") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    const UNIT25_CARDS = [
-      // ── 기간: ~ㄴ지 + 시간 + 되다 ──
-      { native:{vi:"Bạn học tiếng Hàn được bao lâu rồi?",   en:"How long have you studied Korean?",  ko:"한국어를 배운 지 얼마나 됐습니까?"},
-        full:"한국어를 배운 지 얼마나 됐습니까?", rule:{vi:"배우다 → 배운 지 + 시간 + 됐습니다", en:"배우다 → 배운 지 + time + 됐습니다", ko:"동사+ㄴ 지 얼마나 됐습니까?"} },
-      { native:{vi:"Tôi học tiếng Hàn được 6 tháng rồi.",   en:"I have studied Korean for 6 months.", ko:"한국어를 배운 지 6개월 됐습니다."},
-        full:"한국어를 배운 지 6개월 됐습니다.", rule:{vi:"배운 지 6개월 됐습니다", en:"배운 지 6개월 됐습니다", ko:"배운 지 + 기간 + 됐습니다"} },
-      { native:{vi:"Bạn đến Hàn Quốc được bao lâu rồi?",    en:"How long have you been in Korea?",   ko:"한국에 온 지 얼마나 됐습니까?"},
-        full:"한국에 온 지 얼마나 됐습니까?", rule:{vi:"오다 → 온 지 얼마나 됐습니까?", en:"오다 → 온 지 얼마나 됐습니까?", ko:"온 지 얼마나 됐습니까?"} },
-      { native:{vi:"Tôi đến Hàn Quốc được 2 năm rồi.",      en:"I have been in Korea for 2 years.",  ko:"한국에 온 지 2년 됐습니다."},
-        full:"한국에 온 지 2년 됐습니다.", rule:{vi:"온 지 2년 됐습니다", en:"온 지 2년 됐습니다", ko:"온 지 + 기간 + 됐습니다"} },
-      { native:{vi:"Bạn làm việc ở đây được bao lâu rồi?",  en:"How long have you worked here?",    ko:"여기서 일한 지 얼마나 됐습니까?"},
-        full:"여기서 일한 지 얼마나 됐습니까?", rule:{vi:"일하다 → 일한 지 얼마나 됐습니까?", en:"일하다 → 일한 지 얼마나 됐습니까?", ko:"일한 지 얼마나 됐습니까?"} },
-      { native:{vi:"Tôi làm việc ở đây được 3 năm rồi.",    en:"I have worked here for 3 years.",   ko:"여기서 일한 지 3년 됐습니다."},
-        full:"여기서 일한 지 3년 됐습니다.", rule:{vi:"일한 지 3년 됐습니다", en:"일한 지 3년 됐습니다", ko:"일한 지 + 기간 + 됐습니다"} },
-      // ── 시간: 걸리다 ──
-      { native:{vi:"Từ đây đến bệnh viện mất bao lâu?",     en:"How long does it take to the hospital?", ko:"여기에서 병원까지 얼마나 걸립니까?"},
-        full:"여기에서 병원까지 얼마나 걸립니까?", rule:{vi:"걸리다 = mất (bao lâu)", en:"걸리다 = take (how long)", ko:"얼마나 걸립니까?"} },
-      { native:{vi:"Mất khoảng 30 phút.",                   en:"It takes about 30 minutes.",          ko:"30분쯤 걸립니다."},
-        full:"30분쯤 걸립니다.", rule:{vi:"30분쯤 걸립니다 (쯤=khoảng)", en:"30분쯤 걸립니다 (쯤=about)", ko:"시간+쯤 걸립니다"} },
-      { native:{vi:"Từ nhà đến trường mất bao lâu?",        en:"How long from home to school?",      ko:"집에서 학교까지 얼마나 걸립니까?"},
-        full:"집에서 학교까지 얼마나 걸립니까?", rule:{vi:"에서 ~ 까지 걸립니까? (từ ~ đến)", en:"에서 ~ 까지 걸립니까? (from ~ to)", ko:"에서~까지 얼마나 걸립니까?"} },
-      { native:{vi:"Mất 1 tiếng.",                          en:"It takes 1 hour.",                   ko:"1시간 걸립니다."},
-        full:"1시간 걸립니다.", rule:{vi:"1시간 걸립니다", en:"1시간 걸립니다", ko:"시간 걸립니다"} },
-      // ── 돈: 들다 ──
-      { native:{vi:"Đi taxi từ đây đến sân bay hết bao nhiêu tiền?", en:"How much does a taxi to the airport cost?", ko:"여기서 공항까지 택시비가 얼마나 듭니까?"},
-        full:"여기서 공항까지 택시비가 얼마나 듭니까?", rule:{vi:"들다 = tốn (tiền/thời gian)", en:"들다 = cost/take", ko:"얼마나 듭니까? (비용)"} },
-      { native:{vi:"Hết khoảng 50.000 won.",                en:"It costs about 50,000 won.",          ko:"5만 원쯤 듭니다."},
-        full:"5만 원쯤 듭니다.", rule:{vi:"5만 원쯤 듭니다 (쯤=khoảng)", en:"5만 원쯤 듭니다 (쯤=about)", ko:"금액+쯤 듭니다"} },
-      { native:{vi:"Tiền thuê nhà một tháng hết bao nhiêu?", en:"How much is the monthly rent?",     ko:"한 달 방값이 얼마나 듭니까?"},
-        full:"한 달 방값이 얼마나 듭니까?", rule:{vi:"얼마나 듭니까? = hết bao nhiêu?", en:"얼마나 듭니까? = how much does it cost?", ko:"얼마나 듭니까?"} },
-      { native:{vi:"Học tiếng Hàn hết bao nhiêu tiền?",     en:"How much does Korean class cost?",   ko:"한국어 수업이 얼마나 듭니까?"},
-        full:"한국어 수업이 얼마나 듭니까?", rule:{vi:"얼마나 듭니까?", en:"얼마나 듭니까?", ko:"얼마나 듭니까?"} },
-      { native:{vi:"Mỗi tháng hết khoảng 300.000 won.",     en:"It costs about 300,000 won per month.", ko:"한 달에 30만 원쯤 듭니다."},
-        full:"한 달에 30만 원쯤 듭니다.", rule:{vi:"한 달에 + 금액 + 쯤 듭니다", en:"한 달에 + amount + 쯤 듭니다", ko:"한 달에 금액쯤 듭니다"} },
-      { native:{vi:"Từ đây đến đó hết bao nhiêu tiền xe buýt?", en:"How much is the bus fare from here?", ko:"여기서 거기까지 버스비가 얼마나 듭니까?"},
-        full:"여기서 거기까지 버스비가 얼마나 듭니까?", rule:{vi:"버스비가 얼마나 듭니까?", en:"버스비가 얼마나 듭니까?", ko:"비용이 얼마나 듭니까?"} },
-      { native:{vi:"Hết 1.500 won.",                        en:"It costs 1,500 won.",                ko:"1,500원 듭니다."},
-        full:"1,500원 듭니다.", rule:{vi:"금액 + 듭니다", en:"amount + 듭니다", ko:"금액 + 듭니다"} },
-    ];
-    const card = UNIT25_CARDS[unitCardIdx];
-    const total = UNIT25_CARDS.length;
-    const C25 = { bg:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", accent:"#4527A0", border:"#B39DDB" };
-    return (
-      <div style={{minHeight:"100vh", background:C25.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-        <div style={{width:"100%", maxWidth:480}}>
-          <div style={{textAlign:"center", marginBottom:16}}>
-            <div style={{fontSize:13, color:C25.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 25 — Thời gian · Khoảng cách · Chi phí (~ㄴ지·걸리다·들다)":en?"Unit 25 — Duration · Time · Cost (~ㄴ지·걸리다·들다)":"25단원 — 기간·시간·돈 (~ㄴ지 됐다·걸리다·들다)"}
-            </div>
-            <div style={{fontSize:12, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
-          </div>
-          <div style={{background:"white", borderRadius:20, border:`2px solid ${C25.border}`, padding:"28px 20px", marginBottom:16, boxShadow:"0 4px 16px #4527A022"}}>
-            <div style={{fontSize:16, color:"#555", marginBottom:12, textAlign:"center", lineHeight:1.6}}>
-              {lang?.code==="vi"?card.native.vi:lang?.code==="en"?card.native.en:card.native.ko}
-            </div>
-            <div style={{fontSize:22, fontWeight:900, color:C25.accent, textAlign:"center", marginBottom:12}}>{card.full}</div>
-            {unitCardRevealed && (
-              <div style={{background:"#EDE7F6", borderRadius:10, padding:"10px 14px", fontSize:13, color:C25.accent, textAlign:"center"}}>
-                💡 {lang?.code==="vi"?card.rule.vi:lang?.code==="en"?card.rule.en:card.rule.ko}
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex", gap:10, marginBottom:12}}>
-            <button onClick={()=>setUnitCardRevealed(r=>!r)} style={{flex:1, background:"white", border:`2px solid ${C25.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C25.accent, cursor:"pointer"}}>
-              {unitCardRevealed?(vi?"Ẩn":en?"Hide":"숨기기"):(vi?"Xem":en?"Show":"규칙 보기")}
-            </button>
-            {unitCardIdx < total-1
-              ? <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardRevealed(false); }} style={{flex:2, background:`linear-gradient(135deg,${C25.accent},#311B92)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Tiếp →":en?"Next →":"다음 카드 →"}
-                </button>
-              : <button onClick={()=>{ setStep("learn"); }} style={{flex:2, background:`linear-gradient(135deg,#00C896,#00897B)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  🎉 {vi?"Hoàn thành 25 bài! →":en?"Complete 25 Units! →":"서술어 25단원 완료! 🎊"}
-                </button>
-            }
-          </div>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit24"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (24단원)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-
-
-
-  if (!character) {
+  );  if (!character) {
     const availableChars = motivation === "vietnam"
       ? [...CHARS, ...CHARS_VIETNAM]
       : CHARS;
