@@ -4111,6 +4111,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         pres:"고칩니다",  presQ:"고칩니까?",  past:"고쳤습니다", pastQ:"고쳤습니까?",  fut:"고칠 것입니다",  futQ:"고칠 것입니까?" },
       { base:"버리다",    meaning:{vi:"bỏ đi/vứt",       en:"throw away"},    batchim:false,
         pres:"버립니다",  presQ:"버립니까?",  past:"버렸습니다", pastQ:"버렸습니까?",  fut:"버릴 것입니다",  futQ:"버릴 것입니까?" },
+      // ── 경어법 ──
+      { base:"오시다",    meaning:{vi:"đến (kính ngữ)",  en:"come (honorific)"}, batchim:false,
+        pres:"오십니다",  presQ:"오십니까?",  past:"오셨습니다", pastQ:"오셨습니까?",  fut:"오실 것입니다",  futQ:"오실 것입니까?" },
+      { base:"가시다",    meaning:{vi:"đi (kính ngữ)",   en:"go (honorific)"},   batchim:false,
+        pres:"가십니다",  presQ:"가십니까?",  past:"가셨습니다", pastQ:"가셨습니까?",  fut:"가실 것입니다",  futQ:"가실 것입니까?" },
     ];
 
     const card = TENSE1_CARDS[tenseCardIdx];
@@ -4600,7 +4605,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { word:"꽃",     hasBatchim:false, ex_topic:"꽃은 예쁩니다.", ex_subj:"꽃이 있습니다.", ex_obj:"꽃을 삽니다.", ex_and:null, ex_or:null, ex_also:"꽃도 좋습니다." },
       // [10] 사람 쌍 — 학생(있) · 선생님(있): 교실 관계 쌍
       { word:"학생",   hasBatchim:true,  ex_topic:"학생은 바쁩니다.", ex_subj:"학생이 공부합니다.", ex_obj:"선생님이 학생을 돕습니다.", ex_and:"학생과 선생님이 있습니다.", ex_or:null, ex_also:"학생도 쉽니다." },
-      { word:"선생님", hasBatchim:true,  ex_topic:"선생님은 바쁩니다.", ex_subj:"선생님이 오십니다.", ex_obj:"저는 선생님을 만납니다.", ex_and:"선생님과 공부합니다.", ex_or:null, ex_also:"선생님도 가십니다." },
+      { word:"선생님", hasBatchim:true,  ex_topic:"선생님은 바쁩니다.", ex_subj:"선생님께서 오십니다.", ex_obj:"저는 선생님을 만납니다.", ex_and:"선생님과 공부합니다.", ex_or:null, ex_also:"선생님도 가십니다." },
       // [11] 나라 — 한국(없): 마무리
       { word:"한국",   hasBatchim:false, ex_topic:"한국은 아름답습니다.", ex_subj:"한국이 좋습니다.", ex_obj:null, ex_and:null, ex_or:null, ex_also:"한국도 갑니다." },
     ];
@@ -6756,9 +6761,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"오늘 길에 차가 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
       { native:{vi:"Bệnh viện này có ít bác sĩ.",            en:"This hospital has few doctors.",         ko:"이 병원에 의사가 적습니다."},
         full:"이 병원에 의사가 적습니다.", rule:{vi:"적다 → 적어요 / 적습니다", en:"적다 → 적어요 / 적습니다", ko:"적다 → 적어요 / 적습니다"} },
+      // ── 경어법 ──
+      { native:{vi:"Bố tôi đang ở nhà.",           en:"My father is at home.",          ko:"아버지께서 집에 계십니다."},
+        full:"아버지께서 집에 계십니다.", rule:{vi:"계시다 = 있다 (kính ngữ)", en:"계시다 = 있다 (honorific)", ko:"있다 → 계시다 (경어)"} },
     ];
 
-        const card  = UNIT2_CARDS[unitCardIdx];
+    const card  = UNIT2_CARDS[unitCardIdx];
     const total = UNIT2_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
@@ -7038,9 +7046,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"저는 피곤합니다.", rule:{vi:"피곤하다 → 피곤해요 / 피곤합니다", en:"피곤하다 → 피곤해요 / 피곤합니다", ko:"피곤하다 → 피곤해요 / 피곤합니다"} },
       { native:{vi:"Bệnh viện gần nhà tôi.",      en:"The hospital is close to my house.", ko:"병원이 가깝습니다."},
         full:"병원이 가깝습니다.", rule:{vi:"가깝다 → 가까워요 / 가깝습니다 (ㅂ 불규칙)", en:"가깝다 → 가까워요 / 가깝습니다 (ㅂ irregular)", ko:"가깝다 → 가까워요 / 가깝습니다 (ㅂ 불규칙)"} },
+      // ── 경어법 ──
+      { native:{vi:"Bà nội có khỏe không?",         en:"Is grandmother feeling unwell?",  ko:"할머니께서 편찮으세요?"},
+        full:"할머니께서 편찮으세요?", rule:{vi:"편찮으시다 = 아프다 (kính ngữ)", en:"편찮으시다 = 아프다 (honorific)", ko:"아프다 → 편찮으시다 (경어)"} },
     ];
 
-        const card  = UNIT3_CARDS[unitCardIdx];
+    const card  = UNIT3_CARDS[unitCardIdx];
     const total = UNIT3_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
@@ -7908,9 +7919,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"오늘은 춥습니다. 그리고 내일도 춥습니다.", rule:{vi:"그리고 = và (liệt kê thêm)", en:"그리고 = and (addition)", ko:"그리고 = 덧붙이기"} },
       { native:{vi:"Phở hay cơm?",                                           en:"Noodles or rice?",                                  ko:"국수입니까, 아니면 밥입니까?"},
         full:"국수입니까, 아니면 밥입니까?", rule:{vi:"아니면 = hay là (lựa chọn)", en:"아니면 = or (choice)", ko:"아니면 = 선택"} },
+          // ── 경어법 ──
+      { native:{vi:"Bố tôi không khỏe. Vì vậy tôi đến bệnh viện.", en:"My father is unwell. So I went to the hospital.", ko:"아버지께서 편찮으십니다. 그래서 병원에 갔습니다."},
+        full:"아버지께서 편찮으십니다. 그래서 병원에 갔습니다.", rule:{vi:"그래서 + 편찮으시다 (kính ngữ)", en:"그래서 + 편찮으시다 (honorific)", ko:"그래서 + 경어"} },
     ];
 
-        const card  = UNIT6A_CARDS[unitCardIdx];
+    const card  = UNIT6A_CARDS[unitCardIdx];
     const total = UNIT6A_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
@@ -8129,37 +8143,45 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT7_CARDS = [
-      { native:{vi:"Tôi đang ăn cơm.",               en:"I am eating rice.",                ko:"나는 밥을 먹는 중이다."},
-        full:"지금 밥 먹고 있습니다.", rule:{vi:"먹다 + -고 있습니다 → đang ăn", en:"먹다 + -고 있습니다 → in progress", ko:"동사 + -고 있습니다 = 진행 중"} },
-      { native:{vi:"Bạn tôi đang gọi điện.",          en:"My friend is calling.",             ko:"친구가 전화하는 중이다."},
-        full:"친구가 전화하고 있습니다.", rule:{vi:"전화하다 + -고 있습니다", en:"전화하다 + -고 있습니다", ko:"하다 동사 + -고 있습니다"} },
-      { native:{vi:"Em bé đang ngủ.",                 en:"The baby is sleeping.",             ko:"아이가 자는 중이다."},
-        full:"아이가 자고 있습니다.", rule:{vi:"자다 + -고 있습니다", en:"자다 + -고 있습니다", ko:"받침 없음 + -고 있습니다"} },
-      { native:{vi:"Tôi đang học tiếng Hàn.",         en:"I am studying Korean.",             ko:"나는 한국어를 공부하는 중이다."},
-        full:"저는 한국어 공부하고 있습니다.", rule:{vi:"공부하다 + -고 있습니다", en:"공부하다 + -고 있습니다", ko:"하다 동사 + -고 있습니다"} },
-      { native:{vi:"Mẹ đang nấu ăn.",                en:"Mom is cooking.",                   ko:"엄마가 요리하는 중이다."},
-        full:"엄마가 요리하고 있습니다.", rule:{vi:"요리하다 + -고 있습니다", en:"요리하다 + -고 있습니다", ko:"하다 동사 + -고 있습니다"} },
-      { native:{vi:"Trời đang mưa.",                  en:"It is raining.",                    ko:"비가 오는 중이다."},
-        full:"비가 오고 있습니다.", rule:{vi:"오다 + -고 있습니다", en:"오다 + -고 있습니다", ko:"오다 + -고 있습니다"} },
-      { native:{vi:"Bạn tôi đang hát.",               en:"My friend is singing.",             ko:"친구가 노래를 부르는 중이다."},
-        full:"친구가 노래를 부르고 있습니다.", rule:{vi:"부르다 + -고 있습니다 (르 → 규칙)", en:"부르다 + -고 있습니다", ko:"부르다 + -고 있습니다"} },
-      { native:{vi:"Học sinh đang làm bài kiểm tra.", en:"Students are taking a test.",       ko:"학생들이 시험을 보는 중이다."},
+      // ── 일상 동작 ──
+      { native:{vi:"Tôi đang ăn cơm.",                    en:"I am eating now.",                    ko:"저는 지금 밥을 먹고 있습니다."},
+        full:"지금 밥 먹고 있습니다.", rule:{vi:"먹다 + -고 있습니다 (đang)", en:"먹다 + -고 있습니다 (progressive)", ko:"먹다 + -고 있습니다"} },
+      { native:{vi:"Bạn tôi đang gọi điện.",              en:"My friend is calling.",               ko:"친구가 전화하고 있습니다."},
+        full:"친구가 전화하고 있습니다.", rule:{vi:"전화하다 + -고 있습니다", en:"전화하다 + -고 있습니다", ko:"전화하다 + -고 있습니다"} },
+      { native:{vi:"Đứa trẻ đang ngủ.",                   en:"The child is sleeping.",              ko:"아이가 자고 있습니다."},
+        full:"아이가 자고 있습니다.", rule:{vi:"자다 + -고 있습니다", en:"자다 + -고 있습니다", ko:"자다 + -고 있습니다"} },
+      { native:{vi:"Tôi đang học tiếng Hàn.",             en:"I am studying Korean.",              ko:"저는 한국어를 공부하고 있습니다."},
+        full:"저는 한국어 공부하고 있습니다.", rule:{vi:"공부하다 + -고 있습니다", en:"공부하다 + -고 있습니다", ko:"공부하다 + -고 있습니다"} },
+      { native:{vi:"Mẹ đang nấu ăn.",                     en:"Mom is cooking.",                    ko:"엄마가 요리하고 있습니다."},
+        full:"엄마가 요리하고 있습니다.", rule:{vi:"요리하다 + -고 있습니다", en:"요리하다 + -고 있습니다", ko:"요리하다 + -고 있습니다"} },
+      { native:{vi:"Trời đang mưa.",                      en:"It is raining.",                     ko:"비가 오고 있습니다."},
+        full:"비가 오고 있습니다.", rule:{vi:"오다 + -고 있습니다 (날씨)", en:"오다 + -고 있습니다 (weather)", ko:"오다 + -고 있습니다"} },
+      { native:{vi:"Bạn tôi đang hát.",                   en:"My friend is singing.",              ko:"친구가 노래를 부르고 있습니다."},
+        full:"친구가 노래를 부르고 있습니다.", rule:{vi:"부르다 + -고 있습니다 (ㄹ 불규칙)", en:"부르다 + -고 있습니다 (ㄹ irregular)", ko:"부르다 + -고 있습니다"} },
+      { native:{vi:"Các học sinh đang thi.",              en:"Students are taking an exam.",       ko:"학생들이 시험을 보고 있습니다."},
         full:"학생들이 시험을 보고 있습니다.", rule:{vi:"보다 + -고 있습니다", en:"보다 + -고 있습니다", ko:"보다 + -고 있습니다"} },
-      { native:{vi:"Em bé đang xem TV.",              en:"The child is watching TV.",         ko:"아이가 TV를 보는 중이다."},
+      { native:{vi:"Đứa trẻ đang xem TV.",                en:"The child is watching TV.",          ko:"아이가 TV를 보고 있습니다."},
         full:"아이가 TV를 보고 있습니다.", rule:{vi:"보다 + -고 있습니다", en:"보다 + -고 있습니다", ko:"보다 + -고 있습니다"} },
-      { native:{vi:"Thầy giáo đang viết lên bảng.",  en:"The teacher is writing on the board.", ko:"선생님이 칠판에 쓰는 중이다."},
-        full:"선생님이 칠판에 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있습니다 (으탈락)", en:"쓰다 + -고 있습니다", ko:"쓰다 → 으탈락 없이 + -고 있습니다"} },
-      { native:{vi:"Anh trai đang ngủ trong phòng.", en:"My brother is sleeping in the room.", ko:"형이 방에서 자는 중이다."},
+      { native:{vi:"Thầy giáo đang viết lên bảng.",      en:"The teacher is writing on the board.", ko:"선생님이 칠판에 쓰고 있습니다."},
+        full:"선생님이 칠판에 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있습니다 (ㅡ 탈락)", en:"쓰다 + -고 있습니다 (ㅡ drops)", ko:"쓰다 + -고 있습니다"} },
+      { native:{vi:"Anh tôi đang ngủ trong phòng.",       en:"My brother is sleeping in the room.", ko:"형이 방에서 자고 있습니다."},
         full:"형이 방에서 자고 있습니다.", rule:{vi:"자다 + -고 있습니다", en:"자다 + -고 있습니다", ko:"자다 + -고 있습니다"} },
-      { native:{vi:"Chị đang nói chuyện điện thoại.", en:"My sister is talking on the phone.", ko:"언니가 전화를 하는 중이다."},
-        full:"언니가 전화를 하고 있습니다.", rule:{vi:"하다 + -고 있습니다", en:"하다 + -고 있습니다", ko:"하다 동사 + -고 있습니다"} },
-      { native:{vi:"Tôi đang chờ xe buýt.",           en:"I am waiting for the bus.",         ko:"나는 버스를 기다리는 중이다."},
+      { native:{vi:"Chị tôi đang nghe điện thoại.",       en:"My sister is on the phone.",         ko:"언니가 전화를 하고 있습니다."},
+        full:"언니가 전화를 하고 있습니다.", rule:{vi:"하다 + -고 있습니다", en:"하다 + -고 있습니다", ko:"하다 + -고 있습니다"} },
+      { native:{vi:"Tôi đang chờ xe buýt.",               en:"I am waiting for the bus.",          ko:"저는 버스를 기다리고 있습니다."},
         full:"저는 버스를 기다리고 있습니다.", rule:{vi:"기다리다 + -고 있습니다", en:"기다리다 + -고 있습니다", ko:"기다리다 + -고 있습니다"} },
-      { native:{vi:"Trời vẫn đang mưa bây giờ.",     en:"It is still raining now.",           ko:"지금도 비가 오는 중이다."},
-        full:"지금 비가 오고 있습니다.", rule:{vi:"오다 + -고 있습니다", en:"오다 + -고 있습니다", ko:"오다 + -고 있습니다"} },
+      // ── 직장·실전 추가 ──
+      { native:{vi:"Sếp đang họp.",                       en:"The boss is in a meeting.",          ko:"사장님께서 회의 중이십니다."},
+        full:"사장님께서 회의 중이십니다.", rule:{vi:"계시다 + -고 계십니다 (kính ngữ)", en:"계시다 + -고 계십니다 (honorific)", ko:"께서 + -고 계십니다 (경어)"} },
+      { native:{vi:"Tôi đang làm việc tại công ty.",      en:"I am working at the company.",       ko:"저는 회사에서 일하고 있습니다."},
+        full:"저는 회사에서 일하고 있습니다.", rule:{vi:"일하다 + -고 있습니다", en:"일하다 + -고 있습니다", ko:"일하다 + -고 있습니다"} },
+      { native:{vi:"Em tôi đang học bài.",                en:"My sibling is studying.",            ko:"동생이 공부하고 있습니다."},
+        full:"동생이 공부하고 있습니다.", rule:{vi:"공부하다 + -고 있습니다", en:"공부하다 + -고 있습니다", ko:"공부하다 + -고 있습니다"} },
+      { native:{vi:"Bác sĩ đang khám bệnh.",             en:"The doctor is seeing patients.",     ko:"의사 선생님께서 진료 중이십니다."},
+        full:"의사 선생님께서 진료 중이십니다.", rule:{vi:"께서 + -고 계십니다 (kính ngữ)", en:"께서 + -고 계십니다 (honorific)", ko:"께서 + -고 계십니다 (경어)"} },
     ];
 
-    const card  = UNIT7_CARDS[unitCardIdx];
+        const card  = UNIT7_CARDS[unitCardIdx];
     const total = UNIT7_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
@@ -8254,25 +8276,30 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT8_CARDS = [
-      { native:{vi:"Hãy cùng ăn cơm nhé.",           en:"Let's eat together.",              ko:"같이 밥 먹자."},
-        full:"같이 밥 먹읍시다.", rule:{vi:"먹다 + -읍시다 (받침 있음)", en:"먹다 + -읍시다 (has batchim)", ko:"받침 있는 동사 → -읍시다"} },
-      { native:{vi:"Hãy đi nhanh thôi.",              en:"Let's hurry up and go.",           ko:"빨리 가자."},
-        full:"빨리 갑시다.", rule:{vi:"가다 + -ㅂ시다 (받침 없음)", en:"가다 + -ㅂ시다 (no batchim)", ko:"받침 없는 동사 → -ㅂ시다"} },
-      { native:{vi:"Chúng ta xem phim nhé?",          en:"Shall we watch a movie?",          ko:"영화 볼까?"},
-        full:"영화 볼까요?", rule:{vi:"보다 + -ㄹ까요? (제안)", en:"보다 + -ㄹ까요? (suggestion)", ko:"동사 + -(으)ㄹ까요? = 제안"} },
-      { native:{vi:"Chúng ta ăn gì nhỉ?",             en:"What shall we eat?",               ko:"뭐 먹을까?"},
-        full:"뭐 먹을까요?", rule:{vi:"먹다 + -을까요? (받침 있음)", en:"먹다 + -을까요?", ko:"받침 있음 → -을까요?"} },
-      { native:{vi:"Bạn có muốn cùng học không?",     en:"Do you want to study together?",   ko:"같이 공부할래?"},
-        full:"같이 공부할래요?", rule:{vi:"공부하다 + -ㄹ래요? (ý muốn/권유)", en:"공부하다 + -ㄹ래요? (will/invitation)", ko:"동사 + -(으)ㄹ래요? = 의지·권유"} },
-      { native:{vi:"Bạn có muốn uống cà phê không?",  en:"Do you want to have some coffee?", ko:"커피 마실래?"},
-        full:"커피 마실래요?", rule:{vi:"마시다 + -ㄹ래요?", en:"마시다 + -ㄹ래요?", ko:"마시다 + -ㄹ래요?"} },
-      { native:{vi:"Chúng ta cùng tập thể dục nhé?",  en:"Shall we exercise together?",      ko:"같이 운동할까?"},
-        full:"함께 운동할까요?", rule:{vi:"운동하다 + -ㄹ까요?", en:"운동하다 + -ㄹ까요?", ko:"하다 동사 + -ㄹ까요?"} },
-      { native:{vi:"Bạn có muốn uống một ly cà phê không?", en:"Would you like a cup of coffee?", ko:"커피 한 잔 마실래?"},
-        full:"커피 한 잔 마실래요?", rule:{vi:"마시다 + -ㄹ래요?", en:"마시다 + -ㄹ래요?", ko:"마시다 + -ㄹ래요?"} },
+      { native:{vi:"Hãy cùng ăn cơm nhé.",                en:"Let's eat together.",                ko:"같이 밥 먹읍시다."},
+        full:"같이 밥 먹읍시다.", rule:{vi:"먹다 → 먹읍시다 (받침+읍시다)", en:"먹다 → 먹읍시다 (consonant+읍시다)", ko:"받침 있음 → 읍시다"} },
+      { native:{vi:"Hãy đi nhanh nào.",                    en:"Let's go quickly.",                  ko:"빨리 갑시다."},
+        full:"빨리 갑시다.", rule:{vi:"가다 → 갑시다 (받침 없음+ㅂ시다)", en:"가다 → 갑시다 (no consonant+ㅂ시다)", ko:"받침 없음 → ㅂ시다"} },
+      { native:{vi:"Xem phim nhé?",                        en:"Shall we watch a movie?",            ko:"영화 볼까요?"},
+        full:"영화 볼까요?", rule:{vi:"보다 → 볼까요? (ㄹ까요)", en:"보다 → 볼까요? (ㄹ까요)", ko:"보다 → 볼까요? (제안)"} },
+      { native:{vi:"Ăn gì nhỉ?",                           en:"What shall we eat?",                ko:"뭐 먹을까요?"},
+        full:"뭐 먹을까요?", rule:{vi:"먹다 → 먹을까요? (으ㄹ까요)", en:"먹다 → 먹을까요? (으ㄹ까요)", ko:"받침 있음 → 으ㄹ까요?"} },
+      { native:{vi:"Cùng học nhé?",                        en:"Do you want to study together?",    ko:"같이 공부할래요?"},
+        full:"같이 공부할래요?", rule:{vi:"공부하다 → 공부할래요? (ㄹ래요)", en:"공부하다 → 공부할래요? (ㄹ래요)", ko:"하다 → 할래요? (의향)"} },
+      { native:{vi:"Uống cà phê nhé?",                     en:"Do you want to have coffee?",       ko:"커피 마실래요?"},
+        full:"커피 마실래요?", rule:{vi:"마시다 → 마실래요? (ㄹ래요)", en:"마시다 → 마실래요? (ㄹ래요)", ko:"마시다 → 마실래요?"} },
+      { native:{vi:"Cùng tập thể dục nhé?",               en:"Shall we exercise together?",       ko:"함께 운동할까요?"},
+        full:"함께 운동할까요?", rule:{vi:"운동하다 → 운동할까요?", en:"운동하다 → 운동할까요?", ko:"하다 → 할까요? (제안)"} },
+      { native:{vi:"Uống một ly cà phê nhé?",             en:"Do you want a cup of coffee?",      ko:"커피 한 잔 마실래요?"},
+        full:"커피 한 잔 마실래요?", rule:{vi:"마시다 → 마실래요?", en:"마시다 → 마실래요?", ko:"마시다 → 마실래요?"} },
+      // ── 추가 2개 (10개 달성) ──
+      { native:{vi:"Cùng đi bệnh viện nhé.",               en:"Let's go to the hospital together.", ko:"같이 병원에 갑시다."},
+        full:"같이 병원에 갑시다.", rule:{vi:"가다 → 갑시다 (받침 없음)", en:"가다 → 갑시다 (no consonant)", ko:"받침 없음 → ㅂ시다"} },
+      { native:{vi:"Ăn tối ở đâu nhỉ?",                   en:"Where shall we have dinner?",       ko:"어디에서 저녁 먹을까요?"},
+        full:"어디에서 저녁 먹을까요?", rule:{vi:"먹다 → 먹을까요? (으ㄹ까요)", en:"먹다 → 먹을까요? (으ㄹ까요)", ko:"받침 있음 → 으ㄹ까요?"} },
     ];
 
-    const card  = UNIT8_CARDS[unitCardIdx];
+        const card  = UNIT8_CARDS[unitCardIdx];
     const total = UNIT8_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
@@ -8368,30 +8395,42 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT9_CARDS = [
-      { native:{vi:"Tôi có thể nói tiếng Hàn.",        en:"I can speak Korean.",              ko:"나는 한국어를 말할 수 있다."},
-        full:"저는 한국어를 말할 수 있습니다.", rule:{vi:"말하다 + -ㄹ 수 있습니다 (có thể)", en:"말하다 + -ㄹ 수 있습니다 (can)", ko:"동사 + -ㄹ 수 있습니다 = 가능"} },
-      { native:{vi:"Tôi không thể bơi.",                en:"I cannot swim.",                   ko:"나는 수영을 할 수 없다."},
-        full:"저는 수영을 할 수 없습니다.", rule:{vi:"하다 + -ㄹ 수 없습니다 (không thể)", en:"하다 + -ㄹ 수 없습니다 (cannot)", ko:"동사 + -ㄹ 수 없습니다 = 불가능"} },
-      { native:{vi:"Bạn có thể ăn món này không?",     en:"Can you eat this food?",           ko:"이 음식을 먹을 수 있어?"},
-        full:"이 음식을 먹을 수 있습니까?", rule:{vi:"먹다 + -을 수 있습니까? (받침 있음)", en:"먹다 + -을 수 있습니까?", ko:"받침 있음 → -을 수 있습니까?"} },
-      { native:{vi:"Tôi có thể chơi đàn piano.",       en:"I can play the piano.",            ko:"나는 피아노를 칠 수 있다."},
-        full:"저는 피아노를 칠 수 있습니다.", rule:{vi:"치다 + -ㄹ 수 있습니다", en:"치다 + -ㄹ 수 있습니다", ko:"치다 + -ㄹ 수 있습니다"} },
-      { native:{vi:"Bạn có thể gặp hôm nay không?",   en:"Can you meet today?",              ko:"오늘 만날 수 있어?"},
-        full:"오늘 만날 수 있습니까?", rule:{vi:"만나다 + -ㄹ 수 있습니까?", en:"만나다 + -ㄹ 수 있습니까?", ko:"만나다 + -ㄹ 수 있습니까?"} },
-      { native:{vi:"Tôi không thể lái xe.",             en:"I cannot drive.",                  ko:"나는 운전을 할 수 없다."},
-        full:"저는 운전을 할 수 없습니다.", rule:{vi:"하다 + -ㄹ 수 없습니다", en:"하다 + -ㄹ 수 없습니다", ko:"하다 + -ㄹ 수 없습니다"} },
-      { native:{vi:"Tôi có thể đi xe đạp.",            en:"I can ride a bicycle.",            ko:"나는 자전거를 탈 수 있다."},
-        full:"저는 자전거를 탈 수 있습니다.", rule:{vi:"타다 + -ㄹ 수 있습니다", en:"타다 + -ㄹ 수 있습니다", ko:"타다 + -ㄹ 수 있습니다"} },
-      { native:{vi:"Tôi không thể bơi lội.",           en:"I cannot swim.",                   ko:"나는 수영을 할 수 없다."},
-        full:"저는 수영을 할 수 없습니다.", rule:{vi:"하다 + -ㄹ 수 없습니다", en:"하다 + -ㄹ 수 없습니다", ko:"하다 + -ㄹ 수 없습니다"} },
-      { native:{vi:"Tôi có thể nấu ăn Hàn Quốc.",     en:"I can cook Korean food.",          ko:"나는 한국 음식을 만들 수 있다."},
-        full:"한국 음식을 만들 수 있습니다.", rule:{vi:"만들다 + -ㄹ 수 있습니다 (ㄹ탈락)", en:"만들다 + -ㄹ 수 있습니다", ko:"만들다 → ㄹ탈락 → 만들 수 있습니다"} },
-      { native:{vi:"Tôi có thể hiểu vấn đề này.",     en:"I can understand this problem.",  ko:"나는 이 문제를 이해할 수 있다."},
-        full:"이 문제를 이해할 수 있습니다.", rule:{vi:"이해하다 + -ㄹ 수 있습니다", en:"이해하다 + -ㄹ 수 있습니다", ko:"이해하다 + -ㄹ 수 있습니다"} },
-      { native:{vi:"Bạn có thể đến ngày mai không?",  en:"Can you come tomorrow?",           ko:"내일 올 수 있어?"},
-        full:"내일 올 수 있습니까?", rule:{vi:"오다 + -ㄹ 수 있습니까?", en:"오다 + -ㄹ 수 있습니까?", ko:"오다 + -ㄹ 수 있습니까?"} },
-      { native:{vi:"Bạn có thể nói tiếng Anh không?", en:"Can you speak English?",           ko:"영어를 말할 수 있어?"},
-        full:"영어를 말할 수 있습니까?", rule:{vi:"말하다 + -ㄹ 수 있습니까?", en:"말하다 + -ㄹ 수 있습니까?", ko:"말하다 + -ㄹ 수 있습니까?"} },
+      // ── 수 있다 ──
+      { native:{vi:"Tôi có thể nói tiếng Hàn.",           en:"I can speak Korean.",               ko:"저는 한국어를 말할 수 있습니다."},
+        full:"저는 한국어를 말할 수 있습니다.", rule:{vi:"말하다 → 말할 수 있습니다 (가능)", en:"말하다 → 말할 수 있습니다 (can)", ko:"동사 + -(으)ㄹ 수 있습니다"} },
+      { native:{vi:"Bạn có thể ăn món này không?",        en:"Can you eat this food?",            ko:"이 음식을 먹을 수 있습니까?"},
+        full:"이 음식을 먹을 수 있습니까?", rule:{vi:"먹다 → 먹을 수 있습니까?", en:"먹다 → 먹을 수 있습니까?", ko:"받침 있음 → 먹을 수 있습니까?"} },
+      { native:{vi:"Tôi có thể chơi piano.",              en:"I can play the piano.",             ko:"저는 피아노를 칠 수 있습니다."},
+        full:"저는 피아노를 칠 수 있습니다.", rule:{vi:"치다 → 칠 수 있습니다", en:"치다 → 칠 수 있습니다", ko:"치다 → 칠 수 있습니다"} },
+      { native:{vi:"Ngày mai bạn có thể đến không?",     en:"Can you come tomorrow?",            ko:"내일 올 수 있습니까?"},
+        full:"내일 올 수 있습니까?", rule:{vi:"오다 → 올 수 있습니까?", en:"오다 → 올 수 있습니까?", ko:"오다 → 올 수 있습니까?"} },
+      { native:{vi:"Tôi có thể đi xe đạp.",              en:"I can ride a bicycle.",             ko:"저는 자전거를 탈 수 있습니다."},
+        full:"저는 자전거를 탈 수 있습니다.", rule:{vi:"타다 → 탈 수 있습니다", en:"타다 → 탈 수 있습니다", ko:"타다 → 탈 수 있습니다"} },
+      { native:{vi:"Tôi có thể nấu món Hàn Quốc.",       en:"I can cook Korean food.",           ko:"한국 음식을 만들 수 있습니다."},
+        full:"한국 음식을 만들 수 있습니다.", rule:{vi:"만들다 → 만들 수 있습니다 (ㄹ탈락)", en:"만들다 → 만들 수 있습니다 (ㄹ drops)", ko:"만들다 → 만들 수 있습니다"} },
+      { native:{vi:"Bạn có thể nói tiếng Anh không?",    en:"Can you speak English?",            ko:"영어를 말할 수 있습니까?"},
+        full:"영어를 말할 수 있습니까?", rule:{vi:"말하다 → 말할 수 있습니까?", en:"말하다 → 말할 수 있습니까?", ko:"말하다 → 말할 수 있습니까?"} },
+      { native:{vi:"Tôi có thể gặp bạn hôm nay không?", en:"Can I meet you today?",             ko:"오늘 만날 수 있습니까?"},
+        full:"오늘 만날 수 있습니까?", rule:{vi:"만나다 → 만날 수 있습니까?", en:"만나다 → 만날 수 있습니까?", ko:"만나다 → 만날 수 있습니까?"} },
+      // ── 수 없다 ──
+      { native:{vi:"Tôi không thể bơi.",                  en:"I cannot swim.",                    ko:"저는 수영을 할 수 없습니다."},
+        full:"저는 수영을 할 수 없습니다.", rule:{vi:"할 수 없습니다 = không thể", en:"할 수 없습니다 = cannot", ko:"동사 + -(으)ㄹ 수 없습니다"} },
+      { native:{vi:"Tôi không thể lái xe.",               en:"I cannot drive.",                   ko:"저는 운전을 할 수 없습니다."},
+        full:"저는 운전을 할 수 없습니다.", rule:{vi:"할 수 없습니다 = không thể", en:"할 수 없습니다 = cannot", ko:"할 수 없습니다"} },
+      { native:{vi:"Tôi không thể ăn đồ cay.",           en:"I cannot eat spicy food.",          ko:"매운 음식을 먹을 수 없습니다."},
+        full:"매운 음식을 먹을 수 없습니다.", rule:{vi:"먹을 수 없습니다 = không thể ăn", en:"먹을 수 없습니다 = cannot eat", ko:"먹을 수 없습니다"} },
+      { native:{vi:"Hôm nay tôi không thể đến được.",    en:"I cannot come today.",              ko:"오늘은 올 수 없습니다."},
+        full:"오늘은 올 수 없습니다.", rule:{vi:"올 수 없습니다 = không thể đến", en:"올 수 없습니다 = cannot come", ko:"오다 → 올 수 없습니다"} },
+      // ── 실전 추가 3개 ──
+      { native:{vi:"Tôi có thể làm thêm giờ hôm nay.",   en:"I can work overtime today.",        ko:"오늘 야근을 할 수 있습니다."},
+        full:"오늘 야근을 할 수 있습니다.", rule:{vi:"할 수 있습니다 = có thể làm", en:"할 수 있습니다 = can do", ko:"할 수 있습니다"} },
+      { native:{vi:"Tôi không thể uống rượu.",            en:"I cannot drink alcohol.",           ko:"저는 술을 마실 수 없습니다."},
+        full:"저는 술을 마실 수 없습니다.", rule:{vi:"마실 수 없습니다 = không thể uống", en:"마실 수 없습니다 = cannot drink", ko:"마시다 → 마실 수 없습니다"} },
+      { native:{vi:"Bạn có thể nói chậm hơn không?",     en:"Can you speak more slowly?",        ko:"천천히 말할 수 있습니까?"},
+        full:"천천히 말할 수 있습니까?", rule:{vi:"말할 수 있습니까? = có thể nói?", en:"말할 수 있습니까? = can you speak?", ko:"말할 수 있습니까?"} },
+          // ── 경어법 ──
+      { native:{vi:"Thầy giáo có thể nói chậm hơn không?",  en:"Can the teacher speak more slowly?",  ko:"선생님께서 천천히 말씀해 주실 수 있습니까?"},
+        full:"선생님께서 천천히 말씀해 주실 수 있습니까?", rule:{vi:"께서 + 말씀하시다 (kính ngữ)", en:"께서 + 말씀하시다 (honorific)", ko:"말하다 → 말씀하시다 (경어)"} },
     ];
 
     const card  = UNIT9_CARDS[unitCardIdx];
