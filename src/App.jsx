@@ -6256,7 +6256,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               ))}
             </div>
             {passed ? (
-              <button onClick={()=>{setJosaTestResult(null);setJosaTestAnswers({});setJosaTestQuestions([]);onReady?.();setUnitCardIdx(0);setStep("unit1");}}
+              <button onClick={()=>{setJosaTestResult(null);setJosaTestAnswers({});setJosaTestQuestions([]);onReady?.();setStep("sentenceStructure");}}
                 style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A876)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #00C89644"}}>
                 {vi?"Tiếp theo! 🚀":en?"Next! 🚀":"서술어 1단원으로! 🚀"}
               </button>
@@ -6366,6 +6366,75 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   // ════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════
+  // ✅ 문장구조 학습 화면 (서술어 학습 전 필수)
+  // ════════════════════════════════════════════════════════
+  if (step === "sentenceStructure") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const rows = [
+      { role: vi?"Chủ ngữ":en?"Subject":"주어",            particle: vi?"은/는/이/가":en?"은/는/이/가":"은/는/이/가",  color:"#E3F2FD", ex: vi?"Tôi (저는)":en?"I (저는)":"저는" },
+      { role: vi?"Trạng ngữ (thời gian)":en?"Adverb (time)":"부사어(시간)",  particle: vi?"에":en?"에":"에",    color:"#FFF8E1", ex: vi?"sáng nay (오늘 아침에)":en?"this morning (오늘 아침에)":"오늘 아침에" },
+      { role: vi?"Trạng ngữ (nơi chốn)":en?"Adverb (place)":"부사어(장소)", particle: vi?"에서":en?"에서":"에서", color:"#FFF8E1", ex: vi?"ở trường (학교에서)":en?"at school (학교에서)":"학교에서" },
+      { role: vi?"Tân ngữ gián tiếp":en?"Indirect Object":"간접목적어",      particle: vi?"에게":en?"에게":"에게", color:"#F3E5F5", ex: vi?"cho bạn (친구에게)":en?"to friend (친구에게)":"친구에게" },
+      { role: vi?"Tân ngữ":en?"Object":"목적어",             particle: vi?"을/를":en?"을/를":"을/를",  color:"#E8F5E9", ex: vi?"tiếng Hàn (한국어를)":en?"Korean (한국어를)":"한국어를" },
+      { role: vi?"Vị ngữ":en?"Predicate":"서술어",           particle: vi?"":en?"":"(동사/형용사)",   color:"#FCE4D6", ex: vi?"học (배웁니다)":en?"learn (배웁니다)":"배웁니다" },
+    ];
+    const exFull = vi
+      ? "Tôi sáng nay ở trường cho bạn tiếng Hàn học."
+      : en
+      ? "I this morning at school to friend Korean learn."
+      : "저는 오늘 아침에 학교에서 친구에게 한국어를 배웁니다.";
+    return (
+      <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#E8F5E9,#F1F8E9)",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px 0"}}>
+        <div style={{width:"100%",maxWidth:420,background:"white",borderRadius:20,padding:"28px 20px",boxShadow:"0 4px 24px #00000018"}}>
+          <div style={{textAlign:"center",marginBottom:20}}>
+            <div style={{fontSize:32}}>📐</div>
+            <div style={{fontSize:19,fontWeight:900,color:"#1B5E20",marginBottom:6}}>
+              {vi?"Cấu trúc câu tiếng Hàn":en?"Korean Sentence Structure":"한국어 문장 구조"}
+            </div>
+            <div style={{fontSize:13,color:"#555"}}>
+              {vi?"Tiếng Hàn đặt động từ ở cuối câu!":en?"Korean puts the verb at the end!":"한국어는 서술어가 항상 문장 끝에 와요!"}
+            </div>
+          </div>
+
+          {/* 구조 표 */}
+          <div style={{borderRadius:12,overflow:"hidden",border:"1.5px solid #E0E0E0",marginBottom:16}}>
+            {rows.map((r,i) => (
+              <div key={i} style={{display:"flex",alignItems:"center",background:r.color,borderBottom:i<rows.length-1?"1px solid #E0E0E0":"none",padding:"9px 14px",gap:8}}>
+                <div style={{minWidth:90,fontSize:12,fontWeight:700,color:"#333"}}>{r.role}</div>
+                <div style={{minWidth:60,fontSize:13,fontWeight:900,color:"#1565C0"}}>{r.particle}</div>
+                <div style={{fontSize:12,color:"#666"}}>{r.ex}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* 예문 전체 */}
+          <div style={{background:"#F9FBE7",borderRadius:10,padding:"12px 14px",marginBottom:16,textAlign:"center"}}>
+            <div style={{fontSize:11,color:"#888",marginBottom:4}}>
+              {vi?"Ví dụ đầy đủ":en?"Full example":"완전한 문장 예시"}
+            </div>
+            <div style={{fontSize:15,fontWeight:900,color:"#2E7D32",lineHeight:1.6}}>{exFull}</div>
+          </div>
+
+          {/* 포인트 */}
+          <div style={{background:"#FFF3E0",borderRadius:10,padding:"10px 14px",marginBottom:20,fontSize:12,color:"#E65100",lineHeight:1.7}}>
+            💡 {vi
+              ? "Trong tiếng Hàn, dù đổi thứ tự các thành phần khác, câu vẫn có nghĩa — nhưng vị ngữ luôn phải ở cuối!"
+              : en
+              ? "In Korean, word order can be flexible — but the predicate (verb/adjective) always comes last!"
+              : "한국어는 어순을 바꿔도 의미가 통하지만, 서술어는 반드시 문장 끝에 와야 해요!"}
+          </div>
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit1"); }}
+            style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A876)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #00C89644"}}>
+            {vi?"Bắt đầu học vị ngữ! 🚀":en?"Start learning predicates! 🚀":"서술어 학습 시작! 🚀"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // ✅ V156: 서술어 1단원 학습 화면 — 이에요/이다 (A=B)
   // ════════════════════════════════════════════════════════
   if (step === "unit1") {
@@ -6776,6 +6845,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       // ── 경어법 ──
       { native:{vi:"Bố tôi đang ở nhà.",           en:"My father is at home.",          ko:"아버지께서 집에 계십니다."},
         full:"아버지께서 집에 계십니다.", rule:{vi:"계시다 = 있다 (kính ngữ)", en:"계시다 = 있다 (honorific)", ko:"있다 → 계시다 (경어)"} },
+      // ── 질문-답변 쌍 (교사용 21~26번) ──
+      { native:{vi:"Bạn có bạn trai không?",        en:"Do you have a boyfriend?",       ko:"당신은 남자 친구가 있습니까?"},
+        full:"당신은 남자 친구가 있습니까?", rule:{vi:"있다 → 있습니까? (câu hỏi)", en:"있다 → 있습니까? (question)", ko:"있습니까? = 의문형"} },
+      { native:{vi:"Tôi không có bạn trai.",        en:"I don't have a boyfriend.",      ko:"저는 남자 친구가 없습니다."},
+        full:"저는 남자 친구가 없습니다.", rule:{vi:"없다 → 없습니다", en:"없다 → 없습니다", ko:"없다 → 없습니다"} },
+      { native:{vi:"Tôi đã từng có bạn trai.",      en:"I had a boyfriend before.",      ko:"저는 남자 친구가 있었습니다."},
+        full:"저는 남자 친구가 있었습니다.", rule:{vi:"있었습니다 = đã có (quá khứ)", en:"있었습니다 = had (past)", ko:"있다 → 있었습니다 (과거)"} },
+      { native:{vi:"Trên bầu trời có mây.",         en:"There are clouds in the sky.",   ko:"하늘에 구름이 있습니다."},
+        full:"하늘에 구름이 있습니다.", rule:{vi:"장소 + 에 + 명사 + 있습니다", en:"place + 에 + noun + 있습니다", ko:"장소+에 명사+이/가 있습니다"} },
+      { native:{vi:"Bố mẹ tôi ở quê.",             en:"My parents are in my hometown.",  ko:"고향에 부모님이 있습니다."},
+        full:"고향에 부모님이 있습니다.", rule:{vi:"고향에 + 부모님이 있습니다", en:"고향에 + 부모님이 있습니다", ko:"고향에 부모님이 있습니다"} },
+      { native:{vi:"Cô ấy ở trong tâm trí tôi.",   en:"She is in my heart.",            ko:"내 마음에 그녀가 있습니다."},
+        full:"내 마음에 그녀가 있습니다.", rule:{vi:"마음에 + 있습니다", en:"마음에 + 있습니다", ko:"내 마음에 그녀가 있습니다"} },
     ];
 
     const card  = UNIT2_CARDS[unitCardIdx];
@@ -7034,16 +7116,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"이 옷이 깁니다.", rule:{vi:"길다 → 깁니다 (ㄹ 탈락)", en:"길다 → 깁니다 (ㄹ drops)", ko:"길다 → 깁니다 (ㄹ 탈락)"} },
       // ── 날씨·온도 ──
       { native:{vi:"Thời tiết hôm nay tốt.",      en:"The weather is nice today.",    ko:"오늘 날씨가 좋습니다."},
-        full:"오늘 날씨가 좋습니다.", rule:{vi:"좋다 → 좋아요 / 좋습니다", en:"좋다 → 좋아요 / 좋습니다", ko:"좋다 → 좋아요 / 좋습니다"} },
+        full:"오늘은 날씨가 좋습니다.", rule:{vi:"좋다 → 좋아요 / 좋습니다", en:"좋다 → 좋아요 / 좋습니다", ko:"좋다 → 좋아요 / 좋습니다"} },
       { native:{vi:"Trời hôm nay nóng.",          en:"It is hot today.",              ko:"오늘은 덥습니다."},
         full:"오늘은 덥습니다.", rule:{vi:"덥다 → 덥습니다 (ㅂ 불규칙)", en:"덥다 → 덥습니다 (ㅂ irregular)", ko:"덥다 → 덥습니다 (ㅂ 불규칙)"} },
       { native:{vi:"Nước lạnh.",                  en:"The water is cold.",            ko:"물이 차갑습니다."},
-        full:"물이 차갑습니다.", rule:{vi:"차갑다 → 차갑습니다", en:"차갑다 → 차갑습니다", ko:"차갑다 → 차갑습니다"} },
+        full:"물은 차갑습니다.", rule:{vi:"차갑다 → 차갑습니다", en:"차갑다 → 차갑습니다", ko:"차갑다 → 차갑습니다"} },
       // ── 음식·맛 ──
       { native:{vi:"Thức ăn ngon.",               en:"The food is delicious.",        ko:"음식이 맛있습니다."},
-        full:"음식이 맛있습니다.", rule:{vi:"맛있다 → 맛있어요 / 맛있습니다", en:"맛있다 → 맛있어요 / 맛있습니다", ko:"맛있다 → 맛있어요 / 맛있습니다"} },
+        full:"음식은 맛있습니다.", rule:{vi:"맛있다 → 맛있어요 / 맛있습니다", en:"맛있다 → 맛있어요 / 맛있습니다", ko:"맛있다 → 맛있어요 / 맛있습니다"} },
       { native:{vi:"Thức ăn không ngon.",         en:"The food is not good.",         ko:"음식이 맛없습니다."},
-        full:"음식이 맛없습니다.", rule:{vi:"맛없다 → 맛없어요 / 맛없습니다", en:"맛없다 → 맛없어요 / 맛없습니다", ko:"맛없다 → 맛없어요 / 맛없습니다"} },
+        full:"음식은 맛없습니다.", rule:{vi:"맛없다 → 맛없어요 / 맛없습니다", en:"맛없다 → 맛없어요 / 맛없습니다", ko:"맛없다 → 맛없어요 / 맛없습니다"} },
       // ── 가격·상황 ──
       { native:{vi:"Nhà hàng này rẻ.",            en:"This restaurant is cheap.",     ko:"이 식당이 쌉니다."},
         full:"이 식당이 쌉니다.", rule:{vi:"싸다 → 싸요 / 쌉니다", en:"싸다 → 싸요 / 쌉니다", ko:"싸다 → 싸요 / 쌉니다"} },
@@ -7051,9 +7133,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"버스가 빠릅니다.", rule:{vi:"빠르다 → 빠릅니다 (ㅡ 탈락)", en:"빠르다 → 빠릅니다 (ㅡ drops)", ko:"빠르다 → 빠릅니다 (ㅡ 탈락)"} },
       // ── 감정·학습 ──
       { native:{vi:"Tiếng Hàn thú vị.",           en:"Korean is interesting.",        ko:"한국어가 재미있습니다."},
-        full:"한국어가 재미있습니다.", rule:{vi:"재미있다 → 재미있어요 / 재미있습니다", en:"재미있다 → 재미있어요 / 재미있습니다", ko:"재미있다 → 재미있어요 / 재미있습니다"} },
+        full:"한국어는 재미있습니다.", rule:{vi:"재미있다 → 재미있어요 / 재미있습니다", en:"재미있다 → 재미있어요 / 재미있습니다", ko:"재미있다 → 재미있어요 / 재미있습니다"} },
       { native:{vi:"Công việc này khó.",          en:"This work is difficult.",       ko:"이 일이 어렵습니다."},
-        full:"이 일이 어렵습니다.", rule:{vi:"어렵다 → 어려워요 / 어렵습니다 (ㅂ 불규칙)", en:"어렵다 → 어려워요 / 어렵습니다 (ㅂ irregular)", ko:"어렵다 → 어려워요 / 어렵습니다 (ㅂ 불규칙)"} },
+        full:"이 일은 어렵습니다.", rule:{vi:"어렵다 → 어려워요 / 어렵습니다 (ㅂ 불규칙)", en:"어렵다 → 어려워요 / 어렵습니다 (ㅂ irregular)", ko:"어렵다 → 어려워요 / 어렵습니다 (ㅂ 불규칙)"} },
       { native:{vi:"Tôi mệt.",                    en:"I am tired.",                   ko:"저는 피곤합니다."},
         full:"저는 피곤합니다.", rule:{vi:"피곤하다 → 피곤해요 / 피곤합니다", en:"피곤하다 → 피곤해요 / 피곤합니다", ko:"피곤하다 → 피곤해요 / 피곤합니다"} },
       { native:{vi:"Bệnh viện gần nhà tôi.",      en:"The hospital is close to my house.", ko:"병원이 가깝습니다."},
@@ -7156,17 +7238,17 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     const UNIT3B_CARDS = [
       { native:{vi:"Hôm nay trời lạnh.",       en:"Today is cold.",            ko:"오늘 날씨가 춥다."},
-        full:"오늘 날씨가 춥습니다.", rule:{vi:"춥다 → 춥습니다 (ㅂ불규칙)", en:"춥다 → 춥습니다 (ㅂ irregular)", ko:"춥다 → 춥습니다 (ㅂ불규칙)"} },
+        full:"오늘은 춥습니다.", rule:{vi:"춥다 → 춥습니다 (ㅂ불규칙)", en:"춥다 → 춥습니다 (ㅂ irregular)", ko:"춥다 → 춥습니다 (ㅂ불규칙)"} },
       { native:{vi:"Mùa hè trời nóng.",         en:"It's hot in summer.",       ko:"여름에 날씨가 덥다."},
-        full:"여름에 날씨가 덥습니다.", rule:{vi:"덥다 → 덥습니다 (ㅂ불규칙)", en:"덥다 → 덥습니다 (ㅂ irregular)", ko:"덥다 → 덥습니다 (ㅂ불규칙)"} },
+        full:"여름에는 덥습니다.", rule:{vi:"덥다 → 덥습니다 (ㅂ불규칙)", en:"덥다 → 덥습니다 (ㅂ irregular)", ko:"덥다 → 덥습니다 (ㅂ불규칙)"} },
       { native:{vi:"Tiếng Hàn khó.",            en:"Korean is difficult.",      ko:"한국어가 어렵다."},
-        full:"한국어가 어렵습니다.", rule:{vi:"어렵다 → 어렵습니다 (ㅂ불규칙)", en:"어렵다 → 어렵습니다 (ㅂ irregular)", ko:"어렵다 → 어렵습니다 (ㅂ불규칙)"} },
+        full:"한국어는 어렵습니다.", rule:{vi:"어렵다 → 어렵습니다 (ㅂ불규칙)", en:"어렵다 → 어렵습니다 (ㅂ irregular)", ko:"어렵다 → 어렵습니다 (ㅂ불규칙)"} },
       { native:{vi:"Cái túi này nhẹ.",          en:"This bag is light.",        ko:"이 가방이 가볍다."},
         full:"이 가방이 가볍습니다.", rule:{vi:"가볍다 → 가볍습니다 (ㅂ불규칙)", en:"가볍다 → 가볍습니다 (ㅂ irregular)", ko:"가볍다 → 가볍습니다 (ㅂ불규칙)"} },
       { native:{vi:"Hành lý này nặng.",         en:"This luggage is heavy.",    ko:"이 짐이 무겁다."},
         full:"이 짐이 무겁습니다.", rule:{vi:"무겁다 → 무겁습니다 (ㅂ불규칙)", en:"무겁다 → 무겁습니다 (ㅂ irregular)", ko:"무겁다 → 무겁습니다 (ㅂ불규칙)"} },
       { native:{vi:"Món ăn này cay.",           en:"This food is spicy.",       ko:"이 음식이 맵다."},
-        full:"이 음식이 맵습니다.", rule:{vi:"맵다 → 맵습니다 (ㅂ불규칙)", en:"맵다 → 맵습니다 (ㅂ irregular)", ko:"맵다 → 맵습니다 (ㅂ불규칙)"} },
+        full:"이 음식은 맵습니다.", rule:{vi:"맵다 → 맵습니다 (ㅂ불규칙)", en:"맵다 → 맵습니다 (ㅂ irregular)", ko:"맵다 → 맵습니다 (ㅂ불규칙)"} },
     ];
 
     const card  = UNIT3B_CARDS[unitCardIdx];
@@ -7779,17 +7861,17 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { id:"t5_17", q:"앉다 → ___",                       answer:"앉으세요",   answers:["앉으세요","앉으세요."],   hint:{ko:"💡 받침 있음 → 으세요", vi:"💡 Có phụ âm cuối → 으세요", en:"💡 Has batchim → 으세요"} },
       { id:"t5_18", q:"읽다 → ___",                       answer:"읽으세요",   answers:["읽으세요","읽으세요."],   hint:{ko:"💡 받침 있음 → 으세요", vi:"💡 Có phụ âm cuối → 으세요", en:"💡 Has batchim → 으세요"} },
       { id:"t5_19", q:"오다 → ___",                       answer:"오세요",     answers:["오세요","오세요."],       hint:{ko:"💡 받침 없음 → 세요", vi:"💡 Không có phụ âm cuối → 세요", en:"💡 No batchim → 세요"} },
-      { id:"t5_20", q:"먹다 → ___ (높임)",                answer:"드세요",     answers:["드세요","드세요."],       hint:{ko:"💡 먹다 높임말 → 드세요 (불규칙)", vi:"💡 먹다 kính ngữ → 드세요 (bất quy tắc)", en:"💡 먹다 honorific → 드세요 (irregular)"} },
-      { id:"t5_21", q:"알다 → ___",                       answer:"아세요",     answers:["아세요","아세요."],       hint:{ko:"💡 알다 → ㄹ탈락 → 아세요", vi:"💡 알다 → ㄹ rơi → 아세요", en:"💡 알다 → ㄹ drop → 아세요"} },
-      { id:"t5_22", q:"살다 → ___",                       answer:"사세요",     answers:["사세요","사세요."],       hint:{ko:"💡 살다 → ㄹ탈락 → 사세요", vi:"💡 살다 → ㄹ rơi → 사세요", en:"💡 살다 → ㄹ drop → 사세요"} },
-      { id:"t5_23", q:"천천히 ___. (걷다)",               answer:"걸으세요",   answers:["걸으세요","걸으세요."],   hint:{ko:"💡 걷다 → ㄷ불규칙 → 걸으세요", vi:"💡 걷다 → bất quy tắc ㄷ → 걸으세요", en:"💡 걷다 → ㄷ irregular → 걸으세요"} },
+      { id:"t5_20", q:"먹다 → ___ (높임)",                answer:"드세요",     answers:["드세요","드세요."],       hint:{ko:"💡 먹다 높임말은 불규칙 변환 → ?", vi:"💡 먹다 kính ngữ = bất quy tắc → ?", en:"💡 먹다 honorific = irregular → ?"} },
+      { id:"t5_21", q:"알다 → ___",                       answer:"아세요",     answers:["아세요","아세요."],       hint:{ko:"💡 알다 → ㄹ 받침 탈락 적용", vi:"💡 알다 → ㄹ bị rơi", en:"💡 알다 → ㄹ drops"} },
+      { id:"t5_22", q:"살다 → ___",                       answer:"사세요",     answers:["사세요","사세요."],       hint:{ko:"💡 살다 → ㄹ 받침 탈락 적용", vi:"💡 살다 → ㄹ bị rơi", en:"💡 살다 → ㄹ drops"} },
+      { id:"t5_23", q:"천천히 ___. (걷다)",               answer:"걸으세요",   answers:["걸으세요","걸으세요."],   hint:{ko:"💡 걷다 → ㄷ불규칙 적용", vi:"💡 걷다 → bất quy tắc ㄷ", en:"💡 걷다 → ㄷ irregular"} },
       { id:"t5_24", q:"말하다 → ___",                     answer:"말하세요",   answers:["말하세요","말하세요."],   hint:{ko:"💡 받침 없음 → 세요", vi:"💡 Không có phụ âm cuối → 세요", en:"💡 No batchim → 세요"} },
-      { id:"t5_25", q:"잠깐 기다려 ___. (부탁)",          answer:"주세요",     answers:["주세요","주세요."],       hint:{ko:"💡 주다 → 주세요 (부탁)", vi:"💡 주다 → 주세요 (nhờ vả)", en:"💡 주다 → 주세요 (request)"} },
-      { id:"t5_26", q:"여기에 ___. (앉다)",               answer:"앉으세요",   answers:["앉으세요","앉으세요."],   hint:{ko:"💡 앉다 → 받침 있음 → 앉으세요", vi:"💡 앉다 = ngồi → 앉으세요", en:"💡 앉다 = sit → 앉으세요"} },
-      { id:"t5_27", q:"천천히 ___. (말하다)",             answer:"말하세요",   answers:["말하세요","말하세요."],   hint:{ko:"💡 말하다 → 말하세요", vi:"💡 말하다 = nói → 말하세요", en:"💡 말하다 = speak → 말하세요"} },
-      { id:"t5_28", q:"이쪽으로 ___. (오다)",             answer:"오세요",     answers:["오세요","오세요."],       hint:{ko:"💡 오다 → 받침 없음 → 오세요", vi:"💡 오다 = đến → 오세요", en:"💡 오다 = come → 오세요"} },
-      { id:"t5_29", q:"한국어를 ___. (공부하다)",         answer:"공부하세요", answers:["공부하세요","공부하세요."],hint:{ko:"💡 공부하다 → 공부하세요", vi:"💡 공부하다 = học → 공부하세요", en:"💡 공부하다 = study → 공부하세요"} },
-      { id:"t5_30", q:"이 음식을 ___. (먹다·높임)",       answer:"드세요",     answers:["드세요","드세요."],       hint:{ko:"💡 먹다 높임말 → 드세요 (불규칙)", vi:"💡 먹다 kính ngữ → 드세요 (bất quy tắc)", en:"💡 먹다 honorific → 드세요 (irregular)"} },
+      { id:"t5_25", q:"잠깐 기다려 ___. (부탁)",          answer:"주세요",     answers:["주세요","주세요."],       hint:{ko:"💡 주다 → 받침 없음 + 부탁 표현", vi:"💡 주다 → không có phụ âm cuối + nhờ vả", en:"💡 주다 → no batchim + request form"} },
+      { id:"t5_26", q:"여기에 ___. (앉다)",               answer:"앉으세요",   answers:["앉으세요","앉으세요."],   hint:{ko:"💡 앉다 → 받침 있음 → ___으세요", vi:"💡 앉다 = ngồi → có phụ âm cuối", en:"💡 앉다 = sit → has batchim"} },
+      { id:"t5_27", q:"천천히 ___. (말하다)",             answer:"말하세요",   answers:["말하세요","말하세요."],   hint:{ko:"💡 말하다 → 받침 없음 적용", vi:"💡 말하다 = nói → không có phụ âm cuối", en:"💡 말하다 = speak → no batchim"} },
+      { id:"t5_28", q:"이쪽으로 ___. (오다)",             answer:"오세요",     answers:["오세요","오세요."],       hint:{ko:"💡 오다 → 받침 없음 적용", vi:"💡 오다 = đến → không có phụ âm cuối", en:"💡 오다 = come → no batchim"} },
+      { id:"t5_29", q:"한국어를 ___. (공부하다)",         answer:"공부하세요", answers:["공부하세요","공부하세요."],hint:{ko:"💡 공부하다 → 받침 없음 적용", vi:"💡 공부하다 = học → không có phụ âm cuối", en:"💡 공부하다 = study → no batchim"} },
+      { id:"t5_30", q:"이 음식을 ___. (먹다·높임)",       answer:"드세요",     answers:["드세요","드세요."],       hint:{ko:"💡 먹다 높임말은 불규칙 변환 → ?", vi:"💡 먹다 kính ngữ = bất quy tắc → ?", en:"💡 먹다 honorific = irregular → ?"} },
     ];
 
     function gradeTest5() {
@@ -7910,9 +7992,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Tôi thích cà phê. Và tôi cũng thích trà.",              en:"I like coffee. And I also like tea.",               ko:"저는 커피를 좋아합니다. 그리고 차도 좋아합니다."},
         full:"저는 커피를 좋아합니다. 그리고 차도 좋아합니다.", rule:{vi:"그리고 = và (thêm vào)", en:"그리고 = and (addition)", ko:"그리고 = 덧붙이기"} },
       { native:{vi:"Thời tiết tốt. Nhưng có gió.",                           en:"The weather is nice. But it's windy.",              ko:"날씨가 좋습니다. 그런데 바람이 붑니다."},
-        full:"날씨가 좋습니다. 그런데 바람이 붑니다.", rule:{vi:"그런데 = nhưng mà (chuyển chủ đề)", en:"그런데 = but/however", ko:"그런데 = 전환·대조"} },
+        full:"날씨는 좋습니다. 그런데 바람이 붑니다.", rule:{vi:"그런데 = nhưng mà (chuyển chủ đề)", en:"그런데 = but/however", ko:"그런데 = 전환·대조"} },
       { native:{vi:"Tiếng Hàn thú vị. Nhưng khó.",                          en:"Korean is interesting. But it's difficult.",        ko:"한국어가 재미있습니다. 하지만 어렵습니다."},
-        full:"한국어가 재미있습니다. 하지만 어렵습니다.", rule:{vi:"하지만 = nhưng (đối lập mạnh)", en:"하지만 = but (strong contrast)", ko:"하지만 = 강한 대조"} },
+        full:"한국어는 재미있습니다. 하지만 어렵습니다.", rule:{vi:"하지만 = nhưng (đối lập mạnh)", en:"하지만 = but (strong contrast)", ko:"하지만 = 강한 대조"} },
       { native:{vi:"Trời mưa. Vì vậy tôi mang ô.",                          en:"It's raining. So I brought an umbrella.",           ko:"비가 옵니다. 그래서 우산을 가져왔습니다."},
         full:"비가 옵니다. 그래서 우산을 가져왔습니다.", rule:{vi:"그래서 = vì vậy (kết quả)", en:"그래서 = so/therefore", ko:"그래서 = 원인→결과"} },
       { native:{vi:"Tôi đói bụng. Vì vậy tôi ăn cơm.",                     en:"I'm hungry. So I ate.",                             ko:"배가 고픕니다. 그래서 밥을 먹었습니다."},
@@ -8038,9 +8120,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Trời mưa và có gió.",                        en:"It's raining and windy.",                 ko:"비가 오고 바람이 붑니다."},
         full:"비가 오고 바람이 붑니다.", rule:{vi:"동사+고 = và (đồng thời)", en:"동사+고 = and (simultaneous)", ko:"동사+고 = 나열"} },
       { native:{vi:"Tiếng Hàn thú vị nhưng khó.",               en:"Korean is fun but difficult.",            ko:"한국어가 재미있지만 어렵습니다."},
-        full:"한국어가 재미있지만 어렵습니다.", rule:{vi:"지만 = nhưng (đối lập)", en:"지만 = but (contrast)", ko:"지만 = 대조"} },
+        full:"한국어는 재미있지만 어렵습니다.", rule:{vi:"지만 = nhưng (đối lập)", en:"지만 = but (contrast)", ko:"지만 = 대조"} },
       { native:{vi:"Giá đắt nhưng chất lượng tốt.",             en:"The price is expensive but good quality.", ko:"값이 비싸지만 좋습니다."},
-        full:"값이 비싸지만 좋습니다.", rule:{vi:"지만 = nhưng", en:"지만 = but", ko:"지만 = 대조"} },
+        full:"값은 비싸지만 좋습니다.", rule:{vi:"지만 = nhưng", en:"지만 = but", ko:"지만 = 대조"} },
       { native:{vi:"Tôi đói nên ăn cơm.",                       en:"I'm hungry so I eat.",                   ko:"배가 고파서 밥을 먹습니다."},
         full:"배가 고파서 밥을 먹습니다.", rule:{vi:"아/어서 = vì/nên (nguyên nhân)", en:"아/어서 = because (reason)", ko:"아/어서 = 이유"} },
       { native:{vi:"Tôi thích hát và cũng thích nhảy.",         en:"I like singing and also dancing.",        ko:"저는 노래를 좋아하고 춤도 좋아합니다."},
@@ -8159,27 +8241,27 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Tôi đang ăn cơm.",                    en:"I am eating now.",                    ko:"저는 지금 밥을 먹고 있습니다."},
         full:"저는 지금 밥을 먹고 있습니다.", rule:{vi:"먹다 + -고 있습니다 (đang)", en:"먹다 + -고 있습니다 (progressive)", ko:"먹다 + -고 있습니다"} },
       { native:{vi:"Bạn tôi đang gọi điện.",              en:"My friend is calling.",               ko:"친구가 전화하고 있습니다."},
-        full:"친구가 전화하고 있습니다.", rule:{vi:"전화하다 + -고 있습니다", en:"전화하다 + -고 있습니다", ko:"전화하다 + -고 있습니다"} },
+        full:"친구는 전화하고 있습니다.", rule:{vi:"전화하다 + -고 있습니다", en:"전화하다 + -고 있습니다", ko:"전화하다 + -고 있습니다"} },
       { native:{vi:"Đứa trẻ đang ngủ.",                   en:"The child is sleeping.",              ko:"아이가 자고 있습니다."},
-        full:"아이가 자고 있습니다.", rule:{vi:"자다 + -고 있습니다", en:"자다 + -고 있습니다", ko:"자다 + -고 있습니다"} },
+        full:"아이는 자고 있습니다.", rule:{vi:"자다 + -고 있습니다", en:"자다 + -고 있습니다", ko:"자다 + -고 있습니다"} },
       { native:{vi:"Tôi đang học tiếng Hàn.",             en:"I am studying Korean.",              ko:"저는 한국어를 공부하고 있습니다."},
         full:"저는 한국어를 공부하고 있습니다.", rule:{vi:"공부하다 + -고 있습니다", en:"공부하다 + -고 있습니다", ko:"공부하다 + -고 있습니다"} },
       { native:{vi:"Mẹ đang nấu ăn.",                     en:"Mom is cooking.",                    ko:"엄마가 요리하고 있습니다."},
-        full:"엄마가 요리하고 있습니다.", rule:{vi:"요리하다 + -고 있습니다", en:"요리하다 + -고 있습니다", ko:"요리하다 + -고 있습니다"} },
+        full:"엄마는 요리하고 있습니다.", rule:{vi:"요리하다 + -고 있습니다", en:"요리하다 + -고 있습니다", ko:"요리하다 + -고 있습니다"} },
       { native:{vi:"Trời đang mưa.",                      en:"It is raining.",                     ko:"비가 오고 있습니다."},
         full:"비가 오고 있습니다.", rule:{vi:"오다 + -고 있습니다 (날씨)", en:"오다 + -고 있습니다 (weather)", ko:"오다 + -고 있습니다"} },
       { native:{vi:"Bạn tôi đang hát.",                   en:"My friend is singing.",              ko:"친구가 노래를 부르고 있습니다."},
-        full:"친구가 노래를 부르고 있습니다.", rule:{vi:"부르다 + -고 있습니다 (ㄹ 불규칙)", en:"부르다 + -고 있습니다 (ㄹ irregular)", ko:"부르다 + -고 있습니다"} },
+        full:"친구는 노래를 부르고 있습니다.", rule:{vi:"부르다 + -고 있습니다 (ㄹ 불규칙)", en:"부르다 + -고 있습니다 (ㄹ irregular)", ko:"부르다 + -고 있습니다"} },
       { native:{vi:"Các học sinh đang thi.",              en:"Students are taking an exam.",       ko:"학생들이 시험을 보고 있습니다."},
-        full:"학생들이 시험을 보고 있습니다.", rule:{vi:"보다 + -고 있습니다", en:"보다 + -고 있습니다", ko:"보다 + -고 있습니다"} },
+        full:"학생들은 시험을 보고 있습니다.", rule:{vi:"보다 + -고 있습니다", en:"보다 + -고 있습니다", ko:"보다 + -고 있습니다"} },
       { native:{vi:"Đứa trẻ đang xem TV.",                en:"The child is watching TV.",          ko:"아이가 TV를 보고 있습니다."},
-        full:"아이가 TV를 보고 있습니다.", rule:{vi:"보다 + -고 있습니다", en:"보다 + -고 있습니다", ko:"보다 + -고 있습니다"} },
+        full:"아이는 TV를 보고 있습니다.", rule:{vi:"보다 + -고 있습니다", en:"보다 + -고 있습니다", ko:"보다 + -고 있습니다"} },
       { native:{vi:"Thầy giáo đang viết lên bảng.",      en:"The teacher is writing on the board.", ko:"선생님이 칠판에 쓰고 있습니다."},
-        full:"선생님이 칠판에 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있습니다 (ㅡ 탈락)", en:"쓰다 + -고 있습니다 (ㅡ drops)", ko:"쓰다 + -고 있습니다"} },
+        full:"선생님은 칠판에 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있습니다 (ㅡ 탈락)", en:"쓰다 + -고 있습니다 (ㅡ drops)", ko:"쓰다 + -고 있습니다"} },
       { native:{vi:"Anh tôi đang ngủ trong phòng.",       en:"My brother is sleeping in the room.", ko:"형이 방에서 자고 있습니다."},
-        full:"형이 방에서 자고 있습니다.", rule:{vi:"자다 + -고 있습니다", en:"자다 + -고 있습니다", ko:"자다 + -고 있습니다"} },
+        full:"형은 방에서 자고 있습니다.", rule:{vi:"자다 + -고 있습니다", en:"자다 + -고 있습니다", ko:"자다 + -고 있습니다"} },
       { native:{vi:"Chị tôi đang nghe điện thoại.",       en:"My sister is on the phone.",         ko:"언니가 전화를 하고 있습니다."},
-        full:"언니가 전화를 하고 있습니다.", rule:{vi:"하다 + -고 있습니다", en:"하다 + -고 있습니다", ko:"하다 + -고 있습니다"} },
+        full:"언니는 전화를 하고 있습니다.", rule:{vi:"하다 + -고 있습니다", en:"하다 + -고 있습니다", ko:"하다 + -고 있습니다"} },
       { native:{vi:"Tôi đang chờ xe buýt.",               en:"I am waiting for the bus.",          ko:"저는 버스를 기다리고 있습니다."},
         full:"저는 버스를 기다리고 있습니다.", rule:{vi:"기다리다 + -고 있습니다", en:"기다리다 + -고 있습니다", ko:"기다리다 + -고 있습니다"} },
       // ── 직장·실전 추가 ──
@@ -8188,7 +8270,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Tôi đang làm việc tại công ty.",      en:"I am working at the company.",       ko:"저는 회사에서 일하고 있습니다."},
         full:"저는 회사에서 일하고 있습니다.", rule:{vi:"일하다 + -고 있습니다", en:"일하다 + -고 있습니다", ko:"일하다 + -고 있습니다"} },
       { native:{vi:"Em tôi đang học bài.",                en:"My sibling is studying.",            ko:"동생이 공부하고 있습니다."},
-        full:"동생이 공부하고 있습니다.", rule:{vi:"공부하다 + -고 있습니다", en:"공부하다 + -고 있습니다", ko:"공부하다 + -고 있습니다"} },
+        full:"동생은 공부하고 있습니다.", rule:{vi:"공부하다 + -고 있습니다", en:"공부하다 + -고 있습니다", ko:"공부하다 + -고 있습니다"} },
       { native:{vi:"Bác sĩ đang khám bệnh.",             en:"The doctor is seeing patients.",     ko:"의사 선생님께서 진료 중이십니다."},
         full:"의사 선생님께서 진료 중이십니다.", rule:{vi:"께서 + -고 계십니다 (kính ngữ)", en:"께서 + -고 계십니다 (honorific)", ko:"께서 + -고 계십니다 (경어)"} },
     ];
@@ -8443,6 +8525,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           // ── 경어법 ──
       { native:{vi:"Thầy giáo có thể nói chậm hơn không?",  en:"Can the teacher speak more slowly?",  ko:"선생님께서 천천히 말씀해 주실 수 있습니까?"},
         full:"선생님께서 천천히 말씀해 주실 수 있습니까?", rule:{vi:"께서 + 말씀하시다 (kính ngữ)", en:"께서 + 말씀하시다 (honorific)", ko:"말하다 → 말씀하시다 (경어)"} },
+      // ── ~ㄹ 줄 알다/모르다 ──
+      { native:{vi:"Bạn có biết lái xe không?",              en:"Do you know how to drive?",           ko:"당신은 운전을 할 줄 압니까?"},
+        full:"당신은 운전을 할 줄 압니까?", rule:{vi:"할 줄 알다 = biết cách làm", en:"할 줄 알다 = know how to", ko:"동사 + -(으)ㄹ 줄 압니까?"} },
+      { native:{vi:"Vâng, tôi biết lái xe.",                en:"Yes, I know how to drive.",           ko:"예, 저는 운전을 할 줄 압니다."},
+        full:"예, 저는 운전을 할 줄 압니다.", rule:{vi:"할 줄 압니다 = biết cách làm", en:"할 줄 압니다 = know how to", ko:"동사 + -(으)ㄹ 줄 압니다"} },
+      { native:{vi:"Không, tôi không biết lái xe.",         en:"No, I don't know how to drive.",      ko:"아니요, 저는 운전을 할 줄 모릅니다."},
+        full:"아니요, 저는 운전을 할 줄 모릅니다.", rule:{vi:"할 줄 모르다 = không biết cách", en:"할 줄 모르다 = don't know how to", ko:"동사 + -(으)ㄹ 줄 모릅니다"} },
+      { native:{vi:"Bạn có biết bơi không?",                en:"Do you know how to swim?",            ko:"당신은 수영을 할 줄 압니까?"},
+        full:"당신은 수영을 할 줄 압니까?", rule:{vi:"수영하다 → 수영을 할 줄 압니까?", en:"수영하다 → 수영을 할 줄 압니까?", ko:"수영 + 할 줄 압니까?"} },
+      { native:{vi:"Tôi không biết nấu ăn.",               en:"I don't know how to cook.",           ko:"저는 요리를 할 줄 모릅니다."},
+        full:"저는 요리를 할 줄 모릅니다.", rule:{vi:"할 줄 모릅니다 = không biết cách", en:"할 줄 모릅니다 = don't know how", ko:"요리 + 할 줄 모릅니다"} },
+      { native:{vi:"Tôi biết chơi đàn piano.",             en:"I know how to play the piano.",       ko:"저는 피아노를 칠 줄 압니다."},
+        full:"저는 피아노를 칠 줄 압니다.", rule:{vi:"치다 → 칠 줄 압니다", en:"치다 → 칠 줄 압니다", ko:"치다 → 칠 줄 압니다"} },
     ];
 
     const card  = UNIT9_CARDS[unitCardIdx];
