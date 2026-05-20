@@ -7109,11 +7109,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const UNIT3_CARDS = [
       // ── 크기·상태 ──
       { native:{vi:"Cái túi này to.",             en:"This bag is big.",              ko:"이 가방이 큽니다."},
-        full:"이 가방이 큽니다.", rule:{vi:"크다 → 큽니다 (ㅡ 탈락)", en:"크다 → 큽니다 (ㅡ drops)", ko:"크다 → 큽니다 (ㅡ 탈락)"} },
+        full:"이 가방은 큽니다.", rule:{vi:"크다 → 큽니다 (ㅡ 탈락)", en:"크다 → 큽니다 (ㅡ drops)", ko:"크다 → 큽니다 (ㅡ 탈락)"} },
       { native:{vi:"Phòng này nhỏ.",              en:"This room is small.",           ko:"이 방이 작습니다."},
-        full:"이 방이 작습니다.", rule:{vi:"작다 → 작아요 / 작습니다", en:"작다 → 작아요 / 작습니다", ko:"작다 → 작아요 / 작습니다"} },
+        full:"이 방은 작습니다.", rule:{vi:"작다 → 작아요 / 작습니다", en:"작다 → 작아요 / 작습니다", ko:"작다 → 작아요 / 작습니다"} },
       { native:{vi:"Cái áo này dài.",             en:"This shirt is long.",           ko:"이 옷이 깁니다."},
-        full:"이 옷이 깁니다.", rule:{vi:"길다 → 깁니다 (ㄹ 탈락)", en:"길다 → 깁니다 (ㄹ drops)", ko:"길다 → 깁니다 (ㄹ 탈락)"} },
+        full:"이 옷은 깁니다.", rule:{vi:"길다 → 깁니다 (ㄹ 탈락)", en:"길다 → 깁니다 (ㄹ drops)", ko:"길다 → 깁니다 (ㄹ 탈락)"} },
       // ── 날씨·온도 ──
       { native:{vi:"Thời tiết hôm nay tốt.",      en:"The weather is nice today.",    ko:"오늘 날씨가 좋습니다."},
         full:"오늘은 날씨가 좋습니다.", rule:{vi:"좋다 → 좋아요 / 좋습니다", en:"좋다 → 좋아요 / 좋습니다", ko:"좋다 → 좋아요 / 좋습니다"} },
@@ -7128,7 +7128,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"음식은 맛없습니다.", rule:{vi:"맛없다 → 맛없어요 / 맛없습니다", en:"맛없다 → 맛없어요 / 맛없습니다", ko:"맛없다 → 맛없어요 / 맛없습니다"} },
       // ── 가격·상황 ──
       { native:{vi:"Nhà hàng này rẻ.",            en:"This restaurant is cheap.",     ko:"이 식당이 쌉니다."},
-        full:"이 식당이 쌉니다.", rule:{vi:"싸다 → 싸요 / 쌉니다", en:"싸다 → 싸요 / 쌉니다", ko:"싸다 → 싸요 / 쌉니다"} },
+        full:"이 식당은 쌉니다.", rule:{vi:"싸다 → 싸요 / 쌉니다", en:"싸다 → 싸요 / 쌉니다", ko:"싸다 → 싸요 / 쌉니다"} },
       { native:{vi:"Xe buýt nhanh.",              en:"The bus is fast.",              ko:"버스가 빠릅니다."},
         full:"버스가 빠릅니다.", rule:{vi:"빠르다 → 빠릅니다 (ㅡ 탈락)", en:"빠르다 → 빠릅니다 (ㅡ drops)", ko:"빠르다 → 빠릅니다 (ㅡ 탈락)"} },
       // ── 감정·학습 ──
@@ -7244,9 +7244,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Tiếng Hàn khó.",            en:"Korean is difficult.",      ko:"한국어가 어렵다."},
         full:"한국어는 어렵습니다.", rule:{vi:"어렵다 → 어렵습니다 (ㅂ불규칙)", en:"어렵다 → 어렵습니다 (ㅂ irregular)", ko:"어렵다 → 어렵습니다 (ㅂ불규칙)"} },
       { native:{vi:"Cái túi này nhẹ.",          en:"This bag is light.",        ko:"이 가방이 가볍다."},
-        full:"이 가방이 가볍습니다.", rule:{vi:"가볍다 → 가볍습니다 (ㅂ불규칙)", en:"가볍다 → 가볍습니다 (ㅂ irregular)", ko:"가볍다 → 가볍습니다 (ㅂ불규칙)"} },
+        full:"이 가방은 가볍습니다.", rule:{vi:"가볍다 → 가볍습니다 (ㅂ불규칙)", en:"가볍다 → 가볍습니다 (ㅂ irregular)", ko:"가볍다 → 가볍습니다 (ㅂ불규칙)"} },
       { native:{vi:"Hành lý này nặng.",         en:"This luggage is heavy.",    ko:"이 짐이 무겁다."},
-        full:"이 짐이 무겁습니다.", rule:{vi:"무겁다 → 무겁습니다 (ㅂ불규칙)", en:"무겁다 → 무겁습니다 (ㅂ irregular)", ko:"무겁다 → 무겁습니다 (ㅂ불규칙)"} },
+        full:"이 짐은 무겁습니다.", rule:{vi:"무겁다 → 무겁습니다 (ㅂ불규칙)", en:"무겁다 → 무겁습니다 (ㅂ irregular)", ko:"무겁다 → 무겁습니다 (ㅂ불규칙)"} },
       { native:{vi:"Món ăn này cay.",           en:"This food is spicy.",       ko:"이 음식이 맵다."},
         full:"이 음식은 맵습니다.", rule:{vi:"맵다 → 맵습니다 (ㅂ불규칙)", en:"맵다 → 맵습니다 (ㅂ irregular)", ko:"맵다 → 맵습니다 (ㅂ불규칙)"} },
     ];
@@ -7360,26 +7360,26 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { id:"t3_19", q:"우리 반에 남자가 ___.",   answer:"적어요",     answers:["적어요","적어요."],     hint:{ko:"💡 적다 (수량 적음)", vi:"💡 적다 = ít", en:"💡 적다 = to be few/little"} },
       { id:"t3_20", q:"오늘 할 일이 ___.",       answer:"많아요",     answers:["많아요","많아요."],     hint:{ko:"💡 많다 (수량 많음)", vi:"💡 많다 = nhiều", en:"💡 많다 = to be many/much"} },
       // ── 3단원 10문제 (형용사)
-      { id:"t3_21", q:"이 가방이 ___.",          answer:"커요",       answers:["커요","커요."],         hint:{ko:"💡 크다 → 큽니다", vi:"💡 크다 = to/lớn", en:"💡 크다 = big/tall"} },
-      { id:"t3_22", q:"저 가방이 ___.",          answer:"작아요",     answers:["작아요","작아요."],     hint:{ko:"💡 작다 → 작습니다", vi:"💡 작다 = nhỏ", en:"💡 작다 = small"} },
-      { id:"t3_23", q:"날씨가 ___.",             answer:"좋아요",     answers:["좋아요","좋아요."],     hint:{ko:"💡 좋다 → 좋습니다", vi:"💡 좋다 = tốt/thích", en:"💡 좋다 = good/like"} },
-      { id:"t3_24", q:"음식이 ___.",             answer:"맛있어요",   answers:["맛있어요","맛있어요."], hint:{ko:"💡 맛있다 → 맛있습니다", vi:"💡 맛있다 = ngon", en:"💡 맛있다 = delicious"} },
-      { id:"t3_25", q:"한국어가 ___.",           answer:"재미있어요", answers:["재미있어요","재미있어요."], hint:{ko:"💡 재미있다 → 재미있습니다", vi:"💡 재미있다 = thú vị", en:"💡 재미있다 = interesting/fun"} },
+      { id:"t3_21", q:"이 가방은 ___.",          answer:"큽니다",     answers:["큽니다","큽니다.","커요","커요."],         hint:{ko:"💡 크다 → 큽니다", vi:"💡 크다 = to/lớn", en:"💡 크다 = big/tall"} },
+      { id:"t3_22", q:"저 가방은 ___.",          answer:"작아요",     answers:["작아요","작아요."],     hint:{ko:"💡 작다 → 작습니다", vi:"💡 작다 = nhỏ", en:"💡 작다 = small"} },
+      { id:"t3_23", q:"날씨는 ___.",             answer:"좋아요",     answers:["좋아요","좋아요."],     hint:{ko:"💡 좋다 → 좋습니다", vi:"💡 좋다 = tốt/thích", en:"💡 좋다 = good/like"} },
+      { id:"t3_24", q:"음식은 ___.",             answer:"맛있어요",   answers:["맛있어요","맛있어요."], hint:{ko:"💡 맛있다 → 맛있습니다", vi:"💡 맛있다 = ngon", en:"💡 맛있다 = delicious"} },
+      { id:"t3_25", q:"한국어는 ___.",           answer:"재미있어요", answers:["재미있어요","재미있어요."], hint:{ko:"💡 재미있다 → 재미있습니다", vi:"💡 재미있다 = thú vị", en:"💡 재미있다 = interesting/fun"} },
       { id:"t3_26", q:"오늘 너무 ___.",          answer:"바빠요",     answers:["바빠요","바빠요."],     hint:{ko:"💡 바쁘다 → 바쁩니다", vi:"💡 바쁘다 = bận", en:"💡 바쁘다 = busy"} },
-      { id:"t3_27", q:"머리가 ___.",             answer:"아파요",     answers:["아파요","아파요."],     hint:{ko:"💡 아프다 → 아픕니다", vi:"💡 아프다 = đau/bệnh", en:"💡 아프다 = to be sick/hurt"} },
+      { id:"t3_27", q:"머리는 ___.",             answer:"아파요",     answers:["아파요","아파요."],     hint:{ko:"💡 아프다 → 아픕니다", vi:"💡 아프다 = đau/bệnh", en:"💡 아프다 = to be sick/hurt"} },
       { id:"t3_28", q:"오늘 날씨가 ___.",        answer:"싫어요",     answers:["싫어요","싫어요."],     hint:{ko:"💡 싫다 → 싫습니다", vi:"💡 싫다 = ghét/không thích", en:"💡 싫다 = to dislike"} },
-      { id:"t3_29", q:"이 음식이 ___.",          answer:"맛없어요",   answers:["맛없어요","맛없어요."], hint:{ko:"💡 맛없다 → 맛없습니다", vi:"💡 맛없다 = không ngon", en:"💡 맛없다 = not delicious"} },
-      { id:"t3_30", q:"한국어가 ___.",           answer:"어려워요",   answers:["어려워요","어려워요."], hint:{ko:"💡 어렵다 → 어렵습니다", vi:"💡 어렵다 = khó", en:"💡 어렵다 = difficult"} },
+      { id:"t3_29", q:"이 음식은 ___.",          answer:"맛없어요",   answers:["맛없어요","맛없어요."], hint:{ko:"💡 맛없다 → 맛없습니다", vi:"💡 맛없다 = không ngon", en:"💡 맛없다 = not delicious"} },
+      { id:"t3_30", q:"한국어는 ___.",           answer:"어려워요",   answers:["어려워요","어려워요."], hint:{ko:"💡 어렵다 → 어렵습니다", vi:"💡 어렵다 = khó", en:"💡 어렵다 = difficult"} },
       // ── 3B단원 10문제 (ㅂ불규칙)
       { id:"t3_31", q:"오늘 날씨가 ___.",          answer:"추워요",     answers:["추워요","추워요."],     hint:{ko:"💡 춥다 → ㅂ불규칙 → 춥습니다", vi:"💡 춥다 = lạnh → bất quy tắc ㅂ", en:"💡 춥다 = cold → ㅂ irregular"} },
       { id:"t3_32", q:"여름에 날씨가 ___.",         answer:"더워요",     answers:["더워요","더워요."],     hint:{ko:"💡 덥다 → ㅂ불규칙 → 덥습니다", vi:"💡 덥다 = nóng → bất quy tắc ㅂ", en:"💡 덥다 = hot → ㅂ irregular"} },
-      { id:"t3_33", q:"한국어가 ___.",              answer:"어려워요",   answers:["어려워요","어려워요."], hint:{ko:"💡 어렵다 → ㅂ불규칙 → 어렵습니다", vi:"💡 어렵다 → bất quy tắc ㅂ", en:"💡 어렵다 → ㅂ irregular"} },
-      { id:"t3_34", q:"이 가방이 ___.",             answer:"가벼워요",   answers:["가벼워요","가벼워요."], hint:{ko:"💡 가볍다 → ㅂ불규칙 → 가볍습니다", vi:"💡 가볍다 = nhẹ → bất quy tắc ㅂ", en:"💡 가볍다 = light → ㅂ irregular"} },
-      { id:"t3_35", q:"이 짐이 ___.",               answer:"무거워요",   answers:["무거워요","무거워요."], hint:{ko:"💡 무겁다 → ㅂ불규칙 → 무겁습니다", vi:"💡 무겁다 = nặng → bất quy tắc ㅂ", en:"💡 무겁다 = heavy → ㅂ irregular"} },
-      { id:"t3_36", q:"이 음식이 ___.",             answer:"매워요",     answers:["매워요","매워요."],     hint:{ko:"💡 맵다 → ㅂ불규칙 → 맵습니다", vi:"💡 맵다 = cay → bất quy tắc ㅂ", en:"💡 맵다 = spicy → ㅂ irregular"} },
+      { id:"t3_33", q:"한국어는 ___.",              answer:"어려워요",   answers:["어려워요","어려워요."], hint:{ko:"💡 어렵다 → ㅂ불규칙 → 어렵습니다", vi:"💡 어렵다 → bất quy tắc ㅂ", en:"💡 어렵다 → ㅂ irregular"} },
+      { id:"t3_34", q:"이 가방은 ___.",             answer:"가볍습니다", answers:["가볍습니다","가볍습니다.","가벼워요","가벼워요."], hint:{ko:"💡 가볍다 → ㅂ불규칙 → 가볍습니다", vi:"💡 가볍다 = nhẹ → bất quy tắc ㅂ", en:"💡 가볍다 = light → ㅂ irregular"} },
+      { id:"t3_35", q:"이 짐은 ___.",               answer:"무거워요",   answers:["무거워요","무거워요."], hint:{ko:"💡 무겁다 → ㅂ불규칙 → 무겁습니다", vi:"💡 무겁다 = nặng → bất quy tắc ㅂ", en:"💡 무겁다 = heavy → ㅂ irregular"} },
+      { id:"t3_36", q:"이 음식은 ___.",             answer:"매워요",     answers:["매워요","매워요."],     hint:{ko:"💡 맵다 → ㅂ불규칙 → 맵습니다", vi:"💡 맵다 = cay → bất quy tắc ㅂ", en:"💡 맵다 = spicy → ㅂ irregular"} },
       { id:"t3_37", q:"겨울에 날씨가 ___.",         answer:"추워요",     answers:["추워요","추워요."],     hint:{ko:"💡 춥다 → 추+워요 (해요체 ㅂ불규칙)", vi:"💡 춥다 → 추+워요 (ㅂ bất quy tắc thể 해요)", en:"💡 춥다 → 추+워요 (해요 ㅂ irregular)"} },
-      { id:"t3_38", q:"이 책이 ___.",               answer:"어려워요",   answers:["어려워요","어려워요."], hint:{ko:"💡 어렵다 → 어려+워요 (해요체)", vi:"💡 어렵다 → 어려+워요 (thể 해요)", en:"💡 어렵다 → 어려+워요 (해요 form)"} },
-      { id:"t3_39", q:"이 짐이 너무 ___.",          answer:"무거워요",   answers:["무거워요","무거워요."], hint:{ko:"💡 무겁다 → 무거+워요 (해요체)", vi:"💡 무겁다 → 무거+워요 (thể 해요)", en:"💡 무겁다 → 무거+워요 (해요 form)"} },
+      { id:"t3_38", q:"이 책은 ___.",               answer:"어려워요",   answers:["어려워요","어려워요."], hint:{ko:"💡 어렵다 → 어려+워요 (해요체)", vi:"💡 어렵다 → 어려+워요 (thể 해요)", en:"💡 어렵다 → 어려+워요 (해요 form)"} },
+      { id:"t3_39", q:"이 짐은 너무 ___.",          answer:"무거워요",   answers:["무거워요","무거워요."], hint:{ko:"💡 무겁다 → 무거+워요 (해요체)", vi:"💡 무겁다 → 무거+워요 (thể 해요)", en:"💡 무겁다 → 무거+워요 (해요 form)"} },
       { id:"t3_40", q:"김치가 ___.",                answer:"매워요",     answers:["매워요","매워요."],     hint:{ko:"💡 맵다 → 매+워요 (해요체)", vi:"💡 맵다 → 매+워요 (thể 해요)", en:"💡 맵다 → 매+워요 (해요 form)"} },
     ];
 
@@ -7840,13 +7840,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // 포함 단원: 3·4·5단원 (2단원 졸업 — 3회 졸업 규칙 적용)
     const TEST5_QUESTIONS = [
       // ── 3단원 복습 (8문항) ──
-      { id:"t5_1",  q:"날씨가 ___. (좋다)",              answer:"좋습니다",   answers:["좋습니다","좋습니다."],   hint:{ko:"💡 좋다 → 좋습니다", vi:"💡 좋다 → 좋습니다 (tốt)", en:"💡 좋다 → 좋습니다 (good)"} },
+      { id:"t5_1",  q:"날씨는 ___. (좋다)",              answer:"좋습니다",   answers:["좋습니다","좋습니다."],   hint:{ko:"💡 좋다 → 좋습니다", vi:"💡 좋다 → 좋습니다 (tốt)", en:"💡 좋다 → 좋습니다 (good)"} },
       { id:"t5_2",  q:"오늘 날씨가 ___. (춥다)",          answer:"춥습니다",   answers:["춥습니다","춥습니다."],   hint:{ko:"💡 춥다 → ㅂ불규칙 → 춥습니다", vi:"💡 춥다 → bất quy tắc ㅂ → 춥습니다", en:"💡 춥다 → ㅂ irregular → 춥습니다"} },
-      { id:"t5_3",  q:"이 음식이 ___. (맵다)",            answer:"맵습니다",   answers:["맵습니다","맵습니다."],   hint:{ko:"💡 맵다 → ㅂ불규칙 → 맵습니다", vi:"💡 맵다 → bất quy tắc ㅂ → 맵습니다", en:"💡 맵다 → ㅂ irregular → 맵습니다"} },
-      { id:"t5_4",  q:"한국어가 ___. (어렵다)",           answer:"어렵습니다", answers:["어렵습니다","어렵습니다."],hint:{ko:"💡 어렵다 → ㅂ불규칙 → 어렵습니다", vi:"💡 어렵다 → bất quy tắc ㅂ → 어렵습니다", en:"💡 어렵다 → ㅂ irregular → 어렵습니다"} },
-      { id:"t5_5",  q:"이 가방이 ___. (가볍다)",          answer:"가볍습니다", answers:["가볍습니다","가볍습니다."],hint:{ko:"💡 가볍다 → ㅂ불규칙 → 가볍습니다", vi:"💡 가볍다 → bất quy tắc ㅂ → 가볍습니다", en:"💡 가볍다 → ㅂ irregular → 가볍습니다"} },
+      { id:"t5_3",  q:"이 음식은 ___. (맵다)",            answer:"맵습니다",   answers:["맵습니다","맵습니다."],   hint:{ko:"💡 맵다 → ㅂ불규칙 → 맵습니다", vi:"💡 맵다 → bất quy tắc ㅂ → 맵습니다", en:"💡 맵다 → ㅂ irregular → 맵습니다"} },
+      { id:"t5_4",  q:"한국어는 ___. (어렵다)",           answer:"어렵습니다", answers:["어렵습니다","어렵습니다."],hint:{ko:"💡 어렵다 → ㅂ불규칙 → 어렵습니다", vi:"💡 어렵다 → bất quy tắc ㅂ → 어렵습니다", en:"💡 어렵다 → ㅂ irregular → 어렵습니다"} },
+      { id:"t5_5",  q:"이 가방은 ___. (가볍다)",          answer:"가볍습니다", answers:["가볍습니다","가볍습니다."],hint:{ko:"💡 가볍다 → ㅂ불규칙 → 가볍습니다", vi:"💡 가볍다 → bất quy tắc ㅂ → 가볍습니다", en:"💡 가볍다 → ㅂ irregular → 가볍습니다"} },
       { id:"t5_6",  q:"여름에 날씨가 ___. (덥다)",        answer:"덥습니다",   answers:["덥습니다","덥습니다."],   hint:{ko:"💡 덥다 → ㅂ불규칙 → 덥습니다", vi:"💡 덥다 → bất quy tắc ㅂ → 덥습니다", en:"💡 덥다 → ㅂ irregular → 덥습니다"} },
-      { id:"t5_7",  q:"이 식당이 ___. (비싸다)",          answer:"비쌉니다",   answers:["비쌉니다","비쌉니다."],   hint:{ko:"💡 비싸다 → 비쌉니다", vi:"💡 비싸다 = đắt → 비쌉니다", en:"💡 비싸다 = expensive → 비쌉니다"} },
+      { id:"t5_7",  q:"이 식당은 ___. (비싸다)",          answer:"비쌉니다",   answers:["비쌉니다","비쌉니다."],   hint:{ko:"💡 비싸다 → 비쌉니다", vi:"💡 비싸다 = đắt → 비쌉니다", en:"💡 비싸다 = expensive → 비쌉니다"} },
       { id:"t5_8",  q:"오늘 기분이 ___. (좋다)",          answer:"좋습니다",   answers:["좋습니다","좋습니다."],   hint:{ko:"💡 좋다 → 좋습니다", vi:"💡 좋다 → 좋습니다 (tốt)", en:"💡 좋다 → 좋습니다 (good)"} },
       // ── 4단원 복습 (8문항) ──
       { id:"t5_9",  q:"___ 갑니까? (장소)",               answer:"어디",       answers:["어디"],                   hint:{ko:"💡 장소를 물을 때 → 어디", vi:"💡 Hỏi về địa điểm → 어디 (ở đâu)", en:"💡 Asking about place → 어디 (where)"} },
