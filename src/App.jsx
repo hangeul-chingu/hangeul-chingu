@@ -4889,17 +4889,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       window.speechSynthesis.speak(u);
     }
 
-    const vocab = selWord ? VOCAB.find(v => v.word === selWord) : null;
-
-    // 행 공개 토글
-    function toggleReveal(word, colKey) {
-      const mapKey = word + "_" + colKey;
-      setJosaRevealMap(prev => ({ ...prev, [mapKey]: !prev[mapKey] }));
-    }
-    function isRevealed(word, colKey) {
-      return !!josaRevealMap[word + "_" + colKey];
-    }
-
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FFE0B2)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
