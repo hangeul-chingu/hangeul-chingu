@@ -10493,18 +10493,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const vi = lang?.code === "vi"; const en = lang?.code === "en";
     const UNIT25_CARDS = [
       // ── 기간: ~ㄴ지 + 시간 + 되다 ──
-      { native:{vi:"Bạn học tiếng Hàn được bao lâu rồi?",   en:"How long have you studied Korean?",  ko:"한국어를 배운 지 얼마나 됐습니까?"},
-        full:"한국어를 배운 지 얼마나 됐습니까?", rule:{vi:"배우다 → 배운 지 + 시간 + 됐습니다", en:"배우다 → 배운 지 + time + 됐습니다", ko:"동사+ㄴ 지 얼마나 됐습니까?"} },
-      { native:{vi:"Tôi học tiếng Hàn được 6 tháng rồi.",   en:"I have studied Korean for 6 months.", ko:"한국어를 배운 지 6개월 됐습니다."},
-        full:"한국어를 배운 지 6개월 됐습니다.", rule:{vi:"배운 지 6개월 됐습니다", en:"배운 지 6개월 됐습니다", ko:"배운 지 + 기간 + 됐습니다"} },
-      { native:{vi:"Bạn đến Hàn Quốc được bao lâu rồi?",    en:"How long have you been in Korea?",   ko:"한국에 온 지 얼마나 됐습니까?"},
-        full:"한국에 온 지 얼마나 됐습니까?", rule:{vi:"오다 → 온 지 얼마나 됐습니까?", en:"오다 → 온 지 얼마나 됐습니까?", ko:"온 지 얼마나 됐습니까?"} },
-      { native:{vi:"Tôi đến Hàn Quốc được 2 năm rồi.",      en:"I have been in Korea for 2 years.",  ko:"한국에 온 지 2년 됐습니다."},
-        full:"한국에 온 지 2년 됐습니다.", rule:{vi:"온 지 2년 됐습니다", en:"온 지 2년 됐습니다", ko:"온 지 + 기간 + 됐습니다"} },
-      { native:{vi:"Bạn làm việc ở đây được bao lâu rồi?",  en:"How long have you worked here?",    ko:"여기서 일한 지 얼마나 됐습니까?"},
-        full:"여기서 일한 지 얼마나 됐습니까?", rule:{vi:"일하다 → 일한 지 얼마나 됐습니까?", en:"일하다 → 일한 지 얼마나 됐습니까?", ko:"일한 지 얼마나 됐습니까?"} },
-      { native:{vi:"Tôi làm việc ở đây được 3 năm rồi.",    en:"I have worked here for 3 years.",   ko:"여기서 일한 지 3년 됐습니다."},
-        full:"여기서 일한 지 3년 됐습니다.", rule:{vi:"일한 지 3년 됐습니다", en:"일한 지 3년 됐습니다", ko:"일한 지 + 기간 + 됐습니다"} },
+      { native:{vi:"Bạn học tiếng Hàn được bao lâu rồi?",   en:"How long have you studied Korean?",  ko:"한국어를 배운 지 얼마나 되었습니까?"},
+        full:"한국어를 배운 지 얼마나 되었습니까?", rule:{vi:"배우다 → 배운 지 + 시간 + 되었습니다", en:"배우다 → 배운 지 + time + 되었습니다", ko:"동사+ㄴ 지 얼마나 되었습니까?"} },
+      { native:{vi:"Tôi học tiếng Hàn được 6 tháng rồi.",   en:"I have studied Korean for 6 months.", ko:"한국어를 배운 지 6개월이 되었습니다."},
+        full:"한국어를 배운 지 6개월이 되었습니다.", rule:{vi:"배운 지 6개월이 되었습니다", en:"배운 지 6개월이 되었습니다", ko:"배운 지 + 기간 + 이/가 되었습니다"} },
+      { native:{vi:"Bạn đến Hàn Quốc được bao lâu rồi?",    en:"How long have you been in Korea?",   ko:"한국에 온 지 얼마나 되었습니까?"},
+        full:"한국에 온 지 얼마나 되었습니까?", rule:{vi:"오다 → 온 지 얼마나 되었습니까?", en:"오다 → 온 지 얼마나 되었습니까?", ko:"온 지 얼마나 되었습니까?"} },
+      { native:{vi:"Tôi đến Hàn Quốc được 2 năm rồi.",      en:"I have been in Korea for 2 years.",  ko:"한국에 온 지 2년이 되었습니다."},
+        full:"한국에 온 지 2년이 되었습니다.", rule:{vi:"온 지 2년이 되었습니다", en:"온 지 2년이 되었습니다", ko:"온 지 + 기간 + 이/가 되었습니다"} },
+      { native:{vi:"Bạn làm việc ở đây được bao lâu rồi?",  en:"How long have you worked here?",    ko:"여기서 일한 지 얼마나 되었습니까?"},
+        full:"여기서 일한 지 얼마나 되었습니까?", rule:{vi:"일하다 → 일한 지 얼마나 되었습니까?", en:"일하다 → 일한 지 얼마나 되었습니까?", ko:"일한 지 얼마나 되었습니까?"} },
+      { native:{vi:"Tôi làm việc ở đây được 3 năm rồi.",    en:"I have worked here for 3 years.",   ko:"여기서 일한 지 3년이 되었습니다."},
+        full:"여기서 일한 지 3년이 되었습니다.", rule:{vi:"일한 지 3년이 되었습니다", en:"일한 지 3년이 되었습니다", ko:"일한 지 + 기간 + 이/가 되었습니다"} },
       // ── 시간: 걸리다 ──
       { native:{vi:"Từ đây đến bệnh viện mất bao lâu?",     en:"How long does it take to the hospital?", ko:"여기에서 병원까지 얼마나 걸립니까?"},
         full:"여기에서 병원까지 얼마나 걸립니까?", rule:{vi:"걸리다 = mất (bao lâu)", en:"걸리다 = take (how long)", ko:"얼마나 걸립니까?"} },
@@ -10529,6 +10529,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"여기서 거기까지 버스비가 얼마나 듭니까?", rule:{vi:"버스비가 얼마나 듭니까?", en:"버스비가 얼마나 듭니까?", ko:"비용이 얼마나 듭니까?"} },
       { native:{vi:"Hết 1.500 won.",                        en:"It costs 1,500 won.",                ko:"1,500원 듭니다."},
         full:"1,500원 듭니다.", rule:{vi:"금액 + 듭니다", en:"amount + 듭니다", ko:"금액 + 듭니다"} },
+      // ── 지나다 패턴 (교사용 329번) ──
+      { native:{vi:"Đã qua 20 phút kể từ khi bắt đầu lớp học.",  en:"It's been 20 minutes since class started.", ko:"수업이 시작된 지 20분이 지났습니다."},
+        full:"수업이 시작된 지 20분이 지났습니다.", rule:{vi:"동사+ㄴ 지 + 시간 + 지났습니다 (đã qua)", en:"verb+ㄴ 지 + time + 지났습니다 (passed)", ko:"동사+ㄴ 지 + 시간 + 지났습니다"} },
+      // ── 다양한 기간 상황 (교사용 328, 330번) ──
+      { native:{vi:"Tôi kết hôn được 2 năm rồi.",                 en:"It's been 2 years since I got married.", ko:"저는 결혼한 지 2년이 되었습니다."},
+        full:"저는 결혼한 지 2년이 되었습니다.", rule:{vi:"결혼하다 → 결혼한 지 2년이 되었습니다", en:"결혼하다 → 결혼한 지 2년이 되었습니다", ko:"결혼한 지 + 기간 + 이/가 되었습니다"} },
+      { native:{vi:"Tôi hẹn hò với bạn trai được 100 ngày rồi.", en:"It's been 100 days since I started dating.", ko:"남자 친구와 사귄 지 100일이 되었습니다."},
+        full:"남자 친구와 사귄 지 100일이 되었습니다.", rule:{vi:"사귀다 → 사귄 지 100일이 되었습니다", en:"사귀다 → 사귄 지 100일이 되었습니다", ko:"사귄 지 + 기간 + 이/가 되었습니다"} },
     ];
     const card = UNIT25_CARDS[unitCardIdx];
     const total25 = UNIT25_CARDS.length;
