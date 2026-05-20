@@ -4630,6 +4630,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { key:"or",    label:vi?"Hoặc":en?"Or":"or (선택)", josa_no:"나", josa_yes:"이나" },
       { key:"also",  label:vi?"Cũng":en?"Also":"도 (함께)", josa_no:"도", josa_yes:"도" },
     ];
+
+    const selWord = josaSelWord;
+    const setSelWord = setJosaSelWord;
+    const vocab = selWord ? VOCAB.find(v => v.word === selWord) : null;
+
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
