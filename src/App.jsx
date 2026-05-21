@@ -1412,6 +1412,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"간접화법",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }},
       { label:"존칭",     action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }},
       { label:"불규칙",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }},
+      { label:"종별사",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_counter"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -12335,6 +12336,152 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_counter") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const conceptLabel = vi
+      ? "종별사 (Từ đơn vị — từ dùng khi đếm số lượng)"
+      : en
+      ? "종별사 (Counter word — unit word used when counting)"
+      : "종별사 (수량을 셀 때 쓰는 단위 표현)";
+    const CTR_SECTIONS = [
+      {
+        key:"사람·동물 종별사", label:vi?"Từ đơn vị người & động vật":en?"People & Animal Counters":"명(사람) · 마리(동물)", color:"#E8F5E9", accent:"#2E7D32",
+        rule:{vi:"명 — đếm người / 마리 — đếm động vật. Dùng số thuần Hàn: 한·두·세·네...", en:"명 — count people / 마리 — count animals. Use native Korean numbers: 한·두·세·네...", ko:"명 — 사람 셀 때 / 마리 — 동물 셀 때. 순우리말 수사 사용: 한·두·세·네..."},
+        cards:[
+          { native:{vi:"Trong lớp có 4 học sinh.", en:"There are four students in the classroom.", ko:"교실에 학생이 네 명 있습니다."},
+            full:"교실에 학생이 네 명 있습니다.", rule:{vi:"명 [대상: 사람] — 네 명(4명)", en:"명 [target: people] — 네 명(4 people)", ko:"명 [대상: 사람] — 네 명 (사람 전용 종별사)"} },
+          { native:{vi:"Ở nhà có 1 con chó.", en:"There is a dog in the house.", ko:"집에 개가 한 마리 있습니다."},
+            full:"집에 개가 한 마리 있습니다.", rule:{vi:"마리 [대상: 동물] — 한 마리(1마리)", en:"마리 [target: animal] — 한 마리(1 animal)", ko:"마리 [대상: 동물] — 한 마리 (동물 전용 종별사)"} },
+        ]
+      },
+      {
+        key:"사물 종별사", label:vi?"Từ đơn vị đồ vật":en?"Object Counters":"개(일반) · 장(얇은 것) · 권(책)", color:"#E3F2FD", accent:"#0D47A1",
+        rule:{vi:"개 — đếm đồ vật nói chung / 장 — đếm thứ mỏng như giấy / 권 — đếm sách·vở", en:"개 — general objects / 장 — flat thin things like paper / 권 — books/notebooks", ko:"개 — 사물 일반 / 장 — 종이처럼 얇고 납작한 것 / 권 — 책·노트"},
+        cards:[
+          { native:{vi:"Trong tủ lạnh có 2 quả táo.", en:"There are two apples in the refrigerator.", ko:"냉장고에 사과가 두 개 있습니다."},
+            full:"냉장고에 사과가 두 개 있습니다.", rule:{vi:"개 [대상: 사물 일반] — 두 개(2개)", en:"개 [target: general objects] — 두 개(2 items)", ko:"개 [대상: 사물 일반] — 두 개 (가장 범용 종별사)"} },
+          { native:{vi:"Hãy cho tôi 1 tờ giấy.", en:"Please give me a piece of paper.", ko:"종이 한 장 주세요."},
+            full:"종이 한 장 주세요.", rule:{vi:"장 [대상: 종이·얇은 것] — 한 장(1장)", en:"장 [target: paper/flat things] — 한 장(1 sheet)", ko:"장 [대상: 종이·얇은 것] — 한 장 (납작한 것 전용)"} },
+          { native:{vi:"Tôi đã mua 3 quyển sách ở hiệu sách.", en:"I bought three books at the bookstore.", ko:"서점에서 책을 세 권 샀습니다."},
+            full:"서점에서 책을 세 권 샀습니다.", rule:{vi:"권 [대상: 책·노트] — 세 권(3권) (120% 추가)", en:"권 [target: books/notebooks] — 세 권(3 books) (120% extra)", ko:"권 [대상: 책·노트] — 세 권 (120% 추가)"} },
+        ]
+      },
+      {
+        key:"용기 종별사", label:vi?"Từ đơn vị đồ đựng":en?"Container Counters":"병(병) · 잔(잔·컵)", color:"#FFF8E1", accent:"#F57F17",
+        rule:{vi:"병 — đếm chai/lọ / 잔 — đếm ly·tách. Dùng khi nói về đồ uống đựng trong vật chứa", en:"병 — bottles / 잔 — cups/glasses. Used when talking about drinks in containers", ko:"병 — 병·캔 / 잔 — 잔·컵. 음료를 담는 용기의 종류에 따라 구분"},
+        cards:[
+          { native:{vi:"Tuân đã uống 2 chai bia.", en:"Tuan drank two bottles of beer.", ko:"투안은 맥주를 두 병 마셨습니다."},
+            full:"투안은 맥주를 두 병 마셨습니다.", rule:{vi:"병 [대상: 병 음료] — 두 병(2병)", en:"병 [target: bottled drinks] — 두 병(2 bottles)", ko:"병 [대상: 병에 담긴 것] — 두 병"} },
+          { native:{vi:"Hãy cho tôi 1 ly nước.", en:"Please give me a glass of water.", ko:"물 한 잔 주세요."},
+            full:"물 한 잔 주세요.", rule:{vi:"잔 [대상: 잔·컵 음료] — 한 잔(1잔)", en:"잔 [target: cup/glass drinks] — 한 잔(1 glass)", ko:"잔 [대상: 잔에 담긴 것] — 한 잔"} },
+          { native:{vi:"Hãy cho tôi 1 ly cà phê.", en:"Please give me a cup of coffee.", ko:"커피 한 잔 주세요."},
+            full:"커피 한 잔 주세요.", rule:{vi:"잔 [대상: 잔·컵 음료] — 한 잔(1잔)", en:"잔 [target: cup/glass drinks] — 한 잔(1 cup)", ko:"잔 [대상: 잔에 담긴 것] — 한 잔 (물·커피 모두 잔)"} },
+        ]
+      },
+      {
+        key:"탈것·식물 종별사", label:vi?"Từ đơn vị phương tiện & thực vật":en?"Vehicle & Plant Counters":"대(기계·탈것) · 척(배) · 그루(나무) · 켤레(쌍)", color:"#F3E5F5", accent:"#6A1B9A",
+        rule:{vi:"대 — đếm máy móc·phương tiện / 척 — đếm tàu thuyền / 그루 — đếm cây / 켤레 — đếm đồ thành đôi", en:"대 — machines/vehicles / 척 — ships/boats / 그루 — trees / 켤레 — pairs (shoes/socks)", ko:"대 — 기계·탈것 / 척 — 배 / 그루 — 나무 / 켤레 — 쌍을 이루는 것(신발·양말)"},
+        cards:[
+          { native:{vi:"Ở sân bay có 5 chiếc máy bay.", en:"There are five planes at the airport.", ko:"공항에 비행기가 다섯 대 있습니다."},
+            full:"공항에 비행기가 다섯 대 있습니다.", rule:{vi:"대 [대상: 기계·탈것] — 다섯 대(5대)", en:"대 [target: machines/vehicles] — 다섯 대(5 planes)", ko:"대 [대상: 기계·탈것] — 다섯 대"} },
+          { native:{vi:"Trên biển có 1 chiếc thuyền.", en:"There is a ship in the sea.", ko:"바다에 배가 한 척 있습니다."},
+            full:"바다에 배가 한 척 있습니다.", rule:{vi:"척 [대상: 배·선박] — 한 척(1척)", en:"척 [target: ships/boats] — 한 척(1 ship)", ko:"척 [대상: 배·선박] — 한 척 (배 전용)"} },
+          { native:{vi:"Trong vườn có 10 cái cây.", en:"There are ten trees in the garden.", ko:"정원에 나무가 열 그루 있습니다."},
+            full:"정원에 나무가 열 그루 있습니다.", rule:{vi:"그루 [대상: 나무] — 열 그루(10그루)", en:"그루 [target: trees] — 열 그루(10 trees)", ko:"그루 [대상: 나무] — 열 그루 (나무 전용)"} },
+          { native:{vi:"Tôi đã mua 2 đôi giày mới.", en:"I bought two pairs of new shoes.", ko:"새 신발을 두 켤레 샀습니다."},
+            full:"새 신발을 두 켤레 샀습니다.", rule:{vi:"켤레 [대상: 신발·양말 등 쌍] — 두 켤레(2켤레) (120% 추가)", en:"켤레 [target: pairs — shoes/socks] — 두 켤레(2 pairs) (120% extra)", ko:"켤레 [대상: 쌍을 이루는 것] — 두 켤레 (120% 추가)"} },
+        ]
+      },
+      {
+        key:"꽃 종별사", label:vi?"Từ đơn vị hoa":en?"Flower Counters":"송이(낱개) · 다발(묶음)", color:"#FCE4EC", accent:"#880E4F",
+        rule:{vi:"송이 — đếm từng bông hoa / 다발 — đếm bó hoa. Chú ý: 한 송이(1 bông) ≠ 한 다발(1 bó)", en:"송이 — individual flowers / 다발 — bunches/bouquets. Note: 한 송이(1 flower) ≠ 한 다발(1 bunch)", ko:"송이 — 꽃 낱개 / 다발 — 꽃 묶음. 한 송이(1개) vs 한 다발(여러 개 묶음) 구분"},
+        cards:[
+          { native:{vi:"Anh ấy đã tặng cho tôi 1 bông hoa.", en:"He gave me one flower.", ko:"그는 꽃 한 송이를 주었습니다."},
+            full:"그는 꽃 한 송이를 주었습니다.", rule:{vi:"송이 [대상: 꽃 낱개] — 한 송이(1송이)", en:"송이 [target: single flower] — 한 송이(1 flower)", ko:"송이 [대상: 꽃 낱개] — 한 송이"} },
+          { native:{vi:"Tôi đã tặng cho anh ấy 1 bó hoa.", en:"I gave him a bunch of flowers.", ko:"저는 그에게 꽃 한 다발을 주었습니다."},
+            full:"저는 그에게 꽃 한 다발을 주었습니다.", rule:{vi:"다발 [대상: 꽃 묶음] — 한 다발(1다발)", en:"다발 [target: bunch/bouquet] — 한 다발(1 bunch)", ko:"다발 [대상: 꽃 묶음] — 한 다발"} },
+        ]
+      },
+    ];
+
+    const allCards = CTR_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_CTR = { bg:"linear-gradient(150deg,#E8F5E9,#FCE4EC)", accent:"#1A237E", border:"#90CAF9" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_CTR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {conceptLabel}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_CTR.accent, textAlign:"center", marginBottom:4}}>
+            🔢 {vi?"Từ đơn vị tiếng Hàn":en?"Korean Counter Words":"종별사 표현"}
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_CTR.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_CTR.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(26,35,126,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_CTR.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_CTR.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
