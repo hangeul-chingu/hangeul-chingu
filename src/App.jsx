@@ -1401,6 +1401,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"서술어23",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit23"); }},
       { label:"서술어24",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit24"); }},
       { label:"서술어25",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit25"); }},
+      { label:"부사어1",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv1"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -10745,6 +10746,295 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       </div>
     );
   }
+  if (step === "unit_adv1") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const ADV1_SECTIONS = [
+      {
+        key:"때", label:vi?"Khi":en?"When":"때", color:"#E3F2FD", accent:"#1565C0",
+        rule:{vi:"Danh từ/Động từ + 때 (khi, lúc)", en:"Noun/Verb + 때 (when, at the time of)", ko:"명사/동사 + 때 — '~할 때'"},
+        cards:[
+          { native:{vi:"Tôi nghe nhạc khi học bài.",              en:"I listen to music when I study.",         ko:"저는 공부할 때 음악을 듣습니다."},
+            full:"저는 공부할 때 음악을 듣습니다.", rule:{vi:"공부하다 + -(으)ㄹ 때", en:"공부하다 + -(으)ㄹ 때", ko:"공부하다 + -(으)ㄹ 때"} },
+          { native:{vi:"Tôi đeo khẩu trang khi ra ngoài.",        en:"I wear a mask when I go out.",            ko:"저는 외출할 때 마스크를 씁니다."},
+            full:"저는 외출할 때 마스크를 씁니다.", rule:{vi:"외출하다 + -(으)ㄹ 때", en:"외출하다 + -(으)ㄹ 때", ko:"외출하다 + -(으)ㄹ 때"} },
+          { native:{vi:"Cô ấy đẹp nhất khi cười.",                en:"She is the most beautiful when she smiles.", ko:"그녀는 웃을 때 가장 예쁩니다."},
+            full:"그녀는 웃을 때 가장 예쁩니다.", rule:{vi:"웃다 + -(으)ㄹ 때", en:"웃다 + -(으)ㄹ 때", ko:"웃다 + -(으)ㄹ 때"} },
+          { native:{vi:"Bạn đã làm gì vào kì nghỉ?",              en:"What did you do on vacation?",            ko:"당신은 방학 때 무엇을 했습니까?"},
+            full:"당신은 방학 때 무엇을 했습니까?", rule:{vi:"방학 (danh từ) + 때", en:"방학 (noun) + 때", ko:"명사 + 때"} },
+          { native:{vi:"Tôi đã đi phượt vào kì nghỉ.",            en:"I went backpacking on vacation.",         ko:"저는 방학 때 배낭여행을 했습니다."},
+            full:"저는 방학 때 배낭여행을 했습니다.", rule:{vi:"방학 + 때", en:"방학 + 때", ko:"명사 + 때"} },
+          { native:{vi:"Trời lạnh khi đi làm vào buổi sáng.",     en:"It is cold when commuting in the morning.", ko:"아침에 출근할 때 날씨가 춥습니다."},
+            full:"아침에 출근할 때 날씨가 춥습니다.", rule:{vi:"출근하다 + -(으)ㄹ 때", en:"출근하다 + -(으)ㄹ 때", ko:"출근하다 + -(으)ㄹ 때"} },
+        ]
+      },
+      {
+        key:"전에", label:vi?"Trước khi":en?"Before":"전에", color:"#E8F5E9", accent:"#2E7D32",
+        rule:{vi:"Danh từ/Động từ + 전에 (trước khi)", en:"Noun/Verb + 전에 (before)", ko:"명사/동사 + 전에 — '~하기 전에'"},
+        cards:[
+          { native:{vi:"Kyoungjin dự định mua nhà trước khi kết hôn.", en:"Kyoungjin plans to buy a house before marriage.", ko:"경진은 결혼하기 전에 집을 살 계획입니다."},
+            full:"경진은 결혼하기 전에 집을 살 계획입니다.", rule:{vi:"결혼하다 + -기 전에", en:"결혼하다 + -기 전에", ko:"동사 + -기 전에"} },
+          { native:{vi:"Kyoungjin nhất định viết nhật kí trước khi đi ngủ.", en:"Kyoungjin always keeps a diary before going to bed.", ko:"경진은 자기 전에 반드시 일기를 씁니다."},
+            full:"경진은 자기 전에 반드시 일기를 씁니다.", rule:{vi:"자다 + -기 전에", en:"자다 + -기 전에", ko:"동사 + -기 전에"} },
+          { native:{vi:"Eunji rửa tay trước khi ăn.",               en:"Eunji washes her hands before eating.",   ko:"은지는 밥을 먹기 전에 손을 씻습니다."},
+            full:"은지는 밥을 먹기 전에 손을 씻습니다.", rule:{vi:"먹다 + -기 전에", en:"먹다 + -기 전에", ko:"동사 + -기 전에"} },
+          { native:{vi:"Tôi kiểm tra điện thoại trước khi ra khỏi nhà.", en:"I check my phone before leaving home.", ko:"저는 집을 나가기 전에 휴대폰을 확인합니다."},
+            full:"저는 집을 나가기 전에 휴대폰을 확인합니다.", rule:{vi:"나가다 + -기 전에", en:"나가다 + -기 전에", ko:"동사 + -기 전에"} },
+          { native:{vi:"Bạn nên uống thuốc trước khi ăn.",           en:"You should take medicine before meals.",  ko:"식사하기 전에 약을 드십시오."},
+            full:"식사하기 전에 약을 드십시오.", rule:{vi:"식사하다 + -기 전에", en:"식사하다 + -기 전에", ko:"동사 + -기 전에"} },
+        ]
+      },
+      {
+        key:"후에", label:vi?"Sau khi":en?"After":"후에", color:"#FFF3E0", accent:"#E65100",
+        rule:{vi:"Danh từ/Động từ + 후에 (sau khi)", en:"Noun/Verb + 후에 (after)", ko:"명사/동사 + 후에 — '~한 후에'"},
+        cards:[
+          { native:{vi:"Tôi muốn làm việc ở công ty Hàn Quốc sau khi tốt nghiệp.", en:"I want to work at a Korean company after graduation.", ko:"저는 졸업한 후에 한국 회사에서 일하고 싶습니다."},
+            full:"저는 졸업한 후에 한국 회사에서 일하고 싶습니다.", rule:{vi:"졸업하다 + -(으)ㄴ 후에", en:"졸업하다 + -(으)ㄴ 후에", ko:"동사 + -(으)ㄴ 후에"} },
+          { native:{vi:"Xin hãy uống thuốc này sau khi ăn.",          en:"Please take this medicine after meals.",  ko:"식사한 후에 이 약을 드십시오."},
+            full:"식사한 후에 이 약을 드십시오.", rule:{vi:"식사하다 + -(으)ㄴ 후에", en:"식사하다 + -(으)ㄴ 후에", ko:"동사 + -(으)ㄴ 후에"} },
+          { native:{vi:"Sumi đã uống nhiều nước sau khi tập thể dục.", en:"Sumi drank a lot of water after exercising.", ko:"수미는 운동한 후에 물을 많이 마셨습니다."},
+            full:"수미는 운동한 후에 물을 많이 마셨습니다.", rule:{vi:"운동하다 + -(으)ㄴ 후에", en:"운동하다 + -(으)ㄴ 후에", ko:"동사 + -(으)ㄴ 후에"} },
+          { native:{vi:"Youngmin đã rửa chén sau khi dùng bữa.",      en:"Youngmin washed the dishes after eating.", ko:"영민은 밥을 먹은 후에 설거지를 했습니다."},
+            full:"영민은 밥을 먹은 후에 설거지를 했습니다.", rule:{vi:"먹다 + -(으)ㄴ 후에", en:"먹다 + -(으)ㄴ 후에", ko:"동사 + -(으)ㄴ 후에"} },
+          { native:{vi:"Tàu lửa này sẽ xuất phát sau 10 phút nữa.",   en:"This train will depart in 10 minutes.",   ko:"이 기차는 10분 후에 출발합니다."},
+            full:"이 기차는 10분 후에 출발합니다.", rule:{vi:"10분 (명사) + 후에", en:"10분 (noun) + 후에", ko:"명사 + 후에"} },
+          { native:{vi:"Tôi sẽ gọi điện cho bạn sau khi về nhà.",     en:"I will call you after I get home.",        ko:"저는 집에 돌아온 후에 전화하겠습니다."},
+            full:"저는 집에 돌아온 후에 전화하겠습니다.", rule:{vi:"돌아오다 + -(으)ㄴ 후에", en:"돌아오다 + -(으)ㄴ 후에", ko:"동사 + -(으)ㄴ 후에"} },
+        ]
+      },
+      {
+        key:"~고", label:vi?"Rồi (순차)":en?"And then (순차)":"~고 (순차)", color:"#F3E5F5", accent:"#6A1B9A",
+        rule:{vi:"Động từ + -고 (rồi sau đó — liệt kê tuần tự)", en:"Verb + -고 (and then — sequential)", ko:"동사 + -고 — 순차적 동작 나열"},
+        cards:[
+          { native:{vi:"Bố uống cà phê rồi xem báo.",               en:"Father drinks coffee and then reads the newspaper.", ko:"아버지는 커피를 마시고 신문을 읽습니다."},
+            full:"아버지는 커피를 마시고 신문을 읽습니다.", rule:{vi:"마시다 + -고", en:"마시다 + -고", ko:"마시다 + -고"} },
+          { native:{vi:"Bố xem báo rồi đi đến công ty.",             en:"Father reads the newspaper and goes to work.", ko:"아버지는 신문을 읽고 회사에 갑니다."},
+            full:"아버지는 신문을 읽고 회사에 갑니다.", rule:{vi:"읽다 + -고", en:"읽다 + -고", ko:"읽다 + -고"} },
+          { native:{vi:"Tôi đã dọn dẹp rồi gặp bạn rồi xem phim.",  en:"I cleaned up, met friends, and watched a movie.", ko:"저는 청소를 하고 친구를 만나고 영화를 봤습니다."},
+            full:"저는 청소를 하고 친구를 만나고 영화를 봤습니다.", rule:{vi:"하다 + -고 + 만나다 + -고", en:"하다 + -고 연결", ko:"동사 + -고 (다중 연결)"} },
+          { native:{vi:"Tôi đã gặp bạn rồi xem phim vào chủ nhật.",  en:"I met a friend and watched a movie on Sunday.", ko:"저는 일요일에 친구를 만나고 영화를 봤습니다."},
+            full:"저는 일요일에 친구를 만나고 영화를 봤습니다.", rule:{vi:"만나다 + -고", en:"만나다 + -고", ko:"만나다 + -고"} },
+          { native:{vi:"Tôi đã mua hoa rồi tặng bạn gái.",           en:"I bought flowers and gave them to my girlfriend.", ko:"저는 꽃을 사고 여자친구에게 주었습니다."},
+            full:"저는 꽃을 사고 여자친구에게 주었습니다.", rule:{vi:"사다 + -고", en:"사다 + -고", ko:"사다 + -고"} },
+          { native:{vi:"Sumi đã rửa táo trong nước rồi ăn.",          en:"Sumi washed the apple and ate it.",        ko:"수미는 사과를 물에 씻고 먹었습니다."},
+            full:"수미는 사과를 물에 씻고 먹었습니다.", rule:{vi:"씻다 + -고", en:"씻다 + -고", ko:"씻다 + -고"} },
+          { native:{vi:"Kyoungjin đã đi đến quán cà phê rồi gặp bạn.", en:"Kyoungjin went to a café and met a friend.", ko:"경진은 카페에 가고 친구를 만났습니다."},
+            full:"경진은 카페에 가고 친구를 만났습니다.", rule:{vi:"가다 + -고", en:"가다 + -고", ko:"가다 + -고"} },
+          { native:{vi:"Hôm qua tôi đã đi đến nhà thi đấu rồi tập thể dục cùng chị gái.", en:"Yesterday I went to the gym with my sister and worked out.", ko:"저는 어제 언니와 체육관에 가고 운동했습니다."},
+            full:"저는 어제 언니와 체육관에 가고 운동했습니다.", rule:{vi:"가다 + -고", en:"가다 + -고", ko:"가다 + -고"} },
+          { native:{vi:"Tôi tắm rồi đi ngủ.",                        en:"I take a shower and go to sleep.",         ko:"저는 샤워를 하고 잡니다."},
+            full:"저는 샤워를 하고 잡니다.", rule:{vi:"하다 + -고", en:"하다 + -고", ko:"하다 + -고"} },
+          { native:{vi:"Tôi đặt đồ ăn rồi xem phim.",               en:"I ordered food and watched a movie.",      ko:"저는 음식을 주문하고 영화를 봤습니다."},
+            full:"저는 음식을 주문하고 영화를 봤습니다.", rule:{vi:"주문하다 + -고", en:"주문하다 + -고", ko:"주문하다 + -고"} },
+          { native:{vi:"Tôi rửa tay rồi ăn cơm.",                    en:"I washed my hands and ate.",               ko:"저는 손을 씻고 밥을 먹었습니다."},
+            full:"저는 손을 씻고 밥을 먹었습니다.", rule:{vi:"씻다 + -고", en:"씻다 + -고", ko:"씻다 + -고"} },
+          { native:{vi:"Tôi kết thúc công việc rồi gặp bạn bè.",     en:"I finished work and met my friends.",      ko:"저는 일을 마치고 친구들을 만났습니다."},
+            full:"저는 일을 마치고 친구들을 만났습니다.", rule:{vi:"마치다 + -고", en:"마치다 + -고", ko:"마치다 + -고"} },
+        ]
+      },
+      {
+        key:"동안", label:vi?"Trong suốt":en?"During/For":"동안", color:"#E0F7FA", accent:"#00695C",
+        rule:{vi:"Danh từ/Động từ + 동안 (trong suốt, trong khoảng thời gian)", en:"Noun/Verb + 동안 (during, for a period of)", ko:"명사/동사 + 동안 — '~하는 동안'"},
+        cards:[
+          { native:{vi:"Sumi đã làm thêm ở nhà hàng trong suốt kì nghỉ hè.", en:"Sumi worked part-time at a restaurant during summer vacation.", ko:"수미는 여름방학 동안 식당에서 아르바이트를 했습니다."},
+            full:"수미는 여름방학 동안 식당에서 아르바이트를 했습니다.", rule:{vi:"여름방학 (명사) + 동안", en:"여름방학 (noun) + 동안", ko:"명사 + 동안"} },
+          { native:{vi:"Tôi sẽ ở Hàn Quốc trong vòng 4 năm.",        en:"I will stay in Korea for 4 years.",        ko:"저는 4년 동안 한국에 있을 계획입니다."},
+            full:"저는 4년 동안 한국에 있을 계획입니다.", rule:{vi:"4년 + 동안", en:"4년 + 동안", ko:"기간 명사 + 동안"} },
+          { native:{vi:"Trong lúc chúng tôi ngủ, tuyết đã rơi.",      en:"While we were sleeping, it snowed.",      ko:"우리가 자는 동안 눈이 왔습니다."},
+            full:"우리가 자는 동안 눈이 왔습니다.", rule:{vi:"자다 + -는 동안", en:"자다 + -는 동안", ko:"동사 + -는 동안"} },
+          { native:{vi:"Trong lúc tôi rửa chén thì em đã dọn dẹp.",   en:"While I was washing dishes, my sibling cleaned up.", ko:"제가 설거지를 하는 동안 동생이 청소를 했습니다."},
+            full:"제가 설거지를 하는 동안 동생이 청소를 했습니다.", rule:{vi:"하다 + -는 동안", en:"하다 + -는 동안", ko:"동사 + -는 동안"} },
+          { native:{vi:"Em tôi đã chơi game suốt 5 tiếng đồng hồ.",   en:"My sibling played computer games for 5 hours.", ko:"동생은 5시간 동안 게임을 했습니다."},
+            full:"동생은 5시간 동안 게임을 했습니다.", rule:{vi:"5시간 + 동안", en:"5시간 + 동안", ko:"기간 명사 + 동안"} },
+          { native:{vi:"Trong thời gian chờ đợi, tôi đọc sách.",      en:"I read a book while waiting.",            ko:"기다리는 동안 저는 책을 읽었습니다."},
+            full:"기다리는 동안 저는 책을 읽었습니다.", rule:{vi:"기다리다 + -는 동안", en:"기다리다 + -는 동안", ko:"동사 + -는 동안"} },
+          { native:{vi:"Tôi đã nghe podcast trong khi đi làm.",        en:"I listened to a podcast while commuting.", ko:"출근하는 동안 저는 팟캐스트를 들었습니다."},
+            full:"출근하는 동안 저는 팟캐스트를 들었습니다.", rule:{vi:"출근하다 + -는 동안", en:"출근하다 + -는 동안", ko:"동사 + -는 동안"} },
+        ]
+      },
+      {
+        key:"~아/어서", label:vi?"Rồi (아/어서)":en?"And then (아/어서)":"~아/어서 (순차)", color:"#FFF8E1", accent:"#F57F17",
+        rule:{vi:"Động từ + -아/어서 (rồi — tuần tự, nguyên nhân)", en:"Verb + -아/어서 (and then — sequence)", ko:"동사 + -아/어서 — 순차 동작 (시제 변화 없음)"},
+        cards:[
+          { native:{vi:"Tôi đã đi đến nhà thi đấu rồi tập thể dục cùng chị gái.", en:"I went to the gym with my sister and worked out.", ko:"저는 어제 언니와 체육관에 가서 운동했습니다."},
+            full:"저는 어제 언니와 체육관에 가서 운동했습니다.", rule:{vi:"가다 → 가서", en:"가다 → 가서", ko:"가다 → 가서 (-아/어서)"} },
+          { native:{vi:"Tôi đã đi đến ngân hàng để rút tiền.",         en:"I went to the bank and withdrew money.",   ko:"저는 은행에 가서 돈을 찾았습니다."},
+            full:"저는 은행에 가서 돈을 찾았습니다.", rule:{vi:"가다 → 가서", en:"가다 → 가서", ko:"가다 → 가서"} },
+          { native:{vi:"Tôi đã mua hoa rồi tặng bạn gái.",             en:"I bought a flower and gave it to my girlfriend.", ko:"저는 꽃을 사서 여자친구에게 주었습니다."},
+            full:"저는 꽃을 사서 여자친구에게 주었습니다.", rule:{vi:"사다 → 사서", en:"사다 → 사서", ko:"사다 → 사서"} },
+          { native:{vi:"Sumi đã rửa táo trong nước rồi ăn.",            en:"Sumi washed the apple and ate it.",        ko:"수미는 사과를 씻어서 먹었습니다."},
+            full:"수미는 사과를 씻어서 먹었습니다.", rule:{vi:"씻다 → 씻어서", en:"씻다 → 씻어서", ko:"씻다 → 씻어서"} },
+          { native:{vi:"Kyoungjin đã đi đến quán cà phê rồi gặp bạn.", en:"Kyoungjin went to a café and met a friend.", ko:"경진은 카페에 가서 친구를 만났습니다."},
+            full:"경진은 카페에 가서 친구를 만났습니다.", rule:{vi:"가다 → 가서", en:"가다 → 가서", ko:"가다 → 가서"} },
+          { native:{vi:"Tôi đặt đồ ăn rồi ăn.",                        en:"I ordered food and ate it.",               ko:"저는 음식을 주문해서 먹었습니다."},
+            full:"저는 음식을 주문해서 먹었습니다.", rule:{vi:"주문하다 → 주문해서", en:"주문하다 → 주문해서", ko:"주문하다 → 주문해서"} },
+        ]
+      },
+      {
+        key:"~면서", label:vi?"Vừa...vừa...":en?"While doing":"~면서", color:"#FCE4EC", accent:"#AD1457",
+        rule:{vi:"Động từ + -면서 (vừa...vừa... — hai hành động đồng thời)", en:"Verb + -면서 (while, simultaneously doing two actions)", ko:"동사 + -면서 — 두 동작 동시 진행"},
+        cards:[
+          { native:{vi:"Tôi vừa nghe nhạc vừa học bài.",              en:"I study while listening to music.",        ko:"저는 음악을 들으면서 공부합니다."},
+            full:"저는 음악을 들으면서 공부합니다.", rule:{vi:"듣다 → 들으면서 (ㄷ불규칙)", en:"듣다 → 들으면서 (ㄷ irregular)", ko:"듣다 → 들으면서 (ㄷ불규칙)"} },
+          { native:{vi:"Sumi vừa đợi bạn ở quán cà phê vừa đọc sách.", en:"Sumi read a book while waiting for a friend at a café.", ko:"수미는 카페에서 친구를 기다리면서 책을 읽었습니다."},
+            full:"수미는 카페에서 친구를 기다리면서 책을 읽었습니다.", rule:{vi:"기다리다 → 기다리면서", en:"기다리다 → 기다리면서", ko:"기다리다 + -면서"} },
+          { native:{vi:"Tôi vừa đi học vừa làm thêm.",                en:"I work part-time while attending school.", ko:"저는 학교에 다니면서 아르바이트를 합니다."},
+            full:"저는 학교에 다니면서 아르바이트를 합니다.", rule:{vi:"다니다 → 다니면서", en:"다니다 → 다니면서", ko:"다니다 + -면서"} },
+          { native:{vi:"Anh ấy vừa là ca sĩ vừa là diễn viên.",       en:"He is both a singer and an actor.",        ko:"그는 가수이면서 배우입니다."},
+            full:"그는 가수이면서 배우입니다.", rule:{vi:"이다 → 이면서 (명사)", en:"이다 → 이면서 (noun)", ko:"명사 + (이)면서"} },
+          { native:{vi:"Xin đừng vừa lái xe vừa gọi điện thoại.",     en:"Do not call while driving. It is dangerous.", ko:"운전하면서 전화하지 마십시오. 위험합니다."},
+            full:"운전하면서 전화하지 마십시오. 위험합니다.", rule:{vi:"운전하다 → 운전하면서", en:"운전하다 → 운전하면서", ko:"운전하다 + -면서 (금지)"} },
+          { native:{vi:"Tôi vừa ăn cơm vừa xem TV.",                   en:"I watch TV while eating.",                 ko:"저는 밥을 먹으면서 TV를 봅니다."},
+            full:"저는 밥을 먹으면서 TV를 봅니다.", rule:{vi:"먹다 → 먹으면서", en:"먹다 → 먹으면서", ko:"먹다 → 먹으면서"} },
+        ]
+      },
+      {
+        key:"~자마자", label:vi?"Ngay sau khi":en?"As soon as":"~자마자", color:"#E8EAF6", accent:"#283593",
+        rule:{vi:"Động từ + -자마자 (ngay khi vừa — hành động tiếp theo tức thì)", en:"Verb + -자마자 (as soon as — immediate next action)", ko:"동사 + -자마자 — 직후 즉시 다음 동작"},
+        cards:[
+          { native:{vi:"Ngay sau khi về đến nhà trời đã bắt đầu mưa.", en:"As soon as I arrived home, it started to rain.", ko:"집에 도착하자마자 비가 내리기 시작했습니다."},
+            full:"집에 도착하자마자 비가 내리기 시작했습니다.", rule:{vi:"도착하다 → 도착하자마자", en:"도착하다 → 도착하자마자", ko:"도착하다 + -자마자"} },
+          { native:{vi:"Ngay sau khi bật máy tính thì đã mất điện.",   en:"As soon as I turned on the computer, the electricity went out.", ko:"컴퓨터를 켜자마자 정전이 되었습니다."},
+            full:"컴퓨터를 켜자마자 정전이 되었습니다.", rule:{vi:"켜다 → 켜자마자", en:"켜다 → 켜자마자", ko:"켜다 + -자마자"} },
+          { native:{vi:"Chúng tôi đã chia tay ngay sau khi gặp nhau.", en:"We broke up as soon as we met.",            ko:"우리는 만나자마자 헤어졌습니다."},
+            full:"우리는 만나자마자 헤어졌습니다.", rule:{vi:"만나다 → 만나자마자", en:"만나다 → 만나자마자", ko:"만나다 + -자마자"} },
+          { native:{vi:"Tôi định kết hôn với Sumi ngay sau khi tốt nghiệp đại học.", en:"I plan to marry Sumi as soon as I graduate from university.", ko:"저는 대학교를 졸업하자마자 수미와 결혼할 계획입니다."},
+            full:"저는 대학교를 졸업하자마자 수미와 결혼할 계획입니다.", rule:{vi:"졸업하다 → 졸업하자마자", en:"졸업하다 → 졸업하자마자", ko:"졸업하다 + -자마자"} },
+          { native:{vi:"Tôi ăn ngay sau khi về nhà.",                  en:"I ate as soon as I got home.",             ko:"저는 집에 오자마자 밥을 먹었습니다."},
+            full:"저는 집에 오자마자 밥을 먹었습니다.", rule:{vi:"오다 → 오자마자", en:"오다 → 오자마자", ko:"오다 + -자마자"} },
+        ]
+      },
+      {
+        key:"~다가", label:vi?"Đang...thì":en?"While doing (interrupted)":"~다가", color:"#F9FBE7", accent:"#558B2F",
+        rule:{vi:"Động từ + -다가 (đang làm việc gì thì chuyển sang hoặc có điều gì xảy ra)", en:"Verb + -다가 (while doing, then switched / something happened)", ko:"동사 + -다가 — 동작 전환 또는 중단"},
+        cards:[
+          { native:{vi:"Hôm qua tôi đã ngủ khi đang làm bài tập.",    en:"I fell asleep while doing my homework yesterday.", ko:"저는 어제 숙제를 하다가 잠이 들었습니다."},
+            full:"저는 어제 숙제를 하다가 잠이 들었습니다.", rule:{vi:"하다 → 하다가 (chuyển hướng)", en:"하다 → 하다가 (shift in action)", ko:"하다 + -다가 (전환)"} },
+          { native:{vi:"Trời đã mưa rồi tạnh.",                        en:"It was raining and then it stopped.",      ko:"비가 오다가 그쳤습니다."},
+            full:"비가 오다가 그쳤습니다.", rule:{vi:"오다 → 오다가 (dừng lại)", en:"오다 → 오다가 (ceased)", ko:"오다 + -다가 (중단)"} },
+          { native:{vi:"Minsu đã bị thương ở chân khi đang chơi bóng đá.", en:"Minsu hurt his leg while playing soccer.", ko:"민수는 축구를 하다가 다리를 다쳤습니다."},
+            full:"민수는 축구를 하다가 다리를 다쳤습니다.", rule:{vi:"하다 → 하다가 (bị thương)", en:"하다 → 하다가 (got hurt)", ko:"하다 + -다가 (사고)"} },
+          { native:{vi:"Youngmin đã rơi nước mắt khi đang xem phim.",  en:"Youngmin shed tears while watching the movie.", ko:"영민은 영화를 보다가 눈물이 났습니다."},
+            full:"영민은 영화를 보다가 눈물이 났습니다.", rule:{vi:"보다 → 보다가", en:"보다 → 보다가", ko:"보다 + -다가"} },
+          { native:{vi:"Suomi đã gặp bạn khi đang đi trên đường.",     en:"Sumi met a friend while walking down the street.", ko:"수미는 길을 걷다가 친구를 만났습니다."},
+            full:"수미는 길을 걷다가 친구를 만났습니다.", rule:{vi:"걷다 → 걷다가 (ㄷ불규칙)", en:"걷다 → 걷다가 (ㄷ irregular)", ko:"걷다 + -다가 (ㄷ불규칙)"} },
+          { native:{vi:"Eunju đã làm đổ cà phê khi đang uống.",        en:"Eunju spilled coffee while drinking it.",   ko:"은주는 커피를 마시다가 쏟았습니다."},
+            full:"은주는 커피를 마시다가 쏟았습니다.", rule:{vi:"마시다 → 마시다가", en:"마시다 → 마시다가", ko:"마시다 + -다가"} },
+          { native:{vi:"Tôi đã đổi sang Galaxy khi đang dùng iPhone.", en:"I switched to Galaxy while using iPhone.", ko:"저는 아이폰을 쓰다가 갤럭시로 바꿨습니다."},
+            full:"저는 아이폰을 쓰다가 갤럭시로 바꿨습니다.", rule:{vi:"쓰다 → 쓰다가 (전환)", en:"쓰다 → 쓰다가 (switched)", ko:"쓰다 + -다가 (전환)"} },
+          { native:{vi:"Tôi đã mơ giấc mơ đáng sợ khi đang ngủ.",     en:"I had a scary dream while sleeping.",       ko:"저는 자다가 무서운 꿈을 꿨습니다."},
+            full:"저는 자다가 무서운 꿈을 꿨습니다.", rule:{vi:"자다 → 자다가", en:"자다 → 자다가", ko:"자다 + -다가"} },
+          { native:{vi:"Tôi đã gặp sếp khi đang đi mua sắm.",         en:"I ran into my boss while shopping.",       ko:"저는 쇼핑을 하다가 사장님을 만났습니다."},
+            full:"저는 쇼핑을 하다가 사장님을 만났습니다.", rule:{vi:"하다 → 하다가", en:"하다 → 하다가", ko:"하다 + -다가"} },
+          { native:{vi:"Tôi đã dừng lại khi đang chạy vì đau chân.",   en:"I stopped running because my leg hurt.",   ko:"저는 달리다가 다리가 아파서 멈췄습니다."},
+            full:"저는 달리다가 다리가 아파서 멈췄습니다.", rule:{vi:"달리다 → 달리다가", en:"달리다 → 달리다가", ko:"달리다 + -다가"} },
+        ]
+      },
+      {
+        key:"~부터~까지", label:vi?"Từ...đến...":en?"From...to...":"~부터~까지", color:"#E1F5FE", accent:"#0277BD",
+        rule:{vi:"(Thời điểm) + 부터 ~ (thời điểm) + 까지 (từ...đến...)", en:"(time) + 부터 ~ (time) + 까지 (from...to...)", ko:"시간/장소 + 부터 ~ 까지 — 시작과 끝 범위"},
+        cards:[
+          { native:{vi:"Từ hôm nay là kì nghỉ hè.",                    en:"It is summer vacation from today.",        ko:"오늘부터 여름방학입니다."},
+            full:"오늘부터 여름방학입니다.", rule:{vi:"오늘 + 부터", en:"오늘 + 부터", ko:"명사 + 부터"} },
+          { native:{vi:"Từ thứ hai tuần này đến chủ nhật tuần sau là kì nghỉ.", en:"It is a vacation from this Monday to next Sunday.", ko:"이번 월요일부터 다음 주 일요일까지 휴가입니다."},
+            full:"이번 월요일부터 다음 주 일요일까지 휴가입니다.", rule:{vi:"월요일 + 부터 + 일요일 + 까지", en:"월요일 + 부터 + 일요일 + 까지", ko:"명사 + 부터 + 명사 + 까지"} },
+          { native:{vi:"Sumi đã quyết tâm học tiếng Hàn chăm chỉ từ sáng đến đêm.", en:"Sumi decided to study Korean hard from morning to night.", ko:"수미는 아침부터 밤까지 한국어 공부를 열심히 하기로 했습니다."},
+            full:"수미는 아침부터 밤까지 한국어 공부를 열심히 하기로 했습니다.", rule:{vi:"아침 + 부터 + 밤 + 까지", en:"아침 + 부터 + 밤 + 까지", ko:"명사 + 부터 + 명사 + 까지"} },
+          { native:{vi:"Họ đã làm việc chăm chỉ từ lúc mặt trời mọc đến lúc mặt trời lặn.", en:"They worked hard from sunrise to sunset.", ko:"그들은 해가 뜰 때부터 해가 질 때까지 열심히 일했습니다."},
+            full:"그들은 해가 뜰 때부터 해가 질 때까지 열심히 일했습니다.", rule:{vi:"뜨다 + -(으)ㄹ 때 + 부터 + 지다 + -(으)ㄹ 때 + 까지", en:"시간 절 + 부터 + 까지", ko:"~때 + 부터 + ~때 + 까지"} },
+          { native:{vi:"Từ Seoul đến Busan bằng tàu điện cao tốc thì mất 2 tiếng 40 phút.", en:"It takes 2 hours and 40 minutes from Seoul to Busan by express train.", ko:"서울에서 부산까지 고속전철로 2시간 40분 걸립니다."},
+            full:"서울에서 부산까지 고속전철로 2시간 40분 걸립니다.", rule:{vi:"서울 + 에서 + 부산 + 까지 (장소 범위)", en:"서울 + 에서 + 부산 + 까지 (place range)", ko:"장소 + 에서 + 장소 + 까지"} },
+        ]
+      },
+    ];
+
+    const allCards = ADV1_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_ADV1 = { bg:"linear-gradient(150deg,#E3F2FD,#E8F5E9)", accent:"#1565C0", border:"#BBDEFB" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_ADV1.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Trạng ngữ 1 — Thời gian":en?"Adverb 1 — Time":"부사어 1단원 — 시간"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_ADV1.accent, textAlign:"center", marginBottom:4}}>
+            ⏱️ {vi?"Biểu thức thời gian":en?"Time Expressions":"시간 표현"}
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          {/* 섹션 표시 */}
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:14}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:12, marginLeft:8}}>{card.sectionLabel}</span>
+          </div>
+
+          {/* 핵심 규칙 */}
+          <div style={{background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          {/* 카드 힌트 */}
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            📌 {cardRule}
+          </div>
+
+          {/* 모국어 예문 */}
+          <div style={{background:"white", border:`2px solid ${card.sectionColor}`, borderRadius:14, padding:"18px 20px", marginBottom:16, textAlign:"center"}}>
+            <div style={{fontSize:13, color:"#aaa", marginBottom:6}}>🌏 {vi?"Dịch":en?"Translate":"번역"}</div>
+            <div style={{fontSize:17, fontWeight:700, color:"#333", lineHeight:1.5}}>{nativeText}</div>
+          </div>
+
+          {/* 입력 */}
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:12, color:"#E65100", fontWeight:700, marginBottom:6}}>✍️ {vi?"Viết bằng tiếng Hàn (thể 합니다)":en?"Write in Korean (합니다 form)":"한국어로 작성하세요 (합니다체)"}</div>
+            <textarea
+              value={unitCardInput}
+              onChange={e => setUnitCardInput(e.target.value)}
+              placeholder={vi?"Nhập tiếng Hàn...":en?"Enter Korean...":"한국어를 입력하세요..."}
+              style={{width:"100%", minHeight:60, border:`2px solid ${C_ADV1.border}`, borderRadius:10, padding:"10px 12px", fontSize:15, fontFamily:"inherit", resize:"vertical", boxSizing:"border-box"}}
+            />
+          </div>
+
+          {/* 확인 버튼 */}
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_ADV1.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#F1F8E9", border:"2px solid #8BC34A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:16, fontWeight:800, color:"#2E7D32"}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#43A047", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          {/* 뒤로 */}
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit25"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (step === "topic") return (
     <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:36,marginBottom:8,marginTop:24}}>🌸</div>
