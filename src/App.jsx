@@ -1409,6 +1409,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"부사어6",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv6"); }},
       { label:"부사어7",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv7"); }},
       { label:"관형어",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }},
+      { label:"간접화법",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -11895,6 +11896,161 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv7"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_indirect") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const IND_SECTIONS = [
+      {
+        key:"~다고 하다 (진술)", label:vi?"Tường thuật (다고 하다)":en?"Reported Statement (다고 하다)":"진술 간접화법", color:"#E8F5E9", accent:"#2E7D32",
+        rule:{vi:"Câu trực tiếp → 동사/형용사 + -다고 하다 (gián tiếp). 과거: ~다고 했습니다 / 현재: ~다고 합니다", en:"Direct → verb/adj + -다고 하다 (reported). Past: ~다고 했습니다 / Present: ~다고 합니다", ko:"직접화법 → 동사/형용사 + -다고 하다. 과거: ~다고 했습니다 / 현재: ~다고 합니다"},
+        cards:[
+          { native:{vi:'마리아가 말했습니다: "날씨가 너무 더워요."', en:'Maria said: "The weather is too hot."', ko:'"날씨가 너무 더워요." (직접화법)'},
+            full:'"날씨가 너무 더워요." (직접화법)', rule:{vi:"Câu trực tiếp — lời nói được trích dẫn", en:"Direct speech — quoted words", ko:"직접화법 — 그대로 인용"} },
+          { native:{vi:"Mariá đã nói rằng trời nóng quá.", en:"Maria said that the weather was too hot.", ko:"마리아는 날씨가 너무 덥다고 했습니다."},
+            full:"마리아는 날씨가 너무 덥다고 했습니다.", rule:{vi:"덥다 → 덥 + 다고 했습니다 (과거)", en:"덥다 → 덥 + 다고 했습니다 (past)", ko:"덥다 → 덥다고 했습니다 (과거 간접화법)"} },
+          { native:{vi:"Mariá nói rằng trời nóng quá.", en:"Maria says that the weather is too hot.", ko:"마리아는 날씨가 너무 덥다고 합니다."},
+            full:"마리아는 날씨가 너무 덥다고 합니다.", rule:{vi:"덥다 → 덥 + 다고 합니다 (현재)", en:"덥다 → 덥 + 다고 합니다 (present)", ko:"덥다 → 덥다고 합니다 (현재 간접화법)"} },
+        ]
+      },
+      {
+        key:"~이라고 하다 (명사 진술)", label:vi?"Tường thuật danh từ (이라고 하다)":en?"Noun Statement (이라고 하다)":"명사 진술 간접화법", color:"#E0F2F1", accent:"#00695C",
+        rule:{vi:"Danh từ + -이라고 하다 (có 받침) / -라고 하다 (không có 받침)", en:"Noun + -이라고 하다 (batchim) / -라고 하다 (no batchim)", ko:"명사 + -이라고 하다 (받침 있음) / -라고 하다 (받침 없음)"},
+        cards:[
+          { native:{vi:'투안이 말했습니다: "저는 요리사예요."', en:'Tuan said: "I am a cook."', ko:'"저는 요리사예요." (직접화법)'},
+            full:'"저는 요리사예요." (직접화법)', rule:{vi:"Câu trực tiếp — lời nói được trích dẫn", en:"Direct speech — quoted words", ko:"직접화법 — 그대로 인용"} },
+          { native:{vi:"Tuân đã nói rằng mình là đầu bếp.", en:"Tuan said that he was a cook.", ko:"투안은 자기가 요리사라고 했습니다."},
+            full:"투안은 자기가 요리사라고 했습니다.", rule:{vi:"요리사(모음) → 요리사 + 라고 했습니다 (과거)", en:"요리사(no batchim) → 요리사 + 라고 했습니다 (past)", ko:"요리사 → 요리사라고 했습니다 (받침 없음 → 라고)"} },
+          { native:{vi:"Tuân nói rằng mình là đầu bếp.", en:"Tuan says that he is a cook.", ko:"투안은 자기가 요리사라고 합니다."},
+            full:"투안은 자기가 요리사라고 합니다.", rule:{vi:"요리사(모음) → 요리사 + 라고 합니다 (현재)", en:"요리사(no batchim) → 요리사 + 라고 합니다 (present)", ko:"요리사 → 요리사라고 합니다 (받침 없음 → 라고)"} },
+        ]
+      },
+      {
+        key:"~냐고 하다 (질문)", label:vi?"Tường thuật câu hỏi (냐고 하다)":en?"Reported Question (냐고 하다)":"질문 간접화법", color:"#FFF8E1", accent:"#F57F17",
+        rule:{vi:"Câu hỏi trực tiếp → động từ/tính từ + -냐고 하다. 과거: ~냐고 했습니다 / 현재: ~냐고 합니다", en:"Direct question → verb/adj + -냐고 하다. Past: ~냐고 했습니다 / Present: ~냐고 합니다", ko:"직접 질문 → 동사/형용사 + -냐고 하다. 과거: ~냐고 했습니다 / 현재: ~냐고 합니다"},
+        cards:[
+          { native:{vi:'마리아가 물었습니다: "내일 몇 시에 와요?"', en:'Maria asked: "What time are you coming tomorrow?"', ko:'"내일 몇 시에 와요?" (직접화법)'},
+            full:'"내일 몇 시에 와요?" (직접화법)', rule:{vi:"Câu hỏi trực tiếp — lời nói được trích dẫn", en:"Direct question — quoted words", ko:"직접화법 — 그대로 인용"} },
+          { native:{vi:"Mariá đã hỏi tôi rằng ngày mai đến lúc mấy giờ.", en:"Maria asked me what time I was coming tomorrow.", ko:"마리아는 저에게 내일 몇 시에 오냐고 했습니다."},
+            full:"마리아는 저에게 내일 몇 시에 오냐고 했습니다.", rule:{vi:"오다 → 오 + 냐고 했습니다 (과거)", en:"오다 → 오 + 냐고 했습니다 (past)", ko:"오다 → 오냐고 했습니다 (질문 과거 간접화법)"} },
+          { native:{vi:"Mariá hỏi tôi rằng ngày mai đến lúc mấy giờ.", en:"Maria asks me what time I am coming tomorrow.", ko:"마리아는 저에게 내일 몇 시에 오냐고 합니다."},
+            full:"마리아는 저에게 내일 몇 시에 오냐고 합니다.", rule:{vi:"오다 → 오 + 냐고 합니다 (현재)", en:"오다 → 오 + 냐고 합니다 (present)", ko:"오다 → 오냐고 합니다 (질문 현재 간접화법)"} },
+        ]
+      },
+      {
+        key:"~자고 하다 (청유)", label:vi?"Tường thuật đề nghị (자고 하다)":en?"Reported Suggestion (자고 하다)":"청유 간접화법", color:"#E3F2FD", accent:"#0D47A1",
+        rule:{vi:"Câu đề nghị trực tiếp → động từ + -자고 하다. 과거: ~자고 했습니다 / 현재: ~자고 합니다", en:"Direct suggestion → verb + -자고 하다. Past: ~자고 했습니다 / Present: ~자고 합니다", ko:"직접 청유 → 동사 + -자고 하다. 과거: ~자고 했습니다 / 현재: ~자고 합니다"},
+        cards:[
+          { native:{vi:'투안이 말했습니다: "같이 한국어 공부합시다."', en:'Tuan said: "Let\'s study Korean together."', ko:'"같이 한국어 공부합시다." (직접화법)'},
+            full:'"같이 한국어 공부합시다." (직접화법)', rule:{vi:"Câu đề nghị trực tiếp — lời nói được trích dẫn", en:"Direct suggestion — quoted words", ko:"직접화법 — 그대로 인용"} },
+          { native:{vi:"Tuân đã bảo tôi cùng học tiếng Hàn.", en:"Tuan suggested that we study Korean together.", ko:"투안은 같이 한국어 공부하자고 했습니다."},
+            full:"투안은 같이 한국어 공부하자고 했습니다.", rule:{vi:"공부하다 → 공부하 + 자고 했습니다 (과거)", en:"공부하다 → 공부하 + 자고 했습니다 (past)", ko:"공부하다 → 공부하자고 했습니다 (청유 과거 간접화법)"} },
+          { native:{vi:"Tuân bảo tôi cùng học tiếng Hàn.", en:"Tuan suggests that we study Korean together.", ko:"투안은 같이 한국어 공부하자고 합니다."},
+            full:"투안은 같이 한국어 공부하자고 합니다.", rule:{vi:"공부하다 → 공부하 + 자고 합니다 (현재)", en:"공부하다 → 공부하 + 자고 합니다 (present)", ko:"공부하다 → 공부하자고 합니다 (청유 현재 간접화법)"} },
+        ]
+      },
+      {
+        key:"~(으)라고 하다 (명령)", label:vi?"Tường thuật mệnh lệnh (라고 하다)":en?"Reported Command (라고 하다)":"명령 간접화법", color:"#FBE9E7", accent:"#BF360C",
+        rule:{vi:"Câu mệnh lệnh trực tiếp → động từ + -(으)라고 하다. 받침X → -라고, 받침O → -으라고", en:"Direct command → verb + -(으)라고 하다. No batchim → -라고, batchim → -으라고", ko:"직접 명령 → 동사 + -(으)라고 하다. 받침 없으면 -라고, 있으면 -으라고"},
+        cards:[
+          { native:{vi:'마리아가 말했습니다: "빨리 오세요."', en:'Maria said: "Please come quickly."', ko:'"빨리 오세요." (직접화법)'},
+            full:'"빨리 오세요." (직접화법)', rule:{vi:"Câu mệnh lệnh trực tiếp — lời nói được trích dẫn", en:"Direct command — quoted words", ko:"직접화법 — 그대로 인용"} },
+          { native:{vi:"Mariá đã bảo tôi đến nhanh lên.", en:"Maria told me to come quickly.", ko:"마리아는 저에게 빨리 오라고 했습니다."},
+            full:"마리아는 저에게 빨리 오라고 했습니다.", rule:{vi:"오다(모음) → 오 + 라고 했습니다 (과거)", en:"오다(no batchim) → 오 + 라고 했습니다 (past)", ko:"오다 → 오라고 했습니다 (받침 없음 → 라고)"} },
+          { native:{vi:"Mariá bảo tôi đến nhanh lên.", en:"Maria tells me to come quickly.", ko:"마리아는 저에게 빨리 오라고 합니다."},
+            full:"마리아는 저에게 빨리 오라고 합니다.", rule:{vi:"오다(모음) → 오 + 라고 합니다 (현재)", en:"오다(no batchim) → 오 + 라고 합니다 (present)", ko:"오다 → 오라고 합니다 (받침 없음 → 라고)"} },
+        ]
+      },
+      {
+        key:"~지 말라고 하다 (금지)", label:vi?"Tường thuật cấm đoán (말라고 하다)":en?"Reported Prohibition (말라고 하다)":"금지 간접화법", color:"#F3E5F5", accent:"#6A1B9A",
+        rule:{vi:"Câu cấm đoán trực tiếp → động từ + -지 말라고 하다. 과거: ~말라고 했습니다 / 현재: ~말라고 합니다", en:"Direct prohibition → verb + -지 말라고 하다. Past: ~말라고 했습니다 / Present: ~말라고 합니다", ko:"직접 금지 → 동사 + -지 말라고 하다. 과거: ~말라고 했습니다 / 현재: ~말라고 합니다"},
+        cards:[
+          { native:{vi:'투안이 말했습니다: "늦게 자지 마세요."', en:'Tuan said: "Please do not go to bed late."', ko:'"늦게 자지 마세요." (직접화법)'},
+            full:'"늦게 자지 마세요." (직접화법)', rule:{vi:"Câu cấm đoán trực tiếp — lời nói được trích dẫn", en:"Direct prohibition — quoted words", ko:"직접화법 — 그대로 인용"} },
+          { native:{vi:"Tuân đã bảo tôi đừng đi ngủ muộn.", en:"Tuan told me not to go to bed late.", ko:"투안은 저에게 늦게 자지 말라고 했습니다."},
+            full:"투안은 저에게 늦게 자지 말라고 했습니다.", rule:{vi:"자다 → 자지 말라고 했습니다 (과거)", en:"자다 → 자지 말라고 했습니다 (past)", ko:"자다 → 자지 말라고 했습니다 (금지 과거 간접화법)"} },
+          { native:{vi:"Tuân bảo tôi đừng đi ngủ muộn.", en:"Tuan tells me not to go to bed late.", ko:"투안은 저에게 늦게 자지 말라고 합니다."},
+            full:"투안은 저에게 늦게 자지 말라고 합니다.", rule:{vi:"자다 → 자지 말라고 합니다 (현재)", en:"자다 → 자지 말라고 합니다 (present)", ko:"자다 → 자지 말라고 합니다 (금지 현재 간접화법)"} },
+        ]
+      },
+    ];
+
+    const allCards = IND_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_IND = { bg:"linear-gradient(150deg,#E8F5E9,#E3F2FD)", accent:"#1A237E", border:"#90CAF9" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_IND.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Gián tiếp hóa pháp":en?"Indirect Speech":"간접화법"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_IND.accent, textAlign:"center", marginBottom:4}}>
+            💬 {vi?"Biểu thức gián tiếp":en?"Reported Speech Expressions":"간접화법 표현"}
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_IND.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_IND.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(26,35,126,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_IND.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_IND.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
