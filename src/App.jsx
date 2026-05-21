@@ -1408,6 +1408,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"부사어5",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv5"); }},
       { label:"부사어6",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv6"); }},
       { label:"부사어7",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv7"); }},
+      { label:"관형어",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -11763,6 +11764,137 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv6"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_rel") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const REL_SECTIONS = [
+      {
+        key:"동사+는/은/을 (현재→과거→미래)", label:vi?"Định ngữ động từ (는/은/을)":en?"Verb Modifier (는/은/을)":"동사 관형 — 현재·과거·미래", color:"#E8F5E9", accent:"#2E7D32",
+        rule:{vi:"Động từ + -는(hiện tại) / -은/ㄴ(quá khứ) / -을/ㄹ(tương lai) + danh từ", en:"Verb + -는(present) / -은/ㄴ(past) / -을/ㄹ(future) + noun", ko:"동사 + -는(현재) / -은/ㄴ(과거) / -을/ㄹ(미래) + 명사 — 같은 명사에 시제만 바꿔 붙이기"},
+        cards:[
+          { native:{vi:"Cái này là món ăn tôi đang ăn.", en:"This is the food I am eating.", ko:"이것은 제가 먹는 음식입니다."},
+            full:"이것은 제가 먹는 음식입니다.", rule:{vi:"먹다 → 먹 + 는 + 음식 (현재)", en:"먹다 → 먹 + 는 + 음식 (present)", ko:"먹다 → 먹는 (현재 → -는)"} },
+          { native:{vi:"Cái này là món ăn tôi đã ăn.", en:"This is the food I ate.", ko:"이것은 제가 먹은 음식입니다."},
+            full:"이것은 제가 먹은 음식입니다.", rule:{vi:"먹다(받침) → 먹 + 은 + 음식 (과거)", en:"먹다(batchim) → 먹 + 은 + 음식 (past)", ko:"먹다 → 먹은 (과거·받침 → -은)"} },
+          { native:{vi:"Cái này là món ăn tôi sẽ ăn.", en:"This is the food I will eat.", ko:"이것은 제가 먹을 음식입니다."},
+            full:"이것은 제가 먹을 음식입니다.", rule:{vi:"먹다(받침) → 먹 + 을 + 음식 (미래)", en:"먹다(batchim) → 먹 + 을 + 음식 (future)", ko:"먹다 → 먹을 (미래·받침 → -을)"} },
+        ]
+      },
+      {
+        key:"관형절 누적 확장", label:vi?"Mở rộng mệnh đề định ngữ":en?"Expanding Modifier Clauses":"단문 → 복합 관형절 누적", color:"#E3F2FD", accent:"#0D47A1",
+        rule:{vi:"Thêm dần các mệnh đề định ngữ vào một câu — hình dung, thời gian, địa điểm, mục đích", en:"Add modifier clauses one by one — appearance, time, place, purpose", ko:"같은 사건에 관형절을 하나씩 추가 — 모습·시간·장소·목적 순서로 쌓기"},
+        cards:[
+          { native:{vi:"Hôm qua Mariá đã mua nguyên liệu ở chợ.", en:"Maria bought ingredients at the market yesterday.", ko:"마리아는 어제 시장에서 재료를 샀습니다."},
+            full:"마리아는 어제 시장에서 재료를 샀습니다.", rule:{vi:"Câu đơn cơ bản — chưa có định ngữ", en:"Basic sentence — no modifier yet", ko:"기본 단문 — 관형절 없음"} },
+          { native:{vi:"Hôm qua Mariá tóc dài đã mua nguyên liệu ở chợ.", en:"Maria with long hair bought ingredients at the market yesterday.", ko:"머리가 긴 마리아는 어제 시장에서 재료를 샀습니다."},
+            full:"머리가 긴 마리아는 어제 시장에서 재료를 샀습니다.", rule:{vi:"긴(형용사관형) → 머리가 긴 + 마리아", en:"긴(adj modifier) → 머리가 긴 + 마리아", ko:"길다 → 긴 (형용사관형 추가)"} },
+          { native:{vi:"Hôm qua trời mưa nhiều, Mariá tóc dài đã mua nguyên liệu ở chợ.", en:"On the rainy day yesterday, Maria with long hair bought ingredients at the market.", ko:"비가 많이 온 어제 머리가 긴 마리아는 시장에서 재료를 샀습니다."},
+            full:"비가 많이 온 어제 머리가 긴 마리아는 시장에서 재료를 샀습니다.", rule:{vi:"온(동사관형) → 비가 많이 온 + 어제", en:"온(verb modifier) → 비가 많이 온 + 어제", ko:"오다 → 온 (동사관형 추가)"} },
+          { native:{vi:"Hôm qua trời mưa nhiều, Mariá tóc dài đã mua nguyên liệu ở chợ gần nhà.", en:"Maria with long hair bought ingredients at the market near her house on the rainy day yesterday.", ko:"비가 많이 온 어제 머리가 긴 마리아는 집 근처에 있는 시장에서 재료를 샀습니다."},
+            full:"비가 많이 온 어제 머리가 긴 마리아는 집 근처에 있는 시장에서 재료를 샀습니다.", rule:{vi:"있는(동사관형) → 집 근처에 있는 + 시장", en:"있는(verb modifier) → 집 근처에 있는 + 시장", ko:"있다 → 있는 (장소 관형 추가)"} },
+          { native:{vi:"Hôm qua Mariá tóc dài đã mua nguyên liệu để nấu kim chi jjigae ở chợ gần nhà.", en:"Maria with long hair bought ingredients to make kimchi stew at the market near her house yesterday.", ko:"머리가 긴 마리아는 어제 집 근처에 있는 시장에서 김치찌개를 끓일 재료를 샀습니다."},
+            full:"머리가 긴 마리아는 어제 집 근처에 있는 시장에서 김치찌개를 끓일 재료를 샀습니다.", rule:{vi:"끓일(동사관형 미래) → 김치찌개를 끓일 + 재료", en:"끓일(future modifier) → 김치찌개를 끓일 + 재료", ko:"끓이다 → 끓일 (목적 관형 추가)"} },
+          { native:{vi:"Hôm qua trời mưa nhiều, Mariá tóc dài đã mua nguyên liệu để nấu kim chi jjigae ở chợ gần nhà.", en:"Maria with long hair bought ingredients to make kimchi stew at the market near her house on the rainy day yesterday.", ko:"머리가 긴 마리아는 비가 많이 온 어제 집 근처에 있는 시장에서 김치찌개를 끓일 재료를 샀습니다."},
+            full:"머리가 긴 마리아는 비가 많이 온 어제 집 근처에 있는 시장에서 김치찌개를 끓일 재료를 샀습니다.", rule:{vi:"Kết hợp tất cả định ngữ — hình dung + thời gian + địa điểm + mục đích", en:"All modifiers combined — appearance + time + place + purpose", ko:"모든 관형절 결합 — 모습+시간+장소+목적 완전 복합"} },
+          { native:{vi:"Mariá đã dùng nguyên liệu mua ở chợ hôm qua để nấu kim chi jjigae.", en:"Maria cooked kimchi stew with the ingredients she bought at the market yesterday.", ko:"마리아가 어제 시장에서 산 재료로 김치찌개를 끓였습니다."},
+            full:"마리아가 어제 시장에서 산 재료로 김치찌개를 끓였습니다.", rule:{vi:"산(동사관형 과거) → 시장에서 산 + 재료 (복합관형 → 주어로 전환)", en:"산(past modifier) → 시장에서 산 + 재료 (modifier becomes subject)", ko:"사다 → 산 (복합관형이 주어로 전환 — 120% 추가)"} },
+        ]
+      },
+      {
+        key:"관형절+명사 실용 문장", label:vi?"Câu thực dụng định ngữ + danh từ":en?"Practical Modifier + Noun Sentences":"관형절 실전 활용", color:"#FFF3E0", accent:"#E65100",
+        rule:{vi:"Mệnh đề định ngữ + danh từ → làm chủ ngữ hoặc tân ngữ của câu", en:"Modifier clause + noun → used as subject or object of the sentence", ko:"관형절+명사 → 문장의 주어나 목적어로 자유롭게 활용"},
+        cards:[
+          { native:{vi:"Những người làm việc giỏi là những người giỏi quản lí thời gian.", en:"People who are good at work manage their time well.", ko:"일을 잘하는 사람들은 시간 관리를 잘합니다."},
+            full:"일을 잘하는 사람들은 시간 관리를 잘합니다.", rule:{vi:"잘하는(동사관형 현재) → 일을 잘하는 + 사람들", en:"잘하는(present modifier) → 일을 잘하는 + 사람들", ko:"잘하다 → 잘하는 + 사람들 (동사관형+명사 주어)"} },
+          { native:{vi:"Những người thành công không sợ sự thay đổi.", en:"Those who succeed are not afraid of change.", ko:"성공하는 사람들은 변화를 두려워하지 않습니다."},
+            full:"성공하는 사람들은 변화를 두려워하지 않습니다.", rule:{vi:"성공하는(동사관형 현재) → 성공하는 + 사람들", en:"성공하는(present modifier) → 성공하는 + 사람들", ko:"성공하다 → 성공하는 + 사람들 (동사관형+명사 주어)"} },
+          { native:{vi:"Thời điểm quan trọng nhất trong cuộc đời chính là bây giờ.", en:"The most important time in life is now.", ko:"인생에서 가장 중요한 시간은 지금입니다."},
+            full:"인생에서 가장 중요한 시간은 지금입니다.", rule:{vi:"중요한(형용사관형) → 가장 중요한 + 시간", en:"중요한(adj modifier) → 가장 중요한 + 시간", ko:"중요하다 → 중요한 + 시간 (형용사관형+명사 주어)"} },
+          { native:{vi:"Người quan trọng nhất trong cuộc đời là người mà mình đang gặp gỡ.", en:"The most important person in life is the person you are meeting now.", ko:"인생에서 가장 중요한 사람은 지금 만나는 사람입니다."},
+            full:"인생에서 가장 중요한 사람은 지금 만나는 사람입니다.", rule:{vi:"중요한 + 만나는 (형용사관형 + 동사관형 복합)", en:"중요한 + 만나는 (adj + verb modifier combined)", ko:"중요한+만나는 (형용사관형+동사관형 복합 활용)"} },
+          { native:{vi:"Người giỏi tiếng Hàn là người luyện tập đọc to mỗi ngày.", en:"A person good at Korean is someone who practices reading aloud every day.", ko:"한국어를 잘하는 사람은 매일 소리 내어 연습하는 사람입니다."},
+            full:"한국어를 잘하는 사람은 매일 소리 내어 연습하는 사람입니다.", rule:{vi:"잘하는 + 연습하는 (동사관형 복합 응용 — 120% 추가)", en:"잘하는 + 연습하는 (dual verb modifier — 120% extra)", ko:"잘하는+연습하는 (동사관형 이중 응용 — 120% 추가)"} },
+        ]
+      },
+    ];
+
+    const allCards = REL_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_REL = { bg:"linear-gradient(150deg,#E8F5E9,#E3F2FD)", accent:"#1A237E", border:"#90CAF9" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_REL.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Định ngữ — 관형어":en?"Modifier — 관형어":"관형어 — 명사 꾸미기"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_REL.accent, textAlign:"center", marginBottom:4}}>
+            🔷 {vi?"Biểu thức định ngữ":en?"Modifier Expressions":"관형어 표현"}
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_REL.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_REL.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(26,35,126,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_REL.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_REL.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv7"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
