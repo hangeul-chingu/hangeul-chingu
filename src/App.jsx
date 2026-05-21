@@ -1403,6 +1403,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"서술어25",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit25"); }},
       { label:"부사어1",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv1"); }},
       { label:"부사어2",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv2"); }},
+      { label:"부사어3",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv3"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -11204,6 +11205,158 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv1"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_adv3") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const ADV3_SECTIONS = [
+      {
+        key:"위하여/위해(서)", label:vi?"Vì/Để (위해서)":en?"For/In order to (위해서)":"위하여/위해(서)", color:"#E8EAF6", accent:"#283593",
+        rule:{vi:"Danh từ/Động từ + 을/를 위하여(위해/위해서) — mục đích (trang trọng hơn 려고)", en:"Noun/Verb + 을/를 위하여(위해/위해서) — purpose (more formal than 려고)", ko:"명사/동사 + 을/를 위하여(위해/위해서) — 목적·대상 (이동동사 아니어도 OK)"},
+        cards:[
+          { native:{vi:"Anh ấy đã bỏ thuốc lá vì sức khỏe.",           en:"He quit smoking for his health.",          ko:"그는 건강을 위해서 담배를 끊었습니다."},
+            full:"그는 건강을 위해서 담배를 끊었습니다.", rule:{vi:"건강 + 을 위해서", en:"건강 + 을 위해서", ko:"건강 + 을 위해서"} },
+          { native:{vi:"Tôi cầu nguyện mỗi ngày vì gia đình.",          en:"I pray for my family every day.",           ko:"저는 가족을 위해서 매일 기도합니다."},
+            full:"저는 가족을 위해서 매일 기도합니다.", rule:{vi:"가족 + 을 위해서", en:"가족 + 을 위해서", ko:"가족 + 을 위해서"} },
+          { native:{vi:"Người quân nhân đó đã hy sinh thân mình vì đất nước.", en:"The soldier gave his life for the country.", ko:"그 군인은 나라를 위해서 목숨을 바쳤습니다."},
+            full:"그 군인은 나라를 위해서 목숨을 바쳤습니다.", rule:{vi:"나라 + 를 위해서", en:"나라 + 를 위해서", ko:"나라 + 를 위해서"} },
+          { native:{vi:"Anh ấy đã học hành chăm chỉ để thực hiện ước mơ.", en:"He studied hard to make his dream come true.", ko:"그는 꿈을 이루기 위해서 열심히 공부했습니다."},
+            full:"그는 꿈을 이루기 위해서 열심히 공부했습니다.", rule:{vi:"이루다 + -기 위해서", en:"이루다 + -기 위해서", ko:"동사 + -기 위해서"} },
+          { native:{vi:"Anh ấy đã làm việc chăm chỉ để kiếm tiền.",     en:"He worked hard to make money.",            ko:"그는 돈을 벌기 위해서 열심히 일했습니다."},
+            full:"그는 돈을 벌기 위해서 열심히 일했습니다.", rule:{vi:"벌다 + -기 위해서", en:"벌다 + -기 위해서", ko:"동사 + -기 위해서"} },
+          { native:{vi:"Anh ấy đã chăm chỉ tiết kiệm tiền để đi du lịch nước ngoài.", en:"He saved money to go on a trip abroad.", ko:"그는 해외여행을 가기 위해서 열심히 돈을 모았습니다."},
+            full:"그는 해외여행을 가기 위해서 열심히 돈을 모았습니다.", rule:{vi:"가다 + -기 위해서", en:"가다 + -기 위해서", ko:"동사 + -기 위해서"} },
+          { native:{vi:"Anh ấy đã làm hết sức để chiến thắng ở trận đấu.", en:"He did his best to win the game.",       ko:"그는 경기에서 이기기 위해서 최선을 다했습니다."},
+            full:"그는 경기에서 이기기 위해서 최선을 다했습니다.", rule:{vi:"이기다 + -기 위해서", en:"이기다 + -기 위해서", ko:"동사 + -기 위해서"} },
+          { native:{vi:"Bạn sống vì điều gì?",                           en:"What do you live for?",                    ko:"당신은 무엇을 위해서 삽니까?"},
+            full:"당신은 무엇을 위해서 삽니까?", rule:{vi:"무엇 + 을 위해서 (의문)", en:"무엇 + 을 위해서 (question)", ko:"무엇 + 을 위해서"} },
+          { native:{vi:"Bạn sống vì ai?",                                en:"Who do you live for?",                     ko:"당신은 누구를 위해서 삽니까?"},
+            full:"당신은 누구를 위해서 삽니까?", rule:{vi:"누구 + 를 위해서 (의문)", en:"누구 + 를 위해서 (question)", ko:"누구 + 를 위해서"} },
+          { native:{vi:"Tôi học tiếng Hàn để xin việc ở công ty Hàn Quốc.", en:"I study Korean to get a job at a Korean company.", ko:"저는 한국 회사에 취업하기 위해서 한국어를 공부합니다."},
+            full:"저는 한국 회사에 취업하기 위해서 한국어를 공부합니다.", rule:{vi:"취업하다 + -기 위해서", en:"취업하다 + -기 위해서", ko:"동사 + -기 위해서"} },
+          { native:{vi:"Anh ấy đã mua quà để tặng cho vợ.",              en:"He bought a gift for his wife.",           ko:"그는 아내를 위해서 선물을 샀습니다."},
+            full:"그는 아내를 위해서 선물을 샀습니다.", rule:{vi:"아내 + 를 위해서", en:"아내 + 를 위해서", ko:"명사 + 를 위해서"} },
+        ]
+      },
+      {
+        key:"~려고+일반동사", label:vi?"Định làm (려고)":en?"Intend to (려고)":"~려고 (일반동사)", color:"#E0F2F1", accent:"#00695C",
+        rule:{vi:"Động từ + -(으)려고 + động từ thông thường — có ý định làm gì đó (không dùng với động từ di chuyển)", en:"Verb + -(으)려고 + general verb — intend to do (not used with movement verbs)", ko:"동사 + -(으)려고 + 일반동사 — 의도·목적 (이동동사 아닐 때)"},
+        cards:[
+          { native:{vi:"Tôi học tiếng Hàn để xin việc ở công ty Hàn Quốc.", en:"I study Korean to get a job at a Korean company.", ko:"저는 한국 회사에 취업하려고 한국어를 공부합니다."},
+            full:"저는 한국 회사에 취업하려고 한국어를 공부합니다.", rule:{vi:"취업하다 → 취업하려고", en:"취업하다 → 취업하려고", ko:"취업하다 + -(으)려고"} },
+          { native:{vi:"Tôi học tiếng Hàn để đi du học.",                 en:"I study Korean to study abroad.",          ko:"저는 유학을 가려고 한국어를 공부합니다."},
+            full:"저는 유학을 가려고 한국어를 공부합니다.", rule:{vi:"가다 → 가려고", en:"가다 → 가려고", ko:"가다 + -(으)려고"} },
+          { native:{vi:"Sumi đã nhập học vào đại học Y để trở thành bác sĩ.", en:"Sumi entered medical school to become a doctor.", ko:"수미는 의사가 되려고 의대에 입학했습니다."},
+            full:"수미는 의사가 되려고 의대에 입학했습니다.", rule:{vi:"되다 → 되려고", en:"되다 → 되려고", ko:"되다 + -(으)려고"} },
+          { native:{vi:"Kyoungjin tập thể dục mỗi ngày để giảm cân.",    en:"Kyoungjin works out every day to lose weight.", ko:"경진은 살을 빼려고 매일 운동합니다."},
+            full:"경진은 살을 빼려고 매일 운동합니다.", rule:{vi:"빼다 → 빼려고", en:"빼다 → 빼려고", ko:"빼다 + -(으)려고"} },
+          { native:{vi:"Tôi đang học để thi TOPIK.",                      en:"I am studying to take the TOPIK exam.",    ko:"저는 토픽 시험을 보려고 공부하고 있습니다."},
+            full:"저는 토픽 시험을 보려고 공부하고 있습니다.", rule:{vi:"보다 → 보려고", en:"보다 → 보려고", ko:"보다 + -(으)려고"} },
+          { native:{vi:"Tôi tiết kiệm tiền để mua điện thoại mới.",       en:"I am saving money to buy a new phone.",    ko:"저는 새 휴대폰을 사려고 돈을 모으고 있습니다."},
+            full:"저는 새 휴대폰을 사려고 돈을 모으고 있습니다.", rule:{vi:"사다 → 사려고", en:"사다 → 사려고", ko:"사다 + -(으)려고"} },
+          { native:{vi:"Tôi đang ôn tập để thi tốt.",                     en:"I am reviewing to do well on the exam.",   ko:"저는 시험을 잘 보려고 복습하고 있습니다."},
+            full:"저는 시험을 잘 보려고 복습하고 있습니다.", rule:{vi:"보다 → 보려고", en:"보다 → 보려고", ko:"보다 + -(으)려고"} },
+        ]
+      },
+      {
+        key:"~(으)러+이동동사", label:vi?"Để đi (으러)":en?"Go to do (으러)":"~(으)러 (이동동사)", color:"#FFF8E1", accent:"#F57F17",
+        rule:{vi:"Động từ + -(으)러 + động từ di chuyển (가다/오다/다니다) — đi đến để làm gì", en:"Verb + -(으)러 + movement verb (가다/오다/다니다) — go/come somewhere to do something", ko:"동사 + -(으)러 + 이동동사(가다/오다/다니다) — 이동 목적"},
+        cards:[
+          { native:{vi:"Sumi theo học ở trung tâm tiếng Anh để học tiếng Anh.", en:"Sumi goes to an English school to learn English.", ko:"수미는 영어를 배우러 영어학원에 다닙니다."},
+            full:"수미는 영어를 배우러 영어학원에 다닙니다.", rule:{vi:"배우다 → 배우러 + 다니다", en:"배우다 → 배우러 + 다니다", ko:"배우다 → 배우러 (이동동사: 다니다)"} },
+          { native:{vi:"Hôm qua tôi đã đi đến quán cà phê để gặp bạn.", en:"I went to the café to meet my friend yesterday.", ko:"저는 어제 친구를 만나러 카페에 갔습니다."},
+            full:"저는 어제 친구를 만나러 카페에 갔습니다.", rule:{vi:"만나다 → 만나러 + 가다", en:"만나다 → 만나러 + 가다", ko:"만나다 → 만나러 (이동동사: 가다)"} },
+          { native:{vi:"Sumi đã đi đến ngân hàng để rút tiền.",           en:"Sumi went to the bank to withdraw money.",  ko:"수미는 돈을 찾으러 은행에 갔습니다."},
+            full:"수미는 돈을 찾으러 은행에 갔습니다.", rule:{vi:"찾다 → 찾으러 + 가다 (받침)", en:"찾다 → 찾으러 + 가다 (batchim)", ko:"찾다 → 찾으러 (받침 있음 → 으러)"} },
+          { native:{vi:"Sumi đã đi đến thư viện để mượn sách.",           en:"Sumi went to the library to borrow a book.", ko:"수미는 책을 빌리러 도서관에 갔습니다."},
+            full:"수미는 책을 빌리러 도서관에 갔습니다.", rule:{vi:"빌리다 → 빌리러 + 가다", en:"빌리다 → 빌리러 + 가다", ko:"빌리다 → 빌리러 (이동동사: 가다)"} },
+          { native:{vi:"Sumi đã đi đến trung tâm mua sắm để mua quần áo.", en:"Sumi went to the department store to buy clothes.", ko:"수미는 옷을 사러 백화점에 갔습니다."},
+            full:"수미는 옷을 사러 백화점에 갔습니다.", rule:{vi:"사다 → 사러 + 가다", en:"사다 → 사러 + 가다", ko:"사다 → 사러 (이동동사: 가다)"} },
+          { native:{vi:"Tôi đến trường để học.",                           en:"I come to school to study.",               ko:"저는 공부하러 학교에 옵니다."},
+            full:"저는 공부하러 학교에 옵니다.", rule:{vi:"공부하다 → 공부하러 + 오다", en:"공부하다 → 공부하러 + 오다", ko:"공부하다 → 공부하러 (이동동사: 오다)"} },
+        ]
+      },
+    ];
+
+    const allCards = ADV3_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_ADV3 = { bg:"linear-gradient(150deg,#E8EAF6,#E0F2F1)", accent:"#283593", border:"#9FA8DA" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_ADV3.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Trạng ngữ 3 — Mục đích":en?"Adverb 3 — Purpose":"부사어 3단원 — 목적"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_ADV3.accent, textAlign:"center", marginBottom:4}}>
+            🎯 {vi?"Biểu thức mục đích":en?"Purpose Expressions":"목적 표현"}
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:14}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:12, marginLeft:8}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            📌 {cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${card.sectionColor}`, borderRadius:14, padding:"18px 20px", marginBottom:16, textAlign:"center"}}>
+            <div style={{fontSize:13, color:"#aaa", marginBottom:6}}>🌏 {vi?"Dịch":en?"Translate":"번역"}</div>
+            <div style={{fontSize:17, fontWeight:700, color:"#333", lineHeight:1.5}}>{nativeText}</div>
+          </div>
+
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:12, color:"#283593", fontWeight:700, marginBottom:6}}>✍️ {vi?"Viết bằng tiếng Hàn (thể 합니다)":en?"Write in Korean (합니다 form)":"한국어로 작성하세요 (합니다체)"}</div>
+            <textarea
+              value={unitCardInput}
+              onChange={e => setUnitCardInput(e.target.value)}
+              placeholder={vi?"Nhập tiếng Hàn...":en?"Enter Korean...":"한국어를 입력하세요..."}
+              style={{width:"100%", minHeight:60, border:`2px solid ${C_ADV3.border}`, borderRadius:10, padding:"10px 12px", fontSize:15, fontFamily:"inherit", resize:"vertical", boxSizing:"border-box"}}
+            />
+          </div>
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_ADV3.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#F1F8E9", border:"2px solid #8BC34A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:16, fontWeight:800, color:"#2E7D32"}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#43A047", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv2"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
