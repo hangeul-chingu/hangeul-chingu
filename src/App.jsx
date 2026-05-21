@@ -1405,6 +1405,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"부사어2",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv2"); }},
       { label:"부사어3",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv3"); }},
       { label:"부사어4",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv4"); }},
+      { label:"부사어5",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv5"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -11459,6 +11460,107 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv3"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_adv5") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const ADV5_SECTIONS = [
+      {
+        key:"~(으)려면 ~아/어야 하다", label:vi?"Muốn... thì phải... (려면/아야 하다)":en?"If you want to... you must... (려면/아야)":"~(으)려면 + ~아/어야 하다 (필수조건)", color:"#FFF3E0", accent:"#E65100",
+        rule:{vi:"Động từ + -(으)려면 + động từ/tính từ + -아/어야 하다 — điều kiện bắt buộc (Muốn A thì phải B)", en:"Verb + -(으)려면 + verb/adj + -아/어야 하다 — necessary condition (To do A, you must B)", ko:"동사 + -(으)려면 + 동사/형용사 + -아/어야 하다 — 필수조건. 받침 있으면 -으려면, 없으면 -려면"},
+        cards:[
+          { native:{vi:"Nếu muốn đi du học Hàn Quốc thì phải đỗ kì thi TOPIK.", en:"If you want to study in Korea, you have to pass the TOPIK test.", ko:"한국에 유학하려면 토픽 시험에 합격해야 합니다."},
+            full:"한국에 유학하려면 토픽 시험에 합격해야 합니다.", rule:{vi:"유학하다(모음) → 유학하 + 려면", en:"유학하다(vowel) → 유학하 + 려면", ko:"유학하다 → 유학하려면 (모음 → 려면)"} },
+          { native:{vi:"Nếu muốn mở cánh cửa này thì phải biết mật khẩu.", en:"You need to know the password to open this door.", ko:"이 문을 열려면 비밀번호를 알아야 합니다."},
+            full:"이 문을 열려면 비밀번호를 알아야 합니다.", rule:{vi:"열다(ㄹ 받침) → 열 + 려면", en:"열다(ㄹ batchim) → 열 + 려면", ko:"열다 → 열려면 (ㄹ 받침 → 려면 그대로)"} },
+          { native:{vi:"Nếu muốn mượn sách ở thư viện thì phải có thẻ học sinh.", en:"You need a student ID to borrow a book from the library.", ko:"도서관에서 책을 빌리려면 학생증이 있어야 합니다."},
+            full:"도서관에서 책을 빌리려면 학생증이 있어야 합니다.", rule:{vi:"빌리다(모음) → 빌리 + 려면", en:"빌리다(vowel) → 빌리 + 려면", ko:"빌리다 → 빌리려면 (모음 → 려면)"} },
+          { native:{vi:"Nếu muốn đổi hàng thì phải có hóa đơn.", en:"You must have a receipt to exchange items.", ko:"물건을 교환하려면 영수증이 있어야 합니다."},
+            full:"물건을 교환하려면 영수증이 있어야 합니다.", rule:{vi:"교환하다(모음) → 교환하 + 려면", en:"교환하다(vowel) → 교환하 + 려면", ko:"교환하다 → 교환하려면 (모음 → 려면)"} },
+          { native:{vi:"Nếu muốn giỏi tiếng Hàn thì phải thích tiếng Hàn.", en:"To be good at Korean, you have to like Korean.", ko:"한국어를 잘하려면 한국어를 좋아해야 합니다."},
+            full:"한국어를 잘하려면 한국어를 좋아해야 합니다.", rule:{vi:"잘하다(모음) → 잘하 + 려면", en:"잘하다(vowel) → 잘하 + 려면", ko:"잘하다 → 잘하려면 (모음 → 려면)"} },
+          { native:{vi:"Nếu muốn sống khỏe mạnh thì phải tập thể dục đều đặn.", en:"To live healthily, you have to exercise regularly.", ko:"건강하게 살려면 규칙적으로 운동해야 합니다."},
+            full:"건강하게 살려면 규칙적으로 운동해야 합니다.", rule:{vi:"살다(ㄹ 받침) → 살 + 려면", en:"살다(ㄹ batchim) → 살 + 려면", ko:"살다 → 살려면 (ㄹ 받침 → 려면 그대로)"} },
+        ]
+      },
+    ];
+
+    const allCards = ADV5_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_ADV5 = { bg:"linear-gradient(150deg,#FFF3E0,#FFF8E1)", accent:"#E65100", border:"#FFCC80" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_ADV5.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Trạng ngữ 5 — Điều kiện bắt buộc":en?"Adverb 5 — Necessary Condition":"부사어 5단원 — 필수조건"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_ADV5.accent, textAlign:"center", marginBottom:4}}>
+            ✅ {vi?"Biểu thức điều kiện bắt buộc":en?"Necessary Condition Expressions":"필수조건 표현"}
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:8}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_ADV5.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_ADV5.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(230,81,0,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_ADV5.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_ADV5.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#FFF3E0", border:"2px solid #FFCC02", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#E65100", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:16, fontWeight:800, color:"#BF360C"}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#F4511E", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv4"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
