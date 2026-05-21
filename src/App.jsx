@@ -1402,6 +1402,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"서술어24",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit24"); }},
       { label:"서술어25",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit25"); }},
       { label:"부사어1",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv1"); }},
+      { label:"부사어2",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv2"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -11027,6 +11028,182 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           {/* 뒤로 */}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit25"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_adv2") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const ADV2_SECTIONS = [
+      {
+        key:"명사+때문에", label:vi?"Vì (danh từ)":en?"Because of (noun)":"명사+때문에", color:"#FCE4EC", accent:"#C62828",
+        rule:{vi:"Danh từ + 때문에 (vì, do — nguyên nhân bằng danh từ)", en:"Noun + 때문에 (because of — noun cause)", ko:"명사 + 때문에 — 명사가 원인"},
+        cards:[
+          { native:{vi:"Vì cơn bão nên chuyến du lịch đã bị hủy.",    en:"The trip was canceled because of the typhoon.", ko:"태풍 때문에 여행이 취소되었습니다."},
+            full:"태풍 때문에 여행이 취소되었습니다.", rule:{vi:"태풍 (명사) + 때문에", en:"태풍 (noun) + 때문에", ko:"태풍 + 때문에"} },
+          { native:{vi:"Vì sương mù nên tai nạn giao thông đã xảy ra.", en:"There was a traffic accident because of the fog.", ko:"안개 때문에 교통사고가 났습니다."},
+            full:"안개 때문에 교통사고가 났습니다.", rule:{vi:"안개 + 때문에", en:"안개 + 때문에", ko:"안개 + 때문에"} },
+          { native:{vi:"Vì thi công đường xá nên ồn ào.",               en:"It is noisy because of the road construction.", ko:"도로 공사 때문에 시끄럽습니다."},
+            full:"도로 공사 때문에 시끄럽습니다.", rule:{vi:"공사 + 때문에", en:"공사 + 때문에", ko:"명사 + 때문에"} },
+          { native:{vi:"Vì thuốc lá nên anh ấy đã mắc bệnh ung thư phổi.", en:"He got lung cancer because of smoking.", ko:"담배 때문에 그는 폐암에 걸렸습니다."},
+            full:"담배 때문에 그는 폐암에 걸렸습니다.", rule:{vi:"담배 + 때문에", en:"담배 + 때문에", ko:"담배 + 때문에"} },
+          { native:{vi:"Vì bận việc nên tôi không thể đến.",             en:"I couldn't come because of work.",          ko:"일 때문에 오지 못했습니다."},
+            full:"일 때문에 오지 못했습니다.", rule:{vi:"일 + 때문에", en:"일 + 때문에", ko:"일 + 때문에"} },
+        ]
+      },
+      {
+        key:"명사+덕분에", label:vi?"Nhờ (danh từ)":en?"Thanks to (noun)":"명사+덕분에", color:"#E8F5E9", accent:"#2E7D32",
+        rule:{vi:"Danh từ + 덕분에 (nhờ có — nguyên nhân tích cực)", en:"Noun + 덕분에 (thanks to — positive cause)", ko:"명사 + 덕분에 — 긍정적 원인 (고마운 대상)"},
+        cards:[
+          { native:{vi:"Nhờ thầy mà tôi đã đậu kì thi Topik.",          en:"I passed the TOPIK test thanks to my teacher.", ko:"선생님 덕분에 저는 토픽 시험에 합격했습니다."},
+            full:"선생님 덕분에 저는 토픽 시험에 합격했습니다.", rule:{vi:"선생님 + 덕분에", en:"선생님 + 덕분에", ko:"선생님 + 덕분에"} },
+          { native:{vi:"Nhờ bạn bè mà anh ấy đã thành công trong kinh doanh.", en:"He succeeded in business thanks to his friend.", ko:"친구 덕분에 그는 사업에 성공했습니다."},
+            full:"친구 덕분에 그는 사업에 성공했습니다.", rule:{vi:"친구 + 덕분에", en:"친구 + 덕분에", ko:"친구 + 덕분에"} },
+          { native:{vi:"Nhờ có gia đình tôi đã vượt qua được.",          en:"I got through it thanks to my family.",     ko:"가족 덕분에 잘 이겨낼 수 있었습니다."},
+            full:"가족 덕분에 잘 이겨낼 수 있었습니다.", rule:{vi:"가족 + 덕분에", en:"가족 + 덕분에", ko:"가족 + 덕분에"} },
+        ]
+      },
+      {
+        key:"명사+탓에", label:vi?"Tại vì (danh từ)":en?"Due to (noun, negative)":"명사+탓에", color:"#FFF3E0", accent:"#E65100",
+        rule:{vi:"Danh từ + 탓에 (tại vì — nguyên nhân tiêu cực, đổ lỗi)", en:"Noun + 탓에 (due to — negative cause, blame)", ko:"명사 + 탓에 — 부정적 원인 (탓하는 뉘앙스)"},
+        cards:[
+          { native:{vi:"Tại vì bạn bè nên anh ấy đã thất bại trong kinh doanh.", en:"His business failed because of his friend.", ko:"친구 탓에 그는 사업에 실패했습니다."},
+            full:"친구 탓에 그는 사업에 실패했습니다.", rule:{vi:"친구 + 탓에", en:"친구 + 탓에", ko:"친구 + 탓에"} },
+          { native:{vi:"Tại vì bão tuyết mà sân bay đã bị đóng cửa.",   en:"The airport was closed due to heavy snow.", ko:"폭설 탓에 공항이 폐쇄되었습니다."},
+            full:"폭설 탓에 공항이 폐쇄되었습니다.", rule:{vi:"폭설 + 탓에", en:"폭설 + 탓에", ko:"폭설 + 탓에"} },
+          { native:{vi:"Tại vì trời mưa mà cuộc dã ngoại đã bị hủy.",   en:"The picnic was canceled due to the rain.",  ko:"비 탓에 소풍이 취소되었습니다."},
+            full:"비 탓에 소풍이 취소되었습니다.", rule:{vi:"비 + 탓에", en:"비 + 탓에", ko:"비 + 탓에"} },
+        ]
+      },
+      {
+        key:"~아/어서 (원인)", label:vi?"Vì...nên (아/어서)":en?"Because (아/어서)":"~아/어서 (원인)", color:"#E3F2FD", accent:"#1565C0",
+        rule:{vi:"Động từ/Tính từ + -아/어서 (vì...nên — nguyên nhân, không đổi theo thì)", en:"Verb/Adj + -아/어서 (because — cause, tense-neutral)", ko:"동사/형용사 + -아/어서 — 원인·이유 (시제 변화 없음)"},
+        cards:[
+          { native:{vi:"Xin lỗi vì trễ.",                               en:"I'm sorry for being late.",                ko:"늦어서 죄송합니다."},
+            full:"늦어서 죄송합니다.", rule:{vi:"늦다 → 늦어서 (사과)", en:"늦다 → 늦어서 (apology)", ko:"늦다 → 늦어서"} },
+          { native:{vi:"Rất vui được gặp bạn.",                          en:"Nice to meet you.",                        ko:"만나서 반갑습니다."},
+            full:"만나서 반갑습니다.", rule:{vi:"만나다 → 만나서", en:"만나다 → 만나서", ko:"만나다 → 만나서"} },
+          { native:{vi:"Dạo này vì tôi nhiều việc nên bận rộn.",         en:"I'm busy these days because I have a lot of work.", ko:"저는 요즘 일이 많아서 바쁩니다."},
+            full:"저는 요즘 일이 많아서 바쁩니다.", rule:{vi:"많다 → 많아서", en:"많다 → 많아서", ko:"많다 → 많아서"} },
+          { native:{vi:"Vì tính cách Sumi tốt nên có nhiều bạn.",        en:"Sumi has many friends because she has a good personality.", ko:"수미는 성격이 좋아서 친구가 많습니다."},
+            full:"수미는 성격이 좋아서 친구가 많습니다.", rule:{vi:"좋다 → 좋아서", en:"좋다 → 좋아서", ko:"좋다 → 좋아서"} },
+          { native:{vi:"Vì tôi đau bụng nên đi đến bệnh viện.",          en:"I go to the hospital because I have a stomachache.", ko:"저는 배가 아파서 병원에 갑니다."},
+            full:"저는 배가 아파서 병원에 갑니다.", rule:{vi:"아프다 → 아파서 (ㅡ탈락)", en:"아프다 → 아파서 (ㅡ drops)", ko:"아프다 → 아파서"} },
+          { native:{vi:"Vì tôi thích tiếng Hàn nên học tiếng Hàn.",      en:"I study Korean because I like Korean.",    ko:"저는 한국어가 좋아서 공부합니다."},
+            full:"저는 한국어가 좋아서 공부합니다.", rule:{vi:"좋다 → 좋아서", en:"좋다 → 좋아서", ko:"좋다 → 좋아서"} },
+          { native:{vi:"Vì Sumi học hành chăm chỉ nên đã nhận học bổng.", en:"Sumi became a scholarship student because she studied hard.", ko:"수미는 열심히 공부해서 장학생이 되었습니다."},
+            full:"수미는 열심히 공부해서 장학생이 되었습니다.", rule:{vi:"공부하다 → 공부해서", en:"공부하다 → 공부해서", ko:"공부하다 → 공부해서"} },
+          { native:{vi:"Vì Kyoungjin hát hay nên đã trở thành ca sĩ.",  en:"Kyoungjin became a singer because he was good at singing.", ko:"경진은 노래를 잘해서 가수가 되었습니다."},
+            full:"경진은 노래를 잘해서 가수가 되었습니다.", rule:{vi:"잘하다 → 잘해서", en:"잘하다 → 잘해서", ko:"잘하다 → 잘해서"} },
+          { native:{vi:"Hôm nay trời lạnh nên tôi mặc áo khoác.",        en:"It is cold today so I put on a coat.",     ko:"오늘은 날씨가 추워서 코트를 입었습니다."},
+            full:"오늘은 날씨가 추워서 코트를 입었습니다.", rule:{vi:"춥다 → 추워서 (ㅂ불규칙)", en:"춥다 → 추워서 (ㅂ irregular)", ko:"춥다 → 추워서 (ㅂ불규칙)"} },
+          { native:{vi:"Tôi mệt nên muốn nghỉ ngơi.",                   en:"I am tired so I want to rest.",            ko:"피곤해서 쉬고 싶습니다."},
+            full:"피곤해서 쉬고 싶습니다.", rule:{vi:"피곤하다 → 피곤해서", en:"피곤하다 → 피곤해서", ko:"피곤하다 → 피곤해서"} },
+          { native:{vi:"Tôi đói bụng nên muốn ăn cơm.",                  en:"I am hungry so I want to eat.",            ko:"배가 고파서 밥을 먹고 싶습니다."},
+            full:"배가 고파서 밥을 먹고 싶습니다.", rule:{vi:"고프다 → 고파서 (ㅡ탈락)", en:"고프다 → 고파서 (ㅡ drops)", ko:"고프다 → 고파서"} },
+          { native:{vi:"Vì chân đau nên tôi đã đến bệnh viện.",          en:"My leg hurt so I went to the hospital.",   ko:"다리가 아파서 병원에 갔습니다."},
+            full:"다리가 아파서 병원에 갔습니다.", rule:{vi:"아프다 → 아파서", en:"아프다 → 아파서", ko:"아프다 → 아파서"} },
+        ]
+      },
+      {
+        key:"~(으)니까", label:vi?"Vì...nên (으니까)":en?"Since/Because (으니까)":"~(으)니까", color:"#F3E5F5", accent:"#6A1B9A",
+        rule:{vi:"Động từ/Tính từ + -(으)니까 (vì — dùng khi ra lệnh, đề nghị, hoặc phát hiện)", en:"Verb/Adj + -(으)니까 (since/because — used before commands, suggestions, or discoveries)", ko:"동사/형용사 + -(으)니까 — 명령·청유·발견 앞에 쓰는 이유"},
+        cards:[
+          { native:{vi:"Vì trời mưa lớn nên minh tan làm sớm nhé?",     en:"Since it rains a lot, shall we go home early?", ko:"비가 많이 오니까 일찍 퇴근할까요?"},
+            full:"비가 많이 오니까 일찍 퇴근할까요?", rule:{vi:"오다 → 오니까 + 청유문", en:"오다 → 오니까 + suggestion", ko:"오다 → 오니까 + 청유형"} },
+          { native:{vi:"Vì trời mưa lớn nên mình tan làm sớm thôi.",     en:"Since it rains a lot, let's go home early.", ko:"비가 많이 오니까 일찍 퇴근합시다."},
+            full:"비가 많이 오니까 일찍 퇴근합시다.", rule:{vi:"오다 → 오니까 + 청유문", en:"오다 → 오니까 + suggestion", ko:"오다 → 오니까 + 청유형"} },
+          { native:{vi:"Vì trời mưa lớn nên xin hãy tan làm sớm.",       en:"Since it rains a lot, please go home early.", ko:"비가 많이 오니까 일찍 퇴근하십시오."},
+            full:"비가 많이 오니까 일찍 퇴근하십시오.", rule:{vi:"오다 → 오니까 + 명령문", en:"오다 → 오니까 + command", ko:"오다 → 오니까 + 명령형"} },
+          { native:{vi:"Về đến nhà thì thấy cửa đã được mở trước đó rồi.", en:"When I arrived home, the door was open.", ko:"집에 왔으니까 문이 열려 있었습니다."},
+            full:"집에 왔으니까 문이 열려 있었습니다.", rule:{vi:"오다 → 왔으니까 (과거+발견)", en:"오다 → 왔으니까 (past+discovery)", ko:"오다 → 왔으니까 (발견)"} },
+          { native:{vi:"Đi đến trung tâm thương mại thì thấy đã có nhiều người.", en:"When I went to the department store, there were many people.", ko:"백화점에 갔으니까 사람이 많았습니다."},
+            full:"백화점에 갔으니까 사람이 많았습니다.", rule:{vi:"가다 → 갔으니까 (발견)", en:"가다 → 갔으니까 (discovery)", ko:"가다 → 갔으니까 (발견)"} },
+          { native:{vi:"Mở cặp ra thì thấy đã không có tiền.",            en:"When I opened the bag, there was no money.", ko:"가방을 열었으니까 돈이 없었습니다."},
+            full:"가방을 열었으니까 돈이 없었습니다.", rule:{vi:"열다 → 열었으니까 (발견)", en:"열다 → 열었으니까 (discovery)", ko:"열다 → 열었으니까 (발견)"} },
+          { native:{vi:"Vì bận rộn nên không thể đến được.",              en:"Since I am busy, I cannot come.",           ko:"바쁘니까 갈 수 없습니다."},
+            full:"바쁘니까 갈 수 없습니다.", rule:{vi:"바쁘다 → 바쁘니까 + 부정", en:"바쁘다 → 바쁘니까 + negation", ko:"바쁘다 → 바쁘니까"} },
+        ]
+      },
+    ];
+
+    const allCards = ADV2_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_ADV2 = { bg:"linear-gradient(150deg,#FCE4EC,#F3E5F5)", accent:"#880E4F", border:"#F48FB1" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_ADV2.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Trạng ngữ 2 — Nguyên nhân":en?"Adverb 2 — Cause":"부사어 2단원 — 원인"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_ADV2.accent, textAlign:"center", marginBottom:4}}>
+            🔍 {vi?"Biểu thức nguyên nhân":en?"Cause Expressions":"원인 표현"}
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:14}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:12, marginLeft:8}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            📌 {cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${card.sectionColor}`, borderRadius:14, padding:"18px 20px", marginBottom:16, textAlign:"center"}}>
+            <div style={{fontSize:13, color:"#aaa", marginBottom:6}}>🌏 {vi?"Dịch":en?"Translate":"번역"}</div>
+            <div style={{fontSize:17, fontWeight:700, color:"#333", lineHeight:1.5}}>{nativeText}</div>
+          </div>
+
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:12, color:"#880E4F", fontWeight:700, marginBottom:6}}>✍️ {vi?"Viết bằng tiếng Hàn (thể 합니다)":en?"Write in Korean (합니다 form)":"한국어로 작성하세요 (합니다체)"}</div>
+            <textarea
+              value={unitCardInput}
+              onChange={e => setUnitCardInput(e.target.value)}
+              placeholder={vi?"Nhập tiếng Hàn...":en?"Enter Korean...":"한국어를 입력하세요..."}
+              style={{width:"100%", minHeight:60, border:`2px solid ${C_ADV2.border}`, borderRadius:10, padding:"10px 12px", fontSize:15, fontFamily:"inherit", resize:"vertical", boxSizing:"border-box"}}
+            />
+          </div>
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_ADV2.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#F1F8E9", border:"2px solid #8BC34A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:16, fontWeight:800, color:"#2E7D32"}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#43A047", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv1"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
