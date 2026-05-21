@@ -1413,6 +1413,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"존칭",     action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }},
       { label:"불규칙",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }},
       { label:"종별사",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_counter"); }},
+      { label:"빈도부사",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -12482,6 +12483,147 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_freq") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const conceptLabel = vi
+      ? "빈도부사 (Trạng từ tần suất — diễn đạt mức độ thường xuyên)"
+      : en
+      ? "빈도부사 (Frequency adverb — expresses how often something happens)"
+      : "빈도부사 (얼마나 자주 하는지 나타내는 표현)";
+    const FREQ_SECTIONS = [
+      {
+        key:"높은 빈도 (100% → 자주)", label:vi?"Tần suất cao (항상→자주)":en?"High Frequency (항상→자주)":"항상 · 늘 · 매일 · 자주", color:"#E8F5E9", accent:"#2E7D32",
+        rule:{vi:"항상(100%) → 늘(100%) → 매일(거의 매일) → 자주(자주). Thứ tự từ tần suất cao đến thấp dần", en:"항상(100%) → 늘(100%) → 매일(almost daily) → 자주(often). From highest to lower frequency", ko:"항상(100%) → 늘(100%) → 매일(거의 매일) → 자주(자주). 빈도 높은 것부터 낮아지는 순서"},
+        cards:[
+          { native:{vi:"Tuân luôn luôn mỉm cười.", en:"Tuan always smiles.", ko:"투안은 항상 웃습니다."},
+            full:"투안은 항상 웃습니다.", rule:{vi:"항상 — luôn luôn (100%)", en:"항상 — always (100%)", ko:"항상 — 언제나, 빠짐없이 (100%)"} },
+          { native:{vi:"Mariá luôn luôn đến đúng giờ.", en:"Maria always arrives on time.", ko:"마리아는 늘 시간을 잘 지킵니다."},
+            full:"마리아는 늘 시간을 잘 지킵니다.", rule:{vi:"늘 — luôn luôn (항상과 같은 뜻, 120% 추가)", en:"늘 — always (same as 항상, 120% extra)", ko:"늘 — 항상과 같은 의미, 구어에서 자주 사용 (120% 추가)"} },
+          { native:{vi:"Tuân tập thể dục vào mỗi buổi sáng.", en:"Tuan works out every morning.", ko:"투안은 매일 아침 운동을 합니다."},
+            full:"투안은 매일 아침 운동을 합니다.", rule:{vi:"매일 — mỗi ngày (거의 매일)", en:"매일 — every day (almost daily)", ko:"매일 — 하루도 빠짐없이, 매일"} },
+          { native:{vi:"Tuân thường xuyên đi đến quán cà phê.", en:"Tuan often goes to the coffee shop.", ko:"투안은 자주 커피숍에 갑니다."},
+            full:"투안은 자주 커피숍에 갑니다.", rule:{vi:"자주 — thường xuyên (자주, 빈번하게)", en:"자주 — often, frequently", ko:"자주 — 여러 번, 빈번하게"} },
+        ]
+      },
+      {
+        key:"낮은 빈도 (가끔 → 0%)", label:vi?"Tần suất thấp (가끔→전혀)":en?"Low Frequency (가끔→전혀)":"가끔 · 별로 · 전혀", color:"#FBE9E7", accent:"#BF360C",
+        rule:{vi:"가끔(가끔) → 때때로(때때로) → 별로~지 않다(거의 안) → 전혀~지 않다(0%). Thứ tự từ ít thường xuyên đến không bao giờ", en:"가끔(sometimes) → 때때로(occasionally) → 별로~지 않다(rarely) → 전혀~지 않다(never). From low to zero frequency", ko:"가끔(가끔) → 때때로(가끔) → 별로~지 않다(거의 안 함) → 전혀~지 않다(0%). 낮은 빈도에서 완전 부정으로"},
+        cards:[
+          { native:{vi:"Mariá thỉnh thoảng đi biển.", en:"Maria sometimes goes to the beach.", ko:"마리아는 가끔 해변에 갑니다."},
+            full:"마리아는 가끔 해변에 갑니다.", rule:{vi:"가끔 — thỉnh thoảng (가끔, 자주는 아님)", en:"가끔 — sometimes, occasionally", ko:"가끔 — 자주는 아니지만 때로"} },
+          { native:{vi:"Tuân thỉnh thoảng nấu ăn ở nhà.", en:"Tuan occasionally cooks at home.", ko:"투안은 때때로 집에서 요리를 합니다."},
+            full:"투안은 때때로 집에서 요리를 합니다.", rule:{vi:"때때로 — thỉnh thoảng (가끔과 비슷한 뜻, 120% 추가)", en:"때때로 — occasionally (similar to 가끔, 120% extra)", ko:"때때로 — 가끔과 비슷, 문어체에서 자주 사용 (120% 추가)"} },
+          { native:{vi:"Mariá không mấy khi xem phim.", en:"Maria rarely watches movies.", ko:"마리아는 영화를 별로 보지 않습니다."},
+            full:"마리아는 영화를 별로 보지 않습니다.", rule:{vi:"별로~지 않다 — không mấy khi (거의 안 함, 120% 추가)", en:"별로~지 않다 — rarely, not much (120% extra)", ko:"별로~지 않다 — 거의 하지 않음, 부정문과 함께 (120% 추가)"} },
+          { native:{vi:"Tuân hoàn toàn không uống rượu.", en:"Tuan never drinks alcohol.", ko:"투안은 술을 전혀 마시지 않습니다."},
+            full:"투안은 술을 전혀 마시지 않습니다.", rule:{vi:"전혀~지 않다 — hoàn toàn không (0%, 120% 추가)", en:"전혀~지 않다 — never, not at all (120% extra)", ko:"전혀~지 않다 — 완전 부정, 0% (120% 추가)"} },
+        ]
+      },
+    ];
+
+    const allCards = FREQ_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_FREQ = { bg:"linear-gradient(150deg,#E8F5E9,#FBE9E7)", accent:"#1B5E20", border:"#A5D6A7" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    const freqBar = [
+      {label:"항상·늘", pct:100, color:"#2E7D32"},
+      {label:"매일", pct:85, color:"#43A047"},
+      {label:"자주", pct:65, color:"#66BB6A"},
+      {label:"가끔·때때로", pct:35, color:"#FFA726"},
+      {label:"별로", pct:15, color:"#EF5350"},
+      {label:"전혀", pct:0, color:"#B71C1C"},
+    ];
+    const currentFreqIdx = unitCardIdx < 4 ? Math.min(unitCardIdx, 3) : unitCardIdx - 4 + 4;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_FREQ.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {conceptLabel}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_FREQ.accent, textAlign:"center", marginBottom:4}}>
+            📊 {vi?"Trạng từ tần suất":en?"Frequency Adverbs":"빈도부사 표현"}
+          </div>
+
+          <div style={{background:"white", borderRadius:12, padding:"10px 14px", marginBottom:12, boxShadow:"0 1px 6px rgba(0,0,0,.08)"}}>
+            <div style={{fontSize:11, color:"#999", marginBottom:6, textAlign:"center"}}>
+              {vi?"Thang tần suất":en?"Frequency Scale":"빈도 스펙트럼"}
+            </div>
+            <div style={{display:"flex", gap:4, alignItems:"flex-end", height:36}}>
+              {freqBar.map((f,i) => (
+                <div key={i} style={{flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2}}>
+                  <div style={{width:"100%", height:Math.max(4, f.pct * 0.28), background: f.color, borderRadius:3, opacity: i === Math.min(unitCardIdx < 4 ? unitCardIdx : unitCardIdx, 5) ? 1 : 0.3, transition:"opacity .3s"}} />
+                  <div style={{fontSize:8, color:"#999", textAlign:"center", lineHeight:1.2}}>{f.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#F1F8E9", border:"1.5px solid #AED581", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_FREQ.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_FREQ.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(27,94,32,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_FREQ.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_FREQ.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#2E7D32", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_counter"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
