@@ -1410,6 +1410,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"부사어7",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv7"); }},
       { label:"관형어",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }},
       { label:"간접화법",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }},
+      { label:"존칭",     action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -12051,6 +12052,129 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_honor") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const HON_SECTIONS = [
+      {
+        key:"가족 존칭", label:vi?"Kính ngữ với gia đình":en?"Honorifics with Family":"가족 대상 존칭 표현", color:"#E8F5E9", accent:"#2E7D32",
+        rule:{vi:"Dùng kính ngữ với người lớn tuổi/bề trên trong gia đình. Chủ ngữ + 께서, động từ đặc biệt: 드시다/계시다/주무시다/편찮으시다/돌아가시다", en:"Use honorifics with elders/superiors in family. Subject + 께서, special verbs: 드시다/계시다/주무시다/편찮으시다/돌아가시다", ko:"어른 주어 + 께서, 특별 존칭 동사 사용: 드시다/계시다/주무시다/편찮으시다/돌아가시다"},
+        cards:[
+          { native:{vi:"Mẹ đang nấu ăn.", en:"My mother is cooking.", ko:"어머니께서 요리를 하고 계십니다."},
+            full:"어머니께서 요리를 하고 계십니다.", rule:{vi:"하다 → 하시다 (동작 존칭) + 계십니다(있다 존칭)", en:"하다 → 하시다 (action honorific) + 계십니다", ko:"하다 → 하시다 / 있다 → 계시다 (동작 존칭)"} },
+          { native:{vi:"Bà đang dùng bữa.", en:"My grandmother is having a meal.", ko:"할머니께서 식사를 드시고 계십니다."},
+            full:"할머니께서 식사를 드시고 계십니다.", rule:{vi:"먹다 → 드시다 (먹다 존칭)", en:"먹다 → 드시다 (eat honorific)", ko:"먹다 → 드시다 (먹다 전용 존칭)"} },
+          { native:{vi:"Ông đang ngủ.", en:"My grandfather is sleeping.", ko:"할아버지께서 주무시고 계십니다."},
+            full:"할아버지께서 주무시고 계십니다.", rule:{vi:"자다 → 주무시다 (자다 존칭)", en:"자다 → 주무시다 (sleep honorific)", ko:"자다 → 주무시다 (자다 전용 존칭)"} },
+          { native:{vi:"Bố mẹ tôi bây giờ đang ở quê.", en:"My parents are in their hometown now.", ko:"부모님께서 지금 고향에 계십니다."},
+            full:"부모님께서 지금 고향에 계십니다.", rule:{vi:"있다 → 계시다 (있다 존칭)", en:"있다 → 계시다 (be/exist honorific)", ko:"있다 → 계시다 (있다 전용 존칭)"} },
+          { native:{vi:"Dạo này bà không khỏe.", en:"My grandmother has not been well lately.", ko:"요즘 할머니께서 편찮으십니다."},
+            full:"요즘 할머니께서 편찮으십니다.", rule:{vi:"아프다 → 편찮으시다 (아프다 존칭)", en:"아프다 → 편찮으시다 (be ill honorific)", ko:"아프다 → 편찮으시다 (아프다 전용 존칭)"} },
+          { native:{vi:"Sáng hôm nay ông cố đã qua đời.", en:"My great-grandfather passed away this morning.", ko:"오늘 아침 증조할아버지께서 돌아가셨습니다."},
+            full:"오늘 아침 증조할아버지께서 돌아가셨습니다.", rule:{vi:"죽다 → 돌아가시다 (죽다 존칭)", en:"죽다 → 돌아가시다 (pass away honorific)", ko:"죽다 → 돌아가시다 (죽다 전용 존칭)"} },
+          { native:{vi:"Tôi đã tặng quà cho mẹ.", en:"I gave my mother a gift.", ko:"저는 어머니께 선물을 드렸습니다."},
+            full:"저는 어머니께 선물을 드렸습니다.", rule:{vi:"주다(아래→위) → 드리다 (드리다 존칭)", en:"주다(up direction) → 드리다 (give-up honorific)", ko:"주다(아랫사람→윗사람) → 드리다"} },
+          { native:{vi:"Mẹ đã tặng quà cho tôi.", en:"My mother gave me a gift.", ko:"어머니께서 저에게 선물을 주셨습니다."},
+            full:"어머니께서 저에게 선물을 주셨습니다.", rule:{vi:"주다(위→아래) → 주시다 (주시다 존칭)", en:"주다(down direction) → 주시다 (give-down honorific)", ko:"주다(윗사람→아랫사람) → 주시다"} },
+          { native:{vi:"Tôi đã dùng bữa cùng bà.", en:"I had a meal with my grandmother.", ko:"저는 할머니와 함께 진지를 드셨습니다."},
+            full:"저는 할머니와 함께 진지를 드셨습니다.", rule:{vi:"밥 → 진지 (밥 존칭 명사), 먹다 → 드시다", en:"밥 → 진지 (meal honorific noun), 먹다 → 드시다", ko:"밥 → 진지 (명사 존칭) + 드시다 (120% 추가)"} },
+        ]
+      },
+      {
+        key:"직장·사회 존칭", label:vi?"Kính ngữ trong công việc/xã hội":en?"Honorifics at Work/Society":"직장·사회 대상 존칭 표현", color:"#E3F2FD", accent:"#0D47A1",
+        rule:{vi:"Dùng kính ngữ với cấp trên, thầy cô, người lớn tuổi ngoài xã hội. 뵙다/모시다 — kính ngữ chiều từ dưới lên", en:"Use honorifics with superiors, teachers, elders in society. 뵙다/모시다 — humble verbs (speaker lowers self)", ko:"직장 상사·선생님·사회 어른 대상. 뵙다/모시다 — 자신을 낮추는 겸손 표현"},
+        cards:[
+          { native:{vi:"Giám đốc đã nói với nhân viên.", en:"The boss spoke to the employees.", ko:"사장님께서 직원들에게 말씀하셨습니다."},
+            full:"사장님께서 직원들에게 말씀하셨습니다.", rule:{vi:"말하다 → 말씀하시다 (말하다 존칭)", en:"말하다 → 말씀하시다 (speak honorific)", ko:"말하다 → 말씀하시다 (말하다 전용 존칭)"} },
+          { native:{vi:"Ngày mai tôi định sẽ gặp thầy.", en:"I plan to meet my teacher tomorrow.", ko:"내일 선생님을 뵐 예정입니다."},
+            full:"내일 선생님을 뵐 예정입니다.", rule:{vi:"만나다(아래→위) → 뵙다 (만나다 겸손)", en:"만나다(up direction) → 뵙다 (meet humble)", ko:"만나다(아랫사람→윗사람) → 뵙다 (겸손 표현)"} },
+          { native:{vi:"Tôi đã đưa bà đến bệnh viện.", en:"I took my grandmother to the hospital.", ko:"할머니를 모시고 병원에 갔습니다."},
+            full:"할머니를 모시고 병원에 갔습니다.", rule:{vi:"데리다(아래→위) → 모시다 (데리다 겸손)", en:"데리다(up direction) → 모시다 (accompany humble)", ko:"데리다(아랫사람→윗사람) → 모시다 (겸손 표현)"} },
+          { native:{vi:"Thưa giám đốc, xin hỏi quý danh là gì ạ?", en:"Excuse me, may I ask your name?", ko:"실례지만 성함이 어떻게 되십니까?"},
+            full:"실례지만 성함이 어떻게 되십니까?", rule:{vi:"이름 → 성함 (이름 존칭 명사)", en:"이름 → 성함 (name honorific noun)", ko:"이름 → 성함 (명사 존칭 — 120% 추가)"} },
+          { native:{vi:"Thưa giám đốc, chúc mừng đám cưới của con trai ngài.", en:"Boss, congratulations on your son's wedding.", ko:"사장님, 아드님 결혼을 축하드립니다."},
+            full:"사장님, 아드님 결혼을 축하드립니다.", rule:{vi:"아들 → 아드님 (아들 존칭 명사) + 드리다", en:"아들 → 아드님 (son honorific noun) + 드리다", ko:"아들 → 아드님 (명사 존칭) + 축하드리다"} },
+        ]
+      },
+    ];
+
+    const allCards = HON_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_HON = { bg:"linear-gradient(150deg,#E8F5E9,#E3F2FD)", accent:"#1A237E", border:"#90CAF9" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_HON.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Kính ngữ":en?"Honorifics":"존칭 표현"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_HON.accent, textAlign:"center", marginBottom:4}}>
+            🙇 {vi?"Biểu thức kính ngữ":en?"Honorific Expressions":"존칭 표현"}
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_HON.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_HON.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(26,35,126,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_HON.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_HON.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
