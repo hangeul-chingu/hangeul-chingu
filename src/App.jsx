@@ -1411,6 +1411,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"관형어",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }},
       { label:"간접화법",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }},
       { label:"존칭",     action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }},
+      { label:"불규칙",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -12175,6 +12176,165 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_irreg") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const IRR_SECTIONS = [
+      {
+        key:"ㅂ 불규칙", label:vi?"Bất quy tắc ㅂ":en?"ㅂ Irregular":"ㅂ → 우/오 변화", color:"#E8F5E9", accent:"#2E7D32",
+        rule:{vi:"Tính từ/động từ có 받침 ㅂ + 모음 → ㅂ bị lược bỏ, thêm 우(오). Ví dụ: 아프다→아파, 춥다→추워, 돕다→도와", en:"Adj/verb with ㅂ batchim + vowel → ㅂ drops, add 우(오). Ex: 아프다→아파, 춥다→추워, 돕다→도와", ko:"받침 ㅂ + 모음 → ㅂ 탈락 후 우(오) 추가. 아프다→아파, 춥다→추워, 돕다→도와(예외)"},
+        cards:[
+          { native:{vi:"Lòng tôi đã đau.", en:"My heart ached.", ko:"마음이 아팠습니다."},
+            full:"마음이 아팠습니다.", rule:{vi:"아프다 → 아프 + 아서 → 아파서 (ㅂ 탈락)", en:"아프다 → 아파 (ㅂ drops → 아)", ko:"아프다 → 아파 (ㅂ 불규칙: ㅂ 탈락 → 아)"} },
+          { native:{vi:"Tôi đã rất vui khi gặp bạn cùng quê.", en:"I was so happy to meet a friend from my hometown.", ko:"고향 친구를 만나서 정말 기뻤습니다."},
+            full:"고향 친구를 만나서 정말 기뻤습니다.", rule:{vi:"기쁘다 → 기뻐 (ㅂ 불규칙)", en:"기쁘다 → 기뻐 (ㅂ irregular)", ko:"기쁘다 → 기뻐 (ㅂ 불규칙: ㅂ 탈락 → 워)"} },
+          { native:{vi:"Vì bận nên tôi đã không thể tập thể dục.", en:"I could not exercise because I was busy.", ko:"바빠서 운동을 못 했습니다."},
+            full:"바빠서 운동을 못 했습니다.", rule:{vi:"바쁘다 → 바빠 (ㅂ 불규칙)", en:"바쁘다 → 바빠 (ㅂ irregular)", ko:"바쁘다 → 바빠 (ㅂ 불규칙: ㅂ 탈락 → 아)"} },
+          { native:{vi:"Hôm qua trời rất lạnh.", en:"It was very cold yesterday.", ko:"어제는 너무 추웠습니다."},
+            full:"어제는 너무 추웠습니다.", rule:{vi:"춥다 → 추워 (ㅂ 불규칙)", en:"춥다 → 추워 (ㅂ irregular)", ko:"춥다 → 추워 (ㅂ 불규칙: ㅂ 탈락 → 워)"} },
+          { native:{vi:"Hôm qua trời rất nóng.", en:"It was very hot yesterday.", ko:"어제는 너무 더웠습니다."},
+            full:"어제는 너무 더웠습니다.", rule:{vi:"덥다 → 더워 (ㅂ 불규칙)", en:"덥다 → 더워 (ㅂ irregular)", ko:"덥다 → 더워 (ㅂ 불규칙: ㅂ 탈락 → 워)"} },
+          { native:{vi:"Kim chi hơi cay.", en:"The kimchi was a little spicy.", ko:"김치가 조금 매웠습니다."},
+            full:"김치가 조금 매웠습니다.", rule:{vi:"맵다 → 매워 (ㅂ 불규칙)", en:"맵다 → 매워 (ㅂ irregular)", ko:"맵다 → 매워 (ㅂ 불규칙: ㅂ 탈락 → 워)"} },
+          { native:{vi:"Tuân đã giúp đỡ tôi.", en:"Tuan helped me.", ko:"투안이 저를 도와줬습니다."},
+            full:"투안이 저를 도와줬습니다.", rule:{vi:"돕다 → 도와 (ㅂ 불규칙 예외: 오+아=와)", en:"돕다 → 도와 (ㅂ irregular exception: 오+아=와)", ko:"돕다 → 도와 (ㅂ 불규칙 예외: ㅂ 탈락 → 오+아=와)"} },
+        ]
+      },
+      {
+        key:"으 불규칙", label:vi?"Bất quy tắc 으":en?"으 Irregular":"ㅡ 탈락 변화", color:"#FFF8E1", accent:"#F57F17",
+        rule:{vi:"Động từ/tính từ kết thúc bằng ㅡ + 아/어 → ㅡ bị lược bỏ. 끄다→꺼, 쓰다→써, 크다→커", en:"Verb/adj ending in ㅡ + 아/어 → ㅡ drops. 끄다→꺼, 쓰다→써, 크다→커", ko:"어간 끝이 ㅡ + 아/어 → ㅡ 탈락. 끄다→꺼, 쓰다→써, 크다→커"},
+        cards:[
+          { native:{vi:"Mariá đã viết thư.", en:"Maria wrote a letter.", ko:"마리아는 편지를 썼습니다."},
+            full:"마리아는 편지를 썼습니다.", rule:{vi:"쓰다 → 써 (으 불규칙: ㅡ 탈락)", en:"쓰다 → 써 (으 irregular: ㅡ drops)", ko:"쓰다 → 써 (으 불규칙: ㅡ 탈락 → 써)"} },
+          { native:{vi:"Áo quá rộng.", en:"The clothes were too big.", ko:"옷이 너무 컸습니다."},
+            full:"옷이 너무 컸습니다.", rule:{vi:"크다 → 커 (으 불규칙: ㅡ 탈락)", en:"크다 → 커 (으 irregular: ㅡ drops)", ko:"크다 → 커 (으 불규칙: ㅡ 탈락 → 커)"} },
+        ]
+      },
+      {
+        key:"르 불규칙", label:vi?"Bất quy tắc 르":en?"르 Irregular":"르 → ㄹㄹ 변화", color:"#E3F2FD", accent:"#0D47A1",
+        rule:{vi:"Động từ kết thúc bằng 르 + 아/어 → 르 thành ㄹㄹ. 자르다→잘라, 다르다→달라, 부르다→불러", en:"Verb ending in 르 + 아/어 → 르 becomes ㄹㄹ. 자르다→잘라, 다르다→달라, 부르다→불러", ko:"어간 끝 르 + 아/어 → ㄹ 추가 후 러/라. 자르다→잘라, 다르다→달라, 부르다→불러"},
+        cards:[
+          { native:{vi:"Mariá đã cắt tóc.", en:"Maria got her hair cut.", ko:"마리아는 머리를 잘랐습니다."},
+            full:"마리아는 머리를 잘랐습니다.", rule:{vi:"자르다 → 잘라 (르 불규칙)", en:"자르다 → 잘라 (르 irregular)", ko:"자르다 → 잘라 (르 불규칙: ㄹ 추가 → 잘라)"} },
+          { native:{vi:"Tuân khác với người bình thường.", en:"Tuan was different from ordinary people.", ko:"투안은 평범한 사람과 달랐습니다."},
+            full:"투안은 평범한 사람과 달랐습니다.", rule:{vi:"다르다 → 달라 (르 불규칙)", en:"다르다 → 달라 (르 irregular)", ko:"다르다 → 달라 (르 불규칙: ㄹ 추가 → 달라)"} },
+          { native:{vi:"Tuân đã hát ở quán karaoke.", en:"Tuan sang at the karaoke room.", ko:"투안은 노래방에서 노래를 불렀습니다."},
+            full:"투안은 노래방에서 노래를 불렀습니다.", rule:{vi:"부르다 → 불러 (르 불규칙)", en:"부르다 → 불러 (르 irregular)", ko:"부르다 → 불러 (르 불규칙: ㄹ 추가 → 불러)"} },
+          { native:{vi:"Tuân đã nhanh hơn tôi.", en:"Tuan was faster than me.", ko:"투안은 저보다 빨랐습니다."},
+            full:"투안은 저보다 빨랐습니다.", rule:{vi:"빠르다 → 빨라 (르 불규칙)", en:"빠르다 → 빨라 (르 irregular)", ko:"빠르다 → 빨라 (르 불규칙: ㄹ 추가 → 빨라)"} },
+          { native:{vi:"Mariá đã chọn áo đẹp.", en:"Maria chose pretty clothes.", ko:"마리아는 예쁜 옷을 골랐습니다."},
+            full:"마리아는 예쁜 옷을 골랐습니다.", rule:{vi:"고르다 → 골라 (르 불규칙)", en:"고르다 → 골라 (르 irregular)", ko:"고르다 → 골라 (르 불규칙: ㄹ 추가 → 골라)"} },
+        ]
+      },
+      {
+        key:"ㄷ 불규칙 (규칙 혼합)", label:vi?"Bất quy tắc ㄷ (hỗn hợp)":en?"ㄷ Irregular (mixed)":"ㄷ → ㄹ 변화 + 규칙 판단", color:"#F3E5F5", accent:"#6A1B9A",
+        rule:{vi:"동사 받침 ㄷ + 모음 → ㄹ로 변화. 불규칙: 묻다→물어, 듣다→들어, 걷다→걸어 / 규칙: 닫다→닫아, 믿다→믿어", en:"Verb ㄷ batchim + vowel → ㄹ. Irregular: 묻다→물어, 듣다→들어, 걷다→걸어 / Regular: 닫다→닫아, 믿다→믿어", ko:"동사 ㄷ + 모음 → ㄹ (불규칙). 묻다→물어, 듣다→들어, 걷다→걸어 / 닫다·믿다는 규칙"},
+        cards:[
+          { native:{vi:"Tuân đã hỏi tên tôi.", en:"Tuan asked me my name.", ko:"투안이 제 이름을 물었습니다."},
+            full:"투안이 제 이름을 물었습니다.", rule:{vi:"묻다 → 물어 (ㄷ 불규칙: ㄷ→ㄹ)", en:"묻다 → 물어 (ㄷ irregular: ㄷ→ㄹ)", ko:"묻다 → 물어 (ㄷ 불규칙: ㄷ→ㄹ)"} },
+          { native:{vi:"Tôi đã từng nghe giọng nói của Mariá.", en:"I have heard Maria's voice before.", ko:"마리아의 목소리를 들은 적이 있습니다."},
+            full:"마리아의 목소리를 들은 적이 있습니다.", rule:{vi:"듣다 → 들어/들은 (ㄷ 불규칙: ㄷ→ㄹ)", en:"듣다 → 들어/들은 (ㄷ irregular: ㄷ→ㄹ)", ko:"듣다 → 들어/들은 (ㄷ 불규칙: ㄷ→ㄹ)"} },
+          { native:{vi:"Tuân đi bộ đến trường.", en:"Tuan walks to school.", ko:"투안은 걸어서 학교에 갑니다."},
+            full:"투안은 걸어서 학교에 갑니다.", rule:{vi:"걷다 → 걸어 (ㄷ 불규칙: ㄷ→ㄹ)", en:"걷다 → 걸어 (ㄷ irregular: ㄷ→ㄹ)", ko:"걷다 → 걸어 (ㄷ 불규칙: ㄷ→ㄹ)"} },
+          { native:{vi:"Tuân đã đóng cửa lại. (Câu này có quy tắc không?)", en:"Tuan closed the door. (Is this regular or irregular?)", ko:"투안은 문을 닫았습니다. (규칙인가요?)"},
+            full:"투안은 문을 닫았습니다. (규칙 — 닫다→닫아)", rule:{vi:"닫다 → 닫아 (규칙! ㄷ이지만 변화 없음)", en:"닫다 → 닫아 (regular! ㄷ stays)", ko:"닫다 → 닫아 (규칙: ㄷ 변화 없음 — 주의!)"} },
+          { native:{vi:"Tuân đã tin tôi. (Câu này có quy tắc không?)", en:"Tuan trusted me. (Is this regular or irregular?)", ko:"투안은 저를 믿었습니다. (규칙인가요?)"},
+            full:"투안은 저를 믿었습니다. (규칙 — 믿다→믿어)", rule:{vi:"믿다 → 믿어 (규칙! ㄷ이지만 변화 없음)", en:"믿다 → 믿어 (regular! ㄷ stays)", ko:"믿다 → 믿어 (규칙: ㄷ 변화 없음 — 주의!)"} },
+        ]
+      },
+      {
+        key:"ㅅ 불규칙 (규칙 혼합)", label:vi?"Bất quy tắc ㅅ (hỗn hợp)":en?"ㅅ Irregular (mixed)":"ㅅ 탈락 변화 + 규칙 판단", color:"#FBE9E7", accent:"#BF360C",
+        rule:{vi:"동사/형용사 받침 ㅅ + 모음 → ㅅ 탈락. 불규칙: 짓다→지어, 낫다→나아 / 규칙: 벗다→벗어, 씻다→씻어", en:"Verb/adj ㅅ batchim + vowel → ㅅ drops. Irregular: 짓다→지어, 낫다→나아 / Regular: 벗다→벗어, 씻다→씻어", ko:"받침 ㅅ + 모음 → ㅅ 탈락 (불규칙). 짓다→지어, 낫다→나아 / 벗다·씻다는 규칙"},
+        cards:[
+          { native:{vi:"Tuân đã nấu cơm.", en:"Tuan cooked rice.", ko:"투안이 밥을 지었습니다."},
+            full:"투안이 밥을 지었습니다.", rule:{vi:"짓다 → 지어 (ㅅ 불규칙: ㅅ 탈락)", en:"짓다 → 지어 (ㅅ irregular: ㅅ drops)", ko:"짓다 → 지어 (ㅅ 불규칙: ㅅ 탈락)"} },
+          { native:{vi:"Nhờ bác sĩ mà bệnh đã khỏi.", en:"My illness got better thanks to the doctor.", ko:"의사 선생님 덕분에 병이 나았습니다."},
+            full:"의사 선생님 덕분에 병이 나았습니다.", rule:{vi:"낫다 → 나아 (ㅅ 불규칙: ㅅ 탈락)", en:"낫다 → 나아 (ㅅ irregular: ㅅ drops)", ko:"낫다 → 나아 (ㅅ 불규칙: ㅅ 탈락)"} },
+          { native:{vi:"Mariá đã cởi áo khoác. (Câu này có quy tắc không?)", en:"Maria took off her jacket. (Regular or irregular?)", ko:"마리아는 재킷을 벗었습니다. (규칙인가요?)"},
+            full:"마리아는 재킷을 벗었습니다. (규칙 — 벗다→벗어)", rule:{vi:"벗다 → 벗어 (규칙! ㅅ이지만 탈락 없음)", en:"벗다 → 벗어 (regular! ㅅ stays)", ko:"벗다 → 벗어 (규칙: ㅅ 탈락 없음 — 주의!)"} },
+          { native:{vi:"Mariá đã nhận quà từ bạn trai.", en:"Maria received a gift from her boyfriend.", ko:"마리아는 남자친구에게 선물을 받았습니다."},
+            full:"마리아는 남자친구에게 선물을 받았습니다.", rule:{vi:"받다 → 받아 (규칙: ㄷ 계열 규칙 동사)", en:"받다 → 받아 (regular: ㄷ-type regular verb)", ko:"받다 → 받아 (규칙 동사 — 120% 추가)"} },
+        ]
+      },
+    ];
+
+    const allCards = IRR_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_IRR = { bg:"linear-gradient(150deg,#E8F5E9,#FBE9E7)", accent:"#1B5E20", border:"#A5D6A7" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_IRR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Động từ/Tính từ bất quy tắc":en?"Irregular Verbs/Adjectives":"동사·형용사 불규칙"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_IRR.accent, textAlign:"center", marginBottom:4}}>
+            ⚡ {vi?"Biểu thức bất quy tắc":en?"Irregular Expressions":"불규칙 표현"}
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#F1F8E9", border:"1.5px solid #AED581", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_IRR.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_IRR.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(27,94,32,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_IRR.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_IRR.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#2E7D32", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
