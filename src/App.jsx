@@ -8281,6 +8281,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"동생은 공부하고 있습니다.", rule:{vi:"공부하다 + -고 있습니다", en:"공부하다 + -고 있습니다", ko:"공부하다 + -고 있습니다"} },
       { native:{vi:"Bác sĩ đang khám bệnh.",             en:"The doctor is seeing patients.",     ko:"의사 선생님께서 진료 중이십니다."},
         full:"의사 선생님께서 진료 중이십니다.", rule:{vi:"께서 + -고 계십니다 (kính ngữ)", en:"께서 + -고 계십니다 (honorific)", ko:"께서 + -고 계십니다 (경어)"} },
+      // ── 동사+는 중입니다 ──
+      { native:{vi:"Tôi đang trên đường về nhà.",              en:"I am on my way home.",               ko:"저는 지금 집에 가는 중입니다."},
+        full:"저는 지금 집에 가는 중입니다.", rule:{vi:"가다 + -는 중입니다 (đang trên đường)", en:"가다 + -는 중입니다 (in the middle of)", ko:"동사 + -는 중입니다"} },
+      { native:{vi:"Tôi đang chờ bạn ở quán cà phê.",         en:"I am waiting for a friend at a café.", ko:"저는 지금 카페에서 친구를 기다리는 중입니다."},
+        full:"저는 지금 카페에서 친구를 기다리는 중입니다.", rule:{vi:"기다리다 + -는 중입니다", en:"기다리다 + -는 중입니다", ko:"동사 + -는 중입니다"} },
     ];
 
         const card  = UNIT7_CARDS[unitCardIdx];
@@ -10108,6 +10113,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"여기가 병원이군요!", rule:{vi:"이다 → 이군요 (phát hiện)", en:"이다 → 이군요 (discovery)", ko:"이다 → 이군요"} },
       { native:{vi:"Ôi, nhà bạn gần thật!",                  en:"Oh, your house is so close!",        ko:"집이 가깝네요!"},
         full:"집이 가깝네요!", rule:{vi:"가깝다 → 가깝네요", en:"가깝다 → 가깝네요", ko:"가깝다 → 가깝네요"} },
+      { native:{vi:"Ôi, hoa đẹp quá!",                            en:"Oh, the flowers are so pretty!",     ko:"꽃이 참 예쁘네요!"},
+        full:"꽃이 참 예쁘네요!", rule:{vi:"예쁘다 → 예쁘네요 (ㅡ 탈락)", en:"예쁘다 → 예쁘네요 (ㅡ drops)", ko:"예쁘다 → 예쁘네요"} },
+      { native:{vi:"Ôi, hôm nay lạnh quá!",                      en:"Oh, it is so cold today!",          ko:"오늘 날씨가 참 춥네요!"},
+        full:"오늘 날씨가 참 춥네요!", rule:{vi:"춥다 → 춥네요 (ㅂ 불규칙)", en:"춥다 → 춥네요 (ㅂ irregular)", ko:"춥다 → 춥네요"} },
+      { native:{vi:"Ôi, thời gian trôi nhanh quá!",               en:"Oh, time goes by so fast!",         ko:"세월이 참 빠르네요!"},
+        full:"세월이 참 빠르네요!", rule:{vi:"빠르다 → 빠르네요 (ㄹ 불규칙)", en:"빠르다 → 빠르네요 (ㄹ irregular)", ko:"빠르다 → 빠르네요"} },
     ];
     const card = UNIT20_CARDS[unitCardIdx];
     const total20 = UNIT20_CARDS.length;
@@ -10205,6 +10216,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"한국 음식을 좋아하죠?", rule:{vi:"좋아하다 → 좋아하죠?", en:"좋아하다 → 좋아하죠?", ko:"좋아하다 → 좋아하죠?"} },
       { native:{vi:"Cửa hàng đóng cửa rồi, phải không?",    en:"The store is closed, right?",         ko:"가게가 문을 닫았죠?"},
         full:"가게가 문을 닫았죠?", rule:{vi:"닫다 → 닫았죠? (과거 확인)", en:"닫다 → 닫았죠? (past confirmation)", ko:"닫다 → 닫았죠?"} },
+      { native:{vi:"Bộ phim này thú vị lắm, phải không?",       en:"This movie is really interesting, right?", ko:"이 영화는 정말 재미있죠?"},
+        full:"이 영화는 정말 재미있죠?", rule:{vi:"재미있다 → 재미있죠?", en:"재미있다 → 재미있죠?", ko:"재미있다 → 재미있죠?"} },
+      { native:{vi:"Món ăn này ngon lắm, phải không?",            en:"This food is really delicious, right?", ko:"이 음식은 정말 맛있죠?"},
+        full:"이 음식은 정말 맛있죠?", rule:{vi:"맛있다 → 맛있죠?", en:"맛있다 → 맛있죠?", ko:"맛있다 → 맛있죠?"} },
     ];
     const card = UNIT21_CARDS[unitCardIdx];
     const total21 = UNIT21_CARDS.length;
@@ -10417,6 +10432,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"이어폰을 끼고 있습니다.", rule:{vi:"끼다 + -고 있다 (đeo tai nghe)", en:"끼다 + -고 있다 (wearing earphones)", ko:"끼다 + -고 있습니다"} },
       { native:{vi:"Anh ấy đang đeo thắt lưng.",            en:"He is wearing a belt.",              ko:"벨트를 하고 있습니다."},
         full:"벨트를 하고 있습니다.", rule:{vi:"하다 + -고 있다 (đeo)", en:"하다 + -고 있다 (wearing)", ko:"하다 + -고 있습니다"} },
+      { native:{vi:"Anh ấy đang đeo cà vạt trắng.",            en:"He is wearing a white tie.",          ko:"흰 넥타이를 매고 있습니다."},
+        full:"흰 넥타이를 매고 있습니다.", rule:{vi:"매다 + -고 있다 (đeo cà vạt)", en:"매다 + -고 있다 (wearing tie)", ko:"매다 + -고 있습니다"} },
+      { native:{vi:"Anh ấy đang đeo ba lô hồng.",               en:"He is wearing a pink backpack.",      ko:"분홍색 배낭을 메고 있습니다."},
+        full:"분홍색 배낭을 메고 있습니다.", rule:{vi:"메다 + -고 있다 (đeo ba lô)", en:"메다 + -고 있다 (carrying backpack)", ko:"메다 + -고 있습니다"} },
+      { native:{vi:"Anh ấy đang đeo đồng hồ vàng.",             en:"He is wearing a gold watch.",         ko:"금시계를 차고 있습니다."},
+        full:"금시계를 차고 있습니다.", rule:{vi:"차다 + -고 있다 (đeo đồng hồ)", en:"차다 + -고 있다 (wearing watch)", ko:"차다 + -고 있습니다"} },
     ];
     const card = UNIT23_CARDS[unitCardIdx];
     const total23 = UNIT23_CARDS.length;
@@ -10514,6 +10535,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"돈을 아끼기로 했습니다.", rule:{vi:"아끼다 + -기로 했습니다", en:"아끼다 + -기로 했습니다", ko:"아끼다 + -기로 했습니다"} },
       { native:{vi:"Chúng ta cùng nhau cố gắng nhé.",       en:"Let's do our best together.",        ko:"함께 열심히 하기로 해요."},
         full:"함께 열심히 하기로 해요.", rule:{vi:"하다 + -기로 하다", en:"하다 + -기로 하다", ko:"하다 + -기로 해요"} },
+      { native:{vi:"Tôi quyết định bỏ thuốc lá.",               en:"I decided to quit smoking.",          ko:"저는 담배를 끊기로 했습니다."},
+        full:"저는 담배를 끊기로 했습니다.", rule:{vi:"끊다 + -기로 했습니다 (quyết định bỏ)", en:"끊다 + -기로 했습니다 (decided to quit)", ko:"끊다 + -기로 했습니다"} },
+      { native:{vi:"Tôi quyết định giảm cân năm nay.",          en:"I decided to lose weight this year.", ko:"저는 올해 살을 빼기로 했습니다."},
+        full:"저는 올해 살을 빼기로 했습니다.", rule:{vi:"빼다 + -기로 했습니다", en:"빼다 + -기로 했습니다", ko:"빼다 + -기로 했습니다"} },
+      { native:{vi:"Chúng tôi quyết định kết hôn vào mùa xuân năm sau.", en:"We decided to get married next spring.", ko:"우리는 내년 봄에 결혼하기로 했습니다."},
+        full:"우리는 내년 봄에 결혼하기로 했습니다.", rule:{vi:"결혼하다 + -기로 했습니다", en:"결혼하다 + -기로 했습니다", ko:"결혼하다 + -기로 했습니다"} },
     ];
     const card = UNIT24_CARDS[unitCardIdx];
     const total24 = UNIT24_CARDS.length;
