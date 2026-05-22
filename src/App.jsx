@@ -1415,6 +1415,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"종별사",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_counter"); }},
       { label:"빈도부사",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }},
       { label:"만/밖에",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_mankke"); }},
+      { label:"상태변화",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_change"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -12751,6 +12752,128 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_change") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const CHG_SECTIONS = [
+      {
+        key:"~아/어지다 (상태 변화)", label:vi?"Trạng thái thay đổi (아/어지다)":en?"State Change (아/어지다)":"형용사+아/어지다 — 상태가 달라짐", color:"#E3F2FD", accent:"#0D47A1",
+        rule:{vi:"Tính từ + -아/어지다 — trạng thái dần thay đổi. ㅏ/ㅗ → 아지다, còn lại → 어지다, 하다 → 해지다", en:"Adjective + -아/어지다 — state gradually changes. ㅏ/ㅗ → 아지다, others → 어지다, 하다 → 해지다", ko:"형용사 + -아/어지다 — 상태가 점점 달라짐. ㅏ/ㅗ → 아지다, 나머지 → 어지다, 하다 → 해지다"},
+        cards:[
+          { native:{vi:"Thời tiết đã trở nên nóng.", en:"The weather has gotten hot.", ko:"날씨가 더워졌습니다."},
+            full:"날씨가 더워졌습니다.", rule:{vi:"덥다(ㅂ 불규칙) → 더워 + 지다", en:"덥다(ㅂ irreg.) → 더워 + 지다", ko:"덥다 → 더워지다 (ㅂ 불규칙 + 어지다)"} },
+          { native:{vi:"Sau khi trời mưa thời tiết đã trở nên lạnh hơn.", en:"It became cold after it rained.", ko:"비가 온 후에 날씨가 추워졌습니다."},
+            full:"비가 온 후에 날씨가 추워졌습니다.", rule:{vi:"춥다(ㅂ 불규칙) → 추워 + 지다", en:"춥다(ㅂ irreg.) → 추워 + 지다", ko:"춥다 → 추워지다 (ㅂ 불규칙 + 어지다)"} },
+          { native:{vi:"Dạo này kinh tế đã trở nên xấu hơn.", en:"The economy has gotten worse these days.", ko:"요즘 경기가 나빠졌습니다."},
+            full:"요즘 경기가 나빠졌습니다.", rule:{vi:"나쁘다(으 불규칙) → 나빠 + 지다", en:"나쁘다(으 irreg.) → 나빠 + 지다", ko:"나쁘다 → 나빠지다 (으 불규칙 + 아지다)"} },
+          { native:{vi:"Vì học hành chăm chỉ nên thành tích đã trở nên tốt hơn.", en:"My grades improved because I studied hard.", ko:"열심히 공부해서 성적이 좋아졌습니다."},
+            full:"열심히 공부해서 성적이 좋아졌습니다.", rule:{vi:"좋다(받침) → 좋아 + 지다", en:"좋다(batchim) → 좋아 + 지다", ko:"좋다 → 좋아지다 (받침 + 아지다)"} },
+          { native:{vi:"Tôi đã trở nên khỏe mạnh hơn nhờ tập thể dục mỗi ngày.", en:"I became healthy by exercising every day.", ko:"매일 운동해서 건강해졌습니다."},
+            full:"매일 운동해서 건강해졌습니다.", rule:{vi:"건강하다(하다) → 건강해 + 지다", en:"건강하다(하다) → 건강해 + 지다", ko:"건강하다 → 건강해지다 (하다 → 해지다)"} },
+        ]
+      },
+      {
+        key:"~게 되다 (상황 변화)", label:vi?"Tình huống thay đổi (게 되다)":en?"Situation Change (게 되다)":"동사+게 되다 — 자연스럽게 그렇게 됨", color:"#FFF3E0", accent:"#E65100",
+        rule:{vi:"Động từ/Tính từ + -게 되다 — tình huống tự nhiên dẫn đến kết quả đó (không phải ý muốn chủ quan)", en:"Verb/Adj + -게 되다 — situation naturally leads to a result (not necessarily intentional)", ko:"동사/형용사 + -게 되다 — 의도보다 상황이 그렇게 됨. 자연스러운 결과·변화 강조"},
+        cards:[
+          { native:{vi:"Tôi đã trở nên thích bóng đá.", en:"I have come to like football.", ko:"축구를 좋아하게 됐습니다."},
+            full:"축구를 좋아하게 됐습니다.", rule:{vi:"좋아하다 → 좋아하 + 게 되다 (자연스러운 변화)", en:"좋아하다 → 좋아하 + 게 되다 (natural change)", ko:"좋아하다 → 좋아하게 됐습니다 (의도 없이 자연스럽게)"} },
+          { native:{vi:"Tôi đã trở nên thích anh ấy.", en:"I have come to like him.", ko:"그 사람이 좋아지게 됐습니다."},
+            full:"그 사람이 좋아지게 됐습니다.", rule:{vi:"좋아지다 → 좋아지 + 게 되다 (점진적 변화)", en:"좋아지다 → 좋아지 + 게 되다 (gradual change)", ko:"좋아지다 → 좋아지게 됐습니다 (점점 그렇게 됨)"} },
+          { native:{vi:"Tôi buộc phải nhập viện vì tai nạn giao thông.", en:"I ended up being hospitalized because of a traffic accident.", ko:"교통사고로 입원하게 됐습니다."},
+            full:"교통사고로 입원하게 됐습니다.", rule:{vi:"입원하다 → 입원하 + 게 되다 (상황에 의한 결과)", en:"입원하다 → 입원하 + 게 되다 (result of situation)", ko:"입원하다 → 입원하게 됐습니다 (원해서가 아니라 상황상)"} },
+          { native:{vi:"Tuần sau tôi sẽ về Hàn Quốc.", en:"It has been decided that I will return to Korea next week.", ko:"다음 주에 한국에 돌아가게 됐습니다."},
+            full:"다음 주에 한국에 돌아가게 됐습니다.", rule:{vi:"돌아가다 → 돌아가 + 게 되다 (상황에 의한 결과)", en:"돌아가다 → 돌아가 + 게 되다 (result of situation)", ko:"돌아가다 → 돌아가게 됐습니다 (상황이 그렇게 됨)"} },
+          { native:{vi:"Tôi đã trở nên nói được tiếng Hàn.", en:"I have come to be able to speak Korean.", ko:"한국어를 말할 수 있게 됐습니다."},
+            full:"한국어를 말할 수 있게 됐습니다.", rule:{vi:"말할 수 있다 → 말할 수 있 + 게 되다 (120% 추가)", en:"말할 수 있다 → 말할 수 있 + 게 되다 (120% extra)", ko:"말할 수 있다 → 말할 수 있게 됐습니다 (능력 변화 — 120% 추가)"} },
+        ]
+      },
+    ];
+
+    const allCards = CHG_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_CHG = { bg:"linear-gradient(150deg,#E3F2FD,#FFF3E0)", accent:"#1A237E", border:"#90CAF9" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_CHG.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Biểu thức thay đổi trạng thái":en?"State Change Expressions":"상태 변화 표현"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_CHG.accent, textAlign:"center", marginBottom:4}}>
+            🔄 {vi?"Trạng thái & Tình huống thay đổi":en?"State & Situation Changes":"상태·상황 변화"}
+          </div>
+          <div style={{background:"#E8EAF6", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontSize:12, color:"#3949AB", fontWeight:700}}>
+              {vi?"아/어지다 — trạng thái thay đổi / 게 되다 — tình huống dẫn đến kết quả"
+                :en?"아/어지다 — state changes / 게 되다 — situation leads to result"
+                :"아/어지다 — 상태가 달라짐 / 게 되다 — 상황이 자연스럽게 그렇게 됨"}
+            </span>
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_CHG.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_CHG.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(26,35,126,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_CHG.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_CHG.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_mankke"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
