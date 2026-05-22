@@ -1417,6 +1417,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"만/밖에",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_mankke"); }},
       { label:"상태변화",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_change"); }},
       { label:"방식표현",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }},
+      { label:"감정동사",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -12983,6 +12984,127 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_change"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_emotion") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const EMO_SECTIONS = [
+      {
+        key:"감정 형용사 vs 감정 동사", label:vi?"Tính từ cảm xúc vs Động từ cảm xúc":en?"Emotion Adjective vs Emotion Verb":"이/가 + 형용사 vs 을/를 + 동사", color:"#FCE4EC", accent:"#880E4F",
+        rule:{vi:"Tính từ cảm xúc: 주어 + 이/가 + 형용사 (trạng thái cảm xúc) / Động từ cảm xúc: 주어 + 을/를 + 동사 (hành động cảm xúc). Trợ từ thay đổi!", en:"Emotion adjective: subject + 이/가 + adj (emotional state) / Emotion verb: subject + 을/를 + verb (emotional action). The particle changes!", ko:"감정 형용사: 주어 + 이/가 + 형용사 (감정 상태) / 감정 동사: 주어 + 을/를 + 동사 (감정 행동). 조사가 달라진다!"},
+        cards:[
+          { native:{vi:"Tuân thích tôi. (Trạng thái — 이/가)", en:"Tuan likes me. (State — 이/가)", ko:"투안은 저를 좋아합니다. (형용사 상태)"},
+            full:"투안은 저를 좋아합니다.", rule:{vi:"저 + 가 + 좋다 → 투안은 저가 좋습니다 (상태)", en:"저 + 가 + 좋다 → 투안은 저가 좋습니다 (state)", ko:"~이/가 좋다 (감정 형용사): 저가 좋다 → 조사 이/가 사용"} },
+          { native:{vi:"Tuân thích tôi. (Hành động — 을/를)", en:"Tuan likes me. (Action — 을/를)", ko:"투안은 저를 좋아합니다. (동사 행동)"},
+            full:"투안은 저를 좋아합니다.", rule:{vi:"저 + 를 + 좋아하다 → 투안은 저를 좋아합니다 (행동)", en:"저 + 를 + 좋아하다 → 투안은 저를 좋아합니다 (action)", ko:"~을/를 좋아하다 (감정 동사): 저를 좋아하다 → 조사 을/를 사용"} },
+          { native:{vi:"Tôi ghét anh ấy. (Trạng thái — 이/가)", en:"I hate him. (State — 이/가)", ko:"저는 그가 싫습니다. (형용사 상태)"},
+            full:"저는 그가 싫습니다.", rule:{vi:"그 + 가 + 싫다 → 저는 그가 싫습니다 (상태)", en:"그 + 가 + 싫다 → 저는 그가 싫습니다 (state)", ko:"~이/가 싫다 (감정 형용사): 그가 싫다 → 조사 이/가 사용"} },
+          { native:{vi:"Tôi ghét anh ấy. (Hành động — 을/를)", en:"I hate him. (Action — 을/를)", ko:"저는 그를 싫어합니다. (동사 행동)"},
+            full:"저는 그를 싫어합니다.", rule:{vi:"그 + 를 + 싫어하다 → 저는 그를 싫어합니다 (행동)", en:"그 + 를 + 싫어하다 → 저는 그를 싫어합니다 (action)", ko:"~을/를 싫어하다 (감정 동사): 그를 싫어하다 → 조사 을/를 사용"} },
+          { native:{vi:"Tôi sợ rắn. (Trạng thái — 이/가)", en:"I am afraid of snakes. (State — 이/가)", ko:"저는 뱀이 무섭습니다. (형용사 상태)"},
+            full:"저는 뱀이 무섭습니다.", rule:{vi:"뱀 + 이 + 무섭다 → 저는 뱀이 무섭습니다 (상태)", en:"뱀 + 이 + 무섭다 → 저는 뱀이 무섭습니다 (state)", ko:"~이/가 무섭다 (감정 형용사): 뱀이 무섭다 → 조사 이/가 사용"} },
+          { native:{vi:"Tôi sợ rắn. (Hành động — 을/를)", en:"I am afraid of snakes. (Action — 을/를)", ko:"저는 뱀을 무서워합니다. (동사 행동)"},
+            full:"저는 뱀을 무서워합니다.", rule:{vi:"뱀 + 을 + 무서워하다 → 저는 뱀을 무서워합니다 (행동)", en:"뱀 + 을 + 무서워하다 → 저는 뱀을 무서워합니다 (action)", ko:"~을/를 무서워하다 (감정 동사): 뱀을 무서워하다 → 조사 을/를 사용"} },
+          { native:{vi:"Tôi nhớ quê hương. (Trạng thái — 이/가)", en:"I miss my hometown. (State — 이/가)", ko:"저는 고향이 그립습니다. (형용사 상태)"},
+            full:"저는 고향이 그립습니다.", rule:{vi:"고향 + 이 + 그립다 → 저는 고향이 그립습니다 (상태, 120% 추가)", en:"고향 + 이 + 그립다 → 저는 고향이 그립습니다 (state, 120% extra)", ko:"~이/가 그립다 (감정 형용사): 고향이 그립다 — 120% 추가"} },
+          { native:{vi:"Tôi nhớ quê hương. (Hành động — 을/를)", en:"I miss my hometown. (Action — 을/를)", ko:"저는 고향을 그리워합니다. (동사 행동)"},
+            full:"저는 고향을 그리워합니다.", rule:{vi:"고향 + 을 + 그리워하다 → 저는 고향을 그리워합니다 (행동, 120% 추가)", en:"고향 + 을 + 그리워하다 → 저는 고향을 그리워합니다 (action, 120% extra)", ko:"~을/를 그리워하다 (감정 동사): 고향을 그리워하다 — 120% 추가"} },
+        ]
+      },
+    ];
+
+    const allCards = EMO_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_EMO = { bg:"linear-gradient(150deg,#FCE4EC,#F3E5F5)", accent:"#880E4F", border:"#F48FB1" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    const pairIdx = Math.floor(unitCardIdx / 2);
+    const pairLabels = vi
+      ? ["좋다/좋아하다 (thích)","싫다/싫어하다 (ghét)","무섭다/무서워하다 (sợ)","그립다/그리워하다 (nhớ)"]
+      : en
+      ? ["좋다/좋아하다 (like)","싫다/싫어하다 (hate)","무섭다/무서워하다 (fear)","그립다/그리워하다 (miss)"]
+      : ["좋다/좋아하다","싫다/싫어하다","무섭다/무서워하다","그립다/그리워하다"];
+
+    return (
+      <div style={{minHeight:"100vh", background:C_EMO.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Động từ cảm xúc":en?"Emotion Verbs":"감정 동사"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_EMO.accent, textAlign:"center", marginBottom:4}}>
+            💗 {vi?"Cảm xúc — Tính từ vs Động từ":en?"Emotions — Adjective vs Verb":"감정 형용사 vs 감정 동사"}
+          </div>
+          <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:8, textAlign:"center"}}>
+            <span style={{fontSize:12, color:"#880E4F", fontWeight:700}}>
+              {vi?"이/가 + 형용사 (trạng thái) ↔ 을/를 + 동사 (hành động)":en?"이/가 + adjective (state) ↔ 을/를 + verb (action)":"이/가 + 형용사 (상태) ↔ 을/를 + 동사 (행동) — 조사 주의!"}
+            </span>
+          </div>
+
+          <div style={{display:"flex", gap:4, marginBottom:12, justifyContent:"center"}}>
+            {pairLabels.map((l, i) => (
+              <div key={i} style={{flex:1, background: i === pairIdx ? "#880E4F" : "#F8BBD0", borderRadius:6, padding:"4px 2px", textAlign:"center", fontSize:9, color: i === pairIdx ? "white" : "#880E4F", fontWeight:700, transition:"background .3s"}}>
+                {l}
+              </div>
+            ))}
+          </div>
+
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:"#FCE4EC", border:"1.5px solid #F06292", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#880E4F", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_EMO.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_EMO.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(136,14,79,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_EMO.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_EMO.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#FCE4EC", border:"2px solid #E91E63", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#880E4F", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#880E4F", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#AD1457", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
