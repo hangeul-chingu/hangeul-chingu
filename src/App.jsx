@@ -1420,6 +1420,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"감정동사",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }},
       { label:"명사형",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }},
       { label:"대략표현",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_approx"); }},
+      { label:"비교표현",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_compare"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -13335,6 +13336,134 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_compare") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const CMP_SECTIONS = [
+      {
+        key:"비교급 — 보다 (더/덜)", label:vi?"So sánh hơn — 보다 (더/덜)":en?"Comparative — 보다 (더/덜)":"A보다 B가 더/덜 — 두 대상 비교", color:"#E8F5E9", accent:"#2E7D32",
+        rule:{vi:"A보다 B가 더 + 형용사 — B hơn A. A보다 B가 덜 + 형용사 — B kém hơn A. 더(nhiều hơn) ↔ 덜(ít hơn)", en:"A보다 B가 더 + adj — B is more than A. A보다 B가 덜 + adj — B is less than A. 더(more) ↔ 덜(less)", ko:"A보다 B가 더 + 형용사 — B가 A보다 정도가 큼. A보다 B가 덜 + 형용사 — B가 A보다 정도가 작음"},
+        cards:[
+          { native:{vi:"Tiếng Hàn khó hơn tiếng Anh.", en:"Korean is more difficult than English.", ko:"한국어는 영어보다 더 어렵습니다."},
+            full:"한국어는 영어보다 더 어렵습니다.", rule:{vi:"영어 + 보다 + 더 + 어렵다 (A보다 더 비교)", en:"영어 + 보다 + 더 + 어렵다 (more than A)", ko:"영어보다 더 어렵다 (A보다 더 — 비교급)"} },
+          { native:{vi:"Tiếng Anh ít khó hơn tiếng Hàn.", en:"English is less difficult than Korean.", ko:"영어는 한국어보다 덜 어렵습니다."},
+            full:"영어는 한국어보다 덜 어렵습니다.", rule:{vi:"한국어 + 보다 + 덜 + 어렵다 (A보다 덜 비교)", en:"한국어 + 보다 + 덜 + 어렵다 (less than A)", ko:"한국어보다 덜 어렵다 (A보다 덜 — 열등비교)"} },
+          { native:{vi:"Mariá hát hay hơn ca sĩ.", en:"Maria sings better than a singer.", ko:"마리아는 가수보다 노래를 더 잘합니다."},
+            full:"마리아는 가수보다 노래를 더 잘합니다.", rule:{vi:"가수 + 보다 + 더 + 잘하다 (비교급 강조)", en:"가수 + 보다 + 더 + 잘하다 (comparative emphasis)", ko:"가수보다 더 잘한다 (보다+더 강조 비교)"} },
+        ]
+      },
+      {
+        key:"동등비교 — 처럼/같이/만큼", label:vi?"So sánh ngang bằng — 처럼/같이/만큼":en?"Equal Comparison — 처럼/같이/만큼":"A처럼/같이/만큼 — 같은 정도 비교", color:"#E3F2FD", accent:"#0D47A1",
+        rule:{vi:"처럼/같이 — giống như A (như, tựa như). 만큼 — tương đương với A (bằng). 처럼≈같이 (có thể thay nhau)", en:"처럼/같이 — like A (resemblance). 만큼 — as much as A (equal degree). 처럼≈같이 (interchangeable)", ko:"처럼/같이 — A와 비슷하게 (모양·방식). 만큼 — A와 같은 정도로 (정도). 처럼≈같이 교체 가능"},
+        cards:[
+          { native:{vi:"Mariá hát hay như ca sĩ.", en:"Maria sings as well as a singer.", ko:"마리아는 가수처럼 노래를 잘합니다."},
+            full:"마리아는 가수처럼 노래를 잘합니다.", rule:{vi:"가수 + 처럼 + 잘하다 (같은 방식·수준)", en:"가수 + 처럼 + 잘하다 (similar manner/level)", ko:"가수처럼 (처럼 — 모양·수준이 비슷함)"} },
+          { native:{vi:"Mariá hát hay như ca sĩ. (같이)", en:"Maria sings as well as a singer. (같이)", ko:"마리아는 가수같이 노래를 잘합니다."},
+            full:"마리아는 가수같이 노래를 잘합니다.", rule:{vi:"가수 + 같이 + 잘하다 (처럼과 같은 뜻)", en:"가수 + 같이 + 잘하다 (same as 처럼)", ko:"가수같이 (같이 = 처럼, 구어에서 자주 사용)"} },
+          { native:{vi:"Tôi muốn nói tiếng Hàn tốt như người bản ngữ.", en:"I want to speak Korean as well as a native speaker.", ko:"저는 원어민만큼 한국어를 잘하고 싶습니다."},
+            full:"저는 원어민만큼 한국어를 잘하고 싶습니다.", rule:{vi:"원어민 + 만큼 + 잘하다 (같은 정도, 120% 추가)", en:"원어민 + 만큼 + 잘하다 (equal degree, 120% extra)", ko:"원어민만큼 (만큼 — 같은 정도, 120% 추가)"} },
+        ]
+      },
+      {
+        key:"최상급 — 가장/제일/중에서", label:vi?"So sánh nhất — 가장/제일/중에서":en?"Superlative — 가장/제일/중에서":"가장/제일 + 형용사 — 최상급 표현", color:"#FFF3E0", accent:"#E65100",
+        rule:{vi:"가장/제일 + 형용사 — nhất. 범위 표현: ~에서/~중에서 가장. 가장≈제일 (có thể thay nhau)", en:"가장/제일 + adjective — the most. Range: ~에서/~중에서 가장. 가장≈제일 (interchangeable)", ko:"가장/제일 + 형용사 — 최상급. 범위: ~에서/~중에서 가장. 가장(문어)≈제일(구어)"},
+        cards:[
+          { native:{vi:"Mariá hát hay nhất trong lớp.", en:"Maria sings the best in class.", ko:"마리아는 우리 반에서 노래를 제일 잘합니다."},
+            full:"마리아는 우리 반에서 노래를 제일 잘합니다.", rule:{vi:"우리 반에서 + 제일 + 잘하다 (범위+제일)", en:"우리 반에서 + 제일 + 잘하다 (range+제일)", ko:"우리 반에서 제일 (범위+제일 — 구어 최상급)"} },
+          { native:{vi:"Mariá hát hay nhất trong số các học sinh lớp tôi.", en:"Maria sings the best among the students in class.", ko:"마리아는 우리 반 학생 중에서 노래를 가장 잘합니다."},
+            full:"마리아는 우리 반 학생 중에서 노래를 가장 잘합니다.", rule:{vi:"학생 중에서 + 가장 + 잘하다 (중에서+가장)", en:"학생 중에서 + 가장 + 잘하다 (among+가장)", ko:"학생 중에서 가장 (중에서+가장 — 문어 최상급)"} },
+          { native:{vi:"Tôi yêu bố mẹ nhất trên thế gian.", en:"I love my parents the most in the world.", ko:"저는 세상에서 부모님을 가장 좋아합니다."},
+            full:"저는 세상에서 부모님을 가장 좋아합니다.", rule:{vi:"세상에서 + 가장 + 좋아하다 (넓은 범위 최상급)", en:"세상에서 + 가장 + 좋아하다 (widest range superlative)", ko:"세상에서 가장 (가장 넓은 범위의 최상급)"} },
+          { native:{vi:"Tình yêu của mẹ cao hơn bầu trời và sâu hơn biển cả.", en:"A mother's love is higher than the sky and deeper than the sea.", ko:"어머니의 사랑은 하늘보다 높고 바다보다 깊습니다."},
+            full:"어머니의 사랑은 하늘보다 높고 바다보다 깊습니다.", rule:{vi:"하늘보다 높고 + 바다보다 깊다 (감성 비교급 나열)", en:"하늘보다 높고 + 바다보다 깊다 (poetic comparative)", ko:"하늘보다 높고 바다보다 깊다 (비교급 나열 — 감성 표현)"} },
+          { native:{vi:"Tuân học chăm chỉ nhất trong lớp.", en:"Tuan studies the hardest in class.", ko:"투안은 우리 반에서 공부를 가장 열심히 합니다."},
+            full:"투안은 우리 반에서 공부를 가장 열심히 합니다.", rule:{vi:"우리 반에서 + 가장 + 열심히 (부사 최상급, 120% 추가)", en:"우리 반에서 + 가장 + 열심히 (adverb superlative, 120% extra)", ko:"가장 열심히 (부사에도 가장 적용 — 120% 추가)"} },
+        ]
+      },
+    ];
+
+    const allCards = CMP_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_CMP = { bg:"linear-gradient(150deg,#E8F5E9,#FFF3E0)", accent:"#1B5E20", border:"#A5D6A7" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_CMP.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Biểu thức so sánh":en?"Comparison Expressions":"비교 표현"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_CMP.accent, textAlign:"center", marginBottom:4}}>
+            ⚖️ {vi?"So sánh hơn · ngang bằng · nhất":en?"Comparative · Equal · Superlative":"비교급 · 동등 · 최상급"}
+          </div>
+          <div style={{background:"#E8F5E9", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontSize:12, color:"#2E7D32", fontWeight:700}}>
+              {vi?"보다 더/덜 (hơn/kém) → 처럼/만큼 (như) → 가장/제일 (nhất)":en?"보다 더/덜 (more/less) → 처럼/만큼 (like/as) → 가장/제일 (most)":"보다 더/덜 (비교급) → 처럼/만큼 (동등) → 가장/제일 (최상급)"}
+            </span>
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#F1F8E9", border:"1.5px solid #AED581", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_CMP.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_CMP.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(27,94,32,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_CMP.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_CMP.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#2E7D32", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_approx"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
