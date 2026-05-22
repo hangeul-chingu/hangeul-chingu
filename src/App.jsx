@@ -1416,6 +1416,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"빈도부사",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }},
       { label:"만/밖에",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_mankke"); }},
       { label:"상태변화",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_change"); }},
+      { label:"방식표현",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -12874,6 +12875,114 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_mankke"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_manner") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const MNR_SECTIONS = [
+      {
+        key:"~게 + 동사 (방식 표현)", label:vi?"Phó từ ~게 + động từ":en?"Adverb ~게 + verb":"형용사+게 → 부사로 동사 수식", color:"#E3F2FD", accent:"#0D47A1",
+        rule:{vi:"Tính từ + -게 + động từ — diễn đạt cách thức thực hiện hành động. 짧다→짧게, 싸다→싸게, 맛있다→맛있게", en:"Adjective + -게 + verb — describes the manner of an action. 짧다→짧게, 싸다→싸게, 맛있다→맛있게", ko:"형용사 + -게 + 동사 — 동작을 어떻게 하는지 방식을 나타냄. 모든 형용사에 -게 붙이기"},
+        cards:[
+          { native:{vi:"Xin hãy cắt tóc ngắn giúp tôi.", en:"Please cut my hair short.", ko:"머리를 짧게 잘라 주세요."},
+            full:"머리를 짧게 잘라 주세요.", rule:{vi:"짧다 → 짧게 + 잘라 주세요 (짧은 방식으로)", en:"짧다 → 짧게 + 잘라 주세요 (in a short way)", ko:"짧다 → 짧게 (형용사+게 → 부사): 짧은 방식으로 자르기"} },
+          { native:{vi:"Cửa hàng kia bán áo rẻ.", en:"That store sells clothes cheaply.", ko:"저 가게는 옷을 싸게 팔고 있습니다."},
+            full:"저 가게는 옷을 싸게 팔고 있습니다.", rule:{vi:"싸다 → 싸게 + 팔다 (싼 방식으로)", en:"싸다 → 싸게 + 팔다 (in a cheap way)", ko:"싸다 → 싸게 (형용사+게 → 부사): 싼 방식으로 팔기"} },
+          { native:{vi:"Chúc ngon miệng.", en:"Enjoy your meal.", ko:"맛있게 드세요."},
+            full:"맛있게 드세요.", rule:{vi:"맛있다 → 맛있게 + 드세요 (맛있는 방식으로)", en:"맛있다 → 맛있게 + 드세요 (in a delicious way)", ko:"맛있다 → 맛있게 (형용사+게 → 부사): 맛있게 먹기"} },
+          { native:{vi:"Bạn đã ăn ngon miệng không?", en:"Did you enjoy your meal?", ko:"맛있게 드셨어요?"},
+            full:"맛있게 드셨어요?", rule:{vi:"맛있다 → 맛있게 + 드셨어요? (과거형 질문)", en:"맛있다 → 맛있게 + 드셨어요? (past tense question)", ko:"맛있게 드셨어요? (맛있게+드시다 과거형 — 식사 후 인사)"} },
+          { native:{vi:"Xin hãy nghỉ ngơi thoải mái.", en:"Have a good rest.", ko:"편히 쉬세요."},
+            full:"편히 쉬세요.", rule:{vi:"편하다 → 편히 + 쉬세요 (히 불규칙 부사)", en:"편하다 → 편히 + 쉬세요 (히 irregular adverb)", ko:"편하다 → 편히 (하다 형용사 일부 → -히: 편히·조용히·솔직히)"} },
+          { native:{vi:"Xin hãy giữ im lặng.", en:"Please be quiet.", ko:"조용히 해 주세요."},
+            full:"조용히 해 주세요.", rule:{vi:"조용하다 → 조용히 + 해 주세요 (히 불규칙 부사)", en:"조용하다 → 조용히 + 해 주세요 (히 irregular adverb)", ko:"조용하다 → 조용히 (하다 형용사 일부 → -히)"} },
+          { native:{vi:"Xin hãy nói chậm thôi.", en:"Please speak slowly.", ko:"천천히 말해 주세요."},
+            full:"천천히 말해 주세요.", rule:{vi:"천천히 — phó từ cố định (không biến đổi) + 말하다 (120% 추가)", en:"천천히 — fixed adverb + 말하다 (120% extra)", ko:"천천히 — 고정 부사 (형태 변화 없음) + 말하다 (120% 추가, 학습 현장 필수 표현)"} },
+        ]
+      },
+    ];
+
+    const allCards = MNR_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_MNR = { bg:"linear-gradient(150deg,#E3F2FD,#E8F5E9)", accent:"#0D47A1", border:"#90CAF9" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_MNR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Biểu thức cách thức":en?"Manner Expressions":"방식 표현"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_MNR.accent, textAlign:"center", marginBottom:4}}>
+            ✏️ {vi?"Phó từ + Động từ":en?"Adverb + Verb":"부사 + 동사 표현"}
+          </div>
+          <div style={{background:"#E8EAF6", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontSize:12, color:"#283593", fontWeight:700}}>
+              {vi?"형용사 + -게/-히 → 부사 → 동작 방식 표현":en?"Adjective + -게/-히 → adverb → describes how action is done":"형용사 + -게/-히 → 부사 → 동작을 어떻게 하는지 표현"}
+            </span>
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_MNR.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_MNR.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(13,71,161,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_MNR.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_MNR.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#1565C0", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_change"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
