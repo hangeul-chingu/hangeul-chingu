@@ -1418,6 +1418,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"상태변화",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_change"); }},
       { label:"방식표현",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }},
       { label:"감정동사",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }},
+      { label:"명사형",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -13105,6 +13106,128 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_noun") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const NOUN_SECTIONS = [
+      {
+        key:"~기 (명사형)", label:vi?"Danh từ hóa ~기":en?"Nominalization ~기":"동사/형용사 + 기 → 명사처럼 사용", color:"#E8F5E9", accent:"#2E7D32",
+        rule:{vi:"Động từ/Tính từ + -기 → dùng như danh từ. 공부하기(việc học), 말하기(nói), 듣기(nghe), 읽기(đọc), 쓰기(viết)", en:"Verb/Adj + -기 → used as noun. 공부하기(studying), 말하기(speaking), 듣기(listening), 읽기(reading), 쓰기(writing)", ko:"동사/형용사 + -기 → 명사처럼 사용. ~기는/~기를/~기가 형태로 주어·목적어 역할"},
+        cards:[
+          { native:{vi:"Việc học tiếng Hàn thật sự rất thú vị.", en:"Studying Korean is really interesting.", ko:"한국어 공부하기는 정말 재미있습니다."},
+            full:"한국어 공부하기는 정말 재미있습니다.", rule:{vi:"공부하다 → 공부하기 + 는(주어 조사)", en:"공부하다 → 공부하기 + 는(subject particle)", ko:"공부하다 → 공부하기 (동사+기 → 명사, 주어로 사용)"} },
+          { native:{vi:"Ngày mai có bài thi nói, nghe, đọc, viết tiếng Hàn.", en:"There are Korean speaking, listening, reading, and writing tests tomorrow.", ko:"내일 한국어 말하기, 듣기, 읽기, 쓰기 시험이 있습니다."},
+            full:"내일 한국어 말하기, 듣기, 읽기, 쓰기 시험이 있습니다.", rule:{vi:"말하기/듣기/읽기/쓰기 — 4가지 언어 기능을 기 명사형으로 나열", en:"말하기/듣기/읽기/쓰기 — 4 language skills listed as 기 nouns", ko:"말하기·듣기·읽기·쓰기 (기 명사형 나열 — 한국어 4대 기능)"} },
+          { native:{vi:"Tôi không thích dậy sớm.", en:"I do not like waking up early.", ko:"저는 일찍 일어나기가 싫습니다."},
+            full:"저는 일찍 일어나기가 싫습니다.", rule:{vi:"일어나다 → 일어나기 + 가(주어 조사) + 싫다 (120% 추가)", en:"일어나다 → 일어나기 + 가(subject) + 싫다 (120% extra)", ko:"일어나다 → 일어나기 (기+가 주어 → 싫다 서술 — 120% 추가)"} },
+        ]
+      },
+      {
+        key:"~는 것 (명사형)", label:vi?"Danh từ hóa ~는 것":en?"Nominalization ~는 것":"동사 + 는 것 → 명사처럼 사용", color:"#E3F2FD", accent:"#0D47A1",
+        rule:{vi:"Động từ + -는 것 → dùng như danh từ (thường dùng hơn ~기 trong văn nói). 요리하는 것(việc nấu ăn), 공부하는 것(việc học)", en:"Verb + -는 것 → used as noun (more common than ~기 in spoken language). 요리하는 것(cooking), 공부하는 것(studying)", ko:"동사 + -는 것 → 명사처럼 사용. 구어에서 ~기보다 자주 사용. ~는 것은/~는 것을 형태"},
+        cards:[
+          { native:{vi:"Mariá thích việc nấu ăn.", en:"Maria likes cooking.", ko:"마리아는 요리하는 것을 좋아합니다."},
+            full:"마리아는 요리하는 것을 좋아합니다.", rule:{vi:"요리하다 → 요리하는 것 + 을(목적어 조사)", en:"요리하다 → 요리하는 것 + 을(object particle)", ko:"요리하다 → 요리하는 것 (동사+는 것 → 명사, 목적어로 사용)"} },
+          { native:{vi:"Việc dễ nhất trên thế gian này là việc học.", en:"The easiest thing in the world is studying.", ko:"세상에서 가장 쉬운 것은 공부하는 것입니다."},
+            full:"세상에서 가장 쉬운 것은 공부하는 것입니다.", rule:{vi:"공부하다 → 공부하는 것 + 입니다 (서술)", en:"공부하다 → 공부하는 것 + 입니다 (predicate)", ko:"공부하다 → 공부하는 것 (주어+서술어 양쪽에 활용)"} },
+          { native:{vi:"Điều tôi muốn làm nhất bây giờ là gặp gia đình.", en:"The thing I want to do most now is meet my family.", ko:"지금 가장 하고 싶은 것은 가족을 만나는 것입니다."},
+            full:"지금 가장 하고 싶은 것은 가족을 만나는 것입니다.", rule:{vi:"만나다 → 만나는 것 (복합 활용 — 120% 추가)", en:"만나다 → 만나는 것 (complex use — 120% extra)", ko:"만나다 → 만나는 것 (것은~것입니다 복합 — 120% 추가)"} },
+        ]
+      },
+      {
+        key:"~음/ㅁ (명사형)", label:vi?"Danh từ hóa ~음/ㅁ":en?"Nominalization ~음/ㅁ":"굳어진 명사형 — 기쁨·슬픔·웃음", color:"#FFF3E0", accent:"#E65100",
+        rule:{vi:"Động từ/Tính từ + -음/ㅁ → danh từ cố định. 기쁘다→기쁨, 슬프다→슬픔, 웃다→웃음. Thường dùng trong văn viết hoặc danh từ đã cố định", en:"Verb/Adj + -음/ㅁ → fixed nouns. 기쁘다→기쁨, 슬프다→슬픔, 웃다→웃음. Used mainly in written language or as fixed nouns", ko:"동사/형용사 + -음/ㅁ → 굳어진 명사. 기쁘다→기쁨, 슬프다→슬픔, 웃다→웃음. 문어체·고정 명사에 주로 사용"},
+        cards:[
+          { native:{vi:"Trong cuộc sống có niềm vui và nỗi buồn.", en:"There is joy and sorrow in life.", ko:"인생에는 기쁨과 슬픔이 있습니다."},
+            full:"인생에는 기쁨과 슬픔이 있습니다.", rule:{vi:"기쁘다→기쁨 / 슬프다→슬픔 (음/ㅁ 명사형 굳어짐)", en:"기쁘다→기쁨 / 슬프다→슬픔 (fixed 음/ㅁ nouns)", ko:"기쁘다→기쁨 / 슬프다→슬픔 (음 명사형: 굳어진 명사)"} },
+          { native:{vi:"Nụ cười của Mariá thật đẹp.", en:"Maria's smile is beautiful.", ko:"마리아의 웃음이 아름답습니다."},
+            full:"마리아의 웃음이 아름답습니다.", rule:{vi:"웃다 → 웃음 (음 명사형 — 120% 추가)", en:"웃다 → 웃음 (음 nominalization — 120% extra)", ko:"웃다 → 웃음 (음 명사형: 굳어진 명사 — 120% 추가)"} },
+        ]
+      },
+    ];
+
+    const allCards = NOUN_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_NOUN = { bg:"linear-gradient(150deg,#E8F5E9,#FFF3E0)", accent:"#1B5E20", border:"#A5D6A7" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_NOUN.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Danh từ hóa":en?"Nominalization":"명사형 전환"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_NOUN.accent, textAlign:"center", marginBottom:4}}>
+            📝 {vi?"Động từ/Tính từ → Danh từ":en?"Verb/Adj → Noun":"동사·형용사 → 명사처럼"}
+          </div>
+          <div style={{background:"#E8F5E9", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontSize:12, color:"#2E7D32", fontWeight:700}}>
+              {vi?"~기 / ~는 것 / ~음/ㅁ — 3가지 명사형 전환":en?"~기 / ~는 것 / ~음/ㅁ — 3 ways to nominalize":"~기 / ~는 것 / ~음/ㅁ — 동사·형용사를 명사로 전환"}
+            </span>
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#F1F8E9", border:"1.5px solid #AED581", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_NOUN.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_NOUN.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(27,94,32,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_NOUN.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_NOUN.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#2E7D32", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
