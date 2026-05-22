@@ -1414,6 +1414,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"불규칙",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }},
       { label:"종별사",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_counter"); }},
       { label:"빈도부사",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }},
+      { label:"만/밖에",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_mankke"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -12624,6 +12625,132 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_counter"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_mankke") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const MAN_SECTIONS = [
+      {
+        key:"기본문 → 만 → 밖에 (사물)", label:vi?"Cơ bản → 만 → 밖에 (đồ vật)":en?"Basic → 만 → 밖에 (object)":"같은 상황 3연타 — 사물", color:"#E3F2FD", accent:"#0D47A1",
+        rule:{vi:"만 + 긍정문 (chỉ có...) / 밖에 + 부정문 (không có gì ngoài...). Cùng nghĩa nhưng cấu trúc ngược nhau!", en:"만 + positive (only...) / 밖에 + negative (nothing but...). Same meaning, opposite structure!", ko:"만 + 긍정문 (오직~만) / 밖에 + 부정문 (~ 외에는 없다). 뜻은 같지만 구조가 반대!"},
+        cards:[
+          { native:{vi:"Trong túi có sách.", en:"There is a book in the bag.", ko:"가방에 책이 있습니다."},
+            full:"가방에 책이 있습니다.", rule:{vi:"기본문 — chưa có 만/밖에", en:"Basic sentence — no 만/밖에 yet", ko:"기본문 — 만/밖에 없는 기본 문장"} },
+          { native:{vi:"Trong túi chỉ có sách.", en:"There is only a book in the bag.", ko:"가방에 책만 있습니다."},
+            full:"가방에 책만 있습니다.", rule:{vi:"책 + 만 + 긍정(있습니다) — chỉ có sách", en:"책 + 만 + positive(있습니다) — only a book", ko:"만 + 긍정문: 책만 있습니다 (다른 건 없고 책뿐)"} },
+          { native:{vi:"Trong túi không có gì ngoài sách.", en:"There is nothing but a book in the bag.", ko:"가방에 책밖에 없습니다."},
+            full:"가방에 책밖에 없습니다.", rule:{vi:"책 + 밖에 + 부정(없습니다) — không gì ngoài sách", en:"책 + 밖에 + negative(없습니다) — nothing but a book", ko:"밖에 + 부정문: 책밖에 없습니다 (만과 같은 뜻, 반드시 부정문)"} },
+        ]
+      },
+      {
+        key:"만 — 위치에 따라 의미 변화", label:vi?"만 — ý nghĩa thay đổi theo vị trí":en?"만 — meaning changes by position":"만의 위치 변화", color:"#E8F5E9", accent:"#2E7D32",
+        rule:{vi:"만 gắn vào từ nào thì giới hạn từ đó. 저만(chỉ tôi) / 아침에만(chỉ buổi sáng) / 운동만(chỉ tập thể dục)", en:"만 limits the word it attaches to. 저만(only I) / 아침에만(only in the morning) / 운동만(only exercise)", ko:"만이 붙는 단어를 한정. 저만(나만) / 아침에만(아침 시간만) / 운동만(운동이라는 행동만)"},
+        cards:[
+          { native:{vi:"Chỉ mình tôi tập thể dục vào buổi sáng.", en:"Only I work out in the morning.", ko:"저만 아침에 운동을 합니다."},
+            full:"저만 아침에 운동을 합니다.", rule:{vi:"저 + 만 — chỉ giới hạn chủ ngữ(tôi)", en:"저 + 만 — limits the subject(I)", ko:"저만 — 주어(나)를 한정: 다른 사람은 안 하고 나만"} },
+          { native:{vi:"Tôi tập thể dục chỉ vào buổi sáng.", en:"I work out only in the morning.", ko:"저는 아침에만 운동을 합니다."},
+            full:"저는 아침에만 운동을 합니다.", rule:{vi:"아침에 + 만 — chỉ giới hạn thời gian(sáng)", en:"아침에 + 만 — limits the time(morning)", ko:"아침에만 — 시간(아침)을 한정: 다른 시간은 안 하고 아침에만"} },
+          { native:{vi:"Tôi chỉ tập thể dục vào buổi sáng.", en:"I only work out in the morning.", ko:"저는 아침에 운동만 합니다."},
+            full:"저는 아침에 운동만 합니다.", rule:{vi:"운동 + 만 — chỉ giới hạn hành động(tập thể dục)", en:"운동 + 만 — limits the action(work out)", ko:"운동만 — 행동(운동)을 한정: 다른 건 안 하고 운동만"} },
+        ]
+      },
+      {
+        key:"만/밖에 — 사람 주어 확장", label:vi?"만/밖에 — mở rộng với chủ ngữ người":en?"만/밖에 — expanded with person subject":"사람 주어에 만/밖에 적용", color:"#FFF3E0", accent:"#E65100",
+        rule:{vi:"만/밖에 kết hợp với chủ ngữ hoặc tân ngữ là người. 투안만(chỉ Tuan) / 마리아밖에(không ai ngoài Maria)", en:"만/밖에 with person as subject or object. 투안만(only Tuan) / 마리아밖에(no one but Maria)", ko:"사람 주어/목적어에 만/밖에 결합. 투안만(투안뿐) / 마리아밖에(마리아 외에는 없다)"},
+        cards:[
+          { native:{vi:"Chỉ có Tuan thích Mariá.", en:"Only Tuan likes Maria.", ko:"투안만 마리아를 좋아합니다."},
+            full:"투안만 마리아를 좋아합니다.", rule:{vi:"투안 + 만 — chỉ giới hạn chủ ngữ(Tuan)", en:"투안 + 만 — limits subject(Tuan)", ko:"투안만 — 주어 한정: 다른 사람은 안 좋아하고 투안만"} },
+          { native:{vi:"Tuan chỉ thích Mariá.", en:"Tuan likes only Maria.", ko:"투안은 마리아만 좋아합니다."},
+            full:"투안은 마리아만 좋아합니다.", rule:{vi:"마리아 + 만 — chỉ giới hạn tân ngữ(Maria)", en:"마리아 + 만 — limits object(Maria)", ko:"마리아만 — 목적어 한정: 다른 사람은 안 좋아하고 마리아만"} },
+          { native:{vi:"Trong lòng tôi chỉ có bạn.", en:"You are the only one in my heart.", ko:"제 마음에는 당신만 있습니다."},
+            full:"제 마음에는 당신만 있습니다.", rule:{vi:"당신 + 만 — chỉ giới hạn (120% 추가)", en:"당신 + 만 — only you (120% extra)", ko:"당신만 — 대상 한정 (120% 추가)"} },
+          { native:{vi:"Trong lòng tôi không có ai ngoài bạn.", en:"There is no one but you in my heart.", ko:"제 마음에는 당신밖에 없습니다."},
+            full:"제 마음에는 당신밖에 없습니다.", rule:{vi:"당신 + 밖에 + 없습니다 — không ai ngoài bạn", en:"당신 + 밖에 + 없습니다 — no one but you", ko:"당신밖에 없습니다 — 만과 같은 뜻, 부정문 필수"} },
+        ]
+      },
+    ];
+
+    const allCards = MAN_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_MAN = { bg:"linear-gradient(150deg,#E3F2FD,#E8F5E9)", accent:"#1A237E", border:"#90CAF9" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_MAN.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"만 / 밖에 — Giới hạn":en?"만 / 밖에 — Limitation":"만 / 밖에 — 한정 표현"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_MAN.accent, textAlign:"center", marginBottom:4}}>
+            🎯 {vi?"Biểu thức giới hạn":en?"Limitation Expressions":"만 / 밖에 표현"}
+          </div>
+          <div style={{background:"#E8EAF6", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontSize:12, color:"#3949AB", fontWeight:700}}>
+              {vi?"만 + 긍정문 = 밖에 + 부정문 (같은 뜻!)":en?"만 + positive = 밖에 + negative (same meaning!)":"만 + 긍정문 ＝ 밖에 + 부정문 (뜻이 같아요!)"}
+            </span>
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_MAN.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_MAN.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(26,35,126,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_MAN.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_MAN.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
