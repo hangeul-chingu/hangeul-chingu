@@ -1419,6 +1419,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"방식표현",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }},
       { label:"감정동사",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }},
       { label:"명사형",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }},
+      { label:"대략표현",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_approx"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -13228,6 +13229,112 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "unit_approx") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const APX_SECTIONS = [
+      {
+        key:"쯤 · 정도 · 약 · 가량", label:vi?"Xấp xỉ — 쯤·정도·약·가량":en?"Approximation — 쯤·정도·약·가량":"수량·시간의 대략 표현", color:"#E8EAF6", accent:"#283593",
+        rule:{vi:"쯤/정도 — đứng sau danh từ (khoảng, độ). 약/가량 — đứng trước hoặc sau danh từ (khoảng). 약+수량+정도 cùng dùng được", en:"쯤/정도 — after noun (about, approximately). 약/가량 — before or after noun. 약+number+정도 can be combined", ko:"쯤/정도 — 명사 뒤 (두 시간쯤, 두 달 정도). 약/가량 — 명사 앞뒤 가능. 약+수량+정도 겹쳐 쓰기도 함"},
+        cards:[
+          { native:{vi:"Khoảng 20 người đã đến tiệc sinh nhật.", en:"About 20 people came to the birthday party.", ko:"생일 파티에 약 20명이 왔습니다."},
+            full:"생일 파티에 약 20명이 왔습니다.", rule:{vi:"약 + 수량 — đứng trước danh từ số lượng", en:"약 + number — placed before quantity noun", ko:"약 + 20명 (약은 수량 앞에 위치)"} },
+          { native:{vi:"Từ Seoul đến Busan bằng tàu điện cao tốc mất khoảng hai tiếng rưỡi.", en:"It takes about two and a half hours from Seoul to Busan by express train.", ko:"서울에서 부산까지 고속전철로 두 시간 반쯤 걸립니다."},
+            full:"서울에서 부산까지 고속전철로 두 시간 반쯤 걸립니다.", rule:{vi:"시간 + 쯤 — đứng sau danh từ thời gian", en:"time + 쯤 — placed after time noun", ko:"두 시간 반 + 쯤 (쯤은 수량·시간 뒤에 위치)"} },
+          { native:{vi:"Tôi đã học tiếng Hàn khoảng 2 tháng.", en:"I have learned Korean for about two months.", ko:"저는 한국어를 두 달 정도 배웠습니다."},
+            full:"저는 한국어를 두 달 정도 배웠습니다.", rule:{vi:"기간 + 정도 — đứng sau danh từ thời gian", en:"period + 정도 — placed after time noun", ko:"두 달 + 정도 (정도는 수량·기간 뒤에 위치)"} },
+          { native:{vi:"Dân số Hàn Quốc khoảng 50 triệu người.", en:"Korea's population is about 50 million people.", ko:"한국의 인구는 약 오천만 명 정도입니다."},
+            full:"한국의 인구는 약 오천만 명 정도입니다.", rule:{vi:"약 + 수량 + 정도 — 약과 정도 함께 사용 가능", en:"약 + number + 정도 — 약 and 정도 can be used together", ko:"약 + 오천만 명 + 정도 (약·정도 함께 써서 강조)"} },
+          { native:{vi:"Mariá đã đợi tôi khoảng 30 phút.", en:"Maria waited for me for about 30 minutes.", ko:"마리아는 저를 30분가량 기다렸습니다."},
+            full:"마리아는 저를 30분가량 기다렸습니다.", rule:{vi:"수량 + 가량 — tương tự 쯤/정도, dùng trong văn viết (120% 추가)", en:"number + 가량 — similar to 쯤/정도, used in written language (120% extra)", ko:"30분 + 가량 (가량 = 쯤/정도, 문어체에서 자주 사용 — 120% 추가)"} },
+          { native:{vi:"Tôi nghĩ sẽ mất khoảng 1 tiếng.", en:"I think it will take about an hour.", ko:"한 시간쯤 걸릴 것 같습니다."},
+            full:"한 시간쯤 걸릴 것 같습니다.", rule:{vi:"시간 + 쯤 + ~것 같다 결합 (120% 추가)", en:"time + 쯤 + ~것 같다 combined (120% extra)", ko:"한 시간 + 쯤 + 걸릴 것 같다 (쯤+추측 결합 — 120% 추가)"} },
+        ]
+      },
+    ];
+
+    const allCards = APX_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_APX = { bg:"linear-gradient(150deg,#E8EAF6,#E3F2FD)", accent:"#283593", border:"#9FA8DA" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_APX.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Biểu thức xấp xỉ":en?"Approximation Expressions":"대략 표현"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_APX.accent, textAlign:"center", marginBottom:4}}>
+            🔢 {vi?"Xấp xỉ số lượng & thời gian":en?"Approximate Quantity & Time":"수량·시간의 대략 표현"}
+          </div>
+          <div style={{background:"#E8EAF6", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontSize:12, color:"#283593", fontWeight:700}}>
+              {vi?"약(앞) / 쯤·정도·가량(뒤) — 위치가 달라요!":en?"약(before) / 쯤·정도·가량(after) — position differs!":"약(앞) / 쯤·정도·가량(뒤) — 위치가 달라요!"}
+            </span>
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#283593", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_APX.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_APX.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(40,53,147,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e => setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            style={{width:"100%", minHeight:72, border:`2px solid ${C_APX.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
+            disabled={unitCardRevealed}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:C_APX.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Xác nhận":en?"Check":"확인하기"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:12, color:"#283593", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:15, fontWeight:800, color:"#283593", lineHeight:1.6}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }} style={{width:"100%", background:"#3949AB", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
