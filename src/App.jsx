@@ -1427,7 +1427,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
     return (
       <div style={{position:"fixed", bottom:16, right:16, zIndex:9999,
         background:"#1A1A2E", borderRadius:16, padding:"10px 14px",
-        boxShadow:"0 4px 20px rgba(0,0,0,.5)", maxWidth:320}}>
+        boxShadow:"0 4px 20px rgba(0,0,0,.5)", maxWidth:320, maxHeight:"60vh", overflowY:"auto"}}>
         <div style={{fontSize:10, color:"#FF6B6B", fontWeight:800, marginBottom:8, letterSpacing:1}}>
           🔧 DEV ONLY
         </div>
