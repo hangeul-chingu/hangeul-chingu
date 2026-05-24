@@ -16586,14 +16586,11 @@ export default function App() {
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
       <div style={{fontSize:14,color:"#888",marginBottom:8,textAlign:"center"}}>안녕하세요, {user.displayName||user.email}님! 👋</div>
       <div style={{fontSize:13,color:"#bbb",marginBottom:16}}>한국어 수준을 선택해 주세요</div>
-      {/* ✅ V122 수정8: 성장 경로 배너 — 레벨 선택 전 전체 여정 미리 보여주기 */}
-      <GrowthPathBanner level={level} />
       <div style={{background:"white",border:`1.5px solid ${C.teal}44`,borderRadius:14,padding:"12px 16px",marginBottom:16,maxWidth:340,width:"100%",boxShadow:"0 2px 12px rgba(78,205,196,.1)"}}>
-        <div style={{fontSize:11,fontWeight:800,color:C.teal,marginBottom:6}}>🔗 나에게 맞는 학습 경로</div>
-        <div style={{fontSize:12,color:"#555",lineHeight:1.7}}>
-          한국어를 처음 시작하거나 기초부터 다시 다지고 싶다면 <strong style={{color:"#9C6FDE"}}>처음 시작해요</strong>를 선택해요.<br/>
-          TOPIK 시험을 준비 중이라면 <strong style={{color:C.pink}}>TOPIK 준비해요</strong>를 선택해요.<br/>
-          <span style={{fontSize:11,color:"#aaa"}}>인풋(읽기·듣기) 완성 → 아웃풋(말하기·쓰기) 훈련</span>
+        <div style={{fontSize:11,fontWeight:800,color:C.teal,marginBottom:6}}>🔗 어떤 버튼을 누를까요?</div>
+        <div style={{fontSize:12,color:"#555",lineHeight:1.8}}>
+          한국어가 처음이거나 다시 배우고 싶다면 → <strong style={{color:"#9C6FDE"}}>처음 시작해요</strong><br/>
+          TOPIK 시험을 준비하고 있다면 → <strong style={{color:C.pink}}>TOPIK 준비해요</strong>
         </div>
       </div>
 
@@ -16604,11 +16601,10 @@ export default function App() {
           <button onClick={()=>setLevel("beg")} style={{width:"100%",maxWidth:340,marginBottom:14,background:"#F3EEFF",border:"2.5px solid #9C6FDE",borderRadius:20,padding:"20px 22px",cursor:"pointer",textAlign:"left",boxShadow:"0 4px 18px #9C6FDE28",display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
             <div style={{fontSize:40,flexShrink:0}}>🌸</div>
             <div>
-              <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:4}}>
+              <div style={{display:"flex",alignItems:"baseline",gap:8}}>
                 <span style={{fontSize:20,fontWeight:900,color:"#9C6FDE"}}>처음 시작해요</span>
                 <span style={{fontSize:12,color:"#999",fontWeight:600}}>초급</span>
               </div>
-              <div style={{fontSize:13,color:"#666",lineHeight:1.6}}>한글 자모부터 생활 한국어까지{"\n"}세종학당 방식으로 자연스럽게</div>
             </div>
           </button>
 
@@ -16616,11 +16612,10 @@ export default function App() {
           <button onClick={e=>{e.stopPropagation();setShowTopikChoice(true);}} style={{width:"100%",maxWidth:340,marginBottom:16,background:"#FFF0F6",border:"2.5px solid #FF6B9D",borderRadius:20,padding:"20px 22px",cursor:"pointer",textAlign:"left",boxShadow:"0 4px 18px #FF6B9D28",display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
             <div style={{fontSize:40,flexShrink:0}}>📚</div>
             <div style={{flex:1}}>
-              <div style={{display:"flex",alignItems:"baseline",gap:8,marginBottom:4}}>
-                <span style={{fontSize:20,fontWeight:900,color:C.pink}}>TOPIK 준비해요</span>
+              <div style={{display:"flex",alignItems:"baseline",gap:8}}>
                 <span style={{fontSize:12,color:"#999",fontWeight:600}}>중·고급</span>
+                <span style={{fontSize:20,fontWeight:900,color:C.pink}}>TOPIK 준비해요</span>
               </div>
-              <div style={{fontSize:13,color:"#666",lineHeight:1.6}}>TOPIK 3~6급 실전 말하기·쓰기{"\n"}심화 출력 훈련</div>
             </div>
             <div style={{fontSize:20,color:C.pink,opacity:.5,flexShrink:0}}>›</div>
           </button>
