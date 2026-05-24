@@ -1424,6 +1424,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"숫자",     action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_number"); }},
       { label:"부정법",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_neg"); }},
       { label:"격식·문어",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_register"); }},
+      { label:"문법총정리",  action:()=>{ setStep("unit_review"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -13883,6 +13884,140 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_neg"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+
+  // ── unit_review: 기초문법 총정리 ──
+  if (step === "unit_review") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    const Section = ({title, accent, bg, children}) => (
+      <div style={{marginBottom:16}}>
+        <div style={{background:accent, color:"white", fontWeight:800, fontSize:13, padding:"6px 14px", borderRadius:"8px 8px 0 0"}}>
+          {title}
+        </div>
+        <div style={{background:bg, border:`1.5px solid ${accent}40`, borderRadius:"0 0 8px 8px", padding:"10px 14px"}}>
+          {children}
+        </div>
+      </div>
+    );
+
+    const Row = ({label, items, accent}) => (
+      <div style={{display:"flex", gap:6, marginBottom:6, alignItems:"flex-start"}}>
+        <div style={{minWidth:72, fontWeight:700, fontSize:12, color:accent}}>{label}</div>
+        <div style={{fontSize:12, color:"#444", lineHeight:1.7, flex:1}}>{items}</div>
+      </div>
+    );
+
+    const Tag = ({text, color}) => (
+      <span style={{display:"inline-block", background:color+"22", color:color, border:`1px solid ${color}44`, borderRadius:6, padding:"1px 7px", fontSize:11, fontWeight:700, marginRight:4, marginBottom:3}}>{text}</span>
+    );
+
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#ECEFF1,#E8EAF6)", display:"flex", flexDirection:"column", alignItems:"center", padding:"20px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:480}}>
+
+          {/* 헤더 */}
+          <div style={{textAlign:"center", marginBottom:20}}>
+            <div style={{fontSize:13, color:"#aaa", marginBottom:2}}>
+              {vi?"Tổng ôn tập ngữ pháp":en?"Grammar Summary":"기초문법 총정리"}
+            </div>
+            <div style={{fontSize:20, fontWeight:900, color:"#1A237E"}}>
+              🗂️ {vi?"Tổng hợp ngữ pháp cơ bản":en?"Korean Grammar at a Glance":"한국어 기초문법 한눈에 보기"}
+            </div>
+          </div>
+
+          {/* 1. 문장 구조 */}
+          <Section title={vi?"1. Cấu trúc câu":en?"1. Sentence Structure":"1. 문장 구조"} accent="#1565C0" bg="#E3F2FD">
+            <div style={{fontSize:13, fontWeight:700, color:"#1565C0", marginBottom:6, textAlign:"center"}}>
+              주어 ＋ 부사어 ＋ (간접목적어) ＋ 목적어 ＋ 서술어
+            </div>
+            <div style={{background:"white", borderRadius:8, padding:"8px 12px", fontSize:12, color:"#555", lineHeight:1.8}}>
+              <span style={{color:"#1565C0", fontWeight:700}}>예:</span> 저는 / 회사에서 / 부장님께 / 보고서를 / 드렸습니다.<br/>
+              <span style={{color:"#1565C0", fontWeight:700}}>예:</span> 투안은 / 매일 아침 / 시장에서 / 야채를 / 팝니다.<br/>
+              <span style={{color:"#1565C0", fontWeight:700}}>예:</span> 마리아는 / 열심히 공부해서 / 한국어를 / 잘합니다.
+            </div>
+          </Section>
+
+          {/* 2. 주어 */}
+          <Section title={vi?"2. Chủ ngữ":en?"2. Subject":"2. 주어"} accent="#283593" bg="#E8EAF6">
+            <Row accent="#283593" label={vi?"의문":en?"Question":"의문"} items={<><Tag text="누가" color="#283593"/><Tag text="무엇이" color="#283593"/></>}/>
+            <Row accent="#283593" label={vi?"1인칭":en?"1st":"1인칭"} items={<><Tag text="저/제가" color="#283593"/><Tag text="나/내가" color="#283593"/></>}/>
+            <Row accent="#283593" label={vi?"2·3인칭":en?"2·3rd":"2·3인칭"} items={<><Tag text="당신은" color="#283593"/><Tag text="그는/그녀는" color="#283593"/><Tag text="이것은/저것은" color="#283593"/></>}/>
+            <Row accent="#283593" label={vi?"지시":en?"Demonstr.":"지시"} items={<><Tag text="이/그/저" color="#283593"/><Tag text="이것/그것/저것" color="#283593"/></>}/>
+          </Section>
+
+          {/* 3. 부사어 */}
+          <Section title={vi?"3. Trạng ngữ":en?"3. Adverbials":"3. 부사어"} accent="#1B5E20" bg="#E8F5E9">
+            <Row accent="#1B5E20" label={vi?"시간":en?"Time":"시간"} items={<><Tag text="언제" color="#1B5E20"/><Tag text="어제·오늘·내일" color="#1B5E20"/><Tag text="~때" color="#1B5E20"/><Tag text="~후에·전에" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={vi?"장소":en?"Place":"장소·방향"} items={<><Tag text="어디에서" color="#1B5E20"/><Tag text="에/에서/으로" color="#1B5E20"/><Tag text="~(으)로" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={vi?"이유":en?"Reason":"이유·원인"} items={<><Tag text="~아/어서" color="#1B5E20"/><Tag text="~기 때문에" color="#1B5E20"/><Tag text="~(으)니까" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={vi?"조건":en?"Condition":"조건·가정"} items={<><Tag text="~(으)면" color="#1B5E20"/><Tag text="~(으)려면" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={vi?"양보":en?"Concession":"양보"} items={<><Tag text="~아/어도" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={vi?"배경":en?"Background":"배경·상황"} items={<><Tag text="~는데/은데" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={vi?"빈도":en?"Frequency":"빈도"} items={<><Tag text="항상" color="#1B5E20"/><Tag text="자주" color="#1B5E20"/><Tag text="가끔" color="#1B5E20"/><Tag text="거의 안" color="#1B5E20"/></>}/>
+          </Section>
+
+          {/* 4. 간접목적어·목적어 */}
+          <Section title={vi?"4. Bổ ngữ gián tiếp · Tân ngữ":en?"4. Indirect Object · Object":"4. 간접목적어 · 목적어"} accent="#4A148C" bg="#F3E5F5">
+            <Row accent="#4A148C" label={vi?"간접목적어":en?"Indirect":"간접목적어"} items={<><Tag text="누구에게" color="#4A148C"/><Tag text="누구께(존칭)" color="#4A148C"/><Tag text="누구한테" color="#4A148C"/></>}/>
+            <Row accent="#4A148C" label={vi?"목적어":en?"Object":"목적어"} items={<><Tag text="누구를/을" color="#4A148C"/><Tag text="무엇을/을" color="#4A148C"/><Tag text="어디를/을" color="#4A148C"/></>}/>
+            <Row accent="#4A148C" label={vi?"단위명사":en?"Counters":"단위명사"} items={<><Tag text="명/개/잔/병" color="#4A148C"/><Tag text="장/권/켤레" color="#4A148C"/><Tag text="대/척/송이" color="#4A148C"/></>}/>
+          </Section>
+
+          {/* 5. 서술어 */}
+          <Section title={vi?"5. Vị ngữ":en?"5. Predicate":"5. 서술어"} accent="#B71C1C" bg="#FFEBEE">
+            <Row accent="#B71C1C" label={vi?"이다":en?"이다":"이다"} items={<><Tag text="입니다" color="#B71C1C"/><Tag text="이에요/예요" color="#B71C1C"/><Tag text="이/가 아닙니다" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={vi?"시제":en?"Tense":"동사·형용사 시제"} items={<><Tag text="합니다(현재)" color="#B71C1C"/><Tag text="했습니다(과거)" color="#B71C1C"/><Tag text="할 것입니다(미래)" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={vi?"문어체":en?"Written":"격식·구어·문어"} items={<><Tag text="합니다체" color="#B71C1C"/><Tag text="해요체" color="#B71C1C"/><Tag text="해체·~다" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={vi?"불규칙":en?"Irregular":"불규칙"} items={<><Tag text="ㅂ→우" color="#B71C1C"/><Tag text="ㄹ탈락" color="#B71C1C"/><Tag text="르→ㄹ라" color="#B71C1C"/><Tag text="ㄷ→ㄹ" color="#B71C1C"/><Tag text="ㅡ탈락" color="#B71C1C"/><Tag text="ㅅ탈락" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={vi?"부정":en?"Negation":"부정법"} items={<><Tag text="안~/못~" color="#B71C1C"/><Tag text="~지 않다" color="#B71C1C"/><Tag text="~지 못하다" color="#B71C1C"/><Tag text="~지 마세요" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={vi?"존칭":en?"Honorific":"존칭"} items={<><Tag text="~세요/으세요" color="#B71C1C"/><Tag text="드리다·모시다" color="#B71C1C"/><Tag text="드시다·주무시다" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={vi?"가능·능력":en?"Ability":"가능·능력"} items={<><Tag text="~ㄹ 수 있다" color="#B71C1C"/><Tag text="~ㄹ 수 없다" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={vi?"부탁·허락":en?"Request":"부탁·허락"} items={<><Tag text="~아/어 주세요" color="#B71C1C"/><Tag text="~아도 돼요" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={vi?"변화":en?"Change":"변화"} items={<><Tag text="~아/어지다" color="#B71C1C"/><Tag text="~게 되다" color="#B71C1C"/></>}/>
+          </Section>
+
+          {/* 6. 기타 표현 */}
+          <Section title={vi?"6. Biểu thức khác":en?"6. Other Expressions":"6. 기타 표현"} accent="#E65100" bg="#FFF3E0">
+            <Row accent="#E65100" label={vi?"비교":en?"Comparison":"비교"} items={<><Tag text="보다 더" color="#E65100"/><Tag text="처럼/같이" color="#E65100"/><Tag text="가장/제일" color="#E65100"/></>}/>
+            <Row accent="#E65100" label={vi?"관형어":en?"Modifier":"관형어"} items={<><Tag text="~는(현재)" color="#E65100"/><Tag text="~은/ㄴ(과거)" color="#E65100"/><Tag text="~을/ㄹ(미래)" color="#E65100"/></>}/>
+            <Row accent="#E65100" label={vi?"간접화법":en?"Indirect":"간접화법"} items={<><Tag text="~다고 했다" color="#E65100"/><Tag text="~냐고 물었다" color="#E65100"/><Tag text="~라고 했다" color="#E65100"/></>}/>
+            <Row accent="#E65100" label={vi?"명사형":en?"Nominalize":"명사형"} items={<><Tag text="~는 것" color="#E65100"/><Tag text="~기" color="#E65100"/><Tag text="~음/ㅁ" color="#E65100"/></>}/>
+            <Row accent="#E65100" label={vi?"접속":en?"Conjunct.":"접속"} items={<><Tag text="와/과·하고(and)" color="#E65100"/><Tag text="또는·나(or)" color="#E65100"/><Tag text="지만·그런데(but)" color="#E65100"/></>}/>
+            <Row accent="#E65100" label={vi?"숫자":en?"Numbers":"숫자"} items={<><Tag text="고유어(하나·둘)" color="#E65100"/><Tag text="한자어(일·이)" color="#E65100"/><Tag text="나이·시→고유어" color="#E65100"/><Tag text="날짜·돈→한자어" color="#E65100"/></>}/>
+          </Section>
+
+          {/* 7. 의문대명사 */}
+          <Section title={vi?"7. Đại từ nghi vấn":en?"7. Question Words":"7. 의문대명사"} accent="#00695C" bg="#E0F2F1">
+            <div style={{display:"flex", flexWrap:"wrap", gap:6}}>
+              {[
+                ["누가","who(주어)"],["누구를","who(목적어)"],["무엇을","what"],
+                ["언제","when"],["어디에","where"],["왜","why"],
+                ["어떻게","how"],["얼마나","how much"],["몇","how many"],
+              ].map(([k,v])=>(
+                <div key={k} style={{background:"white", border:"1.5px solid #80CBC4", borderRadius:8, padding:"5px 10px", textAlign:"center"}}>
+                  <div style={{fontSize:14, fontWeight:900, color:"#00695C"}}>{k}</div>
+                  <div style={{fontSize:10, color:"#888"}}>{v}</div>
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          {/* 완료 버튼 */}
+          <button onClick={()=>{ setStep("learn"); }}
+            style={{width:"100%", background:"linear-gradient(135deg,#1A237E,#00C896)", color:"white", border:"none", borderRadius:16, padding:"18px", fontSize:18, fontWeight:900, cursor:"pointer", marginTop:8, boxShadow:"0 4px 20px rgba(0,196,150,.3)"}}>
+            🎉 {vi?"Hoàn thành khóa học!":en?"Course Complete!":"80시간 커리큘럼 완료!"}
+          </button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_register"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
