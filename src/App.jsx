@@ -16416,6 +16416,8 @@ export default function App() {
   const [showStats, setShowStats] = useState(false);
   const [showTopikChoice, setShowTopikChoice] = useState(false); // ✅ V123: 레벨 2단계 선택
   const [begReady, setBegReady] = useState(false); // ✅ V139: 초급 도전 시작 전까지 탭 숨김
+  const [showTopik2Choice, setShowTopik2Choice] = useState(false); // ✅ V263: TOPIK2 보유자 분기 팝업
+  const [showCurricPreview, setShowCurricPreview] = useState(true); // ✅ V263: 80시간 커리큘럼 미리보기
   const [showPromo, setShowPromo] = useState(false); // ✅ V143: 홍보 모달
   const [showMigration, setShowMigration] = useState(false); // ✅ V148: 기존 가입자 마이그레이션
   const [userRole, setUserRole] = useState(null); // ✅ V148: 로그인 후 Firestore role
@@ -16463,7 +16465,7 @@ export default function App() {
 
   async function handleLogout() {
     await signOut(auth);
-    setLevel(null); setTab("speak"); setShowTopikChoice(false); setBegReady(false);
+    setLevel(null); setTab("speak"); setShowTopikChoice(false); setBegReady(false); setShowTopik2Choice(false); setShowCurricPreview(true);
   }
 
   if (user===undefined) return (
@@ -16578,56 +16580,149 @@ export default function App() {
     );
   }
 
+  // ✅ V263: TOPIK2 보유자 분기 팝업
+  const Topik2ChoiceModal = () => (
+    <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+      <div style={{background:"white",borderRadius:20,padding:"28px 24px",maxWidth:360,width:"100%",boxShadow:"0 8px 40px rgba(0,0,0,0.2)"}}>
+        <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>🏆</div>
+        <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",textAlign:"center",marginBottom:12}}>TOPIK 2급을 갖고 계시군요!</div>
+        <div style={{fontSize:13,color:"#555",lineHeight:1.8,marginBottom:8}}>
+          한글 친구에는 두 가지 길이 있어요.
+        </div>
+        <div style={{background:"#F3EEFF",borderRadius:12,padding:"12px 14px",marginBottom:8,fontSize:12,color:"#555",lineHeight:1.8}}>
+          <strong style={{color:"#9C6FDE"}}>🌸 80시간 기초 과정</strong><br/>
+          발음 → 조사 → 서술어 25단원 순서로 배워요.<br/>
+          기초를 다시 탄탄하게 쌓고 싶을 때 추천해요.
+        </div>
+        <div style={{background:"#FFF0F6",borderRadius:12,padding:"12px 14px",marginBottom:20,fontSize:12,color:"#555",lineHeight:1.8}}>
+          <strong style={{color:C.pink}}>📚 중·고급 TOPIK 준비</strong><br/>
+          프리토킹 · 논술 · 하이터치 · 게임 탭이 열려요.<br/>
+          80시간 기초 과정은 경험하지 않아요.
+        </div>
+        <button onClick={()=>{setShowTopik2Choice(false);setLevel("beg");}}
+          style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
+          🌸 80시간 기초 과정으로 시작할게요
+        </button>
+        <button onClick={()=>{setShowTopik2Choice(false);setShowTopikChoice(true);}}
+          style={{width:"100%",background:"white",color:C.pink,border:`2px solid ${C.pink}`,borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:10}}>
+          📚 중·고급 TOPIK 준비로 갈게요
+        </button>
+        <button onClick={()=>setShowTopik2Choice(false)}
+          style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
+          ← 뒤로 가기
+        </button>
+      </div>
+    </div>
+  );
+
   // ✅ V126: beg는 탭 화면으로 진입 (BegScreen은 프리토킹 탭 안에서 제공)
 
   if (!level) return (
-    <div onClick={unlock} style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-      <div style={{fontSize:52,marginBottom:12}}>🇰🇷</div>
-      <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
-      <div style={{fontSize:14,color:"#888",marginBottom:8,textAlign:"center"}}>안녕하세요, {user.displayName||user.email}님! 👋</div>
-      <div style={{fontSize:13,color:"#bbb",marginBottom:16}}>한국어 수준을 선택해 주세요</div>
-      <div style={{background:"white",border:`1.5px solid ${C.teal}44`,borderRadius:14,padding:"12px 16px",marginBottom:16,maxWidth:340,width:"100%",boxShadow:"0 2px 12px rgba(78,205,196,.1)"}}>
-        <div style={{fontSize:11,fontWeight:800,color:C.teal,marginBottom:6}}>🔗 어떤 버튼을 누를까요?</div>
-        <div style={{fontSize:12,color:"#555",lineHeight:1.8}}>
-          한국어가 처음이거나 다시 배우고 싶다면 → <strong style={{color:"#9C6FDE"}}>처음 시작해요</strong><br/>
-          TOPIK 시험을 준비하고 있다면 → <strong style={{color:C.pink}}>TOPIK 준비해요</strong>
-        </div>
-      </div>
+    <div onClick={unlock} style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"32px 24px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
 
+      {/* TOPIK2 분기 팝업 */}
+      {showTopik2Choice&&<Topik2ChoiceModal/>}
+
+      <div style={{fontSize:52,marginBottom:12,marginTop:16}}>🇰🇷</div>
+      <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
+      <div style={{fontSize:14,color:"#888",marginBottom:24,textAlign:"center"}}>안녕하세요, {user.displayName||user.email}님! 👋</div>
+
+      {/* ── ① 80시간 커리큘럼 미리보기 ── */}
+      {showCurricPreview && (
+        <div style={{width:"100%",maxWidth:340,background:"white",borderRadius:18,padding:"18px 16px",marginBottom:20,boxShadow:"0 4px 20px rgba(156,111,222,.12)",border:"2px solid #9C6FDE22"}}>
+          <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:12,textAlign:"center"}}>📚 한글 친구 80시간 커리큘럼</div>
+          {[
+            {emoji:"🔤",step:"1단계",label:"발음 8단계",time:"13시간",color:"#9C6FDE"},
+            {emoji:"🔗",step:"2단계",label:"조사 · 대명사",time:"3시간",color:"#7B61FF"},
+            {emoji:"📝",step:"3단계",label:"서술어 25단원",time:"33시간",color:"#00C896"},
+            {emoji:"📖",step:"4단계",label:"부사어 · 기타 표현",time:"10시간",color:"#FF6B9D"},
+            {emoji:"🏆",step:"5단계",label:"통합 실전 훈련 4회",time:"15시간",color:"#F5A623"},
+            {emoji:"🎓",step:"6단계",label:"마무리 · 수료",time:"6시간",color:"#4ECDC4"},
+          ].map((s,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:i<5?"1px solid #f0f0f0":"none"}}>
+              <span style={{fontSize:18,flexShrink:0}}>{s.emoji}</span>
+              <div style={{flex:1}}>
+                <span style={{fontSize:11,color:"#bbb",fontWeight:700}}>{s.step} </span>
+                <span style={{fontSize:13,fontWeight:700,color:"#333"}}>{s.label}</span>
+              </div>
+              <span style={{fontSize:11,fontWeight:800,color:s.color,background:s.color+"18",borderRadius:8,padding:"2px 8px"}}>{s.time}</span>
+            </div>
+          ))}
+          <div style={{textAlign:"center",marginTop:12,fontSize:12,color:"#aaa"}}>총 80시간 = 새로운 세상! 🌏</div>
+          <button onClick={e=>{e.stopPropagation();setShowCurricPreview(false);}}
+            style={{width:"100%",marginTop:10,background:"none",border:"1px solid #eee",borderRadius:20,padding:"7px 0",fontSize:12,color:"#bbb",cursor:"pointer"}}>
+            접기 ▲
+          </button>
+        </div>
+      )}
+      {!showCurricPreview && (
+        <button onClick={e=>{e.stopPropagation();setShowCurricPreview(true);}}
+          style={{width:"100%",maxWidth:340,marginBottom:16,background:"white",border:"1.5px solid #9C6FDE44",borderRadius:14,padding:"10px 0",fontSize:12,color:"#9C6FDE",fontWeight:700,cursor:"pointer"}}>
+          📚 80시간 커리큘럼 보기 ▼
+        </button>
+      )}
+
+      {/* ── ② 현재 수준 선택 ── */}
       {!showTopikChoice ? (
-        /* ── 1단계: 초급 직진 / TOPIK 진입 ── */
         <>
-          {/* 🌸 처음 시작해요 → 초급(beg) 바로 진입 */}
-          <button onClick={()=>setLevel("beg")} style={{width:"100%",maxWidth:340,marginBottom:14,background:"#F3EEFF",border:"2.5px solid #9C6FDE",borderRadius:20,padding:"20px 22px",cursor:"pointer",textAlign:"left",boxShadow:"0 4px 18px #9C6FDE28",display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
-            <div style={{fontSize:40,flexShrink:0}}>🌸</div>
+          <div style={{width:"100%",maxWidth:340,marginBottom:12}}>
+            <div style={{fontSize:13,fontWeight:900,color:"#555",marginBottom:10,textAlign:"center"}}>나의 현재 한국어 수준은?</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center"}}>
+              {[
+                {label:"급수 없음",go:"beg"},
+                {label:"TOPIK 1",go:"beg"},
+                {label:"TOPIK 2",go:"topik2modal"},
+                {label:"TOPIK 3",go:"mid"},
+                {label:"TOPIK 4",go:"mid"},
+                {label:"TOPIK 5",go:"adv"},
+                {label:"TOPIK 6",go:"adv"},
+              ].map((t,i)=>(
+                <button key={i} onClick={e=>{
+                  e.stopPropagation();
+                  if(t.go==="beg") setLevel("beg");
+                  else if(t.go==="topik2modal") setShowTopik2Choice(true);
+                  else if(t.go==="mid"||t.go==="adv") setLevel(t.go);
+                }}
+                  style={{padding:"8px 16px",borderRadius:50,border:"2px solid #eee",background:"white",fontSize:13,fontWeight:700,color:"#555",cursor:"pointer",WebkitTapHighlightColor:"transparent",transition:"all .15s"}}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{fontSize:12,color:"#bbb",marginBottom:16,textAlign:"center"}}>— 또는 —</div>
+
+          {/* 🌸 처음 시작해요 */}
+          <button onClick={()=>setLevel("beg")} style={{width:"100%",maxWidth:340,marginBottom:14,background:"#F3EEFF",border:"2.5px solid #9C6FDE",borderRadius:20,padding:"18px 22px",cursor:"pointer",textAlign:"left",boxShadow:"0 4px 18px #9C6FDE28",display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
+            <div style={{fontSize:36,flexShrink:0}}>🌸</div>
             <div>
               <div style={{display:"flex",alignItems:"baseline",gap:8}}>
-                <span style={{fontSize:20,fontWeight:900,color:"#9C6FDE"}}>처음 시작해요</span>
+                <span style={{fontSize:18,fontWeight:900,color:"#9C6FDE"}}>처음 시작해요</span>
                 <span style={{fontSize:12,color:"#999",fontWeight:600}}>초급</span>
               </div>
             </div>
           </button>
 
-          {/* 📚 TOPIK 준비해요 → 2단계(중·고급 선택)로 이동 */}
-          <button onClick={e=>{e.stopPropagation();setShowTopikChoice(true);}} style={{width:"100%",maxWidth:340,marginBottom:16,background:"#FFF0F6",border:"2.5px solid #FF6B9D",borderRadius:20,padding:"20px 22px",cursor:"pointer",textAlign:"left",boxShadow:"0 4px 18px #FF6B9D28",display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
-            <div style={{fontSize:40,flexShrink:0}}>📚</div>
+          {/* 📚 중·고급 TOPIK 준비해요 */}
+          <button onClick={e=>{e.stopPropagation();setShowTopikChoice(true);}} style={{width:"100%",maxWidth:340,marginBottom:16,background:"#FFF0F6",border:"2.5px solid #FF6B9D",borderRadius:20,padding:"18px 22px",cursor:"pointer",textAlign:"left",boxShadow:"0 4px 18px #FF6B9D28",display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
+            <div style={{fontSize:36,flexShrink:0}}>📚</div>
             <div style={{flex:1}}>
               <div style={{display:"flex",alignItems:"baseline",gap:8}}>
                 <span style={{fontSize:12,color:"#999",fontWeight:600}}>중·고급</span>
-                <span style={{fontSize:20,fontWeight:900,color:C.pink}}>TOPIK 준비해요</span>
+                <span style={{fontSize:18,fontWeight:900,color:C.pink}}>TOPIK 준비해요</span>
               </div>
             </div>
             <div style={{fontSize:20,color:C.pink,opacity:.5,flexShrink:0}}>›</div>
           </button>
         </>
       ) : (
-        /* ── 2단계: 중급 / 고급 선택 ── */
+        /* ── 중급 / 고급 선택 ── */
         <>
           <button onClick={e=>{e.stopPropagation();setShowTopikChoice(false);}} style={{alignSelf:"flex-start",marginLeft:"calc(50% - 170px)",background:"none",border:"none",color:"#aaa",fontSize:13,cursor:"pointer",marginBottom:8,padding:"4px 0"}}>← 뒤로</button>
           <div style={{fontSize:13,color:"#888",marginBottom:12,textAlign:"center"}}>TOPIK 급수를 선택해 주세요</div>
           {[
-            {key:"mid",emoji:"🌱",label:"중급",sub:"TOPIK 3~4급",desc:"고유어 위주 짧은 문장\n일상 대화 중심",color:C.teal,bg:"#E8FAF8"},
-            {key:"adv",emoji:"🔥",label:"고급",sub:"TOPIK 5~6급",desc:"한자어·사자성어·관용구\n사회·문화 심화 대화",color:C.pink,bg:"#FFF0F6"},
+            {key:"mid",emoji:"🌱",label:"중급",sub:"TOPIK 3~4급",desc:"일상 대화 · 말하기 · 쓰기 훈련",color:C.teal,bg:"#E8FAF8"},
+            {key:"adv",emoji:"🔥",label:"고급",sub:"TOPIK 5~6급",desc:"심화 토론 · 사회·문화 주제",color:C.pink,bg:"#FFF0F6"},
           ].map(o=>(
             <button key={o.key} onClick={()=>setLevel(o.key)} style={{width:"100%",maxWidth:340,marginBottom:14,background:o.bg,border:`2.5px solid ${o.color}`,borderRadius:20,padding:"20px 22px",cursor:"pointer",textAlign:"left",boxShadow:`0 4px 18px ${o.color}28`,display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
               <div style={{fontSize:40,flexShrink:0}}>{o.emoji}</div>
@@ -16636,7 +16731,7 @@ export default function App() {
                   <span style={{fontSize:20,fontWeight:900,color:o.color}}>{o.label}</span>
                   <span style={{fontSize:12,color:"#999",fontWeight:600}}>{o.sub}</span>
                 </div>
-                <div style={{fontSize:13,color:"#666",lineHeight:1.6,whiteSpace:"pre-line"}}>{o.desc}</div>
+                <div style={{fontSize:13,color:"#666",lineHeight:1.6}}>{o.desc}</div>
               </div>
             </button>
           ))}
