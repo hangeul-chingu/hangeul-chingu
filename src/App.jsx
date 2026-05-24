@@ -1421,6 +1421,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"존칭",     action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }},
       { label:"간접화법",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }},
       { label:"관형어",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }},
+      { label:"숫자",     action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_number"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -13583,11 +13584,155 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           {/* 다음 단원 */}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("learn"); }}
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_number"); }}
             style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:16}}>
-            {vi?"Hoàn thành! 🎉":en?"Complete! 🎉":"학습 완료! 🎉"}
+            {vi?"Số đếm →":en?"Numbers →":"숫자 →"}
           </button>
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_approx"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── unit_number: 숫자 ──
+  if (step === "unit_number") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const NUM_SECTIONS = [
+      {
+        key:"고유어 수사", label:vi?"Số thuần Hàn":en?"Native Korean Numbers":"하나·둘·셋 — 사람·동물·물건 셀 때", color:"#E8F5E9", accent:"#1B5E20",
+        rule:{vi:"Số thuần Hàn dùng khi đếm người, đồ vật, động vật. 1~10: 하나·둘·셋·넷·다섯·여섯·일곱·여덟·아홉·열. Trước đơn vị: 하나→한, 둘→두, 셋→세, 넷→네", en:"Native Korean numbers are used for counting people, objects, animals. 1~10: 하나·둘·셋·넷·다섯·여섯·일곱·여덟·아홉·열. Before counters: 하나→한, 둘→두, 셋→세, 넷→네", ko:"사람·물건·동물을 셀 때 사용. 1~10: 하나·둘·셋·넷·다섯·여섯·일곱·여덟·아홉·열. 단위명사 앞: 하나→한, 둘→두, 셋→세, 넷→네"},
+        cards:[
+          { native:{vi:"Xin cho tôi một ly cà phê.", en:"Please give me one cup of coffee.", ko:"커피 한 잔 주세요."},
+            full:"커피 한 잔 주세요.", rule:{vi:"하나→한 (trước đơn vị 잔)", en:"하나→한 (before counter 잔)", ko:"하나→한 (단위명사 잔 앞에서 축약)"} },
+          { native:{vi:"Hôm nay tôi ăn hai bát cơm.", en:"I ate two bowls of rice today.", ko:"오늘 밥을 두 그릇 먹었습니다."},
+            full:"오늘 밥을 두 그릇 먹었습니다.", rule:{vi:"둘→두 (trước đơn vị 그릇)", en:"둘→두 (before counter 그릇)", ko:"둘→두 (단위명사 앞에서 축약)"} },
+          { native:{vi:"Xe buýt đến sau ba phút nữa.", en:"The bus comes in three minutes.", ko:"버스가 세 시간 후에 옵니다."},
+            full:"버스가 세 시간 후에 옵니다.", rule:{vi:"셋→세 (trước đơn vị 시간)", en:"셋→세 (before counter 시간)", ko:"셋→세 (단위명사 앞에서 축약)"} },
+          { native:{vi:"Tôi có bốn người trong gia đình.", en:"There are four people in my family.", ko:"우리 가족은 네 명입니다."},
+            full:"우리 가족은 네 명입니다.", rule:{vi:"넷→네 (trước đơn vị 명)", en:"넷→네 (before counter 명)", ko:"넷→네 (단위명사 앞에서 축약)"} },
+          { native:{vi:"Cuộc họp bắt đầu lúc mười giờ.", en:"The meeting starts at ten o'clock.", ko:"회의가 열 시에 시작합니다."},
+            full:"회의가 열 시에 시작합니다.", rule:{vi:"열 = 10 (số thuần Hàn, dùng với giờ)", en:"열 = 10 (native Korean, used with 시)", ko:"열 = 10 (고유어, 시간 표현에 사용)"} },
+          { native:{vi:"Tôi hai mươi lăm tuổi.", en:"I am twenty-five years old.", ko:"저는 스물다섯 살입니다."},
+            full:"저는 스물다섯 살입니다.", rule:{vi:"스물 = 20, 다섯 = 5 → 스물다섯 = 25 (tuổi dùng고유어)", en:"스물 = 20, 다섯 = 5 → 25 (age uses native Korean)", ko:"스물 = 20, 다섯 = 5 → 나이는 고유어로 셈"} },
+        ]
+      },
+      {
+        key:"한자어 수사", label:vi?"Số Hán-Hàn":en?"Sino-Korean Numbers":"일·이·삼 — 날짜·돈·층수·전화번호", color:"#E3F2FD", accent:"#0D47A1",
+        rule:{vi:"Số Hán-Hàn dùng cho ngày tháng, tiền, tầng, số điện thoại, phút, giây. 1~10: 일·이·삼·사·오·육·칠·팔·구·십. 100=백, 1000=천, 10000=만", en:"Sino-Korean numbers are used for dates, money, floors, phone numbers, minutes, seconds. 1~10: 일·이·삼·사·오·육·칠·팔·구·십. 100=백, 1000=천, 10000=만", ko:"날짜·금액·층수·전화번호·분·초에 사용. 1~10: 일·이·삼·사·오·육·칠·팔·구·십. 100=백, 1000=천, 10000=만"},
+        cards:[
+          { native:{vi:"Hôm nay là ngày mười lăm tháng năm.", en:"Today is May 15th.", ko:"오늘은 오월 십오 일입니다."},
+            full:"오늘은 오월 십오 일입니다.", rule:{vi:"날짜·월은 한자어: 오(5)월 십오(15)일", en:"Dates use Sino-Korean: 오(5)월 십오(15)일", ko:"날짜는 한자어: 오월 십오일"} },
+          { native:{vi:"Tiền phòng là ba trăm nghìn won một tháng.", en:"The monthly rent is 300,000 won.", ko:"방값이 한 달에 삼십만 원입니다."},
+            full:"방값이 한 달에 삼십만 원입니다.", rule:{vi:"돈은 한자어: 삼십(30)만 원", en:"Money uses Sino-Korean: 삼십만 원", ko:"금액은 한자어: 삼십만 원"} },
+          { native:{vi:"Tôi sống ở tầng bảy.", en:"I live on the seventh floor.", ko:"저는 칠 층에 삽니다."},
+            full:"저는 칠 층에 삽니다.", rule:{vi:"층수는 한자어: 칠(7)층", en:"Floor numbers use Sino-Korean: 칠층", ko:"층수는 한자어: 칠층"} },
+          { native:{vi:"Cuộc hẹn lúc hai giờ ba mươi phút.", en:"The appointment is at 2:30.", ko:"약속이 두 시 삼십 분입니다."},
+            full:"약속이 두 시 삼십 분입니다.", rule:{vi:"시(時)=고유어, 분(分)=한자어: 두 시 삼십 분", en:"시=native Korean, 분=Sino-Korean: 두 시 삼십 분", ko:"시는 고유어(두 시), 분은 한자어(삼십 분)"} },
+          { native:{vi:"Số điện thoại của tôi là 010-1234-5678.", en:"My phone number is 010-1234-5678.", ko:"제 전화번호는 공일공-일이삼사-오육칠팔입니다."},
+            full:"제 전화번호는 공일공-일이삼사-오육칠팔입니다.", rule:{vi:"전화번호는 한자어로 읽음: 공(0)·일(1)·이(2)...", en:"Phone numbers use Sino-Korean: 공(0)·일(1)·이(2)...", ko:"전화번호는 한자어: 공(0)·일(1)·이(2)..."} },
+          { native:{vi:"Tôi học tiếng Hàn được sáu tháng.", en:"I have studied Korean for six months.", ko:"한국어를 배운 지 육 개월이 됐습니다."},
+            full:"한국어를 배운 지 육 개월이 됐습니다.", rule:{vi:"개월(개월)은 한자어: 육(6)개월", en:"개월 uses Sino-Korean: 육개월", ko:"개월은 한자어: 육 개월"} },
+        ]
+      },
+      {
+        key:"실생활 숫자 표현", label:vi?"Số trong cuộc sống":en?"Numbers in Daily Life":"날짜·시간·돈·나이 실전 표현", color:"#FFF3E0", accent:"#E65100",
+        rule:{vi:"Quy tắc chọn: 나이·시(時)·개(個)·명(名)·잔(盞) → 고유어 / 날짜·월·분·초·원·층·번 → 한자어", en:"Rule: age, 시, 개, 명, 잔 → native Korean / dates, months, minutes, won, floors, numbers → Sino-Korean", ko:"고유어: 나이·시·개·명·잔 / 한자어: 날짜·월·분·원·층·번·전화번호"},
+        cards:[
+          { native:{vi:"Hôm nay là thứ Hai, ngày 3 tháng 3.", en:"Today is Monday, March 3rd.", ko:"오늘은 삼월 삼 일 월요일입니다."},
+            full:"오늘은 삼월 삼 일 월요일입니다.", rule:{vi:"날짜는 한자어: 삼(3)월 삼(3)일", en:"Dates use Sino-Korean: 삼월 삼일", ko:"날짜: 한자어 삼월 삼일"} },
+          { native:{vi:"Cuộc họp lúc ba giờ mười lăm phút.", en:"The meeting is at 3:15.", ko:"회의가 세 시 십오 분에 있습니다."},
+            full:"회의가 세 시 십오 분에 있습니다.", rule:{vi:"시=고유어(세), 분=한자어(십오)", en:"시=native(세), 분=Sino-Korean(십오)", ko:"세 시(고유어) + 십오 분(한자어)"} },
+          { native:{vi:"Táo này hai nghìn won một cân.", en:"These apples are 2,000 won per kilogram.", ko:"이 사과는 일 킬로에 이천 원입니다."},
+            full:"이 사과는 일 킬로에 이천 원입니다.", rule:{vi:"가격은 한자어: 이천(2,000)원", en:"Prices use Sino-Korean: 이천 원", ko:"가격은 한자어: 이천 원"} },
+        ]
+      },
+    ];
+
+    const allCards = NUM_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const C_NUM = { bg:"linear-gradient(150deg,#E8F5E9,#E3F2FD)", accent:"#1B5E20", border:"#A5D6A7" };
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:C_NUM.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Biểu thức số đếm":en?"Number Expressions":"숫자 표현"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:C_NUM.accent, textAlign:"center", marginBottom:4}}>
+            🔢 {vi?"Số đếm tiếng Hàn":en?"Korean Numbers":"한국어 숫자"}
+          </div>
+          <div style={{background:"#E8EAF6", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontSize:12, color:"#3949AB", fontWeight:700}}>
+              {vi?"고유어(하나·둘) vs 한자어(일·이) — dùng đúng hoàn cảnh"
+                :en?"고유어(하나·둘) vs 한자어(일·이) — use in the right context"
+                :"고유어(하나·둘) vs 한자어(일·이) — 상황에 맞게 구분해서 쓰기"}
+            </span>
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
+            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:C_NUM.accent}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:`2px solid ${C_NUM.border}`, borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(27,94,32,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e=>setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어 문장을 입력하세요..."}
+            style={{width:"100%", minHeight:70, borderRadius:10, border:"1.5px solid #A5D6A7", padding:"10px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:10}}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:"#1B5E20", color:"white", border:"none", borderRadius:12, padding:"13px", fontSize:15, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#E8F5E9", border:"2px solid #4CAF50", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:11, color:"#388E3C", fontWeight:700, marginBottom:6}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:18, fontWeight:900, color:"#1B5E20", letterSpacing:1}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx+1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
+              }}
+                style={{width:"100%", background:"#388E3C", color:"white", border:"none", borderRadius:12, padding:"13px", fontSize:15, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+              </button>
+            </div>
+          )}
+
+          {/* 다음 단원 */}
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_neg"); }}
+            style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:16}}>
+            {vi?"Phủ định →":en?"Negation →":"부정법 →"}
+          </button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_compare"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
