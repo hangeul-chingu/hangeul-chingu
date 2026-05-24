@@ -1262,6 +1262,8 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   const [goalDate, setGoalDate] = useState(null);   // 확정된 목표일 (Date)
   const [studyGoal, setStudyGoal] = useState(null); // ✅ V140: 학습 목표
   const [showResetModal, setShowResetModal] = useState(false);
+  const [showGoalWarning, setShowGoalWarning] = useState(false); // ✅ V262: daily/work 경고 팝업
+  const [pendingGoal, setPendingGoal] = useState(null); // ✅ V262: 팝업 대기 중인 goal
 
   // ✅ V145: 발음 화면 state (훅 규칙 — 컴포넌트 최상단에 선언)
   const [pronStep, setPronStep] = useState(0);
@@ -1878,21 +1880,93 @@ ${vocabList}
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {[
-              {id:"topik2", emoji:"🏆", label:lang?.code==="vi"?"Đạt TOPIK cấp 2":lang?.code==="en"?"Achieve TOPIK Level 2":"TOPIK 2급 달성하기"},
-              {id:"topik4", emoji:"🏆", label:lang?.code==="vi"?"Đạt TOPIK cấp 4":lang?.code==="en"?"Achieve TOPIK Level 4":"TOPIK 4급 달성하기"},
-              {id:"daily", emoji:"💬", label:lang?.code==="vi"?"Nói tiếng Hàn hàng ngày tự do":lang?.code==="en"?"Speak Korean freely in daily life":"일상 한국어 자유롭게 말하기"},
-              {id:"work",  emoji:"💼", label:lang?.code==="vi"?"Tiếng Hàn công việc":lang?.code==="en"?"Korean for work":"직장·현장 한국어 익히기"},
-              {id:"life",  emoji:"🏠", label:lang?.code==="vi"?"Thích nghi cuộc sống Hàn Quốc":lang?.code==="en"?"Adapt to life in Korea":"한국 생활 적응하기"},
-            ].map(g=>(
-              <button key={g.id} onClick={()=>setStudyGoal(g.id)}
-                style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",borderRadius:14,border:`2px solid ${studyGoal===g.id?"#9C6FDE":"#eee"}`,background:studyGoal===g.id?"#F3EEFF":"white",cursor:"pointer",textAlign:"left",WebkitTapHighlightColor:"transparent",transition:"all .15s"}}>
-                <span style={{fontSize:20}}>{g.emoji}</span>
-                <span style={{fontSize:13,fontWeight:studyGoal===g.id?800:500,color:studyGoal===g.id?"#9C6FDE":"#555"}}>{g.label}</span>
-                {studyGoal===g.id&&<span style={{marginLeft:"auto",color:"#9C6FDE",fontSize:16}}>✓</span>}
-              </button>
-            ))}
+              {id:"topik2", emoji:"🏆", label:lang?.code==="vi"?"Đạt TOPIK cấp 2":lang?.code==="en"?"Achieve TOPIK Level 2":"TOPIK 2급 달성하기",  badge:"80h"},
+              {id:"topik4", emoji:"🏆", label:lang?.code==="vi"?"Đạt TOPIK cấp 4":lang?.code==="en"?"Achieve TOPIK Level 4":"TOPIK 4급 달성하기",  disabled:true},
+              {id:"daily", emoji:"💬", label:lang?.code==="vi"?"Nói tiếng Hàn hàng ngày tự do":lang?.code==="en"?"Speak Korean freely in daily life":"일상 한국어 자유롭게 말하기", warn:true},
+              {id:"work",  emoji:"💼", label:lang?.code==="vi"?"Tiếng Hàn công việc":lang?.code==="en"?"Korean for work":"직장·현장 한국어 익히기", warn:true},
+              {id:"life",  emoji:"🏠", label:lang?.code==="vi"?"Thích nghi cuộc sống Hàn Quốc":lang?.code==="en"?"Adapt to life in Korea":"한국 생활 적응하기", badge:"80h"},
+            ].map(g=>{
+              const isSelected = studyGoal===g.id;
+              if (g.disabled) return (
+                <div key={g.id}
+                  style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",borderRadius:14,border:"2px solid #eee",background:"#f8f8f8",textAlign:"left",opacity:0.5,cursor:"not-allowed"}}>
+                  <span style={{fontSize:20}}>{g.emoji}</span>
+                  <span style={{fontSize:13,fontWeight:500,color:"#aaa"}}>{g.label}</span>
+                  <span style={{marginLeft:"auto",fontSize:11,color:"#bbb",fontWeight:700,background:"#eee",borderRadius:8,padding:"2px 8px"}}>
+                    {lang?.code==="vi"?"Sắp ra mắt":lang?.code==="en"?"Coming soon":"준비 중"}
+                  </span>
+                </div>
+              );
+              const handleGoalClick = () => {
+                if (g.warn) {
+                  setPendingGoal(g.id);
+                  setShowGoalWarning(true);
+                } else {
+                  setStudyGoal(g.id);
+                }
+              };
+              return (
+                <button key={g.id} onClick={handleGoalClick}
+                  style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",borderRadius:14,border:`2px solid ${isSelected?"#9C6FDE":"#eee"}`,background:isSelected?"#F3EEFF":"white",cursor:"pointer",textAlign:"left",WebkitTapHighlightColor:"transparent",transition:"all .15s"}}>
+                  <span style={{fontSize:20}}>{g.emoji}</span>
+                  <span style={{fontSize:13,fontWeight:isSelected?800:500,color:isSelected?"#9C6FDE":"#555"}}>{g.label}</span>
+                  {g.badge&&<span style={{marginLeft:4,fontSize:11,fontWeight:800,color:"#00C896",background:"#E6FAF4",borderRadius:8,padding:"2px 7px"}}>80시간</span>}
+                  {isSelected&&<span style={{marginLeft:"auto",color:"#9C6FDE",fontSize:16}}>✓</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        {/* ✅ V262: daily/work 경고 팝업 */}
+        {showGoalWarning&&(()=>{
+          const vi = lang?.code==="vi";
+          const en = lang?.code==="en";
+          const isWork = pendingGoal==="work";
+          const title = vi
+            ? (isWork?"Tiếng Hàn công việc":"Nói tiếng Hàn hàng ngày")
+            : en
+            ? (isWork?"Korean for work":"Speak Korean freely")
+            : (isWork?"직장·현장 한국어":"일상 한국어 말하기");
+          const msg1 = vi
+            ? `Bạn đang bắt đầu với tư cách người mới học. ${isWork?"Tiếng Hàn công việc":"Nói tiếng Hàn tự do"} đòi hỏi nền tảng cơ bản vững chắc.`
+            : en
+            ? `You're starting as a beginner. ${isWork?"Workplace Korean":"Free speaking"} requires a solid foundation first.`
+            : `초급으로 학습을 시작하셨습니다. ${isWork?"직장·현장 한국어":"자유로운 말하기"}를 잘하려면 기초가 먼저 필요해요.`;
+          const msg2 = vi
+            ? "Chúng tôi khuyên bạn nên hoàn thành khóa học cơ bản 80 giờ trước. Nền tảng vững chắc sẽ giúp bạn tiến bộ nhanh hơn rất nhiều! 💪"
+            : en
+            ? "We recommend completing the 80-hour basic curriculum first. A strong foundation will help you improve much faster! 💪"
+            : "80시간 기초 과정을 먼저 완료하실 것을 추천드려요. 기초가 쌓이면 훨씬 빠르게 성장할 수 있어요! 💪";
+          const msg3 = vi
+            ? "Tuy nhiên, nếu bạn vẫn muốn thực hành nói chuyện tự do, bạn có thể chọn bên dưới."
+            : en
+            ? "However, if you still want to practice free conversation, you can choose below."
+            : "그래도 지금 바로 프리토킹을 원하신다면 아래를 선택해 주세요.";
+          return (
+            <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+              <div style={{background:"white",borderRadius:20,padding:"28px 24px",maxWidth:360,width:"100%",boxShadow:"0 8px 40px rgba(0,0,0,0.2)"}}>
+                <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>{isWork?"🏗️":"💬"}</div>
+                <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",textAlign:"center",marginBottom:16}}>{title}</div>
+                <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:10}}>{msg1}</div>
+                <div style={{fontSize:13,color:"#333",lineHeight:1.7,marginBottom:10,fontWeight:600}}>{msg2}</div>
+                <div style={{fontSize:12,color:"#888",lineHeight:1.6,marginBottom:20,borderTop:"1px solid #eee",paddingTop:12}}>{msg3}</div>
+                <button onClick={()=>{setStudyGoal("topik2");setShowGoalWarning(false);setPendingGoal(null);}}
+                  style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
+                  {vi?"✅ Bắt đầu khóa học cơ bản 80 giờ":en?"✅ Start the 80-hour basic course":"✅ 80시간 기초 과정 시작하기"}
+                </button>
+                <button onClick={()=>{setStudyGoal(pendingGoal);setShowGoalWarning(false);setPendingGoal(null);setGoalDate(calcGoalDate(daysPerWeek,minPerDay,pendingGoal));onReady?.();setStep("learn");}}
+                  style={{width:"100%",background:"white",color:"#9C6FDE",border:"2px solid #9C6FDE",borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:10}}>
+                  {vi?"💬 Vẫn muốn thực hành nói tự do":en?"💬 I still want free talking":"💬 그래도 프리토킹 할게요"}
+                </button>
+                <button onClick={()=>{setShowGoalWarning(false);setPendingGoal(null);}}
+                  style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
+                  {vi?"← Quay lại":en?"← Go back":"← 뒤로 가기"}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
 
         <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:20,padding:"22px 20px",boxShadow:"0 4px 20px rgba(156,111,222,.10)",marginBottom:16}}>
           {/* 주 몇 회 */}
@@ -1943,10 +2017,13 @@ ${vocabList}
           </div>
         </div>
 
-        <button onClick={confirmPlan}
-          style={{width:"100%",maxWidth:360,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:16,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #9C6FDE44",WebkitTapHighlightColor:"transparent"}}>
+        <button onClick={()=>{ if(!studyGoal) return; confirmPlan(); }}
+          style={{width:"100%",maxWidth:360,background:studyGoal?"linear-gradient(135deg,#9C6FDE,#C084FC)":"#ddd",color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:16,fontWeight:900,cursor:studyGoal?"pointer":"not-allowed",boxShadow:studyGoal?"0 4px 16px #9C6FDE44":"none",WebkitTapHighlightColor:"transparent",transition:"all .2s"}}>
           {lang?.code==="vi"?"Bắt đầu thôi! 🚀":lang?.code==="en"?"Let's go! 🚀":"도전 시작! 🚀"}
         </button>
+        {!studyGoal&&<div style={{fontSize:12,color:"#bbb",marginTop:8,textAlign:"center"}}>
+          {lang?.code==="vi"?"Hãy chọn mục tiêu trước nhé!":lang?.code==="en"?"Please select your goal first!":"목표를 먼저 선택해 주세요!"}
+        </div>}
         <button onClick={()=>setStep("curriculum")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
       </div>
     );
