@@ -12275,6 +12275,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             full:"마리아는 편지를 썼습니다.", rule:{vi:"쓰다 → 써 (으 불규칙: ㅡ 탈락)", en:"쓰다 → 써 (으 irregular: ㅡ drops)", ko:"쓰다 → 써 (으 불규칙: ㅡ 탈락 → 써)"} },
           { native:{vi:"Áo quá rộng.", en:"The clothes were too big.", ko:"옷이 너무 컸습니다."},
             full:"옷이 너무 컸습니다.", rule:{vi:"크다 → 커 (으 불규칙: ㅡ 탈락)", en:"크다 → 커 (으 irregular: ㅡ drops)", ko:"크다 → 커 (으 불규칙: ㅡ 탈락 → 커)"} },
+          { native:{vi:"Lòng tôi đã đau.", en:"My heart ached.", ko:"저는 마음이 아팠습니다."},
+            full:"저는 마음이 아팠습니다.", rule:{vi:"아프다 → 아파 (으 불규칙: ㅡ 탈락 → ㅏ)", en:"아프다 → 아파 (으 irregular: ㅡ drops)", ko:"아프다 → 아파 (으 불규칙: ㅡ 탈락 → 아파)"} },
+          { native:{vi:"Tôi đã rất vui khi gặp bạn cùng quê.", en:"I was so happy to meet a hometown friend.", ko:"고향 친구를 만나서 정말 기뻤습니다."},
+            full:"고향 친구를 만나서 정말 기뻤습니다.", rule:{vi:"기쁘다 → 기뻐 (으 불규칙: ㅡ 탈락 → ㅓ)", en:"기쁘다 → 기뻐 (으 irregular: ㅡ drops)", ko:"기쁘다 → 기뻐 (으 불규칙: ㅡ 탈락 → 기뻐)"} },
+          { native:{vi:"Vì bận nên tuần trước tôi đã không thể tập thể dục.", en:"I couldn't exercise last week because I was busy.", ko:"지난주에 바빠서 운동을 할 수 없었습니다."},
+            full:"지난주에 바빠서 운동을 할 수 없었습니다.", rule:{vi:"바쁘다 → 바빠 (으 불규칙: ㅡ 탈락 → ㅏ)", en:"바쁘다 → 바빠 (으 irregular: ㅡ drops)", ko:"바쁘다 → 바빠 (으 불규칙: ㅡ 탈락 → 바빠)"} },
         ]
       },
       {
@@ -12321,6 +12327,24 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             full:"마리아는 재킷을 벗었습니다. (규칙 — 벗다→벗어)", rule:{vi:"벗다 → 벗어 (규칙! ㅅ이지만 탈락 없음)", en:"벗다 → 벗어 (regular! ㅅ stays)", ko:"벗다 → 벗어 (규칙: ㅅ 탈락 없음 — 주의!)"} },
           { native:{vi:"Mariá đã nhận quà từ bạn trai.", en:"Maria received a gift from her boyfriend.", ko:"마리아는 남자친구에게 선물을 받았습니다."},
             full:"마리아는 남자친구에게 선물을 받았습니다.", rule:{vi:"받다 → 받아 (규칙: ㄷ 계열 규칙 동사)", en:"받다 → 받아 (regular: ㄷ-type regular verb)", ko:"받다 → 받아 (규칙 동사 — 120% 추가)"} },
+        ]
+      },
+      {
+        key:"ㄹ 탈락 (ㄹ + ㄴ·ㅂ·ㅅ)", label:vi?"Lược bỏ ㄹ (ㄹ + ㄴ·ㅂ·ㅅ)":en?"ㄹ Drop (ㄹ + ㄴ·ㅂ·ㅅ)":"ㄹ 받침 → ㄴ·ㅂ·ㅅ 앞에서 탈락", color:"#EDE7F6", accent:"#4527A0",
+        rule:{vi:"Động từ/tính từ kết thúc bằng ㄹ + ㄴ/ㅂ/ㅅ → ㄹ bị lược bỏ. 알다→압니다/아는/아세요, 살다→삽니다/사는/사세요, 만들다→만듭니다", en:"Verb/adj ending in ㄹ + ㄴ/ㅂ/ㅅ → ㄹ drops. 알다→압니다/아는/아세요, 살다→삽니다/사는/사세요, 만들다→만듭니다", ko:"받침 ㄹ + ㄴ·ㅂ·ㅅ → ㄹ 탈락. 알다→압니다/아는/아세요, 살다→삽니다/사는, 만들다→만듭니다"},
+        cards:[
+          { native:{vi:"Tôi biết điều đó.", en:"I know that.", ko:"저는 그것을 압니다."},
+            full:"저는 그것을 압니다.", rule:{vi:"알다 → 압니다 (ㄹ 탈락: ㄹ + ㅂ니다 → ㄹ 탈락)", en:"알다 → 압니다 (ㄹ drops before ㅂ)", ko:"알다 → 압니다 (ㄹ 탈락: ㄹ+ㅂ→ㄹ 탈락)"} },
+          { native:{vi:"Tuân đang làm gì vậy?", en:"What is Tuan making now?", ko:"투안은 지금 무엇을 만듭니까?"},
+            full:"투안은 지금 무엇을 만듭니까?", rule:{vi:"만들다 → 만듭니까 (ㄹ 탈락: ㄹ + ㅂ니까 → ㄹ 탈락)", en:"만들다 → 만듭니까 (ㄹ drops before ㅂ)", ko:"만들다 → 만듭니까 (ㄹ 탈락: ㄹ+ㅂ→ㄹ 탈락)"} },
+          { native:{vi:"Tuân bán rau và trái cây ở chợ.", en:"Tuan sells vegetables and fruit at the market.", ko:"투안은 시장에서 야채와 과일을 팝니다."},
+            full:"투안은 시장에서 야채와 과일을 팝니다.", rule:{vi:"팔다 → 팝니다 (ㄹ 탈락: ㄹ + ㅂ니다 → ㄹ 탈락)", en:"팔다 → 팝니다 (ㄹ drops before ㅂ)", ko:"팔다 → 팝니다 (ㄹ 탈락)"} },
+          { native:{vi:"Những đứa trẻ chơi đùa ở công viên.", en:"The children play in the park.", ko:"아이들이 공원에서 놉니다."},
+            full:"아이들이 공원에서 놉니다.", rule:{vi:"놀다 → 놉니다 (ㄹ 탈락: ㄹ + ㅂ니다 → ㄹ 탈락)", en:"놀다 → 놉니다 (ㄹ drops before ㅂ)", ko:"놀다 → 놉니다 (ㄹ 탈락)"} },
+          { native:{vi:"Tôi sống ở Seoul.", en:"I live in Seoul.", ko:"저는 서울에(서) 삽니다."},
+            full:"저는 서울에(서) 삽니다.", rule:{vi:"살다 → 삽니다 (ㄹ 탈락: ㄹ + ㅂ니다 → ㄹ 탈락)", en:"살다 → 삽니다 (ㄹ drops before ㅂ)", ko:"살다 → 삽니다 (ㄹ 탈락)"} },
+          { native:{vi:"Xin hãy mở cửa sổ.", en:"Please open the window.", ko:"창문을 여세요."},
+            full:"창문을 여세요.", rule:{vi:"열다 → 여세요 (ㄹ 탈락: ㄹ + 세요 → ㄹ 탈락)", en:"열다 → 여세요 (ㄹ drops before 세요)", ko:"열다 → 여세요 (ㄹ 탈락: ㄹ+ㅅ→ㄹ 탈락)"} },
         ]
       },
     ];
