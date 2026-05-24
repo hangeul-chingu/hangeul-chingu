@@ -1423,6 +1423,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"관형어",   action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }},
       { label:"숫자",     action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_number"); }},
       { label:"부정법",    action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_neg"); }},
+      { label:"격식·문어",  action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_register"); }},
       { label:"테스트13",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }},
       { label:"마중이", action:()=>{ onReady?.(); setStep("learn"); }},
     ];
@@ -13747,6 +13748,141 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_number"); }}
+            style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
+            ← {vi?"Quay lại":en?"Back":"뒤로"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+
+  // ── unit_register: 격식체·구어체·문어체 ──
+  if (step === "unit_register") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const REG_SECTIONS = [
+      {
+        key:"격식체 vs 구어체", label:vi?"Trang trọng vs Thông thường":en?"Formal vs Informal":"합니다체 vs 해요체 — 상황 구분", color:"#E8EAF6", accent:"#283593",
+        rule:{vi:"합니다체(격식): công sở, người lạ, phát biểu chính thức. 해요체(thông thường): cuộc sống hàng ngày, người quen. 가다→갑니다(격식)/가요(일상). 먹다→먹습니다/먹어요. 있다→있습니다/있어요", en:"합니다체(formal): workplace, strangers, official speech. 해요체(everyday): daily life, acquaintances. 가다→갑니다(formal)/가요(everyday). 먹다→먹습니다/먹어요", ko:"합니다체: 직장·공식 상황·모르는 사람. 해요체: 일상생활·아는 사람. 가다→갑니다(격식)/가요(일상). 먹다→먹습니다/먹어요"},
+        cards:[
+          { native:{vi:"(Báo cáo công việc - trang trọng) Tôi đã hoàn thành báo cáo.", en:"(Work report - formal) I have completed the report.", ko:"(업무 보고 - 격식) 보고서를 완성했습니다."},
+            full:"보고서를 완성했습니다.", rule:{vi:"합니다체: 완성하다 → 완성했습니다 (trang trọng)", en:"합니다체: 완성하다 → 완성했습니다 (formal)", ko:"합니다체: 완성하다 → 완성했습니다 (직장 상황)"} },
+          { native:{vi:"(Nói chuyện với bạn - thông thường) Tôi đã hoàn thành báo cáo.", en:"(Talking to a friend - everyday) I finished the report.", ko:"(친구에게 - 일상) 보고서 다 완성했어요."},
+            full:"보고서 다 완성했어요.", rule:{vi:"해요체: 완성하다 → 완성했어요 (thông thường)", en:"해요체: 완성하다 → 완성했어요 (everyday)", ko:"해요체: 완성하다 → 완성했어요 (일상 대화)"} },
+          { native:{vi:"(Hỏi đường người lạ - trang trọng) Ga tàu điện ngầm ở đâu ạ?", en:"(Asking a stranger - formal) Where is the subway station?", ko:"(모르는 사람 - 격식) 지하철역이 어디 있습니까?"},
+            full:"지하철역이 어디 있습니까?", rule:{vi:"합니다체 의문: 있다 → 있습니까? (trang trọng)", en:"합니다체 question: 있다 → 있습니까? (formal)", ko:"합니다체 의문: 있다 → 있습니까? (격식)"} },
+          { native:{vi:"(Hỏi người quen - thông thường) Ga tàu điện ngầm ở đâu ạ?", en:"(Asking an acquaintance - everyday) Where is the subway station?", ko:"(아는 사람 - 일상) 지하철역이 어디 있어요?"},
+            full:"지하철역이 어디 있어요?", rule:{vi:"해요체 의문: 있다 → 있어요? (thông thường)", en:"해요체 question: 있다 → 있어요? (everyday)", ko:"해요체 의문: 있다 → 있어요? (일상)"} },
+          { native:{vi:"(Giới thiệu bản thân - trang trọng) Tôi là nhân viên công ty ABC.", en:"(Self-introduction - formal) I am an ABC company employee.", ko:"(공식 자기소개 - 격식) 저는 ABC 회사 직원입니다."},
+            full:"저는 ABC 회사 직원입니다.", rule:{vi:"합니다체: 이다 → 입니다 (trang trọng)", en:"합니다체: 이다 → 입니다 (formal)", ko:"합니다체: 이다 → 입니다 (공식 자기소개)"} },
+          { native:{vi:"(Giới thiệu với bạn mới - thông thường) Tôi là nhân viên công ty ABC.", en:"(Introducing yourself casually) I work at ABC company.", ko:"(친한 자리 - 일상) 저는 ABC 회사 직원이에요."},
+            full:"저는 ABC 회사 직원이에요.", rule:{vi:"해요체: 이다 → 이에요/예요 (thông thường)", en:"해요체: 이다 → 이에요/예요 (everyday)", ko:"해요체: 이다 → 이에요/예요 (일상 대화)"} },
+        ]
+      },
+      {
+        key:"문어체", label:vi?"Văn viết":en?"Written Style":"글로 쓸 때 — 신문·문자·SNS", color:"#E0F2F1", accent:"#00695C",
+        rule:{vi:"문어체(văn viết): tin nhắn, SNS, bài báo, nhật ký. Bỏ 요: 갔어요→갔어, 먹었어요→먹었어. Hoặc dùng dạng từ điển: 가다, 먹다, 있다. Trong báo/tiểu thuyết: ~ㄴ다/는다(hiện tại), ~았/었다(quá khứ)", en:"문어체(written): texts, SNS, news, diary. Drop 요: 갔어요→갔어, 먹었어요→먹었어. Or use plain form: 가다, 먹다. News/novels: ~ㄴ다/는다(present), ~았/었다(past)", ko:"문어체: 문자·SNS·신문·일기에 사용. 요 생략: 갔어요→갔어. 또는 기본형: 가다, 먹다. 신문·소설: ~ㄴ다/는다(현재), ~았/었다(과거)"},
+        cards:[
+          { native:{vi:"(Tin nhắn bạn bè) Tôi sẽ đến muộn khoảng 10 phút.", en:"(Friend text) I'll be about 10 minutes late.", ko:"(친구 문자) 나 10분 정도 늦을 것 같아."},
+            full:"나 10분 정도 늦을 것 같아.", rule:{vi:"문어체(친구 문자): 해체, 요 없음", en:"Written/informal: 해체, no 요", ko:"친구 문자: 해체 (요 없음), 자연스러운 문어체"} },
+          { native:{vi:"(SNS caption) Hôm nay trời đẹp nên tôi đi dạo.", en:"(SNS post) The weather is nice today, so I went for a walk.", ko:"(SNS) 오늘 날씨가 좋아서 산책을 갔다."},
+            full:"오늘 날씨가 좋아서 산책을 갔다.", rule:{vi:"문어체(SNS): ~았다 (quá khứ, văn viết)", en:"Written style(SNS): ~았다 (past, written)", ko:"SNS·일기: ~았다 (과거 문어체)"} },
+          { native:{vi:"(Bài báo) Chính phủ công bố chính sách kinh tế mới.", en:"(News article) The government announced a new economic policy.", ko:"(신문 기사) 정부가 새로운 경제 정책을 발표한다."},
+            full:"정부가 새로운 경제 정책을 발표한다.", rule:{vi:"문어체(báo): ~ㄴ다/는다 (hiện tại, thể văn viết trang trọng)", en:"News style: ~ㄴ다/는다 (present written form)", ko:"신문 기사: ~ㄴ다/는다 (현재 문어체)"} },
+          { native:{vi:"(Nhật ký) Hôm nay tôi đã gặp một người bạn cũ.", en:"(Diary) Today I met an old friend.", ko:"(일기) 오늘 오랜 친구를 만났다."},
+            full:"오늘 오랜 친구를 만났다.", rule:{vi:"문어체(nhật ký): ~았다 (quá khứ, không có 요)", en:"Diary style: ~았다 (past, no 요)", ko:"일기: ~았다 (과거 문어체, 요 없음)"} },
+        ]
+      },
+      {
+        key:"3체 비교", label:vi?"So sánh 3 thể":en?"3-Style Comparison":"같은 내용, 3가지 표현", color:"#FFF8E1", accent:"#F57F17",
+        rule:{vi:"Cùng nội dung, 3 cách nói: 합니다체(trang trọng) / 해요체(thông thường) / 해체·문어체(thân mật·văn viết). Chọn theo: với ai 말하는가? + 어디서 쓰는가?", en:"Same content, 3 styles: 합니다체(formal) / 해요체(everyday) / 해체(informal/written). Choose based on: who + where", ko:"같은 내용 3가지: 합니다체(격식) / 해요체(일상) / 해체·문어체(친밀·문자). 상황에 맞게 선택"},
+        cards:[
+          { native:{vi:"[격식] Tôi sẽ đi Hàn Quốc vào tuần tới.", en:"[Formal] I will go to Korea next week.", ko:"[격식] 저는 다음 주에 한국에 갑니다."},
+            full:"저는 다음 주에 한국에 갑니다.", rule:{vi:"합니다체: 가다 → 갑니다 (trang trọng)", en:"합니다체: 가다 → 갑니다 (formal)", ko:"합니다체: 가다 → 갑니다 (공식·직장)"} },
+          { native:{vi:"[일상] Tôi sẽ đi Hàn Quốc vào tuần tới.", en:"[Everyday] I'm going to Korea next week.", ko:"[일상] 저는 다음 주에 한국에 가요."},
+            full:"저는 다음 주에 한국에 가요.", rule:{vi:"해요체: 가다 → 가요 (thông thường)", en:"해요체: 가다 → 가요 (everyday)", ko:"해요체: 가다 → 가요 (일상 대화)"} },
+          { native:{vi:"[문자] Tuần tới mình đi Hàn Quốc.", en:"[Text] Going to Korea next week.", ko:"[문자] 나 다음 주에 한국 가."},
+            full:"나 다음 주에 한국 가.", rule:{vi:"해체(문자): 가다 → 가 (thân mật·văn viết)", en:"해체(text): 가다 → 가 (informal/written)", ko:"해체(문자): 가다 → 가 (친한 사이·문자)"} },
+        ]
+      },
+    ];
+
+    const allCards = REG_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
+    const card = allCards[unitCardIdx] || allCards[0];
+    const total = allCards.length;
+    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
+    const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
+
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8EAF6,#E0F2F1)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        <div style={{width:"100%", maxWidth:420}}>
+          <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
+            {vi?"Văn phong":en?"Speech Styles":"격식체·구어체·문어체"}
+          </div>
+          <div style={{fontSize:18, fontWeight:900, color:"#283593", textAlign:"center", marginBottom:4}}>
+            🗣️ {vi?"Ba thể trong tiếng Hàn":en?"Korean Speech Styles":"합니다체 / 해요체 / 해체"}
+          </div>
+          <div style={{background:"#C5CAE9", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontSize:12, color:"#1A237E", fontWeight:700}}>
+              {vi?"직장(합니다체) vs 일상(해요체) vs 문자(해체) — 상황에 맞게"
+                :en?"Work(합니다체) vs Daily(해요체) vs Text(해체) — match the context"
+                :"직장·공식(합니다체) vs 일상(해요체) vs 문자·일기(해체) — 상황에 맞게"}
+            </span>
+          </div>
+          <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
+            {unitCardIdx + 1} / {total}
+          </div>
+
+          <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
+            <span style={{fontWeight:800, color:card.sectionAccent, fontSize:13}}>{card.sectionKey}</span>
+            <span style={{color:"#666", fontSize:11, marginLeft:6}}>{card.sectionLabel}</span>
+          </div>
+
+          <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
+          </div>
+
+          <div style={{background:"#F3F3F3", borderRadius:8, padding:"6px 12px", marginBottom:10, fontSize:12, color:"#777"}}>
+            <span style={{fontWeight:700, color:"#283593"}}>📌 </span>{cardRule}
+          </div>
+
+          <div style={{background:"white", border:"2px solid #9FA8DA", borderRadius:14, padding:"20px 18px", marginBottom:16, textAlign:"center", boxShadow:"0 2px 12px rgba(40,53,147,.08)"}}>
+            <div style={{fontSize:15, color:"#555", lineHeight:1.6, fontWeight:600}}>{nativeText}</div>
+          </div>
+
+          <textarea
+            value={unitCardInput}
+            onChange={e=>setUnitCardInput(e.target.value)}
+            placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어 문장을 입력하세요..."}
+            style={{width:"100%", minHeight:70, borderRadius:10, border:"1.5px solid #9FA8DA", padding:"10px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:10}}
+          />
+
+          {!unitCardRevealed ? (
+            <button onClick={()=>setUnitCardRevealed(true)}
+              style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"13px", fontSize:15, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+            </button>
+          ) : (
+            <div>
+              <div style={{background:"#E8EAF6", border:"2px solid #3F51B5", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
+                <div style={{fontSize:11, color:"#1A237E", fontWeight:700, marginBottom:6}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:18, fontWeight:900, color:"#1A237E", letterSpacing:1}}>{card.full}</div>
+              </div>
+              <button onClick={()=>{
+                if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx+1); setUnitCardInput(""); setUnitCardRevealed(false); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_review"); }
+              }}
+                style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Tổng ôn tập →":en?"Final Review →":"기초문법 정리 →")}
+              </button>
+            </div>
+          )}
+
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_neg"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
