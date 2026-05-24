@@ -11039,19 +11039,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#43A047", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv2"); }
+              }} style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 2 →":en?"Adverb Unit 2 →":"부사어 2 →")}
               </button>
             </div>
           )}
 
-          {/* 다음 단원 */}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv2"); }}
-            style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:16}}>
-            {vi?"Bài tiếp theo →":en?"Next Unit →":"다음 단원 →"} (부사어 2)
-          </button>
-          {/* 뒤로 */}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit25"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
@@ -11221,16 +11215,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#43A047", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv3"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#43A047" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 3 →":en?"Adverb Unit 3 →":"부사어 3 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv3"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Bài Phó từ 3 →":en?"Adverb Unit 3 →":"부사어 3 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv1"); }}
@@ -11378,16 +11366,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#43A047", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv4"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#43A047" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 4 →":en?"Adverb Unit 4 →":"부사어 4 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv4"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Bài Phó từ 4 →":en?"Adverb Unit 4 →":"부사어 4 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv2"); }}
@@ -11484,16 +11466,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#43A047", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv5"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#43A047" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 5 →":en?"Adverb Unit 5 →":"부사어 5 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv5"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Bài Phó từ 5 →":en?"Adverb Unit 5 →":"부사어 5 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv3"); }}
@@ -11590,16 +11566,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#F4511E", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv6"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#F4511E" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 6 →":en?"Adverb Unit 6 →":"부사어 6 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv6"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Bài Phó từ 6 →":en?"Adverb Unit 6 →":"부사어 6 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv4"); }}
@@ -11696,16 +11666,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#7B1FA2", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv7"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#7B1FA2" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 7 →":en?"Adverb Unit 7 →":"부사어 7 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv7"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Bài Phó từ 7 →":en?"Adverb Unit 7 →":"부사어 7 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv5"); }}
@@ -11800,16 +11764,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#1565C0", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#1565C0" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Tần suất →":en?"Frequency →":"빈도부사 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Tần suất →":en?"Frequency →":"빈도부사 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv6"); }}
@@ -11936,16 +11894,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_counter"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Đơn vị →":en?"Unit Nouns →":"단위명사 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_counter"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Đơn vị →":en?"Unit Nouns →":"단위명사 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv7"); }}
@@ -12096,16 +12048,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_mankke"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"만/밖에 →":en?"만/밖에 →":"만/밖에 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_mankke"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"만/밖에 →":en?"만/밖에 →":"만/밖에 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }}
@@ -12224,16 +12170,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Động từ cảm xúc →":en?"Emotion Verbs →":"감정 동사 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Động từ cảm xúc →":en?"Emotion Verbs →":"감정 동사 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }}
@@ -12412,16 +12352,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#2E7D32", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_change"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#2E7D32" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Biến đổi →":en?"State Change →":"상태 변화 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_change"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Biến đổi →":en?"State Change →":"상태 변화 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }}
@@ -12563,16 +12497,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Cách thức →":en?"Manner →":"방식 표현 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Cách thức →":en?"Manner →":"방식 표현 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }}
@@ -12709,16 +12637,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#2E7D32", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#2E7D32" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Danh từ hóa →":en?"Nominalization →":"명사형 전환 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Danh từ hóa →":en?"Nominalization →":"명사형 전환 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_counter"); }}
@@ -12840,16 +12762,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_approx"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Ước lượng →":en?"Approximation →":"대략 표현 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_approx"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Ước lượng →":en?"Approximation →":"대략 표현 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }}
@@ -12967,16 +12883,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_compare"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"So sánh →":en?"Comparison →":"비교 표현 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_compare"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"So sánh →":en?"Comparison →":"비교 표현 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_mankke"); }}
@@ -13080,16 +12990,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#1565C0", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#1565C0" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bất quy tắc →":en?"Irregular Verbs →":"동사 불규칙 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Bất quy tắc →":en?"Irregular Verbs →":"동사 불규칙 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_change"); }}
@@ -13206,16 +13110,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#AD1457", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#AD1457" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Kính ngữ →":en?"Honorifics →":"존칭 표현 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Kính ngữ →":en?"Honorifics →":"존칭 표현 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }}
@@ -13333,16 +13231,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#2E7D32", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#2E7D32" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Gián tiếp →":en?"Indirect Speech →":"간접화법 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Gián tiếp →":en?"Indirect Speech →":"간접화법 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }}
@@ -13444,16 +13336,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#3949AB", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#3949AB" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Định ngữ →":en?"Modifiers →":"관형어 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Định ngữ →":en?"Modifiers →":"관형어 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }}
@@ -13577,16 +13463,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }
-              }} style={{width:"100%", background:"#2E7D32", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄")}
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_number"); }
+              }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#2E7D32" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Số đếm →":en?"Numbers →":"숫자 →")}
               </button>
-              {unitCardIdx === total - 1 && (
-                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_number"); }}
-                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                  {vi?"Số đếm →":en?"Numbers →":"숫자 →"}
-                </button>
-              )}
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_approx"); }}
@@ -13724,17 +13604,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                   {vi?"Tiếp theo →":en?"Next →":"다음 →"}
                 </button>
               ) : (
-                <div>
-                  <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }}
-                    style={{width:"100%", background:"#388E3C", color:"white", border:"none", borderRadius:12, padding:"13px", fontSize:15, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                    {vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄"}
-                  </button>
-                  {/* 마지막 카드 완료 후 다음 단원 버튼 표시 */}
-                  <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_neg"); }}
-                    style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                    {vi?"Phủ định →":en?"Negation →":"부정법 →"}
-                  </button>
-                </div>
+                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_neg"); }}
+                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                  {vi?"Phủ định →":en?"Negation →":"부정법 →"}
+                </button>
               )}
             </div>
           )}
@@ -13865,16 +13738,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                   {vi?"Tiếp theo →":en?"Next →":"다음 →"}
                 </button>
               ) : (
-                <div>
-                  <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); }}
-                    style={{width:"100%", background:"#E65100", color:"white", border:"none", borderRadius:12, padding:"13px", fontSize:15, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                    {vi?"Bắt đầu lại 🔄":en?"Restart 🔄":"처음부터 🔄"}
-                  </button>
-                  <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_register"); }}
-                    style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8, marginTop:8}}>
-                    {vi?"Văn phong →":en?"Speech Styles →":"격식체·구어체·문어체 →"}
-                  </button>
-                </div>
+                <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_register"); }}
+                  style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
+                  {vi?"Văn phong →":en?"Speech Styles →":"격식체·구어체·문어체 →"}
+                </button>
               )}
             </div>
           )}
