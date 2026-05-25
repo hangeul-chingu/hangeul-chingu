@@ -1539,7 +1539,6 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"발음⑮",  action:()=>{ setPronStep(14); setFlipped({}); setStep("pronunciation"); }},
       { label:"발음⑯",  action:()=>{ setPronStep(15); setFlipped({}); setStep("pronunciation"); }},
       { label:"발음⑰",  action:()=>{ setPronStep(16); setFlipped({}); setStep("pronunciation"); }},
-      { label:"발음테스트",action:()=>{ setPronTestIdx(0); setPronTestResults([]); setPronTestSTT(""); setPronTestFeedback(null); setStep("pronTest"); }},
       { label:"시제1",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense1"); }},
       { label:"시제2",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense2"); }},
       { label:"시제3",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense3"); }},
@@ -4153,12 +4152,12 @@ ${vocabList}
         {/* 발음 테스트 버튼 — 각 단계마다 테스트 후 다음으로 */}
         <button onClick={()=>{
           if(pronStep < PRON_STEPS.length - 1){ setPronStep(s=>s+1); setFlipped({}); }
-          else { setPronTestIdx(0); setPronTestResults([]); setPronTestSTT(""); setPronTestFeedback(null); setStep("pronTest"); }
+          else { setShowProgress({ passedCount: unitsPassed.length, completedLabel: vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계", nextStep:"tense1", nextLabel: vi?"Tiếp theo — Thì":en?"Next — Tenses":"다음 — 시제" }); }
         }}
           style={{width:"100%", maxWidth:360, background:"linear-gradient(135deg,#9C6FDE,#C084FC)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C6FDE44"}}>
           {pronStep < PRON_STEPS.length - 1
             ? (vi?"Bài tiếp theo →":en?"Next lesson →":"다음 단계로 →")
-            : (vi?"Kiểm tra phát âm! 🎤":en?"Pronunciation test! 🎤":"발음 테스트! 🎤")}
+            : (vi?"Tiếp theo — Thì! 🚀":en?"Next — Tenses! 🚀":"시제 학습으로! 🚀")}
         </button>
 
         <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer"}}>← 뒤로</button>
