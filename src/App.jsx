@@ -2338,8 +2338,7 @@ ${vocabList}
       { no:"12", label:vi?"Phụ âm cuối ㄴ":en?"Batchim ㄴ":"받침 ㄴ",               emoji:"🧱" },
       { no:"13", label:vi?"Phụ âm cuối ㄷ":en?"Batchim ㄷ":"받침 ㄷ",               emoji:"🧱" },
       { no:"14", label:vi?"Phụ âm cuối kép + Liên âm":en?"Double Batchim + Liaison":"겹받침 + 연음법칙", emoji:"🔗" },
-      { no:"15", label:vi?"Kiểm tra phát âm":en?"Pronunciation Test":"발음 테스트",   emoji:"🎤" },
-      { no:"16", label:vi?"Thì 6 bài (tiếp theo)":en?"Tenses next":"다음: 시제 6단원",emoji:"⏱️", next:true },
+      { no:"15", label:vi?"Thì 6 bài (tiếp theo)":en?"Tenses next":"다음: 시제 6단원",emoji:"⏱️", next:true },
     ];
 
     return (
@@ -2349,7 +2348,7 @@ ${vocabList}
           {vi?"Mục lục Phát âm":en?"Pronunciation Contents":"발음 학습 목차"}
         </div>
         <div style={{fontSize:12,color:"#aaa",marginBottom:20,textAlign:"center"}}>
-          {vi?"Tổng 8 giờ · 17 bước":en?"8 hours total · 17 steps":"총 8시간 · 17단계"}
+          {vi?"Tổng 8 giờ · 14 bước":en?"8 hours total · 14 steps":"총 8시간 · 14단계"}
         </div>
 
         <div style={{width:"100%",maxWidth:360,display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
