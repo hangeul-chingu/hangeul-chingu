@@ -352,9 +352,15 @@ function AdminDashboard({ user, onLogout, onExitAdmin }) {
 
   // 전체 학습자 목록
   useEffect(() => {
-    const q = query(collection(db, "users"), where("role", "==", "learner"));
+    // ✅ V263 수정: role 필터 제거 (기존 가입자 role 필드 없는 경우 대비)
+    const q = query(collection(db, "users"));
     const unsub = onSnapshot(q, snap => {
-      setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // instructor/admin 제외하고 나머지 전부 학습자로 표시
+      setUsers(all.filter(u => u.role !== "instructor" && u.email !== ADMIN_EMAIL));
+      setLoading(false);
+    }, err => {
+      console.error("학습자 목록 로딩 오류:", err);
       setLoading(false);
     });
     return () => unsub();
