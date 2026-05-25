@@ -2099,6 +2099,7 @@ ${vocabList}
   // ── D-Day 학습 계획 화면 (V131 신규) ──
   // ── 80시간 커리큘럼 미리보기 화면 ──
   if (step === "curriculum") {
+    const vi = lang?.code==="vi", en = lang?.code==="en";
     const items = [
       { emoji:"🔤", label:vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계",                                    hours: 8,  color:"#E8F4FD", border:"#90CAF9" },
       { emoji:"⏱️", label:vi?"Thì 6 bài":en?"Tenses 6 units":"시제 6단원",                                               hours: 6,  color:"#FFF3E0", border:"#FFCC80" },
@@ -2108,7 +2109,6 @@ ${vocabList}
       { emoji:"📖", label:vi?"Phó từ · Quan hệ từ · Kính ngữ...":en?"Adverbs · Adjectives · Honorifics...":"부사어 · 관형어 · 존칭 · 간접화법 · 비교/최상급 · 기타", hours:21,  color:"#FDE8F5", border:"#F48FB1" },
       { emoji:"🔢", label:vi?"Số · Phủ định · Văn phong · Tổng kết":en?"Numbers · Negation · Register · Review":"숫자 · 부정법 · 격식체 · 기초문법 정리", hours: 1,  color:"#FFF8E1", border:"#FFD54F" },
     ];
-    const vi = lang?.code==="vi", en = lang?.code==="en";
     return (
       <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:12}}>📚</div>
