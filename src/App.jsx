@@ -1423,7 +1423,7 @@ const BEG_VOCAB = {
 };
 
 
-function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false }) {
+function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLearn=false }) {
   const [step, setStep] = useState(skipToLearn ? "learn" : "lang");   // lang → curriculum → plan → topic → learn
   const [lang, setLang] = useState(null);
   const [topic, setTopic] = useState(null);
@@ -2244,7 +2244,7 @@ ${vocabList}
                   style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
                   {vi?"✅ Bắt đầu khóa học cơ bản 80 giờ":en?"✅ Start the 80-hour basic course":"✅ 80시간 기초 과정 시작하기"}
                 </button>
-                <button onClick={()=>{setStudyGoal(pendingGoal);setShowGoalWarning(false);setPendingGoal(null);setGoalDate(calcGoalDate(daysPerWeek,minPerDay,pendingGoal));onReady?.();setStep("learn");}}
+                <button onClick={()=>{setStudyGoal(pendingGoal);setShowGoalWarning(false);setPendingGoal(null);onBrowse?.();}}
                   style={{width:"100%",background:"white",color:"#9C6FDE",border:"2px solid #9C6FDE",borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:10}}>
                   {vi?"💬 Vẫn muốn thực hành nói tự do":en?"💬 I still want free talking":"💬 그래도 프리토킹 할게요"}
                 </button>
@@ -16793,6 +16793,7 @@ export default function App() {
   const [userRole, setUserRole] = useState(null); // ✅ V148: 로그인 후 Firestore role
   const [adminMode, setAdminMode] = useState(false);  // ✅ V151: 관리자 모드 토글
   const [joinCode, setJoinCode] = useState(null); // ✅ V148: URL ?join= 파라미터
+  const [browseMode, setBrowseMode] = useState(false); // ✅ V270: daily/work 선택 후 탭 둘러보기 모드
 
   // ✅ V148: 기존 가입자 마이그레이션 체크 (dataOwnershipAgreed 없으면 팝업)
   useEffect(()=>{
@@ -16835,7 +16836,7 @@ export default function App() {
 
   async function handleLogout() {
     await signOut(auth);
-    setLevel(null); setTab("speak"); setShowTopikChoice(false); setBegReady(false); setShowTopik2Choice(false); setShowCurricPreview(true);
+    setLevel(null); setTab("speak"); setShowTopikChoice(false); setBegReady(false); setShowTopik2Choice(false); setShowCurricPreview(true); setBrowseMode(false);
   }
 
   if (user===undefined) return (
@@ -17272,8 +17273,8 @@ export default function App() {
   );
 
   // ✅ V139: 초급 — 도전 시작 전까지 BegScreen 전체화면 (탭 숨김)
-  if (level === "beg" && !begReady) return (
-    <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)}/>
+  if (level === "beg" && !begReady && !browseMode) return (
+    <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}}/>
   );
 
   return (
@@ -17417,7 +17418,7 @@ export default function App() {
           ))}
         </div>
       </div>
-      <div style={{maxWidth:600,margin:"0 auto",padding:"12px 12px 80px",boxSizing:"border-box"}}>
+      <div style={{maxWidth:600,margin:"0 auto",padding:`12px 12px ${browseMode?"150px":"80px"}`,boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
         {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak} begReady={begReady}/>}
         {tab==="write"&&(level==="beg"
@@ -17431,6 +17432,27 @@ export default function App() {
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
         {tab==="game"&&<GameTab level={level}/>}
         {tab==="topik"&&<TopikCertTab user={user}/>}
+
+        {/* ✅ V270: 둘러보기 모드 하단 고정 배너 */}
+        {browseMode&&(
+          <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:8888,
+            background:"linear-gradient(135deg,#7C3AED,#9C6FDE)",
+            padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",
+            boxShadow:"0 -4px 20px rgba(124,58,237,0.3)"}}>
+            <div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,0.8)",fontWeight:600}}>👀 둘러보기 중</div>
+              <div style={{fontSize:11,color:"rgba(255,255,255,0.65)"}}>80시간 기초 과정을 먼저 완료하면 더 잘 할 수 있어요!</div>
+            </div>
+            <button
+              onClick={()=>{setBrowseMode(false);setBegReady(false);}}
+              style={{background:"white",color:"#7C3AED",border:"none",borderRadius:50,
+                padding:"8px 16px",fontSize:12,fontWeight:900,cursor:"pointer",
+                whiteSpace:"nowrap",flexShrink:0,marginLeft:12,
+                boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}>
+              🏠 기초 과정으로 돌아가기
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
