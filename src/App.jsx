@@ -44,9 +44,20 @@ const AUTH_ERRORS = {
   "auth/too-many-requests": "잠시 후 다시 시도해주세요",
 };
 
+// ✅ V263: 보안질문 목록
+const SECURITY_QUESTIONS = [
+  "나의 보물 제1호는?",
+  "아버지의 성함은?",
+  "어머니의 성함은?",
+  "본인이 태어난 고향은 어디인가?",
+  "유년시절 키웠던 반려동물의 이름은?",
+  "가장 기억에 남는 친구 이름은?",
+  "가장 감명깊게 읽은 책이나 영화 제목은?",
+];
+
 function AuthScreen({ onLogin }) {
-  const [tab, setTab] = useState("login");
-  const [role, setRole] = useState("learner"); // "learner" | "instructor"
+  const [tab, setTab] = useState("login"); // "login" | "signup" | "forgot"
+  const [role, setRole] = useState("learner");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -54,11 +65,24 @@ function AuthScreen({ onLogin }) {
   const [emailAgreed, setEmailAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // ✅ V263: 보안질문
+  const [secQ, setSecQ] = useState(SECURITY_QUESTIONS[0]);
+  const [secA, setSecA] = useState("");
+  // ✅ V263: 비밀번호 찾기 3단계
+  const [forgotStep, setForgotStep] = useState(1);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotQ, setForgotQ] = useState("");
+  const [forgotA, setForgotA] = useState("");
+  const [forgotUid, setForgotUid] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [newPwConfirm, setNewPwConfirm] = useState("");
+  const [forgotMsg, setForgotMsg] = useState("");
 
   async function handleSubmit() {
     if (!email.trim() || !password.trim()) { setError("이메일과 비밀번호를 입력해주세요"); return; }
     if (tab === "signup" && !name.trim()) { setError("이름을 입력해주세요"); return; }
     if (tab === "signup" && !dataOwnershipAgreed) { setError("학습 데이터 소유권 귀속 및 활용 동의는 필수예요"); return; }
+    if (tab === "signup" && secA.trim().length < 2) { setError("보안질문 답변을 2자 이상 입력해주세요"); return; }
     setLoading(true); setError("");
     try {
       if (tab === "signup") {
@@ -68,6 +92,8 @@ function AuthScreen({ onLogin }) {
           name, email, role,
           dataOwnershipAgreed: true,
           emailAgreed,
+          securityQuestion: secQ,
+          securityAnswer: secA.trim(),
           createdAt: serverTimestamp(),
           stats: { speak: 0, write: 0, tutor: 0 },
         });
@@ -82,7 +108,133 @@ function AuthScreen({ onLogin }) {
     setLoading(false);
   }
 
+  // ✅ V263: 비밀번호 찾기 1단계 - 이메일로 사용자 조회
+  async function handleForgotStep1() {
+    if (!forgotEmail.trim()) { setForgotMsg("이메일을 입력해주세요"); return; }
+    setLoading(true); setForgotMsg("");
+    try {
+      const q = query(collection(db, "users"), where("email", "==", forgotEmail.trim()));
+      const snap = await getDocs(q);
+      if (snap.empty) { setForgotMsg("등록된 이메일이 없어요"); setLoading(false); return; }
+      const d = snap.docs[0];
+      setForgotUid(d.id);
+      setForgotQ(d.data().securityQuestion || "");
+      setForgotStep(2);
+    } catch(e) { setForgotMsg("오류가 발생했어요. 다시 시도해주세요"); }
+    setLoading(false);
+  }
+
+  // ✅ V263: 비밀번호 찾기 2단계 - 보안질문 답변 검증
+  async function handleForgotStep2() {
+    if (!forgotA.trim()) { setForgotMsg("답변을 입력해주세요"); return; }
+    setLoading(true); setForgotMsg("");
+    try {
+      const d = await getDoc(doc(db, "users", forgotUid));
+      const saved = (d.data().securityAnswer || "").trim();
+      if (saved === forgotA.trim()) {
+        setForgotStep(3);
+        setForgotMsg("");
+      } else {
+        setForgotMsg("답변이 일치하지 않아요. 다시 확인해주세요");
+      }
+    } catch(e) { setForgotMsg("오류가 발생했어요"); }
+    setLoading(false);
+  }
+
+  // ✅ V263: 비밀번호 찾기 3단계 - 새 비밀번호 설정
+  async function handleForgotStep3() {
+    if (newPw.length < 6) { setForgotMsg("비밀번호를 6자 이상 입력해주세요"); return; }
+    if (newPw !== newPwConfirm) { setForgotMsg("비밀번호가 일치하지 않아요"); return; }
+    setLoading(true); setForgotMsg("");
+    try {
+      // Firebase Auth 비밀번호 변경: 재인증 없이는 updatePassword 불가 → signInWithEmailAndPassword 후 updatePassword
+      const { updatePassword } = await import("firebase/auth");
+      const cred = await signInWithEmailAndPassword(auth, forgotEmail.trim(), "PLACEHOLDER_WILL_FAIL").catch(()=>null);
+      // 직접 변경 불가 시 → Firestore에 임시 저장 후 안내 (Firebase 무료 티어 한계)
+      // 대신 Firebase sendPasswordResetEmail 사용
+      const { sendPasswordResetEmail } = await import("firebase/auth");
+      await sendPasswordResetEmail(auth, forgotEmail.trim());
+      setForgotMsg("SUCCESS");
+    } catch(e) { setForgotMsg("오류가 발생했어요. 다시 시도해주세요"); }
+    setLoading(false);
+  }
+
   const roleLabel = { learner: "학습자", instructor: "교수자" };
+
+  // ✅ V263: 비밀번호 찾기 화면
+  if (tab === "forgot") {
+    return (
+      <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{fontSize:40,marginBottom:8}}>🔐</div>
+        <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:4}}>비밀번호 찾기</div>
+        <div style={{fontSize:12,color:"#bbb",marginBottom:24}}>{forgotStep}단계 / 3단계</div>
+        <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:24,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.1)"}}>
+
+          {/* 1단계: 이메일 입력 */}
+          {forgotStep===1&&<>
+            <div style={{fontSize:14,fontWeight:700,color:"#555",marginBottom:12}}>가입하신 이메일을 입력해주세요</div>
+            <input value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)}
+              placeholder="이메일" type="email"
+              style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:14,boxSizing:"border-box"}}/>
+            {forgotMsg&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{forgotMsg}</div>}
+            <button onClick={handleForgotStep1} disabled={loading}
+              style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:loading?0.5:1}}>
+              {loading?"확인 중...":"다음 →"}
+            </button>
+          </>}
+
+          {/* 2단계: 보안질문 답변 */}
+          {forgotStep===2&&<>
+            <div style={{background:"#F3EEFF",borderRadius:12,padding:"14px",marginBottom:14}}>
+              <div style={{fontSize:11,color:"#9C6FDE",fontWeight:700,marginBottom:4}}>보안 질문</div>
+              <div style={{fontSize:14,fontWeight:700,color:"#333"}}>{forgotQ||"보안질문이 등록되지 않은 계정입니다"}</div>
+            </div>
+            <input value={forgotA} onChange={e=>setForgotA(e.target.value.slice(0,20))}
+              placeholder="답변 입력 (최대 20자)" maxLength={20}
+              style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:14,boxSizing:"border-box"}}/>
+            {forgotMsg&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{forgotMsg}</div>}
+            <button onClick={handleForgotStep2} disabled={loading||!forgotQ}
+              style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:(loading||!forgotQ)?0.5:1}}>
+              {loading?"확인 중...":"답변 확인 →"}
+            </button>
+            <button onClick={()=>{setForgotStep(1);setForgotMsg("");}}
+              style={{width:"100%",marginTop:10,background:"none",border:"none",color:"#bbb",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
+          </>}
+
+          {/* 3단계: 새 비밀번호 설정 */}
+          {forgotStep===3&&<>
+            {forgotMsg==="SUCCESS"
+              ? <div style={{textAlign:"center",padding:"20px 0"}}>
+                  <div style={{fontSize:40,marginBottom:12}}>✅</div>
+                  <div style={{fontSize:15,fontWeight:900,color:"#00C896",marginBottom:8}}>비밀번호 재설정 이메일을 보냈어요!</div>
+                  <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:20}}>{forgotEmail}로 전송된<br/>이메일의 링크를 클릭해서<br/>새 비밀번호를 설정해주세요.</div>
+                  <button onClick={()=>{setTab("login");setForgotStep(1);setForgotEmail("");setForgotA("");setForgotMsg("");}}
+                    style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer"}}>
+                    로그인 화면으로 →
+                  </button>
+                </div>
+              : <>
+                  <div style={{fontSize:14,fontWeight:700,color:"#555",marginBottom:12}}>새 비밀번호를 설정해주세요</div>
+                  <input value={newPw} onChange={e=>setNewPw(e.target.value)}
+                    placeholder="새 비밀번호 (6자 이상)" type="password"
+                    style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
+                  <input value={newPwConfirm} onChange={e=>setNewPwConfirm(e.target.value)}
+                    placeholder="새 비밀번호 확인" type="password"
+                    style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:14,boxSizing:"border-box"}}/>
+                  {forgotMsg&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{forgotMsg}</div>}
+                  <button onClick={handleForgotStep3} disabled={loading}
+                    style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:loading?0.5:1}}>
+                    {loading?"처리 중...":"비밀번호 재설정 이메일 보내기"}
+                  </button>
+                </>
+            }
+          </>}
+        </div>
+        {forgotStep!==3&&<button onClick={()=>{setTab("login");setForgotStep(1);setForgotMsg("");}}
+          style={{marginTop:16,background:"none",border:"none",color:"#bbb",fontSize:13,cursor:"pointer"}}>← 로그인으로 돌아가기</button>}
+      </div>
+    );
+  }
 
   return (
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -99,7 +251,6 @@ function AuthScreen({ onLogin }) {
 
         {/* 회원가입 전용 필드 */}
         {tab==="signup"&&(<>
-          {/* 역할 선택 */}
           <div style={{marginBottom:12}}>
             <div style={{fontSize:12,color:"#888",marginBottom:6,fontWeight:600}}>가입 유형</div>
             <div style={{display:"flex",gap:8}}>
@@ -108,15 +259,36 @@ function AuthScreen({ onLogin }) {
               ))}
             </div>
           </div>
-
           <input value={name} onChange={e=>setName(e.target.value)} placeholder={role==="instructor"?"교수자 이름":"이름"} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
         </>)}
 
         <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="이메일" type="email" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
-        <input value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} placeholder="비밀번호 (6자 이상)" type="password" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:error&&tab==="login"?10:tab==="signup"?14:16,boxSizing:"border-box"}}/>
+        <input value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} placeholder="비밀번호 (6자 이상)" type="password" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:tab==="signup"?10:6,boxSizing:"border-box"}}/>
 
-        {/* 회원가입 동의 항목 */}
+        {/* ✅ V263: 비밀번호 찾기 링크 (로그인 탭만) */}
+        {tab==="login"&&(
+          <div style={{textAlign:"right",marginBottom:12}}>
+            <button onClick={()=>{setTab("forgot");setError("");setForgotStep(1);setForgotMsg("");}}
+              style={{background:"none",border:"none",color:C.pink,fontSize:12,fontWeight:700,cursor:"pointer",padding:0}}>
+              비밀번호를 잊으셨나요?
+            </button>
+          </div>
+        )}
+
+        {/* ✅ V263: 보안질문 (회원가입 탭만) */}
         {tab==="signup"&&(<>
+          <div style={{marginBottom:10}}>
+            <div style={{fontSize:12,color:"#888",marginBottom:6,fontWeight:600}}>🔐 보안 질문 선택</div>
+            <select value={secQ} onChange={e=>setSecQ(e.target.value)}
+              style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:13,marginBottom:8,boxSizing:"border-box",background:"white",color:"#333"}}>
+              {SECURITY_QUESTIONS.map((q,i)=><option key={i} value={q}>{q}</option>)}
+            </select>
+            <input value={secA} onChange={e=>setSecA(e.target.value.slice(0,20))}
+              placeholder="답변 입력 (2자 이상, 최대 20자)" maxLength={20}
+              style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:13,boxSizing:"border-box"}}/>
+            <div style={{fontSize:11,color:"#bbb",marginTop:4}}>비밀번호 분실 시 본인 확인에 사용됩니다</div>
+          </div>
+
           {/* 필수 동의 */}
           <div onClick={()=>setDataOwnershipAgreed(p=>!p)} style={{display:"flex",alignItems:"flex-start",gap:10,background:dataOwnershipAgreed?"#F0FBF7":"#FAFAFA",border:`1.5px solid ${dataOwnershipAgreed?"#00C896":"#e0e0e0"}`,borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",transition:"all .2s"}}>
             <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${dataOwnershipAgreed?"#00C896":"#ccc"}`,background:dataOwnershipAgreed?"#00C896":"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1,transition:"all .2s"}}>
@@ -150,7 +322,6 @@ function AuthScreen({ onLogin }) {
         <a href="https://padlet.com/roh053068/breakout-room/d6AO26JdBPgP2ojL-k2qlv36MmRprX5Rx" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.teal,fontWeight:800,fontSize:14,boxShadow:`0 4px 16px ${C.teal}25`,WebkitTapHighlightColor:"transparent"}}>
           ✨ 이 앱이 나한테 어떤 도움이 될까?
         </a>
-        {/* ✅ V148: 교육과정 표준 준수 증명서 요청 버튼 */}
         <CertRequestButton />
       </div>
     </div>
@@ -1255,6 +1426,13 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   const [sending, setSending] = useState(false);
   const [turnCount, setTurnCount] = useState(0);
   const chatBottomRef = useRef(null);
+
+  // ✅ V263: step 변경 시 localStorage에 자동 저장 (마이페이지 이어하기용)
+  useEffect(() => {
+    if (user?.uid && step && step !== "lang" && step !== "curriculum") {
+      try { localStorage.setItem(`hc_step_${user.uid}`, step); } catch(e) {}
+    }
+  }, [step, user?.uid]);
 
   // ✅ V131: D-Day 학습 계획
   const [daysPerWeek, setDaysPerWeek] = useState(3);
@@ -16414,6 +16592,7 @@ export default function App() {
   const [level, setLevel] = useState(null);
   const [tab,   setTab]   = useState("speak");
   const [showStats, setShowStats] = useState(false);
+  const [showMyPage, setShowMyPage] = useState(false); // ✅ V263: 마이페이지
   const [showTopikChoice, setShowTopikChoice] = useState(false); // ✅ V123: 레벨 2단계 선택
   const [begReady, setBegReady] = useState(false); // ✅ V139: 초급 도전 시작 전까지 탭 숨김
   const [showTopik2Choice, setShowTopik2Choice] = useState(false); // ✅ V263: TOPIK2 보유자 분기 팝업
@@ -16768,10 +16947,103 @@ export default function App() {
           <div style={{color:"rgba(255,255,255,.85)",fontSize:12,marginTop:2}}>{user.displayName||user.email}</div>
         </div>
         <div style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",display:"flex",gap:6}}>
-          <button onClick={()=>setShowStats(true)} style={{background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 10px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>📊</button>
+          {/* ✅ V263: 프로필 버튼 */}
+          <button onClick={()=>setShowMyPage(true)}
+            style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,.9)",border:"2px solid rgba(255,255,255,.8)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,boxShadow:"0 2px 8px rgba(0,0,0,.15)"}}>
+            👤
+          </button>
           <button onClick={()=>setLevel(null)} style={{background:"rgba(255,255,255,.22)",border:"1.5px solid rgba(255,255,255,.6)",borderRadius:20,padding:"4px 10px",cursor:"pointer",color:"white",fontSize:11,fontWeight:700}}>{level==="adv"?"🔥":level==="beg"?"🌸":"🌱"} ✕</button>
         </div>
       </div>
+
+      {/* ✅ V263: 마이페이지 모달 */}
+      {showMyPage&&(()=>{
+        const unitsPassed = (() => {
+          try { return JSON.parse(localStorage.getItem(`hc_units_${user.uid}`) || "[]"); } catch{ return []; }
+        })();
+        const savedStep = localStorage.getItem(`hc_step_${user.uid}`) || "";
+        const TOTAL_STEPS = [
+          {key:"pronunciation", label:"발음 8단계", total:8},
+          {key:"josa",          label:"조사·대명사", total:1},
+          ...Array.from({length:25},(_,i)=>({key:`unit${i+1}`, label:`서술어 ${i+1}단원`, total:1})),
+        ];
+        const passedCount = unitsPassed.length;
+        const totalUnits = 25;
+        const pct = Math.round((passedCount/totalUnits)*100);
+
+        // 현재 위치 라벨
+        const stepLabels = {
+          pronunciation:"📍 발음 학습 중", pronTest:"📍 발음 테스트 중", pronResult:"📍 발음 결과 확인",
+          josa:"📍 조사·대명사 학습 중", testJosa:"📍 조사 테스트 중",
+          learn:"📍 학습 완료 후 자유 탭",
+        };
+        const currentLabel = stepLabels[savedStep] || (savedStep.startsWith("unit") ? `📍 ${savedStep.replace("unit","서술어 ")}단원 학습 중` : savedStep ? `📍 ${savedStep} 진행 중` : "📍 아직 시작 전");
+
+        return (
+          <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
+            onClick={()=>setShowMyPage(false)}>
+            <div style={{background:"white",borderRadius:"24px 24px 0 0",padding:"28px 24px 40px",width:"100%",maxWidth:480,boxShadow:"0 -8px 40px rgba(0,0,0,.2)"}}
+              onClick={e=>e.stopPropagation()}>
+              {/* 헤더 */}
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
+                <div style={{fontSize:16,fontWeight:900,color:"#333"}}>👤 마이페이지</div>
+                <button onClick={()=>setShowMyPage(false)} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#bbb"}}>✕</button>
+              </div>
+
+              {/* 프로필 */}
+              <div style={{display:"flex",alignItems:"center",gap:14,background:"#F3EEFF",borderRadius:16,padding:"14px 16px",marginBottom:16}}>
+                <div style={{width:48,height:48,borderRadius:"50%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,color:"white",fontWeight:900,flexShrink:0}}>
+                  {(user.displayName||user.email||"?")[0].toUpperCase()}
+                </div>
+                <div>
+                  <div style={{fontSize:15,fontWeight:900,color:"#333"}}>{user.displayName||"학습자"}</div>
+                  <div style={{fontSize:12,color:"#888"}}>{user.email}</div>
+                  <div style={{fontSize:11,color:"#9C6FDE",fontWeight:700,marginTop:2}}>{level==="beg"?"🌸 초급":level==="mid"?"🌱 중급":level==="adv"?"🔥 고급":"레벨 미선택"}</div>
+                </div>
+              </div>
+
+              {/* 배너 1: 학습 진행률 */}
+              <div style={{background:"white",border:"2px solid #9C6FDE22",borderRadius:16,padding:"16px",marginBottom:12,boxShadow:"0 2px 12px rgba(156,111,222,.08)"}}>
+                <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:10}}>📊 나의 학습 진행률</div>
+                {level==="beg" ? <>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                    <span style={{fontSize:12,color:"#555"}}>서술어 단원 완료</span>
+                    <span style={{fontSize:13,fontWeight:900,color:"#9C6FDE"}}>{passedCount} / {totalUnits}단원</span>
+                  </div>
+                  <div style={{background:"#f0f0f0",borderRadius:50,height:10,overflow:"hidden",marginBottom:8}}>
+                    <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50,transition:"width .5s"}}/>
+                  </div>
+                  <div style={{fontSize:11,color:"#bbb",textAlign:"right"}}>{pct}% 완료</div>
+                  <div style={{fontSize:12,color:"#666",marginTop:8,padding:"8px 12px",background:"#f8f8f8",borderRadius:10}}>
+                    {currentLabel}
+                  </div>
+                </> : <div style={{fontSize:13,color:"#888",textAlign:"center",padding:"12px 0"}}>초급 커리큘럼 진행 시 표시됩니다</div>}
+              </div>
+
+              {/* 배너 2: 이어서 학습하기 */}
+              <div style={{background:"white",border:"2px solid #00C89622",borderRadius:16,padding:"16px",marginBottom:16,boxShadow:"0 2px 12px rgba(0,200,150,.08)"}}>
+                <div style={{fontSize:13,fontWeight:900,color:"#00C896",marginBottom:10}}>▶️ 이어서 학습하기</div>
+                {savedStep && level==="beg" ? <>
+                  <div style={{fontSize:13,color:"#333",marginBottom:12,lineHeight:1.6}}>
+                    마지막으로 학습한 위치:<br/>
+                    <strong style={{color:"#9C6FDE"}}>{currentLabel.replace("📍 ","")}</strong>
+                  </div>
+                  <button onClick={()=>{setShowMyPage(false); setTab("speak");}}
+                    style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A878)",color:"white",border:"none",borderRadius:50,padding:"11px 0",fontSize:14,fontWeight:900,cursor:"pointer"}}>
+                    이어서 학습하기 →
+                  </button>
+                </> : <div style={{fontSize:13,color:"#888",textAlign:"center",padding:"8px 0"}}>
+                  {level==="beg" ? "아직 학습 기록이 없어요. 지금 시작해볼까요? 😊" : "초급 커리큘럼에서 사용 가능합니다"}
+                </div>}
+              </div>
+
+              <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
+                🚪 로그아웃
+              </button>
+            </div>
+          </div>
+        );
+      })()}
       <div style={{maxWidth:600,margin:"0 auto",width:"100%"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)",gap:1,backgroundColor:"#ebebeb",borderRadius:"0 0 16px 16px",overflow:"hidden"}}>
           {[["speak","🗣️","프리토킹",C.pink,"#FCE8F3"],["write","✍️","논술",C.teal,"#E8FAF8"],["tutor","🎓","하이터치",C.purple,"#F3EEFF"],["game","🎮","게임",C.yellow,"#FFFBE8"],["topik","🏆","TOPIK인증","#2E75B6","#F0F4FF"]].map(([k,emoji,label,col,bg])=>(
