@@ -17222,6 +17222,105 @@ export default function App() {
   return (
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       {showStats&&<StatsModal user={user} onClose={()=>setShowStats(false)}/>}
+
+      {/* ✅ V267: 마이페이지 모달 - 탭 화면 최상단 */}
+      {showMyPage&&(()=>{
+        const unitsPassed = (() => { try { return JSON.parse(localStorage.getItem(`hc_units_${user.uid}`) || "[]"); } catch{ return []; } })();
+        const savedStep = localStorage.getItem(`hc_step_${user.uid}`) || "";
+        const passedCount = unitsPassed.length;
+        const pct = Math.round((passedCount/25)*100);
+        const stepHourMap2 = {
+          lang:0,curriculum:0,plan:0,
+          pronunciation:2,pronTest:7,pronResult:8,
+          tense1:8,tense2:9,tense3:10,tense4:11,tense5:12,tense6:13,tenseTest:14,
+          josa:15,testJosa:19,qpron:19,sentenceStructure:20,
+        };
+        const getElapsed2 = (step,passed) => {
+          if(stepHourMap2[step]!==undefined) return stepHourMap2[step];
+          if(step&&step.startsWith("unit")){const n=parseInt(step.replace("unit",""))||0;return 20+Math.round((Math.min(n,25)/25)*59);}
+          return 20+Math.round((passed/25)*59);
+        };
+        const elapsedH2 = getElapsed2(savedStep,passedCount);
+        const pctH2 = Math.min(Math.round((elapsedH2/80)*100),100);
+        const stepLabels = {
+          pronunciation:"발음 학습 중",pronTest:"발음 테스트 중",pronResult:"발음 결과 확인",
+          tense1:"시제 1단원",tense2:"시제 2단원",tense3:"시제 3단원",tense4:"시제 4단원",tense5:"시제 5단원",tense6:"시제 6단원",tenseTest:"시제 테스트 중",
+          josa:"조사·대명사 학습 중",testJosa:"조사 테스트 중",qpron:"의문대명사 학습 중",sentenceStructure:"문장구조 학습 중",learn:"학습 완료",
+        };
+        const currentLabel = stepLabels[savedStep]||(savedStep.startsWith("unit")?`서술어 ${savedStep.replace("unit","")}단원 학습 중`:savedStep?`${savedStep} 진행 중`:"아직 시작 전");
+        return (
+          <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
+            onClick={()=>setShowMyPage(false)}>
+            <div style={{background:"white",borderRadius:"24px 24px 0 0",padding:"28px 24px 40px",width:"100%",maxWidth:480,boxShadow:"0 -8px 40px rgba(0,0,0,.2)"}}
+              onClick={e=>e.stopPropagation()}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
+                <div style={{fontSize:16,fontWeight:900,color:"#333"}}>👤 마이페이지</div>
+                <button onClick={()=>setShowMyPage(false)} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#bbb"}}>✕</button>
+              </div>
+              {/* 프로필 카드 */}
+              <div style={{display:"flex",alignItems:"center",gap:14,background:"#F3EEFF",borderRadius:16,padding:"14px 16px",marginBottom:16}}>
+                <div style={{width:48,height:48,borderRadius:"50%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,color:"white",fontWeight:900,flexShrink:0}}>
+                  {(user.displayName||user.email||"?")[0].toUpperCase()}
+                </div>
+                <div>
+                  <div style={{fontSize:15,fontWeight:900,color:"#333"}}>{user.displayName||"학습자"}</div>
+                  <div style={{fontSize:12,color:"#888"}}>{user.email}</div>
+                  <div style={{fontSize:11,color:"#9C6FDE",fontWeight:700,marginTop:2}}>{level==="beg"?"🌸 초급":level==="mid"?"🌱 중급":level==="adv"?"🔥 고급":"레벨 미선택"}</div>
+                </div>
+              </div>
+              {/* 배너1: 진행률 */}
+              <div style={{background:"white",border:"2px solid #9C6FDE22",borderRadius:16,padding:"16px",marginBottom:12,boxShadow:"0 2px 12px rgba(156,111,222,.08)"}}>
+                <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:10}}>📊 나의 학습 진행률</div>
+                {level==="beg"&&elapsedH2>0?<>
+                  <div style={{marginBottom:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                      <span style={{fontSize:11,color:"#555",fontWeight:700}}>전체 80시간 기준</span>
+                      <span style={{fontSize:12,fontWeight:900,color:"#9C6FDE"}}>{elapsedH2}h / 80h</span>
+                    </div>
+                    <div style={{background:"#f0f0f0",borderRadius:50,height:10,overflow:"hidden",marginBottom:2}}>
+                      <div style={{width:`${pctH2}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50}}/>
+                    </div>
+                    <div style={{fontSize:11,color:"#bbb",textAlign:"right"}}>{pctH2}% 완료</div>
+                  </div>
+                  {passedCount>0&&<div style={{marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                      <span style={{fontSize:11,color:"#888"}}>서술어 단원</span>
+                      <span style={{fontSize:11,fontWeight:700,color:"#00C896"}}>{passedCount}/25단원</span>
+                    </div>
+                    <div style={{background:"#f0f0f0",borderRadius:50,height:6,overflow:"hidden"}}>
+                      <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#00C896,#4CAF50)",borderRadius:50}}/>
+                    </div>
+                  </div>}
+                  <div style={{fontSize:12,color:"#666",padding:"8px 12px",background:"#f8f8f8",borderRadius:10}}>📍 {currentLabel}</div>
+                </>:<div style={{fontSize:13,color:"#aaa",textAlign:"center",padding:"8px 0"}}>초급 커리큘럼 진행 시 표시됩니다</div>}
+              </div>
+              {/* 배너2: 이어서 학습하기 */}
+              <div style={{background:"white",border:"2px solid #00C89622",borderRadius:16,padding:"16px",marginBottom:12,boxShadow:"0 2px 12px rgba(0,200,150,.08)"}}>
+                <div style={{fontSize:13,fontWeight:900,color:"#00C896",marginBottom:10}}>▶️ 이어서 학습하기</div>
+                {savedStep&&level==="beg"?<>
+                  <div style={{fontSize:13,color:"#333",marginBottom:12,lineHeight:1.6}}>마지막 학습 위치:<br/><strong style={{color:"#9C6FDE"}}>📍 {currentLabel}</strong></div>
+                  <button onClick={()=>{setShowMyPage(false);}}
+                    style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A878)",color:"white",border:"none",borderRadius:50,padding:"11px 0",fontSize:14,fontWeight:900,cursor:"pointer"}}>
+                    이어서 학습하기 →
+                  </button>
+                </>:<div style={{fontSize:13,color:"#aaa",textAlign:"center",padding:"8px 0"}}>초급 학습을 시작하면 여기서 이어할 수 있어요</div>}
+              </div>
+              {/* TOPIK 인증 */}
+              <div style={{background:"white",border:"2px solid #2E75B622",borderRadius:16,padding:"16px",marginBottom:16,boxShadow:"0 2px 12px rgba(46,117,182,.08)"}}>
+                <div style={{fontSize:13,fontWeight:900,color:"#2E75B6",marginBottom:10}}>🏆 TOPIK 인증</div>
+                <div style={{fontSize:12,color:"#555",lineHeight:1.8,marginBottom:12}}>TOPIK 성적표를 제출하면 학습 이력에 등록됩니다.<br/>관리자 확인 후 인증 배지가 발급됩니다.</div>
+                <button onClick={()=>{setShowMyPage(false);setTab("topik");}}
+                  style={{width:"100%",background:"linear-gradient(135deg,#2E75B6,#1565C0)",color:"white",border:"none",borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:900,cursor:"pointer"}}>
+                  🏆 TOPIK 성적 제출하기 →
+                </button>
+              </div>
+              <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
+                🚪 로그아웃
+              </button>
+            </div>
+          </div>
+        );
+      })()}
       {/* ✅ V148: 학습자 클래스 참여 팝업 */}
       {joinCode && userRole === "learner" && (
         <JoinClassModal
@@ -17248,117 +17347,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* ✅ V263: 마이페이지 모달 */}
-      {showMyPage&&(()=>{
-        const unitsPassed = (() => {
-          try { return JSON.parse(localStorage.getItem(`hc_units_${user.uid}`) || "[]"); } catch{ return []; }
-        })();
-        const savedStep = localStorage.getItem(`hc_step_${user.uid}`) || "";
-        const passedCount = unitsPassed.length;
-        const totalUnits = 25;
-        const pct = Math.round((passedCount/totalUnits)*100);
-        // ✅ V265: 80시간 기준
-        const stepHourMap2 = {
-          lang:0, curriculum:0, plan:0,
-          pronunciation:2, pronTest:7, pronResult:8,
-          tense1:8, tense2:9, tense3:10, tense4:11, tense5:12, tense6:13, tenseTest:14,
-          josa:15, testJosa:19, qpron:19, sentenceStructure:20,
-        };
-        const getElapsed2 = (step, passed) => {
-          if (stepHourMap2[step] !== undefined) return stepHourMap2[step];
-          if (step && step.startsWith("unit")) {
-            const n = parseInt(step.replace("unit","")) || 0;
-            return 20 + Math.round((Math.min(n, 25) / 25) * 59);
-          }
-          return 20 + Math.round((passed / 25) * 59);
-        };
-        const elapsedH2 = getElapsed2(savedStep, passedCount);
-        const pctH2 = Math.min(Math.round((elapsedH2 / 80) * 100), 100);
 
-        // 현재 위치 라벨
-        const stepLabels = {
-          pronunciation:"📍 발음 학습 중", pronTest:"📍 발음 테스트 중", pronResult:"📍 발음 결과 확인",
-          josa:"📍 조사·대명사 학습 중", testJosa:"📍 조사 테스트 중",
-          learn:"📍 학습 완료 후 자유 탭",
-        };
-        const currentLabel = stepLabels[savedStep] || (savedStep.startsWith("unit") ? `📍 ${savedStep.replace("unit","서술어 ")}단원 학습 중` : savedStep ? `📍 ${savedStep} 진행 중` : "📍 아직 시작 전");
-
-        return (
-          <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
-            onClick={()=>setShowMyPage(false)}>
-            <div style={{background:"white",borderRadius:"24px 24px 0 0",padding:"28px 24px 40px",width:"100%",maxWidth:480,boxShadow:"0 -8px 40px rgba(0,0,0,.2)"}}
-              onClick={e=>e.stopPropagation()}>
-              {/* 헤더 */}
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
-                <div style={{fontSize:16,fontWeight:900,color:"#333"}}>👤 마이페이지</div>
-                <button onClick={()=>setShowMyPage(false)} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#bbb"}}>✕</button>
-              </div>
-
-              {/* 프로필 */}
-              <div style={{display:"flex",alignItems:"center",gap:14,background:"#F3EEFF",borderRadius:16,padding:"14px 16px",marginBottom:16}}>
-                <div style={{width:48,height:48,borderRadius:"50%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,color:"white",fontWeight:900,flexShrink:0}}>
-                  {(user.displayName||user.email||"?")[0].toUpperCase()}
-                </div>
-                <div>
-                  <div style={{fontSize:15,fontWeight:900,color:"#333"}}>{user.displayName||"학습자"}</div>
-                  <div style={{fontSize:12,color:"#888"}}>{user.email}</div>
-                  <div style={{fontSize:11,color:"#9C6FDE",fontWeight:700,marginTop:2}}>{level==="beg"?"🌸 초급":level==="mid"?"🌱 중급":level==="adv"?"🔥 고급":"레벨 미선택"}</div>
-                </div>
-              </div>
-
-              {/* 배너 1: 학습 진행률 */}
-              <div style={{background:"white",border:"2px solid #9C6FDE22",borderRadius:16,padding:"16px",marginBottom:12,boxShadow:"0 2px 12px rgba(156,111,222,.08)"}}>
-                <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:10}}>📊 나의 학습 진행률</div>
-                {level==="beg" && elapsedH2 > 0 ? <>
-                  <div style={{marginBottom:10}}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                      <span style={{fontSize:11,color:"#555",fontWeight:700}}>전체 80시간 기준</span>
-                      <span style={{fontSize:12,fontWeight:900,color:"#9C6FDE"}}>{elapsedH2}h / 80h</span>
-                    </div>
-                    <div style={{background:"#f0f0f0",borderRadius:50,height:10,overflow:"hidden",marginBottom:2}}>
-                      <div style={{width:`${pctH2}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50,transition:"width .5s"}}/>
-                    </div>
-                    <div style={{fontSize:11,color:"#bbb",textAlign:"right"}}>{pctH2}% 완료</div>
-                  </div>
-                  {passedCount > 0 && <div style={{marginBottom:8}}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                      <span style={{fontSize:11,color:"#888"}}>서술어 단원</span>
-                      <span style={{fontSize:11,fontWeight:700,color:"#00C896"}}>{passedCount} / 25단원</span>
-                    </div>
-                    <div style={{background:"#f0f0f0",borderRadius:50,height:6,overflow:"hidden"}}>
-                      <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#00C896,#4CAF50)",borderRadius:50}}/>
-                    </div>
-                  </div>}
-                  <div style={{fontSize:12,color:"#666",padding:"8px 12px",background:"#f8f8f8",borderRadius:10}}>
-                    {currentLabel}
-                  </div>
-                </> : <div style={{fontSize:13,color:"#888",textAlign:"center",padding:"12px 0"}}>초급 커리큘럼 진행 시 표시됩니다</div>}
-              </div>
-
-              {/* 배너 2: 이어서 학습하기 */}
-              <div style={{background:"white",border:"2px solid #00C89622",borderRadius:16,padding:"16px",marginBottom:16,boxShadow:"0 2px 12px rgba(0,200,150,.08)"}}>
-                <div style={{fontSize:13,fontWeight:900,color:"#00C896",marginBottom:10}}>▶️ 이어서 학습하기</div>
-                {savedStep && level==="beg" ? <>
-                  <div style={{fontSize:13,color:"#333",marginBottom:12,lineHeight:1.6}}>
-                    마지막으로 학습한 위치:<br/>
-                    <strong style={{color:"#9C6FDE"}}>{currentLabel.replace("📍 ","")}</strong>
-                  </div>
-                  <button onClick={()=>{setShowMyPage(false); setTab("speak");}}
-                    style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A878)",color:"white",border:"none",borderRadius:50,padding:"11px 0",fontSize:14,fontWeight:900,cursor:"pointer"}}>
-                    이어서 학습하기 →
-                  </button>
-                </> : <div style={{fontSize:13,color:"#888",textAlign:"center",padding:"8px 0"}}>
-                  {level==="beg" ? "아직 학습 기록이 없어요. 지금 시작해볼까요? 😊" : "초급 커리큘럼에서 사용 가능합니다"}
-                </div>}
-              </div>
-
-              <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
-                🚪 로그아웃
-              </button>
-            </div>
-          </div>
-        );
-      })()}
       <div style={{maxWidth:600,margin:"0 auto",width:"100%"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)",gap:1,backgroundColor:"#ebebeb",borderRadius:"0 0 16px 16px",overflow:"hidden"}}>
           {[["speak","🗣️","프리토킹",C.pink,"#FCE8F3"],["write","✍️","논술",C.teal,"#E8FAF8"],["tutor","🎓","하이터치",C.purple,"#F3EEFF"],["game","🎮","게임",C.yellow,"#FFFBE8"],["topik","🏆","TOPIK인증","#2E75B6","#F0F4FF"]].map(([k,emoji,label,col,bg])=>(
