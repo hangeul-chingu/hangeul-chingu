@@ -1521,6 +1521,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
   function DevJumpPanel() {
     if (!isDev) return null;
     const jumps = [
+      { label:"발음목차",  action:()=>{ setStep("pronContents"); }},
       { label:"발음①",  action:()=>{ setPronStep(0);  setFlipped({}); setStep("pronunciation"); }},
       { label:"발음②",  action:()=>{ setPronStep(1);  setFlipped({}); setStep("pronunciation"); }},
       { label:"발음③",  action:()=>{ setPronStep(2);  setFlipped({}); setStep("pronunciation"); }},
@@ -1666,12 +1667,9 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
 
   function confirmPlan() {
     setGoalDate(calcGoalDate(daysPerWeek, minPerDay, studyGoal));
-    // ✅ V145: 목표 그룹에 따라 분기
-    // 그룹 A (커리큘럼 순서형): topik2, life → 발음 화면부터
-    // 그룹 B (자유 탐색형): topik4, daily, work → 기존 자유 탭 열림
     const groupA = ["topik2", "life"];
     if (groupA.includes(studyGoal)) {
-      setStep("pronunciation");
+      setStep("pronContents"); // ✅ V268: 발음 목차 화면 먼저
     } else {
       onReady?.();
       setStep("learn");
@@ -2321,6 +2319,67 @@ ${vocabList}
     );
   }
   // ── V145: 발음 화면 (그룹 A 전용 — TOPIK 2급, 한국 생활 적응) ──
+  // ✅ V268: 발음 목차 화면
+  if (step === "pronContents") {
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+    const PRON_CONTENTS = [
+      { no:"01", label:vi?"Nguyên âm cơ bản":en?"Basic Vowels":"기본 모음",         emoji:"🔤" },
+      { no:"02", label:vi?"Viết nguyên âm":en?"Vowel Writing":"모음 쓰기",           emoji:"✏️" },
+      { no:"03", label:vi?"Từ vựng nguyên âm 1":en?"Vowel Words 1":"모음1 단어",     emoji:"📖" },
+      { no:"04", label:vi?"Nguyên âm phức":en?"Complex Vowels":"복합 모음",           emoji:"🔤" },
+      { no:"05", label:vi?"Viết nguyên âm phức":en?"Complex Vowel Writing":"복합 모음 쓰기", emoji:"✏️" },
+      { no:"06", label:vi?"Từ vựng nguyên âm 2":en?"Vowel Words 2":"모음2 단어",     emoji:"📖" },
+      { no:"07", label:vi?"Phụ âm cuối ㄱ·ㅋ":en?"Batchim ㄱ·ㅋ":"받침 ㄱ·ㅋ",       emoji:"🧱" },
+      { no:"08", label:vi?"Phụ âm cuối ㅇ":en?"Batchim ㅇ":"받침 ㅇ",               emoji:"🧱" },
+      { no:"09", label:vi?"Phụ âm cuối ㅁ·ㅂ":en?"Batchim ㅁ·ㅂ":"받침 ㅁ·ㅂ",       emoji:"🧱" },
+      { no:"10", label:vi?"Phụ âm cuối ㅂ·ㅍ":en?"Batchim ㅂ·ㅍ":"받침 ㅂ·ㅍ",       emoji:"🧱" },
+      { no:"11", label:vi?"Phụ âm cuối ㄹ":en?"Batchim ㄹ":"받침 ㄹ",               emoji:"⭐" },
+      { no:"12", label:vi?"Phụ âm cuối ㄴ":en?"Batchim ㄴ":"받침 ㄴ",               emoji:"🧱" },
+      { no:"13", label:vi?"Phụ âm cuối ㄷ":en?"Batchim ㄷ":"받침 ㄷ",               emoji:"🧱" },
+      { no:"14", label:vi?"Phụ âm cuối kép + Liên âm":en?"Double Batchim + Liaison":"겹받침 + 연음법칙", emoji:"🔗" },
+      { no:"15", label:vi?"Kiểm tra phát âm":en?"Pronunciation Test":"발음 테스트",   emoji:"🎤" },
+      { no:"16", label:vi?"Thì 6 bài (tiếp theo)":en?"Tenses next":"다음: 시제 6단원",emoji:"⏱️", next:true },
+    ];
+
+    return (
+      <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{fontSize:36,marginBottom:8}}>🔤</div>
+        <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
+          {vi?"Mục lục Phát âm":en?"Pronunciation Contents":"발음 학습 목차"}
+        </div>
+        <div style={{fontSize:12,color:"#aaa",marginBottom:20,textAlign:"center"}}>
+          {vi?"Tổng 8 giờ · 17 bước":en?"8 hours total · 17 steps":"총 8시간 · 17단계"}
+        </div>
+
+        <div style={{width:"100%",maxWidth:360,display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
+          {PRON_CONTENTS.map((item,i)=>(
+            <div key={i} style={{
+              display:"flex",alignItems:"center",gap:12,
+              background:item.next?"linear-gradient(135deg,#E8F5E9,#F1F8E9)":"white",
+              border:item.next?"2px solid #00C896":"2px solid #f0f0f0",
+              borderRadius:14,padding:"10px 14px",
+              opacity:item.next?0.7:1
+            }}>
+              <span style={{fontSize:18,flexShrink:0}}>{item.emoji}</span>
+              <div style={{flex:1}}>
+                <span style={{fontSize:11,color:"#bbb",fontWeight:700,marginRight:6}}>{item.no}.</span>
+                <span style={{fontSize:13,fontWeight:item.next?700:600,color:item.next?"#00C896":"#333"}}>{item.label}</span>
+              </div>
+              {item.next&&<span style={{fontSize:10,color:"#00C896",fontWeight:800,background:"#E8F5E9",borderRadius:6,padding:"2px 6px"}}>NEXT</span>}
+            </div>
+          ))}
+        </div>
+
+        <button onClick={()=>{ setPronStep(0); setFlipped({}); setStep("pronunciation"); }}
+          style={{width:"100%",maxWidth:360,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:16,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #9C6FDE44"}}>
+          {vi?"Bắt đầu học phát âm! 🔤":en?"Start Pronunciation! 🔤":"발음 학습 시작! 🔤"}
+        </button>
+        <button onClick={()=>setStep("plan")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
+      </div>
+    );
+  }
+
   if (step === "pronunciation") {
     const vi = lang?.code === "vi";
     const en = lang?.code === "en";
