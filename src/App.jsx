@@ -4390,7 +4390,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               style={{width:"100%", background:"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
               {fromStep < PRON_STEPS_COUNT - 1
                 ? (vi?"Học bài tiếp theo →":en?"Next lesson →":"다음 단계로 →")
-                : (vi?"Học động từ/tính từ! 🚀":en?"Learn verb tenses! 🚀":"시제 학습으로! 🚀")}
+                : (vi?"Tiếp theo — Trợ từ! 🚀":en?"Next — Particles! 🚀":"조사·대명사 학습으로! 🚀")}
             </button>
           ) : (
             <button onClick={()=>{
@@ -7296,7 +7296,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit3"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,2])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`2단원`,nextStep:"unit3",nextLabel:"3단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp theo — Bài 3 →":en?"Next — Unit 3 →":"다음 → 3단원 🚀"}
               </button>
@@ -7401,7 +7401,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               ))}
             </div>
             {testResult.passed ? (
-              <button onClick={()=>{setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit3");}}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,2])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`2단원`,nextStep:"unit3",nextLabel:"3단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#1E88E5,#1565C0)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #1E88E544"}}>
                 {vi?"Tiếp tục — Bài 3! 🚀":en?"Continue — Unit 3! 🚀":"3단원으로 계속하기 🚀"}
               </button>
@@ -7793,7 +7793,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               ))}
             </div>
             {testResult.passed ? (
-              <button onClick={()=>{setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit4");}}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,3])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`3단원`,nextStep:"unit4",nextLabel:"4단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#9C27B0,#7B1FA2)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C27B044"}}>
                 {vi?"Tiếp tục — Bài 4! 🚀":en?"Continue — Unit 4! 🚀":"4단원으로 계속하기 🚀"}
               </button>
@@ -7838,7 +7838,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             style={{width:"100%", background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12, boxShadow:"0 4px 16px #FF6B3544"}}>
             {vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}
           </button>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit3"); }}
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,2])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`2단원`,nextStep:"unit3",nextLabel:"3단원으로 계속하기"});}}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로 (3단원 학습)"}
           </button>
@@ -8186,7 +8186,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6a"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,5])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`5단원`,nextStep:"unit6a",nextLabel:"6단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#FB8C00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp tục — Bài 6A! 🚀":en?"Continue — Unit 6A! 🚀":"6A단원으로 계속하기 🚀"}
               </button>
@@ -8329,7 +8329,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             style={{width:"100%", background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>
             {vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}
           </button>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit5"); }}
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,4])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`4단원`,nextStep:"unit5",nextLabel:"5단원으로 계속하기"});}}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로 (5단원 학습)"}
           </button>
@@ -8462,7 +8462,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit6b"); }}
+              <button onClick={()=>{setShowProgress({passedCount:unitsPassed.length,completedLabel:`6A단원`,nextStep:"unit6b",nextLabel:"6B단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#F9A825,#F57F17)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp tục — Bài 6B! 🚀":en?"Continue — Unit 6B! 🚀":"6B단원으로 계속하기 🚀"}
               </button>
@@ -8589,7 +8589,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit7"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,6])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`6단원`,nextStep:"unit7",nextLabel:"7단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#AB47BC,#6A1B9A)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp tục — Bài 7! 🚀":en?"Continue — Unit 7! 🚀":"7단원으로 계속하기 🚀"}
               </button>
@@ -8729,7 +8729,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit8"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,7])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`7단원`,nextStep:"unit8",nextLabel:"8단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#00ACC1,#006064)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp tục — Bài 8! 🚀":en?"Continue — Unit 8! 🚀":"8단원으로 계속하기 🚀"}
               </button>
@@ -8848,7 +8848,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit9"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,8])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`8단원`,nextStep:"unit9",nextLabel:"9단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#7CB342,#33691E)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp tục — Bài 9! 🚀":en?"Continue — Unit 9! 🚀":"9단원으로 계속하기 🚀"}
               </button>
@@ -9060,7 +9060,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#6A1B9A":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
           <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(vi?"Tuyệt! Sang bài 10!":en?"Great! On to Unit 10!":"훌륭해요! 10단원으로!"):(vi?"Thử lại nhé!":en?"Try again!":"다시 도전!")}</div>
           {testResult.pass
-            ? <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit10"); }} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp — Bài 10! 🚀":en?"Next — Unit 10! 🚀":"10단원으로! 🚀"}</button>
+            ? <button onClick={()=>{const np=[...new Set([...unitsPassed,9])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`9단원`,nextStep:"unit10",nextLabel:"10단원으로 계속하기"});}} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp — Bài 10! 🚀":en?"Next — Unit 10! 🚀":"10단원으로! 🚀"}</button>
             : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit9"); }} style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Học lại Bài 9 🔄":en?"Retry Unit 9 🔄":"9단원 다시 학습 🔄"}</button>}
           <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Thử lại":en?"Try again":"다시 풀기"}</button>
         </div>
@@ -9080,7 +9080,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           ))}
           <button type="button" onClick={gradeTest9} style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit9"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (9단원 학습)"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,8])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`8단원`,nextStep:"unit9",nextLabel:"9단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (9단원 학습)"}</button>
         </div>
       </div>
     );
@@ -9207,7 +9207,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit11"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,10])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`10단원`,nextStep:"unit11",nextLabel:"11단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#E91E63,#880E4F)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp tục — Bài 11! 🚀":en?"Continue — Unit 11! 🚀":"11단원으로 계속하기 🚀"}
               </button>
@@ -9322,7 +9322,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit12"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,11])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`11단원`,nextStep:"unit12",nextLabel:"12단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#7B1FA2,#4A148C)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp tục — Bài 12! 🚀":en?"Continue — Unit 12! 🚀":"12단원으로 계속하기 🚀"}
               </button>
@@ -9542,7 +9542,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#B71C1C":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
           <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(vi?"Xuất sắc! Sang bài 13!":en?"Excellent! Unit 13!":"훌륭해요! 13단원으로!"):(vi?"Thử lại!":en?"Try again!":"다시 도전!")}</div>
           {testResult.pass
-            ? <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit13"); }} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp — Bài 13! 🚀":en?"Next — Unit 13! 🚀":"13단원으로! 🚀"}</button>
+            ? <button onClick={()=>{const np=[...new Set([...unitsPassed,12])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`12단원`,nextStep:"unit13",nextLabel:"13단원으로 계속하기"});}} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp — Bài 13! 🚀":en?"Next — Unit 13! 🚀":"13단원으로! 🚀"}</button>
             : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit12"); }} style={{width:"100%", background:`linear-gradient(135deg,#B71C1C,#7F0000)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Học lại Bài 12 🔄":en?"Retry Unit 12 🔄":"12단원 다시 학습 🔄"}</button>}
           <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Thử lại":en?"Try again":"다시 풀기"}</button>
         </div>
@@ -9562,7 +9562,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           ))}
           <button type="button" onClick={gradeTest12} style={{width:"100%", background:`linear-gradient(135deg,#B71C1C,#7F0000)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit12"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (12단원 학습)"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,11])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`11단원`,nextStep:"unit12",nextLabel:"12단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (12단원 학습)"}</button>
         </div>
       </div>
     );
@@ -9819,7 +9819,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           ))}
           <button type="button" onClick={gradeTest13} style={{width:"100%", background:`linear-gradient(135deg,#00838F,#004D40)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit13"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (13단원 학습)"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,12])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`12단원`,nextStep:"unit13",nextLabel:"13단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (13단원 학습)"}</button>
         </div>
       </div>
     );
@@ -9923,7 +9923,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total14})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit15"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,14])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`14단원`,nextStep:"unit15",nextLabel:"15단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp — Bài 15! 🚀":en?"Continue — Unit 15! 🚀":"15단원으로 계속하기 🚀"}
               </button>
@@ -10029,13 +10029,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total15})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit16"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,15])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`15단원`,nextStep:"unit16",nextLabel:"16단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#2E7D32,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp — Bài 16! 🚀":en?"Continue — Unit 16! 🚀":"16단원으로 계속하기 🚀"}
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit14"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,13])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`13단원`,nextStep:"unit14",nextLabel:"14단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
@@ -10154,13 +10154,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total16})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit17"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,16])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`16단원`,nextStep:"unit17",nextLabel:"17단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#F57F17,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp — Bài 17! 🚀":en?"Continue — Unit 17! 🚀":"17단원으로 계속하기 🚀"}
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit15"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,14])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`14단원`,nextStep:"unit15",nextLabel:"15단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
@@ -10257,13 +10257,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total17})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit18"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,17])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`17단원`,nextStep:"unit18",nextLabel:"18단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#1565C0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp — Bài 18! 🚀":en?"Continue — Unit 18! 🚀":"18단원으로 계속하기 🚀"}
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit16"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,15])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`15단원`,nextStep:"unit16",nextLabel:"16단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
@@ -10358,13 +10358,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total18})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit19"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,18])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`18단원`,nextStep:"unit19",nextLabel:"19단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#AD1457,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp — Bài 19! 🚀":en?"Continue — Unit 19! 🚀":"19단원으로 계속하기 🚀"}
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit17"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,16])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`16단원`,nextStep:"unit17",nextLabel:"17단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
@@ -10455,13 +10455,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total19})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit20"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,19])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`19단원`,nextStep:"unit20",nextLabel:"20단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#283593,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp — Bài 20! 🚀":en?"Continue — Unit 20! 🚀":"20단원으로 계속하기 🚀"}
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit18"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,17])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`17단원`,nextStep:"unit18",nextLabel:"18단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
@@ -10558,13 +10558,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total20})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit21"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,20])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`20단원`,nextStep:"unit21",nextLabel:"21단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#F9A825,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp — Bài 21! 🚀":en?"Continue — Unit 21! 🚀":"21단원으로 계속하기 🚀"}
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit19"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,18])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`18단원`,nextStep:"unit19",nextLabel:"19단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
@@ -10659,13 +10659,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total21})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit22"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,21])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`21단원`,nextStep:"unit22",nextLabel:"22단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#00695C,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp — Bài 22! 🚀":en?"Continue — Unit 22! 🚀":"22단원으로 계속하기 🚀"}
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit20"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,19])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`19단원`,nextStep:"unit20",nextLabel:"20단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
@@ -10770,13 +10770,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total22})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit23"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,22])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`22단원`,nextStep:"unit23",nextLabel:"23단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#01579B,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp — Bài 23! 🚀":en?"Continue — Unit 23! 🚀":"23단원으로 계속하기 🚀"}
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit21"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,20])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`20단원`,nextStep:"unit21",nextLabel:"21단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
@@ -10877,13 +10877,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total23})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit24"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,23])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`23단원`,nextStep:"unit24",nextLabel:"24단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#558B2F,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp — Bài 24! 🚀":en?"Continue — Unit 24! 🚀":"24단원으로 계속하기 🚀"}
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit22"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,21])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`21단원`,nextStep:"unit22",nextLabel:"22단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
@@ -10980,13 +10980,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total24})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit25"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,24])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`24단원`,nextStep:"unit25",nextLabel:"25단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#E65100,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
                 {vi?"Tiếp — Bài 25! 🚀":en?"Continue — Unit 25! 🚀":"25단원으로 계속하기 🚀"}
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit23"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,22])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`22단원`,nextStep:"unit23",nextLabel:"23단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
@@ -11112,7 +11112,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit24"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,23])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`23단원`,nextStep:"unit24",nextLabel:"24단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
         </div>
       </div>
     );
@@ -11396,7 +11396,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           )}
 
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit25"); }}
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,24])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`24단원`,nextStep:"unit25",nextLabel:"25단원으로 계속하기"});}}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {vi?"Quay lại":en?"Back":"뒤로"}
           </button>
