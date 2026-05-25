@@ -2100,13 +2100,13 @@ ${vocabList}
   // ── 80시간 커리큘럼 미리보기 화면 ──
   if (step === "curriculum") {
     const items = [
-      { emoji:"🔤", label:"발음 · 모음 · 자음 · 받침 · 연음",                    hours:13, color:"#E8F4FD", border:"#90CAF9" },
-      { emoji:"📌", label:"조사 · 대명사",                                           hours: 3, color:"#FFF3E0", border:"#FFCC80" },
-      { emoji:"🗣️", label:"서술어 1~25단원 (기초 → 추측 · 결정 · 기간)",             hours:33, color:"#F3EEFF", border:"#CE93D8" },
-      { emoji:"⏱️", label:"부사어 (때 · 전에 · 후에 · 면서 · 때문에 · 려고 등)",     hours: 5, color:"#FFF8E1", border:"#FFD54F" },
-      { emoji:"📖", label:"기타 표현 (비교 · 존칭 · 간접화법 · 관형어 등)",           hours: 5, color:"#FDE8F5", border:"#F48FB1" },
-      { emoji:"💪", label:"통합 실전 훈련 (4회 반복)",                               hours:15, color:"#E8F5E9", border:"#A5D6A7" },
-      { emoji:"🏁", label:"마무리 + 예비",                                           hours: 6, color:"#FCE4EC", border:"#F48FB1" },
+      { emoji:"🔤", label:vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계",                                    hours: 8,  color:"#E8F4FD", border:"#90CAF9" },
+      { emoji:"⏱️", label:vi?"Thì 6 bài":en?"Tenses 6 units":"시제 6단원",                                               hours: 6,  color:"#FFF3E0", border:"#FFCC80" },
+      { emoji:"🔗", label:vi?"Trợ từ · Đại từ":en?"Particles · Pronouns":"조사 · 대명사",                                 hours: 5,  color:"#E8F5E9", border:"#A5D6A7" },
+      { emoji:"📐", label:vi?"Cấu trúc câu · Đại từ nghi vấn":en?"Sentence structure · Question pronouns":"문장구조 · 의문대명사", hours: 1,  color:"#E3F2FD", border:"#90CAF9" },
+      { emoji:"📝", label:vi?"Vị ngữ 25 bài":en?"Predicates 25 units":"서술어 25단원",                                    hours:38,  color:"#F3EEFF", border:"#CE93D8" },
+      { emoji:"📖", label:vi?"Phó từ · Quan hệ từ · Kính ngữ...":en?"Adverbs · Adjectives · Honorifics...":"부사어 · 관형어 · 존칭 · 간접화법 · 비교/최상급 · 기타", hours:21,  color:"#FDE8F5", border:"#F48FB1" },
+      { emoji:"🔢", label:vi?"Số · Phủ định · Văn phong · Tổng kết":en?"Numbers · Negation · Register · Review":"숫자 · 부정법 · 격식체 · 기초문법 정리", hours: 1,  color:"#FFF8E1", border:"#FFD54F" },
     ];
     const vi = lang?.code==="vi", en = lang?.code==="en";
     return (
@@ -2114,6 +2114,9 @@ ${vocabList}
         <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:12}}>📚</div>
         <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
           {vi?"80 giờ của bạn!":en?"Your 80 Hours!":"나의 80시간 커리큘럼"}
+          <span style={{fontSize:12,fontWeight:700,color:"white",background:"#9C6FDE",borderRadius:20,padding:"2px 10px",marginLeft:8,verticalAlign:"middle"}}>
+            {vi?"Sơ cấp":en?"Beginner":"초급자용"}
+          </span>
         </div>
         <div style={{fontSize:13,color:"#aaa",marginBottom:22,textAlign:"center"}}>
           {vi?"Đây là những gì bạn sẽ học trong 80 giờ!":en?"Here's what you'll learn in 80 hours!":"80시간 동안 이걸 배워요! 🌏"}
@@ -17038,6 +17041,20 @@ export default function App() {
                   </button>
                 </> : <div style={{fontSize:13,color:"#aaa",textAlign:"center",padding:"8px 0"}}>초급 학습을 시작하면 여기서 이어할 수 있어요</div>}
               </div>
+
+              {/* ✅ V267: TOPIK 인증 섹션 */}
+              <div style={{background:"white",border:"2px solid #2E75B622",borderRadius:16,padding:"16px",marginBottom:16,boxShadow:"0 2px 12px rgba(46,117,182,.08)"}}>
+                <div style={{fontSize:13,fontWeight:900,color:"#2E75B6",marginBottom:10}}>🏆 TOPIK 인증</div>
+                <div style={{fontSize:12,color:"#555",lineHeight:1.8,marginBottom:12}}>
+                  TOPIK 성적표를 제출하면 학습 이력에 등록됩니다.<br/>
+                  관리자 확인 후 인증 배지가 발급됩니다.
+                </div>
+                <button onClick={()=>{setShowMyPage(false);setTab("topik");}}
+                  style={{width:"100%",background:"linear-gradient(135deg,#2E75B6,#1565C0)",color:"white",border:"none",borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:900,cursor:"pointer"}}>
+                  🏆 TOPIK 성적 제출하기 →
+                </button>
+              </div>
+
               <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
                 🚪 로그아웃
               </button>
@@ -17345,7 +17362,7 @@ export default function App() {
       <div style={{maxWidth:600,margin:"0 auto",width:"100%"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)",gap:1,backgroundColor:"#ebebeb",borderRadius:"0 0 16px 16px",overflow:"hidden"}}>
           {[["speak","🗣️","프리토킹",C.pink,"#FCE8F3"],["write","✍️","논술",C.teal,"#E8FAF8"],["tutor","🎓","하이터치",C.purple,"#F3EEFF"],["game","🎮","게임",C.yellow,"#FFFBE8"],["topik","🏆","TOPIK인증","#2E75B6","#F0F4FF"]].map(([k,emoji,label,col,bg])=>(
-            <button key={k} onClick={()=>setTab(k)} style={{padding:"16px 0 12px",border:"none",background:tab===k?bg:"white",cursor:"pointer",transition:"all .2s",WebkitTapHighlightColor:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+            <button key={k} onClick={()=>{ if(k==="topik"){ setShowMyPage(true); } else { setTab(k); } }} style={{padding:"16px 0 12px",border:"none",background:tab===k?bg:"white",cursor:"pointer",transition:"all .2s",WebkitTapHighlightColor:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
               <div style={{width:52,height:52,borderRadius:"50%",background:tab===k?bg:"#f5f5f5",border:tab===k?`2.5px solid ${col}`:"2px solid #e8e8e8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,transition:"all .2s",boxShadow:tab===k?`0 4px 12px ${col}33`:"none"}}>
                 {emoji}
               </div>
