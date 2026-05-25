@@ -17069,39 +17069,30 @@ export default function App() {
               <span style={{fontSize:11,fontWeight:800,color:s.color,background:s.color+"18",borderRadius:8,padding:"2px 8px"}}>{s.time}</span>
             </div>
           ))}
-          {/* 5단계: 기초문법 접이식 블록 */}
-          {(()=>{
-            const [open, setOpen] = React.useState(false);
-            return (
-              <div style={{borderBottom:"1px solid #f0f0f0"}}>
-                <div onClick={e=>{e.stopPropagation();setOpen(o=>!o)}}
-                  style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",cursor:"pointer"}}>
-                  <span style={{fontSize:18,flexShrink:0}}>📝</span>
-                  <div style={{flex:1}}>
-                    <span style={{fontSize:11,color:"#bbb",fontWeight:700}}>5단계 </span>
-                    <span style={{fontSize:13,fontWeight:700,color:"#333"}}>기초문법</span>
-                    <span style={{fontSize:11,color:"#aaa",marginLeft:4}}>{open?"▲":"▼"}</span>
-                  </div>
-                  <span style={{fontSize:11,fontWeight:800,color:"#00C896",background:"#00C89618",borderRadius:8,padding:"2px 8px"}}>59시간</span>
-                </div>
-                {open&&(
-                  <div style={{paddingLeft:28,paddingBottom:8}}>
-                    {[
-                      {label:"서술어 25단원",time:"38시간",color:"#00C896"},
-                      {label:"부사어",time:"13시간",color:"#4CAF50"},
-                      {label:"관형어·간접화법·존칭·비교/최상급·기타",time:"8시간",color:"#8BC34A"},
-                    ].map((s,i)=>(
-                      <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"5px 0",borderBottom:i<2?"1px dashed #f5f5f5":"none"}}>
-                        <span style={{fontSize:11,color:"#bbb"}}>└</span>
-                        <span style={{fontSize:12,color:"#555",flex:1}}>{s.label}</span>
-                        <span style={{fontSize:11,fontWeight:700,color:s.color}}>{s.time}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+          {/* 5단계: 기초문법 */}
+          <div style={{borderBottom:"1px solid #f0f0f0"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0"}}>
+              <span style={{fontSize:18,flexShrink:0}}>📝</span>
+              <div style={{flex:1}}>
+                <span style={{fontSize:11,color:"#bbb",fontWeight:700}}>5단계 </span>
+                <span style={{fontSize:13,fontWeight:700,color:"#333"}}>기초문법</span>
               </div>
-            );
-          })()}
+              <span style={{fontSize:11,fontWeight:800,color:"#00C896",background:"#00C89618",borderRadius:8,padding:"2px 8px"}}>59시간</span>
+            </div>
+            <div style={{paddingLeft:28,paddingBottom:8}}>
+              {[
+                {label:"서술어 25단원",time:"38시간",color:"#00C896"},
+                {label:"부사어",time:"13시간",color:"#4CAF50"},
+                {label:"관형어·간접화법·존칭·비교/최상급·기타",time:"8시간",color:"#8BC34A"},
+              ].map((s,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"5px 0",borderBottom:i<2?"1px dashed #f5f5f5":"none"}}>
+                  <span style={{fontSize:11,color:"#bbb"}}>└</span>
+                  <span style={{fontSize:12,color:"#555",flex:1}}>{s.label}</span>
+                  <span style={{fontSize:11,fontWeight:700,color:s.color}}>{s.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
           {/* 6단계: 기타 */}
           <div style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:"1px solid #f0f0f0"}}>
             <span style={{fontSize:18,flexShrink:0}}>🔢</span>
