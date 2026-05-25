@@ -1546,6 +1546,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
       { label:"시제5",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense5"); }},
       { label:"시제6",  action:()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense6"); }},
       { label:"시제테스트",action:()=>{ setStep("tenseTest"); }},
+      { label:"시제테스트✅",action:()=>{ setTenseTestResult({pass:true,score:10,total:10}); setStep("tenseTest"); }},
       { label:"조사",   action:()=>{ setJosaStep(0); setStep("josa"); }},
       { label:"의문대명사", action:()=>{ setStep("qpron"); }},
       { label:"서술어1A",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit1"); }},
@@ -1982,6 +1983,7 @@ ${vocabList}
     // 전체 80시간 커리큘럼 단계 맵
     const CURRICULUM_MAP = [
       { label: vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계",    done: true },
+      { label: vi?"Thì 6 bài":en?"Tenses 6 units":"시제 6단원",                done: true },
       { label: vi?"Trợ từ · Đại từ":en?"Particles · Pronouns":"조사·대명사",  done: true },
       { label: vi?"Vị ngữ 25 bài":en?"Predicates 25 units":"서술어 25단원",    done: false, current: true, pct },
       { label: vi?"Phó từ · Biểu hiện":en?"Adverbs · Expressions":"부사어·기타 표현", done: false },
@@ -4061,12 +4063,12 @@ ${vocabList}
         {/* 발음 테스트 버튼 — 각 단계마다 테스트 후 다음으로 */}
         <button onClick={()=>{
           if(pronStep < PRON_STEPS.length - 1){ setPronStep(s=>s+1); setFlipped({}); }
-          else { setJosaStep(0); setStep("josa"); }
+          else { setPronTestIdx(0); setPronTestResults([]); setPronTestSTT(""); setPronTestFeedback(null); setStep("pronTest"); }
         }}
           style={{width:"100%", maxWidth:360, background:"linear-gradient(135deg,#9C6FDE,#C084FC)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C6FDE44"}}>
           {pronStep < PRON_STEPS.length - 1
             ? (vi?"Bài tiếp theo →":en?"Next lesson →":"다음 단계로 →")
-            : (vi?"Học trợ từ! 🚀":en?"Learn particles! 🚀":"조사 학습으로! 🚀")}
+            : (vi?"Kiểm tra phát âm! 🎤":en?"Pronunciation test! 🎤":"발음 테스트! 🎤")}
         </button>
 
         <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer"}}>← 뒤로</button>
@@ -4389,15 +4391,15 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 setShowProgress({
                   passedCount: unitsPassed.length,
                   completedLabel: vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계",
-                  nextStep: "josa",
-                  nextLabel: vi?"Tiếp theo — Trợ từ":en?"Next — Particles":"다음 — 조사·대명사",
+                  nextStep: "tense1",
+                  nextLabel: vi?"Tiếp theo — Thì":en?"Next — Tenses":"다음 — 시제",
                 });
               }
             }}
               style={{width:"100%", background:"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
               {fromStep < PRON_STEPS_COUNT - 1
                 ? (vi?"Học bài tiếp theo →":en?"Next lesson →":"다음 단계로 →")
-                : (vi?"Tiếp theo — Trợ từ! 🚀":en?"Next — Particles! 🚀":"조사·대명사 학습으로! 🚀")}
+                : (vi?"Tiếp theo — Thì! 🚀":en?"Next — Tenses! 🚀":"시제 학습으로! 🚀")}
             </button>
           ) : (
             <button onClick={()=>{
@@ -16989,13 +16991,14 @@ export default function App() {
           <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:12,textAlign:"center"}}>📚 한글 친구 80시간 커리큘럼</div>
           {[
             {emoji:"🔤",step:"1단계",label:"발음 8단계",time:"13시간",color:"#9C6FDE"},
-            {emoji:"🔗",step:"2단계",label:"조사 · 대명사",time:"3시간",color:"#7B61FF"},
-            {emoji:"📝",step:"3단계",label:"서술어 25단원",time:"33시간",color:"#00C896"},
-            {emoji:"📖",step:"4단계",label:"부사어 · 기타 표현",time:"10시간",color:"#FF6B9D"},
-            {emoji:"🏆",step:"5단계",label:"통합 실전 훈련 4회",time:"15시간",color:"#F5A623"},
-            {emoji:"🎓",step:"6단계",label:"마무리 · 수료",time:"6시간",color:"#4ECDC4"},
+            {emoji:"⏱️",step:"2단계",label:"시제 6단원",time:"10시간",color:"#E65100"},
+            {emoji:"🔗",step:"3단계",label:"조사 · 대명사",time:"3시간",color:"#7B61FF"},
+            {emoji:"📝",step:"4단계",label:"서술어 25단원",time:"33시간",color:"#00C896"},
+            {emoji:"📖",step:"5단계",label:"부사어 · 기타 표현",time:"10시간",color:"#FF6B9D"},
+            {emoji:"🏆",step:"6단계",label:"통합 실전 훈련 4회",time:"15시간",color:"#F5A623"},
+            {emoji:"🎓",step:"7단계",label:"마무리 · 수료",time:"6시간",color:"#4ECDC4"},
           ].map((s,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:i<5?"1px solid #f0f0f0":"none"}}>
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:i<6?"1px solid #f0f0f0":"none"}}>
               <span style={{fontSize:18,flexShrink:0}}>{s.emoji}</span>
               <div style={{flex:1}}>
                 <span style={{fontSize:11,color:"#bbb",fontWeight:700}}>{s.step} </span>
