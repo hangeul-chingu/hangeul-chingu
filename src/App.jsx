@@ -1489,6 +1489,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, skipToLearn=false })
     try { return JSON.parse(localStorage.getItem(`hc_units_${user?.uid}`) || "[]"); }
     catch { return []; }
   });
+  const [showProgress, setShowProgress] = useState(null); // ✅ V263: {passedCount, nextStep, nextLabel}
 
   // ✅ V164: test1 — API 제거, UNIT1_CARDS 기반 고정 10문제
   useEffect(() => {
@@ -1961,6 +1962,78 @@ ${vocabList}
       ? `정답이에요! 🎉 "${q.answer}"은(는) 어울리지 않는 단어예요! 정말 잘했어요! 😊`
       : `아쉽지만 괜찮아요! 😊 "${q.answer}"이(가) 어울리지 않는 단어예요. 나머지 셋은 모두 잘 어울리는 말이에요! 다시 기억해봐요 💪`;
     setChat(p=>[...p, {role:"assistant", text:reaction}]);
+  }
+
+  // ✅ V263: 단원 완료 후 위치 개념 화면
+  if (showProgress) {
+    const { passedCount, nextStep, nextLabel, completedLabel } = showProgress;
+    const totalUnits = 25;
+    const pct = Math.round((passedCount / totalUnits) * 100);
+    const vi = lang?.code === "vi";
+    const en = lang?.code === "en";
+
+    // 전체 80시간 커리큘럼 단계 맵
+    const CURRICULUM_MAP = [
+      { label: vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계",    done: true },
+      { label: vi?"Trợ từ · Đại từ":en?"Particles · Pronouns":"조사·대명사",  done: true },
+      { label: vi?"Vị ngữ 25 bài":en?"Predicates 25 units":"서술어 25단원",    done: false, current: true, pct },
+      { label: vi?"Phó từ · Biểu hiện":en?"Adverbs · Expressions":"부사어·기타 표현", done: false },
+      { label: vi?"Luyện tập 4 lần":en?"Integrated practice":"통합 실전 훈련", done: false },
+      { label: vi?"Hoàn thành":en?"Completion":"마무리·수료",                   done: false },
+    ];
+
+    return (
+      <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#E8F8F2,#F3EEFF 60%,#FFF0F9)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"28px 24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+
+        {/* 완료 뱃지 */}
+        <div style={{fontSize:56,marginBottom:8}}>🎉</div>
+        <div style={{fontSize:20,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
+          {completedLabel} {vi?"hoàn thành!":en?"Complete!":"완료!"}
+        </div>
+        <div style={{fontSize:13,color:"#888",marginBottom:28,textAlign:"center"}}>
+          {vi?"Bạn đang tiến bộ thật tốt! 💪":en?"You're making great progress! 💪":"정말 잘하고 있어요! 💪"}
+        </div>
+
+        {/* 진행 바 */}
+        <div style={{width:"100%",maxWidth:340,background:"white",borderRadius:18,padding:"20px 18px",marginBottom:16,boxShadow:"0 4px 20px rgba(156,111,222,.12)"}}>
+          <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:12}}>📊 {vi?"Tiến trình học tập":en?"Learning Progress":"나의 학습 위치"}</div>
+
+          {/* 서술어 진행 바 */}
+          <div style={{marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+              <span style={{fontSize:12,color:"#555",fontWeight:700}}>{vi?"Vị ngữ":en?"Predicates":"서술어 단원"}</span>
+              <span style={{fontSize:13,fontWeight:900,color:"#9C6FDE"}}>{passedCount} / {totalUnits}</span>
+            </div>
+            <div style={{background:"#f0f0f0",borderRadius:50,height:12,overflow:"hidden",marginBottom:4}}>
+              <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50,transition:"width .8s ease"}}/>
+            </div>
+            <div style={{fontSize:11,color:"#bbb",textAlign:"right"}}>{pct}%</div>
+          </div>
+
+          {/* 커리큘럼 단계 표시 */}
+          {CURRICULUM_MAP.map((s,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:i<CURRICULUM_MAP.length-1?"1px dashed #f0f0f0":"none"}}>
+              <div style={{width:22,height:22,borderRadius:"50%",background:s.done?"#00C896":s.current?"#9C6FDE":"#eee",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"white",fontWeight:900,flexShrink:0}}>
+                {s.done?"✓":s.current?"●":i+1}
+              </div>
+              <span style={{fontSize:12,fontWeight:s.current?800:500,color:s.done?"#00C896":s.current?"#9C6FDE":"#bbb",flex:1}}>{s.label}</span>
+              {s.current&&<span style={{fontSize:10,fontWeight:800,color:"#9C6FDE",background:"#F3EEFF",borderRadius:8,padding:"2px 7px"}}>📍 {vi?"Đang ở đây":en?"Here":"여기"}</span>}
+            </div>
+          ))}
+        </div>
+
+        {/* 다음 단계 버튼 */}
+        <button onClick={()=>{
+          setShowProgress(null);
+          setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false);
+          setTestResult(null); setTestAnswers({}); setTestQuestions([]);
+          setStep(nextStep);
+        }}
+          style={{width:"100%",maxWidth:340,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:16,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #9C6FDE44"}}>
+          {nextLabel} →
+        </button>
+      </div>
+    );
   }
 
   // ── 언어 선택 화면 ──
@@ -4306,7 +4379,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 setPronStep(fromStep + 1);
                 setStep("pronunciation");
               } else {
-                setStep("tense1");
+                setShowProgress({
+                  passedCount: unitsPassed.length,
+                  completedLabel: vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계",
+                  nextStep: "josa",
+                  nextLabel: vi?"Tiếp theo — Trợ từ":en?"Next — Particles":"다음 — 조사·대명사",
+                });
               }
             }}
               style={{width:"100%", background:"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
@@ -6699,7 +6777,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               : "한국어는 어순을 바꿔도 의미가 통하지만, 서술어는 반드시 문장 끝에 와야 해요!"}
           </div>
 
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit1"); }}
+          <button onClick={()=>{
+            setShowProgress({
+              passedCount: unitsPassed.length,
+              completedLabel: vi?"Trợ từ · Đại từ":en?"Particles · Pronouns":"조사·대명사",
+              nextStep: "unit1",
+              nextLabel: vi?"Bắt đầu vị ngữ Bài 1":en?"Start Predicates Unit 1":"서술어 1단원 시작",
+            });
+          }}
             style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A876)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #00C89644"}}>
             {vi?"Bắt đầu học vị ngữ! 🚀":en?"Start learning predicates! 🚀":"서술어 학습 시작! 🚀"}
           </button>
@@ -6997,7 +7082,15 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
 
             {testResult.passed ? (
-              <button onClick={()=>{setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit2");}}
+              <button onClick={()=>{
+                const newCount = [...new Set([...unitsPassed, 1])].length;
+                setShowProgress({
+                  passedCount: newCount,
+                  completedLabel: vi?"Bài 1":en?"Unit 1":"1단원",
+                  nextStep: "unit2",
+                  nextLabel: vi?"Bài 2 — Tiếp tục":en?"Unit 2 — Continue":"2단원으로 계속하기",
+                });
+              }}
                 style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #00C89644"}}>
                 {vi?"Tiếp tục — Bài 2! 🚀":en?"Continue — Unit 2! 🚀":"2단원으로 계속하기 🚀"}
               </button>
