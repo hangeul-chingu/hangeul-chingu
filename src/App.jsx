@@ -6614,7 +6614,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               ))}
             </div>
             {passed ? (
-              <button onClick={()=>{setJosaTestResult(null);setJosaTestAnswers({});setJosaTestQuestions([]);onReady?.();setStep("sentenceStructure");}}
+              <button onClick={()=>{setJosaTestResult(null);setJosaTestAnswers({});setJosaTestQuestions([]);setStep("sentenceStructure");}}
                 style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A876)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #00C89644"}}>
                 {vi?"Tiếp theo! 🚀":en?"Next! 🚀":"서술어 1단원으로! 🚀"}
               </button>
