@@ -1981,14 +1981,32 @@ ${vocabList}
     const en = lang?.code === "en";
 
     // 전체 80시간 커리큘럼 단계 맵
+    // ✅ V266: 80시간 기준 누적 시간 계산 (현장 데이터 기반)
+    const HOUR_MAP = {
+      pronunciation: 8,   // 발음
+      tense:         6,   // 시제
+      josa:          5,   // 조사·대명사
+      sentence:      1,   // 문장구조·의문대명사
+      unit:          59,  // 서술어+부사어+기타
+      extra:         1,   // 숫자·부정법·격식체·정리
+    };
+    const TOTAL_HOURS = 80;
+    const getElapsedHours = (passedCount) => {
+      // 발음8+시제6+조사5+문장구조1 = 20시간 고정
+      const unitHours = Math.round((passedCount / 25) * 59);
+      return 20 + unitHours;
+    };
+    const elapsedHours = getElapsedHours(passedCount);
+    const pctHours = Math.min(Math.round((elapsedHours / TOTAL_HOURS) * 100), 100);
+
     const CURRICULUM_MAP = [
-      { label: vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계",    done: true },
-      { label: vi?"Thì 6 bài":en?"Tenses 6 units":"시제 6단원",                done: true },
-      { label: vi?"Trợ từ · Đại từ":en?"Particles · Pronouns":"조사·대명사",  done: true },
-      { label: vi?"Vị ngữ 25 bài":en?"Predicates 25 units":"서술어 25단원",    done: false, current: true, pct },
-      { label: vi?"Phó từ · Biểu hiện":en?"Adverbs · Expressions":"부사어·기타 표현", done: false },
-      { label: vi?"Luyện tập 4 lần":en?"Integrated practice":"통합 실전 훈련", done: false },
-      { label: vi?"Hoàn thành":en?"Completion":"마무리·수료",                   done: false },
+      { label: vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계 (8h)",      done: true },
+      { label: vi?"Thì 6 bài":en?"Tenses 6 units":"시제 6단원 (6h)",                  done: true },
+      { label: vi?"Trợ từ · Đại từ":en?"Particles · Pronouns":"조사·대명사 (5h)",    done: true },
+      { label: vi?"Cấu trúc câu":en?"Sentence structure":"문장구조·의문대명사 (1h)",  done: true },
+      { label: vi?"Vị ngữ 25 bài":en?"Predicates 25 units":"서술어 25단원 (38h)",      done: false, current: true, pct },
+      { label: vi?"Phó từ · Biểu hiện":en?"Adverbs · Expressions":"부사어·관형어·기타 (21h)", done: false },
+      { label: vi?"Số · Phủ định":en?"Numbers · Negation":"숫자·부정법·격식체·정리 (1h)", done: false },
     ];
 
     return (
@@ -2007,16 +2025,27 @@ ${vocabList}
         <div style={{width:"100%",maxWidth:340,background:"white",borderRadius:18,padding:"20px 18px",marginBottom:16,boxShadow:"0 4px 20px rgba(156,111,222,.12)"}}>
           <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:12}}>📊 {vi?"Tiến trình học tập":en?"Learning Progress":"나의 학습 위치"}</div>
 
-          {/* 서술어 진행 바 */}
+          {/* 80시간 기준 진행 바 */}
           <div style={{marginBottom:16}}>
             <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-              <span style={{fontSize:12,color:"#555",fontWeight:700}}>{vi?"Vị ngữ":en?"Predicates":"서술어 단원"}</span>
-              <span style={{fontSize:13,fontWeight:900,color:"#9C6FDE"}}>{passedCount} / {totalUnits}</span>
+              <span style={{fontSize:12,color:"#555",fontWeight:700}}>80시간 커리큘럼 진행률</span>
+              <span style={{fontSize:13,fontWeight:900,color:"#9C6FDE"}}>{elapsedHours}h / {TOTAL_HOURS}h</span>
             </div>
             <div style={{background:"#f0f0f0",borderRadius:50,height:12,overflow:"hidden",marginBottom:4}}>
-              <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50,transition:"width .8s ease"}}/>
+              <div style={{width:`${pctHours}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50,transition:"width .8s ease"}}/>
             </div>
-            <div style={{fontSize:11,color:"#bbb",textAlign:"right"}}>{pct}%</div>
+            <div style={{fontSize:11,color:"#bbb",textAlign:"right"}}>{pctHours}%</div>
+          </div>
+
+          {/* 서술어 단원 세부 진행 */}
+          <div style={{marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+              <span style={{fontSize:11,color:"#888"}}>서술어 단원</span>
+              <span style={{fontSize:11,fontWeight:700,color:"#00C896"}}>{passedCount} / 25단원</span>
+            </div>
+            <div style={{background:"#f0f0f0",borderRadius:50,height:6,overflow:"hidden"}}>
+              <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#00C896,#4CAF50)",borderRadius:50}}/>
+            </div>
           </div>
 
           {/* 커리큘럼 단계 표시 */}
@@ -16919,9 +16948,32 @@ export default function App() {
         const passedCount = unitsPassed.length;
         const totalUnits = 25;
         const pct = Math.round((passedCount/totalUnits)*100);
+        // ✅ V265: 80시간 기준 누적 시간
+        const stepHourMap = {
+          lang:0, curriculum:0, plan:0,
+          pronunciation:2, pronTest:7, pronResult:8,
+          tense1:8, tense2:9, tense3:10, tense4:11, tense5:12, tense6:13, tenseTest:14,
+          josa:15, testJosa:19,
+          qpron:19, sentenceStructure:20,
+        };
+        const getElapsed = (step, passed) => {
+          if (stepHourMap[step] !== undefined) return stepHourMap[step];
+          if (step && step.startsWith("unit")) {
+            const n = parseInt(step.replace("unit","")) || 0;
+            return 20 + Math.round((Math.min(n, 25) / 25) * 59);
+          }
+          return 20 + Math.round((passed / 25) * 59);
+        };
+        const elapsedH = getElapsed(savedStep, passedCount);
+        const pctH = Math.min(Math.round((elapsedH / 80) * 100), 100);
         const stepLabels = {
           pronunciation:"발음 학습 중", pronTest:"발음 테스트 중", pronResult:"발음 결과 확인",
-          josa:"조사·대명사 학습 중", testJosa:"조사 테스트 중", learn:"학습 완료 (자유 탭)",
+          tense1:"시제 1단원 학습 중", tense2:"시제 2단원 학습 중", tense3:"시제 3단원 학습 중",
+          tense4:"시제 4단원 학습 중", tense5:"시제 5단원 학습 중", tense6:"시제 6단원 학습 중",
+          tenseTest:"시제 테스트 중",
+          josa:"조사·대명사 학습 중", testJosa:"조사 테스트 중",
+          qpron:"의문대명사 학습 중", sentenceStructure:"문장구조 학습 중",
+          learn:"학습 완료 (자유 탭)",
         };
         const currentLabel = stepLabels[savedStep] || (savedStep.startsWith("unit") ? `서술어 ${savedStep.replace("unit","")}단원 학습 중` : savedStep ? `${savedStep} 진행 중` : "아직 시작 전");
         return (
@@ -16947,15 +16999,28 @@ export default function App() {
               {/* 배너 1: 학습 진행률 */}
               <div style={{background:"white",border:"2px solid #9C6FDE22",borderRadius:16,padding:"16px",marginBottom:12,boxShadow:"0 2px 12px rgba(156,111,222,.08)"}}>
                 <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:10}}>📊 나의 학습 진행률</div>
-                {passedCount > 0 ? <>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                    <span style={{fontSize:12,color:"#555"}}>서술어 단원 완료</span>
-                    <span style={{fontSize:13,fontWeight:900,color:"#9C6FDE"}}>{passedCount} / {totalUnits}단원</span>
+                {elapsedH > 0 ? <>
+                  {/* 80시간 기준 전체 바 */}
+                  <div style={{marginBottom:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                      <span style={{fontSize:11,color:"#555",fontWeight:700}}>전체 80시간 기준</span>
+                      <span style={{fontSize:12,fontWeight:900,color:"#9C6FDE"}}>{elapsedH}h / 80h</span>
+                    </div>
+                    <div style={{background:"#f0f0f0",borderRadius:50,height:10,overflow:"hidden",marginBottom:2}}>
+                      <div style={{width:`${pctH}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50}}/>
+                    </div>
+                    <div style={{fontSize:11,color:"#bbb",textAlign:"right"}}>{pctH}% 완료</div>
                   </div>
-                  <div style={{background:"#f0f0f0",borderRadius:50,height:10,overflow:"hidden",marginBottom:8}}>
-                    <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50}}/>
-                  </div>
-                  <div style={{fontSize:11,color:"#bbb",textAlign:"right"}}>{pct}% 완료</div>
+                  {/* 서술어 세부 바 */}
+                  {passedCount > 0 && <div style={{marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                      <span style={{fontSize:11,color:"#888"}}>서술어 단원</span>
+                      <span style={{fontSize:11,fontWeight:700,color:"#00C896"}}>{passedCount} / 25단원</span>
+                    </div>
+                    <div style={{background:"#f0f0f0",borderRadius:50,height:6,overflow:"hidden"}}>
+                      <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#00C896,#4CAF50)",borderRadius:50}}/>
+                    </div>
+                  </div>}
                   <div style={{fontSize:12,color:"#666",marginTop:8,padding:"8px 12px",background:"#f8f8f8",borderRadius:10}}>📍 {currentLabel}</div>
                 </> : <div style={{fontSize:13,color:"#aaa",textAlign:"center",padding:"8px 0"}}>아직 학습 기록이 없어요. 지금 시작해볼까요? 😊</div>}
               </div>
@@ -16990,15 +17055,12 @@ export default function App() {
         <div style={{width:"100%",maxWidth:340,background:"white",borderRadius:18,padding:"18px 16px",marginBottom:20,boxShadow:"0 4px 20px rgba(156,111,222,.12)",border:"2px solid #9C6FDE22"}}>
           <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:12,textAlign:"center"}}>📚 한글 친구 80시간 커리큘럼</div>
           {[
-            {emoji:"🔤",step:"1단계",label:"발음 8단계",time:"13시간",color:"#9C6FDE"},
-            {emoji:"⏱️",step:"2단계",label:"시제 6단원",time:"10시간",color:"#E65100"},
-            {emoji:"🔗",step:"3단계",label:"조사 · 대명사",time:"3시간",color:"#7B61FF"},
-            {emoji:"📝",step:"4단계",label:"서술어 25단원",time:"33시간",color:"#00C896"},
-            {emoji:"📖",step:"5단계",label:"부사어 · 기타 표현",time:"10시간",color:"#FF6B9D"},
-            {emoji:"🏆",step:"6단계",label:"통합 실전 훈련 4회",time:"15시간",color:"#F5A623"},
-            {emoji:"🎓",step:"7단계",label:"마무리 · 수료",time:"6시간",color:"#4ECDC4"},
+            {emoji:"🔤",step:"1단계",label:"발음 8단계",time:"8시간",color:"#9C6FDE"},
+            {emoji:"⏱️",step:"2단계",label:"시제 6단원",time:"6시간",color:"#E65100"},
+            {emoji:"🔗",step:"3단계",label:"조사 · 대명사",time:"5시간",color:"#7B61FF"},
+            {emoji:"📐",step:"4단계",label:"문장구조 · 의문대명사",time:"1시간",color:"#0288D1"},
           ].map((s,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:i<6?"1px solid #f0f0f0":"none"}}>
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:"1px solid #f0f0f0"}}>
               <span style={{fontSize:18,flexShrink:0}}>{s.emoji}</span>
               <div style={{flex:1}}>
                 <span style={{fontSize:11,color:"#bbb",fontWeight:700}}>{s.step} </span>
@@ -17007,6 +17069,48 @@ export default function App() {
               <span style={{fontSize:11,fontWeight:800,color:s.color,background:s.color+"18",borderRadius:8,padding:"2px 8px"}}>{s.time}</span>
             </div>
           ))}
+          {/* 5단계: 기초문법 접이식 블록 */}
+          {(()=>{
+            const [open, setOpen] = React.useState(false);
+            return (
+              <div style={{borderBottom:"1px solid #f0f0f0"}}>
+                <div onClick={e=>{e.stopPropagation();setOpen(o=>!o)}}
+                  style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",cursor:"pointer"}}>
+                  <span style={{fontSize:18,flexShrink:0}}>📝</span>
+                  <div style={{flex:1}}>
+                    <span style={{fontSize:11,color:"#bbb",fontWeight:700}}>5단계 </span>
+                    <span style={{fontSize:13,fontWeight:700,color:"#333"}}>기초문법</span>
+                    <span style={{fontSize:11,color:"#aaa",marginLeft:4}}>{open?"▲":"▼"}</span>
+                  </div>
+                  <span style={{fontSize:11,fontWeight:800,color:"#00C896",background:"#00C89618",borderRadius:8,padding:"2px 8px"}}>59시간</span>
+                </div>
+                {open&&(
+                  <div style={{paddingLeft:28,paddingBottom:8}}>
+                    {[
+                      {label:"서술어 25단원",time:"38시간",color:"#00C896"},
+                      {label:"부사어",time:"13시간",color:"#4CAF50"},
+                      {label:"관형어·간접화법·존칭·비교/최상급·기타",time:"8시간",color:"#8BC34A"},
+                    ].map((s,i)=>(
+                      <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"5px 0",borderBottom:i<2?"1px dashed #f5f5f5":"none"}}>
+                        <span style={{fontSize:11,color:"#bbb"}}>└</span>
+                        <span style={{fontSize:12,color:"#555",flex:1}}>{s.label}</span>
+                        <span style={{fontSize:11,fontWeight:700,color:s.color}}>{s.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+          {/* 6단계: 기타 */}
+          <div style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:"1px solid #f0f0f0"}}>
+            <span style={{fontSize:18,flexShrink:0}}>🔢</span>
+            <div style={{flex:1}}>
+              <span style={{fontSize:11,color:"#bbb",fontWeight:700}}>6단계 </span>
+              <span style={{fontSize:13,fontWeight:700,color:"#333"}}>숫자·부정법·격식체·기초문법 정리</span>
+            </div>
+            <span style={{fontSize:11,fontWeight:800,color:"#FF6B9D",background:"#FF6B9D18",borderRadius:8,padding:"2px 8px"}}>1시간</span>
+          </div>
           <div style={{textAlign:"center",marginTop:12,fontSize:12,color:"#aaa"}}>총 80시간 = 새로운 세상! 🌏</div>
           <button onClick={e=>{e.stopPropagation();setShowCurricPreview(false);}}
             style={{width:"100%",marginTop:10,background:"none",border:"1px solid #eee",borderRadius:20,padding:"7px 0",fontSize:12,color:"#bbb",cursor:"pointer"}}>
@@ -17142,14 +17246,26 @@ export default function App() {
           try { return JSON.parse(localStorage.getItem(`hc_units_${user.uid}`) || "[]"); } catch{ return []; }
         })();
         const savedStep = localStorage.getItem(`hc_step_${user.uid}`) || "";
-        const TOTAL_STEPS = [
-          {key:"pronunciation", label:"발음 8단계", total:8},
-          {key:"josa",          label:"조사·대명사", total:1},
-          ...Array.from({length:25},(_,i)=>({key:`unit${i+1}`, label:`서술어 ${i+1}단원`, total:1})),
-        ];
         const passedCount = unitsPassed.length;
         const totalUnits = 25;
         const pct = Math.round((passedCount/totalUnits)*100);
+        // ✅ V265: 80시간 기준
+        const stepHourMap2 = {
+          lang:0, curriculum:0, plan:0,
+          pronunciation:2, pronTest:7, pronResult:8,
+          tense1:8, tense2:9, tense3:10, tense4:11, tense5:12, tense6:13, tenseTest:14,
+          josa:15, testJosa:19, qpron:19, sentenceStructure:20,
+        };
+        const getElapsed2 = (step, passed) => {
+          if (stepHourMap2[step] !== undefined) return stepHourMap2[step];
+          if (step && step.startsWith("unit")) {
+            const n = parseInt(step.replace("unit","")) || 0;
+            return 20 + Math.round((Math.min(n, 25) / 25) * 59);
+          }
+          return 20 + Math.round((passed / 25) * 59);
+        };
+        const elapsedH2 = getElapsed2(savedStep, passedCount);
+        const pctH2 = Math.min(Math.round((elapsedH2 / 80) * 100), 100);
 
         // 현재 위치 라벨
         const stepLabels = {
@@ -17185,16 +17301,27 @@ export default function App() {
               {/* 배너 1: 학습 진행률 */}
               <div style={{background:"white",border:"2px solid #9C6FDE22",borderRadius:16,padding:"16px",marginBottom:12,boxShadow:"0 2px 12px rgba(156,111,222,.08)"}}>
                 <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:10}}>📊 나의 학습 진행률</div>
-                {level==="beg" ? <>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                    <span style={{fontSize:12,color:"#555"}}>서술어 단원 완료</span>
-                    <span style={{fontSize:13,fontWeight:900,color:"#9C6FDE"}}>{passedCount} / {totalUnits}단원</span>
+                {level==="beg" && elapsedH2 > 0 ? <>
+                  <div style={{marginBottom:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                      <span style={{fontSize:11,color:"#555",fontWeight:700}}>전체 80시간 기준</span>
+                      <span style={{fontSize:12,fontWeight:900,color:"#9C6FDE"}}>{elapsedH2}h / 80h</span>
+                    </div>
+                    <div style={{background:"#f0f0f0",borderRadius:50,height:10,overflow:"hidden",marginBottom:2}}>
+                      <div style={{width:`${pctH2}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50,transition:"width .5s"}}/>
+                    </div>
+                    <div style={{fontSize:11,color:"#bbb",textAlign:"right"}}>{pctH2}% 완료</div>
                   </div>
-                  <div style={{background:"#f0f0f0",borderRadius:50,height:10,overflow:"hidden",marginBottom:8}}>
-                    <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50,transition:"width .5s"}}/>
-                  </div>
-                  <div style={{fontSize:11,color:"#bbb",textAlign:"right"}}>{pct}% 완료</div>
-                  <div style={{fontSize:12,color:"#666",marginTop:8,padding:"8px 12px",background:"#f8f8f8",borderRadius:10}}>
+                  {passedCount > 0 && <div style={{marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                      <span style={{fontSize:11,color:"#888"}}>서술어 단원</span>
+                      <span style={{fontSize:11,fontWeight:700,color:"#00C896"}}>{passedCount} / 25단원</span>
+                    </div>
+                    <div style={{background:"#f0f0f0",borderRadius:50,height:6,overflow:"hidden"}}>
+                      <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#00C896,#4CAF50)",borderRadius:50}}/>
+                    </div>
+                  </div>}
+                  <div style={{fontSize:12,color:"#666",padding:"8px 12px",background:"#f8f8f8",borderRadius:10}}>
                     {currentLabel}
                   </div>
                 </> : <div style={{fontSize:13,color:"#888",textAlign:"center",padding:"12px 0"}}>초급 커리큘럼 진행 시 표시됩니다</div>}
