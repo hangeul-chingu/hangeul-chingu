@@ -16797,10 +16797,87 @@ export default function App() {
   // ✅ V126: beg는 탭 화면으로 진입 (BegScreen은 프리토킹 탭 안에서 제공)
 
   if (!level) return (
-    <div onClick={unlock} style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"32px 24px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div onClick={unlock} style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"32px 24px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",position:"relative"}}>
 
       {/* TOPIK2 분기 팝업 */}
       {showTopik2Choice&&<Topik2ChoiceModal/>}
+
+      {/* ✅ V263: 오른쪽 상단 프로필 버튼 */}
+      <button onClick={e=>{e.stopPropagation();setShowMyPage(true);}}
+        style={{position:"fixed",top:16,right:16,zIndex:100,width:42,height:42,borderRadius:"50%",background:"white",border:"2px solid #9C6FDE44",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 2px 12px rgba(156,111,222,.2)",WebkitTapHighlightColor:"transparent"}}>
+        👤
+      </button>
+
+      {/* ✅ V263: 마이페이지 모달 (레벨 선택 화면용) */}
+      {showMyPage&&(()=>{
+        const unitsPassed = (() => {
+          try { return JSON.parse(localStorage.getItem(`hc_units_${user.uid}`) || "[]"); } catch{ return []; }
+        })();
+        const savedStep = localStorage.getItem(`hc_step_${user.uid}`) || "";
+        const passedCount = unitsPassed.length;
+        const totalUnits = 25;
+        const pct = Math.round((passedCount/totalUnits)*100);
+        const stepLabels = {
+          pronunciation:"발음 학습 중", pronTest:"발음 테스트 중", pronResult:"발음 결과 확인",
+          josa:"조사·대명사 학습 중", testJosa:"조사 테스트 중", learn:"학습 완료 (자유 탭)",
+        };
+        const currentLabel = stepLabels[savedStep] || (savedStep.startsWith("unit") ? `서술어 ${savedStep.replace("unit","")}단원 학습 중` : savedStep ? `${savedStep} 진행 중` : "아직 시작 전");
+        return (
+          <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
+            onClick={()=>setShowMyPage(false)}>
+            <div style={{background:"white",borderRadius:"24px 24px 0 0",padding:"28px 24px 40px",width:"100%",maxWidth:480,boxShadow:"0 -8px 40px rgba(0,0,0,.2)"}}
+              onClick={e=>e.stopPropagation()}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
+                <div style={{fontSize:16,fontWeight:900,color:"#333"}}>👤 마이페이지</div>
+                <button onClick={()=>setShowMyPage(false)} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#bbb"}}>✕</button>
+              </div>
+              {/* 프로필 카드 */}
+              <div style={{display:"flex",alignItems:"center",gap:14,background:"#F3EEFF",borderRadius:16,padding:"14px 16px",marginBottom:16}}>
+                <div style={{width:48,height:48,borderRadius:"50%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,color:"white",fontWeight:900,flexShrink:0}}>
+                  {(user.displayName||user.email||"?")[0].toUpperCase()}
+                </div>
+                <div>
+                  <div style={{fontSize:15,fontWeight:900,color:"#333"}}>{user.displayName||"학습자"}</div>
+                  <div style={{fontSize:12,color:"#888"}}>{user.email}</div>
+                  <div style={{fontSize:11,color:"#9C6FDE",fontWeight:700,marginTop:2}}>레벨 미선택</div>
+                </div>
+              </div>
+              {/* 배너 1: 학습 진행률 */}
+              <div style={{background:"white",border:"2px solid #9C6FDE22",borderRadius:16,padding:"16px",marginBottom:12,boxShadow:"0 2px 12px rgba(156,111,222,.08)"}}>
+                <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:10}}>📊 나의 학습 진행률</div>
+                {passedCount > 0 ? <>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                    <span style={{fontSize:12,color:"#555"}}>서술어 단원 완료</span>
+                    <span style={{fontSize:13,fontWeight:900,color:"#9C6FDE"}}>{passedCount} / {totalUnits}단원</span>
+                  </div>
+                  <div style={{background:"#f0f0f0",borderRadius:50,height:10,overflow:"hidden",marginBottom:8}}>
+                    <div style={{width:`${pct}%`,height:"100%",background:"linear-gradient(90deg,#9C6FDE,#C084FC)",borderRadius:50}}/>
+                  </div>
+                  <div style={{fontSize:11,color:"#bbb",textAlign:"right"}}>{pct}% 완료</div>
+                  <div style={{fontSize:12,color:"#666",marginTop:8,padding:"8px 12px",background:"#f8f8f8",borderRadius:10}}>📍 {currentLabel}</div>
+                </> : <div style={{fontSize:13,color:"#aaa",textAlign:"center",padding:"8px 0"}}>아직 학습 기록이 없어요. 지금 시작해볼까요? 😊</div>}
+              </div>
+              {/* 배너 2: 이어서 학습하기 */}
+              <div style={{background:"white",border:"2px solid #00C89622",borderRadius:16,padding:"16px",marginBottom:16,boxShadow:"0 2px 12px rgba(0,200,150,.08)"}}>
+                <div style={{fontSize:13,fontWeight:900,color:"#00C896",marginBottom:10}}>▶️ 이어서 학습하기</div>
+                {savedStep ? <>
+                  <div style={{fontSize:13,color:"#333",marginBottom:12,lineHeight:1.6}}>
+                    마지막 학습 위치:<br/>
+                    <strong style={{color:"#9C6FDE"}}>📍 {currentLabel}</strong>
+                  </div>
+                  <button onClick={()=>{setShowMyPage(false);setLevel("beg");}}
+                    style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A878)",color:"white",border:"none",borderRadius:50,padding:"11px 0",fontSize:14,fontWeight:900,cursor:"pointer"}}>
+                    이어서 학습하기 →
+                  </button>
+                </> : <div style={{fontSize:13,color:"#aaa",textAlign:"center",padding:"8px 0"}}>초급 학습을 시작하면 여기서 이어할 수 있어요</div>}
+              </div>
+              <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
+                🚪 로그아웃
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       <div style={{fontSize:52,marginBottom:12,marginTop:16}}>🇰🇷</div>
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
