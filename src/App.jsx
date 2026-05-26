@@ -1641,6 +1641,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLear
       <div style={{position:"fixed", bottom:16, right:16, zIndex:9999,
         background:"#1A1A2E", borderRadius:16, padding:"10px 14px",
         boxShadow:"0 4px 20px rgba(0,0,0,.5)", maxWidth:320, maxHeight:"60vh", overflowY:"auto"}}>
+      {MyPageBtn}
         <div style={{fontSize:10, color:"#FF6B6B", fontWeight:800, marginBottom:8, letterSpacing:1}}>
           🔧 DEV ONLY
         </div>
@@ -2031,6 +2032,7 @@ ${vocabList}
 
         {/* 완료 뱃지 */}
         <div style={{fontSize:56,marginBottom:8}}>🎉</div>
+      {MyPageBtn}
         <div style={{fontSize:20,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
           {completedLabel} {vi?"hoàn thành!":en?"Complete!":"완료!"}
         </div>
@@ -2129,6 +2131,7 @@ ${vocabList}
     return (
       <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:12}}>📚</div>
+      {MyPageBtn}
         <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
           {vi?"80 giờ của bạn!":en?"Your 80 Hours!":"나의 80시간 커리큘럼"}
           <span style={{fontSize:12,fontWeight:700,color:"white",background:"#9C6FDE",borderRadius:20,padding:"2px 10px",marginLeft:8,verticalAlign:"middle"}}>
@@ -2177,6 +2180,7 @@ ${vocabList}
     return (
       <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:16}}>🎯</div>
+      {MyPageBtn}
         <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>나만의 학습 계획</div>
         <div style={{fontSize:13,color:"#aaa",marginBottom:24,textAlign:"center"}}>
           {lang?.code==="vi"?"Hãy đặt kế hoạch học của bạn!":lang?.code==="en"?"Set your learning plan!":"한글 친구와 함께 목표일을 정해요!"}
@@ -2255,6 +2259,7 @@ ${vocabList}
           return (
             <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
               <div style={{background:"white",borderRadius:20,padding:"28px 24px",maxWidth:360,width:"100%",boxShadow:"0 8px 40px rgba(0,0,0,0.2)"}}>
+      {MyPageBtn}
                 <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>{isWork?"🏗️":"💬"}</div>
                 <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",textAlign:"center",marginBottom:16}}>{title}</div>
                 <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:10}}>{msg1}</div>
@@ -2363,6 +2368,7 @@ ${vocabList}
     return (
       <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:36,marginBottom:8}}>🔤</div>
+      {MyPageBtn}
         <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
           {vi?"Mục lục Phát âm":en?"Pronunciation Contents":"발음 학습 목차"}
         </div>
@@ -4092,6 +4098,7 @@ ${vocabList}
     return (
       <div style={{minHeight:"100vh", background:`linear-gradient(150deg,${C.bg},#F3EEFF)`, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 20px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         {/* 헤더 */}
         <div style={{fontSize:32, marginBottom:4}}>{current.emoji}</div>
         <div style={{fontSize:17, fontWeight:900, color:"#9C6FDE", marginBottom:2, textAlign:"center"}}>
@@ -4355,6 +4362,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3EEFF,#E8E0FF)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{width:"100%", maxWidth:380}}>
+      {MyPageBtn}
           {/* 헤더 */}
           <div style={{fontSize:13, color:"#9C6FDE", fontWeight:700, marginBottom:4}}>
             🎤 {vi?"Kiểm tra phát âm":en?"Pronunciation Test":"발음 테스트"} ({pronTestIdx+1}/{pronTestItems.length})
@@ -4460,6 +4468,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background: passed?"linear-gradient(150deg,#E8F8F2,#D0F0E4)":"linear-gradient(150deg,#FFF0F0,#FFE0E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{width:"100%", maxWidth:380}}>
+      {MyPageBtn}
           <div style={{textAlign:"center", marginBottom:24}}>
             <div style={{fontSize:56}}>{passed?"🎉":"💪"}</div>
             <div style={{fontSize:22, fontWeight:900, color: passed?"#00A876":"#E64A00", marginBottom:4}}>
@@ -4647,6 +4656,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               background:"transparent", cursor: tenseRevealed?"default":"text"}}
             placeholder="..."
           />
+      {MyPageBtn}
           {tenseRevealed && status==="wrong" && (
             <div style={{fontSize:11, color:"#2E7D32", fontWeight:900, textAlign:"center", marginTop:2}}>
               → {card[key]}
@@ -4665,6 +4675,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
 
           {/* 헤더 */}
@@ -4933,6 +4944,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               background:"transparent", cursor: tenseRevealed?"default":"text"}}
             placeholder="..."
           />
+      {MyPageBtn}
           {tenseRevealed && status==="wrong" && (
             <div style={{fontSize:11, color:"#2E7D32", fontWeight:900, textAlign:"center", marginTop:2}}>
               → {card[key]}
@@ -4945,6 +4957,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
 
           <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
@@ -5113,6 +5126,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
 
         <div style={{width:"100%", maxWidth:420}}>
           {/* 헤더 */}
@@ -5177,6 +5191,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                         boxShadow: isSel?"0 2px 10px #E6510044":"none",
                         display:"flex", flexDirection:"column", alignItems:"center", gap:2
                       }}>
+      {MyPageBtn}
                       {isDone ? "✅" : isUnlocked ? v.word : "🔒"}
                       <div style={{fontSize:9, opacity:0.7}}>
                         {isDone ? v.word : isUnlocked ? (v.hasBatchim?(vi?"batchim":en?"batchim":"받침 있"):(vi?"không":en?"none":"받침 없")) : ""}
@@ -5372,6 +5387,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FFE0B2)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:22, fontWeight:900, color:"#E65100", marginBottom:4}}>
@@ -5603,6 +5619,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               background:"transparent", cursor: tenseRevealed?"default":"text"}}
             placeholder="..."
           />
+      {MyPageBtn}
           {tenseRevealed && status==="wrong" && (
             <div style={{fontSize:11, color:"#2E7D32", fontWeight:900, textAlign:"center", marginTop:2}}>
               → {card[key]}
@@ -5615,6 +5632,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
 
           <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
@@ -5843,6 +5861,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               color: !tenseRevealed?"#333":status==="correct"?"#2E7D32":"#C62828",
               background:"transparent", cursor:tenseRevealed?"default":"text"}}
             placeholder="..." />
+      {MyPageBtn}
           {tenseRevealed && status==="wrong" && (
             <div style={{fontSize:11, color:"#2E7D32", fontWeight:900, textAlign:"center", marginTop:2}}>→ {card[key]}</div>
           )}
@@ -5853,6 +5872,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
             📚 {vi?"시제 4단원 — ㄷ불규칙 + 르불규칙 + 으탈락 동사":en?"Tense Unit 4 — ㄷ/르 irregular + 으-drop":"시제 4단원 — ㄷ불규칙 + 르불규칙 + 으탈락 동사"}
@@ -6053,6 +6073,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               color: !tenseRevealed?"#333":status==="correct"?"#2E7D32":"#C62828",
               background:"transparent", cursor:tenseRevealed?"default":"text"}}
             placeholder="..." />
+      {MyPageBtn}
           {tenseRevealed && status==="wrong" && (
             <div style={{fontSize:11, color:"#2E7D32", fontWeight:900, textAlign:"center", marginTop:2}}>→ {card[key]}</div>
           )}
@@ -6063,6 +6084,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
             📚 {vi?"시제 5단원 — 규칙 동사 보강 (받침 있음·없음)":en?"Tense Unit 5 — Regular Verbs (with/without batchim)":"시제 5단원 — 규칙 동사 보강 (받침 있음·없음)"}
@@ -6299,6 +6321,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               color: !tenseRevealed?"#333":status==="correct"?"#2E7D32":"#C62828",
               background:"transparent", cursor:tenseRevealed?"default":"text"}}
             placeholder="..." />
+      {MyPageBtn}
           {tenseRevealed && status==="wrong" && (
             <div style={{fontSize:11, color:"#2E7D32", fontWeight:900, textAlign:"center", marginTop:2}}>→ {card[key]}</div>
           )}
@@ -6309,6 +6332,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
             📚 {vi?"시제 6단원 — 하다 동사":en?"Tense Unit 6 — 하다 Verbs":"시제 6단원 — 하다 동사"}
@@ -6535,6 +6559,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:14, fontWeight:900, color:C.accent, marginBottom:2}}>
             🏆 {vi?"Kiểm tra tổng hợp Thì (Tense 1~6)":en?"Tense Final Test (Units 1~6)":"시제 총합 테스트 (1~6단원)"}
@@ -6675,6 +6700,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       return (
         <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",padding:"24px 16px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <DevJumpPanel />
+      {MyPageBtn}
           <div style={{width:"100%",maxWidth:400}}>
             <div style={{textAlign:"center",marginBottom:20}}>
               <div style={{fontSize:48}}>{passed?"🎉":"😊"}</div>
@@ -6744,6 +6770,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",padding:"24px 16px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%",maxWidth:400}}>
           <div style={{fontSize:14,fontWeight:900,color:"#E65100",marginBottom:2}}>
             📝 {vi?"Bài kiểm tra — Trợ từ & Đại từ":en?"Test — Particles & Pronouns":"조사·대명사 테스트"}
@@ -6857,6 +6884,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#E8F5E9,#F1F8E9)",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px 0"}}>
         <div style={{width:"100%",maxWidth:420,background:"white",borderRadius:20,padding:"28px 20px",boxShadow:"0 4px 24px #00000018"}}>
+      {MyPageBtn}
           <div style={{textAlign:"center",marginBottom:20}}>
             <div style={{fontSize:32}}>📐</div>
             <div style={{fontSize:19,fontWeight:900,color:"#1B5E20",marginBottom:6}}>
@@ -6987,6 +7015,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F0FFF4,#E8F5E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
 
           {/* 헤더 */}
@@ -7169,6 +7198,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       return (
         <div style={{minHeight:"100vh", background: testResult.passed?"linear-gradient(150deg,#E8F8F2,#D0F0E4)":"linear-gradient(150deg,#FFF0F0,#FFE0E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <div style={{width:"100%", maxWidth:400}}>
+      {MyPageBtn}
             <div style={{textAlign:"center", marginBottom:24}}>
               <div style={{fontSize:56}}>{testResult.passed?"🎉":"💪"}</div>
               <div style={{fontSize:22, fontWeight:900, color: testResult.passed?"#00A876":"#E64A00", marginBottom:4}}>
@@ -7227,6 +7257,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#E64A00", marginBottom:4}}>
             📝 {vi?"Bài kiểm tra — Tổng hợp (Bài 1)":en?"Test — Cumulative (Unit 1)":"누적 테스트 — 1단원"}
@@ -7355,6 +7386,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F0FFF4,#E8F5E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -7495,6 +7527,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       return (
         <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <DevJumpPanel />
+      {MyPageBtn}
           <div style={{width:"100%", maxWidth:400}}>
             <div style={{textAlign:"center", marginBottom:20}}>
               <div style={{fontSize:40}}>{testResult.passed?"🎉":"💪"}</div>
@@ -7541,6 +7574,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#E64A00", marginBottom:4}}>
             📝 {vi?"Bài kiểm tra — Tổng hợp (Bài 1+2)":en?"Test — Cumulative (Unit 1+2)":"누적 테스트 — 1·2A·2B단원"}
@@ -7640,6 +7674,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#EDE7F6)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -7746,6 +7781,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8EAF6,#C5CAE9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -7889,6 +7925,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       return (
         <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <DevJumpPanel />
+      {MyPageBtn}
           <div style={{width:"100%", maxWidth:400}}>
             <div style={{textAlign:"center", marginBottom:20}}>
               <div style={{fontSize:40}}>{testResult.passed?"🎉":"💪"}</div>
@@ -7933,6 +7970,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#E64A00", marginBottom:4}}>
             📝 {vi?"Bài kiểm tra — Tổng hợp (Bài 1·2·3)":en?"Test — Cumulative (Unit 1·2·3)":"누적 테스트 — 1·2A·2B·3A·3B단원"}
@@ -8099,6 +8137,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8F5E9,#C8E6C9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -8245,6 +8284,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FFCC80)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -8380,6 +8420,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       return (
         <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <DevJumpPanel />
+      {MyPageBtn}
           <div style={{width:"100%", maxWidth:400}}>
             <div style={{textAlign:"center", marginBottom:20}}>
               <div style={{fontSize:40}}>{testResult.passed?"🎉":"💪"}</div>
@@ -8424,6 +8465,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#E64A00", marginBottom:4}}>
             📝 누적 테스트 — 1·2A·2B·3A·3B·4·5단원
@@ -8522,6 +8564,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8E1,#FFE082)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -8648,6 +8691,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#CE93D8)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -8789,6 +8833,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E0F7FA,#80DEEA)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -8907,6 +8952,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F1F8E9,#AED581)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -9054,6 +9100,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FFAB40)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -9187,6 +9234,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#E1BEE7)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#6A1B9A", marginBottom:4}}>📝 누적 테스트 — 1~9단원</div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 이다~능력가능 (10문제)</div>
@@ -9267,6 +9315,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FCE4EC,#F48FB1)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -9381,6 +9430,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#BA68C8)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -9534,6 +9584,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#ECEFF1,#90A4AE)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -9669,6 +9720,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFEBEE,#FFCDD2)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#B71C1C", marginBottom:4}}>📝 누적 테스트 — 1~12단원</div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 이다~부정 (10문제)</div>
@@ -9800,6 +9852,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C13.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C13.accent, fontWeight:700, marginBottom:4}}>
@@ -9926,6 +9979,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E0F7FA,#B2EBF2)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#00838F", marginBottom:4}}>📝 누적 테스트 — 1~13단원</div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 이다~허락·금지·의무·면제 (10문제)</div>
@@ -9991,6 +10045,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C14.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C14.accent, fontWeight:700, marginBottom:4}}>
@@ -10097,6 +10152,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C15.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C15.accent, fontWeight:700, marginBottom:4}}>
@@ -10222,6 +10278,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C16.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C16.accent, fontWeight:700, marginBottom:4}}>
@@ -10325,6 +10382,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C17.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C17.accent, fontWeight:700, marginBottom:4}}>
@@ -10426,6 +10484,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C18.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C18.accent, fontWeight:700, marginBottom:4}}>
@@ -10523,6 +10582,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C19.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C19.accent, fontWeight:700, marginBottom:4}}>
@@ -10626,6 +10686,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C20.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C20.accent, fontWeight:700, marginBottom:4}}>
@@ -10727,6 +10788,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C21.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C21.accent, fontWeight:700, marginBottom:4}}>
@@ -10838,6 +10900,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C22.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C22.accent, fontWeight:700, marginBottom:4}}>
@@ -10945,6 +11008,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C23.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C23.accent, fontWeight:700, marginBottom:4}}>
@@ -11048,6 +11112,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C24.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C24.accent, fontWeight:700, marginBottom:4}}>
@@ -11174,6 +11239,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C25.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C25.accent, fontWeight:700, marginBottom:4}}>
@@ -11448,6 +11514,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_ADV1.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Trạng ngữ 1 — Thời gian":en?"Adverb 1 — Time":"부사어 1단원 — 시간"}
@@ -11630,6 +11697,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_ADV2.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Trạng ngữ 2 — Nguyên nhân":en?"Adverb 2 — Cause":"부사어 2단원 — 원인"}
@@ -11781,6 +11849,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_ADV3.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Trạng ngữ 3 — Mục đích":en?"Adverb 3 — Purpose":"부사어 3단원 — 목적"}
@@ -11884,6 +11953,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_ADV4.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Trạng ngữ 4 — Điều kiện":en?"Adverb 4 — Condition":"부사어 4단원 — 가정·조건"}
@@ -11984,6 +12054,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_ADV5.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Trạng ngữ 5 — Điều kiện bắt buộc":en?"Adverb 5 — Necessary Condition":"부사어 5단원 — 필수조건"}
@@ -12084,6 +12155,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_ADV6.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Trạng ngữ 6 — Nhượng bộ":en?"Adverb 6 — Concession":"부사어 6단원 — 양보"}
@@ -12182,6 +12254,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_ADV7.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Trạng ngữ 7 — Bối cảnh/Tình huống":en?"Adverb 7 — Background/Context":"부사어 7단원 — 배경·상황"}
@@ -12312,6 +12385,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_REL.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Định ngữ — 관형어":en?"Modifier — 관형어":"관형어 — 명사 꾸미기"}
@@ -12466,6 +12540,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_IND.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Gián tiếp hóa pháp":en?"Indirect Speech":"간접화법"}
@@ -12588,6 +12663,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_HON.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Kính ngữ":en?"Honorifics":"존칭 표현"}
@@ -12770,6 +12846,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_IRR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Động từ/Tính từ bất quy tắc":en?"Irregular Verbs/Adjectives":"동사·형용사 불규칙"}
@@ -12915,6 +12992,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_CTR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {conceptLabel}
@@ -13040,6 +13118,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_FREQ.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {conceptLabel}
@@ -13175,6 +13254,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_MAN.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"만 / 밖에 — Giới hạn":en?"만 / 밖에 — Limitation":"만 / 밖에 — 한정 표현"}
@@ -13294,6 +13374,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_CHG.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Biểu thức thay đổi trạng thái":en?"State Change Expressions":"상태 변화 표현"}
@@ -13403,6 +13484,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_MNR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Biểu thức cách thức":en?"Manner Expressions":"방식 표현"}
@@ -13519,6 +13601,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_EMO.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Động từ cảm xúc":en?"Emotion Verbs":"감정 동사"}
@@ -13644,6 +13727,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_NOUN.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Danh từ hóa":en?"Nominalization":"명사형 전환"}
@@ -13749,6 +13833,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_APX.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Biểu thức xấp xỉ":en?"Approximation Expressions":"대략 표현"}
@@ -13876,6 +13961,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_CMP.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Biểu thức so sánh":en?"Comparison Expressions":"비교 표현"}
@@ -14012,6 +14098,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:C_NUM.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Biểu thức số đếm":en?"Number Expressions":"숫자 표현"}
@@ -14146,6 +14233,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FBE9E7)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Phủ định":en?"Negation":"부정법"}
@@ -14285,6 +14373,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8EAF6,#E0F2F1)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
             {vi?"Văn phong":en?"Speech Styles":"격식체·구어체·문어체"}
@@ -14389,6 +14478,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#ECEFF1,#E8EAF6)", display:"flex", flexDirection:"column", alignItems:"center", padding:"20px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
+      {MyPageBtn}
         <div style={{width:"100%", maxWidth:480}}>
 
           {/* 헤더 */}
@@ -14521,6 +14611,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
       {/* 헤더 */}
       <div style={{background:`linear-gradient(100deg,#9C6FDE,#C3B1E1)`,padding:"14px 16px",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+      {MyPageBtn}
         <div style={{fontSize:24}}>🌸</div>
         <div style={{flex:1}}>
           <div style={{fontSize:15,fontWeight:900,color:"white"}}>한글 친구 · 마중</div>
@@ -14542,6 +14633,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         return (
           <div style={{background:"white",padding:"10px 16px",borderBottom:"1px solid #f0eaff",flexShrink:0}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+      {MyPageBtn}
               <div style={{fontSize:11,color:"#9C6FDE",fontWeight:800}}>🎯 {goalLabel}</div>
               <div style={{fontSize:11,color:"#aaa",flex:1}}>D-{dLeft} · {pct}%</div>
               <button onClick={()=>setShowResetModal(true)}
