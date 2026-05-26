@@ -15401,6 +15401,35 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
     return {type:"quiz", question:`✨ 잠깐 연습해요!\n${q.q}`, answer:q.answer, options:[...q.opts].sort(()=>Math.random()-0.5), selected:null};
   }
 
+  // ✅ V271: 자동 TTS — toggle 없이 단순 재생 (마중이 답변 자동 읽기)
+  function speakAuto(text, charKey = "default") {
+    const s = window.speechSynthesis;
+    if (!s) return;
+    s.cancel();
+    const tts = cleanTTS((text || "").replace(/같이/g,"가치").replace(/굳이/g,"구지"));
+    if (!tts) return;
+    const doSpeak = () => {
+      const profile = TTS_PROFILES[charKey] || TTS_PROFILES.default;
+      const u = new SpeechSynthesisUtterance(tts);
+      u.lang  = "ko-KR";
+      u.rate  = profile.rate;
+      u.pitch = profile.pitch;
+      u.volume = profile.volume;
+      const vs = s.getVoices().filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
+      if (charKey === "jake")        u.voice = vs.find(v=>/male|남성|hyun|jun|min/i.test(v.name)) || vs[0];
+      else if (charKey === "miso" || charKey === "haneul")
+                                     u.voice = vs.find(v=>/yuna|female|여성/i.test(v.name)) || vs[0];
+      else                           u.voice = vs[0] || null;
+      if (/android/i.test(navigator.userAgent)) {
+        const ka = setInterval(()=>{ if(!s.speaking){clearInterval(ka);return;} if(s.paused)s.resume(); },100);
+        setTimeout(()=>clearInterval(ka),60000);
+      }
+      s.speak(u);
+    };
+    if (s.getVoices().length > 0) doSpeak();
+    else { s.onvoiceschanged = ()=>{ s.onvoiceschanged=null; doSpeak(); }; setTimeout(doSpeak,1000); }
+  }
+
   async function sendMsg() {
     if (!input.trim() || loading) return;
     const txt = sanitize(input.trim());
@@ -15422,6 +15451,8 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
     setTurnCount(nextTurn);
     if (!recorded && uid) { recordStat(uid,"speak"); setRecorded(true); }
     setLoading(false);
+    // ✅ V271: 마중이 답변 자동 TTS (speakAuto — toggle 없이 단순 재생)
+    speakAuto(reply, character || "default");
   }
 
   function getInitMsg(ch, mot) {
@@ -15449,6 +15480,8 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
     const showImage = ch.key === 'jake' || ch.key === 'jake_vietnam';
     setChatUI([{role:'assistant', text:msg, image:showImage}]);
     setApiMsgs([{role:'assistant', content:msg}]);
+    // ✅ V271: 첫 인사말 자동 TTS
+    setTimeout(() => speakAuto(msg, ch.key), 400);
   }
 
   // ✅ V140: 초급 처리
