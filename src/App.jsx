@@ -1510,6 +1510,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLear
   // ✅ V154: 조사 STT state
   const [josaListeningKey, setJosaListeningKey] = useState(null);
   const [josaSTTMap, setJosaSTTMap] = useState({});
+  const [tenseListeningId, setTenseListeningId] = useState(null); // ✅ V274: 시제 테스트 STT
   const [unitsPassed, setUnitsPassed] = useState(() => {
     // Firestore에서 불러오기 (초기값은 localStorage 캐시 사용)
     try { return JSON.parse(localStorage.getItem(`hc_units_${user?.uid}`) || "[]"); }
@@ -6602,15 +6603,40 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                   <div style={{fontSize:14, fontWeight:900, color:isQ?"#E65100":"#555", lineHeight:1}}>{isQ ? "?" : "."}</div>
                 </div>
                 <div>
-                  <input type="text"
-                    value={tenseTestAnswers[q.id]||""}
-                    onChange={e => setTenseTestAnswers(prev=>({...prev,[q.id]:e.target.value}))}
-                    onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
-                    readOnly={!!tenseTestResult}
-                    placeholder="..."
-                    style={{width:"100%", border:`2px solid ${tenseTestResult?(isCorrect?"#2E7D32":"#C62828"):"#A5D6A7"}`, borderRadius:8, padding:"7px 6px", fontSize:12, fontWeight:700, textAlign:"center", outline:"none", boxSizing:"border-box",
-                      color: tenseTestResult?(isCorrect?"#2E7D32":"#C62828"):"#333", background:"white"}}
-                  />
+                  {/* ✅ V274: 입력 + STT 버튼 */}
+                  <div style={{display:"flex",gap:3,alignItems:"center"}}>
+                    <input type="text"
+                      value={tenseTestAnswers[q.id]||""}
+                      onChange={e => setTenseTestAnswers(prev=>({...prev,[q.id]:e.target.value}))}
+                      onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
+                      readOnly={!!tenseTestResult}
+                      placeholder="..."
+                      style={{flex:1, border:`2px solid ${tenseTestResult?(isCorrect?"#2E7D32":"#C62828"):"#A5D6A7"}`, borderRadius:8, padding:"7px 4px", fontSize:12, fontWeight:700, textAlign:"center", outline:"none", boxSizing:"border-box",
+                        color: tenseTestResult?(isCorrect?"#2E7D32":"#C62828"):"#333", background:"white"}}
+                    />
+                    {!tenseTestResult && (
+                      <button onClick={()=>{
+                        if(tenseListeningId===q.id){setTenseListeningId(null);return;}
+                        const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+                        if(!SR){alert("음성 인식을 지원하지 않는 브라우저예요");return;}
+                        setTenseListeningId(q.id);
+                        const rec=new SR(); rec.lang="ko-KR"; rec.interimResults=false; rec.maxAlternatives=1;
+                        rec.onresult=e=>{
+                          const t=(e.results[0][0].transcript||"").trim();
+                          setTenseTestAnswers(prev=>({...prev,[q.id]:t}));
+                          setTenseListeningId(null);
+                        };
+                        rec.onerror=()=>setTenseListeningId(null);
+                        rec.onend=()=>setTenseListeningId(null);
+                        rec.start();
+                      }}
+                      style={{flexShrink:0,width:28,height:28,borderRadius:"50%",border:"none",
+                        background:tenseListeningId===q.id?"#E53935":"#A5D6A7",
+                        color:"white",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                        {tenseListeningId===q.id?"⏹":"🎤"}
+                      </button>
+                    )}
+                  </div>
                   {isWrong && q.hint && (
                     <div style={{fontSize:10, color:"#2E7D32", fontWeight:800, marginTop:2, textAlign:"center"}}>
                       → {q.answer} ({typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint})
