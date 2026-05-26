@@ -16177,8 +16177,47 @@ function TutorTab({level, uid}) {
   const [tutorLoad,  setTutorLoad]  = useState(false);
   const [recorded,   setRecorded]   = useState(false);
   const [tutorType, setTutorType] = useState(null);
+  const [grammarRule, setGrammarRule] = useState(null); // ✅ V272: 문법 규칙 선택
   const tutorEnd = useRef(null);
-  const BEG_SYS = "친절하고 쉬운 초급 한국어 코치 마중이. TOPIK 1~2급 학습자 대상. 문장은 짧고 쉽게. 한자어 금지. 칭찬 먼저. 교정은 1가지만. 이모지 적극 활용.";
+  // ✅ V272: 규칙별 정밀 시스템 프롬프트
+  const GRAMMAR_RULES = [
+    { key:"ayo",    emoji:"🗣️", label:"-아요/어요",      sub:"현재 시제 기본형",      color:"#9C6FDE", bg:"#F3EEFF",
+      rule:"동사/형용사 어간 + 아요(양성모음) / 어요(음성모음). 예: 먹다→먹어요, 가다→가요, 좋다→좋아요",
+      ex:["저는 밥을 ___.", "마리아 씨는 학교에 ___."],
+      hint:["먹어요","가요"] },
+    { key:"ieyo",   emoji:"🏷️", label:"-이에요/예요",    sub:"명사 서술 (N이에요/예요)", color:"#00BFA5", bg:"#E8FAF8",
+      rule:"명사 + 이에요(받침O) / 예요(받침X). 예: 학생이에요, 선생님이에요, 의사예요, 마중이예요",
+      ex:["저는 회사원___.", "이것은 책___."],
+      hint:["이에요","이에요"] },
+    { key:"past",   emoji:"⏮️", label:"-았어요/었어요",  sub:"과거 시제",             color:"#FF7043", bg:"#FFF3E0",
+      rule:"동사/형용사 어간 + 았어요(양성) / 었어요(음성). 예: 먹다→먹었어요, 가다→갔어요, 공부하다→공부했어요",
+      ex:["어제 투안 씨는 밥을 ___.", "지난주에 린 씨는 한국어를 ___."],
+      hint:["먹었어요","공부했어요"] },
+    { key:"future", emoji:"⏭️", label:"-(으)ㄹ 거예요", sub:"미래/계획 표현",          color:"#E91E8C", bg:"#FFF0F6",
+      rule:"동사 어간 + ㄹ 거예요(받침X·ㄹ받침) / 을 거예요(받침O). 예: 먹다→먹을 거예요, 가다→갈 거예요",
+      ex:["내일 민호 씨는 공부___.", "주말에 저는 영화를 ___."],
+      hint:["할 거예요","볼 거예요"] },
+    { key:"want",   emoji:"💛", label:"-고 싶어요",      sub:"희망/바람 표현",          color:"#F59E0B", bg:"#FFFBE8",
+      rule:"동사 어간 + 고 싶어요. 예: 먹고 싶어요, 가고 싶어요, 한국어를 잘하고 싶어요",
+      ex:["저는 한국 음식을 ___.", "하나 씨는 서울에 ___."],
+      hint:["먹고 싶어요","가고 싶어요"] },
+    { key:"josa",   emoji:"🔗", label:"은/는 vs 이/가",  sub:"주제·대조 vs 새 정보",   color:"#2563EB", bg:"#EBF3FF",
+      rule:"은/는: 주제·대조('저는 학생이에요' '사과는 빨개요'). 이/가: 새 정보·조건절('누가 왔어요?' '안이 왔어요')",
+      ex:["저___ 베트남 사람이에요.", "오늘 누구___ 왔어요?"],
+      hint:["는","가"] },
+    { key:"neg",    emoji:"🚫", label:"안 + 동사",       sub:"부정 표현",             color:"#DC2626", bg:"#FFF5F5",
+      rule:"안 + 동사/형용사. 예: 안 먹어요, 안 가요, 안 좋아요. 하다 동사: 공부 안 해요(안 공부해요 ❌)",
+      ex:["저는 고기를 ___ 먹어요.", "민호 씨는 오늘 학교에 ___ 가요."],
+      hint:["안","안"] },
+    { key:"loctime",emoji:"📍", label:"-에 vs -에서",    sub:"장소 조사 구별",          color:"#059669", bg:"#ECFDF5",
+      rule:"-에: 위치·존재·이동 목적지('학교에 가요' '집에 있어요'). -에서: 행위가 일어나는 장소('학교에서 공부해요')",
+      ex:["저는 도서관___ 공부해요.", "하나 씨는 집___ 있어요."],
+      hint:["에서","에"] },
+  ];
+  const BEG_SYS_BASE = "당신은 초급 한국어 코치 마중이. TOPIK 1~2급 학습자 대상. 규칙: ①문장 짧고 쉽게 ②한자어 금지 ③칭찬 먼저 ④교정은 1가지만 ⑤이모지 적극 활용. 합니다체(격식체) 기준으로 예문 제시.";
+  const BEG_SYS = grammarRule
+    ? BEG_SYS_BASE + " 오늘 연습할 문법: [" + grammarRule.label + "] " + grammarRule.rule + ". 학습자가 문장을 제출하면: ①잘한 점 먼저 칭찬 ②딱 1가지 교정 ③같은 패턴으로 새 빈칸 문장 1개 제시. 빈칸은 ___로 표시. 절대 주제 먼저 제시 금지 — 문장 연습만 집중."
+    : BEG_SYS_BASE;
   const sys = tutorType === 'adv'          ? PROMPTS.tutorAdv :
               tutorType === 'heritage'     ? PROMPTS.tutorHeritage :
               tutorType === 'survival'     ? PROMPTS.tutorSurvival :
@@ -16220,9 +16259,9 @@ function TutorTab({level, uid}) {
     const BEG_TUTOR_MODES = [
       {
         key:"grammar", emoji:"💬", label:"문법으로 문장 만들기",
-        sub:"오늘 배운 문법 표현을 연습해요",
+        sub:"핵심 규칙 카드로 바로 연습해요",
         color:"#9C6FDE", bg:"#F3EEFF",
-        msg:"안녕하세요! 😊 저는 마중이에요.\n오늘 배운 문법으로 문장 만들기 연습을 해볼게요!\n\n어떤 문법을 연습하고 싶어요? 예: -아요/어요, -고 싶어요, -이에요/예요 등\n모르면 '모르겠어요'라고 해도 괜찮아요 🌸",
+        msg:"grammar_menu",
       },
       {
         key:"vocab", emoji:"🔤", label:"모르는 단어 물어보기",
@@ -16253,6 +16292,12 @@ function TutorTab({level, uid}) {
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
           {BEG_TUTOR_MODES.map(m=>(
             <button key={m.key} onClick={()=>{
+              if (m.msg === "grammar_menu") {
+                setStarted(true);
+                setTutorType("beg_grammar");
+                // grammarRule 선택 화면으로 — UI/Msgs는 규칙 선택 후 설정
+                return;
+              }
               setStarted(true);
               setTutorType("beg_"+m.key);
               setTutorUI([{role:"assistant",text:m.msg}]);
@@ -16270,6 +16315,39 @@ function TutorTab({level, uid}) {
       </div>
     );
   }
+
+  // ✅ V272: 문법 규칙 선택 화면
+  if (tutorType === "beg_grammar" && !grammarRule) return (
+    <div style={{padding:"8px 0"}}>
+      <div style={{background:"white",borderRadius:18,padding:"16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:12,textAlign:"center"}}>
+        <div style={{fontSize:28,marginBottom:4}}>💬</div>
+        <div style={{fontSize:15,fontWeight:900,color:"#9C6FDE",marginBottom:2}}>어떤 규칙을 연습할까요?</div>
+        <div style={{fontSize:12,color:"#999"}}>규칙 카드를 탭하면 마중이와 바로 연습 시작!</div>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {GRAMMAR_RULES.map(r=>(
+          <button key={r.key} onClick={()=>{
+            setGrammarRule(r);
+            const initMsg = `안녕하세요! 😊 저는 마중이에요.\n\n오늘은 [${r.label}] 규칙을 연습해요!\n\n📌 핵심 규칙\n${r.rule}\n\n✏️ 빈칸을 채워보세요!\n① ${r.ex[0]}\n② ${r.ex[1]}\n\n틀려도 괜찮아요 — 함께 연습해요! 🌸`;
+            setTutorUI([{role:"assistant",text:initMsg}]);
+            setTutorMsgs([{role:"assistant",content:initMsg}]);
+          }}
+          style={{background:r.bg,border:`2px solid ${r.color}44`,borderRadius:14,padding:"12px 16px",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12,WebkitTapHighlightColor:"transparent"}}>
+            <span style={{fontSize:26,flexShrink:0}}>{r.emoji}</span>
+            <div style={{flex:1}}>
+              <div style={{fontSize:14,fontWeight:800,color:r.color}}>{r.label}</div>
+              <div style={{fontSize:11,color:"#888",marginTop:2}}>{r.sub}</div>
+            </div>
+            <span style={{color:r.color,fontSize:16,flexShrink:0}}>›</span>
+          </button>
+        ))}
+      </div>
+      <button onClick={()=>{setStarted(false);setTutorType(null);setGrammarRule(null);}}
+        style={{width:"100%",marginTop:12,background:"none",border:"2px solid #ddd",borderRadius:50,padding:"10px 0",fontSize:13,color:"#999",cursor:"pointer"}}>
+        ← 돌아가기
+      </button>
+    </div>
+  );
 
   if (!tutorType) return (
     <div style={{padding:"8px 0"}}>
@@ -16322,6 +16400,20 @@ function TutorTab({level, uid}) {
 
   return (
     <>
+      {/* ✅ V272: grammar 규칙 배지 + 다른 규칙으로 버튼 */}
+      {grammarRule && (
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+          <div style={{flex:1,background:grammarRule.bg,border:`2px solid ${grammarRule.color}44`,borderRadius:50,padding:"6px 14px",display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:16}}>{grammarRule.emoji}</span>
+            <span style={{fontSize:13,fontWeight:800,color:grammarRule.color}}>{grammarRule.label}</span>
+            <span style={{fontSize:11,color:"#aaa",marginLeft:4}}>{grammarRule.sub}</span>
+          </div>
+          <button onClick={()=>{setGrammarRule(null);setTutorUI([]);setTutorMsgs([]);}}
+            style={{flexShrink:0,background:"white",border:"2px solid #ddd",borderRadius:50,padding:"6px 12px",fontSize:11,color:"#999",cursor:"pointer",whiteSpace:"nowrap"}}>
+            다른 규칙
+          </button>
+        </div>
+      )}
       <div style={{background:"white",borderRadius:18,padding:12,minHeight:380,maxHeight:460,overflowY:"auto",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:10}}>
         {tutorUI.map((m,i) => (
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",marginBottom:12,alignItems:"flex-end",gap:6}}>
