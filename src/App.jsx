@@ -1423,7 +1423,18 @@ const BEG_VOCAB = {
 };
 
 
-function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLearn=false }) {
+function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLearn=false, onMyPage }) {
+  // ✅ V274: 모든 학습 화면에서 마이페이지 접근 가능한 공통 버튼
+  const MyPageBtn = onMyPage ? (
+    <button onClick={e=>{e.stopPropagation();onMyPage();}}
+      style={{position:"fixed",top:16,right:16,zIndex:500,width:42,height:42,borderRadius:"50%",
+        background:"white",border:"2px solid #9C6FDE44",cursor:"pointer",
+        display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
+        boxShadow:"0 2px 12px rgba(156,111,222,.2)",WebkitTapHighlightColor:"transparent"}}>
+      👤
+    </button>
+  ) : null;
+
   const [step, setStep] = useState(() => {
     if (skipToLearn) return "learn";
     // ✅ V273: 재로그인 시 마지막 학습 위치 복귀
@@ -14506,6 +14517,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ── 학습 채팅 화면 ──
   return (
     <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      {/* ✅ V274: 모든 학습 화면 공통 마이페이지 버튼 */}
+      {MyPageBtn}
       {/* 헤더 */}
       <div style={{background:`linear-gradient(100deg,#9C6FDE,#C3B1E1)`,padding:"14px 16px",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
         <div style={{fontSize:24}}>🌸</div>
@@ -17442,7 +17455,7 @@ export default function App() {
 
   // ✅ V139: 초급 — 도전 시작 전까지 BegScreen 전체화면 (탭 숨김)
   if (level === "beg" && !begReady && !browseMode) return (
-    <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}}/>
+    <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}} onMyPage={()=>setShowMyPage(true)}/>
   );
 
   return (
