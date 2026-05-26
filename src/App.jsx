@@ -150,10 +150,7 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
         <div style={{fontSize:72,marginBottom:16,lineHeight:1}}>🌏</div>
         <div style={{fontSize:22,fontWeight:900,color:"#333",marginBottom:10,lineHeight:1.4}}>{tx("s4h")}</div>
         <div style={{fontSize:14,color:"#888",lineHeight:1.8,marginBottom:28}}>{tx("s4sub")}</div>
-        <a href="https://padlet.com/roh053068/hangeul_chingu" target="_blank" rel="noopener noreferrer"
-          style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.teal,fontWeight:800,fontSize:13,boxShadow:`0 4px 16px ${C.teal}25`,marginBottom:12}}>
-          {tx("s4btn")}
-        </a>
+
       </div>
     ),
   ];
@@ -161,7 +158,6 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
   const isLast = slide === SLIDES.length - 1;
 
   function handleDone() {
-    try { localStorage.setItem("hc_onboarding_done","1"); } catch(e){}
     onDone(L);
   }
 
@@ -17213,10 +17209,8 @@ export default function App() {
   const [adminMode, setAdminMode] = useState(false);  // ✅ V151: 관리자 모드 토글
   const [joinCode, setJoinCode] = useState(null); // ✅ V148: URL ?join= 파라미터
   const [browseMode, setBrowseMode] = useState(false); // ✅ V270: daily/work 선택 후 탭 둘러보기 모드
-  // ✅ V275: 비주얼 온보딩 (localStorage 기반 1회만)
-  const [showOnboarding, setShowOnboarding] = useState(()=>{
-    try { return !localStorage.getItem("hc_onboarding_done"); } catch(e){ return false; }
-  });
+  // ✅ V276: 비주얼 온보딩 — 매번 표시 (skip 버튼으로 개인 선택)
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingLang, setOnboardingLang] = useState("ko");
 
   // ✅ V148: 기존 가입자 마이그레이션 체크 (dataOwnershipAgreed 없으면 팝업)
@@ -17275,7 +17269,6 @@ export default function App() {
       initLang={onboardingLang}
       onLangChange={setOnboardingLang}
       onDone={(selectedLang)=>{
-        try { localStorage.setItem("hc_onboarding_done","1"); } catch(e){}
         setOnboardingLang(selectedLang);
         setShowOnboarding(false);
       }}
