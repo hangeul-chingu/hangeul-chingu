@@ -17408,7 +17408,7 @@ export default function App() {
 
       <div style={{maxWidth:600,margin:"0 auto",width:"100%"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",background:"white",boxShadow:"0 2px 10px rgba(0,0,0,.07)",gap:1,backgroundColor:"#ebebeb",borderRadius:"0 0 16px 16px",overflow:"hidden"}}>
-          {[["speak","🗣️","프리토킹",C.pink,"#FCE8F3"],["write","✍️","논술",C.teal,"#E8FAF8"],["tutor","🎓","하이터치",C.purple,"#F3EEFF"],["game","🎮","게임",C.yellow,"#FFFBE8"],["topik","🏆","TOPIK인증","#2E75B6","#F0F4FF"]].map(([k,emoji,label,col,bg])=>(
+          {[["speak","🗣️","프리토킹",C.pink,"#FCE8F3"],["write","✍️","논술",C.teal,"#E8FAF8"],["tutor","🎓","하이터치",C.purple,"#F3EEFF"],["game","🎮","게임",C.yellow,"#FFFBE8"],["topik","🏆","TOPIK인증","#2E75B6","#F0F4FF"]].filter(([k])=>!(browseMode&&k==="topik")).map(([k,emoji,label,col,bg])=>(
             <button key={k} onClick={()=>{ if(k==="topik"){ setShowMyPage(true); } else { setTab(k); } }} style={{padding:"16px 0 12px",border:"none",background:tab===k?bg:"white",cursor:"pointer",transition:"all .2s",WebkitTapHighlightColor:"transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
               <div style={{width:52,height:52,borderRadius:"50%",background:tab===k?bg:"#f5f5f5",border:tab===k?`2.5px solid ${col}`:"2px solid #e8e8e8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,transition:"all .2s",boxShadow:tab===k?`0 4px 12px ${col}33`:"none"}}>
                 {emoji}
