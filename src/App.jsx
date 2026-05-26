@@ -55,6 +55,164 @@ const SECURITY_QUESTIONS = [
   "가장 감명깊게 읽은 책이나 영화 제목은?",
 ];
 
+// ════════════════════════════════════════════════════════
+// ✅ V275: 비주얼 온보딩 화면 (로그인 전 슬라이드 4장)
+// localStorage("hc_onboarding_done") 로 1회만 표시
+// ════════════════════════════════════════════════════════
+function OnboardingScreen({ onDone, initLang, onLangChange }) {
+  const [slide, setSlide] = useState(0);
+
+  const LANGS = [
+    { code:"ko", flag:"🇰🇷", label:"한국어" },
+    { code:"vi", flag:"🇻🇳", label:"Tiếng Việt" },
+    { code:"en", flag:"🇺🇸", label:"English" },
+    { code:"my", flag:"🇲🇲", label:"မြန်မာ" },
+  ];
+
+  const t = {
+    skip:   { ko:"건너뛰기", vi:"Bỏ qua", en:"Skip", my:"ကျော်သွား" },
+    start:  { ko:"시작하기 →", vi:"Bắt đầu →", en:"Start →", my:"စတင်ရန် →" },
+    next:   { ko:"다음 →", vi:"Tiếp →", en:"Next →", my:"ဆက် →" },
+    s1h:    { ko:"200시간? 한글 친구는", vi:"200 giờ? Hangeul Chingu chỉ", en:"200 hours? Hangeul Chingu does it in", my:"၂၀၀နာရီ? Hangeul Chingu မှာ" },
+    s1big:  { ko:"80시간", vi:"80 giờ", en:"80 hours", my:"နာရီ ၈၀" },
+    s1sub:  { ko:"내 속도대로 · 어디서든 · 무료", vi:"Tốc độ của bạn · Bất cứ đâu · Miễn phí", en:"Your pace · Anywhere · Free", my:"မိမိနှုန်းနဲ့ · ဘယ်နေရာမှာမဆို · အခမဲ့" },
+    s2h:    { ko:"말하기·글쓰기, 아직 어렵나요?", vi:"Nói & Viết vẫn còn khó?", en:"Speaking & writing still feel hard?", my:"ပြောဆိုရေးသားရာမှာ ခက်နေသေးလား?" },
+    s2sub:  { ko:"혼자 공부해도 막히는 그 순간,\n한글 친구가 함께합니다", vi:"Khi bạn tự học mà bị bế tắc,\nHangeul Chingu ở bên bạn", en:"When you get stuck studying alone,\nHangeul Chingu is right there", my:"တစ်ယောက်တည်း လေ့လာရင်း တားဆီးနေရင်\nHangeul Chingu က ရှိနေပါတယ်" },
+    s3h:    { ko:"3가지 훈련으로 실력 완성", vi:"3 loại luyện tập để hoàn thiện", en:"3 training modes to master Korean", my:"ကျွမ်းကျင်မှုအပြည့်ရစေမည့် လေ့ကျင့်မှု ၃ မျိုး" },
+    s4h:    { ko:"지금 바로 시작하세요!", vi:"Bắt đầu ngay bây giờ!", en:"Start right now!", my:"ယခုပင် စတင်ပါ!" },
+    s4sub:  { ko:"80시간 후, 새로운 한국어 세상이 열립니다", vi:"Sau 80 giờ, một thế giới tiếng Hàn mới mở ra", en:"After 80 hours, a new Korean world opens up", my:"နာရီ ၈၀ နောက်မှာ ကိုရီးယားဘာသာ ကမ္ဘာသစ် ဖွင့်လှစ်လာမည်" },
+    s4btn:  { ko:"📋 기관·학교·학원용 소개자료", vi:"📋 Tài liệu giới thiệu cho tổ chức", en:"📋 Brochure for institutions", my:"📋 အဖွဲ့အစည်းများအတွက် မိတ်ဆက်စာရွက်" },
+  };
+
+  const L = initLang || "ko";
+  const tx = (key) => (t[key]?.[L] ?? t[key]?.ko ?? "");
+
+  const SLIDES = [
+    // ─── 슬라이드 1: 신뢰 (숫자) ───
+    () => (
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px",textAlign:"center"}}>
+        <div style={{fontSize:22,color:"#888",fontWeight:600,marginBottom:8,lineHeight:1.4}}>{tx("s1h")}</div>
+        <div style={{fontSize:88,fontWeight:900,background:`linear-gradient(135deg,${C.pink},${C.orange})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",lineHeight:1,marginBottom:12,letterSpacing:-2}}>{tx("s1big")}</div>
+        <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:28}}>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontSize:36,marginBottom:4}}>🎓</div>
+            <div style={{fontSize:11,color:"#aaa",fontWeight:600}}>기존 기관</div>
+            <div style={{fontSize:20,fontWeight:900,color:"#ddd",textDecoration:"line-through"}}>200h</div>
+          </div>
+          <div style={{fontSize:32,color:C.pink,fontWeight:900}}>→</div>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontSize:36,marginBottom:4}}>🚀</div>
+            <div style={{fontSize:11,color:C.pink,fontWeight:700}}>한글 친구</div>
+            <div style={{fontSize:20,fontWeight:900,color:C.pink}}>80h ✓</div>
+          </div>
+        </div>
+        <div style={{fontSize:14,color:"#999",lineHeight:1.7}}>{tx("s1sub")}</div>
+      </div>
+    ),
+    // ─── 슬라이드 2: 공감 (그림) ───
+    () => (
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px",textAlign:"center"}}>
+        <div style={{fontSize:80,marginBottom:20,lineHeight:1}}>😤</div>
+        <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:16,lineHeight:1.4}}>{tx("s2h")}</div>
+        <div style={{display:"flex",gap:12,marginBottom:24,justifyContent:"center",flexWrap:"wrap"}}>
+          {[["🗣️","말하기"],["✍️","글쓰기"],["📖","어휘"],["🎧","듣기"]].map(([em,lb])=>(
+            <div key={lb} style={{background:"#FFF0F5",border:`2px solid ${C.pink}33`,borderRadius:14,padding:"12px 16px",textAlign:"center",minWidth:64}}>
+              <div style={{fontSize:28,marginBottom:4}}>{em}</div>
+              <div style={{fontSize:11,color:"#E91E8C",fontWeight:700}}>{lb}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{fontSize:14,color:"#777",lineHeight:1.8,whiteSpace:"pre-line"}}>{tx("s2sub")}</div>
+      </div>
+    ),
+    // ─── 슬라이드 3: 해결 (3탭) ───
+    () => (
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px",textAlign:"center"}}>
+        <div style={{fontSize:22,fontWeight:900,color:"#333",marginBottom:24,lineHeight:1.4}}>{tx("s3h")}</div>
+        {[
+          {em:"🗣️",name:"프리토킹",desc:{ko:"AI 원어민 친구와 자유 대화",vi:"Hội thoại tự do với AI",en:"Free talk with AI friend",my:"AI နှင့် လွတ်လပ်သောစကားပြောဆို"},color:C.teal},
+          {em:"✍️",name:"논술",desc:{ko:"한국 초등 논술 구조로 글쓰기",vi:"Viết theo cấu trúc luận văn",en:"Essay writing, Korean style",my:"Korean Essay ပုံစံဖြင့် ရေးသား"},color:C.pink},
+          {em:"🎓",name:"하이터치",desc:{ko:"AI 튜터와 문법·어휘 1:1 훈련",vi:"Luyện ngữ pháp 1:1 với AI",en:"1:1 grammar & vocab with AI tutor",my:"AI နှင့် ၁ဆက်၁ သဒ္ဒါလေ့ကျင့်"},color:"#9C6FDE"},
+        ].map(item=>(
+          <div key={item.name} style={{width:"100%",display:"flex",alignItems:"center",gap:14,background:"white",borderRadius:16,padding:"14px 18px",marginBottom:10,boxShadow:`0 2px 12px ${item.color}20`,border:`1.5px solid ${item.color}22`}}>
+            <div style={{fontSize:32,flexShrink:0}}>{item.em}</div>
+            <div style={{textAlign:"left"}}>
+              <div style={{fontSize:15,fontWeight:900,color:item.color,marginBottom:2}}>{item.name}</div>
+              <div style={{fontSize:12,color:"#888",lineHeight:1.5}}>{item.desc[L]||item.desc.ko}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    ),
+    // ─── 슬라이드 4: 행동 ───
+    () => (
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px",textAlign:"center"}}>
+        <div style={{fontSize:72,marginBottom:16,lineHeight:1}}>🌏</div>
+        <div style={{fontSize:22,fontWeight:900,color:"#333",marginBottom:10,lineHeight:1.4}}>{tx("s4h")}</div>
+        <div style={{fontSize:14,color:"#888",lineHeight:1.8,marginBottom:28}}>{tx("s4sub")}</div>
+        <a href="https://padlet.com/roh053068/hangeul_chingu" target="_blank" rel="noopener noreferrer"
+          style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.teal,fontWeight:800,fontSize:13,boxShadow:`0 4px 16px ${C.teal}25`,marginBottom:12}}>
+          {tx("s4btn")}
+        </a>
+      </div>
+    ),
+  ];
+
+  const isLast = slide === SLIDES.length - 1;
+
+  function handleDone() {
+    try { localStorage.setItem("hc_onboarding_done","1"); } catch(e){}
+    onDone(L);
+  }
+
+  return (
+    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",position:"relative"}}>
+
+      {/* 언어 선택 + 건너뛰기 */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 20px 0"}}>
+        <div style={{display:"flex",gap:6}}>
+          {LANGS.map(lg=>(
+            <button key={lg.code} onClick={()=>onLangChange(lg.code)}
+              style={{background:L===lg.code?C.pink:"white",border:`1.5px solid ${L===lg.code?C.pink:"#eee"}`,borderRadius:20,padding:"5px 10px",fontSize:16,cursor:"pointer",transition:"all .2s",boxShadow:L===lg.code?`0 2px 8px ${C.pink}40`:"none"}}>
+              {lg.flag}
+            </button>
+          ))}
+        </div>
+        <button onClick={handleDone}
+          style={{background:"none",border:"none",color:"#bbb",fontSize:13,fontWeight:600,cursor:"pointer",padding:"6px 10px"}}>
+          {tx("skip")}
+        </button>
+      </div>
+
+      {/* 슬라이드 콘텐츠 */}
+      <div style={{flex:1,display:"flex",flexDirection:"column"}}>
+        {SLIDES[slide]()}
+      </div>
+
+      {/* 하단: 진행점 + 버튼 */}
+      <div style={{padding:"16px 24px 32px",display:"flex",flexDirection:"column",alignItems:"center",gap:16}}>
+        {/* 진행 점 */}
+        <div style={{display:"flex",gap:8}}>
+          {SLIDES.map((_,i)=>(
+            <div key={i} onClick={()=>setSlide(i)} style={{width:i===slide?24:8,height:8,borderRadius:4,background:i===slide?C.pink:"#ddd",transition:"all .3s",cursor:"pointer"}}/>
+          ))}
+        </div>
+        {/* 다음 / 시작하기 버튼 */}
+        {isLast
+          ? <button onClick={handleDone}
+              style={{width:"100%",maxWidth:320,background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:17,fontWeight:900,cursor:"pointer",boxShadow:`0 6px 20px ${C.pink}40`}}>
+              {tx("start")}
+            </button>
+          : <button onClick={()=>setSlide(s=>s+1)}
+              style={{width:"100%",maxWidth:320,background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:17,fontWeight:900,cursor:"pointer",boxShadow:`0 6px 20px ${C.pink}40`}}>
+              {tx("next")}
+            </button>
+        }
+      </div>
+    </div>
+  );
+}
+
 function AuthScreen({ onLogin }) {
   const [tab, setTab] = useState("login"); // "login" | "signup" | "forgot"
   const [role, setRole] = useState("learner");
@@ -314,13 +472,10 @@ function AuthScreen({ onLogin }) {
           {loading?"처리 중...":tab==="login"?"로그인":`${roleLabel[role]}으로 가입하기`}
         </button>
       </div>
+      {/* ✅ V275: 기관·학교·학원용 버튼 1개로 통합 */}
       <div style={{marginTop:24,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
-        <div style={{fontSize:12,color:"#bbb",marginBottom:2}}>한글 친구가 처음이세요?</div>
-        <a href="https://padlet.com/roh053068/breakout-room/Arng4MkerXZDqK6p-k2qlv36MmRprX5Rx" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.pink}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.pink,fontWeight:800,fontSize:14,boxShadow:`0 4px 16px ${C.pink}25`,WebkitTapHighlightColor:"transparent"}}>
-          📚 소개자료 · 사용 메뉴얼 보기
-        </a>
-        <a href="https://padlet.com/roh053068/breakout-room/d6AO26JdBPgP2ojL-k2qlv36MmRprX5Rx" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.teal,fontWeight:800,fontSize:14,boxShadow:`0 4px 16px ${C.teal}25`,WebkitTapHighlightColor:"transparent"}}>
-          ✨ 이 앱이 나한테 어떤 도움이 될까?
+        <a href="https://padlet.com/roh053068/hangeul_chingu" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.teal,fontWeight:800,fontSize:14,boxShadow:`0 4px 16px ${C.teal}25`,WebkitTapHighlightColor:"transparent"}}>
+          📋 기관·학교·학원용 소개자료
         </a>
         <CertRequestButton />
       </div>
@@ -17058,6 +17213,11 @@ export default function App() {
   const [adminMode, setAdminMode] = useState(false);  // ✅ V151: 관리자 모드 토글
   const [joinCode, setJoinCode] = useState(null); // ✅ V148: URL ?join= 파라미터
   const [browseMode, setBrowseMode] = useState(false); // ✅ V270: daily/work 선택 후 탭 둘러보기 모드
+  // ✅ V275: 비주얼 온보딩 (localStorage 기반 1회만)
+  const [showOnboarding, setShowOnboarding] = useState(()=>{
+    try { return !localStorage.getItem("hc_onboarding_done"); } catch(e){ return false; }
+  });
+  const [onboardingLang, setOnboardingLang] = useState("ko");
 
   // ✅ V148: 기존 가입자 마이그레이션 체크 (dataOwnershipAgreed 없으면 팝업)
   useEffect(()=>{
@@ -17107,6 +17267,19 @@ export default function App() {
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:C.bg}}>
       <div style={{fontSize:40}}>🇰🇷</div>
     </div>
+  );
+
+  // ✅ V275: 온보딩 — 로그인 전, 최초 1회
+  if (showOnboarding) return (
+    <OnboardingScreen
+      initLang={onboardingLang}
+      onLangChange={setOnboardingLang}
+      onDone={(selectedLang)=>{
+        try { localStorage.setItem("hc_onboarding_done","1"); } catch(e){}
+        setOnboardingLang(selectedLang);
+        setShowOnboarding(false);
+      }}
+    />
   );
 
   if (!user) return <AuthScreen onLogin={setUser}/>;
