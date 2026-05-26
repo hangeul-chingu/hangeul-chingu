@@ -1424,7 +1424,16 @@ const BEG_VOCAB = {
 
 
 function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLearn=false }) {
-  const [step, setStep] = useState(skipToLearn ? "learn" : "lang");   // lang → curriculum → plan → topic → learn
+  const [step, setStep] = useState(() => {
+    if (skipToLearn) return "learn";
+    // ✅ V273: 재로그인 시 마지막 학습 위치 복귀
+    try {
+      const saved = localStorage.getItem(`hc_step_${user?.uid}`);
+      const skipSteps = ["lang","curriculum","plan","learn","pronContents"];
+      if (saved && !skipSteps.includes(saved)) return saved;
+    } catch(e) {}
+    return "lang";
+  }); // lang → curriculum → plan → pronunciation → ... → learn
   const [lang, setLang] = useState(null);
   const [topic, setTopic] = useState(null);
   const [chat, setChat] = useState([]);
@@ -7465,7 +7474,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         const newPassed = [...new Set([...unitsPassed, 1, 2])];
         setUnitsPassed(newPassed);
         try {
-          localStorage.setItem("hc_unitsPassed", JSON.stringify(newPassed));
+          localStorage.setItem(`hc_units_${user?.uid}`, JSON.stringify(newPassed));
         } catch(e) {}
       }
       setTestResult({ score, passed, feedback });
@@ -7860,7 +7869,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       if (passed) {
         const newPassed = [...new Set([...unitsPassed, 1, 2, 3, "2b", "3b"])];
         setUnitsPassed(newPassed);
-        try { localStorage.setItem("hc_unitsPassed", JSON.stringify(newPassed)); } catch(e) {}
+        try { localStorage.setItem(`hc_units_${user?.uid}`, JSON.stringify(newPassed)); } catch(e) {}
       }
       setTestResult({ score, passed, feedback });
     }
@@ -8351,7 +8360,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       if (passed) {
         const newPassed = [...new Set([...unitsPassed, 1,2,3,4,5])];
         setUnitsPassed(newPassed);
-        try { localStorage.setItem("hc_unitsPassed", JSON.stringify(newPassed)); } catch(e) {}
+        try { localStorage.setItem(`hc_units_${user?.uid}`, JSON.stringify(newPassed)); } catch(e) {}
       }
       setTestResult({ score, passed, feedback });
     }
@@ -17207,6 +17216,41 @@ export default function App() {
                     </div>
                   </div>}
                   <div style={{fontSize:12,color:"#666",marginTop:8,padding:"8px 12px",background:"#f8f8f8",borderRadius:10}}>📍 {currentLabel}</div>
+                  {/* ✅ V273: 단계별 KPI 뱃지 */}
+                  {(()=>{
+                    const stepOrder = ["pronunciation","tense1","josa","sentenceStructure","unit1"];
+                    const isStepDone = (target) => {
+                      const order = ["lang","curriculum","plan","pronContents","pronunciation","pronTest","pronResult",
+                        "tense1","tense2","tense3","tense4","tense5","tense6","tenseTest",
+                        "josa","testJosa","qpron","sentenceStructure","unit1"];
+                      const curIdx = order.indexOf(savedStep);
+                      const tarIdx = order.indexOf(target);
+                      return curIdx > tarIdx;
+                    };
+                    const stages = [
+                      { label:"발음 8단계", done: isStepDone("pronResult"), color:"#9C6FDE" },
+                      { label:"시제 6단원", done: isStepDone("tenseTest"),  color:"#2563EB" },
+                      { label:"조사·대명사", done: isStepDone("testJosa"),  color:"#00BFA5" },
+                      { label:"문장구조",   done: isStepDone("sentenceStructure"), color:"#FF7043" },
+                      { label:`서술어 ${passedCount}/25`, done: passedCount >= 25, color:"#E91E8C",
+                        partial: passedCount > 0 && passedCount < 25 },
+                    ];
+                    return (
+                      <div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:6}}>
+                        {stages.map((s,i)=>(
+                          <div key={i} style={{
+                            padding:"4px 10px",borderRadius:50,fontSize:11,fontWeight:700,
+                            background: s.done ? s.color : s.partial ? s.color+"22" : "#f0f0f0",
+                            color: s.done ? "white" : s.partial ? s.color : "#bbb",
+                            border: s.partial ? `1.5px solid ${s.color}66` : "none",
+                            display:"flex",alignItems:"center",gap:4
+                          }}>
+                            {s.done ? "✅" : s.partial ? "🔄" : "⬜"} {s.label}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </> : <div style={{fontSize:13,color:"#aaa",textAlign:"center",padding:"8px 0"}}>아직 학습 기록이 없어요. 지금 시작해볼까요? 😊</div>}
               </div>
               {/* 배너 2: 이어서 학습하기 */}
@@ -17474,6 +17518,36 @@ export default function App() {
                     </div>
                   </div>}
                   <div style={{fontSize:12,color:"#666",padding:"8px 12px",background:"#f8f8f8",borderRadius:10}}>📍 {currentLabel}</div>
+                  {/* ✅ V273: 단계별 KPI 뱃지 */}
+                  {(()=>{
+                    const order2 = ["lang","curriculum","plan","pronContents","pronunciation","pronTest","pronResult",
+                      "tense1","tense2","tense3","tense4","tense5","tense6","tenseTest",
+                      "josa","testJosa","qpron","sentenceStructure","unit1"];
+                    const isDone2 = (target) => order2.indexOf(savedStep) > order2.indexOf(target);
+                    const stages2 = [
+                      { label:"발음 8단계", done: isDone2("pronResult"),       color:"#9C6FDE" },
+                      { label:"시제 6단원", done: isDone2("tenseTest"),         color:"#2563EB" },
+                      { label:"조사·대명사", done: isDone2("testJosa"),         color:"#00BFA5" },
+                      { label:"문장구조",   done: isDone2("sentenceStructure"), color:"#FF7043" },
+                      { label:`서술어 ${passedCount}/25`, done: passedCount>=25, color:"#E91E8C",
+                        partial: passedCount>0&&passedCount<25 },
+                    ];
+                    return (
+                      <div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:6}}>
+                        {stages2.map((s,i)=>(
+                          <div key={i} style={{
+                            padding:"4px 10px",borderRadius:50,fontSize:11,fontWeight:700,
+                            background: s.done?"white":s.partial?s.color+"22":"#f0f0f0",
+                            color: s.done?s.color:s.partial?s.color:"#bbb",
+                            border: s.done?`1.5px solid ${s.color}`:"none",
+                            display:"flex",alignItems:"center",gap:4
+                          }}>
+                            {s.done?"✅":s.partial?"🔄":"⬜"} {s.label}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </>:<div style={{fontSize:13,color:"#aaa",textAlign:"center",padding:"8px 0"}}>초급 커리큘럼 진행 시 표시됩니다</div>}
               </div>
               {/* 배너2: 이어서 학습하기 */}
