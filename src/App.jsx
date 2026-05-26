@@ -56,11 +56,14 @@ const SECURITY_QUESTIONS = [
 ];
 
 // ════════════════════════════════════════════════════════
-// ✅ V275: 비주얼 온보딩 화면 (로그인 전 슬라이드 4장)
-// localStorage("hc_onboarding_done") 로 1회만 표시
+// ════════════════════════════════════════════════════════
+// ✅ V277: 비주얼 온보딩 화면 (슬라이드 6장)
+// 신뢰→공감→해결→실력선택→유입경로→행동
 // ════════════════════════════════════════════════════════
 function OnboardingScreen({ onDone, initLang, onLangChange }) {
   const [slide, setSlide] = useState(0);
+  const [levelHint, setLevelHint] = useState(null);   // 실력 선택
+  const [referral, setReferral] = useState(null);      // 유입 경로
 
   const LANGS = [
     { code:"ko", flag:"🇰🇷", label:"한국어" },
@@ -73,43 +76,71 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
     skip:   { ko:"건너뛰기", vi:"Bỏ qua", en:"Skip", my:"ကျော်သွား" },
     start:  { ko:"시작하기 →", vi:"Bắt đầu →", en:"Start →", my:"စတင်ရန် →" },
     next:   { ko:"다음 →", vi:"Tiếp →", en:"Next →", my:"ဆက် →" },
+    // 슬라이드 1: 신뢰
     s1h:    { ko:"200시간? 한글 친구는", vi:"200 giờ? Hangeul Chingu chỉ", en:"200 hours? Hangeul Chingu does it in", my:"၂၀၀နာရီ? Hangeul Chingu မှာ" },
     s1big:  { ko:"80시간", vi:"80 giờ", en:"80 hours", my:"နာရီ ၈၀" },
-    s1sub:  { ko:"내 속도대로 · 어디서든 · 무료", vi:"Tốc độ của bạn · Bất cứ đâu · Miễn phí", en:"Your pace · Anywhere · Free", my:"မိမိနှုန်းနဲ့ · ဘယ်နေရာမှာမဆို · အခမဲ့" },
+    s1proof:{ ko:"성실한 80시간 = TOPIK 2급 합격", vi:"80 giờ chăm chỉ = Đậu TOPIK cấp 2", en:"80 honest hours = TOPIK Level 2 pass", my:"သည်းခံသော နာရီ ၈၀ = TOPIK အဆင့် ၂ အောင်" },
+    s1sub:  { ko:"완주하면 됩니다. 그게 전부예요.", vi:"Chỉ cần hoàn thành. Đó là tất cả.", en:"Just finish it. That's all it takes.", my:"ပြီးမြောက်ရုံပဲ။ အဲ့ဒါပဲ လိုတာ။" },
+    // 슬라이드 2: 공감
     s2h:    { ko:"말하기·글쓰기, 아직 어렵나요?", vi:"Nói & Viết vẫn còn khó?", en:"Speaking & writing still feel hard?", my:"ပြောဆိုရေးသားရာမှာ ခက်နေသေးလား?" },
     s2sub:  { ko:"혼자 공부해도 막히는 그 순간,\n한글 친구가 함께합니다", vi:"Khi bạn tự học mà bị bế tắc,\nHangeul Chingu ở bên bạn", en:"When you get stuck studying alone,\nHangeul Chingu is right there", my:"တစ်ယောက်တည်း လေ့လာရင်း တားဆီးနေရင်\nHangeul Chingu က ရှိနေပါတယ်" },
+    // 슬라이드 3: 해결
     s3h:    { ko:"3가지 훈련으로 실력 완성", vi:"3 loại luyện tập để hoàn thiện", en:"3 training modes to master Korean", my:"ကျွမ်းကျင်မှုအပြည့်ရစေမည့် လေ့ကျင့်မှု ၃ မျိုး" },
-    s4h:    { ko:"지금 바로 시작하세요!", vi:"Bắt đầu ngay bây giờ!", en:"Start right now!", my:"ယခုပင် စတင်ပါ!" },
-    s4sub:  { ko:"80시간 후, 새로운 한국어 세상이 열립니다", vi:"Sau 80 giờ, một thế giới tiếng Hàn mới mở ra", en:"After 80 hours, a new Korean world opens up", my:"နာရီ ၈၀ နောက်မှာ ကိုရီးယားဘာသာ ကမ္ဘာသစ် ဖွင့်လှစ်လာမည်" },
-    s4btn:  { ko:"📋 기관·학교·학원용 소개자료", vi:"📋 Tài liệu giới thiệu cho tổ chức", en:"📋 Brochure for institutions", my:"📋 အဖွဲ့အစည်းများအတွက် မိတ်ဆက်စာရွက်" },
+    // 슬라이드 4: 실력 선택
+    s4h:    { ko:"지금 한국어 실력이 어느 정도예요?", vi:"Trình độ tiếng Hàn của bạn hiện tại?", en:"What's your current Korean level?", my:"သင်၏ ကိုရီးယားဘာသာ အဆင့်ကဘာလဲ?" },
+    s4skip: { ko:"건너뛸게요", vi:"Bỏ qua", en:"Skip this", my:"ကျော်သွားမည်" },
+    // 슬라이드 5: 유입 경로
+    s5h:    { ko:"한글 친구를 어떻게 알게 됐어요?", vi:"Bạn biết Hangeul Chingu qua đâu?", en:"How did you find Hangeul Chingu?", my:"Hangeul Chingu ကို ဘယ်လိုသိလဲ?" },
+    s5skip: { ko:"건너뛸게요", vi:"Bỏ qua", en:"Skip this", my:"ကျော်သွားမည်" },
+    // 슬라이드 6: 행동
+    s6h:    { ko:"지금 바로 시작하세요!", vi:"Bắt đầu ngay bây giờ!", en:"Start right now!", my:"ယခုပင် စတင်ပါ!" },
+    s6sub:  { ko:"80시간 후, 새로운 한국어 세상이 열립니다", vi:"Sau 80 giờ, một thế giới tiếng Hàn mới mở ra", en:"After 80 hours, a new Korean world opens up", my:"နာရီ ၈၀ နောက်မှာ ကိုရီးယားဘာသာ ကမ္ဘာသစ် ဖွင့်လှစ်လာမည်" },
   };
 
   const L = initLang || "ko";
   const tx = (key) => (t[key]?.[L] ?? t[key]?.ko ?? "");
 
+  // 실력 선택지
+  const LEVELS = [
+    { id:"zero", em:"🌱", label:{ko:"완전 처음이에요",vi:"Hoàn toàn mới bắt đầu",en:"Complete beginner",my:"လုံးဝ စတင်သူ"} },
+    { id:"little", em:"🌿", label:{ko:"조금 알아요 (가나다 정도)",vi:"Biết một chút (bảng chữ cái)",en:"A little (alphabet level)",my:"နည်းနည်း သိတယ်"} },
+    { id:"basic", em:"🌳", label:{ko:"기본 대화는 돼요",vi:"Hội thoại cơ bản được",en:"Basic conversation OK",my:"အခြေခံ စကားပြောနိုင်"} },
+    { id:"mid",  em:"🏆", label:{ko:"중급 이상이에요",vi:"Trung cấp trở lên",en:"Intermediate or above",my:"အလယ်အလတ်အဆင့် သို့ အထက်"} },
+  ];
+
+  // 유입 경로 선택지
+  const REFERRALS = [
+    { id:"sns",    em:"📱", label:{ko:"SNS (인스타·페이스북)",vi:"MXH (Instagram·Facebook)",en:"SNS (Instagram·Facebook)",my:"SNS"} },
+    { id:"youtube",em:"▶️", label:{ko:"유튜브",vi:"YouTube",en:"YouTube",my:"YouTube"} },
+    { id:"friend", em:"👥", label:{ko:"지인 추천",vi:"Bạn bè giới thiệu",en:"Friend / Family",my:"မိတ်ဆွေ အကြံပြုချက်"} },
+    { id:"search", em:"🔍", label:{ko:"구글 검색",vi:"Tìm kiếm Google",en:"Google Search",my:"Google ရှာဖွေမှု"} },
+    { id:"school", em:"🏫", label:{ko:"학교·기관 소개",vi:"Trường học·Tổ chức giới thiệu",en:"School / Institution",my:"ကျောင်း / အဖွဲ့အစည်း"} },
+    { id:"other",  em:"✨", label:{ko:"기타",vi:"Khác",en:"Other",my:"အခြား"} },
+  ];
+
   const SLIDES = [
-    // ─── 슬라이드 1: 신뢰 (숫자) ───
+    // ─── 슬라이드 1: 신뢰 ───
     () => (
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px",textAlign:"center"}}>
-        <div style={{fontSize:22,color:"#888",fontWeight:600,marginBottom:8,lineHeight:1.4}}>{tx("s1h")}</div>
-        <div style={{fontSize:88,fontWeight:900,background:`linear-gradient(135deg,${C.pink},${C.orange})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",lineHeight:1,marginBottom:12,letterSpacing:-2}}>{tx("s1big")}</div>
-        <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:28}}>
-          <div style={{textAlign:"center"}}>
-            <div style={{fontSize:36,marginBottom:4}}>🎓</div>
-            <div style={{fontSize:11,color:"#aaa",fontWeight:600}}>기존 기관</div>
-            <div style={{fontSize:20,fontWeight:900,color:"#ddd",textDecoration:"line-through"}}>200h</div>
-          </div>
-          <div style={{fontSize:32,color:C.pink,fontWeight:900}}>→</div>
-          <div style={{textAlign:"center"}}>
-            <div style={{fontSize:36,marginBottom:4}}>🚀</div>
-            <div style={{fontSize:11,color:C.pink,fontWeight:700}}>한글 친구</div>
-            <div style={{fontSize:20,fontWeight:900,color:C.pink}}>80h ✓</div>
-          </div>
+        <div style={{fontSize:20,color:"#888",fontWeight:600,marginBottom:6,lineHeight:1.4}}>{tx("s1h")}</div>
+        <div style={{fontSize:84,fontWeight:900,background:`linear-gradient(135deg,${C.pink},${C.orange})`,WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",lineHeight:1,marginBottom:14,letterSpacing:-2}}>{tx("s1big")}</div>
+        {/* 사회적 증거 숫자 */}
+        <div style={{display:"flex",gap:12,marginBottom:20,justifyContent:"center"}}>
+          {[["56만","TOPIK 응시자"],["170배","베트남 30년"],["250만","국내 외국인"]].map(([n,lb])=>(
+            <div key={lb} style={{background:"white",borderRadius:14,padding:"10px 12px",textAlign:"center",boxShadow:"0 2px 10px rgba(0,0,0,0.07)",minWidth:72}}>
+              <div style={{fontSize:16,fontWeight:900,color:C.pink}}>{n}</div>
+              <div style={{fontSize:9,color:"#aaa",fontWeight:600,marginTop:2,lineHeight:1.3}}>{lb}</div>
+            </div>
+          ))}
         </div>
-        <div style={{fontSize:14,color:"#999",lineHeight:1.7}}>{tx("s1sub")}</div>
+        {/* 조건부 확신 메시지 */}
+        <div style={{background:`linear-gradient(135deg,${C.pink}15,${C.orange}10)`,border:`1.5px solid ${C.pink}33`,borderRadius:16,padding:"14px 20px",marginBottom:8}}>
+          <div style={{fontSize:15,fontWeight:900,color:"#333",marginBottom:4}}>{tx("s1proof")}</div>
+          <div style={{fontSize:13,color:"#888"}}>{tx("s1sub")}</div>
+        </div>
       </div>
     ),
-    // ─── 슬라이드 2: 공감 (그림) ───
+    // ─── 슬라이드 2: 공감 ───
     () => (
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px",textAlign:"center"}}>
         <div style={{fontSize:80,marginBottom:20,lineHeight:1}}>😤</div>
@@ -128,29 +159,67 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
     // ─── 슬라이드 3: 해결 (3탭) ───
     () => (
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px",textAlign:"center"}}>
-        <div style={{fontSize:22,fontWeight:900,color:"#333",marginBottom:24,lineHeight:1.4}}>{tx("s3h")}</div>
+        <div style={{fontSize:22,fontWeight:900,color:"#333",marginBottom:20,lineHeight:1.4}}>{tx("s3h")}</div>
         {[
           {em:"🗣️",name:"프리토킹",desc:{ko:"AI 원어민 친구와 자유 대화",vi:"Hội thoại tự do với AI",en:"Free talk with AI friend",my:"AI နှင့် လွတ်လပ်သောစကားပြောဆို"},color:C.teal},
           {em:"✍️",name:"논술",desc:{ko:"한국 초등 논술 구조로 글쓰기",vi:"Viết theo cấu trúc luận văn",en:"Essay writing, Korean style",my:"Korean Essay ပုံစံဖြင့် ရေးသား"},color:C.pink},
           {em:"🎓",name:"하이터치",desc:{ko:"AI 튜터와 문법·어휘 1:1 훈련",vi:"Luyện ngữ pháp 1:1 với AI",en:"1:1 grammar & vocab with AI tutor",my:"AI နှင့် ၁ဆက်၁ သဒ္ဒါလေ့ကျင့်"},color:"#9C6FDE"},
         ].map(item=>(
-          <div key={item.name} style={{width:"100%",display:"flex",alignItems:"center",gap:14,background:"white",borderRadius:16,padding:"14px 18px",marginBottom:10,boxShadow:`0 2px 12px ${item.color}20`,border:`1.5px solid ${item.color}22`}}>
-            <div style={{fontSize:32,flexShrink:0}}>{item.em}</div>
+          <div key={item.name} style={{width:"100%",display:"flex",alignItems:"center",gap:14,background:"white",borderRadius:16,padding:"13px 18px",marginBottom:8,boxShadow:`0 2px 12px ${item.color}20`,border:`1.5px solid ${item.color}22`}}>
+            <div style={{fontSize:30,flexShrink:0}}>{item.em}</div>
             <div style={{textAlign:"left"}}>
-              <div style={{fontSize:15,fontWeight:900,color:item.color,marginBottom:2}}>{item.name}</div>
-              <div style={{fontSize:12,color:"#888",lineHeight:1.5}}>{item.desc[L]||item.desc.ko}</div>
+              <div style={{fontSize:15,fontWeight:900,color:item.color,marginBottom:1}}>{item.name}</div>
+              <div style={{fontSize:12,color:"#888",lineHeight:1.4}}>{item.desc[L]||item.desc.ko}</div>
             </div>
           </div>
         ))}
       </div>
     ),
-    // ─── 슬라이드 4: 행동 ───
+    // ─── 슬라이드 4: 실력 선택 ───
+    () => (
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px"}}>
+        <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:6,textAlign:"center",lineHeight:1.4}}>{tx("s4h")}</div>
+        <div style={{fontSize:12,color:"#bbb",marginBottom:20,textAlign:"center"}}>{tx("s4skip")} → 다음 버튼 클릭</div>
+        {LEVELS.map(lv=>(
+          <div key={lv.id} onClick={()=>{ setLevelHint(lv.id); setSlide(s=>s+1); }}
+            style={{width:"100%",display:"flex",alignItems:"center",gap:14,
+              background:levelHint===lv.id?C.teal:"white",
+              border:`2px solid ${levelHint===lv.id?C.teal:"#eee"}`,
+              borderRadius:16,padding:"14px 18px",marginBottom:10,cursor:"pointer",transition:"all .2s",
+              boxShadow:levelHint===lv.id?`0 4px 16px ${C.teal}40`:"0 1px 6px rgba(0,0,0,0.05)"}}>
+            <div style={{fontSize:28,flexShrink:0}}>{lv.em}</div>
+            <div style={{fontSize:15,fontWeight:700,color:levelHint===lv.id?"white":"#333"}}>{lv.label[L]||lv.label.ko}</div>
+          </div>
+        ))}
+      </div>
+    ),
+    // ─── 슬라이드 5: 유입 경로 ───
+    () => (
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px"}}>
+        <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:6,textAlign:"center",lineHeight:1.4}}>{tx("s5h")}</div>
+        <div style={{fontSize:12,color:"#bbb",marginBottom:20,textAlign:"center"}}>{tx("s5skip")} → 다음 버튼 클릭</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,width:"100%"}}>
+          {REFERRALS.map(r=>(
+            <div key={r.id} onClick={()=>{ setReferral(r.id); setSlide(s=>s+1); }}
+              style={{display:"flex",alignItems:"center",gap:10,
+                background:referral===r.id?C.pink:"white",
+                border:`2px solid ${referral===r.id?C.pink:"#eee"}`,
+                borderRadius:16,padding:"12px 14px",cursor:"pointer",transition:"all .2s",
+                boxShadow:referral===r.id?`0 4px 16px ${C.pink}40`:"0 1px 6px rgba(0,0,0,0.05)"}}>
+              <div style={{fontSize:22,flexShrink:0}}>{r.em}</div>
+              <div style={{fontSize:12,fontWeight:700,color:referral===r.id?"white":"#333",lineHeight:1.3}}>{r.label[L]||r.label.ko}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+    // ─── 슬라이드 6: 행동 ───
     () => (
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px",textAlign:"center"}}>
         <div style={{fontSize:72,marginBottom:16,lineHeight:1}}>🌏</div>
-        <div style={{fontSize:22,fontWeight:900,color:"#333",marginBottom:10,lineHeight:1.4}}>{tx("s4h")}</div>
-        <div style={{fontSize:14,color:"#888",lineHeight:1.8,marginBottom:28}}>{tx("s4sub")}</div>
-
+        <div style={{fontSize:22,fontWeight:900,color:"#333",marginBottom:10,lineHeight:1.4}}>{tx("s6h")}</div>
+        <div style={{fontSize:14,color:"#888",lineHeight:1.8,marginBottom:8}}>{tx("s6sub")}</div>
+        <div style={{fontSize:13,color:C.pink,fontWeight:700,marginTop:8}}>✓ 성실한 80시간이면 충분합니다</div>
       </div>
     ),
   ];
@@ -158,7 +227,7 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
   const isLast = slide === SLIDES.length - 1;
 
   function handleDone() {
-    onDone(L);
+    onDone(L, levelHint, referral);
   }
 
   return (
@@ -17268,8 +17337,9 @@ export default function App() {
     <OnboardingScreen
       initLang={onboardingLang}
       onLangChange={setOnboardingLang}
-      onDone={(selectedLang)=>{
+      onDone={(selectedLang, levelHint, referral)=>{
         setOnboardingLang(selectedLang);
+        // levelHint, referral은 로그인 후 Firestore 저장 가능 (현재는 state 보관 불필요)
         setShowOnboarding(false);
       }}
     />
@@ -17373,8 +17443,12 @@ export default function App() {
             </div>
           </div>
           {/* 버튼 */}
-          <button onClick={()=>setShowPromo(false)} style={{width:"100%",padding:14,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",border:"none",color:"white",fontSize:15,fontWeight:900,cursor:"pointer",letterSpacing:0.5,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+          <button onClick={()=>setShowPromo(false)} style={{width:"100%",padding:14,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",border:"none",color:"white",fontSize:15,fontWeight:900,cursor:"pointer",letterSpacing:0.5,display:"flex",alignItems:"center",justifyContent:"center",gap:6,borderRadius:"0 0 20px 20px"}}>
             <span>지금 바로 시작하기</span><span style={{fontSize:18}}>→</span>
+          </button>
+          {/* ✅ V277: 다음에 볼게요 버튼 추가 */}
+          <button onClick={()=>setShowPromo(false)} style={{width:"100%",padding:"10px 0",background:"none",border:"none",color:"#bbb",fontSize:13,fontWeight:600,cursor:"pointer",marginTop:2}}>
+            다음에 볼게요
           </button>
         </div>
       </div>
