@@ -15338,7 +15338,7 @@ const ADV_QUIZ = [
   {q:"'눈이 높다'는 관용구의 뜻은?", answer:"기준이나 이상이 높다", opts:["기준이나 이상이 높다","시력이 좋다","높은 곳을 잘 본다","욕심이 없다"]},
 ];
 
-function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
+function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode}) {
   const [character, setCharacter] = useState(null);
   const [chatUI,    setChatUI]    = useState([]);
   const [apiMsgs,   setApiMsgs]   = useState([]);
@@ -15485,10 +15485,9 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady}) {
   }
 
   // ✅ V140: 초급 처리
-  if (level === "beg") {
-    // begReady=false: BegScreen 재진입 (언어/커리큘럼/계획/주제 선택)
+  if (level === "beg" && !browseMode) {
+    // browseMode가 아닐 때만 BegScreen으로 — browseMode면 일반 SpeakTab 그대로 사용
     if (!begReady) return <BegScreen user={{uid, displayName:"", email:""}} onBack={()=>{}} begSpeak={true}/>;
-    // begReady=true: BegScreen 채팅 화면으로 직접 연결
     return <BegScreen user={{uid, displayName:"", email:""}} onBack={()=>{}} begSpeak={true} skipToLearn={true}/>;
   }
 
@@ -17453,7 +17452,7 @@ export default function App() {
       </div>
       <div style={{maxWidth:600,margin:"0 auto",padding:`12px 12px ${browseMode?"150px":"80px"}`,boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
-        {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak} begReady={begReady}/>}
+        {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak} begReady={begReady} browseMode={browseMode}/>}
         {tab==="write"&&(level==="beg"
           ? <div style={{padding:"48px 24px",textAlign:"center"}}>
               <div style={{fontSize:52,marginBottom:14}}>🔒</div>
