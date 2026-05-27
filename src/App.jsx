@@ -1795,6 +1795,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLear
       { label:"조사테스트",action:()=>{ setJosaTestAnswers({}); setJosaTestResult(null); setJosaTestQuestions([]); setJosaTestLoading(false); setJosaSTTMap({}); setJosaListeningKey(null); setStep("testJosa"); }},
       { label:"조사테스트✅",action:()=>{ setJosaTestResult({passed:true,score:100,writingScore:100,sttScore:100,writingFb:[],sttFb:[]}); setStep("testJosa"); }},
       { label:"서술어2A",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit2"); }},
+      { label:"서술어2테스트",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("test2"); }},
       { label:"테스트2",action:()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test2"); }},
       { label:"서술어3A",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit3"); }},
       { label:"서술어3B",action:()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit3b"); }},
@@ -7569,14 +7570,15 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       speakKo(unitCardInput.trim());
     }
 
+    // ✅ V278: 예문 수정 (버스→물, 회사→공원, 과거형 제거, 계십니다 적용, 2B 삭제)
     const UNIT2_CARDS = [
-      // ── 있다 ──
+      // ── 있다 (10장) ──
       { native:{vi:"Tôi có thời gian.",                      en:"I have time.",                          ko:"저는 시간이 있습니다."},
         full:"저는 시간이 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
       { native:{vi:"Trong phòng có điện thoại.",             en:"There is a phone in the room.",         ko:"방에 전화기가 있습니다."},
         full:"방에 전화기가 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
-      { native:{vi:"Có xe buýt ở đây.",                      en:"There is a bus here.",                  ko:"여기에 버스가 있습니다."},
-        full:"여기에 버스가 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
+      { native:{vi:"Ở đây có nước (trong nhà hàng).",        en:"There is water here (at the restaurant).", ko:"여기에 물이 있습니다."},
+        full:"여기에 물이 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
       { native:{vi:"Trong túi có tiền.",                     en:"There is money in the bag.",            ko:"가방에 돈이 있습니다."},
         full:"가방에 돈이 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
       // ── 없다 ──
@@ -7589,8 +7591,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       // ── 많다 ──
       { native:{vi:"Tôi có nhiều bạn bè.",                   en:"I have many friends.",                  ko:"저는 친구가 많습니다."},
         full:"저는 친구가 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
-      { native:{vi:"Hôm nay có nhiều người ở công ty.",      en:"There are many people at the company today.", ko:"오늘 회사에 사람이 많습니다."},
-        full:"오늘 회사에 사람이 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
+      { native:{vi:"Hôm nay có nhiều người ở công viên.",    en:"There are many people in the park today.", ko:"오늘 공원에 사람이 많습니다."},
+        full:"오늘 공원에 사람이 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
       { native:{vi:"Siêu thị có nhiều đồ ăn.",               en:"The supermarket has a lot of food.",    ko:"마트에 음식이 많습니다."},
         full:"마트에 음식이 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
       // ── 적다 ──
@@ -7603,21 +7605,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"오늘 길에 차가 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
       { native:{vi:"Bệnh viện này có ít bác sĩ.",            en:"This hospital has few doctors.",         ko:"이 병원에 의사가 적습니다."},
         full:"이 병원에 의사가 적습니다.", rule:{vi:"적다 → 적어요 / 적습니다", en:"적다 → 적어요 / 적습니다", ko:"적다 → 적어요 / 적습니다"} },
-      // ── 경어법 ──
-      { native:{vi:"Bố tôi đang ở nhà.",           en:"My father is at home.",          ko:"아버지께서 집에 계십니다."},
-        full:"아버지께서 집에 계십니다.", rule:{vi:"계시다 = 있다 (kính ngữ)", en:"계시다 = 있다 (honorific)", ko:"있다 → 계시다 (경어)"} },
-      // ── 질문-답변 쌍 (교사용 21~26번) ──
-      { native:{vi:"Bạn có bạn trai không?",        en:"Do you have a boyfriend?",       ko:"당신은 남자 친구가 있습니까?"},
-        full:"당신은 남자 친구가 있습니까?", rule:{vi:"있다 → 있습니까? (câu hỏi)", en:"있다 → 있습니까? (question)", ko:"있습니까? = 의문형"} },
-      { native:{vi:"Tôi không có bạn trai.",        en:"I don't have a boyfriend.",      ko:"저는 남자 친구가 없습니다."},
-        full:"저는 남자 친구가 없습니다.", rule:{vi:"없다 → 없습니다", en:"없다 → 없습니다", ko:"없다 → 없습니다"} },
-      { native:{vi:"Tôi đã từng có bạn trai.",      en:"I had a boyfriend before.",      ko:"저는 남자 친구가 있었습니다."},
-        full:"저는 남자 친구가 있었습니다.", rule:{vi:"있었습니다 = đã có (quá khứ)", en:"있었습니다 = had (past)", ko:"있다 → 있었습니다 (과거)"} },
-      { native:{vi:"Trên bầu trời có mây.",         en:"There are clouds in the sky.",   ko:"하늘에 구름이 있습니다."},
+      // ── 경어법 (계시다) ──
+      { native:{vi:"Bố tôi đang ở nhà.",                     en:"My father is at home.",                 ko:"아버지께서 집에 계십니다."},
+        full:"아버지께서 집에 계십니다.", rule:{vi:"계시다 = 있다 (kính ngữ)", en:"계시다 = 있다 (honorific)", ko:"있다 → 계시다 (어른께 쓰는 말)"} },
+      { native:{vi:"Bố mẹ tôi ở quê.",                       en:"My parents are in my hometown.",        ko:"고향에 부모님이 계십니다."},
+        full:"고향에 부모님이 계십니다.", rule:{vi:"계시다 = 있다 (kính ngữ)", en:"계시다 = 있다 (honorific)", ko:"부모님·어른 → 계십니다 (높임말)"} },
+      // ── 의문형 ──
+      { native:{vi:"Bạn có thời gian không?",                 en:"Do you have time?",                    ko:"시간이 있습니까?"},
+        full:"시간이 있습니까?", rule:{vi:"있다 → 있습니까? (câu hỏi)", en:"있다 → 있습니까? (question)", ko:"있습니까? = 의문형"} },
+      { native:{vi:"Hôm nay có bài tập không?",              en:"Is there homework today?",              ko:"오늘 숙제가 있습니까?"},
+        full:"오늘 숙제가 있습니까?", rule:{vi:"있다 → 있습니까?", en:"있다 → 있습니까?", ko:"있습니까? = 의문형"} },
+      { native:{vi:"Trên bầu trời có mây.",                   en:"There are clouds in the sky.",          ko:"하늘에 구름이 있습니다."},
         full:"하늘에 구름이 있습니다.", rule:{vi:"장소 + 에 + 명사 + 있습니다", en:"place + 에 + noun + 있습니다", ko:"장소+에 명사+이/가 있습니다"} },
-      { native:{vi:"Bố mẹ tôi ở quê.",             en:"My parents are in my hometown.",  ko:"고향에 부모님이 있습니다."},
-        full:"고향에 부모님이 있습니다.", rule:{vi:"고향에 + 부모님이 있습니다", en:"고향에 + 부모님이 있습니다", ko:"고향에 부모님이 있습니다"} },
-      { native:{vi:"Cô ấy ở trong tâm trí tôi.",   en:"She is in my heart.",            ko:"내 마음에 그녀가 있습니다."},
+      { native:{vi:"Cô ấy ở trong tâm trí tôi.",             en:"She is in my heart.",                   ko:"내 마음에 그녀가 있습니다."},
         full:"내 마음에 그녀가 있습니다.", rule:{vi:"마음에 + 있습니다", en:"마음에 + 있습니다", ko:"내 마음에 그녀가 있습니다"} },
     ];
 
@@ -7692,9 +7692,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,2])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`2단원`,nextStep:"unit3",nextLabel:"3단원으로 계속하기"});}}
+              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("test2"); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo — Bài 3 →":en?"Next — Unit 3 →":"다음 → 3단원 🚀"}
+                {vi?"Kiểm tra Bài 2 →":en?"Take Unit 2 Test →":"2단원 테스트 →"}
               </button>
             )
           )}
@@ -7731,18 +7731,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { id:"t2_18", q:"오늘 사람이 ___.",       answer:"적습니다",  answers:["적습니다","적습니다."],  hint:{ko:"💡 적다 (수량 적음)", vi:"💡 적다 = ít", en:"💡 적다 = to be few/little"} },
       { id:"t2_19", q:"냉장고에 음식이 ___.",   answer:"없습니다",  answers:["없습니다","없습니다."],  hint:{ko:"💡 없다 (부재)", vi:"💡 없다 = không có, vắng mặt", en:"💡 없다 = to not exist, to be absent"} },
       { id:"t2_20", q:"우리 반 학생이 ___.",    answer:"많습니다",  answers:["많습니다","많습니다."],  hint:{ko:"💡 많다 (수량 많음)", vi:"💡 많다 = nhiều", en:"💡 많다 = to be many/much"} },
-      // ── 2B단원 10문제 (위치 표현)
-      { id:"t2_21", q:"책상 위에 책이 ___.",         answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 위치 표현: 장소에 명사가 ___", vi:"💡 Diễn đạt vị trí: danh từ ở ___", en:"💡 Location: noun is at ___"} },
-      { id:"t2_22", q:"화장실이 어디에 ___?",         answer:"있습니까",  answers:["있습니까","있습니까?"],  hint:{ko:"💡 장소를 물을 때 → 있습니까?", vi:"💡 Hỏi địa điểm → 있습니까?", en:"💡 Asking about location → 있습니까?"} },
-      { id:"t2_23", q:"가방 안에 지갑이 ___.",        answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 안 = 안쪽 위치 표현", vi:"💡 안 = bên trong", en:"💡 안 = inside"} },
-      { id:"t2_24", q:"은행 옆에 편의점이 ___.",      answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 옆 = 옆쪽 위치 표현", vi:"💡 옆 = bên cạnh", en:"💡 옆 = beside"} },
-      { id:"t2_25", q:"냉장고 앞에 고양이가 ___.",    answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 앞 = 앞쪽 위치 표현", vi:"💡 앞 = phía trước", en:"💡 앞 = in front"} },
-      { id:"t2_26", q:"의자 아래에 가방이 ___.",      answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 아래 = 아래쪽 위치 표현", vi:"💡 아래 = phía dưới", en:"💡 아래 = below"} },
-      { id:"t2_27", q:"학교 앞에 카페가 ___.",        answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 앞 = 정면 위치 표현", vi:"💡 앞 = phía trước", en:"💡 앞 = in front"} },
-      { id:"t2_28", q:"마트가 어디에 ___?",           answer:"있어요",  answers:["있어요","있어요?","있어요."],  hint:{ko:"💡 장소를 물을 때 → 있습니까?", vi:"💡 Hỏi địa điểm → 있습니까?", en:"💡 Asking about location → 있습니까?"} },
-      { id:"t2_29", q:"방 안에 침대가 ___.",          answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 안 = 속 위치 표현", vi:"💡 안 = bên trong", en:"💡 안 = inside"} },
-      { id:"t2_30", q:"소파 위에 고양이가 ___.",      answer:"있습니다",  answers:["있습니다","있습니다."],  hint:{ko:"💡 위 = 위쪽 위치 표현", vi:"💡 위 = phía trên", en:"💡 위 = above"} },
     ];
+    // ✅ V278: 2B 위치표현 10문제 삭제 완료
 
     function gradeTest2() {
       if (TEST2_QUESTIONS.length === 0) return;
@@ -7781,7 +7771,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {testResult.score}점 {testResult.passed?"— 통과!":"— 다시 도전!"}
               </div>
               <div style={{fontSize:13, color:"#888"}}>
-                {vi?"Phạm vi: Bài 1 + Bài 2A + Bài 2B":en?"Scope: Unit 1 + Unit 2A + Unit 2B":"범위: 서술어 1단원 + 2A단원 + 2B단원"}
+                {vi?"Phạm vi: Bài 1 + Bài 2A + Bài 2B":en?"Scope: Unit 1 + Unit 2A + Unit 2B":"범위: 서술어 1단원 + 2단원 (있다·없다·많다·적다)"}
               </div>
             </div>
             <div style={{background:"white", borderRadius:16, padding:16, marginBottom:16}}>
@@ -7826,9 +7816,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             📝 {vi?"Bài kiểm tra — Tổng hợp (Bài 1+2)":en?"Test — Cumulative (Unit 1+2)":"누적 테스트 — 1·2A·2B단원"}
           </div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
-            {vi?"Phạm vi: Bài 1 (이에요/이다) + Bài 2 (있다·없다·많다·적다)":
-             en?"Scope: Unit 1 (이에요/이다) + Unit 2 (있다·없다·많다·적다)":
-             "범위: 서술어 1단원(이에요/이다) + 2A단원(있다·없다·많다·적다) + 2B단원(위치 표현)"}
+            {vi?"Phạm vi: Bài 1 + Bài 2 (있다·없다·많다·적다)":
+             en?"Scope: Unit 1 + Unit 2 (있다·없다·많다·적다)":
+             "범위: 서술어 1단원(이에요/이다) + 2단원(있다·없다·많다·적다)"}
           </div>
           {TEST2_QUESTIONS.map((q,i)=>(
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
