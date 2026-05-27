@@ -6,6 +6,7 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  sendEmailVerification,
 } from "firebase/auth";
 import {
   doc,
@@ -253,6 +254,9 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
 }
 
 function AuthScreen({ onLogin }) {
+  const [showVerify, setShowVerify] = useState(false);   // ✅ V284: 이메일 인증 대기 화면
+  const [verifyUser, setVerifyUser] = useState(null);    // ✅ V284: 인증 대기 중인 user 객체
+  const [verifyMsg, setVerifyMsg] = useState("");        // ✅ V284: 인증 안내 메시지
   const [tab, setTab] = useState("login"); // "login" | "signup" | "forgot"
   const [role, setRole] = useState("learner");
   const [name, setName] = useState("");
@@ -294,9 +298,21 @@ function AuthScreen({ onLogin }) {
           createdAt: serverTimestamp(),
           stats: { speak: 0, write: 0, tutor: 0 },
         });
-        onLogin(cred.user);
+        // ✅ V284: 이메일 인증 메일 발송
+        await sendEmailVerification(cred.user);
+        setVerifyUser(cred.user);
+        setShowVerify(true);
+        setLoading(false);
+        return;
       } else {
         const cred = await signInWithEmailAndPassword(auth, email, password);
+        // ✅ V284: 이메일 미인증 시 인증 대기 화면
+        if (!cred.user.emailVerified) {
+          setVerifyUser(cred.user);
+          setShowVerify(true);
+          setLoading(false);
+          return;
+        }
         onLogin(cred.user);
       }
     } catch (e) {
@@ -432,6 +448,44 @@ function AuthScreen({ onLogin }) {
       </div>
     );
   }
+
+  // ✅ V284: 이메일 인증 대기 화면
+  if (showVerify && verifyUser) return (
+    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",padding:"20px 24px"}}>
+      <div style={{fontSize:64,marginBottom:16}}>📧</div>
+      <div style={{fontSize:22,fontWeight:900,color:"#333",marginBottom:10,textAlign:"center"}}>인증 메일을 보냈어요!</div>
+      <div style={{fontSize:14,color:"#666",lineHeight:1.8,textAlign:"center",marginBottom:6}}>
+        <span style={{fontWeight:700,color:C.pink}}>{verifyUser.email}</span> 로<br/>인증 메일을 발송했어요.
+      </div>
+      <div style={{fontSize:13,color:"#999",lineHeight:1.8,textAlign:"center",marginBottom:28}}>
+        메일함을 열고 링크를 클릭한 뒤<br/>아래 버튼을 눌러주세요.
+      </div>
+      <div style={{width:"100%",maxWidth:320,display:"flex",flexDirection:"column",gap:12}}>
+        <button onClick={async()=>{
+          setVerifyMsg("");
+          try {
+            await verifyUser.reload();
+            if (verifyUser.emailVerified) { onLogin(verifyUser); }
+            else { setVerifyMsg("아직 인증이 완료되지 않았어요. 메일함을 확인해주세요 📬"); }
+          } catch(e) { setVerifyMsg("오류가 발생했어요. 다시 시도해주세요."); }
+        }} style={{width:"100%",padding:"14px 0",background:`linear-gradient(135deg,${C.pink},${C.orange})`,border:"none",borderRadius:50,color:"white",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:`0 6px 20px ${C.pink}40`}}>
+          ✅ 인증 완료했어요 →
+        </button>
+        <button onClick={async()=>{
+          setVerifyMsg("");
+          try { await sendEmailVerification(verifyUser); setVerifyMsg("인증 메일을 다시 보냈어요 📨"); }
+          catch(e) { setVerifyMsg("잠시 후 다시 시도해주세요."); }
+        }} style={{width:"100%",padding:"12px 0",background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,color:C.teal,fontSize:14,fontWeight:700,cursor:"pointer"}}>
+          📨 인증 메일 다시 보내기
+        </button>
+        <button onClick={async()=>{ await signOut(auth); setShowVerify(false); setVerifyUser(null); setVerifyMsg(""); }}
+          style={{background:"none",border:"none",color:"#bbb",fontSize:13,cursor:"pointer",padding:"8px 0"}}>
+          로그아웃
+        </button>
+      </div>
+      {verifyMsg && <div style={{marginTop:16,fontSize:13,color:C.pink,textAlign:"center",fontWeight:600}}>{verifyMsg}</div>}
+    </div>
+  );
 
   return (
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
