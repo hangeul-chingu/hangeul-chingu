@@ -11526,9 +11526,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total25})
               </button>
             ) : (
-              <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("learn"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,25])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:"서술어 25단원",nextStep:"unit_adv1",nextLabel:"부사어 1단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#4527A0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Hoàn thành! 🎊":en?"Complete! 🎊":"서술어 완료! 🎊"}
+                {vi?"Tiếp — Trạng từ 1! 🚀":en?"Next — Adverb Unit 1! 🚀":"부사어 1단원으로 계속하기 🚀"}
               </button>
             )
           )}
