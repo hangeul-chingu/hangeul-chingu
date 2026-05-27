@@ -7251,7 +7251,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
         const card = UNIT1_CARDS[unitCardIdx];
     const total = UNIT1_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
 
     // 정답 채점
@@ -7299,7 +7300,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {/* 모국어 예문 카드 */}
           <div style={{background:"white", borderRadius:16, border:"2px solid #A5D6A7", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #00C89622"}}>
             <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8, letterSpacing:0.5}}>
-              🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}
+              🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}
             </div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>
               {nativeText}
@@ -7623,7 +7624,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     const card  = UNIT2_CARDS[unitCardIdx];
     const total = UNIT2_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -7654,7 +7656,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #A5D6A7", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #00C89622"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -7901,7 +7903,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     const card  = UNIT3_CARDS[unitCardIdx];
     const total = UNIT3_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -7931,7 +7934,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #CE93D8", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #9C27B022"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -8008,7 +8011,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     const card  = UNIT3B_CARDS[unitCardIdx];
     const total = UNIT3B_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -8038,7 +8042,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #9FA8DA", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #3F51B522"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -8364,7 +8368,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
         const card  = UNIT4_CARDS[unitCardIdx];
     const total = UNIT4_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -8394,7 +8399,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #A5D6A7", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #43A04722"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -8511,7 +8516,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
         const card  = UNIT5_CARDS[unitCardIdx];
     const total = UNIT5_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -8542,7 +8548,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #FFCC80", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #FB8C0022"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -8791,7 +8797,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     const card  = UNIT6A_CARDS[unitCardIdx];
     const total = UNIT6A_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -8821,7 +8828,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #FFE082", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #F9A82522"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -8918,7 +8925,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
         const card  = UNIT6B_CARDS[unitCardIdx];
     const total = UNIT6B_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -8949,7 +8957,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #CE93D8", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #AB47BC22"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -9060,7 +9068,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
         const card  = UNIT7_CARDS[unitCardIdx];
     const total = UNIT7_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -9090,7 +9099,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #80DEEA", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #00ACC122"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -9179,7 +9188,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
         const card  = UNIT8_CARDS[unitCardIdx];
     const total = UNIT8_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -9210,7 +9220,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #AED581", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #7CB34222"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -9327,7 +9337,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     const card  = UNIT9_CARDS[unitCardIdx];
     const total = UNIT9_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -9358,7 +9369,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #FFAB40", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #E6510022"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -9542,7 +9553,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
         const card  = UNIT10_CARDS[unitCardIdx];
     const total = UNIT10_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -9572,7 +9584,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #F48FB1", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #E91E6322"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -9657,7 +9669,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
         const card  = UNIT11_CARDS[unitCardIdx];
     const total = UNIT11_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -9688,7 +9701,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #BA68C8", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #7B1FA222"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -9811,7 +9824,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
         const card  = UNIT12_CARDS[unitCardIdx];
     const total = UNIT12_CARDS.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct  = (card.full||"").replace(/\s+/g,"");
@@ -9844,7 +9858,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #90A4AE", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #546E7A22"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
@@ -10110,7 +10124,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E0F7FA", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#00695C"}}>💡 {ruleText13}</div>
           <div style={{background:"white", borderRadius:16, border:"2px solid #80DEEA", padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #00838F22"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText13}</div>
           </div>
           <div style={{background:"#B2DFDB", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#004D40", fontWeight:700, textAlign:"center"}}>
@@ -10300,7 +10314,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#F3E5F5", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#6A1B9A"}}>💡 {ruleText14}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #CE93D8`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #6A1B9A22"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText14}</div>
           </div>
           <div style={{background:"#E1BEE7", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#6A1B9A", fontWeight:700, textAlign:"center"}}>
@@ -10407,7 +10421,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E8F5E9", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#2E7D32"}}>💡 {ruleText15}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #81C784`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #2E7D3222"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText15}</div>
           </div>
           <div style={{background:"#C8E6C9", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#2E7D32", fontWeight:700, textAlign:"center"}}>
@@ -10533,7 +10547,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#FFF8E1", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#F57F17"}}>💡 {ruleText16}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #FFD54F`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #F57F1722"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText16}</div>
           </div>
           <div style={{background:"#FFECB3", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#F57F17", fontWeight:700, textAlign:"center"}}>
@@ -10637,7 +10651,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText17}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #90CAF9`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #1565C022"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText17}</div>
           </div>
           <div style={{background:"#BBDEFB", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#1565C0", fontWeight:700, textAlign:"center"}}>
@@ -10739,7 +10753,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#AD1457"}}>💡 {ruleText18}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #F48FB1`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #AD145722"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText18}</div>
           </div>
           <div style={{background:"#F8BBD0", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#AD1457", fontWeight:700, textAlign:"center"}}>
@@ -10837,7 +10851,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E8EAF6", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#283593"}}>💡 {ruleText19}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #9FA8DA`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #28359322"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText19}</div>
           </div>
           <div style={{background:"#C5CAE9", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#283593", fontWeight:700, textAlign:"center"}}>
@@ -10941,7 +10955,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#FFFDE7", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#F9A825"}}>💡 {ruleText20}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #FFF176`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #F9A82522"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText20}</div>
           </div>
           <div style={{background:"#FFF9C4", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#F9A825", fontWeight:700, textAlign:"center"}}>
@@ -11043,7 +11057,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E0F2F1", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#00695C"}}>💡 {ruleText21}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #80CBC4`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #00695C22"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText21}</div>
           </div>
           <div style={{background:"#B2DFDB", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#00695C", fontWeight:700, textAlign:"center"}}>
@@ -11155,7 +11169,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#E1F5FE", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#01579B"}}>💡 {ruleText22}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #81D4FA`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #01579B22"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText22}</div>
           </div>
           <div style={{background:"#B3E5FC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#01579B", fontWeight:700, textAlign:"center"}}>
@@ -11263,7 +11277,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#F1F8E9", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#558B2F"}}>💡 {ruleText23}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #AED581`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #558B2F22"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText23}</div>
           </div>
           <div style={{background:"#DCEDC8", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#558B2F", fontWeight:700, textAlign:"center"}}>
@@ -11367,7 +11381,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#FFF3E0", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#E65100"}}>💡 {ruleText24}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #FFCC80`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #E6510022"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText24}</div>
           </div>
           <div style={{background:"#FFE0B2", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#E65100", fontWeight:700, textAlign:"center"}}>
@@ -11494,7 +11508,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{background:"#EDE7F6", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#4527A0"}}>💡 {ruleText25}</div>
           <div style={{background:"white", borderRadius:16, border:`2px solid #B39DDB`, padding:"20px 18px", marginBottom:16, boxShadow:"0 2px 12px #4527A022"}}>
-            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":"모국어 예문"}</div>
+            <div style={{fontSize:11, fontWeight:800, color:"#888", marginBottom:8}}>🌏 {vi?"Câu tiếng mẹ đẻ":en?"Native sentence":lang?.code==="ko"?"영어 힌트":"모국어 예문"}</div>
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText25}</div>
           </div>
           <div style={{background:"#D1C4E9", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#4527A0", fontWeight:700, textAlign:"center"}}>
@@ -11743,7 +11757,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_ADV1 = { bg:"linear-gradient(150deg,#E3F2FD,#E8F5E9)", accent:"#1565C0", border:"#BBDEFB" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -11926,7 +11941,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_ADV2 = { bg:"linear-gradient(150deg,#FCE4EC,#F3E5F5)", accent:"#880E4F", border:"#F48FB1" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -12078,7 +12094,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_ADV3 = { bg:"linear-gradient(150deg,#E8EAF6,#E0F2F1)", accent:"#283593", border:"#9FA8DA" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -12182,7 +12199,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_ADV4 = { bg:"linear-gradient(150deg,#E8F5E9,#F1F8E9)", accent:"#2E7D32", border:"#A5D6A7" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -12283,7 +12301,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_ADV5 = { bg:"linear-gradient(150deg,#FFF3E0,#FFF8E1)", accent:"#E65100", border:"#FFCC80" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -12384,7 +12403,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_ADV6 = { bg:"linear-gradient(150deg,#F3E5F5,#EDE7F6)", accent:"#6A1B9A", border:"#CE93D8" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -12483,7 +12503,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_ADV7 = { bg:"linear-gradient(150deg,#E3F2FD,#E8EAF6)", accent:"#0D47A1", border:"#90CAF9" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -12614,7 +12635,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_REL = { bg:"linear-gradient(150deg,#E8F5E9,#E3F2FD)", accent:"#1A237E", border:"#90CAF9" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -12769,7 +12791,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_IND = { bg:"linear-gradient(150deg,#E8F5E9,#E3F2FD)", accent:"#1A237E", border:"#90CAF9" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -12892,7 +12915,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_HON = { bg:"linear-gradient(150deg,#E8F5E9,#E3F2FD)", accent:"#1A237E", border:"#90CAF9" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -13075,7 +13099,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_IRR = { bg:"linear-gradient(150deg,#E8F5E9,#FBE9E7)", accent:"#1B5E20", border:"#A5D6A7" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -13221,7 +13246,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_CTR = { bg:"linear-gradient(150deg,#E8F5E9,#FCE4EC)", accent:"#1A237E", border:"#90CAF9" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -13337,7 +13363,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_FREQ = { bg:"linear-gradient(150deg,#E8F5E9,#FBE9E7)", accent:"#1B5E20", border:"#A5D6A7" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -13483,7 +13510,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_MAN = { bg:"linear-gradient(150deg,#E3F2FD,#E8F5E9)", accent:"#1A237E", border:"#90CAF9" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -13603,7 +13631,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_CHG = { bg:"linear-gradient(150deg,#E3F2FD,#FFF3E0)", accent:"#1A237E", border:"#90CAF9" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -13713,7 +13742,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_MNR = { bg:"linear-gradient(150deg,#E3F2FD,#E8F5E9)", accent:"#0D47A1", border:"#90CAF9" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -13823,7 +13853,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_EMO = { bg:"linear-gradient(150deg,#FCE4EC,#F3E5F5)", accent:"#880E4F", border:"#F48FB1" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -13956,7 +13987,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_NOUN = { bg:"linear-gradient(150deg,#E8F5E9,#FFF3E0)", accent:"#1B5E20", border:"#A5D6A7" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -14062,7 +14094,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_APX = { bg:"linear-gradient(150deg,#E8EAF6,#E3F2FD)", accent:"#283593", border:"#9FA8DA" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -14190,7 +14223,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_CMP = { bg:"linear-gradient(150deg,#E8F5E9,#FFF3E0)", accent:"#1B5E20", border:"#A5D6A7" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -14327,7 +14361,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
     const C_NUM = { bg:"linear-gradient(150deg,#E8F5E9,#E3F2FD)", accent:"#1B5E20", border:"#A5D6A7" };
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -14462,7 +14497,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const allCards = NEG_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
@@ -14602,7 +14638,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const allCards = REG_SECTIONS.flatMap(s => s.cards.map(c => ({...c, sectionKey:s.key, sectionLabel:s.label, sectionColor:s.color, sectionAccent:s.accent, sectionRule:s.rule})));
     const card = allCards[unitCardIdx] || allCards[0];
     const total = allCards.length;
-    const nativeText = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
+    const nativeText = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText = vi ? card.sectionRule.vi : en ? card.sectionRule.en : card.sectionRule.ko;
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
