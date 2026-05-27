@@ -10087,7 +10087,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         const card = UNIT13_CARDS[unitCardIdx];
     const total13 = UNIT13_CARDS.length;
     const C13 = { bg:"linear-gradient(150deg,#E0F7FA,#B2EBF2)", accent:"#00838F", border:"#80DEEA" };
-    const nativeText13 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText13 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText13   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns13  = (unitCardInput||"").trim().replace(/\s+/g,"");
     const correct13  = (card.full||"").replace(/\s+/g,"");
@@ -10282,7 +10282,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT14_CARDS[unitCardIdx];
     const total14 = UNIT14_CARDS.length;
     const C14 = { bg:"linear-gradient(150deg,#F3E5F5,#E1BEE7)", accent:"#6A1B9A", border:"#CE93D8" };
-    const nativeText14 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText14 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText14   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect14 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -10389,7 +10389,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT15_CARDS[unitCardIdx];
     const total15 = UNIT15_CARDS.length;
     const C15 = { bg:"linear-gradient(150deg,#E8F5E9,#C8E6C9)", accent:"#2E7D32", border:"#81C784" };
-    const nativeText15 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText15 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText15   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect15 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -10515,7 +10515,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT16_CARDS[unitCardIdx];
     const total16 = UNIT16_CARDS.length;
     const C16 = { bg:"linear-gradient(150deg,#FFF8E1,#FFECB3)", accent:"#F57F17", border:"#FFD54F" };
-    const nativeText16 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText16 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText16   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect16 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -10619,7 +10619,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT17_CARDS[unitCardIdx];
     const total17 = UNIT17_CARDS.length;
     const C17 = { bg:"linear-gradient(150deg,#E3F2FD,#BBDEFB)", accent:"#1565C0", border:"#90CAF9" };
-    const nativeText17 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText17 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText17   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect17 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -10721,7 +10721,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT18_CARDS[unitCardIdx];
     const total18 = UNIT18_CARDS.length;
     const C18 = { bg:"linear-gradient(150deg,#FCE4EC,#F8BBD0)", accent:"#AD1457", border:"#F48FB1" };
-    const nativeText18 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText18 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText18   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect18 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -10819,7 +10819,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT19_CARDS[unitCardIdx];
     const total19 = UNIT19_CARDS.length;
     const C19 = { bg:"linear-gradient(150deg,#E8EAF6,#C5CAE9)", accent:"#283593", border:"#9FA8DA" };
-    const nativeText19 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText19 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText19   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect19 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -10923,7 +10923,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT20_CARDS[unitCardIdx];
     const total20 = UNIT20_CARDS.length;
     const C20 = { bg:"linear-gradient(150deg,#FFFDE7,#FFF9C4)", accent:"#F9A825", border:"#FFF176" };
-    const nativeText20 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText20 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText20   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect20 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -11025,7 +11025,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT21_CARDS[unitCardIdx];
     const total21 = UNIT21_CARDS.length;
     const C21 = { bg:"linear-gradient(150deg,#E0F2F1,#B2DFDB)", accent:"#00695C", border:"#80CBC4" };
-    const nativeText21 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText21 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText21   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect21 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -11137,7 +11137,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT22_CARDS[unitCardIdx];
     const total22 = UNIT22_CARDS.length;
     const C22 = { bg:"linear-gradient(150deg,#E1F5FE,#B3E5FC)", accent:"#01579B", border:"#81D4FA" };
-    const nativeText22 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText22 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText22   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect22 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -11245,7 +11245,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT23_CARDS[unitCardIdx];
     const total23 = UNIT23_CARDS.length;
     const C23 = { bg:"linear-gradient(150deg,#F1F8E9,#DCEDC8)", accent:"#558B2F", border:"#AED581" };
-    const nativeText23 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText23 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText23   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect23 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -11349,7 +11349,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT24_CARDS[unitCardIdx];
     const total24 = UNIT24_CARDS.length;
     const C24 = { bg:"linear-gradient(150deg,#FFF3E0,#FFE0B2)", accent:"#E65100", border:"#FFCC80" };
-    const nativeText24 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText24 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText24   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect24 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -11476,7 +11476,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = UNIT25_CARDS[unitCardIdx];
     const total25 = UNIT25_CARDS.length;
     const C25 = { bg:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", accent:"#4527A0", border:"#B39DDB" };
-    const nativeText25 = vi ? card.native.vi : en ? card.native.en : card.native.ko;
+    const nativeText25 = vi ? card.native.vi : en ? card.native.en : (lang?.code === "ko" ? card.native.en : card.native.ko);
     const ruleText25   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const isCorrect25 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
 
@@ -17838,10 +17838,66 @@ export default function App() {
     </div>
   );
 
-  // ✅ V139: 초급 — 도전 시작 전까지 BegScreen 전체화면 (탭 숨김)
-  if (level === "beg" && !begReady && !browseMode) return (
-    <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}} onMyPage={()=>setShowMyPage(true)}/>
-  );
+  // ✅ V281: BegScreen + 마이페이지 모달 함께 렌더링 (early return → Fragment)
+  if (level === "beg" && !begReady && !browseMode) {
+    const beg_unitsPassed = (() => { try { return JSON.parse(localStorage.getItem(`hc_units_${user.uid}`) || "[]"); } catch{ return []; } })();
+    const beg_savedStep = localStorage.getItem(`hc_step_${user.uid}`) || "";
+    const beg_passedCount = beg_unitsPassed.length;
+    const beg_pct = Math.round((beg_passedCount/25)*100);
+    const beg_stepHourMap = {
+      lang:0,curriculum:0,plan:0,pronunciation:2,pronTest:7,pronResult:8,
+      tense1:8,tense2:9,tense3:10,tense4:11,tense5:12,tense6:13,tenseTest:14,
+      josa:15,testJosa:19,qpron:19,sentenceStructure:20,
+    };
+    const beg_elapsed = (() => {
+      if (beg_stepHourMap[beg_savedStep] !== undefined) return beg_stepHourMap[beg_savedStep];
+      if (beg_savedStep?.startsWith("unit")) { const n=parseInt(beg_savedStep.replace(/[^0-9]/g,""))||0; return 20+Math.round((Math.min(n,25)/25)*59); }
+      return 20+Math.round((beg_passedCount/25)*59);
+    })();
+    const beg_pctH = Math.min(Math.round((beg_elapsed/80)*100),100);
+    const beg_stepLabels = {
+      pronunciation:"발음 학습 중",pronTest:"발음 테스트 중",pronResult:"발음 결과 확인",
+      tense1:"시제 1단원",tense2:"시제 2단원",tense3:"시제 3단원",tense4:"시제 4단원",
+      tense5:"시제 5단원",tense6:"시제 6단원",tenseTest:"시제 테스트",
+      josa:"조사·대명사 학습",testJosa:"조사 테스트",qpron:"의문대명사",sentenceStructure:"문장구조",learn:"자유 탭",
+    };
+    const beg_label = beg_stepLabels[beg_savedStep] || (beg_savedStep?.startsWith("unit") ? `서술어 ${beg_savedStep.replace("unit","")}단원` : beg_savedStep||"시작 전");
+    return (
+      <>
+        <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}} onMyPage={()=>setShowMyPage(true)}/>
+        {showMyPage&&(
+          <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:99999,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
+            onClick={()=>setShowMyPage(false)}>
+            <div style={{background:"white",borderRadius:"24px 24px 0 0",padding:"28px 24px 40px",width:"100%",maxWidth:480,boxShadow:"0 -8px 40px rgba(0,0,0,.2)"}}
+              onClick={e=>e.stopPropagation()}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
+                <div style={{fontSize:16,fontWeight:900,color:"#333"}}>👤 마이페이지</div>
+                <button onClick={()=>setShowMyPage(false)} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#bbb"}}>✕</button>
+              </div>
+              <div style={{background:"#F3EEFF",borderRadius:12,padding:"14px 16px",marginBottom:16}}>
+                <div style={{fontSize:13,color:"#666",marginBottom:6}}>👤 {user.displayName||user.email}</div>
+                <div style={{fontSize:12,color:"#9C6FDE",fontWeight:700,marginBottom:8}}>📍 현재 위치: {beg_label}</div>
+                <div style={{fontSize:11,color:"#888",marginBottom:4}}>📚 80시간 커리큘럼 진행률</div>
+                <div style={{background:"#e0e0e0",borderRadius:50,height:8,marginBottom:4}}>
+                  <div style={{background:"linear-gradient(90deg,#9C6FDE,#C084FC)",height:8,borderRadius:50,width:`${beg_pctH}%`,transition:"width .5s"}}/>
+                </div>
+                <div style={{fontSize:11,color:"#9C6FDE",fontWeight:700,textAlign:"right"}}>{beg_elapsed}h / 80h ({beg_pctH}%)</div>
+              </div>
+              <div style={{background:"#F0FFF4",borderRadius:12,padding:"12px 16px",marginBottom:16}}>
+                <div style={{fontSize:12,color:"#2E7D32",fontWeight:700,marginBottom:4}}>✅ 서술어 단원 통과: {beg_passedCount} / 25단원</div>
+                <div style={{background:"#e0e0e0",borderRadius:50,height:6}}>
+                  <div style={{background:"#00C896",height:6,borderRadius:50,width:`${beg_pct}%`}}/>
+                </div>
+              </div>
+              <button onClick={()=>setShowMyPage(false)} style={{width:"100%",padding:"13px 0",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",border:"none",borderRadius:50,color:"white",fontSize:14,fontWeight:900,cursor:"pointer"}}>
+                계속 학습하기 →
+              </button>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
