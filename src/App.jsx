@@ -62,7 +62,6 @@ const SECURITY_QUESTIONS = [
 // ════════════════════════════════════════════════════════
 function OnboardingScreen({ onDone, initLang, onLangChange }) {
   const [slide, setSlide] = useState(0);
-  const [levelHint, setLevelHint] = useState(null);   // 실력 선택
   const [referral, setReferral] = useState(null);      // 유입 경로
 
   const LANGS = [
@@ -86,9 +85,7 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
     s2sub:  { ko:"혼자 공부해도 막히는 그 순간,\n한글 친구가 함께합니다", vi:"Khi bạn tự học mà bị bế tắc,\nHangeul Chingu ở bên bạn", en:"When you get stuck studying alone,\nHangeul Chingu is right there", my:"တစ်ယောက်တည်း လေ့လာရင်း တားဆီးနေရင်\nHangeul Chingu က ရှိနေပါတယ်" },
     // 슬라이드 3: 해결
     s3h:    { ko:"3가지 훈련으로 실력 완성", vi:"3 loại luyện tập để hoàn thiện", en:"3 training modes to master Korean", my:"ကျွမ်းကျင်မှုအပြည့်ရစေမည့် လေ့ကျင့်မှု ၃ မျိုး" },
-    // 슬라이드 4: 실력 선택
-    s4h:    { ko:"지금 한국어 실력이 어느 정도예요?", vi:"Trình độ tiếng Hàn của bạn hiện tại?", en:"What's your current Korean level?", my:"သင်၏ ကိုရီးယားဘာသာ အဆင့်ကဘာလဲ?" },
-    s4skip: { ko:"건너뛸게요", vi:"Bỏ qua", en:"Skip this", my:"ကျော်သွားမည်" },
+
     // 슬라이드 5: 유입 경로
     s5h:    { ko:"한글 친구를 어떻게 알게 됐어요?", vi:"Bạn biết Hangeul Chingu qua đâu?", en:"How did you find Hangeul Chingu?", my:"Hangeul Chingu ကို ဘယ်လိုသိလဲ?" },
     s5skip: { ko:"건너뛸게요", vi:"Bỏ qua", en:"Skip this", my:"ကျော်သွားမည်" },
@@ -100,13 +97,7 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
   const L = initLang || "ko";
   const tx = (key) => (t[key]?.[L] ?? t[key]?.ko ?? "");
 
-  // 실력 선택지
-  const LEVELS = [
-    { id:"zero", em:"🌱", label:{ko:"완전 처음이에요",vi:"Hoàn toàn mới bắt đầu",en:"Complete beginner",my:"လုံးဝ စတင်သူ"} },
-    { id:"little", em:"🌿", label:{ko:"조금 알아요 (가나다 정도)",vi:"Biết một chút (bảng chữ cái)",en:"A little (alphabet level)",my:"နည်းနည်း သိတယ်"} },
-    { id:"basic", em:"🌳", label:{ko:"기본 대화는 돼요",vi:"Hội thoại cơ bản được",en:"Basic conversation OK",my:"အခြေခံ စကားပြောနိုင်"} },
-    { id:"mid",  em:"🏆", label:{ko:"중급 이상이에요",vi:"Trung cấp trở lên",en:"Intermediate or above",my:"အလယ်အလတ်အဆင့် သို့ အထက်"} },
-  ];
+
 
   // 유입 경로 선택지
   const REFERRALS = [
@@ -175,24 +166,7 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
         ))}
       </div>
     ),
-    // ─── 슬라이드 4: 실력 선택 ───
-    () => (
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px"}}>
-        <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:6,textAlign:"center",lineHeight:1.4}}>{tx("s4h")}</div>
-        <div style={{fontSize:12,color:"#bbb",marginBottom:20,textAlign:"center"}}>{tx("s4skip")} → 다음 버튼 클릭</div>
-        {LEVELS.map(lv=>(
-          <div key={lv.id} onClick={()=>{ setLevelHint(lv.id); setSlide(s=>s+1); }}
-            style={{width:"100%",display:"flex",alignItems:"center",gap:14,
-              background:levelHint===lv.id?C.teal:"white",
-              border:`2px solid ${levelHint===lv.id?C.teal:"#eee"}`,
-              borderRadius:16,padding:"14px 18px",marginBottom:10,cursor:"pointer",transition:"all .2s",
-              boxShadow:levelHint===lv.id?`0 4px 16px ${C.teal}40`:"0 1px 6px rgba(0,0,0,0.05)"}}>
-            <div style={{fontSize:28,flexShrink:0}}>{lv.em}</div>
-            <div style={{fontSize:15,fontWeight:700,color:levelHint===lv.id?"white":"#333"}}>{lv.label[L]||lv.label.ko}</div>
-          </div>
-        ))}
-      </div>
-    ),
+
     // ─── 슬라이드 5: 유입 경로 ───
     () => (
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px"}}>
@@ -227,7 +201,7 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
   const isLast = slide === SLIDES.length - 1;
 
   function handleDone() {
-    onDone(L, levelHint, referral);
+    onDone(L, referral);
   }
 
   return (
@@ -17373,9 +17347,8 @@ export default function App() {
     <OnboardingScreen
       initLang={onboardingLang}
       onLangChange={setOnboardingLang}
-      onDone={(selectedLang, levelHint, referral)=>{
+      onDone={(selectedLang, referral)=>{
         setOnboardingLang(selectedLang);
-        // levelHint, referral은 로그인 후 Firestore 저장 가능 (현재는 state 보관 불필요)
         setShowOnboarding(false);
       }}
     />
