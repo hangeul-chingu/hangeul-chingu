@@ -7950,8 +7950,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Bệnh viện gần nhà tôi.",      en:"The hospital is close to my house.", ko:"병원이 가깝습니다."},
         full:"병원이 가깝습니다.", rule:{vi:"가깝다 → 가까워요 / 가깝습니다 (ㅂ 불규칙)", en:"가깝다 → 가까워요 / 가깝습니다 (ㅂ irregular)", ko:"가깝다 → 가까워요 / 가깝습니다 (ㅂ 불규칙)"} },
       // ── 경어법 ──
-      { native:{vi:"Bà nội có khỏe không?",         en:"Is grandmother feeling unwell?",  ko:"할머니께서 편찮으세요?"},
-        full:"할머니께서 편찮으세요?", rule:{vi:"편찮으시다 = 아프다 (kính ngữ)", en:"편찮으시다 = 아프다 (honorific)", ko:"아프다 → 편찮으시다 (경어)"} },
+
     ];
 
     const card  = UNIT3_CARDS[unitCardIdx];
