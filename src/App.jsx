@@ -8809,7 +8809,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ════════════════════════════════════════════════════════
   // ════════════════════════════════════════════════════════
-  // ✅ V219: 서술어 6A단원 — 연결어 (그리고·그런데·하지만·그래서·그러면·그래도·아니면) 모국어→한국어
+  // ✅ V290: 서술어 6A단원 — [and] 와/과·-고 / [or] 이나·-거나 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit6a") {
     const vi = lang?.code === "vi";
@@ -8822,47 +8822,48 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT6A_CARDS = [
-      // ── [and] 명사+명사: 와/과 ──
-      { native:{vi:"Trong chợ có rau và trái cây và cá.",         en:"There are vegetables, fruits and fish in the market.", ko:"시장에 야채와 과일과 생선이 있습니다."},
+      // ── [and] 명사+와/과 ──
+      { native:{vi:"Ở chợ có rau, trái cây và cá.",              en:"There are vegetables, fruits and fish in the market.",    ko:"시장에 야채와 과일과 생선이 있습니다."},
         full:"시장에 야채와 과일과 생선이 있습니다.", rule:{vi:"명사+와/과+명사 = và (nối danh từ)", en:"noun+와/과+noun = and (noun list)", ko:"명사 나열: 와/과"} },
-      { native:{vi:"Tôi đến trung tâm vào thứ Ba và thứ Sáu.",    en:"I go to the language school on Tuesday and Friday.", ko:"저는 화요일과 금요일에 학원에 갑니다."},
-        full:"저는 화요일과 금요일에 학원에 갑니다.", rule:{vi:"화요일+과+금요일 = và (nối danh từ)", en:"화요일+과+금요일 = and (days)", ko:"요일 나열: 과"} },
-      { native:{vi:"Tôi đi Busan cùng Sumi và Gyungjin.",         en:"I went to Busan with Sumi and Kyoung Jin.", ko:"저는 어제 수미와 경진과 부산에 갔습니다."},
-        full:"저는 어제 수미와 경진과 부산에 갔습니다.", rule:{vi:"수미+와+경진+과 = và (người)", en:"수미+와+경진+과 = and (people)", ko:"사람 나열: 와/과"} },
-      { native:{vi:"Trên bầu trời có mặt trời, mặt trăng và sao.", en:"The sun, moon and stars are in the sky.", ko:"하늘에 해와 달과 별이 있습니다."},
+      { native:{vi:"Tôi đến trung tâm vào thứ Ba và thứ Sáu.",   en:"I go to the language school on Tuesday and Friday.",       ko:"저는 화요일과 금요일에 학원에 갑니다."},
+        full:"저는 화요일과 금요일에 학원에 갑니다.", rule:{vi:"화요일+과+금요일 = và (ngày)", en:"화요일+과+금요일 = and (days)", ko:"요일 나열: 과"} },
+      { native:{vi:"Hôm qua tôi đi Busan cùng Jinguk và Yumi.",  en:"I went to Busan with Jinguk and Yumi yesterday.",          ko:"저는 어제 진국이와 유미와 부산에 갔습니다."},
+        full:"저는 어제 진국이와 유미와 부산에 갔습니다.", rule:{vi:"진국+와+유미+와 = và (người)", en:"진국+와+유미+와 = and (people)", ko:"사람 나열: 와/과"} },
+      { native:{vi:"Trên bầu trời có mặt trời, mặt trăng và sao.", en:"The sun, moon and stars are in the sky.",               ko:"하늘에 해와 달과 별이 있습니다."},
         full:"하늘에 해와 달과 별이 있습니다.", rule:{vi:"해+와+달+과+별 = và (liệt kê)", en:"해+와+달+과+별 = and (list)", ko:"명사 3개 나열: 와/과"} },
-      // ── [and] 문장+문장: 그리고 ──
-      { native:{vi:"Sumi đẹp. Và Sumi thông minh.",               en:"Sumi is pretty. And Sumi is smart.", ko:"수미는 예쁩니다. 그리고 수미는 똑똑합니다."},
-        full:"수미는 예쁩니다. 그리고 수미는 똑똑합니다.", rule:{vi:"문장. 그리고 문장 = văn + và + văn", en:"sentence. 그리고 sentence = and (between sentences)", ko:"문장 연결: 그리고"} },
-      { native:{vi:"Hôm nay trời lạnh. Và ngày mai cũng lạnh.",   en:"It's cold today. And tomorrow too.", ko:"오늘은 춥습니다. 그리고 내일도 춥습니다."},
-        full:"오늘은 춥습니다. 그리고 내일도 춥습니다.", rule:{vi:"그리고 = và (thêm vào sau câu)", en:"그리고 = and (addition after sentence)", ko:"그리고 = 문장 추가"} },
-      // ── [and] 동사/형용사+-고 ──
-      { native:{vi:"Sumi đẹp và thông minh.",                     en:"Sumi is pretty and smart.", ko:"수미는 예쁘고 똑똑합니다."},
-        full:"수미는 예쁘고 똑똑합니다.", rule:{vi:"형용사+고+형용사 = và (trong câu)", en:"adjective+고+adjective = and (in one sentence)", ko:"형용사 나열: -고"} },
-      { native:{vi:"Hôm nay trời mưa và lạnh.",                   en:"It is rainy and cold today.", ko:"오늘은 비가 오고 춥습니다."},
-        full:"오늘은 비가 오고 춥습니다.", rule:{vi:"동사+고+형용사 = và (kết hợp)", en:"verb+고+adjective = and (combine)", ko:"동사+고+형용사 나열"} },
-      { native:{vi:"Tôi dọn dẹp và giặt đồ vào cuối tuần.",      en:"I clean and do the laundry on weekends.", ko:"저는 주말에 청소하고 빨래합니다."},
-        full:"저는 주말에 청소하고 빨래합니다.", rule:{vi:"동사+고+동사 = rồi (nối tiếp hoặc liệt kê)", en:"verb+고+verb = and then / and also", ko:"동사+고+동사: 순서·나열"} },
-      { native:{vi:"Bố là nhân viên công ty và mẹ là nội trợ.",  en:"My father is an office worker and my mother is a housewife.", ko:"아버지는 회사원이고, 어머니는 주부입니다."},
-        full:"아버지는 회사원이고, 어머니는 주부입니다.", rule:{vi:"명사+이고+명사 = và (nối danh từ trong câu)", en:"noun+이고+noun = and (noun link in sentence)", ko:"명사+이고 = 문장 내 명사 연결"} },
-      // ── [or] 이나/거나/아니면 ──
-      { native:{vi:"Tôi tập thể dục ở công viên hoặc ven sông.",  en:"I work out in the park or riverside.", ko:"저는 아침에 공원이나 강변에서 운동을 합니다."},
-        full:"저는 아침에 공원이나 강변에서 운동을 합니다.", rule:{vi:"명사+이나+명사 = hoặc (lựa chọn danh từ)", en:"noun+이나+noun = or (noun choice)", ko:"명사 선택: 이나"} },
-      { native:{vi:"Cà phê hay trà?",                             en:"Coffee or tea?", ko:"커피입니까, 아니면 차입니까?"},
-        full:"커피입니까, 아니면 차입니까?", rule:{vi:"아니면 = hay là (lựa chọn giữa câu)", en:"아니면 = or (between sentences/questions)", ko:"문장 선택: 아니면"} },
-      // ── [but] 하지만·그런데 ──
-      { native:{vi:"Tiếng Hàn dễ và thú vị. Nhưng (chuyển ý).",  en:"Korean is easy. But (topic shift).", ko:"한국어는 쉽고 재미있습니다.  그런데 —"},
-        full:"한국어는 쉽고 재미있습니다.", rule:{vi:"그런데 = nhưng/nhưng mà (chuyển chủ đề nhẹ)", en:"그런데 = but/however (soft topic shift)", ko:"그런데 = 가벼운 전환·대조"} },
-      { native:{vi:"Tiếng Hàn thú vị. Nhưng khó.",               en:"Korean is interesting. But it's difficult.", ko:"한국어는 재미있습니다. 하지만 어렵습니다."},
-        full:"한국어는 재미있습니다. 하지만 어렵습니다.", rule:{vi:"하지만 = nhưng (đối lập mạnh hơn 그런데)", en:"하지만 = but (stronger contrast than 그런데)", ko:"하지만 = 강한 대조"} },
-      // ── 경어법 ──
-      { native:{vi:"Bố tôi không khỏe. Vì vậy tôi đến bệnh viện.", en:"My father is unwell. So I went to the hospital.", ko:"아버지께서 편찮으십니다. 그래서 병원에 갔습니다."},
-        full:"아버지께서 편찮으십니다. 그래서 병원에 갔습니다.", rule:{vi:"그래서 + 편찮으시다 (kính ngữ)", en:"그래서 + 편찮으시다 (honorific)", ko:"그래서 + 경어"} },
+      // ── [and] -고: 형용사 나열 ──
+      { native:{vi:"Yumi đẹp và thông minh.",                    en:"Yumi is pretty and smart.",                               ko:"유미는 예쁘고 똑똑합니다."},
+        full:"유미는 예쁘고 똑똑합니다.", rule:{vi:"형용사+고+형용사 = và (tính từ)", en:"adjective+고+adjective = and", ko:"형용사 나열: -고"} },
+      { native:{vi:"Hôm nay trời mưa và lạnh.",                  en:"It is rainy and cold today.",                             ko:"오늘은 비가 오고 춥습니다."},
+        full:"오늘은 비가 오고 춥습니다.", rule:{vi:"동사+고+형용사 = và (kết hợp)", en:"verb+고+adjective = and", ko:"동사+형용사 혼합: -고"} },
+      { native:{vi:"Tiếng Hàn dễ và thú vị.",                    en:"Korean language is easy and funny.",                      ko:"한국어는 쉽고 재미있습니다."},
+        full:"한국어는 쉽고 재미있습니다.", rule:{vi:"형용사+고+형용사 = và", en:"adjective+고+adjective = and", ko:"형용사 나열: -고"} },
+      // ── [and] -고: 명사+이고 ──
+      { native:{vi:"Bố là nhân viên và mẹ là nội trợ.",          en:"My father is an office worker and my mother is a housewife.", ko:"아버지는 회사원이고 어머니는 주부입니다."},
+        full:"아버지는 회사원이고 어머니는 주부입니다.", rule:{vi:"명사+이고+명사 = và (nối trong câu)", en:"noun+이고+noun = and (in sentence)", ko:"명사+이고: 문장 내 연결"} },
+      // ── [and] -고: 동사 순서·나열 ──
+      { native:{vi:"Tôi dọn dẹp và giặt đồ vào cuối tuần.",      en:"I clean and do the laundry on weekends.",                 ko:"저는 주말에 청소하고 빨래합니다."},
+        full:"저는 주말에 청소하고 빨래합니다.", rule:{vi:"동사+고+동사 = rồi (nối tiếp)", en:"verb+고+verb = and then / and also", ko:"동사+고+동사: 순서·나열"} },
+      { native:{vi:"Tôi ăn cơm rồi xem phim.",                   en:"I eat rice and then watch a movie.",                      ko:"저는 밥을 먹고 영화를 봅니다."},
+        full:"저는 밥을 먹고 영화를 봅니다.", rule:{vi:"동사+고 = rồi (thứ tự hành động)", en:"verb+고 = and then (sequence)", ko:"동사+고: 동작 순서"} },
+      { native:{vi:"Tôi ăn sáng rồi đi học.",                    en:"I eat breakfast and go to school.",                       ko:"저는 아침을 먹고 학교에 갑니다."},
+        full:"저는 아침을 먹고 학교에 갑니다.", rule:{vi:"동사+고 = rồi (nối tiếp)", en:"verb+고 = and then", ko:"동사+고: 순서"} },
+      // ── [or] 명사+이나 ──
+      { native:{vi:"Tôi tập thể dục ở công viên hoặc bờ sông.",  en:"I work out in the park or riverside in the morning.",     ko:"저는 아침에 공원이나 강변에서 운동합니다."},
+        full:"저는 아침에 공원이나 강변에서 운동합니다.", rule:{vi:"명사+이나+명사 = hoặc (danh từ)", en:"noun+이나+noun = or (noun choice)", ko:"명사 선택: 이나"} },
+      { native:{vi:"Tôi ăn cơm hoặc bánh mì vào buổi sáng.",     en:"I eat rice or bread in the morning.",                     ko:"아침에 밥이나 빵을 먹습니다."},
+        full:"아침에 밥이나 빵을 먹습니다.", rule:{vi:"명사+이나+명사 = hoặc", en:"noun+이나+noun = or", ko:"명사 선택: 이나"} },
+      // ── [or] 동사+-거나 ──
+      { native:{vi:"Tôi đến thư viện hoặc gặp bạn vào cuối tuần.", en:"I go to the library or meet friends on a weekend.",    ko:"주말에 도서관에 가거나 친구를 만납니다."},
+        full:"주말에 도서관에 가거나 친구를 만납니다.", rule:{vi:"동사+거나+동사 = hoặc (động từ)", en:"verb+거나+verb = or (verb choice)", ko:"동사 선택: -거나"} },
+      { native:{vi:"Tôi mua sắm hoặc tập thể dục vào cuối tuần.", en:"I go shopping or work out on a weekend.",               ko:"주말에 쇼핑하거나 운동합니다."},
+        full:"주말에 쇼핑하거나 운동합니다.", rule:{vi:"동사+거나+동사 = hoặc", en:"verb+거나+verb = or", ko:"동사 선택: -거나"} },
+      { native:{vi:"Tôi làm thêm hoặc đi du lịch vào kì nghỉ.",  en:"I work part-time or go on a trip during the vacation.",  ko:"방학 동안 아르바이트하거나 여행합니다."},
+        full:"방학 동안 아르바이트하거나 여행합니다.", rule:{vi:"동사+거나+동사 = hoặc", en:"verb+거나+verb = or", ko:"동사 선택: -거나"} },
     ];
 
     const card  = UNIT6A_CARDS[unitCardIdx];
     const total = UNIT6A_CARDS.length;
-    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
@@ -8872,11 +8873,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8E1,#FFE082)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-      {MyPageBtn}
+        {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 6A — Liên từ (그리고·그런데·하지만·그래서)":en?"Unit 6A — Connectors":"서술어 6A단원 — 연결어"}
+              {vi?"Bài 6A — AND (와/과·-고) / OR (이나·-거나)":en?"Unit 6A — AND (와/과·-고) / OR (이나·-거나)":"서술어 6A단원 — AND (와/과·-고) / OR (이나·-거나)"}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -8884,11 +8885,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FFF9C4", border:"2px solid #F9A825", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {vi?"Liên từ cốt lõi":en?"Core Connectors":"핵심 연결어"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {vi?"AND / OR 핵심":en?"AND / OR Core":"AND / OR 핵심"}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
-              <div>· <b>그리고</b>: 추가 &nbsp;·&nbsp; <b>그런데</b>: 화제 전환</div>
-              <div>· <b>하지만</b>: 대조 &nbsp;·&nbsp; <b>그래서</b>: 결과</div>
-              <div>· <b>그러면</b>: 조건→제안 &nbsp;·&nbsp; <b>그래도</b>: 불구하고 &nbsp;·&nbsp; <b>아니면</b>: 선택</div>
+              <div>· <b>명사 and</b>: 와/과 &nbsp;예: 사과<b>와</b> 바나나</div>
+              <div>· <b>동사·형용사 and</b>: -고 &nbsp;예: 먹<b>고</b> 갑니다</div>
+              <div>· <b>명사 or</b>: 이나/나 &nbsp;예: 밥<b>이나</b> 빵</div>
+              <div>· <b>동사 or</b>: -거나 &nbsp;예: 가<b>거나</b> 만납니다</div>
             </div>
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
@@ -8897,7 +8899,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết hai câu với liên từ":en?"Write two sentences with a connector":"연결어를 넣어 두 문장을 완성하세요"}
+            ✍️ {vi?"Viết câu tiếng Hàn":en?"Write the Korean sentence":"한국어로 작성하세요"}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#FFE082"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
@@ -8944,7 +8946,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   // ════════════════════════════════════════════════════════
-  // ✅ V219: 서술어 6B단원 — -고/-지만/-아서/-어서 연결어미 (모국어→한국어)
+  // ✅ V290: 서술어 6B단원 — [but] 하지만·-지만 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit6b") {
     const vi = lang?.code === "vi";
@@ -8957,40 +8959,36 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT6B_CARDS = [
-      // ── [and -고] 동사 순서 연결 ──
-      { native:{vi:"Tôi ăn cơm rồi xem phim.",                   en:"I eat and then watch a movie.",          ko:"저는 밥을 먹고 영화를 봅니다."},
-        full:"저는 밥을 먹고 영화를 봅니다.", rule:{vi:"동사+고 = rồi (thứ tự hành động)", en:"verb+고 = and then (sequence)", ko:"동사+고: 동작 순서"} },
-      { native:{vi:"Tôi ăn sáng rồi đi học.",                    en:"I eat breakfast and go to school.",      ko:"저는 아침을 먹고 학교에 갑니다."},
-        full:"저는 아침을 먹고 학교에 갑니다.", rule:{vi:"동사+고 = rồi (nối tiếp)", en:"verb+고 = and then", ko:"동사+고: 순서"} },
-      // ── [and -고] 형용사 나열 ──
-      { native:{vi:"Tiếng Hàn dễ và thú vị.",                    en:"Korean language is easy and funny.",     ko:"한국어는 쉽고 재미있습니다."},
-        full:"한국어는 쉽고 재미있습니다.", rule:{vi:"형용사+고+형용사 = và (liệt kê tính từ)", en:"adjective+고+adjective = and (adjective list)", ko:"형용사+고: 나열"} },
-      { native:{vi:"Trời mưa và lạnh hôm nay.",                  en:"It is rainy and cold today.",            ko:"오늘은 비가 오고 춥습니다."},
-        full:"오늘은 비가 오고 춥습니다.", rule:{vi:"동사+고+형용사 = và (kết hợp)", en:"verb+고+adjective = and", ko:"동사+형용사 혼합 -고"} },
-      // ── [but -지만] 한 문장 대조 ──
-      { native:{vi:"Tiếng Hàn thú vị nhưng khó.",                en:"Korean is fun but difficult.",           ko:"한국어는 재미있지만 어렵습니다."},
-        full:"한국어는 재미있지만 어렵습니다.", rule:{vi:"형용사+지만 = nhưng (đối lập trong câu)", en:"adjective+지만 = but (contrast in one sentence)", ko:"형용사+지만: 한 문장 대조"} },
-      { native:{vi:"Giá đắt nhưng chất lượng tốt.",              en:"The price is expensive but good.",       ko:"값은 비싸지만 좋습니다."},
-        full:"값은 비싸지만 좋습니다.", rule:{vi:"형용사+지만 = nhưng", en:"adjective+지만 = but", ko:"형용사+지만: 대조"} },
-      { native:{vi:"Tôi bận nhưng hạnh phúc.",                   en:"I'm busy but happy.",                   ko:"저는 바쁘지만 행복합니다."},
-        full:"저는 바쁘지만 행복합니다.", rule:{vi:"형용사+지만 = nhưng (đối lập)", en:"adjective+지만 = but (contrast)", ko:"형용사+지만: 대조"} },
-      // ── [because -아/어서] 이유 ──
-      { native:{vi:"Tôi đói nên ăn cơm.",                        en:"I'm hungry so I eat rice.",              ko:"저는 배가 고파서 밥을 먹습니다."},
-        full:"저는 배가 고파서 밥을 먹습니다.", rule:{vi:"형용사+아/어서 = vì/nên (nguyên nhân)", en:"adjective+아/어서 = because (reason)", ko:"형용사+아서: 이유"} },
-      { native:{vi:"Trời lạnh nên tôi mặc áo khoác.",            en:"It's cold so I wear a jacket.",         ko:"날씨가 추워서 외투를 입습니다."},
-        full:"날씨가 추워서 외투를 입습니다.", rule:{vi:"형용사+아/어서 = vì/nên", en:"adjective+아/어서 = because", ko:"형용사+어서: 이유"} },
-      { native:{vi:"Trời mưa nên tôi ở nhà.",                    en:"It's raining so I stay home.",          ko:"비가 와서 집에 있습니다."},
-        full:"비가 와서 집에 있습니다.", rule:{vi:"동사+아/어서 = vì/nên", en:"verb+아/어서 = because", ko:"동사+아서: 이유"} },
-      // ── 핵심 정리: 명사/동사형용사/문장 비교 ──
-      { native:{vi:"Tôi thích cà phê VÀ trà. (명사)",            en:"I like coffee AND tea. (noun)",         ko:"저는 커피와 차를 좋아합니다. (명사: 와/과)"},
-        full:"저는 커피와 차를 좋아합니다.", rule:{vi:"[명사 and] → 와/과", en:"[noun and] → 와/과", ko:"명사 나열: 와/과"} },
-      { native:{vi:"Tôi thích cà phê VÀ uống trà. (동사)",       en:"I like coffee AND drink tea. (verb)",   ko:"저는 커피를 좋아하고 차를 마십니다. (동사: -고)"},
-        full:"저는 커피를 좋아하고 차를 마십니다.", rule:{vi:"[동사/형용사 and] → -고", en:"[verb/adj and] → -고", ko:"동사·형용사 나열: -고"} },
+      // ── [but] 하지만: 두 문장 ──
+      { native:{vi:"Chị cao. Nhưng em thấp.",                     en:"The older sister is tall. But her little sister is short.", ko:"언니는 키가 큽니다. 하지만 동생은 키가 작습니다."},
+        full:"언니는 키가 큽니다. 하지만 동생은 키가 작습니다.", rule:{vi:"문장. 하지만 문장 = nhưng (hai câu)", en:"sentence. 하지만 sentence = but (two sentences)", ko:"하지만: 두 문장 대조"} },
+      { native:{vi:"Thỏ nhanh. Nhưng rùa chậm.",                  en:"The rabbit is fast. But the turtle is slow.",               ko:"토끼는 빠릅니다. 하지만 거북이는 느립니다."},
+        full:"토끼는 빠릅니다. 하지만 거북이는 느립니다.", rule:{vi:"문장. 하지만 문장 = nhưng", en:"sentence. 하지만 sentence = but", ko:"하지만: 두 문장 대조"} },
+      { native:{vi:"Hàn Quốc thú vị. Nhưng mùa đông lạnh.",       en:"Korea is interesting. But winter is cold.",                 ko:"한국은 재미있습니다. 하지만 겨울은 춥습니다."},
+        full:"한국은 재미있습니다. 하지만 겨울은 춥습니다.", rule:{vi:"문장. 하지만 문장 = nhưng", en:"sentence. 하지만 sentence = but", ko:"하지만: 두 문장 대조"} },
+      // ── [but] -지만: 한 문장 ──
+      { native:{vi:"Chị cao nhưng em thấp.",                       en:"The older sister is tall, but her little sister is short.", ko:"언니는 키가 크지만 동생은 키가 작습니다."},
+        full:"언니는 키가 크지만 동생은 키가 작습니다.", rule:{vi:"형용사+지만 = nhưng (một câu)", en:"adjective+지만 = but (one sentence)", ko:"-지만: 한 문장 대조"} },
+      { native:{vi:"Thỏ nhanh nhưng rùa chậm.",                    en:"The rabbit is fast, but the turtle is slow.",               ko:"토끼는 빠르지만 거북이는 느립니다."},
+        full:"토끼는 빠르지만 거북이는 느립니다.", rule:{vi:"형용사+지만 = nhưng (một câu)", en:"adjective+지만 = but (one sentence)", ko:"-지만: 한 문장 대조"} },
+      { native:{vi:"Tôi thích chó nhưng Jinguk ghét chó.",          en:"I like dogs, but Jinguk doesn't like dogs.",               ko:"저는 개를 좋아하지만 진국이는 싫어합니다."},
+        full:"저는 개를 좋아하지만 진국이는 싫어합니다.", rule:{vi:"동사+지만 = nhưng", en:"verb+지만 = but", ko:"동사+지만: 대조"} },
+      { native:{vi:"Thức ăn Hàn Quốc cay nhưng ngon.",             en:"Korean food is spicy but delicious.",                       ko:"한국 음식은 맵지만 맛있습니다."},
+        full:"한국 음식은 맵지만 맛있습니다.", rule:{vi:"형용사+지만 = nhưng", en:"adjective+지만 = but", ko:"형용사+지만: 대조"} },
+      { native:{vi:"Cái túi này nặng nhưng chắc chắn.",             en:"This bag is heavy but strong.",                            ko:"이 가방은 무겁지만 튼튼합니다."},
+        full:"이 가방은 무겁지만 튼튼합니다.", rule:{vi:"형용사+지만 = nhưng", en:"adjective+지만 = but", ko:"형용사+지만: 대조"} },
+      { native:{vi:"Hôm qua nóng nhưng hôm nay mát.",               en:"It was hot yesterday but it is cool today.",               ko:"어제는 더웠지만 오늘은 시원합니다."},
+        full:"어제는 더웠지만 오늘은 시원합니다.", rule:{vi:"형용사+지만 = nhưng (quá khứ vs hiện tại)", en:"adjective+지만 = but (past vs present)", ko:"형용사+지만: 시제 대조"} },
+      { native:{vi:"Tiếng Hàn thú vị nhưng khó.",                   en:"Korean is interesting but difficult.",                     ko:"한국어는 재미있지만 어렵습니다."},
+        full:"한국어는 재미있지만 어렵습니다.", rule:{vi:"형용사+지만 = nhưng", en:"adjective+지만 = but", ko:"형용사+지만: 대조"} },
+      { native:{vi:"Giá đắt nhưng chất lượng tốt.",                  en:"The price is expensive but the quality is good.",         ko:"값은 비싸지만 품질이 좋습니다."},
+        full:"값은 비싸지만 품질이 좋습니다.", rule:{vi:"형용사+지만 = nhưng", en:"adjective+지만 = but", ko:"형용사+지만: 대조"} },
+      { native:{vi:"Tôi bận nhưng hạnh phúc.",                       en:"I am busy but happy.",                                    ko:"저는 바쁘지만 행복합니다."},
+        full:"저는 바쁘지만 행복합니다.", rule:{vi:"형용사+지만 = nhưng", en:"adjective+지만 = but", ko:"형용사+지만: 대조"} },
     ];
 
-        const card  = UNIT6B_CARDS[unitCardIdx];
+    const card  = UNIT6B_CARDS[unitCardIdx];
     const total = UNIT6B_CARDS.length;
-    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
@@ -9000,11 +8998,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#CE93D8)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-      {MyPageBtn}
+        {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 6B — Đuôi nối câu (-고/-지만/-아서)":en?"Unit 6B — Connective Endings (-고/-지만/-아서)":"서술어 6B단원 — 연결어미 (-고/-지만/-아서/-어서)"}
+              {vi?"Bài 6B — BUT (하지만·-지만)":en?"Unit 6B — BUT (하지만·-지만)":"서술어 6B단원 — BUT (하지만·-지만)"}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9012,12 +9010,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#F3E5F5", border:"2px solid #AB47BC", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#6A1B9A", marginBottom:6}}>📌 {vi?"Đuôi nối câu cốt lõi":en?"Core Connective Endings":"핵심 연결어미"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#6A1B9A", marginBottom:6}}>📌 {vi?"BUT 핵심":en?"BUT Core":"BUT 핵심"}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
-              <div>· <b>-고</b>: 나열·순서 (and, then)</div>
-              <div>· <b>-지만</b>: 대조 (but)</div>
-              <div>· <b>-아서/-어서</b>: 이유→결과 (so, because)</div>
-              <div>· <b>-이고</b>: 명사+명사 나열</div>
+              <div>· <b>하지만</b>: 두 문장 사이 &nbsp;예: 좋습니다. <b>하지만</b> 비쌉니다.</div>
+              <div>· <b>-지만</b>: 한 문장 안 &nbsp;예: 좋<b>지만</b> 비쌉니다.</div>
             </div>
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
@@ -9026,7 +9022,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết bằng thể 합니다 với đuôi nối câu":en?"Write with connective endings":"연결어미를 사용해 합니다체로 작성하세요"}
+            ✍️ {vi?"Viết câu tiếng Hàn":en?"Write the Korean sentence":"한국어로 작성하세요"}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#CE93D8"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
@@ -9072,7 +9068,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     );
   }
 
-  // ════════════════════════════════════════════════════════
   // ── 7단원: 현재진행 -고 있다 ──
   // ════════════════════════════════════════════════════════
   // ✅ V220: 서술어 7단원 — 진행형 -고 있습니다 (모국어→한국어)
