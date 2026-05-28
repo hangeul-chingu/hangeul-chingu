@@ -7284,6 +7284,15 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"저는 운전기사입니다.", rule:{vi:"운전기사 + 예요 / 입니다", en:"운전기사 + 예요 / 입니다", ko:"운전기사 + 예요 / 입니다"} },
       { native:{vi:"Tôi là người học tiếng Hàn.",en:"I am a Korean learner.",        ko:"저는 한국어 학습자입니다."},
         full:"저는 한국어 학습자입니다.", rule:{vi:"학습자 + 예요 / 입니다", en:"학습자 + 예요 / 입니다", ko:"학습자 + 예요 / 입니다"} },
+      // ── 의문문 ──
+      { native:{vi:"Cái này là cái gì?",          en:"What is this?",                ko:"이것은 무엇입니까?"},
+        full:"이것은 무엇입니까?", rule:{vi:"무엇 + 입니까? (câu hỏi)", en:"무엇 + 입니까? (question)", ko:"무엇 + 입니까? (의문형)"} },
+      { native:{vi:"Cái này là quyển sách phải không?", en:"Is this a book?",        ko:"이것은 책입니까?"},
+        full:"이것은 책입니까?", rule:{vi:"책 + 입니까?", en:"책 + 입니까?", ko:"받침 있음 → 입니까?"} },
+      { native:{vi:"Đằng kia là Gwang-hwa-mun phải không?", en:"Is that Gwanghwamoon?", ko:"저기는 광화문입니까?"},
+        full:"저기는 광화문입니까?", rule:{vi:"광화문 + 입니까?", en:"광화문 + 입니까?", ko:"받침 있음 → 입니까?"} },
+      { native:{vi:"Cô ấy là bạn gái của anh ấy phải không?", en:"Is she his girlfriend?", ko:"그녀는 그의 여자 친구입니까?"},
+        full:"그녀는 그의 여자 친구입니까?", rule:{vi:"친구 + 입니까?", en:"친구 + 입니까?", ko:"받침 없음 → 예요? / 입니까?"} },
     ];
 
         const card = UNIT1_CARDS[unitCardIdx];
