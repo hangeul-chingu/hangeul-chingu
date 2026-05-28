@@ -7619,9 +7619,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
     // ✅ V278: 예문 수정 (버스→물, 회사→공원, 과거형 제거, 계십니다 적용, 2B 삭제)
     const UNIT2_CARDS = [
-      // ── 있다 (10장) ──
-      { native:{vi:"Tôi có thời gian.",                      en:"I have time.",                          ko:"저는 시간이 있습니다."},
-        full:"저는 시간이 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
+      // ── 있다 ──
+      { native:{vi:"Có thời gian.",                          en:"I have time.",                          ko:"시간이 있습니다."},
+        full:"시간이 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
       { native:{vi:"Trong phòng có điện thoại.",             en:"There is a phone in the room.",         ko:"방에 전화기가 있습니다."},
         full:"방에 전화기가 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
       { native:{vi:"Ở đây có nước (trong nhà hàng).",        en:"There is water here (at the restaurant).", ko:"여기에 물이 있습니다."},
@@ -7629,15 +7629,15 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Trong túi có tiền.",                     en:"There is money in the bag.",            ko:"가방에 돈이 있습니다."},
         full:"가방에 돈이 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
       // ── 없다 ──
-      { native:{vi:"Tôi không có tiền.",                     en:"I don't have money.",                   ko:"저는 돈이 없습니다."},
-        full:"저는 돈이 없습니다.", rule:{vi:"없다 → 없어요 / 없습니다", en:"없다 → 없어요 / 없습니다", ko:"없다 → 없어요 / 없습니다"} },
+      { native:{vi:"Không có tiền.",                         en:"I don't have money.",                   ko:"돈이 없습니다."},
+        full:"돈이 없습니다.", rule:{vi:"없다 → 없어요 / 없습니다", en:"없다 → 없어요 / 없습니다", ko:"없다 → 없어요 / 없습니다"} },
       { native:{vi:"Hôm nay không có bài tập về nhà.",       en:"There is no homework today.",           ko:"오늘은 숙제가 없습니다."},
         full:"오늘은 숙제가 없습니다.", rule:{vi:"없다 → 없어요 / 없습니다", en:"없다 → 없어요 / 없습니다", ko:"없다 → 없어요 / 없습니다"} },
       { native:{vi:"Không có nước trong tủ lạnh.",           en:"There is no water in the fridge.",      ko:"냉장고에 물이 없습니다."},
         full:"냉장고에 물이 없습니다.", rule:{vi:"없다 → 없어요 / 없습니다", en:"없다 → 없어요 / 없습니다", ko:"없다 → 없어요 / 없습니다"} },
       // ── 많다 ──
-      { native:{vi:"Tôi có nhiều bạn bè.",                   en:"I have many friends.",                  ko:"저는 친구가 많습니다."},
-        full:"저는 친구가 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
+      { native:{vi:"Có nhiều bạn bè.",                       en:"I have many friends.",                  ko:"친구가 많습니다."},
+        full:"친구가 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
       { native:{vi:"Hôm nay có nhiều người ở công viên.",    en:"There are many people in the park today.", ko:"오늘 공원에 사람이 많습니다."},
         full:"오늘 공원에 사람이 많습니다.", rule:{vi:"많다 → 많아요 / 많습니다", en:"많다 → 많아요 / 많습니다", ko:"많다 → 많아요 / 많습니다"} },
       { native:{vi:"Siêu thị có nhiều đồ ăn.",               en:"The supermarket has a lot of food.",    ko:"마트에 음식이 많습니다."},
@@ -7666,6 +7666,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"하늘에 구름이 있습니다.", rule:{vi:"장소 + 에 + 명사 + 있습니다", en:"place + 에 + noun + 있습니다", ko:"장소+에 명사+이/가 있습니다"} },
       { native:{vi:"Cô ấy ở trong tâm trí tôi.",             en:"She is in my heart.",                   ko:"내 마음에 그녀가 있습니다."},
         full:"내 마음에 그녀가 있습니다.", rule:{vi:"마음에 + 있습니다", en:"마음에 + 있습니다", ko:"내 마음에 그녀가 있습니다"} },
+      // ── 추가 (120% 기준) ──
+      { native:{vi:"Có ước mơ.",                             en:"I have a dream.",                       ko:"꿈이 있습니다."},
+        full:"꿈이 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"있다 → 있어요 / 있습니다"} },
+      { native:{vi:"Không có bạn trai.",                     en:"I don't have a boyfriend.",             ko:"남자 친구가 없습니다."},
+        full:"남자 친구가 없습니다.", rule:{vi:"없다 → 없어요 / 없습니다", en:"없다 → 없어요 / 없습니다", ko:"없다 → 없어요 / 없습니다"} },
+      { native:{vi:"Trong công viên có hoa.",                 en:"There are flowers in the park.",        ko:"공원에 꽃이 있습니다."},
+        full:"공원에 꽃이 있습니다.", rule:{vi:"있다 → 있어요 / 있습니다", en:"있다 → 있어요 / 있습니다", ko:"장소+에 명사+이/가 있습니다"} },
     ];
 
     const card  = UNIT2_CARDS[unitCardIdx];
