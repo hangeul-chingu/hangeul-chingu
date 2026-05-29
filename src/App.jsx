@@ -9654,7 +9654,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     );
   }
 
-  // ✅ V220: 서술어 11단원 — 소망 -았/었으면 좋겠습니다 (모국어→한국어)
+  // ✅ V295: 서술어 11단원 — 소망 -았/었으면 좋겠습니다 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit11") {
     const vi = lang?.code === "vi";
@@ -9667,28 +9667,28 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT11_CARDS = [
-      { native:{vi:"Giá mà thời tiết đẹp.",                en:"I wish the weather were nice.",        ko:"날씨가 좋았으면 좋겠습니다."},
-        full:"날씨가 좋았으면 좋겠습니다.", rule:{vi:"좋다 + -았으면 좋겠습니다", en:"좋다 + -았으면 좋겠습니다", ko:"좋다 + -았으면 좋겠습니다"} },
-      { native:{vi:"Giá mà nhanh được nghỉ hè.",           en:"I hope vacation comes soon.",          ko:"빨리 방학이 됐으면 좋겠습니다."},
-        full:"빨리 방학이 됐으면 좋겠습니다.", rule:{vi:"되다 → 됐으면 좋겠습니다", en:"되다 → 됐으면 좋겠습니다", ko:"되다 → 됐으면 좋겠습니다"} },
-      { native:{vi:"Giá mà có nhiều tiền.",                 en:"I wish I had a lot of money.",        ko:"돈이 많았으면 좋겠습니다."},
-        full:"돈이 많았으면 좋겠습니다.", rule:{vi:"많다 + -았으면 좋겠습니다", en:"많다 + -았으면 좋겠습니다", ko:"많다 + -았으면 좋겠습니다"} },
-      { native:{vi:"Mong bạn được khỏe mạnh.",             en:"I hope you are healthy.",              ko:"건강했으면 좋겠습니다."},
-        full:"건강했으면 좋겠습니다.", rule:{vi:"건강하다 → 건강했으면 좋겠습니다", en:"건강하다 → 건강했으면 좋겠습니다", ko:"건강하다 + -했으면 좋겠습니다"} },
-      { native:{vi:"Giá mà không có lo lắng.",              en:"I wish there were no worries.",       ko:"걱정이 없었으면 좋겠습니다."},
-        full:"걱정이 없었으면 좋겠습니다.", rule:{vi:"없다 + -었으면 좋겠습니다", en:"없다 + -었으면 좋겠습니다", ko:"없다 + -었으면 좋겠습니다"} },
-      { native:{vi:"Mong bố mẹ sống lâu trăm tuổi.",       en:"I hope my parents live long.",        ko:"부모님이 오래 사셨으면 좋겠습니다."},
-        full:"부모님이 오래 사셨으면 좋겠습니다.", rule:{vi:"사시다 → 사셨으면 좋겠습니다 (높임)", en:"사시다 → 사셨으면 좋겠습니다 (honorific)", ko:"-셨으면 좋겠습니다 (높임 희망)"} },
-      // ── 추가 2개 ──
-      { native:{vi:"Giá mà không có bài tập về nhà.",       en:"I wish there were no homework.",      ko:"숙제가 없었으면 좋겠습니다."},
-        full:"숙제가 없었으면 좋겠습니다.", rule:{vi:"없다 + -었으면 좋겠습니다", en:"없다 + -었으면 좋겠습니다", ko:"없다 + -었으면 좋겠습니다"} },
-      { native:{vi:"Giá mà tiếng Hàn dễ hơn.",             en:"I wish Korean were easier.",          ko:"한국어가 더 쉬웠으면 좋겠습니다."},
-        full:"한국어가 더 쉬웠으면 좋겠습니다.", rule:{vi:"쉽다 → 쉬웠으면 좋겠습니다 (ㅂ불규칙)", en:"쉽다 → 쉬웠으면 좋겠습니다 (ㅂ irregular)", ko:"쉽다 + -웠으면 좋겠습니다"} },
+      { native:{vi:"Giá mà thời tiết đẹp.",                  en:"I wish the weather were nice.",             ko:"날씨가 좋았으면 좋겠습니다."},
+        full:"날씨가 좋았으면 좋겠습니다.", rule:{vi:"좋다(ㅗ) → 좋았으면 좋겠습니다", en:"좋다(ㅗ) → 좋았으면 좋겠습니다", ko:"ㅗ계열 → -았으면 좋겠습니다"} },
+      { native:{vi:"Giá mà nhanh được nghỉ hè.",              en:"I hope vacation comes soon.",               ko:"빨리 방학이 됐으면 좋겠습니다."},
+        full:"빨리 방학이 됐으면 좋겠습니다.", rule:{vi:"되다 → 됐으면 좋겠습니다 (되+었→됐)", en:"되다 → 됐으면 좋겠습니다 (되+었→됐)", ko:"되다 → 됐으면 좋겠습니다"} },
+      { native:{vi:"Giá mà có nhiều tiền.",                   en:"I wish I had a lot of money.",              ko:"돈이 많았으면 좋겠습니다."},
+        full:"돈이 많았으면 좋겠습니다.", rule:{vi:"많다(ㅏ) → 많았으면 좋겠습니다", en:"많다(ㅏ) → 많았으면 좋겠습니다", ko:"ㅏ계열 → -았으면 좋겠습니다"} },
+      { native:{vi:"Mong được khỏe mạnh.",                    en:"I hope to be healthy.",                     ko:"건강했으면 좋겠습니다."},
+        full:"건강했으면 좋겠습니다.", rule:{vi:"건강하다 → 건강했으면 좋겠습니다 (하다→했)", en:"건강하다 → 건강했으면 좋겠습니다 (하다→했)", ko:"하다 → -했으면 좋겠습니다"} },
+      { native:{vi:"Giá mà không có lo lắng.",                en:"I wish there were no worries.",             ko:"걱정이 없었으면 좋겠습니다."},
+        full:"걱정이 없었으면 좋겠습니다.", rule:{vi:"없다 → 없었으면 좋겠습니다", en:"없다 → 없었으면 좋겠습니다", ko:"그 외 → -었으면 좋겠습니다"} },
+      { native:{vi:"Giá mà kỳ thi kết thúc sớm.",             en:"I wish the exam would end soon.",           ko:"시험이 빨리 끝났으면 좋겠습니다."},
+        full:"시험이 빨리 끝났으면 좋겠습니다.", rule:{vi:"끝나다(ㅏ) → 끝났으면 좋겠습니다", en:"끝나다(ㅏ) → 끝났으면 좋겠습니다", ko:"ㅏ계열 동사 → -았으면 좋겠습니다"} },
+      { native:{vi:"Giá mà phòng rộng hơn một chút.",          en:"I wish the room were a bit bigger.",        ko:"방이 좀 더 넓었으면 좋겠습니다."},
+        full:"방이 좀 더 넓었으면 좋겠습니다.", rule:{vi:"넓다 → 넓었으면 좋겠습니다", en:"넓다 → 넓었으면 좋겠습니다", ko:"그 외 → -었으면 좋겠습니다"} },
+      { native:{vi:"Giá mà tiếng Hàn dễ hơn.",                en:"I wish Korean were easier.",                ko:"한국어가 더 쉬웠으면 좋겠습니다."},
+        full:"한국어가 더 쉬웠으면 좋겠습니다.", rule:{vi:"쉽다(ㅂ불규칙) → 쉬웠으면 좋겠습니다", en:"쉽다(ㅂ irregular) → 쉬웠으면 좋겠습니다", ko:"쉽다(ㅂ불규칙) → 쉬웠으면 좋겠습니다"} },
+      { native:{vi:"Giá mà nhanh được tốt nghiệp.",            en:"I wish I could graduate soon.",             ko:"빨리 졸업했으면 좋겠습니다."},
+        full:"빨리 졸업했으면 좋겠습니다.", rule:{vi:"졸업하다 → 졸업했으면 좋겠습니다 (하다→했)", en:"졸업하다 → 졸업했으면 좋겠습니다 (하다→했)", ko:"하다 → -했으면 좋겠습니다"} },
     ];
 
-        const card  = UNIT11_CARDS[unitCardIdx];
+    const card  = UNIT11_CARDS[unitCardIdx];
     const total = UNIT11_CARDS.length;
-    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
@@ -9698,7 +9698,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#BA68C8)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-      {MyPageBtn}
+        {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -9712,10 +9712,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <div style={{background:"#F3E5F5", border:"2px solid #7B1FA2", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
             <div style={{fontSize:12, fontWeight:900, color:"#4A148C", marginBottom:6}}>📌 {vi?"Quy tắc ước gì":en?"I Wish Rules":"소망 핵심 규칙"}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
-              <div>· ㅏ/ㅗ 계열: 동사 + <b>-았으면 좋겠습니다</b></div>
-              <div>· 그 외: 동사 + <b>-었으면 좋겠습니다</b></div>
-              <div>· 하다: 동사 + <b>-했으면 좋겠습니다</b></div>
-              <div>· 높임: <b>-셨으면 좋겠습니다</b></div>
+              <div>· ㅏ/ㅗ 어간: 동사 + <b>-았으면 좋겠습니다</b> &nbsp;예: 좋았으면, 많았으면</div>
+              <div>· 그 외 어간: 동사 + <b>-었으면 좋겠습니다</b> &nbsp;예: 없었으면, 넓었으면</div>
+              <div>· 하다: 동사 + <b>-했으면 좋겠습니다</b> &nbsp;예: 건강했으면, 졸업했으면</div>
+              <div>· ㅂ불규칙: ㅂ→우 + <b>-었으면</b> &nbsp;예: 쉽다→쉬웠으면</div>
             </div>
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
@@ -9770,7 +9770,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     );
   }
 
-  // ════════════════════════════════════════════════════════
   // ✅ V220: 서술어 12단원 — 부정 안/못/-지 않다/-지 못하다/-지 마세요 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit12") {
