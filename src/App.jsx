@@ -9770,7 +9770,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     );
   }
 
-  // ✅ V220: 서술어 12단원 — 부정 안/못/-지 않다/-지 못하다/-지 마세요 (모국어→한국어)
+  // ✅ V296: 서술어 12단원 — 부정 표현 안/못/-지 않다/-지 못하다/-지 마세요/-지 맙시다
   // ════════════════════════════════════════════════════════
   if (step === "unit12") {
     const vi = lang?.code === "vi";
@@ -9783,66 +9783,60 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT12_CARDS = [
-      // ── 안 ──
-      { native:{vi:"Hôm nay tôi không ăn cơm.",            en:"I don't eat today.",                  ko:"저는 오늘 밥을 안 먹습니다."},
-        full:"저는 오늘 밥을 안 먹습니다.", rule:{vi:"안 + 동사 (phủ định ý chí)", en:"안 + verb (volitional negation)", ko:"안 + 동사 = 의지 부정"} },
-      { native:{vi:"Hôm nay tôi không đến trường.",        en:"I don't go to school today.",         ko:"저는 오늘 학교에 안 갑니다."},
-        full:"저는 오늘 학교에 안 갑니다.", rule:{vi:"안 + 동사", en:"안 + verb", ko:"안 + 동사"} },
-      { native:{vi:"Tôi không uống rượu.",                  en:"I don't drink alcohol.",              ko:"저는 술을 안 마십니다."},
-        full:"저는 술을 안 마십니다.", rule:{vi:"안 + 마시다", en:"안 + 마시다", ko:"안 + 마시다"} },
-      // ── 못 ──
-      { native:{vi:"Tôi không thể bơi.",                    en:"I can't swim.",                       ko:"저는 수영을 못 합니다."},
-        full:"저는 수영을 못 합니다.", rule:{vi:"못 + 동사 (không thể - khả năng)", en:"못 + verb (inability)", ko:"못 + 동사 = 능력 부정"} },
-      { native:{vi:"Tôi không ăn được đồ cay.",             en:"I can't eat spicy food.",             ko:"저는 매운 음식을 못 먹습니다."},
-        full:"저는 매운 음식을 못 먹습니다.", rule:{vi:"못 + 먹다", en:"못 + 먹다", ko:"못 + 먹다"} },
-      { native:{vi:"Tôi không thể lái xe.",                  en:"I can't drive.",                     ko:"저는 운전을 하지 못합니다."},
-        full:"저는 운전을 하지 못합니다.", rule:{vi:"동사 + -지 못합니다 (không thể)", en:"verb + -지 못합니다 (inability)", ko:"동사 + -지 못합니다"} },
-      { native:{vi:"Tôi không thể hát.",                     en:"I can't sing.",                      ko:"저는 노래를 못 합니다."},
-        full:"저는 노래를 못 합니다.", rule:{vi:"못 + 하다", en:"못 + 하다", ko:"못 + 하다"} },
-      { native:{vi:"Tôi không thể ngủ được.",                en:"I can't sleep.",                     ko:"저는 잠을 못 잡니다."},
-        full:"저는 잠을 못 잡니다.", rule:{vi:"못 + 자다", en:"못 + 자다", ko:"못 + 자다"} },
-      { native:{vi:"Hôm nay tôi không thể đến.",            en:"I can't come today.",                ko:"저는 오늘 가지 못합니다."},
-        full:"저는 오늘 가지 못합니다.", rule:{vi:"동사 + -지 못합니다", en:"verb + -지 못합니다", ko:"동사 + -지 못합니다"} },
-      // ── -지 않다 ──
-      { native:{vi:"Tôi không ăn thịt.",                    en:"I don't eat meat.",                  ko:"저는 고기를 먹지 않습니다."},
-        full:"저는 고기를 먹지 않습니다.", rule:{vi:"동사 + -지 않습니다 (phủ định)", en:"verb + -지 않습니다 (negation)", ko:"동사 + -지 않습니다"} },
-      { native:{vi:"Tôi không uống rượu.",                   en:"I don't drink alcohol.",             ko:"저는 술을 마시지 않습니다."},
+      // ── 안: 의지 부정 ──
+      { native:{vi:"Tôi không ăn thịt.",                      en:"I don't eat meat.",                   ko:"저는 고기를 안 먹습니다."},
+        full:"저는 고기를 안 먹습니다.", rule:{vi:"안 + 동사 = 의지 부정 (chủ động không làm)", en:"안 + verb = volitional negation", ko:"안 + 동사 = 의지 부정"} },
+      { native:{vi:"Hôm nay tôi không đến trường.",            en:"I don't go to school today.",         ko:"저는 오늘 학교에 안 갑니다."},
+        full:"저는 오늘 학교에 안 갑니다.", rule:{vi:"안 + 가다", en:"안 + 가다", ko:"안 + 동사 = 의지 부정"} },
+      { native:{vi:"Tôi không uống rượu.",                     en:"I don't drink alcohol.",              ko:"저는 술을 안 마십니다."},
+        full:"저는 술을 안 마십니다.", rule:{vi:"안 + 마시다", en:"안 + 마시다", ko:"안 + 동사 = 의지 부정"} },
+      { native:{vi:"Tôi không hút thuốc.",                     en:"I don't smoke.",                     ko:"저는 담배를 안 피웁니다."},
+        full:"저는 담배를 안 피웁니다.", rule:{vi:"안 + 피우다", en:"안 + 피우다", ko:"안 + 동사 = 의지 부정"} },
+      // ── 못: 능력 부정 ──
+      { native:{vi:"Tôi không thể bơi.",                       en:"I can't swim.",                      ko:"저는 수영을 못 합니다."},
+        full:"저는 수영을 못 합니다.", rule:{vi:"못 + 동사 = 능력 부정 (không có khả năng)", en:"못 + verb = inability negation", ko:"못 + 동사 = 능력 부정"} },
+      { native:{vi:"Tôi không hát được.",                      en:"I can't sing.",                      ko:"저는 노래를 못 합니다."},
+        full:"저는 노래를 못 합니다.", rule:{vi:"못 + 하다", en:"못 + 하다", ko:"못 + 동사 = 능력 부정"} },
+      { native:{vi:"Tôi không ngủ được.",                      en:"I can't sleep.",                     ko:"저는 잠을 못 잡니다."},
+        full:"저는 잠을 못 잡니다.", rule:{vi:"못 + 자다", en:"못 + 자다", ko:"못 + 동사 = 능력 부정"} },
+      { native:{vi:"Tôi không chơi được nhạc cụ.",             en:"I can't play an instrument.",        ko:"저는 악기를 못 다룹니다."},
+        full:"저는 악기를 못 다룹니다.", rule:{vi:"못 + 다루다", en:"못 + 다루다", ko:"못 + 동사 = 능력 부정"} },
+      // ── -지 않습니다: 정중 의지 부정 ──
+      { native:{vi:"Tôi không ăn sáng.",                       en:"I don't eat breakfast.",             ko:"저는 아침을 먹지 않습니다."},
+        full:"저는 아침을 먹지 않습니다.", rule:{vi:"동사 + -지 않습니다 (lịch sự hơn)", en:"verb + -지 않습니다 (polite negation)", ko:"동사 + -지 않습니다 = 정중 부정"} },
+      { native:{vi:"Tôi không ăn thịt.",            en:"I don't eat meat.",                  ko:"저는 고기를 먹지 않습니다."},
+        full:"저는 고기를 먹지 않습니다.", rule:{vi:"동사 + -지 않습니다", en:"verb + -지 않습니다", ko:"동사 + -지 않습니다"} },
+      { native:{vi:"Tôi không uống cà phê.",                      en:"I don't drink coffee.",              ko:"저는 커피를 마시지 않습니다."},
+        full:"저는 커피를 마시지 않습니다.", rule:{vi:"동사 + -지 않습니다", en:"verb + -지 않습니다", ko:"동사 + -지 않습니다"} },
+      { native:{vi:"Tôi không uống rượu.",                     en:"I don't drink alcohol.",             ko:"저는 술을 마시지 않습니다."},
         full:"저는 술을 마시지 않습니다.", rule:{vi:"동사 + -지 않습니다", en:"verb + -지 않습니다", ko:"동사 + -지 않습니다"} },
-      { native:{vi:"Tôi không hút thuốc.",                   en:"I don't smoke.",                     ko:"저는 담배를 피우지 않습니다."},
-        full:"저는 담배를 피우지 않습니다.", rule:{vi:"동사 + -지 않습니다", en:"verb + -지 않습니다", ko:"동사 + -지 않습니다"} },
-      { native:{vi:"Tôi không ăn sáng.",                     en:"I don't eat breakfast.",             ko:"저는 아침을 먹지 않습니다."},
-        full:"저는 아침을 먹지 않습니다.", rule:{vi:"동사 + -지 않습니다", en:"verb + -지 않습니다", ko:"동사 + -지 않습니다"} },
-      { native:{vi:"Tôi không biết chơi nhạc cụ.",          en:"I can't play instruments.",          ko:"저는 악기를 못 다룹니다."},
-        full:"저는 악기를 못 다룹니다.", rule:{vi:"못 + 다루다", en:"못 + 다루다", ko:"못 + 다루다"} },
-      { native:{vi:"Tôi không biết tiếng Trung.",            en:"I don't speak Chinese.",             ko:"저는 중국어를 못 합니다."},
-        full:"저는 중국어를 못 합니다.", rule:{vi:"못 + 하다", en:"못 + 하다", ko:"못 + 하다"} },
-      // ── -지 마세요 / -지 맙시다 ──
-      { native:{vi:"Xin đừng chụp ảnh ở đây.",              en:"Please don't take photos here.",     ko:"여기서 사진을 찍지 마세요."},
-        full:"여기서 사진을 찍지 마세요.", rule:{vi:"동사 + -지 마세요 (đừng làm)", en:"verb + -지 마세요 (don't)", ko:"동사 + -지 마세요 = 금지"} },
-      { native:{vi:"Xin đừng chạy ở hành lang.",            en:"Please don't run in the hallway.",   ko:"복도에서 뛰지 마세요."},
+      { native:{vi:"Tôi không dùng mạng xã hội.",               en:"I don't use SNS.",                   ko:"저는 SNS를 하지 않습니다."},
+        full:"저는 SNS를 하지 않습니다.", rule:{vi:"동사 + -지 않습니다", en:"verb + -지 않습니다", ko:"동사 + -지 않습니다"} },
+      // ── -지 못합니다: 정중 능력 부정 ──
+      { native:{vi:"Tôi không lái xe được.",                   en:"I can't drive.",                     ko:"저는 운전을 하지 못합니다."},
+        full:"저는 운전을 하지 못합니다.", rule:{vi:"동사 + -지 못합니다 (không thể, lịch sự)", en:"verb + -지 못합니다 (polite inability)", ko:"동사 + -지 못합니다 = 정중 능력 부정"} },
+      { native:{vi:"Tôi không thể gặp bạn được.",              en:"I can't meet my friend.",            ko:"친구를 만나지 못합니다."},
+        full:"친구를 만나지 못합니다.", rule:{vi:"동사 + -지 못합니다", en:"verb + -지 못합니다", ko:"동사 + -지 못합니다"} },
+      { native:{vi:"Hôm nay tôi không thể đến được.",          en:"I can't come today.",                ko:"저는 오늘 오지 못합니다."},
+        full:"저는 오늘 오지 못합니다.", rule:{vi:"동사 + -지 못합니다", en:"verb + -지 못합니다", ko:"동사 + -지 못합니다"} },
+      // ── -지 마세요: 금지 (개인) ──
+      { native:{vi:"Xin đừng chụp ảnh ở đây.",                en:"Please don't take photos here.",     ko:"여기서 사진을 찍지 마세요."},
+        full:"여기서 사진을 찍지 마세요.", rule:{vi:"동사 + -지 마세요 = 금지 명령", en:"verb + -지 마세요 = prohibition", ko:"동사 + -지 마세요 = 금지"} },
+      { native:{vi:"Xin đừng chạy ở hành lang.",               en:"Please don't run in the hallway.",  ko:"복도에서 뛰지 마세요."},
         full:"복도에서 뛰지 마세요.", rule:{vi:"동사 + -지 마세요", en:"verb + -지 마세요", ko:"동사 + -지 마세요"} },
-      { native:{vi:"Xin đừng gọi điện trong giờ học.",      en:"Please don't call during class.",    ko:"수업 중에 전화하지 마세요."},
+      { native:{vi:"Xin đừng gọi điện trong giờ học.",         en:"Please don't call during class.",   ko:"수업 중에 전화하지 마세요."},
         full:"수업 중에 전화하지 마세요.", rule:{vi:"동사 + -지 마세요", en:"verb + -지 마세요", ko:"동사 + -지 마세요"} },
-      { native:{vi:"Đừng để lãng phí nhé.",                  en:"Let's not waste.",                   ko:"낭비하지 맙시다."},
-        full:"낭비하지 맙시다.", rule:{vi:"동사 + -지 맙시다 (chúng ta đừng)", en:"verb + -지 맙시다 (let's not)", ko:"동사 + -지 맙시다 = 함께 금지"} },
-      { native:{vi:"Đừng ồn ào trong lớp học.",              en:"Let's not be noisy in class.",       ko:"교실에서 떠들지 맙시다."},
-        full:"교실에서 떠들지 맙시다.", rule:{vi:"동사 + -지 맙시다", en:"verb + -지 맙시다", ko:"동사 + -지 맙시다"} },
-      { native:{vi:"Đừng đến muộn nhé.",                     en:"Let's not be late.",                 ko:"늦지 맙시다."},
+      { native:{vi:"Xin đừng lo lắng.",                        en:"Please don't worry.",               ko:"걱정하지 마세요."},
+        full:"걱정하지 마세요.", rule:{vi:"걱정하다 + -지 마세요", en:"걱정하다 + -지 마세요", ko:"동사 + -지 마세요"} },
+      // ── -지 맙시다: 금지 (공동) ──
+      { native:{vi:"Chúng ta đừng ồn ào trong lớp.",           en:"Let's not be noisy in class.",      ko:"교실에서 떠들지 맙시다."},
+        full:"교실에서 떠들지 맙시다.", rule:{vi:"동사 + -지 맙시다 = 공동 금지", en:"verb + -지 맙시다 = let's not", ko:"동사 + -지 맙시다 = 함께 하지 말자"} },
+      { native:{vi:"Chúng ta đừng đến muộn.",                  en:"Let's not be late.",                ko:"늦지 맙시다."},
         full:"늦지 맙시다.", rule:{vi:"동사 + -지 맙시다", en:"verb + -지 맙시다", ko:"동사 + -지 맙시다"} },
-      // ── 추가 4개 ──
-      { native:{vi:"Xin đừng nói to.",                       en:"Please don't speak loudly.",         ko:"큰 소리로 말하지 마세요."},
-        full:"큰 소리로 말하지 마세요.", rule:{vi:"동사 + -지 마세요", en:"verb + -지 마세요", ko:"동사 + -지 마세요"} },
-      { native:{vi:"Tôi không thể đến hôm nay.",             en:"I can't come today.",                ko:"저는 오늘 못 옵니다."},
-        full:"저는 오늘 못 옵니다.", rule:{vi:"못 + 오다", en:"못 + 오다", ko:"못 + 오다"} },
-      { native:{vi:"Xin đừng lo lắng.",                      en:"Please don't worry.",                ko:"걱정하지 마세요."},
-        full:"걱정하지 마세요.", rule:{vi:"걱정하다 + -지 마세요", en:"걱정하다 + -지 마세요", ko:"걱정하다 + -지 마세요"} },
-      { native:{vi:"Tôi không đến muộn.",                    en:"I don't come late.",                 ko:"저는 늦지 않습니다."},
-        full:"저는 늦지 않습니다.", rule:{vi:"동사 + -지 않습니다", en:"verb + -지 않습니다", ko:"동사 + -지 않습니다"} },
     ];
 
-        const card  = UNIT12_CARDS[unitCardIdx];
+    const card  = UNIT12_CARDS[unitCardIdx];
     const total = UNIT12_CARDS.length;
-    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
@@ -9852,11 +9846,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#ECEFF1,#90A4AE)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-      {MyPageBtn}
+        {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 12 — Phủ định (안/못/-지 않다/-지 못하다/-지 마세요)":en?"Unit 12 — Negation (안/못/-지 않다/-지 못하다/-지 마세요)":"서술어 12단원 — 부정 표현"}
+              {vi?"Bài 12 — Phủ định (안/못/-지 않다/-지 못하다/-지 마세요/-지 맙시다)":en?"Unit 12 — Negation (안/못/-지 않다/-지 못하다/-지 마세요/-지 맙시다)":"서술어 12단원 — 부정 표현"}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9866,12 +9860,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <div style={{background:"#ECEFF1", border:"2px solid #546E7A", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
             <div style={{fontSize:12, fontWeight:900, color:"#263238", marginBottom:6}}>📌 {vi?"Quy tắc phủ định":en?"Negation Rules":"부정 핵심 규칙"}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
-              <div>· <b>안</b> + 동사: 의지 부정 (하기 싫어서)</div>
-              <div>· <b>못</b> + 동사: 능력 부정 (할 수 없어서)</div>
-              <div>· 동사 + <b>-지 않습니다</b>: 정중한 의지 부정</div>
-              <div>· 동사 + <b>-지 못합니다</b>: 정중한 능력 부정</div>
-              <div>· 동사 + <b>-지 마세요</b>: 금지 명령</div>
-              <div>· 동사 + <b>-지 맙시다</b>: 함께 하지 말자</div>
+              <div>· <b>안</b> + 동사: 의지 부정 &nbsp;예: 안 먹습니다</div>
+              <div>· <b>못</b> + 동사: 능력 부정 &nbsp;예: 못 합니다</div>
+              <div>· 동사 + <b>-지 않습니다</b>: 정중 의지 부정</div>
+              <div>· 동사 + <b>-지 못합니다</b>: 정중 능력 부정</div>
+              <div>· 동사 + <b>-지 마세요</b>: 금지 (개인)</div>
+              <div>· 동사 + <b>-지 맙시다</b>: 금지 (공동)</div>
             </div>
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
@@ -9914,9 +9908,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
               </button>
             ) : (
-              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(true); setStep("test1"); }}
+              <button onClick={()=>{const np=[...new Set([...unitsPassed,12])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`12단원`,nextStep:"unit13",nextLabel:"13단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#546E7A,#263238)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Kiểm tra tổng hợp! 🚀":en?"Cumulative test! 🚀":"누적 테스트로! 🚀"}
+                {vi?"Tiếp tục — Bài 13! 🚀":en?"Continue — Unit 13! 🚀":"13단원으로 계속하기 🚀"}
               </button>
             )
           )}
@@ -9925,7 +9919,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       </div>
     );
   }
-
 
   // ── 테스트12: 1~12단원 누적 ──
   if (step === "test12") {
