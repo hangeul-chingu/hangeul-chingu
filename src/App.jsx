@@ -9526,7 +9526,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── 10단원: 희망1 -고 싶다 ──
   // ════════════════════════════════════════════════════════
-  // ✅ V220: 서술어 10단원 — 희망 -고 싶습니다 (모국어→한국어)
+  // ✅ V294: 서술어 10단원 — 희망 -고 싶습니다 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit10") {
     const vi = lang?.code === "vi";
@@ -9539,46 +9539,40 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT10_CARDS = [
-      { native:{vi:"Tôi muốn đến Hàn Quốc.",              en:"I want to go to Korea.",               ko:"저는 한국에 가고 싶습니다."},
+      { native:{vi:"Tôi muốn đến Hàn Quốc.",               en:"I want to go to Korea.",                ko:"저는 한국에 가고 싶습니다."},
         full:"저는 한국에 가고 싶습니다.", rule:{vi:"가다 + -고 싶습니다", en:"가다 + -고 싶습니다", ko:"동사 + -고 싶습니다"} },
-      { native:{vi:"Tôi muốn giỏi tiếng Hàn.",             en:"I want to speak Korean well.",         ko:"저는 한국어를 잘하고 싶습니다."},
-        full:"저는 한국어를 잘하고 싶습니다.", rule:{vi:"잘하다 + -고 싶습니다", en:"잘하다 + -고 싶습니다", ko:"잘하다 + -고 싶습니다"} },
-      { native:{vi:"Bạn muốn ăn gì?",                      en:"What do you want to eat?",             ko:"무엇을 먹고 싶습니까?"},
-        full:"무엇을 먹고 싶습니까?", rule:{vi:"먹다 + -고 싶습니까?", en:"먹다 + -고 싶습니까?", ko:"먹다 + -고 싶습니까?"} },
-      { native:{vi:"Tôi muốn gặp bạn bè.",                 en:"I want to meet friends.",              ko:"저는 친구를 만나고 싶습니다."},
-        full:"저는 친구를 만나고 싶습니다.", rule:{vi:"만나다 + -고 싶습니다", en:"만나다 + -고 싶습니다", ko:"만나다 + -고 싶습니다"} },
-      { native:{vi:"Tôi muốn nghỉ ngơi.",                  en:"I want to rest.",                      ko:"저는 쉬고 싶습니다."},
-        full:"저는 쉬고 싶습니다.", rule:{vi:"쉬다 + -고 싶습니다", en:"쉬다 + -고 싶습니다", ko:"쉬다 + -고 싶습니다"} },
-      { native:{vi:"Bạn muốn xem phim gì?",                en:"What movie do you want to watch?",     ko:"무슨 영화를 보고 싶습니까?"},
-        full:"무슨 영화를 보고 싶습니까?", rule:{vi:"보다 + -고 싶습니까?", en:"보다 + -고 싶습니까?", ko:"보다 + -고 싶습니까?"} },
-      { native:{vi:"Tôi muốn trở thành giáo viên.",        en:"I want to become a teacher.",          ko:"저는 선생님이 되고 싶습니다."},
-        full:"저는 선생님이 되고 싶습니다.", rule:{vi:"되다 + -고 싶습니다", en:"되다 + -고 싶습니다", ko:"되다 + -고 싶습니다"} },
-      { native:{vi:"Tôi muốn kết bạn người Hàn.",          en:"I want to make Korean friends.",       ko:"한국 친구를 사귀고 싶습니다."},
-        full:"한국 친구를 사귀고 싶습니다.", rule:{vi:"사귀다 + -고 싶습니다", en:"사귀다 + -고 싶습니다", ko:"사귀다 + -고 싶습니다"} },
-      { native:{vi:"Tôi muốn uống cà phê.",                en:"I want to drink coffee.",              ko:"저는 커피를 마시고 싶습니다."},
-        full:"저는 커피를 마시고 싶습니다.", rule:{vi:"마시다 + -고 싶습니다", en:"마시다 + -고 싶습니다", ko:"마시다 + -고 싶습니다"} },
-      { native:{vi:"Bạn muốn học gì?",                     en:"What do you want to learn?",           ko:"무엇을 배우고 싶습니까?"},
-        full:"무엇을 배우고 싶습니까?", rule:{vi:"배우다 + -고 싶습니까?", en:"배우다 + -고 싶습니까?", ko:"배우다 + -고 싶습니까?"} },
-      { native:{vi:"Tôi muốn sống ở Hàn Quốc.",           en:"I want to live in Korea.",             ko:"저는 한국에 살고 싶습니다."},
-        full:"저는 한국에 살고 싶습니다.", rule:{vi:"살다 + -고 싶습니다", en:"살다 + -고 싶습니다", ko:"살다 + -고 싶습니다"} },
-      { native:{vi:"Tôi muốn nghe nhạc Hàn Quốc.",        en:"I want to listen to Korean music.",    ko:"저는 한국 음악을 듣고 싶습니다."},
-        full:"저는 한국 음악을 듣고 싶습니다.", rule:{vi:"듣다 + -고 싶습니다 (ㄷ불규칙)", en:"듣다 + -고 싶습니다 (ㄷ irregular)", ko:"듣다 + -고 싶습니다"} },
-      { native:{vi:"Tôi muốn nói chuyện.",                 en:"I want to talk.",                      ko:"저는 이야기하고 싶습니다."},
-        full:"저는 이야기하고 싶습니다.", rule:{vi:"이야기하다 + -고 싶습니다", en:"이야기하다 + -고 싶습니다", ko:"이야기하다 + -고 싶습니다"} },
-      { native:{vi:"Bạn muốn đi đâu?",                     en:"Where do you want to go?",             ko:"어디에 가고 싶습니까?"},
-        full:"어디에 가고 싶습니까?", rule:{vi:"가다 + -고 싶습니까?", en:"가다 + -고 싶습니까?", ko:"가다 + -고 싶습니까?"} },
-      // ── 추가 3개 ──
-      { native:{vi:"Tôi muốn ăn cơm Hàn Quốc.",           en:"I want to eat Korean food.",           ko:"저는 한국 음식을 먹고 싶습니다."},
+      { native:{vi:"Bạn muốn đi đâu?",                     en:"Where do you want to go?",              ko:"어디에 가고 싶습니까?"},
+        full:"어디에 가고 싶습니까?", rule:{vi:"가다 + -고 싶습니까? (câu hỏi)", en:"가다 + -고 싶습니까? (question)", ko:"동사 + -고 싶습니까?"} },
+      { native:{vi:"Bạn muốn ăn gì?",                      en:"What do you want to eat?",              ko:"무엇을 먹고 싶습니까?"},
+        full:"무엇을 먹고 싶습니까?", rule:{vi:"먹다 + -고 싶습니까? (câu hỏi)", en:"먹다 + -고 싶습니까? (question)", ko:"먹다 + -고 싶습니까?"} },
+      { native:{vi:"Tôi muốn ăn món Hàn Quốc.",             en:"I want to eat Korean food.",            ko:"저는 한국 음식을 먹고 싶습니다."},
         full:"저는 한국 음식을 먹고 싶습니다.", rule:{vi:"먹다 + -고 싶습니다", en:"먹다 + -고 싶습니다", ko:"먹다 + -고 싶습니다"} },
-      { native:{vi:"Tôi muốn làm việc ở Hàn Quốc.",       en:"I want to work in Korea.",             ko:"저는 한국에서 일하고 싶습니다."},
+      { native:{vi:"Tôi muốn uống cà phê.",                 en:"I want to drink coffee.",               ko:"저는 커피를 마시고 싶습니다."},
+        full:"저는 커피를 마시고 싶습니다.", rule:{vi:"마시다 + -고 싶습니다", en:"마시다 + -고 싶습니다", ko:"마시다 + -고 싶습니다"} },
+      { native:{vi:"Bạn muốn học gì?",                      en:"What do you want to learn?",            ko:"무엇을 배우고 싶습니까?"},
+        full:"무엇을 배우고 싶습니까?", rule:{vi:"배우다 + -고 싶습니까?", en:"배우다 + -고 싶습니까?", ko:"배우다 + -고 싶습니까?"} },
+      { native:{vi:"Tôi muốn sống ở Hàn Quốc.",             en:"I want to live in Korea.",              ko:"저는 한국에 살고 싶습니다."},
+        full:"저는 한국에 살고 싶습니다.", rule:{vi:"살다 + -고 싶습니다", en:"살다 + -고 싶습니다", ko:"살다 + -고 싶습니다"} },
+      { native:{vi:"Tôi muốn nghe nhạc Hàn Quốc.",          en:"I want to listen to Korean music.",     ko:"저는 한국 음악을 듣고 싶습니다."},
+        full:"저는 한국 음악을 듣고 싶습니다.", rule:{vi:"듣다 + -고 싶습니다 (ㄷ불규칙)", en:"듣다 + -고 싶습니다 (ㄷ irregular)", ko:"듣다 + -고 싶습니다 (ㄷ불규칙)"} },
+      { native:{vi:"Tôi muốn làm việc ở Hàn Quốc.",         en:"I want to work in Korea.",              ko:"저는 한국에서 일하고 싶습니다."},
         full:"저는 한국에서 일하고 싶습니다.", rule:{vi:"일하다 + -고 싶습니다", en:"일하다 + -고 싶습니다", ko:"일하다 + -고 싶습니다"} },
-      { native:{vi:"Bạn muốn mua gì?",                     en:"What do you want to buy?",             ko:"무엇을 사고 싶습니까?"},
+      { native:{vi:"Bạn muốn mua gì?",                      en:"What do you want to buy?",              ko:"무엇을 사고 싶습니까?"},
         full:"무엇을 사고 싶습니까?", rule:{vi:"사다 + -고 싶습니까?", en:"사다 + -고 싶습니까?", ko:"사다 + -고 싶습니까?"} },
+      { native:{vi:"Tôi muốn xem phim cùng nhau.",           en:"I want to watch a movie together.",    ko:"같이 영화를 보고 싶습니다."},
+        full:"같이 영화를 보고 싶습니다.", rule:{vi:"보다 + -고 싶습니다", en:"보다 + -고 싶습니다", ko:"보다 + -고 싶습니다"} },
+      { native:{vi:"Tôi muốn gặp bạn bè.",                  en:"I want to meet friends.",               ko:"친구를 만나고 싶습니다."},
+        full:"친구를 만나고 싶습니다.", rule:{vi:"만나다 + -고 싶습니다", en:"만나다 + -고 싶습니다", ko:"만나다 + -고 싶습니다"} },
+      { native:{vi:"Tôi muốn đi du lịch.",                  en:"I want to travel.",                     ko:"여행을 하고 싶습니다."},
+        full:"여행을 하고 싶습니다.", rule:{vi:"여행하다 + -고 싶습니다", en:"여행하다 + -고 싶습니다", ko:"여행하다 + -고 싶습니다"} },
+      { native:{vi:"Tôi muốn kết bạn người Hàn.",           en:"I want to make Korean friends.",        ko:"한국 친구를 사귀고 싶습니다."},
+        full:"한국 친구를 사귀고 싶습니다.", rule:{vi:"사귀다 + -고 싶습니다", en:"사귀다 + -고 싶습니다", ko:"사귀다 + -고 싶습니다"} },
+      { native:{vi:"Tôi muốn học tiếng Hàn.",               en:"I want to study Korean.",               ko:"한국어를 공부하고 싶습니다."},
+        full:"한국어를 공부하고 싶습니다.", rule:{vi:"공부하다 + -고 싶습니다", en:"공부하다 + -고 싶습니다", ko:"공부하다 + -고 싶습니다"} },
     ];
 
-        const card  = UNIT10_CARDS[unitCardIdx];
+    const card  = UNIT10_CARDS[unitCardIdx];
     const total = UNIT10_CARDS.length;
-    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
@@ -9588,7 +9582,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FCE4EC,#F48FB1)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-      {MyPageBtn}
+        {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
@@ -9603,8 +9597,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:12, fontWeight:900, color:"#880E4F", marginBottom:6}}>📌 {vi?"Quy tắc muốn làm":en?"Want to Rules":"희망 핵심 규칙"}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· 모든 동사 + <b>-고 싶습니다</b> = ~하고 싶다</div>
-              <div>· 예: 가고 싶습니다 &nbsp;/&nbsp; 먹고 싶습니다</div>
+              <div>&nbsp;&nbsp;예: 가고 싶습니다 &nbsp;/&nbsp; 먹고 싶습니다</div>
               <div>· 질문: 동사 + <b>-고 싶습니까?</b></div>
+              <div>&nbsp;&nbsp;예외: 듣다 → 듣<b>고</b> 싶습니다 (ㄷ불규칙 — 그대로)</div>
             </div>
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
@@ -9659,7 +9654,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     );
   }
 
-  // ════════════════════════════════════════════════════════
   // ✅ V220: 서술어 11단원 — 소망 -았/었으면 좋겠습니다 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit11") {
