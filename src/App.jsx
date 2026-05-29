@@ -9310,9 +9310,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       </div>
     );
   }
-
   // ════════════════════════════════════════════════════════
-  // ✅ V220: 서술어 9단원 — 능력 -ㄹ 수 있다/없다 (모국어→한국어)
+  // ✅ V293: 서술어 9단원 — 능력·가능 -(으)ㄹ 수 있다/없다 + -(으)ㄹ 줄 알다/모르다
   // ════════════════════════════════════════════════════════
   if (step === "unit9") {
     const vi = lang?.code === "vi";
@@ -9325,60 +9324,46 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT9_CARDS = [
-      // ── 수 있다 ──
-      { native:{vi:"Tôi có thể nói tiếng Hàn.",           en:"I can speak Korean.",               ko:"저는 한국어를 말할 수 있습니다."},
-        full:"저는 한국어를 말할 수 있습니다.", rule:{vi:"말하다 → 말할 수 있습니다 (가능)", en:"말하다 → 말할 수 있습니다 (can)", ko:"동사 + -(으)ㄹ 수 있습니다"} },
-      { native:{vi:"Bạn có thể ăn món này không?",        en:"Can you eat this food?",            ko:"이 음식을 먹을 수 있습니까?"},
-        full:"이 음식을 먹을 수 있습니까?", rule:{vi:"먹다 → 먹을 수 있습니까?", en:"먹다 → 먹을 수 있습니까?", ko:"받침 있음 → 먹을 수 있습니까?"} },
-      { native:{vi:"Tôi có thể chơi piano.",              en:"I can play the piano.",             ko:"저는 피아노를 칠 수 있습니다."},
-        full:"저는 피아노를 칠 수 있습니다.", rule:{vi:"치다 → 칠 수 있습니다", en:"치다 → 칠 수 있습니다", ko:"치다 → 칠 수 있습니다"} },
-      { native:{vi:"Ngày mai bạn có thể đến không?",     en:"Can you come tomorrow?",            ko:"내일 올 수 있습니까?"},
-        full:"내일 올 수 있습니까?", rule:{vi:"오다 → 올 수 있습니까?", en:"오다 → 올 수 있습니까?", ko:"오다 → 올 수 있습니까?"} },
-      { native:{vi:"Tôi có thể đi xe đạp.",              en:"I can ride a bicycle.",             ko:"저는 자전거를 탈 수 있습니다."},
-        full:"저는 자전거를 탈 수 있습니다.", rule:{vi:"타다 → 탈 수 있습니다", en:"타다 → 탈 수 있습니다", ko:"타다 → 탈 수 있습니다"} },
-      { native:{vi:"Tôi có thể nấu món Hàn Quốc.",       en:"I can cook Korean food.",           ko:"한국 음식을 만들 수 있습니다."},
-        full:"한국 음식을 만들 수 있습니다.", rule:{vi:"만들다 → 만들 수 있습니다 (ㄹ탈락)", en:"만들다 → 만들 수 있습니다 (ㄹ drops)", ko:"만들다 → 만들 수 있습니다"} },
-      { native:{vi:"Bạn có thể nói tiếng Anh không?",    en:"Can you speak English?",            ko:"영어를 말할 수 있습니까?"},
-        full:"영어를 말할 수 있습니까?", rule:{vi:"말하다 → 말할 수 있습니까?", en:"말하다 → 말할 수 있습니까?", ko:"말하다 → 말할 수 있습니까?"} },
-      { native:{vi:"Tôi có thể gặp bạn hôm nay không?", en:"Can I meet you today?",             ko:"오늘 만날 수 있습니까?"},
-        full:"오늘 만날 수 있습니까?", rule:{vi:"만나다 → 만날 수 있습니까?", en:"만나다 → 만날 수 있습니까?", ko:"만나다 → 만날 수 있습니까?"} },
-      // ── 수 없다 ──
-      { native:{vi:"Tôi không thể bơi.",                  en:"I cannot swim.",                    ko:"저는 수영을 할 수 없습니다."},
-        full:"저는 수영을 할 수 없습니다.", rule:{vi:"할 수 없습니다 = không thể", en:"할 수 없습니다 = cannot", ko:"동사 + -(으)ㄹ 수 없습니다"} },
-      { native:{vi:"Tôi không thể lái xe.",               en:"I cannot drive.",                   ko:"저는 운전을 할 수 없습니다."},
-        full:"저는 운전을 할 수 없습니다.", rule:{vi:"할 수 없습니다 = không thể", en:"할 수 없습니다 = cannot", ko:"할 수 없습니다"} },
-      { native:{vi:"Tôi không thể ăn đồ cay.",           en:"I cannot eat spicy food.",          ko:"매운 음식을 먹을 수 없습니다."},
-        full:"매운 음식을 먹을 수 없습니다.", rule:{vi:"먹을 수 없습니다 = không thể ăn", en:"먹을 수 없습니다 = cannot eat", ko:"먹을 수 없습니다"} },
-      { native:{vi:"Hôm nay tôi không thể đến được.",    en:"I cannot come today.",              ko:"오늘은 올 수 없습니다."},
-        full:"오늘은 올 수 없습니다.", rule:{vi:"올 수 없습니다 = không thể đến", en:"올 수 없습니다 = cannot come", ko:"오다 → 올 수 없습니다"} },
-      // ── 실전 추가 3개 ──
-      { native:{vi:"Tôi có thể làm thêm giờ hôm nay.",   en:"I can work overtime today.",        ko:"오늘 야근을 할 수 있습니다."},
-        full:"오늘 야근을 할 수 있습니다.", rule:{vi:"할 수 있습니다 = có thể làm", en:"할 수 있습니다 = can do", ko:"할 수 있습니다"} },
-      { native:{vi:"Tôi không thể uống rượu.",            en:"I cannot drink alcohol.",           ko:"저는 술을 마실 수 없습니다."},
-        full:"저는 술을 마실 수 없습니다.", rule:{vi:"마실 수 없습니다 = không thể uống", en:"마실 수 없습니다 = cannot drink", ko:"마시다 → 마실 수 없습니다"} },
-      { native:{vi:"Bạn có thể nói chậm hơn không?",     en:"Can you speak more slowly?",        ko:"천천히 말할 수 있습니까?"},
-        full:"천천히 말할 수 있습니까?", rule:{vi:"말할 수 있습니까? = có thể nói?", en:"말할 수 있습니까? = can you speak?", ko:"말할 수 있습니까?"} },
-          // ── 경어법 ──
-      { native:{vi:"Thầy giáo có thể nói chậm hơn không?",  en:"Can the teacher speak more slowly?",  ko:"선생님께서 천천히 말씀해 주실 수 있습니까?"},
-        full:"선생님께서 천천히 말씀해 주실 수 있습니까?", rule:{vi:"께서 + 말씀하시다 (kính ngữ)", en:"께서 + 말씀하시다 (honorific)", ko:"말하다 → 말씀하시다 (경어)"} },
-      // ── ~ㄹ 줄 알다/모르다 ──
-      { native:{vi:"Bạn có biết lái xe không?",              en:"Do you know how to drive?",           ko:"당신은 운전을 할 줄 압니까?"},
-        full:"당신은 운전을 할 줄 압니까?", rule:{vi:"할 줄 알다 = biết cách làm", en:"할 줄 알다 = know how to", ko:"동사 + -(으)ㄹ 줄 압니까?"} },
-      { native:{vi:"Vâng, tôi biết lái xe.",                en:"Yes, I know how to drive.",           ko:"예, 저는 운전을 할 줄 압니다."},
-        full:"예, 저는 운전을 할 줄 압니다.", rule:{vi:"할 줄 압니다 = biết cách làm", en:"할 줄 압니다 = know how to", ko:"동사 + -(으)ㄹ 줄 압니다"} },
-      { native:{vi:"Không, tôi không biết lái xe.",         en:"No, I don't know how to drive.",      ko:"아니요, 저는 운전을 할 줄 모릅니다."},
-        full:"아니요, 저는 운전을 할 줄 모릅니다.", rule:{vi:"할 줄 모르다 = không biết cách", en:"할 줄 모르다 = don't know how to", ko:"동사 + -(으)ㄹ 줄 모릅니다"} },
-      { native:{vi:"Bạn có biết bơi không?",                en:"Do you know how to swim?",            ko:"당신은 수영을 할 줄 압니까?"},
-        full:"당신은 수영을 할 줄 압니까?", rule:{vi:"수영하다 → 수영을 할 줄 압니까?", en:"수영하다 → 수영을 할 줄 압니까?", ko:"수영 + 할 줄 압니까?"} },
-      { native:{vi:"Tôi không biết nấu ăn.",               en:"I don't know how to cook.",           ko:"저는 요리를 할 줄 모릅니다."},
-        full:"저는 요리를 할 줄 모릅니다.", rule:{vi:"할 줄 모릅니다 = không biết cách", en:"할 줄 모릅니다 = don't know how", ko:"요리 + 할 줄 모릅니다"} },
-      { native:{vi:"Tôi biết chơi đàn piano.",             en:"I know how to play the piano.",       ko:"저는 피아노를 칠 줄 압니다."},
-        full:"저는 피아노를 칠 줄 압니다.", rule:{vi:"치다 → 칠 줄 압니다", en:"치다 → 칠 줄 압니다", ko:"치다 → 칠 줄 압니다"} },
+      // ── -(으)ㄹ 수 있다: 상황적 가능 ──
+      { native:{vi:"Tôi có thể nói bằng tiếng Hàn.",          en:"I can speak in Korean.",                    ko:"저는 한국어로 말할 수 있습니다."},
+        full:"저는 한국어로 말할 수 있습니다.", rule:{vi:"말하다 → 말할 수 있습니다 (받침 없음+ㄹ)", en:"말하다 → 말할 수 있습니다 (no batchim+ㄹ)", ko:"받침 없음 → ㄹ 수 있습니다"} },
+      { native:{vi:"Tôi có thể ăn đồ cay.",                    en:"I can eat spicy food.",                     ko:"저는 매운 음식을 먹을 수 있습니다."},
+        full:"저는 매운 음식을 먹을 수 있습니다.", rule:{vi:"먹다 → 먹을 수 있습니다 (받침+을)", en:"먹다 → 먹을 수 있습니다 (batchim+을)", ko:"받침 있음 → 을 수 있습니다"} },
+      { native:{vi:"Tôi có thể chơi đàn piano.",               en:"I can play the piano.",                     ko:"저는 피아노를 칠 수 있습니다."},
+        full:"저는 피아노를 칠 수 있습니다.", rule:{vi:"치다 → 칠 수 있습니다 (받침 없음+ㄹ)", en:"치다 → 칠 수 있습니다 (no batchim+ㄹ)", ko:"받침 없음 → ㄹ 수 있습니다"} },
+      { native:{vi:"Tôi có thể gặp bạn vào ngày mai.",         en:"I can meet a friend tomorrow.",             ko:"내일 친구를 만날 수 있습니다."},
+        full:"내일 친구를 만날 수 있습니다.", rule:{vi:"만나다 → 만날 수 있습니다 (받침 없음+ㄹ)", en:"만나다 → 만날 수 있습니다 (no batchim+ㄹ)", ko:"받침 없음 → ㄹ 수 있습니다"} },
+      { native:{vi:"Tôi có thể đi xe đạp.",                    en:"I can ride a bicycle.",                     ko:"저는 자전거를 탈 수 있습니다."},
+        full:"저는 자전거를 탈 수 있습니다.", rule:{vi:"타다 → 탈 수 있습니다 (받침 없음+ㄹ)", en:"타다 → 탈 수 있습니다 (no batchim+ㄹ)", ko:"받침 없음 → ㄹ 수 있습니다"} },
+      { native:{vi:"Một mình tôi có thể nói chuyện bằng tiếng Hàn.", en:"I can speak in Korean by myself.", ko:"혼자서 한국어로 이야기할 수 있습니다."},
+        full:"혼자서 한국어로 이야기할 수 있습니다.", rule:{vi:"이야기하다 → 이야기할 수 있습니다 (하다→할)", en:"이야기하다 → 이야기할 수 있습니다 (하다→할)", ko:"하다 → 할 수 있습니다"} },
+      // ── -(으)ㄹ 수 없다: 상황적 불가능 ──
+      { native:{vi:"Tôi không thể gọi điện bây giờ.",          en:"I cannot make a phone call now.",           ko:"지금은 전화를 할 수 없습니다."},
+        full:"지금은 전화를 할 수 없습니다.", rule:{vi:"하다 → 할 수 없습니다 (불가능)", en:"하다 → 할 수 없습니다 (cannot)", ko:"하다 → 할 수 없습니다"} },
+      { native:{vi:"Tôi không thể bơi.",                        en:"I cannot swim.",                            ko:"저는 수영을 할 수 없습니다."},
+        full:"저는 수영을 할 수 없습니다.", rule:{vi:"하다 → 할 수 없습니다 (불가능)", en:"하다 → 할 수 없습니다 (cannot)", ko:"할 수 없습니다"} },
+      { native:{vi:"Tôi không thể uống rượu.",                  en:"I cannot drink alcohol.",                  ko:"저는 술을 마실 수 없습니다."},
+        full:"저는 술을 마실 수 없습니다.", rule:{vi:"마시다 → 마실 수 없습니다 (받침 없음+ㄹ)", en:"마시다 → 마실 수 없습니다 (no batchim+ㄹ)", ko:"받침 없음 → ㄹ 수 없습니다"} },
+      // ── -(으)ㄹ 줄 알다: 방법 습득·지식 ──
+      { native:{vi:"Tôi biết lái xe.",                          en:"I know how to drive.",                     ko:"저는 운전을 할 줄 압니다."},
+        full:"저는 운전을 할 줄 압니다.", rule:{vi:"하다 → 할 줄 압니다 (방법 숙지)", en:"하다 → 할 줄 압니다 (know how to)", ko:"동사 + -(으)ㄹ 줄 압니다"} },
+      { native:{vi:"Bạn tôi biết nấu ăn.",                     en:"My friend knows how to cook.",             ko:"친구는 요리를 할 줄 압니다."},
+        full:"친구는 요리를 할 줄 압니다.", rule:{vi:"하다 → 할 줄 압니다 (방법 숙지)", en:"하다 → 할 줄 압니다 (know how to)", ko:"동사 + -(으)ㄹ 줄 압니다"} },
+      { native:{vi:"Tôi biết làm kim chi.",                     en:"I know how to make kimchi.",               ko:"저는 김치를 만들 줄 압니다."},
+        full:"저는 김치를 만들 줄 압니다.", rule:{vi:"만들다 → 만들 줄 압니다 (ㄹ받침)", en:"만들다 → 만들 줄 압니다 (ㄹ batchim)", ko:"만들다 → 만들 줄 압니다 (ㄹ받침)"} },
+      // ── -(으)ㄹ 줄 모르다: 방법 미습득 ──
+      { native:{vi:"Đứa trẻ biết đánh đàn guitar.",             en:"The child knows how to play guitar.",      ko:"아이는 기타를 칠 줄 압니다."},
+        full:"아이는 기타를 칠 줄 압니다.", rule:{vi:"치다 → 칠 줄 압니다 (방법 숙지)", en:"치다 → 칠 줄 압니다 (know how to)", ko:"치다 → 칠 줄 압니다"} },
+      { native:{vi:"Tôi không biết hát.",                       en:"I don't know how to sing.",                ko:"저는 노래를 부를 줄 모릅니다."},
+        full:"저는 노래를 부를 줄 모릅니다.", rule:{vi:"부르다 → 부를 줄 모릅니다 (방법 미숙지)", en:"부르다 → 부를 줄 모릅니다 (don't know how)", ko:"동사 + -(으)ㄹ 줄 모릅니다"} },
+      { native:{vi:"Em tôi không biết sử dụng máy tính.",      en:"My sibling doesn't know how to use a computer.", ko:"동생은 컴퓨터를 사용할 줄 모릅니다."},
+        full:"동생은 컴퓨터를 사용할 줄 모릅니다.", rule:{vi:"사용하다 → 사용할 줄 모릅니다", en:"사용하다 → 사용할 줄 모릅니다", ko:"사용하다 → 사용할 줄 모릅니다"} },
+      { native:{vi:"Học sinh chưa biết đọc chữ Hàn.",           en:"The student doesn't know how to read Hangeul.", ko:"학생은 한글을 읽을 줄 모릅니다."},
+        full:"학생은 한글을 읽을 줄 모릅니다.", rule:{vi:"읽다 → 읽을 줄 모릅니다 (받침+을)", en:"읽다 → 읽을 줄 모릅니다 (batchim+을)", ko:"받침 있음 → 읽을 줄 모릅니다"} },
     ];
 
     const card  = UNIT9_CARDS[unitCardIdx];
     const total = UNIT9_CARDS.length;
-    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
@@ -9388,11 +9373,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FFAB40)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-      {MyPageBtn}
+        {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 9 — Khả năng (-ㄹ 수 있다/없다)":en?"Unit 9 — Ability (-ㄹ 수 있다/없다)":"서술어 9단원 — 능력 -ㄹ 수 있다/없다"}
+              {vi?"Bài 9 — Khả năng (-(으)ㄹ 수 있다/없다 · -(으)ㄹ 줄 알다/모르다)":en?"Unit 9 — Ability (-(으)ㄹ 수 있다/없다 · -(으)ㄹ 줄 알다/모르다)":"서술어 9단원 — 능력·가능"}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9400,12 +9385,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FFF3E0", border:"2px solid #E65100", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#BF360C", marginBottom:6}}>📌 {vi?"Quy tắc khả năng":en?"Ability Rules":"능력 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#BF360C", marginBottom:6}}>📌 {vi?"Quy tắc khả năng":en?"Ability Rules":"능력·가능 핵심 규칙"}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
-              <div>· 가능: 동사 + <b>-(으)ㄹ 수 있습니다</b></div>
-              <div>&nbsp;&nbsp;예: 말할 수 있습니다 &nbsp;/&nbsp; 먹을 수 있습니다</div>
-              <div>· 불가능: 동사 + <b>-(으)ㄹ 수 없습니다</b></div>
-              <div>&nbsp;&nbsp;예: 수영할 수 없습니다 &nbsp;/&nbsp; 운전할 수 없습니다</div>
+              <div>· 가능: 동사 + <b>-(으)ㄹ 수 있습니다</b> &nbsp;예: 먹<b>을 수 있습니다</b></div>
+              <div>· 불가능: 동사 + <b>-(으)ㄹ 수 없습니다</b> &nbsp;예: 갈 수 없습니다</div>
+              <div>· 방법 앎: 동사 + <b>-(으)ㄹ 줄 압니다</b> &nbsp;예: 운전할 줄 압니다</div>
+              <div>· 방법 모름: 동사 + <b>-(으)ㄹ 줄 모릅니다</b> &nbsp;예: 부를 줄 모릅니다</div>
             </div>
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
@@ -9414,7 +9399,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết bằng -ㄹ 수 있습니다 hoặc -ㄹ 수 없습니다":en?"Write with -ㄹ 수 있습니다 or -ㄹ 수 없습니다":"-(으)ㄹ 수 있습니다 / 없습니다로 완성하세요"}
+            ✍️ {vi?"-(으)ㄹ 수 있다/없다 · -(으)ㄹ 줄 알다/모르다 로 완성하세요":en?"Complete with -(으)ㄹ 수 있다/없다 · -(으)ㄹ 줄 알다/모르다":"능력·가능 표현으로 완성하세요"}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#FFAB40"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
@@ -9459,7 +9444,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       </div>
     );
   }
-
 
   // ── 테스트9: 1~9단원 누적 ──
   if (step === "test9") {
