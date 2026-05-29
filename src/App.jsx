@@ -10000,102 +10000,83 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   // ── 서술어 13단원: 허락·금지·의무·면제 ──
+  // ✅ V297: 서술어 13단원 — 허락·금지·의무·면제 (모국어→한국어)
+  // ════════════════════════════════════════════════════════
   if (step === "unit13") {
     const vi = lang?.code === "vi"; const en = lang?.code === "en";
+
+    function handleUnit13Submit() {
+      if (!unitCardInput.trim()) return;
+      setUnitCardRevealed(true);
+      speakKo(unitCardInput.trim());
+    }
+
     const UNIT13_CARDS = [
-      // ── 허락: ~아/어도 됩니다 ──
-      { native:{vi:"Tôi có thể chụp ảnh ở đây không?",     en:"May I take photos here?",             ko:"여기서 사진을 찍어도 됩니까?"},
-        full:"여기서 사진을 찍어도 됩니까?", rule:{vi:"동사 + -아/어도 됩니까? (xin phép)", en:"verb + -아/어도 됩니까? (may I?)", ko:"동사 + -아/어도 됩니까?"} },
-      { native:{vi:"Vâng, bạn có thể chụp.",               en:"Yes, you may take photos.",           ko:"네, 찍어도 됩니다."},
-        full:"네, 찍어도 됩니다.", rule:{vi:"동사 + -아/어도 됩니다", en:"verb + -아/어도 됩니다", ko:"동사 + -아/어도 됩니다"} },
-      { native:{vi:"Không được chụp ảnh ở đây.",            en:"You must not take photos here.",     ko:"아니요, 찍으면 안 됩니다."},
-        full:"아니요, 찍으면 안 됩니다.", rule:{vi:"동사 + -(으)면 안 됩니다 (cấm)", en:"verb + -(으)면 안 됩니다 (prohibited)", ko:"동사 + -(으)면 안 됩니다"} },
-      { native:{vi:"Xin đừng chụp ảnh ở đây.",             en:"Please don't take photos here.",     ko:"여기서 사진을 찍지 마세요."},
-        full:"여기서 사진을 찍지 마세요.", rule:{vi:"동사 + -지 마세요 (đừng)", en:"verb + -지 마세요 (please don't)", ko:"동사 + -지 마세요"} },
-      { native:{vi:"Phải giữ yên lặng.",                    en:"You must be quiet.",                 ko:"조용히 해야 합니다."},
-        full:"조용히 해야 합니다.", rule:{vi:"하다 + -아야 합니다 (phải)", en:"하다 + -아야 합니다 (must)", ko:"하다 + -아야 합니다 = 의무"} },
-      { native:{vi:"Không cần đặt trước.",                  en:"You don't have to make a reservation.", ko:"예약하지 않아도 됩니다."},
-        full:"예약하지 않아도 됩니다.", rule:{vi:"동사 + -지 않아도 됩니다 (không cần)", en:"verb + -지 않아도 됩니다 (don't have to)", ko:"동사 + -지 않아도 됩니다 = 면제"} },
-      { native:{vi:"Tôi có thể vào không?",                 en:"May I come in?",                     ko:"들어와도 됩니까?"},
-        full:"들어와도 됩니까?", rule:{vi:"들어오다 + -아도 됩니까?", en:"들어오다 + -아도 됩니까?", ko:"들어오다 + -아도 됩니까?"} },
-      { native:{vi:"Vâng, mời vào.",                        en:"Yes, please come in.",               ko:"네, 들어와도 됩니다."},
-        full:"네, 들어와도 됩니다.", rule:{vi:"동사 + -아도 됩니다", en:"verb + -아도 됩니다", ko:"동사 + -아도 됩니다"} },
-      { native:{vi:"Tôi có thể mang đồ ăn vào không?",     en:"May I bring food?",                  ko:"음식을 가져와도 됩니다."},
-        full:"음식을 가져와도 됩니다.", rule:{vi:"가져오다 + -아도 됩니다", en:"가져오다 + -아도 됩니다", ko:"가져오다 + -아도 됩니다"} },
-      { native:{vi:"Tôi có thể ngồi không?",               en:"May I sit down?",                    ko:"앉아도 됩니까?"},
-        full:"앉아도 됩니까?", rule:{vi:"앉다 + -아도 됩니까?", en:"앉다 + -아도 됩니까?", ko:"앉다 + -아도 됩니까?"} },
-      { native:{vi:"Tôi có thể mở cửa sổ không?",          en:"May I open the window?",             ko:"창문을 열어도 됩니까?"},
-        full:"창문을 열어도 됩니까?", rule:{vi:"열다 + -어도 됩니까?", en:"열다 + -어도 됩니까?", ko:"열다 + -어도 됩니까?"} },
-      { native:{vi:"Có thể trả sau được không?",            en:"May I pay later?",                   ko:"나중에 내도 됩니다."},
-        full:"나중에 내도 됩니다.", rule:{vi:"내다 + -도 됩니다", en:"내다 + -도 됩니다", ko:"내다 + -도 됩니다"} },
-      { native:{vi:"Không được hút thuốc ở đây.",           en:"You must not smoke here.",           ko:"여기서 담배를 피우면 안 됩니다."},
-        full:"여기서 담배를 피우면 안 됩니다.", rule:{vi:"동사 + -(으)면 안 됩니다", en:"verb + -(으)면 안 됩니다", ko:"동사 + -(으)면 안 됩니다"} },
-      { native:{vi:"Không được nghe điện thoại trong giờ học.", en:"You must not answer calls in class.", ko:"수업 중에 전화를 받으면 안 됩니다."},
-        full:"수업 중에 전화를 받으면 안 됩니다.", rule:{vi:"동사 + -(으)면 안 됩니다", en:"verb + -(으)면 안 됩니다", ko:"동사 + -(으)면 안 됩니다"} },
-      { native:{vi:"Không được đến muộn.",                  en:"You must not be late.",              ko:"늦게 오면 안 됩니다."},
-        full:"늦게 오면 안 됩니다.", rule:{vi:"동사 + -(으)면 안 됩니다", en:"verb + -(으)면 안 됩니다", ko:"동사 + -(으)면 안 됩니다"} },
-      { native:{vi:"Không được đỗ xe ở đây.",               en:"You must not park here.",            ko:"여기에 차를 세우면 안 됩니다."},
-        full:"여기에 차를 세우면 안 됩니다.", rule:{vi:"동사 + -(으)면 안 됩니다", en:"verb + -(으)면 안 됩니다", ko:"동사 + -(으)면 안 됩니다"} },
-      { native:{vi:"Xin đừng bỏ thuốc.",                    en:"Please don't skip your medicine.",   ko:"밥을 먹고 약을 빠뜨리지 마세요."},
-        full:"밥을 먹고 약을 빠뜨리지 마세요.", rule:{vi:"동사 + -지 마세요", en:"verb + -지 마세요", ko:"동사 + -지 마세요"} },
-      { native:{vi:"Xin đừng chạy.",                        en:"Please don't run.",                  ko:"뛰지 마세요."},
-        full:"뛰지 마세요.", rule:{vi:"동사 + -지 마세요", en:"verb + -지 마세요", ko:"동사 + -지 마세요"} },
-      { native:{vi:"Xin đừng nói to.",                      en:"Please don't speak loudly.",         ko:"큰 소리로 말하지 마세요."},
-        full:"큰 소리로 말하지 마세요.", rule:{vi:"동사 + -지 마세요", en:"verb + -지 마세요", ko:"동사 + -지 마세요"} },
-      { native:{vi:"Xin đừng lo lắng.",                     en:"Please don't worry.",                ko:"걱정하지 마세요."},
-        full:"걱정하지 마세요.", rule:{vi:"걱정하다 + -지 마세요", en:"걱정하다 + -지 마세요", ko:"걱정하다 + -지 마세요"} },
-      { native:{vi:"Phải tập thể dục mỗi ngày.",            en:"You must exercise every day.",       ko:"매일 운동을 해야 합니다."},
-        full:"매일 운동을 해야 합니다.", rule:{vi:"하다 + -아야 합니다", en:"하다 + -아야 합니다", ko:"하다 + -아야 합니다"} },
-      { native:{vi:"Phải làm bài tập.",                     en:"You must do your homework.",         ko:"숙제를 해야 합니다."},
-        full:"숙제를 해야 합니다.", rule:{vi:"하다 + -아야 합니다", en:"하다 + -아야 합니다", ko:"하다 + -아야 합니다"} },
-      { native:{vi:"Phải xin visa.",                        en:"You must get a visa.",               ko:"비자를 받아야 합니다."},
-        full:"비자를 받아야 합니다.", rule:{vi:"받다 + -아야 합니다", en:"받다 + -아야 합니다", ko:"받다 + -아야 합니다"} },
-      { native:{vi:"Phải đậu kỳ thi tiếng Hàn.",           en:"You must pass the Korean exam.",     ko:"한국어 시험에 합격해야 합니다."},
-        full:"한국어 시험에 합격해야 합니다.", rule:{vi:"합격하다 + -해야 합니다", en:"합격하다 + -해야 합니다", ko:"합격하다 + -해야 합니다"} },
-      { native:{vi:"Phải uống thuốc đúng giờ.",             en:"You must take medicine on time.",    ko:"약을 제때 먹어야 합니다."},
-        full:"약을 제때 먹어야 합니다.", rule:{vi:"먹다 + -어야 합니다", en:"먹다 + -어야 합니다", ko:"먹다 + -어야 합니다"} },
-      { native:{vi:"Phải đi ngay bây giờ.",                 en:"You must leave right now.",          ko:"지금 바로 출발해야 합니다."},
-        full:"지금 바로 출발해야 합니다.", rule:{vi:"출발하다 + -해야 합니다", en:"출발하다 + -해야 합니다", ko:"출발하다 + -해야 합니다"} },
-      { native:{vi:"Không cần mặc đồng phục.",              en:"You don't have to wear a uniform.",  ko:"교복을 입지 않아도 됩니다."},
-        full:"교복을 입지 않아도 됩니다.", rule:{vi:"동사 + -지 않아도 됩니다", en:"verb + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
-      { native:{vi:"Ngày mai không cần dậy sớm.",           en:"You don't have to get up early tomorrow.", ko:"내일은 일찍 일어나지 않아도 됩니다."},
-        full:"내일은 일찍 일어나지 않아도 됩니다.", rule:{vi:"동사 + -지 않아도 됩니다", en:"verb + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
-      { native:{vi:"Bây giờ không cần trả lời.",            en:"You don't have to answer now.",      ko:"지금 대답하지 않아도 됩니다."},
-        full:"지금 대답하지 않아도 됩니다.", rule:{vi:"동사 + -지 않아도 됩니다", en:"verb + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
-      { native:{vi:"Hôm nay không cần nấu ăn.",             en:"You don't have to cook today.",      ko:"오늘은 요리하지 않아도 됩니다."},
-        full:"오늘은 요리하지 않아도 됩니다.", rule:{vi:"동사 + -지 않아도 됩니다", en:"verb + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
-      { native:{vi:"Không cần mang tiền mặt.",              en:"You don't have to bring cash.",      ko:"현금을 가져오지 않아도 됩니다."},
-        full:"현금을 가져오지 않아도 됩니다.", rule:{vi:"동사 + -지 않아도 됩니다", en:"verb + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
-      { native:{vi:"Có thể thanh toán bằng thẻ.",           en:"You may pay by card.",               ko:"카드로 결제해도 됩니다."},
-        full:"카드로 결제해도 됩니다.", rule:{vi:"결제하다 + -해도 됩니다", en:"결제하다 + -해도 됩니다", ko:"결제하다 + -해도 됩니다"} },
-      { native:{vi:"Không được chạy ở hành lang (kính thể).", en:"Do not run in the hallway (formal).", ko:"복도에서 뛰지 마십시오."},
-        full:"복도에서 뛰지 마십시오.", rule:{vi:"동사 + -지 마십시오 (trang trọng)", en:"verb + -지 마십시오 (formal prohibition)", ko:"동사 + -지 마십시오 = 격식 금지"} },
-      { native:{vi:"Phải thắt dây an toàn.",                en:"You must wear a seatbelt.",          ko:"안전벨트를 매야 합니다."},
-        full:"안전벨트를 매야 합니다.", rule:{vi:"매다 + -야 합니다", en:"매다 + -야 합니다", ko:"매다 + -야 합니다"} },
-      { native:{vi:"Không cần lấy hóa đơn.",                en:"You don't have to get a receipt.",   ko:"영수증을 받지 않아도 됩니다."},
-        full:"영수증을 받지 않아도 됩니다.", rule:{vi:"동사 + -지 않아도 됩니다", en:"verb + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
-      { native:{vi:"Có thể cởi giày.",                      en:"You may take off your shoes.",       ko:"신발을 벗어도 됩니다."},
+      // ── 허락: -아/어도 됩니다 ──
+      { native:{vi:"Chụp ảnh ở đây cũng được.",              en:"You may take photos here.",              ko:"여기서 사진을 찍어도 됩니다."},
+        full:"여기서 사진을 찍어도 됩니다.", rule:{vi:"찍다 + -어도 됩니다 = được phép", en:"찍다 + -어도 됩니다 = permission", ko:"동사 + -아/어도 됩니다 = 허락"} },
+      { native:{vi:"Thanh toán bằng thẻ cũng được.",          en:"You may pay by card.",                   ko:"카드로 결제해도 됩니다."},
+        full:"카드로 결제해도 됩니다.", rule:{vi:"결제하다 + -해도 됩니다", en:"결제하다 + -해도 됩니다", ko:"하다 → -해도 됩니다"} },
+      { native:{vi:"Mở cửa sổ cũng được.",                    en:"You may open the window.",               ko:"창문을 열어도 됩니다."},
+        full:"창문을 열어도 됩니다.", rule:{vi:"열다 + -어도 됩니다", en:"열다 + -어도 됩니다", ko:"열다 + -어도 됩니다"} },
+      { native:{vi:"Ngồi ở đây cũng được.",                   en:"You may sit here.",                      ko:"여기에 앉아도 됩니다."},
+        full:"여기에 앉아도 됩니다.", rule:{vi:"앉다 + -아도 됩니다 (ㅏ계열)", en:"앉다 + -아도 됩니다", ko:"앉다(ㅏ) + -아도 됩니다"} },
+      { native:{vi:"Uống nước cũng được.",                    en:"You may drink water.",                   ko:"물을 마셔도 됩니다."},
+        full:"물을 마셔도 됩니다.", rule:{vi:"마시다 + -어도 됩니다", en:"마시다 + -어도 됩니다", ko:"마시다 + -어도 됩니다"} },
+      { native:{vi:"Mượn sách cũng được.",                    en:"You may borrow a book.",                 ko:"책을 빌려도 됩니다."},
+        full:"책을 빌려도 됩니다.", rule:{vi:"빌리다 + -어도 됩니다", en:"빌리다 + -어도 됩니다", ko:"빌리다 + -어도 됩니다"} },
+      { native:{vi:"Cởi giày cũng được.",                     en:"You may take off your shoes.",           ko:"신발을 벗어도 됩니다."},
         full:"신발을 벗어도 됩니다.", rule:{vi:"벗다 + -어도 됩니다", en:"벗다 + -어도 됩니다", ko:"벗다 + -어도 됩니다"} },
-      // ── 추가 8개 ──
-      { native:{vi:"Phải rửa tay trước khi ăn.",            en:"You must wash hands before eating.", ko:"밥 먹기 전에 손을 씻어야 합니다."},
-        full:"밥 먹기 전에 손을 씻어야 합니다.", rule:{vi:"씻다 + -어야 합니다", en:"씻다 + -어야 합니다", ko:"씻다 + -어야 합니다"} },
-      { native:{vi:"Xin đừng dùng điện thoại ở đây.",       en:"Please don't use your phone here.", ko:"여기서 휴대폰을 사용하지 마세요."},
-        full:"여기서 휴대폰을 사용하지 마세요.", rule:{vi:"동사 + -지 마세요", en:"verb + -지 마세요", ko:"동사 + -지 마세요"} },
-      { native:{vi:"Phải đeo khẩu trang.",                   en:"You must wear a mask.",              ko:"마스크를 써야 합니다."},
-        full:"마스크를 써야 합니다.", rule:{vi:"쓰다 + -어야 합니다", en:"쓰다 + -어야 합니다", ko:"쓰다 + -어야 합니다"} },
-      { native:{vi:"Không được vào đây.",                    en:"You must not enter here.",           ko:"여기에 들어오면 안 됩니다."},
-        full:"여기에 들어오면 안 됩니다.", rule:{vi:"동사 + -(으)면 안 됩니다", en:"verb + -(으)면 안 됩니다", ko:"동사 + -(으)면 안 됩니다"} },
-      { native:{vi:"Không cần mặc áo vest.",                 en:"You don't have to wear a suit.",    ko:"양복을 입지 않아도 됩니다."},
-        full:"양복을 입지 않아도 됩니다.", rule:{vi:"동사 + -지 않아도 됩니다", en:"verb + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
-      { native:{vi:"Phải đến đúng giờ.",                    en:"You must arrive on time.",           ko:"제시간에 와야 합니다."},
-        full:"제시간에 와야 합니다.", rule:{vi:"오다 + -아야 합니다", en:"오다 + -아야 합니다", ko:"오다 + -아야 합니다"} },
-      { native:{vi:"Không được uống rượu ở đây.",           en:"You must not drink here.",           ko:"여기서 술을 마시면 안 됩니다."},
-        full:"여기서 술을 마시면 안 됩니다.", rule:{vi:"동사 + -(으)면 안 됩니다", en:"verb + -(으)면 안 됩니다", ko:"동사 + -(으)면 안 됩니다"} },
-      { native:{vi:"Không cần trả thêm tiền.",               en:"You don't have to pay extra.",      ko:"추가 비용을 내지 않아도 됩니다."},
-        full:"추가 비용을 내지 않아도 됩니다.", rule:{vi:"동사 + -지 않아도 됩니다", en:"verb + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
+      // ── 금지: -(으)면 안 됩니다 ──
+      { native:{vi:"Không được hút thuốc ở đây.",             en:"You must not smoke here.",               ko:"여기서 담배를 피우면 안 됩니다."},
+        full:"여기서 담배를 피우면 안 됩니다.", rule:{vi:"피우다 + -(으)면 안 됩니다 = cấm", en:"피우다 + -(으)면 안 됩니다 = prohibited", ko:"동사 + -(으)면 안 됩니다 = 금지"} },
+      { native:{vi:"Không được đỗ xe ở đây.",                 en:"You must not park here.",                ko:"여기에 주차하면 안 됩니다."},
+        full:"여기에 주차하면 안 됩니다.", rule:{vi:"주차하다 + -(으)면 안 됩니다", en:"주차하다 + -(으)면 안 됩니다", ko:"하다 + -면 안 됩니다"} },
+      { native:{vi:"Không được làm ồn trong giờ học.",        en:"You must not make noise in class.",      ko:"수업 시간에 떠들면 안 됩니다."},
+        full:"수업 시간에 떠들면 안 됩니다.", rule:{vi:"떠들다 + -(으)면 안 됩니다", en:"떠들다 + -(으)면 안 됩니다", ko:"떠들다 + -(으)면 안 됩니다"} },
+      { native:{vi:"Không được vào muộn.",                    en:"You must not come in late.",             ko:"늦게 들어오면 안 됩니다."},
+        full:"늦게 들어오면 안 됩니다.", rule:{vi:"들어오다 + -(으)면 안 됩니다", en:"들어오다 + -(으)면 안 됩니다", ko:"들어오다 + -(으)면 안 됩니다"} },
+      { native:{vi:"Không được sử dụng máy tính.",            en:"You must not use the computer.",         ko:"컴퓨터를 사용하면 안 됩니다."},
+        full:"컴퓨터를 사용하면 안 됩니다.", rule:{vi:"사용하다 + -(으)면 안 됩니다", en:"사용하다 + -(으)면 안 됩니다", ko:"하다 + -면 안 됩니다"} },
+      { native:{vi:"Không được chạy.",                        en:"You must not run.",                      ko:"뛰면 안 됩니다."},
+        full:"뛰면 안 됩니다.", rule:{vi:"뛰다 + -(으)면 안 됩니다", en:"뛰다 + -(으)면 안 됩니다", ko:"뛰다 + -면 안 됩니다"} },
+      { native:{vi:"Không được vào đây.",                     en:"You must not enter here.",               ko:"여기에 들어오면 안 됩니다."},
+        full:"여기에 들어오면 안 됩니다.", rule:{vi:"들어오다 + -(으)면 안 됩니다", en:"들어오다 + -(으)면 안 됩니다", ko:"동사 + -(으)면 안 됩니다"} },
+      // ── 의무: -아/어야 합니다 ──
+      { native:{vi:"Phải dậy sớm.",                           en:"You must get up early.",                 ko:"일찍 일어나야 합니다."},
+        full:"일찍 일어나야 합니다.", rule:{vi:"일어나다 + -아야 합니다 (의무)", en:"일어나다 + -아야 합니다 (obligation)", ko:"동사 + -아/어야 합니다 = 의무"} },
+      { native:{vi:"Phải đăng ký.",                           en:"You must register.",                     ko:"등록해야 합니다."},
+        full:"등록해야 합니다.", rule:{vi:"등록하다 + -해야 합니다", en:"등록하다 + -해야 합니다", ko:"하다 + -해야 합니다"} },
+      { native:{vi:"Phải uống thuốc.",                        en:"You must take medicine.",                ko:"약을 먹어야 합니다."},
+        full:"약을 먹어야 합니다.", rule:{vi:"먹다 + -어야 합니다", en:"먹다 + -어야 합니다", ko:"먹다 + -어야 합니다"} },
+      { native:{vi:"Phải xin visa.",                          en:"You must get a visa.",                   ko:"비자를 받아야 합니다."},
+        full:"비자를 받아야 합니다.", rule:{vi:"받다 + -아야 합니다", en:"받다 + -아야 합니다", ko:"받다 + -아야 합니다"} },
+      { native:{vi:"Phải đi xe buýt.",                        en:"You must take the bus.",                 ko:"버스를 타야 합니다."},
+        full:"버스를 타야 합니다.", rule:{vi:"타다 + -아야 합니다", en:"타다 + -아야 합니다", ko:"타다 + -아야 합니다"} },
+      { native:{vi:"Phải đến bệnh viện.",                     en:"You must go to the hospital.",           ko:"병원에 가야 합니다."},
+        full:"병원에 가야 합니다.", rule:{vi:"가다 + -아야 합니다", en:"가다 + -아야 합니다", ko:"가다 + -아야 합니다"} },
+      { native:{vi:"Phải học tiếng Hàn.",                     en:"You must learn Korean.",                 ko:"한국어를 배워야 합니다."},
+        full:"한국어를 배워야 합니다.", rule:{vi:"배우다 + -어야 합니다", en:"배우다 + -어야 합니다", ko:"배우다 + -어야 합니다"} },
+      // ── 면제: -지 않아도 됩니다 ──
+      { native:{vi:"Không cần đặt trước.",                    en:"You don't have to make a reservation.",  ko:"예약하지 않아도 됩니다."},
+        full:"예약하지 않아도 됩니다.", rule:{vi:"동사 + -지 않아도 됩니다 = không cần", en:"verb + -지 않아도 됩니다 = don't have to", ko:"동사 + -지 않아도 됩니다 = 면제"} },
+      { native:{vi:"Ngày mai không cần dậy sớm.",             en:"You don't have to get up early tomorrow.", ko:"내일은 일찍 일어나지 않아도 됩니다."},
+        full:"내일은 일찍 일어나지 않아도 됩니다.", rule:{vi:"일어나다 + -지 않아도 됩니다", en:"일어나다 + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
+      { native:{vi:"Không cần trả lời.",                      en:"You don't have to answer.",              ko:"대답하지 않아도 됩니다."},
+        full:"대답하지 않아도 됩니다.", rule:{vi:"대답하다 + -지 않아도 됩니다", en:"대답하다 + -지 않아도 됩니다", ko:"하다 + -지 않아도 됩니다"} },
+      { native:{vi:"Hôm nay không cần nấu ăn.",               en:"You don't have to cook today.",          ko:"오늘은 요리하지 않아도 됩니다."},
+        full:"오늘은 요리하지 않아도 됩니다.", rule:{vi:"요리하다 + -지 않아도 됩니다", en:"요리하다 + -지 않아도 됩니다", ko:"하다 + -지 않아도 됩니다"} },
+      { native:{vi:"Không cần mang tiền mặt.",                en:"You don't have to bring cash.",          ko:"현금을 가져오지 않아도 됩니다."},
+        full:"현금을 가져오지 않아도 됩니다.", rule:{vi:"가져오다 + -지 않아도 됩니다", en:"가져오다 + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
+      { native:{vi:"Không cần mua quần áo.",                  en:"You don't have to buy clothes.",         ko:"옷을 사지 않아도 됩니다."},
+        full:"옷을 사지 않아도 됩니다.", rule:{vi:"사다 + -지 않아도 됩니다", en:"사다 + -지 않아도 됩니다", ko:"사다 + -지 않아도 됩니다"} },
+      { native:{vi:"Không cần mặc đồng phục.",                en:"You don't have to wear a uniform.",      ko:"교복을 입지 않아도 됩니다."},
+        full:"교복을 입지 않아도 됩니다.", rule:{vi:"입다 + -지 않아도 됩니다", en:"입다 + -지 않아도 됩니다", ko:"입다 + -지 않아도 됩니다"} },
+      { native:{vi:"Không cần vội.",                          en:"You don't have to hurry.",               ko:"서두르지 않아도 됩니다."},
+        full:"서두르지 않아도 됩니다.", rule:{vi:"서두르다 + -지 않아도 됩니다", en:"서두르다 + -지 않아도 됩니다", ko:"서두르다 + -지 않아도 됩니다"} },
     ];
 
-        const card = UNIT13_CARDS[unitCardIdx];
+    const card = UNIT13_CARDS[unitCardIdx];
     const total13 = UNIT13_CARDS.length;
     const C13 = { bg:"linear-gradient(150deg,#E0F7FA,#B2EBF2)", accent:"#00838F", border:"#80DEEA" };
     const nativeText13 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
@@ -10104,16 +10085,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const correct13  = (card.full||"").replace(/\s+/g,"");
     const isCorrect13 = unitCardRevealed && userAns13 === correct13;
 
-    function handleUnit13Submit() {
-      if (!unitCardInput.trim()) return;
-      setUnitCardRevealed(true);
-      speakKo(unitCardInput.trim());
-    }
-
     return (
       <div style={{minHeight:"100vh", background:C13.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-      {MyPageBtn}
+        {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C13.accent, fontWeight:700, marginBottom:4}}>
@@ -10127,10 +10102,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <div style={{background:"#E0F7FA", border:`2px solid ${C13.border}`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
             <div style={{fontSize:12, fontWeight:900, color:"#004D40", marginBottom:6}}>📌 {vi?"Quy tắc":en?"Key Rules":"핵심 규칙"}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
-              <div>· <b>-아/어도 됩니까?</b>: {vi?"hỏi cho phép":en?"asking permission":"허락 요청"}</div>
-              <div>· <b>-(으)면 안 됩니다</b>: {vi?"cấm":en?"prohibited":"금지"}</div>
-              <div>· <b>-아/어야 합니다</b>: {vi?"bắt buộc":en?"obligation":"의무"}</div>
-              <div>· <b>-지 않아도 됩니다</b>: {vi?"miễn trừ":en?"exemption":"면제"}</div>
+              <div>· 동사 + <b>-아/어도 됩니다</b>: 허락 &nbsp;예: 찍어도 됩니다</div>
+              <div>· 동사 + <b>-(으)면 안 됩니다</b>: 금지 &nbsp;예: 피우면 안 됩니다</div>
+              <div>· 동사 + <b>-아/어야 합니다</b>: 의무 &nbsp;예: 가야 합니다</div>
+              <div>· 동사 + <b>-지 않아도 됩니다</b>: 면제 &nbsp;예: 하지 않아도 됩니다</div>
             </div>
           </div>
           <div style={{background:"#E0F7FA", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#00695C"}}>💡 {ruleText13}</div>
@@ -10147,6 +10122,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit13Submit(); }}
               placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
+            {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
+              <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
+                <button onClick={()=>{ if(unitCardRevealed) return; const SR=window.SpeechRecognition||window.webkitSpeechRecognition; const r=new SR(); r.lang="ko-KR"; r.interimResults=false; r.onresult=(e)=>{setUnitCardInput(e.results[0][0].transcript);}; r.start(); }} disabled={unitCardRevealed}
+                  style={{background:"#004D40", color:"white", border:"none", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>🎤 말하기</button>
+              </div>
+            ) : null}
           </div>
           {unitCardRevealed && (
             <div style={{background:isCorrect13?"#E8F5E9":"#FFEBEE", border:`1.5px solid ${isCorrect13?"#2E7D32":"#C62828"}`, borderRadius:12, padding:"12px 16px", marginBottom:12}}>
@@ -10178,88 +10159,6 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       </div>
     );
   }
-
-  // ── 테스트13: 1~13단원 누적 ──
-  if (step === "test13") {
-    const vi = lang?.code === "vi"; const en = lang?.code === "en";
-    // 포함 단원: 11·12·13단원 (10단원 졸업 — 3회 졸업 규칙 적용)
-    const TEST13_Q = [
-      // ── 11단원 복습 (8문항) ──
-      { id:"t13_1",  q:"날씨가 좋___으면 좋겠습니다.",        answer:"았",  answers:["았"],  hint:{ko:"💡 좋다 + 았으면 좋겠다", vi:"💡 좋다 + 았으면 좋겠다 = giá mà tốt", en:"💡 좋다 + 았으면 좋겠다 = I wish it were good"} },
-      { id:"t13_2",  q:"돈이 많___으면 좋겠습니다.",          answer:"았",  answers:["았"],  hint:{ko:"💡 많다 + 았으면 좋겠다", vi:"💡 많다 + 았으면 좋겠다 = giá mà nhiều", en:"💡 많다 + 았으면 좋겠다 = I wish there were more"} },
-      { id:"t13_3",  q:"걱정이 없___으면 좋겠습니다.",        answer:"었",  answers:["었"],  hint:{ko:"💡 없다 + 었으면 좋겠다", vi:"💡 없다 + 었으면 좋겠다 = giá mà không có", en:"💡 없다 + 었으면 좋겠다 = I wish there were none"} },
-      { id:"t13_4",  q:"건강___으면 좋겠습니다.",             answer:"했",  answers:["했"],  hint:{ko:"💡 건강하다 → 건강했으면 좋겠다", vi:"💡 건강하다 → 건강했으면 좋겠다 = mong được khỏe", en:"💡 건강하다 → 건강했으면 좋겠다 = I hope (you) are healthy"} },
-      { id:"t13_5",  q:"봄이 빨리 왔___으면 좋겠습니다.",     answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 오다 → 왔으면 좋겠다", vi:"💡 오다 → 왔으면 좋겠다 = giá mà đến", en:"💡 오다 → 왔으면 좋겠다 = I wish came"} },
-      { id:"t13_6",  q:"일이 잘 됐___으면 좋겠습니다.",       answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 되다 → 됐으면 좋겠다", vi:"💡 되다 → 됐으면 좋겠다 = giá mà được", en:"💡 되다 → 됐으면 좋겠다 = I wish it works out"} },
-      { id:"t13_7",  q:"시험이 쉬웠___으면 좋겠습니다.",      answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 쉽다 → 쉬웠으면 좋겠다 (ㅂ불규칙)", vi:"💡 쉽다 → 쉬웠으면 좋겠다 (bất quy tắc ㅂ)", en:"💡 쉽다 → 쉬웠으면 좋겠다 (ㅂ irregular)"} },
-      { id:"t13_8",  q:"모두가 행복했___으면 좋겠습니다.",    answer:"으면 좋겠습니다", answers:["으면 좋겠습니다"],  hint:{ko:"💡 행복하다 → 행복했으면 좋겠다", vi:"💡 행복하다 → 행복했으면 좋겠다 = mong hạnh phúc", en:"💡 행복하다 → 행복했으면 좋겠다 = I wish happiness"} },
-      // ── 12단원 복습 (8문항) ──
-      { id:"t13_9",  q:"저는 오늘 밥을 ___ 먹습니다. (의지)", answer:"안",        answers:["안"],                   hint:{ko:"💡 안 + 동사 = 의지로 안 함", vi:"💡 안 + động từ = chủ động không làm", en:"💡 안 + verb = intentionally not doing"} },
-      { id:"t13_10", q:"저는 수영을 ___ 합니다. (능력)",      answer:"못",        answers:["못"],                   hint:{ko:"💡 못 + 동사 = 능력 부정", vi:"💡 못 + động từ = không có khả năng", en:"💡 못 + verb = inability"} },
-      { id:"t13_11", q:"저는 고기를 먹지 ___. (정중 부정)",   answer:"않습니다",  answers:["않습니다","않습니다."], hint:{ko:"💡 -지 않습니다 (정중 부정)", vi:"💡 -지 않습니다 = không làm (lịch sự)", en:"💡 -지 않습니다 = do not (polite)"} },
-      { id:"t13_12", q:"저는 운전을 하지 ___. (능력 부정)",   answer:"못합니다",  answers:["못합니다","못합니다."], hint:{ko:"💡 -지 못합니다 (정중 능력 부정)", vi:"💡 -지 못합니다 = không thể làm", en:"💡 -지 못합니다 = unable to (polite)"} },
-      { id:"t13_13", q:"여기서 사진을 찍지 ___. (금지)",      answer:"마세요",    answers:["마세요","마세요."],     hint:{ko:"💡 -지 마세요 = 금지 명령", vi:"💡 -지 마세요 = đừng/cấm", en:"💡 -지 마세요 = don't (prohibition)"} },
-      { id:"t13_14", q:"교실에서 떠들지 ___. (함께 금지)",    answer:"맙시다",    answers:["맙시다","맙시다."],     hint:{ko:"💡 -지 맙시다 = 함께 하지 말자", vi:"💡 -지 맙시다 = hãy cùng đừng làm", en:"💡 -지 맙시다 = let's not do it together"} },
-      { id:"t13_15", q:"수업 중에 전화를 받지 ___. (부정)",   answer:"않습니다",  answers:["않습니다","않습니다."], hint:{ko:"💡 -지 않습니다 (정중 부정)", vi:"💡 -지 않습니다 = không làm (lịch sự)", en:"💡 -지 않습니다 = do not (polite)"} },
-      { id:"t13_16", q:"수업 시간에 핸드폰을 보지 ___. (금지)",answer:"마세요",   answers:["마세요","마세요."],     hint:{ko:"💡 -지 마세요 = 직접 금지 명령", vi:"💡 -지 마세요 = đừng làm (cấm trực tiếp)", en:"💡 -지 마세요 = please don't (direct prohibition)"} },
-      // ── 13단원 신규 (14문항) ──
-      { id:"t13_17", q:"여기서 사진을 찍어도 ___? (허락 질문)", answer:"됩니까",    answers:["됩니까","됩니까?"],     hint:{ko:"💡 -아/어도 됩니까? = 허락 요청", vi:"💡 -아/어도 됩니까? = xin phép", en:"💡 -아/어도 됩니까? = may I? (asking permission)"} },
-      { id:"t13_18", q:"네, 찍어도 ___. (허락)",                answer:"됩니다",    answers:["됩니다","됩니다."],     hint:{ko:"💡 -아/어도 됩니다 = 허락", vi:"💡 -아/어도 됩니다 = được phép", en:"💡 -아/어도 됩니다 = you may / it's okay"} },
-      { id:"t13_19", q:"아니요, 찍으면 ___ ___. (금지)",        answer:"안 됩니다", answers:["안 됩니다","안 됩니다."],hint:{ko:"💡 -(으)면 안 됩니다 = 금지", vi:"💡 -(으)면 안 됩니다 = không được phép", en:"💡 -(으)면 안 됩니다 = must not / not allowed"} },
-      { id:"t13_20", q:"여기서 사진을 찍지 ___. (명령 금지)",   answer:"마세요",    answers:["마세요","마세요."],     hint:{ko:"💡 -지 마세요 (마 + 세요)", vi:"💡 -지 마세요 = đừng (kính ngữ)", en:"💡 -지 마세요 = please don't (polite)"} },
-      { id:"t13_21", q:"조용히 해야 ___. (의무)",               answer:"합니다",    answers:["합니다","합니다."],     hint:{ko:"💡 -아/어야 합니다 = 의무", vi:"💡 -아/어야 합니다 = phải làm (bắt buộc)", en:"💡 -아/어야 합니다 = must / have to"} },
-      { id:"t13_22", q:"예약하지 않아도 ___. (면제)",           answer:"됩니다",    answers:["됩니다","됩니다."],     hint:{ko:"💡 -지 않아도 됩니다 = 면제", vi:"💡 -지 않아도 됩니다 = không cần làm", en:"💡 -지 않아도 됩니다 = don't have to"} },
-      { id:"t13_23", q:"수업 중에 자도 ___? (허락 질문)",       answer:"됩니까",    answers:["됩니까","됩니까?"],     hint:{ko:"💡 -아/어도 됩니까? = 허락 요청", vi:"💡 -아/어도 됩니까? = xin phép", en:"💡 -아/어도 됩니까? = may I? (asking permission)"} },
-      { id:"t13_24", q:"아니요, 자면 ___ ___. (금지)",          answer:"안 됩니다", answers:["안 됩니다","안 됩니다."],hint:{ko:"💡 -(으)면 안 됩니다 = 금지", vi:"💡 -(으)면 안 됩니다 = không được phép", en:"💡 -(으)면 안 됩니다 = must not / not allowed"} },
-      { id:"t13_25", q:"숙제를 해야 ___. (의무)",               answer:"합니다",    answers:["합니다","합니다."],     hint:{ko:"💡 -아/어야 합니다 = 의무", vi:"💡 -아/어야 합니다 = phải làm (bắt buộc)", en:"💡 -아/어야 합니다 = must / have to"} },
-      { id:"t13_26", q:"준비하지 않아도 ___. (면제)",           answer:"됩니다",    answers:["됩니다","됩니다."],     hint:{ko:"💡 -지 않아도 됩니다 = 면제", vi:"💡 -지 않아도 됩니다 = không cần làm", en:"💡 -지 않아도 됩니다 = don't have to"} },
-      { id:"t13_27", q:"여기서 음식을 먹어도 ___? (허락)",      answer:"됩니까",    answers:["됩니까","됩니까?"],     hint:{ko:"💡 -아/어도 됩니까? = 허락 요청", vi:"💡 -아/어도 됩니까? = xin phép", en:"💡 -아/어도 됩니까? = may I? (asking permission)"} },
-      { id:"t13_28", q:"아니요, 먹으면 ___ ___. (금지)",        answer:"안 됩니다", answers:["안 됩니다","안 됩니다."],hint:{ko:"💡 -(으)면 안 됩니다 = 금지", vi:"💡 -(으)면 안 됩니다 = không được phép", en:"💡 -(으)면 안 됩니다 = must not / not allowed"} },
-      { id:"t13_29", q:"매일 운동해야 ___. (의무)",             answer:"합니다",    answers:["합니다","합니다."],     hint:{ko:"💡 -아/어야 합니다 = 의무", vi:"💡 -아/어야 합니다 = phải làm (bắt buộc)", en:"💡 -아/어야 합니다 = must / have to"} },
-      { id:"t13_30", q:"걱정하지 않아도 ___. (면제)",           answer:"됩니다",    answers:["됩니다","됩니다."],     hint:{ko:"💡 -지 않아도 됩니다 = 면제", vi:"💡 -지 않아도 됩니다 = không cần làm", en:"💡 -지 않아도 됩니다 = don't have to"} },
-    ];;
-    function gradeTest13() {
-      let ok=0;
-      TEST13_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
-      setTestResult({score:ok, total:TEST13_Q.length, pass: ok/TEST13_Q.length>=0.8});
-    }
-    if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E0F7FA,#B2EBF2)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
-        <DevJumpPanel />
-        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(0,131,143,.12)"}}>
-          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
-          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#00838F":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
-          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(vi?"Xuất sắc! Sang bài 14!":en?"Excellent! Unit 14!":"훌륭해요! 14단원으로!"):(vi?"Thử lại!":en?"Try again!":"다시 도전!")}</div>
-          {testResult.pass
-            ? <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit14"); }} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp — Bài 14! 🚀":en?"Next — Unit 14! 🚀":"14단원으로! 🚀"}</button>
-            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit13"); }} style={{width:"100%", background:`linear-gradient(135deg,#00838F,#004D40)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Học lại Bài 13 🔄":en?"Retry Unit 13 🔄":"13단원 다시 학습 🔄"}</button>}
-          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Thử lại":en?"Try again":"다시 풀기"}</button>
-        </div>
-      </div>
-    );
-    return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E0F7FA,#B2EBF2)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
-        <DevJumpPanel />
-      {MyPageBtn}
-        <div style={{width:"100%", maxWidth:400}}>
-          <div style={{fontSize:14, fontWeight:900, color:"#00838F", marginBottom:4}}>📝 누적 테스트 — 1~13단원</div>
-          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 이다~허락·금지·의무·면제 (10문제)</div>
-          {TEST13_Q.map((q,i) => (
-            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
-              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
-              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."} style={{width:"100%", border:"2px solid #80DEEA", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
-            </div>
-          ))}
-          <button type="button" onClick={gradeTest13} style={{width:"100%", background:`linear-gradient(135deg,#00838F,#004D40)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,12])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`12단원`,nextStep:"unit13",nextLabel:"13단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (13단원 학습)"}</button>
-        </div>
-      </div>
-    );
-  }
-
-
-// ── 14~25단원 전체 블록 ──
 
   if (step === "unit14") {
     const vi = lang?.code === "vi"; const en = lang?.code === "en";
