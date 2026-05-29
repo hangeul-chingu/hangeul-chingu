@@ -9070,7 +9070,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── 7단원: 현재진행 -고 있다 ──
   // ════════════════════════════════════════════════════════
-  // ✅ V220: 서술어 7단원 — 진행형 -고 있습니다 (모국어→한국어)
+  // ✅ V291: 서술어 7단원 — 진행형 -고 있습니다 / -는 중입니다 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit7") {
     const vi = lang?.code === "vi";
@@ -9083,52 +9083,36 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT7_CARDS = [
-      // ── 일상 동작 ──
-      { native:{vi:"Tôi đang ăn cơm.",                    en:"I am eating now.",                    ko:"저는 지금 밥을 먹고 있습니다."},
-        full:"저는 지금 밥을 먹고 있습니다.", rule:{vi:"먹다 + -고 있습니다 (đang)", en:"먹다 + -고 있습니다 (progressive)", ko:"먹다 + -고 있습니다"} },
-      { native:{vi:"Bạn tôi đang gọi điện.",              en:"My friend is calling.",               ko:"친구가 전화하고 있습니다."},
-        full:"친구는 전화하고 있습니다.", rule:{vi:"전화하다 + -고 있습니다", en:"전화하다 + -고 있습니다", ko:"전화하다 + -고 있습니다"} },
-      { native:{vi:"Đứa trẻ đang ngủ.",                   en:"The child is sleeping.",              ko:"아이가 자고 있습니다."},
-        full:"아이는 자고 있습니다.", rule:{vi:"자다 + -고 있습니다", en:"자다 + -고 있습니다", ko:"자다 + -고 있습니다"} },
-      { native:{vi:"Tôi đang học tiếng Hàn.",             en:"I am studying Korean.",              ko:"저는 한국어를 공부하고 있습니다."},
-        full:"저는 한국어를 공부하고 있습니다.", rule:{vi:"공부하다 + -고 있습니다", en:"공부하다 + -고 있습니다", ko:"공부하다 + -고 있습니다"} },
-      { native:{vi:"Mẹ đang nấu ăn.",                     en:"Mom is cooking.",                    ko:"엄마가 요리하고 있습니다."},
-        full:"엄마는 요리하고 있습니다.", rule:{vi:"요리하다 + -고 있습니다", en:"요리하다 + -고 있습니다", ko:"요리하다 + -고 있습니다"} },
-      { native:{vi:"Trời đang mưa.",                      en:"It is raining.",                     ko:"비가 오고 있습니다."},
-        full:"비가 오고 있습니다.", rule:{vi:"오다 + -고 있습니다 (날씨)", en:"오다 + -고 있습니다 (weather)", ko:"오다 + -고 있습니다"} },
-      { native:{vi:"Bạn tôi đang hát.",                   en:"My friend is singing.",              ko:"친구가 노래를 부르고 있습니다."},
-        full:"친구는 노래를 부르고 있습니다.", rule:{vi:"부르다 + -고 있습니다 (ㄹ 불규칙)", en:"부르다 + -고 있습니다 (ㄹ irregular)", ko:"부르다 + -고 있습니다"} },
-      { native:{vi:"Các học sinh đang thi.",              en:"Students are taking an exam.",       ko:"학생들이 시험을 보고 있습니다."},
-        full:"학생들은 시험을 보고 있습니다.", rule:{vi:"보다 + -고 있습니다", en:"보다 + -고 있습니다", ko:"보다 + -고 있습니다"} },
-      { native:{vi:"Đứa trẻ đang xem TV.",                en:"The child is watching TV.",          ko:"아이가 TV를 보고 있습니다."},
-        full:"아이는 TV를 보고 있습니다.", rule:{vi:"보다 + -고 있습니다", en:"보다 + -고 있습니다", ko:"보다 + -고 있습니다"} },
-      { native:{vi:"Thầy giáo đang viết lên bảng.",      en:"The teacher is writing on the board.", ko:"선생님이 칠판에 쓰고 있습니다."},
-        full:"선생님은 칠판에 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있습니다 (ㅡ 탈락)", en:"쓰다 + -고 있습니다 (ㅡ drops)", ko:"쓰다 + -고 있습니다"} },
-      { native:{vi:"Anh tôi đang ngủ trong phòng.",       en:"My brother is sleeping in the room.", ko:"형이 방에서 자고 있습니다."},
-        full:"형은 방에서 자고 있습니다.", rule:{vi:"자다 + -고 있습니다", en:"자다 + -고 있습니다", ko:"자다 + -고 있습니다"} },
-      { native:{vi:"Chị tôi đang nghe điện thoại.",       en:"My sister is on the phone.",         ko:"언니가 전화를 하고 있습니다."},
-        full:"언니는 전화를 하고 있습니다.", rule:{vi:"하다 + -고 있습니다", en:"하다 + -고 있습니다", ko:"하다 + -고 있습니다"} },
-      { native:{vi:"Tôi đang chờ xe buýt.",               en:"I am waiting for the bus.",          ko:"저는 버스를 기다리고 있습니다."},
-        full:"저는 버스를 기다리고 있습니다.", rule:{vi:"기다리다 + -고 있습니다", en:"기다리다 + -고 있습니다", ko:"기다리다 + -고 있습니다"} },
-      // ── 직장·실전 추가 ──
-      { native:{vi:"Sếp đang họp.",                       en:"The boss is in a meeting.",          ko:"사장님께서 회의 중이십니다."},
-        full:"사장님께서 회의 중이십니다.", rule:{vi:"계시다 + -고 계십니다 (kính ngữ)", en:"계시다 + -고 계십니다 (honorific)", ko:"께서 + -고 계십니다 (경어)"} },
-      { native:{vi:"Tôi đang làm việc tại công ty.",      en:"I am working at the company.",       ko:"저는 회사에서 일하고 있습니다."},
-        full:"저는 회사에서 일하고 있습니다.", rule:{vi:"일하다 + -고 있습니다", en:"일하다 + -고 있습니다", ko:"일하다 + -고 있습니다"} },
-      { native:{vi:"Em tôi đang học bài.",                en:"My sibling is studying.",            ko:"동생이 공부하고 있습니다."},
-        full:"동생은 공부하고 있습니다.", rule:{vi:"공부하다 + -고 있습니다", en:"공부하다 + -고 있습니다", ko:"공부하다 + -고 있습니다"} },
-      { native:{vi:"Bác sĩ đang khám bệnh.",             en:"The doctor is seeing patients.",     ko:"의사 선생님께서 진료 중이십니다."},
-        full:"의사 선생님께서 진료 중이십니다.", rule:{vi:"께서 + -고 계십니다 (kính ngữ)", en:"께서 + -고 계십니다 (honorific)", ko:"께서 + -고 계십니다 (경어)"} },
-      // ── 동사+는 중입니다 ──
-      { native:{vi:"Tôi đang trên đường về nhà.",              en:"I am on my way home.",               ko:"저는 지금 집에 가는 중입니다."},
-        full:"저는 지금 집에 가는 중입니다.", rule:{vi:"가다 + -는 중입니다 (đang trên đường)", en:"가다 + -는 중입니다 (in the middle of)", ko:"동사 + -는 중입니다"} },
-      { native:{vi:"Tôi đang chờ bạn ở quán cà phê.",         en:"I am waiting for a friend at a café.", ko:"저는 지금 카페에서 친구를 기다리는 중입니다."},
-        full:"저는 지금 카페에서 친구를 기다리는 중입니다.", rule:{vi:"기다리다 + -는 중입니다", en:"기다리다 + -는 중입니다", ko:"동사 + -는 중입니다"} },
+      // ── -고 있습니다: 일상 동작 ──
+      { native:{vi:"Tôi đang ăn cơm.",                       en:"I am eating now.",                          ko:"저는 지금 밥을 먹고 있습니다."},
+        full:"저는 지금 밥을 먹고 있습니다.", rule:{vi:"먹다 + -고 있습니다 (đang ăn)", en:"먹다 + -고 있습니다 (eating now)", ko:"먹다 → 먹고 있습니다"} },
+      { native:{vi:"Bạn đang gọi điện.",                     en:"A friend is calling.",                      ko:"친구가 전화하고 있습니다."},
+        full:"친구가 전화하고 있습니다.", rule:{vi:"전화하다 + -고 있습니다", en:"전화하다 + -고 있습니다", ko:"전화하다 → 전화하고 있습니다"} },
+      { native:{vi:"Đứa trẻ đang ngủ.",                      en:"The child is sleeping.",                    ko:"아이가 자고 있습니다."},
+        full:"아이가 자고 있습니다.", rule:{vi:"자다 + -고 있습니다", en:"자다 + -고 있습니다", ko:"자다 → 자고 있습니다"} },
+      { native:{vi:"Tôi đang học tiếng Hàn.",                en:"I am studying Korean.",                     ko:"저는 한국어를 공부하고 있습니다."},
+        full:"저는 한국어를 공부하고 있습니다.", rule:{vi:"공부하다 + -고 있습니다", en:"공부하다 + -고 있습니다", ko:"공부하다 → 공부하고 있습니다"} },
+      { native:{vi:"Mẹ đang nấu ăn.",                        en:"Mom is cooking.",                           ko:"엄마가 요리하고 있습니다."},
+        full:"엄마가 요리하고 있습니다.", rule:{vi:"요리하다 + -고 있습니다", en:"요리하다 + -고 있습니다", ko:"요리하다 → 요리하고 있습니다"} },
+      { native:{vi:"Trời đang mưa.",                         en:"It is raining.",                            ko:"비가 오고 있습니다."},
+        full:"비가 오고 있습니다.", rule:{vi:"오다 + -고 있습니다 (날씨)", en:"오다 + -고 있습니다 (weather)", ko:"오다 → 오고 있습니다"} },
+      { native:{vi:"Thầy giáo đang viết lên bảng.",          en:"The teacher is writing on the board.",      ko:"선생님이 칠판에 쓰고 있습니다."},
+        full:"선생님이 칠판에 쓰고 있습니다.", rule:{vi:"쓰다 + -고 있습니다 (ㅡ탈락)", en:"쓰다 + -고 있습니다 (ㅡ drops)", ko:"쓰다 → 쓰고 있습니다 (ㅡ탈락)"} },
+      { native:{vi:"Tôi đang chờ xe buýt.",                  en:"I am waiting for the bus.",                 ko:"저는 버스를 기다리고 있습니다."},
+        full:"저는 버스를 기다리고 있습니다.", rule:{vi:"기다리다 + -고 있습니다", en:"기다리다 + -고 있습니다", ko:"기다리다 → 기다리고 있습니다"} },
+      { native:{vi:"Tôi đang làm việc ở công ty.",           en:"I am working at the company.",              ko:"저는 회사에서 일하고 있습니다."},
+        full:"저는 회사에서 일하고 있습니다.", rule:{vi:"일하다 + -고 있습니다", en:"일하다 + -고 있습니다", ko:"일하다 → 일하고 있습니다"} },
+      // ── -는 중입니다: 상황·과정 ──
+      { native:{vi:"Giám đốc đang họp.",                     en:"The boss is in a meeting.",                 ko:"사장이 회의하는 중입니다."},
+        full:"사장이 회의하는 중입니다.", rule:{vi:"회의하다 + -는 중입니다 (đang trong quá trình)", en:"회의하다 + -는 중입니다 (in the middle of)", ko:"동사 + -는 중입니다"} },
+      { native:{vi:"Tôi đang trên đường về nhà.",            en:"I am on my way home.",                      ko:"저는 지금 집에 가는 중입니다."},
+        full:"저는 지금 집에 가는 중입니다.", rule:{vi:"가다 + -는 중입니다", en:"가다 + -는 중입니다", ko:"동사 + -는 중입니다"} },
+      { native:{vi:"Con đường này đang thi công.",            en:"The road is under construction.",           ko:"이 길은 공사하는 중입니다."},
+        full:"이 길은 공사하는 중입니다.", rule:{vi:"공사하다 + -는 중입니다", en:"공사하다 + -는 중입니다", ko:"동사 + -는 중입니다"} },
     ];
 
-        const card  = UNIT7_CARDS[unitCardIdx];
+    const card  = UNIT7_CARDS[unitCardIdx];
     const total = UNIT7_CARDS.length;
-    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
@@ -9138,11 +9122,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E0F7FA,#80DEEA)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-      {MyPageBtn}
+        {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 7 — Đang làm (-고 있습니다)":en?"Unit 7 — In Progress (-고 있습니다)":"서술어 7단원 — 진행형 -고 있습니다"}
+              {vi?"Bài 7 — Đang làm (-고 있습니다 / -는 중입니다)":en?"Unit 7 — Progressive (-고 있습니다 / -는 중입니다)":"서술어 7단원 — 진행형 (-고 있습니다 / -는 중입니다)"}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9152,9 +9136,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <div style={{background:"#E0F7FA", border:"2px solid #00ACC1", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
             <div style={{fontSize:12, fontWeight:900, color:"#006064", marginBottom:6}}>📌 {vi?"Quy tắc tiến hành":en?"Progressive Rule":"진행형 핵심 규칙"}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
-              <div>· 모든 동사 + <b>-고 있습니다</b> = 지금 ~하는 중</div>
-              <div>· 예: 먹다→먹<b>고 있습니다</b> &nbsp;/&nbsp; 자다→자<b>고 있습니다</b></div>
-              <div>· 하다 동사: 공부하<b>고 있습니다</b> &nbsp;/&nbsp; 요리하<b>고 있습니다</b></div>
+              <div>· 동사 + <b>-고 있습니다</b> = 지금 ~하는 중 &nbsp;예: 먹<b>고 있습니다</b></div>
+              <div>· 동사 + <b>-는 중입니다</b> = 진행 상황 &nbsp;예: 회의하<b>는 중입니다</b></div>
+              <div>· 쓰다→쓰<b>고</b> (ㅡ탈락) &nbsp;/&nbsp; 하다→하<b>고</b></div>
             </div>
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
@@ -9163,7 +9147,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"-고 있습니다 형태로 작성하세요":en?"Write with -고 있습니다":"-고 있습니다로 완성하세요"}
+            ✍️ {vi?"-고 있습니다 / -는 중입니다 로 작성하세요":en?"Write with -고 있습니다 / -는 중입니다":"진행형으로 완성하세요"}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#80DEEA"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
