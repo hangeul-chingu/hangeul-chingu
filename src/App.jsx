@@ -9192,9 +9192,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       </div>
     );
   }
-
   // ════════════════════════════════════════════════════════
-  // ✅ V220: 서술어 8단원 — 청유·제안 -ㅂ시다/-ㄹ까요/-ㄹ래요 (모국어→한국어)
+  // ✅ V292: 서술어 8단원 — 청유·제안 -ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요? (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit8") {
     const vi = lang?.code === "vi";
@@ -9207,32 +9206,30 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     }
 
     const UNIT8_CARDS = [
-      { native:{vi:"Hãy cùng ăn cơm nhé.",                en:"Let's eat together.",                ko:"같이 밥 먹읍시다."},
-        full:"같이 밥 먹읍시다.", rule:{vi:"먹다 → 먹읍시다 (받침+읍시다)", en:"먹다 → 먹읍시다 (consonant+읍시다)", ko:"받침 있음 → 읍시다"} },
-      { native:{vi:"Hãy đi nhanh nào.",                    en:"Let's go quickly.",                  ko:"빨리 갑시다."},
-        full:"빨리 갑시다.", rule:{vi:"가다 → 갑시다 (받침 없음+ㅂ시다)", en:"가다 → 갑시다 (no consonant+ㅂ시다)", ko:"받침 없음 → ㅂ시다"} },
-      { native:{vi:"Xem phim nhé?",                        en:"Shall we watch a movie?",            ko:"영화 볼까요?"},
-        full:"영화 볼까요?", rule:{vi:"보다 → 볼까요? (ㄹ까요)", en:"보다 → 볼까요? (ㄹ까요)", ko:"보다 → 볼까요? (제안)"} },
-      { native:{vi:"Ăn gì nhỉ?",                           en:"What shall we eat?",                ko:"뭐 먹을까요?"},
-        full:"뭐 먹을까요?", rule:{vi:"먹다 → 먹을까요? (으ㄹ까요)", en:"먹다 → 먹을까요? (으ㄹ까요)", ko:"받침 있음 → 으ㄹ까요?"} },
-      { native:{vi:"Cùng học nhé?",                        en:"Do you want to study together?",    ko:"같이 공부할래요?"},
-        full:"같이 공부할래요?", rule:{vi:"공부하다 → 공부할래요? (ㄹ래요)", en:"공부하다 → 공부할래요? (ㄹ래요)", ko:"하다 → 할래요? (의향)"} },
-      { native:{vi:"Uống cà phê nhé?",                     en:"Do you want to have coffee?",       ko:"커피 마실래요?"},
-        full:"커피 마실래요?", rule:{vi:"마시다 → 마실래요? (ㄹ래요)", en:"마시다 → 마실래요? (ㄹ래요)", ko:"마시다 → 마실래요?"} },
-      { native:{vi:"Cùng tập thể dục nhé?",               en:"Shall we exercise together?",       ko:"함께 운동할까요?"},
-        full:"함께 운동할까요?", rule:{vi:"운동하다 → 운동할까요?", en:"운동하다 → 운동할까요?", ko:"하다 → 할까요? (제안)"} },
-      { native:{vi:"Uống một ly cà phê nhé?",             en:"Do you want a cup of coffee?",      ko:"커피 한 잔 마실래요?"},
-        full:"커피 한 잔 마실래요?", rule:{vi:"마시다 → 마실래요?", en:"마시다 → 마실래요?", ko:"마시다 → 마실래요?"} },
-      // ── 추가 2개 (10개 달성) ──
-      { native:{vi:"Cùng đi bệnh viện nhé.",               en:"Let's go to the hospital together.", ko:"같이 병원에 갑시다."},
-        full:"같이 병원에 갑시다.", rule:{vi:"가다 → 갑시다 (받침 없음)", en:"가다 → 갑시다 (no consonant)", ko:"받침 없음 → ㅂ시다"} },
-      { native:{vi:"Ăn tối ở đâu nhỉ?",                   en:"Where shall we have dinner?",       ko:"어디에서 저녁 먹을까요?"},
-        full:"어디에서 저녁 먹을까요?", rule:{vi:"먹다 → 먹을까요? (으ㄹ까요)", en:"먹다 → 먹을까요? (으ㄹ까요)", ko:"받침 있음 → 으ㄹ까요?"} },
+      { native:{vi:"Hãy cùng ăn cơm nhé.",                  en:"Let's eat together.",                        ko:"같이 밥을 먹읍시다."},
+        full:"같이 밥을 먹읍시다.", rule:{vi:"먹다 → 먹읍시다 (받침+읍시다)", en:"먹다 → 먹읍시다 (consonant+읍시다)", ko:"받침 있음 → 읍시다"} },
+      { native:{vi:"Chúng ta ngồi ở đây nhé?",               en:"Shall we sit here?",                         ko:"여기에 앉을까요?"},
+        full:"여기에 앉을까요?", rule:{vi:"앉다 → 앉을까요? (받침+으ㄹ까요)", en:"앉다 → 앉을까요? (consonant+으ㄹ까요)", ko:"받침 있음 → 으ㄹ까요?"} },
+      { native:{vi:"Cùng đi dạo nhé?",                       en:"Do you want to go for a walk together?",     ko:"같이 산책할래요?"},
+        full:"같이 산책할래요?", rule:{vi:"산책하다 → 산책할래요? (하다→할래요)", en:"산책하다 → 산책할래요? (하다→할래요)", ko:"하다 → 할래요?"} },
+      { native:{vi:"Hãy đọc sách ở thư viện nhé.",           en:"Let's read a book at the library.",          ko:"도서관에서 책을 읽읍시다."},
+        full:"도서관에서 책을 읽읍시다.", rule:{vi:"읽다 → 읽읍시다 (받침+읍시다)", en:"읽다 → 읽읍시다 (consonant+읍시다)", ko:"받침 있음 → 읍시다"} },
+      { native:{vi:"Cùng học không?",                         en:"Do you want to study together?",             ko:"같이 공부할래요?"},
+        full:"같이 공부할래요?", rule:{vi:"공부하다 → 공부할래요? (하다→할래요)", en:"공부하다 → 공부할래요? (하다→할래요)", ko:"하다 → 할래요?"} },
+      { native:{vi:"Uống trà nhé?",                           en:"Do you want a cup of tea?",                  ko:"차를 한 잔 마실래요?"},
+        full:"차를 한 잔 마실래요?", rule:{vi:"마시다 → 마실래요? (모음+ㄹ래요)", en:"마시다 → 마실래요? (vowel+ㄹ래요)", ko:"모음 → ㄹ래요?"} },
+      { native:{vi:"Cùng tập thể dục nhé?",                  en:"Shall we exercise together?",                ko:"함께 운동할까요?"},
+        full:"함께 운동할까요?", rule:{vi:"운동하다 → 운동할까요? (하다→할까요)", en:"운동하다 → 운동할까요? (하다→할까요)", ko:"하다 → 할까요?"} },
+      { native:{vi:"Ngày mai gặp bạn nhé?",                   en:"Shall we meet a friend tomorrow?",           ko:"내일 친구를 만날까요?"},
+        full:"내일 친구를 만날까요?", rule:{vi:"만나다 → 만날까요? (모음+ㄹ까요)", en:"만나다 → 만날까요? (vowel+ㄹ까요)", ko:"모음 → ㄹ까요?"} },
+      { native:{vi:"Nghỉ một chút nhé.",                      en:"Let's rest for a moment.",                   ko:"잠시 쉽시다."},
+        full:"잠시 쉽시다.", rule:{vi:"쉬다 → 쉽시다 (모음+ㅂ시다)", en:"쉬다 → 쉽시다 (vowel+ㅂ시다)", ko:"모음 → ㅂ시다"} },
+      { native:{vi:"Chúng ta xem phim nhé?",                  en:"Shall we watch a movie?",                    ko:"우리 영화를 볼까요?"},
+        full:"우리 영화를 볼까요?", rule:{vi:"보다 → 볼까요? (모음+ㄹ까요)", en:"보다 → 볼까요? (vowel+ㄹ까요)", ko:"모음 → ㄹ까요?"} },
     ];
 
-        const card  = UNIT8_CARDS[unitCardIdx];
+    const card  = UNIT8_CARDS[unitCardIdx];
     const total = UNIT8_CARDS.length;
-    // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
     const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
@@ -9242,11 +9239,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F1F8E9,#AED581)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
-      {MyPageBtn}
+        {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 8 — Rủ nhau / Đề nghị (-ㅂ시다/-ㄹ까요/-ㄹ래요)":en?"Unit 8 — Let's / Shall we (-ㅂ시다/-ㄹ까요/-ㄹ래요)":"서술어 8단원 — 청유·제안 -ㅂ시다/-ㄹ까요/-ㄹ래요"}
+              {vi?"Bài 8 — Rủ nhau / Đề nghị (-ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요?)":en?"Unit 8 — Let's / Shall we (-ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요?)":"서술어 8단원 — 청유·제안 (-ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요?)"}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9256,10 +9253,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <div style={{background:"#F1F8E9", border:"2px solid #7CB342", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
             <div style={{fontSize:12, fontWeight:900, color:"#33691E", marginBottom:6}}>📌 {vi?"Quy tắc rủ nhau / đề nghị":en?"Let's / Shall we Rules":"청유·제안 핵심 규칙"}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
-              <div>· 받침 있음: 동사 + <b>-읍시다</b> &nbsp;예: 먹읍시다</div>
-              <div>· 받침 없음: 동사 + <b>-ㅂ시다</b> &nbsp;예: 갑시다</div>
-              <div>· 제안: 동사 + <b>-(으)ㄹ까요?</b> &nbsp;예: 볼까요?</div>
-              <div>· 의지·권유: 동사 + <b>-(으)ㄹ래요?</b> &nbsp;예: 마실래요?</div>
+              <div>· 받침 있음: 동사 + <b>-읍시다</b> &nbsp;예: 먹읍시다, 읽읍시다</div>
+              <div>· 받침 없음: 동사 + <b>-ㅂ시다</b> &nbsp;예: 갑시다, 쉽시다</div>
+              <div>· 제안: 동사 + <b>-(으)ㄹ까요?</b> &nbsp;예: 볼까요?, 앉을까요?</div>
+              <div>· 의향·권유: 동사 + <b>-(으)ㄹ래요?</b> &nbsp;예: 마실래요?, 할래요?</div>
             </div>
           </div>
           <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px 14px", marginBottom:14, fontSize:12, color:"#1565C0"}}>💡 {ruleText}</div>
@@ -9268,7 +9265,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết bằng thể -ㅂ시다/-ㄹ까요/-ㄹ래요":en?"Write with -ㅂ시다/-ㄹ까요/-ㄹ래요":"적절한 어미를 사용해 합니다체로 완성하세요"}
+            ✍️ {vi?"Viết bằng thể -ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요?":en?"Write with -ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요?":"적절한 청유·제안 어미로 완성하세요"}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#AED581"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
