@@ -9812,7 +9812,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Tôi không lái xe được.",                   en:"I can't drive.",                     ko:"저는 운전을 하지 못합니다."},
         full:"저는 운전을 하지 못합니다.", rule:{vi:"동사 + -지 못합니다 (không thể, lịch sự)", en:"verb + -지 못합니다 (polite inability)", ko:"동사 + -지 못합니다 = 정중 능력 부정"} },
       { native:{vi:"Tôi không thể gặp bạn được.",              en:"I can't meet my friend.",            ko:"친구를 만나지 못합니다."},
-        full:"친구를 만나지 못합니다.", rule:{vi:"동사 + -지 못합니다", en:"verb + -지 못합니다", ko:"동사 + -지 못합니다"} },
+        full:"저는 친구를 만나지 못합니다.", rule:{vi:"동사 + -지 못합니다", en:"verb + -지 못합니다", ko:"동사 + -지 못합니다"} },
       { native:{vi:"Hôm nay tôi không thể đến được.",          en:"I can't come today.",                ko:"저는 오늘 오지 못합니다."},
         full:"저는 오늘 오지 못합니다.", rule:{vi:"동사 + -지 못합니다", en:"verb + -지 못합니다", ko:"동사 + -지 못합니다"} },
       // ── -지 마세요: 금지 (개인) ──
@@ -12084,7 +12084,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           { native:{vi:"Nếu tôi uống cà phê thì không ngủ được.", en:"If I drink coffee, I cannot sleep.", ko:"커피를 마시면 잠을 못 잡니다."},
             full:"커피를 마시면 잠을 못 잡니다.", rule:{vi:"마시다(모음) → 마시 + 면", en:"마시다(vowel) → 마시 + 면", ko:"마시다 → 마시면 (모음 → 면)"} },
           { native:{vi:"Nếu ngày mai gặp bạn thì tôi định đi rạp chiếu phim.", en:"If I meet my friend tomorrow, I am going to the movies.", ko:"내일 친구를 만나면 영화관에 갈 것입니다."},
-            full:"내일 친구를 만나면 영화관에 갈 것입니다.", rule:{vi:"만나다(모음) → 만나 + 면", en:"만나다(vowel) → 만나 + 면", ko:"만나다 → 만나면 (모음 → 면)"} },
+            full:"저는 내일 친구를 만나면 영화관에 갈 것입니다.", rule:{vi:"만나다(모음) → 만나 + 면", en:"만나다(vowel) → 만나 + 면", ko:"만나다 → 만나면 (모음 → 면)"} },
           { native:{vi:"Nếu có thời gian thì chúng ta cùng ăn cơm nhé.", en:"If you have time, let us eat together.", ko:"시간이 있으면 같이 밥을 먹읍시다."},
             full:"시간이 있으면 같이 밥을 먹읍시다.", alts:["당신은 시간이 있으면 같이 밥을 먹읍시다."], rule:{vi:"있다(받침) → 있 + 으면", en:"있다(batchim) → 있 + 으면", ko:"있다 → 있으면 (받침 있음 → 으면)"} },
         ]
@@ -12177,18 +12177,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         key:"~(으)려면 ~아/어야 하다", label:vi?"Muốn... thì phải... (려면/아야 하다)":en?"If you want to... you must... (려면/아야)":"~(으)려면 + ~아/어야 하다 (필수조건)", color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"Động từ + -(으)려면 + động từ/tính từ + -아/어야 하다 — điều kiện bắt buộc (Muốn A thì phải B)", en:"Verb + -(으)려면 + verb/adj + -아/어야 하다 — necessary condition (To do A, you must B)", ko:"동사 + -(으)려면 + 동사/형용사 + -아/어야 하다 — 필수조건. 받침 있으면 -으려면, 없으면 -려면"},
         cards:[
-          { native:{vi:"Nếu muốn đi du học Hàn Quốc thì phải đỗ kì thi TOPIK.", en:"If you want to study in Korea, you have to pass the TOPIK test.", ko:"한국에 유학하려면 토픽 시험에 합격해야 합니다."},
-            full:"한국에 유학하려면 토픽 시험에 합격해야 합니다.", rule:{vi:"유학하다(모음) → 유학하 + 려면", en:"유학하다(vowel) → 유학하 + 려면", ko:"유학하다 → 유학하려면 (모음 → 려면)"} },
-          { native:{vi:"Nếu muốn mở cánh cửa này thì phải biết mật khẩu.", en:"You need to know the password to open this door.", ko:"이 문을 열려면 비밀번호를 알아야 합니다."},
-            full:"이 문을 열려면 비밀번호를 알아야 합니다.", rule:{vi:"열다(ㄹ 받침) → 열 + 려면", en:"열다(ㄹ batchim) → 열 + 려면", ko:"열다 → 열려면 (ㄹ 받침 → 려면 그대로)"} },
+          { native:{vi:"Nếu muốn đi du học Hàn Quốc thì phải thi TOPIK.", en:"If you want to study in Korea, you have to take the TOPIK test.", ko:"한국에 유학하려면 토픽 시험을 봐야 합니다."},
+            full:"한국에 유학하려면 토픽 시험을 봐야 합니다.", alts:["당신은 한국에 유학하려면 토픽 시험을 봐야 합니다."], rule:{vi:"유학하다(모음) → 유학하 + 려면", en:"유학하다(vowel) → 유학하 + 려면", ko:"유학하다 → 유학하려면 (모음 → 려면)"} },
+          { native:{vi:"Nếu muốn mở cánh cửa này thì phải biết số.", en:"You need to know the number to open this door.", ko:"이 문을 열려면 번호를 알아야 합니다."},
+            full:"이 문을 열려면 번호를 알아야 합니다.", alts:["당신은 이 문을 열려면 번호를 알아야 합니다."], rule:{vi:"열다(ㄹ 받침) → 열 + 려면", en:"열다(ㄹ batchim) → 열 + 려면", ko:"열다 → 열려면 (ㄹ 받침 → 려면 그대로)"} },
           { native:{vi:"Nếu muốn mượn sách ở thư viện thì phải có thẻ học sinh.", en:"You need a student ID to borrow a book from the library.", ko:"도서관에서 책을 빌리려면 학생증이 있어야 합니다."},
-            full:"도서관에서 책을 빌리려면 학생증이 있어야 합니다.", rule:{vi:"빌리다(모음) → 빌리 + 려면", en:"빌리다(vowel) → 빌리 + 려면", ko:"빌리다 → 빌리려면 (모음 → 려면)"} },
+            full:"도서관에서 책을 빌리려면 학생증이 있어야 합니다.", alts:["당신은 도서관에서 책을 빌리려면 학생증이 있어야 합니다."], rule:{vi:"빌리다(모음) → 빌리 + 려면", en:"빌리다(vowel) → 빌리 + 려면", ko:"빌리다 → 빌리려면 (모음 → 려면)"} },
           { native:{vi:"Nếu muốn đổi hàng thì phải có hóa đơn.", en:"You must have a receipt to exchange items.", ko:"물건을 교환하려면 영수증이 있어야 합니다."},
-            full:"물건을 교환하려면 영수증이 있어야 합니다.", rule:{vi:"교환하다(모음) → 교환하 + 려면", en:"교환하다(vowel) → 교환하 + 려면", ko:"교환하다 → 교환하려면 (모음 → 려면)"} },
+            full:"물건을 교환하려면 영수증이 있어야 합니다.", alts:["당신은 물건을 교환하려면 영수증이 있어야 합니다."], rule:{vi:"교환하다(모음) → 교환하 + 려면", en:"교환하다(vowel) → 교환하 + 려면", ko:"교환하다 → 교환하려면 (모음 → 려면)"} },
           { native:{vi:"Nếu muốn giỏi tiếng Hàn thì phải thích tiếng Hàn.", en:"To be good at Korean, you have to like Korean.", ko:"한국어를 잘하려면 한국어를 좋아해야 합니다."},
-            full:"한국어를 잘하려면 한국어를 좋아해야 합니다.", rule:{vi:"잘하다(모음) → 잘하 + 려면", en:"잘하다(vowel) → 잘하 + 려면", ko:"잘하다 → 잘하려면 (모음 → 려면)"} },
-          { native:{vi:"Nếu muốn sống khỏe mạnh thì phải tập thể dục đều đặn.", en:"To live healthily, you have to exercise regularly.", ko:"건강하게 살려면 규칙적으로 운동해야 합니다."},
-            full:"건강하게 살려면 규칙적으로 운동해야 합니다.", rule:{vi:"살다(ㄹ 받침) → 살 + 려면", en:"살다(ㄹ batchim) → 살 + 려면", ko:"살다 → 살려면 (ㄹ 받침 → 려면 그대로)"} },
+            full:"한국어를 잘하려면 한국어를 좋아해야 합니다.", alts:["당신은 한국어를 잘하려면 한국어를 좋아해야 합니다."], rule:{vi:"잘하다(모음) → 잘하 + 려면", en:"잘하다(vowel) → 잘하 + 려면", ko:"잘하다 → 잘하려면 (모음 → 려면)"} },
+          { native:{vi:"Nếu muốn sống khỏe mạnh thì phải tập thể dục mỗi ngày.", en:"To live healthily, you have to exercise every day.", ko:"건강하게 살려면 매일 운동해야 합니다."},
+            full:"건강하게 살려면 매일 운동해야 합니다.", alts:["당신은 건강하게 살려면 매일 운동해야 합니다."], rule:{vi:"살다(ㄹ 받침) → 살 + 려면", en:"살다(ㄹ batchim) → 살 + 려면", ko:"살다 → 살려면 (ㄹ 받침 → 려면 그대로)"} },
         ]
       },
     ];
@@ -12289,8 +12289,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             full:"마리아는 돈이 없어도 항상 행복합니다.", rule:{vi:"없다(ㅓ) → 없 + 어도", en:"없다(ㅓ) → 없 + 어도", ko:"없다 → 없어도 (ㅏ/ㅗ 아님 → 어도)"} },
           { native:{vi:"Cho dù bận đi chăng nữa nhất định xin hãy đến.", en:"Please come no matter how busy you are.", ko:"아무리 바빠도 꼭 와 주세요."},
             full:"아무리 바빠도 꼭 와 주세요.", rule:{vi:"바쁘다(으 탈락) → 바빠 + 도", en:"바쁘다(으 drop) → 바빠 + 도", ko:"바쁘다 → 바빠도 (으 불규칙: ㅡ 탈락 → ㅏ도)"} },
-          { native:{vi:"Cho dù giải thích chăm chỉ nhưng vẫn không hiểu được.", en:"Even though I explained carefully, they could not understand.", ko:"열심히 설명해도 이해하지 못했습니다."},
-            full:"열심히 설명해도 이해하지 못했습니다.", rule:{vi:"설명하다 → 설명해도 (하다 → 해도)", en:"설명하다 → 설명해도 (하다 → 해도)", ko:"설명하다 → 설명해도 (하다 → 해도)"} },
+          { native:{vi:"Dù tôi gọi điện nhưng anh ấy vẫn không bắt máy.", en:"Even though I called, he did not answer.", ko:"내가 전화해도 그는 받지 않았습니다."},
+            full:"내가 전화해도 그는 받지 않았습니다.", rule:{vi:"전화하다 → 전화해도 (하다 → 해도)", en:"전화하다 → 전화해도 (하다 → 해도)", ko:"전화하다 → 전화해도 (하다 → 해도)"} },
         ]
       },
     ];
@@ -12947,8 +12947,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         cards:[
           { native:{vi:"Tuân đã hỏi tên tôi.", en:"Tuan asked me my name.", ko:"투안이 제 이름을 물었습니다."},
             full:"투안이 제 이름을 물었습니다.", rule:{vi:"묻다 → 물어 (ㄷ 불규칙: ㄷ→ㄹ)", en:"묻다 → 물어 (ㄷ irregular: ㄷ→ㄹ)", ko:"묻다 → 물어 (ㄷ 불규칙: ㄷ→ㄹ)"} },
-          { native:{vi:"Tôi đã từng nghe giọng nói của Mariá.", en:"I have heard Maria's voice before.", ko:"마리아의 목소리를 들은 적이 있습니다."},
-            full:"마리아의 목소리를 들은 적이 있습니다.", rule:{vi:"듣다 → 들어/들은 (ㄷ 불규칙: ㄷ→ㄹ)", en:"듣다 → 들어/들은 (ㄷ irregular: ㄷ→ㄹ)", ko:"듣다 → 들어/들은 (ㄷ 불규칙: ㄷ→ㄹ)"} },
+          { native:{vi:"Tôi đã từng ăn kimchi.", en:"I have eaten kimchi before.", ko:"저는 김치를 먹어 본 적이 있습니다."},
+            full:"저는 김치를 먹어 본 적이 있습니다.", rule:{vi:"먹다 → 먹어 본 적이 있다", en:"먹다 → 먹어 본 적이 있다", ko:"먹다 → 먹어 본 적이 있습니다"} },
           { native:{vi:"Tuân đi bộ đến trường.", en:"Tuan walks to school.", ko:"투안은 걸어서 학교에 갑니다."},
             full:"투안은 걸어서 학교에 갑니다.", rule:{vi:"걷다 → 걸어 (ㄷ 불규칙: ㄷ→ㄹ)", en:"걷다 → 걸어 (ㄷ irregular: ㄷ→ㄹ)", ko:"걷다 → 걸어 (ㄷ 불규칙: ㄷ→ㄹ)"} },
           { native:{vi:"Tuân đã đóng cửa lại. (Câu này có quy tắc không?)", en:"Tuan closed the door. (Is this regular or irregular?)", ko:"투안은 문을 닫았습니다. (규칙인가요?)"},
