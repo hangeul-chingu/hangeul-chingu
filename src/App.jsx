@@ -1671,6 +1671,15 @@ const BEG_VOCAB = {
 };
 
 
+// ✅ V313: 복수 정답 헬퍼 — card.full 외에 card.alts 배열도 정답으로 허용
+// 용도: "you" 주어 예문에서 "당신은 ~" 포함/미포함 모두 정답 처리
+function checkAnswer(userInput, card) {
+  const normalize = s => (s || "").trim().replace(/\s+/g, "");
+  const userAns = normalize(userInput);
+  const answers = [card.full, ...(card.alts || [])].map(normalize).filter(Boolean);
+  return answers.includes(userAns);
+}
+
 function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLearn=false, onMyPage }) {
   // ✅ V274: 모든 학습 화면에서 마이페이지 접근 가능한 공통 버튼
   const MyPageBtn = onMyPage ? (
@@ -7302,9 +7311,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
 
     // 정답 채점
-    const userAns = (unitCardInput || "").trim().replace(/\s+/g, "");
-    const correct  = (card.full || "").replace(/\s+/g, "");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F0FFF4,#E8F5E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -7659,7 +7667,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         full:"고향에 부모님이 계십니다.", rule:{vi:"계시다 = 있다 (kính ngữ)", en:"계시다 = 있다 (honorific)", ko:"부모님·어른 → 계십니다 (높임말)"} },
       // ── 의문형 ──
       { native:{vi:"Bạn có thời gian không?",                 en:"Do you have time?",                    ko:"시간이 있습니까?"},
-        full:"시간이 있습니까?", rule:{vi:"있다 → 있습니까? (câu hỏi)", en:"있다 → 있습니까? (question)", ko:"있습니까? = 의문형"} },
+        full:"시간이 있습니까?", alts:["당신은 시간이 있습니까?"], rule:{vi:"있다 → 있습니까? (câu hỏi)", en:"있다 → 있습니까? (question)", ko:"있습니까? = 의문형"} },
       { native:{vi:"Hôm nay có bài tập không?",              en:"Is there homework today?",              ko:"오늘 숙제가 있습니까?"},
         full:"오늘 숙제가 있습니까?", rule:{vi:"있다 → 있습니까?", en:"있다 → 있습니까?", ko:"있습니까? = 의문형"} },
       { native:{vi:"Trên bầu trời có mây.",                   en:"There are clouds in the sky.",          ko:"하늘에 구름이 있습니다."},
@@ -7680,9 +7688,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F0FFF4,#E8F5E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -7958,9 +7965,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#EDE7F6)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -8066,9 +8072,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8EAF6,#C5CAE9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -8341,23 +8346,23 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Ga tàu điện ngầm ở đâu?",               en:"Where is the subway station?",         ko:"지하철역이 어디 있어요?"},
         full:"지하철역이 어디 있습니까?", rule:{vi:"어디 있습니까? = ở đâu?", en:"어디 있습니까? = where is?", ko:"어디 있습니까?"} },
       { native:{vi:"Bạn đi đâu?",                           en:"Where are you going?",                 ko:"어디로 가요?"},
-        full:"어디로 갑니까?", rule:{vi:"어디로 = đi đâu (hướng)", en:"어디로 = where (direction)", ko:"어디로 = 방향"} },
+        full:"어디로 갑니까?", alts:["당신은 어디로 갑니까?"], rule:{vi:"어디로 = đi đâu (hướng)", en:"어디로 = where (direction)", ko:"어디로 = 방향"} },
       // ── 무엇 ──
       { native:{vi:"Bạn ăn gì?",                            en:"What do you eat?",                     ko:"무엇을 먹어요?"},
-        full:"무엇을 먹습니까?", rule:{vi:"무엇 / 뭐 = cái gì", en:"무엇 / 뭐 = what", ko:"무엇 / 뭐 = what"} },
+        full:"무엇을 먹습니까?", alts:["당신은 무엇을 먹습니까?"], rule:{vi:"무엇 / 뭐 = cái gì", en:"무엇 / 뭐 = what", ko:"무엇 / 뭐 = what"} },
       { native:{vi:"Sở thích của bạn là gì?",               en:"What is your hobby?",                  ko:"취미가 뭐예요?"},
         full:"취미가 무엇입니까?", rule:{vi:"무엇입니까? = là gì?", en:"무엇입니까? = what is?", ko:"무엇입니까?"} },
       { native:{vi:"Trong túi có gì?",                       en:"What is in the bag?",                  ko:"가방 안에 뭐 있어요?"},
         full:"가방 안에 무엇이 있습니까?", rule:{vi:"무엇이 있습니까? = có gì?", en:"무엇이 있습니까? = what is there?", ko:"무엇이 있습니까?"} },
       { native:{vi:"Bạn thích gì nhất?",                    en:"What do you like most?",               ko:"무엇을 제일 좋아해요?"},
-        full:"무엇을 제일 좋아합니까?", rule:{vi:"제일 = nhất (most)", en:"제일 = most", ko:"제일 = 가장"} },
+        full:"무엇을 제일 좋아합니까?", alts:["당신은 무엇을 제일 좋아합니까?"], rule:{vi:"제일 = nhất (most)", en:"제일 = most", ko:"제일 = 가장"} },
       { native:{vi:"Tên bạn bè của bạn là gì?",             en:"What is your friend's name?",          ko:"친구 이름이 뭐예요?"},
         full:"친구 이름이 무엇입니까?", rule:{vi:"이름이 무엇입니까? = tên là gì?", en:"이름이 무엇입니까? = what is the name?", ko:"이름이 무엇입니까?"} },
       // ── 왜 ──
       { native:{vi:"Tại sao bạn khóc?",                     en:"Why are you crying?",                  ko:"왜 울어요?"},
-        full:"왜 웁니까?", rule:{vi:"왜 = tại sao", en:"왜 = why", ko:"왜 = why"} },
+        full:"왜 웁니까?", alts:["당신은 왜 웁니까?"], rule:{vi:"왜 = tại sao", en:"왜 = why", ko:"왜 = why"} },
       { native:{vi:"Tại sao bạn không đến trường?",         en:"Why don't you go to school?",          ko:"왜 학교에 안 가요?"},
-        full:"왜 학교에 안 갑니까?", rule:{vi:"왜 + 안 + 동사", en:"왜 + 안 + verb", ko:"왜 + 안 + 동사"} },
+        full:"왜 학교에 안 갑니까?", alts:["당신은 왜 학교에 안 갑니까?"], rule:{vi:"왜 + 안 + 동사", en:"왜 + 안 + verb", ko:"왜 + 안 + 동사"} },
       { native:{vi:"Tại sao bạn xem phim Hàn Quốc?",        en:"Why do you watch Korean dramas?",      ko:"왜 한국 드라마를 봐요?"},
         full:"요즘 한국 드라마를 왜 봅니까?", rule:{vi:"왜 + 동사?", en:"왜 + verb?", ko:"왜 + 동사?"} },
       { native:{vi:"Tại sao bạn học tiếng Hàn?",            en:"Why do you learn Korean?",             ko:"왜 한국어를 배워요?"},
@@ -8411,9 +8416,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Cuộc họp là khi nào?",                   en:"When is the meeting?",                 ko:"회의가 언제예요?"},
         full:"회의가 언제 있습니까?", rule:{vi:"언제 있습니까? = khi nào có?", en:"언제 있습니까? = when is?", ko:"언제 있습니까?"} },
       { native:{vi:"Bạn đến bằng phương tiện gì?",           en:"How did you come? (by what)",          ko:"무엇을 타고 왔어요?"},
-        full:"무엇을 타고 왔습니까?", rule:{vi:"무엇을 타고 = đi bằng gì", en:"무엇을 타고 = by what", ko:"무엇을 타고 = 교통수단"} },
+        full:"무엇을 타고 왔습니까?", alts:["당신은 무엇을 타고 왔습니까?"], rule:{vi:"무엇을 타고 = đi bằng gì", en:"무엇을 타고 = by what", ko:"무엇을 타고 = 교통수단"} },
       { native:{vi:"Siêu thị gần nhất ở đâu?",              en:"What do you buy at the supermarket?",  ko:"마트에서 무엇을 삽니까?"},
-        full:"마트에서 무엇을 삽니까?", rule:{vi:"어디 있습니까? = ở đâu?", en:"어디 있습니까? = where is?", ko:"어디 있습니까?"} },
+        full:"마트에서 무엇을 삽니까?", alts:["당신은 마트에서 무엇을 삽니까?"], rule:{vi:"어디 있습니까? = ở đâu?", en:"어디 있습니까? = where is?", ko:"어디 있습니까?"} },
       { native:{vi:"Nhà vệ sinh ở đâu?",                     en:"Where is the restroom?",               ko:"화장실이 어디 있어요?"},
         full:"화장실이 어디 있습니까?", rule:{vi:"어디 있습니까? = ở đâu?", en:"어디 있습니까? = where is?", ko:"어디 있습니까?"} },
       // ── 과거형 추가 ──
@@ -8424,7 +8429,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Hôm qua bạn đã đi đâu?",               en:"Where did you go yesterday?",           ko:"어제 어디에 갔습니까?"},
         full:"어제 어디에 갔습니까?", rule:{vi:"어디에 + 과거형", en:"어디에 + past tense", ko:"어디에 갔습니까?(과거)"} },
       { native:{vi:"Hôm qua bạn đã ăn gì?",                en:"What did you eat yesterday?",           ko:"어제 무엇을 먹었습니까?"},
-        full:"어제 무엇을 먹었습니까?", rule:{vi:"무엇을 + 과거형", en:"무엇을 + past tense", ko:"무엇을 먹었습니까?(과거)"} },
+        full:"어제 무엇을 먹었습니까?", alts:["당신은 어제 무엇을 먹었습니까?"], rule:{vi:"무엇을 + 과거형", en:"무엇을 + past tense", ko:"무엇을 먹었습니까?(과거)"} },
       { native:{vi:"Tại sao bạn đến muộn?",                 en:"Why did you come late?",                ko:"왜 늦게 왔습니까?"},
         full:"왜 늦게 왔습니까?", rule:{vi:"왜 + 과거형", en:"왜 + past tense", ko:"왜 왔습니까?(과거)"} },
       { native:{vi:"Bạn đã học tiếng Hàn ở đâu?",          en:"Where did you learn Korean?",           ko:"어디에서 한국어를 배웠습니까?"},
@@ -8436,9 +8441,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8F5E9,#C8E6C9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -8535,7 +8539,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Hãy ăn nhiều cơm.",              en:"Please eat a lot of rice.",     ko:"밥을 많이 드세요."},
         full:"밥을 많이 드세요.", rule:{vi:"드시다 → 드세요 (높임)", en:"드시다 → 드세요 (honorific)", ko:"드시다 → 드세요 (높임)"} },
       { native:{vi:"Bạn có biết không?",             en:"Do you know?",                  ko:"아세요?"},
-        full:"아세요?", rule:{vi:"알다 → 아세요 (ㄹ탈락+세요)", en:"알다 → 아세요 (ㄹ drops)", ko:"알다 → 아세요 (ㄹ 탈락)"} },
+        full:"아세요?", alts:["당신은 아세요?"], rule:{vi:"알다 → 아세요 (ㄹ탈락+세요)", en:"알다 → 아세요 (ㄹ drops)", ko:"알다 → 아세요 (ㄹ 탈락)"} },
       { native:{vi:"Hãy giúp tôi.",                  en:"Please help me.",               ko:"도와주세요."},
         full:"도와주세요.", rule:{vi:"돕다 → 도와주세요 (ㅂ불규칙)", en:"돕다 → 도와주세요 (ㅂ irregular)", ko:"돕다 → 도와주세요 (ㅂ 불규칙)"} },
       { native:{vi:"Hãy sống lâu.",                  en:"Please live long.",             ko:"오래 사세요."},
@@ -8584,9 +8588,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     // ✅ V280: ko 선택 시 정답 노출 방지 — 영어로 폴백
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FFCC80)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -8866,9 +8869,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const total = UNIT6A_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8E1,#FFE082)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -8991,9 +8993,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const total = UNIT6B_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#CE93D8)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -9115,9 +9116,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const total = UNIT7_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E0F7FA,#80DEEA)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -9211,13 +9211,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Chúng ta ngồi ở đây nhé?",               en:"Shall we sit here?",                         ko:"여기에 앉을까요?"},
         full:"여기에 앉을까요?", rule:{vi:"앉다 → 앉을까요? (받침+으ㄹ까요)", en:"앉다 → 앉을까요? (consonant+으ㄹ까요)", ko:"받침 있음 → 으ㄹ까요?"} },
       { native:{vi:"Cùng đi dạo nhé?",                       en:"Do you want to go for a walk together?",     ko:"같이 산책할래요?"},
-        full:"같이 산책할래요?", rule:{vi:"산책하다 → 산책할래요? (하다→할래요)", en:"산책하다 → 산책할래요? (하다→할래요)", ko:"하다 → 할래요?"} },
+        full:"같이 산책할래요?", alts:["같이 산책할래요?"], rule:{vi:"산책하다 → 산책할래요? (하다→할래요)", en:"산책하다 → 산책할래요? (하다→할래요)", ko:"하다 → 할래요?"} },
       { native:{vi:"Hãy đọc sách ở thư viện nhé.",           en:"Let's read a book at the library.",          ko:"도서관에서 책을 읽읍시다."},
         full:"도서관에서 책을 읽읍시다.", rule:{vi:"읽다 → 읽읍시다 (받침+읍시다)", en:"읽다 → 읽읍시다 (consonant+읍시다)", ko:"받침 있음 → 읍시다"} },
       { native:{vi:"Cùng học không?",                         en:"Do you want to study together?",             ko:"같이 공부할래요?"},
-        full:"같이 공부할래요?", rule:{vi:"공부하다 → 공부할래요? (하다→할래요)", en:"공부하다 → 공부할래요? (하다→할래요)", ko:"하다 → 할래요?"} },
+        full:"같이 공부할래요?", alts:["같이 공부할래요?"], rule:{vi:"공부하다 → 공부할래요? (하다→할래요)", en:"공부하다 → 공부할래요? (하다→할래요)", ko:"하다 → 할래요?"} },
       { native:{vi:"Uống trà nhé?",                           en:"Do you want a cup of tea?",                  ko:"차를 한 잔 마실래요?"},
-        full:"차를 한 잔 마실래요?", rule:{vi:"마시다 → 마실래요? (모음+ㄹ래요)", en:"마시다 → 마실래요? (vowel+ㄹ래요)", ko:"모음 → ㄹ래요?"} },
+        full:"차를 한 잔 마실래요?", alts:["차를 한 잔 마실래요?"], rule:{vi:"마시다 → 마실래요? (모음+ㄹ래요)", en:"마시다 → 마실래요? (vowel+ㄹ래요)", ko:"모음 → ㄹ래요?"} },
       { native:{vi:"Cùng tập thể dục nhé?",                  en:"Shall we exercise together?",                ko:"함께 운동할까요?"},
         full:"함께 운동할까요?", rule:{vi:"운동하다 → 운동할까요? (하다→할까요)", en:"운동하다 → 운동할까요? (하다→할까요)", ko:"하다 → 할까요?"} },
       { native:{vi:"Ngày mai gặp bạn nhé?",                   en:"Shall we meet a friend tomorrow?",           ko:"내일 친구를 만날까요?"},
@@ -9232,9 +9232,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const total = UNIT8_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F1F8E9,#AED581)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -9366,9 +9365,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const total = UNIT9_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FFAB40)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -9544,13 +9542,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Bạn muốn đi đâu?",                     en:"Where do you want to go?",              ko:"어디에 가고 싶습니까?"},
         full:"어디에 가고 싶습니까?", rule:{vi:"가다 + -고 싶습니까? (câu hỏi)", en:"가다 + -고 싶습니까? (question)", ko:"동사 + -고 싶습니까?"} },
       { native:{vi:"Bạn muốn ăn gì?",                      en:"What do you want to eat?",              ko:"무엇을 먹고 싶습니까?"},
-        full:"무엇을 먹고 싶습니까?", rule:{vi:"먹다 + -고 싶습니까? (câu hỏi)", en:"먹다 + -고 싶습니까? (question)", ko:"먹다 + -고 싶습니까?"} },
+        full:"무엇을 먹고 싶습니까?", alts:["당신은 무엇을 먹고 싶습니까?"], rule:{vi:"먹다 + -고 싶습니까? (câu hỏi)", en:"먹다 + -고 싶습니까? (question)", ko:"먹다 + -고 싶습니까?"} },
       { native:{vi:"Tôi muốn ăn món Hàn Quốc.",             en:"I want to eat Korean food.",            ko:"저는 한국 음식을 먹고 싶습니다."},
         full:"저는 한국 음식을 먹고 싶습니다.", rule:{vi:"먹다 + -고 싶습니다", en:"먹다 + -고 싶습니다", ko:"먹다 + -고 싶습니다"} },
       { native:{vi:"Tôi muốn uống cà phê.",                 en:"I want to drink coffee.",               ko:"저는 커피를 마시고 싶습니다."},
         full:"저는 커피를 마시고 싶습니다.", rule:{vi:"마시다 + -고 싶습니다", en:"마시다 + -고 싶습니다", ko:"마시다 + -고 싶습니다"} },
       { native:{vi:"Bạn muốn học gì?",                      en:"What do you want to learn?",            ko:"무엇을 배우고 싶습니까?"},
-        full:"무엇을 배우고 싶습니까?", rule:{vi:"배우다 + -고 싶습니까?", en:"배우다 + -고 싶습니까?", ko:"배우다 + -고 싶습니까?"} },
+        full:"무엇을 배우고 싶습니까?", alts:["당신은 무엇을 배우고 싶습니까?"], rule:{vi:"배우다 + -고 싶습니까?", en:"배우다 + -고 싶습니까?", ko:"배우다 + -고 싶습니까?"} },
       { native:{vi:"Tôi muốn sống ở Hàn Quốc.",             en:"I want to live in Korea.",              ko:"저는 한국에 살고 싶습니다."},
         full:"저는 한국에 살고 싶습니다.", rule:{vi:"살다 + -고 싶습니다", en:"살다 + -고 싶습니다", ko:"살다 + -고 싶습니다"} },
       { native:{vi:"Tôi muốn nghe nhạc Hàn Quốc.",          en:"I want to listen to Korean music.",     ko:"저는 한국 음악을 듣고 싶습니다."},
@@ -9558,7 +9556,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Tôi muốn làm việc ở Hàn Quốc.",         en:"I want to work in Korea.",              ko:"저는 한국에서 일하고 싶습니다."},
         full:"저는 한국에서 일하고 싶습니다.", rule:{vi:"일하다 + -고 싶습니다", en:"일하다 + -고 싶습니다", ko:"일하다 + -고 싶습니다"} },
       { native:{vi:"Bạn muốn mua gì?",                      en:"What do you want to buy?",              ko:"무엇을 사고 싶습니까?"},
-        full:"무엇을 사고 싶습니까?", rule:{vi:"사다 + -고 싶습니까?", en:"사다 + -고 싶습니까?", ko:"사다 + -고 싶습니까?"} },
+        full:"무엇을 사고 싶습니까?", alts:["당신은 무엇을 사고 싶습니까?"], rule:{vi:"사다 + -고 싶습니까?", en:"사다 + -고 싶습니까?", ko:"사다 + -고 싶습니까?"} },
       { native:{vi:"Tôi muốn xem phim cùng nhau.",           en:"I want to watch a movie together.",    ko:"같이 영화를 보고 싶습니다."},
         full:"같이 영화를 보고 싶습니다.", rule:{vi:"보다 + -고 싶습니다", en:"보다 + -고 싶습니다", ko:"보다 + -고 싶습니다"} },
       { native:{vi:"Tôi muốn gặp bạn bè.",                  en:"I want to meet friends.",               ko:"친구를 만나고 싶습니다."},
@@ -9575,9 +9573,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const total = UNIT10_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FCE4EC,#F48FB1)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -9691,9 +9688,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const total = UNIT11_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#BA68C8)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -9839,9 +9835,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const total = UNIT12_CARDS.length;
     const nativeText = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect = unitCardRevealed && userAns === correct;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#ECEFF1,#90A4AE)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -10014,66 +10009,66 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const UNIT13_CARDS = [
       // ── 허락: -아/어도 됩니다 ──
       { native:{vi:"Chụp ảnh ở đây cũng được.",              en:"You may take photos here.",              ko:"여기서 사진을 찍어도 됩니다."},
-        full:"여기서 사진을 찍어도 됩니다.", rule:{vi:"찍다 + -어도 됩니다 = được phép", en:"찍다 + -어도 됩니다 = permission", ko:"동사 + -아/어도 됩니다 = 허락"} },
+        full:"여기서 사진을 찍어도 됩니다.", alts:["당신은 여기서 사진을 찍어도 됩니다."], rule:{vi:"찍다 + -어도 됩니다 = được phép", en:"찍다 + -어도 됩니다 = permission", ko:"동사 + -아/어도 됩니다 = 허락"} },
       { native:{vi:"Thanh toán bằng thẻ cũng được.",          en:"You may pay by card.",                   ko:"카드로 결제해도 됩니다."},
-        full:"카드로 결제해도 됩니다.", rule:{vi:"결제하다 + -해도 됩니다", en:"결제하다 + -해도 됩니다", ko:"하다 → -해도 됩니다"} },
+        full:"카드로 결제해도 됩니다.", alts:["당신은 카드로 결제해도 됩니다."], rule:{vi:"결제하다 + -해도 됩니다", en:"결제하다 + -해도 됩니다", ko:"하다 → -해도 됩니다"} },
       { native:{vi:"Mở cửa sổ cũng được.",                    en:"You may open the window.",               ko:"창문을 열어도 됩니다."},
-        full:"창문을 열어도 됩니다.", rule:{vi:"열다 + -어도 됩니다", en:"열다 + -어도 됩니다", ko:"열다 + -어도 됩니다"} },
+        full:"창문을 열어도 됩니다.", alts:["당신은 창문을 열어도 됩니다."], rule:{vi:"열다 + -어도 됩니다", en:"열다 + -어도 됩니다", ko:"열다 + -어도 됩니다"} },
       { native:{vi:"Ngồi ở đây cũng được.",                   en:"You may sit here.",                      ko:"여기에 앉아도 됩니다."},
-        full:"여기에 앉아도 됩니다.", rule:{vi:"앉다 + -아도 됩니다 (ㅏ계열)", en:"앉다 + -아도 됩니다", ko:"앉다(ㅏ) + -아도 됩니다"} },
+        full:"여기에 앉아도 됩니다.", alts:["당신은 여기에 앉아도 됩니다."], rule:{vi:"앉다 + -아도 됩니다 (ㅏ계열)", en:"앉다 + -아도 됩니다", ko:"앉다(ㅏ) + -아도 됩니다"} },
       { native:{vi:"Uống nước cũng được.",                    en:"You may drink water.",                   ko:"물을 마셔도 됩니다."},
-        full:"물을 마셔도 됩니다.", rule:{vi:"마시다 + -어도 됩니다", en:"마시다 + -어도 됩니다", ko:"마시다 + -어도 됩니다"} },
+        full:"물을 마셔도 됩니다.", alts:["당신은 물을 마셔도 됩니다."], rule:{vi:"마시다 + -어도 됩니다", en:"마시다 + -어도 됩니다", ko:"마시다 + -어도 됩니다"} },
       { native:{vi:"Mượn sách cũng được.",                    en:"You may borrow a book.",                 ko:"책을 빌려도 됩니다."},
-        full:"책을 빌려도 됩니다.", rule:{vi:"빌리다 + -어도 됩니다", en:"빌리다 + -어도 됩니다", ko:"빌리다 + -어도 됩니다"} },
+        full:"책을 빌려도 됩니다.", alts:["당신은 책을 빌려도 됩니다."], rule:{vi:"빌리다 + -어도 됩니다", en:"빌리다 + -어도 됩니다", ko:"빌리다 + -어도 됩니다"} },
       { native:{vi:"Cởi giày cũng được.",                     en:"You may take off your shoes.",           ko:"신발을 벗어도 됩니다."},
-        full:"신발을 벗어도 됩니다.", rule:{vi:"벗다 + -어도 됩니다", en:"벗다 + -어도 됩니다", ko:"벗다 + -어도 됩니다"} },
+        full:"신발을 벗어도 됩니다.", alts:["당신은 신발을 벗어도 됩니다."], rule:{vi:"벗다 + -어도 됩니다", en:"벗다 + -어도 됩니다", ko:"벗다 + -어도 됩니다"} },
       // ── 금지: -(으)면 안 됩니다 ──
       { native:{vi:"Không được hút thuốc ở đây.",             en:"You must not smoke here.",               ko:"여기서 담배를 피우면 안 됩니다."},
-        full:"여기서 담배를 피우면 안 됩니다.", rule:{vi:"피우다 + -(으)면 안 됩니다 = cấm", en:"피우다 + -(으)면 안 됩니다 = prohibited", ko:"동사 + -(으)면 안 됩니다 = 금지"} },
+        full:"여기서 담배를 피우면 안 됩니다.", alts:["당신은 여기서 담배를 피우면 안 됩니다."], rule:{vi:"피우다 + -(으)면 안 됩니다 = cấm", en:"피우다 + -(으)면 안 됩니다 = prohibited", ko:"동사 + -(으)면 안 됩니다 = 금지"} },
       { native:{vi:"Không được đỗ xe ở đây.",                 en:"You must not park here.",                ko:"여기에 주차하면 안 됩니다."},
-        full:"여기에 주차하면 안 됩니다.", rule:{vi:"주차하다 + -(으)면 안 됩니다", en:"주차하다 + -(으)면 안 됩니다", ko:"하다 + -면 안 됩니다"} },
+        full:"여기에 주차하면 안 됩니다.", alts:["당신은 여기에 주차하면 안 됩니다."], rule:{vi:"주차하다 + -(으)면 안 됩니다", en:"주차하다 + -(으)면 안 됩니다", ko:"하다 + -면 안 됩니다"} },
       { native:{vi:"Không được làm ồn trong giờ học.",        en:"You must not make noise in class.",      ko:"수업 시간에 떠들면 안 됩니다."},
-        full:"수업 시간에 떠들면 안 됩니다.", rule:{vi:"떠들다 + -(으)면 안 됩니다", en:"떠들다 + -(으)면 안 됩니다", ko:"떠들다 + -(으)면 안 됩니다"} },
+        full:"수업 시간에 떠들면 안 됩니다.", alts:["당신은 수업 시간에 떠들면 안 됩니다."], rule:{vi:"떠들다 + -(으)면 안 됩니다", en:"떠들다 + -(으)면 안 됩니다", ko:"떠들다 + -(으)면 안 됩니다"} },
       { native:{vi:"Không được vào muộn.",                    en:"You must not come in late.",             ko:"늦게 들어오면 안 됩니다."},
-        full:"늦게 들어오면 안 됩니다.", rule:{vi:"들어오다 + -(으)면 안 됩니다", en:"들어오다 + -(으)면 안 됩니다", ko:"들어오다 + -(으)면 안 됩니다"} },
+        full:"늦게 들어오면 안 됩니다.", alts:["당신은 늦게 들어오면 안 됩니다."], rule:{vi:"들어오다 + -(으)면 안 됩니다", en:"들어오다 + -(으)면 안 됩니다", ko:"들어오다 + -(으)면 안 됩니다"} },
       { native:{vi:"Không được sử dụng máy tính.",            en:"You must not use the computer.",         ko:"컴퓨터를 사용하면 안 됩니다."},
-        full:"컴퓨터를 사용하면 안 됩니다.", rule:{vi:"사용하다 + -(으)면 안 됩니다", en:"사용하다 + -(으)면 안 됩니다", ko:"하다 + -면 안 됩니다"} },
+        full:"컴퓨터를 사용하면 안 됩니다.", alts:["당신은 컴퓨터를 사용하면 안 됩니다."], rule:{vi:"사용하다 + -(으)면 안 됩니다", en:"사용하다 + -(으)면 안 됩니다", ko:"하다 + -면 안 됩니다"} },
       { native:{vi:"Không được chạy.",                        en:"You must not run.",                      ko:"뛰면 안 됩니다."},
-        full:"뛰면 안 됩니다.", rule:{vi:"뛰다 + -(으)면 안 됩니다", en:"뛰다 + -(으)면 안 됩니다", ko:"뛰다 + -면 안 됩니다"} },
+        full:"뛰면 안 됩니다.", alts:["당신은 뛰면 안 됩니다."], rule:{vi:"뛰다 + -(으)면 안 됩니다", en:"뛰다 + -(으)면 안 됩니다", ko:"뛰다 + -면 안 됩니다"} },
       { native:{vi:"Không được vào đây.",                     en:"You must not enter here.",               ko:"여기에 들어오면 안 됩니다."},
-        full:"여기에 들어오면 안 됩니다.", rule:{vi:"들어오다 + -(으)면 안 됩니다", en:"들어오다 + -(으)면 안 됩니다", ko:"동사 + -(으)면 안 됩니다"} },
+        full:"여기에 들어오면 안 됩니다.", alts:["당신은 여기에 들어오면 안 됩니다."], rule:{vi:"들어오다 + -(으)면 안 됩니다", en:"들어오다 + -(으)면 안 됩니다", ko:"동사 + -(으)면 안 됩니다"} },
       // ── 의무: -아/어야 합니다 ──
       { native:{vi:"Phải dậy sớm.",                           en:"You must get up early.",                 ko:"일찍 일어나야 합니다."},
-        full:"일찍 일어나야 합니다.", rule:{vi:"일어나다 + -아야 합니다 (의무)", en:"일어나다 + -아야 합니다 (obligation)", ko:"동사 + -아/어야 합니다 = 의무"} },
+        full:"일찍 일어나야 합니다.", alts:["당신은 일찍 일어나야 합니다."], rule:{vi:"일어나다 + -아야 합니다 (의무)", en:"일어나다 + -아야 합니다 (obligation)", ko:"동사 + -아/어야 합니다 = 의무"} },
       { native:{vi:"Phải đăng ký.",                           en:"You must register.",                     ko:"등록해야 합니다."},
-        full:"등록해야 합니다.", rule:{vi:"등록하다 + -해야 합니다", en:"등록하다 + -해야 합니다", ko:"하다 + -해야 합니다"} },
+        full:"등록해야 합니다.", alts:["당신은 등록해야 합니다."], rule:{vi:"등록하다 + -해야 합니다", en:"등록하다 + -해야 합니다", ko:"하다 + -해야 합니다"} },
       { native:{vi:"Phải uống thuốc.",                        en:"You must take medicine.",                ko:"약을 먹어야 합니다."},
-        full:"약을 먹어야 합니다.", rule:{vi:"먹다 + -어야 합니다", en:"먹다 + -어야 합니다", ko:"먹다 + -어야 합니다"} },
+        full:"약을 먹어야 합니다.", alts:["당신은 약을 먹어야 합니다."], rule:{vi:"먹다 + -어야 합니다", en:"먹다 + -어야 합니다", ko:"먹다 + -어야 합니다"} },
       { native:{vi:"Phải xin visa.",                          en:"You must get a visa.",                   ko:"비자를 받아야 합니다."},
-        full:"비자를 받아야 합니다.", rule:{vi:"받다 + -아야 합니다", en:"받다 + -아야 합니다", ko:"받다 + -아야 합니다"} },
+        full:"비자를 받아야 합니다.", alts:["당신은 비자를 받아야 합니다."], rule:{vi:"받다 + -아야 합니다", en:"받다 + -아야 합니다", ko:"받다 + -아야 합니다"} },
       { native:{vi:"Phải đi xe buýt.",                        en:"You must take the bus.",                 ko:"버스를 타야 합니다."},
-        full:"버스를 타야 합니다.", rule:{vi:"타다 + -아야 합니다", en:"타다 + -아야 합니다", ko:"타다 + -아야 합니다"} },
+        full:"버스를 타야 합니다.", alts:["당신은 버스를 타야 합니다."], rule:{vi:"타다 + -아야 합니다", en:"타다 + -아야 합니다", ko:"타다 + -아야 합니다"} },
       { native:{vi:"Phải đến bệnh viện.",                     en:"You must go to the hospital.",           ko:"병원에 가야 합니다."},
-        full:"병원에 가야 합니다.", rule:{vi:"가다 + -아야 합니다", en:"가다 + -아야 합니다", ko:"가다 + -아야 합니다"} },
+        full:"병원에 가야 합니다.", alts:["당신은 병원에 가야 합니다."], rule:{vi:"가다 + -아야 합니다", en:"가다 + -아야 합니다", ko:"가다 + -아야 합니다"} },
       { native:{vi:"Phải học tiếng Hàn.",                     en:"You must learn Korean.",                 ko:"한국어를 배워야 합니다."},
-        full:"한국어를 배워야 합니다.", rule:{vi:"배우다 + -어야 합니다", en:"배우다 + -어야 합니다", ko:"배우다 + -어야 합니다"} },
+        full:"한국어를 배워야 합니다.", alts:["당신은 한국어를 배워야 합니다."], rule:{vi:"배우다 + -어야 합니다", en:"배우다 + -어야 합니다", ko:"배우다 + -어야 합니다"} },
       // ── 면제: -지 않아도 됩니다 ──
       { native:{vi:"Không cần đặt trước.",                    en:"You don't have to make a reservation.",  ko:"예약하지 않아도 됩니다."},
-        full:"예약하지 않아도 됩니다.", rule:{vi:"동사 + -지 않아도 됩니다 = không cần", en:"verb + -지 않아도 됩니다 = don't have to", ko:"동사 + -지 않아도 됩니다 = 면제"} },
+        full:"예약하지 않아도 됩니다.", alts:["당신은 예약하지 않아도 됩니다."], rule:{vi:"동사 + -지 않아도 됩니다 = không cần", en:"verb + -지 않아도 됩니다 = don't have to", ko:"동사 + -지 않아도 됩니다 = 면제"} },
       { native:{vi:"Ngày mai không cần dậy sớm.",             en:"You don't have to get up early tomorrow.", ko:"내일은 일찍 일어나지 않아도 됩니다."},
-        full:"내일은 일찍 일어나지 않아도 됩니다.", rule:{vi:"일어나다 + -지 않아도 됩니다", en:"일어나다 + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
+        full:"내일은 일찍 일어나지 않아도 됩니다.", alts:["당신은 내일은 일찍 일어나지 않아도 됩니다."], rule:{vi:"일어나다 + -지 않아도 됩니다", en:"일어나다 + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
       { native:{vi:"Không cần trả lời.",                      en:"You don't have to answer.",              ko:"대답하지 않아도 됩니다."},
-        full:"대답하지 않아도 됩니다.", rule:{vi:"대답하다 + -지 않아도 됩니다", en:"대답하다 + -지 않아도 됩니다", ko:"하다 + -지 않아도 됩니다"} },
+        full:"대답하지 않아도 됩니다.", alts:["당신은 대답하지 않아도 됩니다."], rule:{vi:"대답하다 + -지 않아도 됩니다", en:"대답하다 + -지 않아도 됩니다", ko:"하다 + -지 않아도 됩니다"} },
       { native:{vi:"Hôm nay không cần nấu ăn.",               en:"You don't have to cook today.",          ko:"오늘은 요리하지 않아도 됩니다."},
-        full:"오늘은 요리하지 않아도 됩니다.", rule:{vi:"요리하다 + -지 않아도 됩니다", en:"요리하다 + -지 않아도 됩니다", ko:"하다 + -지 않아도 됩니다"} },
+        full:"오늘은 요리하지 않아도 됩니다.", alts:["당신은 오늘은 요리하지 않아도 됩니다."], rule:{vi:"요리하다 + -지 않아도 됩니다", en:"요리하다 + -지 않아도 됩니다", ko:"하다 + -지 않아도 됩니다"} },
       { native:{vi:"Không cần mang tiền mặt.",                en:"You don't have to bring cash.",          ko:"현금을 가져오지 않아도 됩니다."},
-        full:"현금을 가져오지 않아도 됩니다.", rule:{vi:"가져오다 + -지 않아도 됩니다", en:"가져오다 + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
+        full:"현금을 가져오지 않아도 됩니다.", alts:["당신은 현금을 가져오지 않아도 됩니다."], rule:{vi:"가져오다 + -지 않아도 됩니다", en:"가져오다 + -지 않아도 됩니다", ko:"동사 + -지 않아도 됩니다"} },
       { native:{vi:"Không cần mua quần áo.",                  en:"You don't have to buy clothes.",         ko:"옷을 사지 않아도 됩니다."},
-        full:"옷을 사지 않아도 됩니다.", rule:{vi:"사다 + -지 않아도 됩니다", en:"사다 + -지 않아도 됩니다", ko:"사다 + -지 않아도 됩니다"} },
+        full:"옷을 사지 않아도 됩니다.", alts:["당신은 옷을 사지 않아도 됩니다."], rule:{vi:"사다 + -지 않아도 됩니다", en:"사다 + -지 않아도 됩니다", ko:"사다 + -지 않아도 됩니다"} },
       { native:{vi:"Không cần mặc đồng phục.",                en:"You don't have to wear a uniform.",      ko:"교복을 입지 않아도 됩니다."},
-        full:"교복을 입지 않아도 됩니다.", rule:{vi:"입다 + -지 않아도 됩니다", en:"입다 + -지 않아도 됩니다", ko:"입다 + -지 않아도 됩니다"} },
+        full:"교복을 입지 않아도 됩니다.", alts:["당신은 교복을 입지 않아도 됩니다."], rule:{vi:"입다 + -지 않아도 됩니다", en:"입다 + -지 않아도 됩니다", ko:"입다 + -지 않아도 됩니다"} },
       { native:{vi:"Không cần vội.",                          en:"You don't have to hurry.",               ko:"서두르지 않아도 됩니다."},
-        full:"서두르지 않아도 됩니다.", rule:{vi:"서두르다 + -지 않아도 됩니다", en:"서두르다 + -지 않아도 됩니다", ko:"서두르다 + -지 않아도 됩니다"} },
+        full:"서두르지 않아도 됩니다.", alts:["당신은 서두르지 않아도 됩니다."], rule:{vi:"서두르다 + -지 않아도 됩니다", en:"서두르다 + -지 않아도 됩니다", ko:"서두르다 + -지 않아도 됩니다"} },
     ];
 
     const card = UNIT13_CARDS[unitCardIdx];
@@ -10081,9 +10076,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const C13 = { bg:"linear-gradient(150deg,#E0F7FA,#B2EBF2)", accent:"#00838F", border:"#80DEEA" };
     const nativeText13 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText13   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const userAns13  = (unitCardInput||"").trim().replace(/\s+/g,"");
-    const correct13  = (card.full||"").replace(/\s+/g,"");
-    const isCorrect13 = unitCardRevealed && userAns13 === correct13;
+    // 정답 채점 (V313: checkAnswer로 복수 정답 지원)
+    const isCorrect13 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
       <div style={{minHeight:"100vh", background:C13.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -10165,13 +10159,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const UNIT14_CARDS = [
       // ── 경험 있다 ──
       { native:{vi:"Bạn đã từng ăn kim chi chưa?",          en:"Have you ever eaten kimchi?",          ko:"김치를 먹은 적이 있습니까?"},
-        full:"김치를 먹은 적이 있습니까?", rule:{vi:"동사+은/ㄴ 적이 있다 (đã từng)", en:"verb+은/ㄴ 적이 있다 (have ever)", ko:"동사+은/ㄴ 적이 있습니다"} },
+        full:"김치를 먹은 적이 있습니까?", alts:["당신은 김치를 먹은 적이 있습니까?"], rule:{vi:"동사+은/ㄴ 적이 있다 (đã từng)", en:"verb+은/ㄴ 적이 있다 (have ever)", ko:"동사+은/ㄴ 적이 있습니다"} },
       { native:{vi:"Tôi đã từng đi máy bay.",               en:"I have been on a plane before.",      ko:"비행기를 탄 적이 있습니다."},
         full:"비행기를 탄 적이 있습니다.", rule:{vi:"타다 → 탄 적이 있습니다", en:"타다 → 탄 적이 있습니다", ko:"타다 → 탄 적이 있습니다"} },
       { native:{vi:"Tôi đã từng thi kì thi TOPIK.",         en:"I have taken the TOPIK test before.", ko:"TOPIK 시험을 본 적이 있습니다."},
         full:"TOPIK 시험을 본 적이 있습니다.", rule:{vi:"보다 → 본 적이 있습니다", en:"보다 → 본 적이 있습니다", ko:"보다 → 본 적이 있습니다"} },
       { native:{vi:"Bạn đã từng đến Hàn Quốc chưa?",        en:"Have you ever been to Korea?",         ko:"한국에 간 적이 있습니까?"},
-        full:"한국에 간 적이 있습니까?", rule:{vi:"가다 → 간 적이 있습니까?", en:"가다 → 간 적이 있습니까?", ko:"가다 → 간 적이 있습니까?"} },
+        full:"한국에 간 적이 있습니까?", alts:["당신은 한국에 간 적이 있습니까?"], rule:{vi:"가다 → 간 적이 있습니까?", en:"가다 → 간 적이 있습니까?", ko:"가다 → 간 적이 있습니까?"} },
       { native:{vi:"Tôi đã từng xem phim Hàn Quốc.",        en:"I have watched Korean movies before.", ko:"한국 영화를 본 적이 있습니다."},
         full:"한국 영화를 본 적이 있습니다.", rule:{vi:"보다 → 본 적이 있습니다", en:"보다 → 본 적이 있습니다", ko:"보다 → 본 적이 있습니다"} },
       { native:{vi:"Tôi đã từng nghe nhạc Hàn Quốc.",       en:"I have listened to Korean songs before.", ko:"한국 노래를 들은 적이 있습니다."},
@@ -10187,14 +10181,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Tôi chưa từng bị ngã.",                  en:"I have never fallen down before.",    ko:"넘어진 적이 없습니다."},
         full:"넘어진 적이 없습니다.", rule:{vi:"넘어지다 → 넘어진 적이 없습니다", en:"넘어지다 → 넘어진 적이 없습니다", ko:"넘어지다 → 넘어진 적이 없습니다"} },
       { native:{vi:"Bạn đã từng gặp người nước ngoài chưa?", en:"Have you ever met a foreigner?",     ko:"외국 사람을 만난 적이 있습니까?"},
-        full:"외국 사람을 만난 적이 있습니까?", rule:{vi:"만나다 → 만난 적이 있습니까?", en:"만나다 → 만난 적이 있습니까?", ko:"만나다 → 만난 적이 있습니까?"} },
+        full:"외국 사람을 만난 적이 있습니까?", alts:["당신은 외국 사람을 만난 적이 있습니까?"], rule:{vi:"만나다 → 만난 적이 있습니까?", en:"만나다 → 만난 적이 있습니까?", ko:"만나다 → 만난 적이 있습니까?"} },
     ];
     const card = UNIT14_CARDS[unitCardIdx];
     const total14 = UNIT14_CARDS.length;
     const C14 = { bg:"linear-gradient(150deg,#F3E5F5,#E1BEE7)", accent:"#6A1B9A", border:"#CE93D8" };
     const nativeText14 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText14   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect14 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect14 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit14Submit() {
       if (!unitCardInput.trim()) return;
@@ -10301,7 +10295,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const C15 = { bg:"linear-gradient(150deg,#E8F5E9,#C8E6C9)", accent:"#2E7D32", border:"#81C784" };
     const nativeText15 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText15   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect15 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect15 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit15Submit() {
       if (!unitCardInput.trim()) return;
@@ -10427,7 +10421,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const C16 = { bg:"linear-gradient(150deg,#FFF8E1,#FFECB3)", accent:"#F57F17", border:"#FFD54F" };
     const nativeText16 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText16   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect16 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect16 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit16Submit() {
       if (!unitCardInput.trim()) return;
@@ -10531,7 +10525,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const C17 = { bg:"linear-gradient(150deg,#E3F2FD,#BBDEFB)", accent:"#1565C0", border:"#90CAF9" };
     const nativeText17 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText17   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect17 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect17 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit17Submit() {
       if (!unitCardInput.trim()) return;
@@ -10611,15 +10605,15 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Hôm nay không ăn được bữa trưa.",       en:"I couldn't eat lunch today.",         ko:"오늘 점심을 못 먹었습니다."},
         full:"오늘 점심을 못 먹었습니다.", rule:{vi:"상황 제시 카드", en:"situation card", ko:"상황 카드"} },
       { native:{vi:"Chắc là đói bụng lắm.",                 en:"You must be hungry.",                 ko:"배가 고프겠습니다."},
-        full:"배가 고프겠습니다.", rule:{vi:"고프다 → 고프겠습니다", en:"고프다 → 고프겠습니다", ko:"고프다 + -겠습니다"} },
+        full:"배가 고프겠습니다.", alts:["당신은 배가 고프겠습니다."], rule:{vi:"고프다 → 고프겠습니다", en:"고프다 → 고프겠습니다", ko:"고프다 + -겠습니다"} },
       { native:{vi:"Tôi đã nhận được lương.",               en:"I received my salary.",               ko:"월급을 받았습니다."},
         full:"월급을 받았습니다.", rule:{vi:"상황 제시 카드", en:"situation card", ko:"상황 카드"} },
       { native:{vi:"Chắc là vui lắm.",                      en:"You must be happy.",                  ko:"기쁘겠습니다."},
-        full:"기쁘겠습니다.", rule:{vi:"기쁘다 → 기쁘겠습니다", en:"기쁘다 → 기쁘겠습니다", ko:"기쁘다 + -겠습니다"} },
+        full:"기쁘겠습니다.", alts:["당신은 기쁘겠습니다."], rule:{vi:"기쁘다 → 기쁘겠습니다", en:"기쁘다 → 기쁘겠습니다", ko:"기쁘다 + -겠습니다"} },
       { native:{vi:"Hôm nay bắt đầu kỳ nghỉ.",             en:"Today the vacation started.",         ko:"오늘 방학을 했습니다."},
         full:"오늘 방학을 했습니다.", rule:{vi:"상황 제시 카드", en:"situation card", ko:"상황 카드"} },
       { native:{vi:"Chắc là tâm trạng tốt lắm.",           en:"You must be in a good mood.",         ko:"기분이 좋겠습니다."},
-        full:"기분이 좋겠습니다.", rule:{vi:"좋다 → 좋겠습니다", en:"좋다 → 좋겠습니다", ko:"좋다 + -겠습니다"} },
+        full:"기분이 좋겠습니다.", alts:["당신은 기분이 좋겠습니다."], rule:{vi:"좋다 → 좋겠습니다", en:"좋다 → 좋겠습니다", ko:"좋다 + -겠습니다"} },
       { native:{vi:"Hôm qua bạn tôi chuyển đến nơi xa.",   en:"Yesterday my friend moved far away.", ko:"어제 친구가 멀리 이사를 갔습니다."},
         full:"어제 친구가 멀리 이사를 갔습니다.", rule:{vi:"상황 제시 카드", en:"situation card", ko:"상황 카드"} },
       { native:{vi:"Chắc là lòng đau lắm.",                 en:"Your heart must hurt.",               ko:"마음이 아프겠습니다."},
@@ -10627,14 +10621,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Quê hương nhớ lắm.",                    en:"I miss my hometown a lot.",           ko:"고향이 많이 그립습니다."},
         full:"고향이 많이 그립습니다.", rule:{vi:"상황 제시 카드", en:"situation card", ko:"상황 카드"} },
       { native:{vi:"Chắc là cô đơn lắm.",                   en:"You must be lonely.",                 ko:"외롭겠습니다."},
-        full:"외롭겠습니다.", rule:{vi:"외롭다 → 외롭겠습니다", en:"외롭다 → 외롭겠습니다", ko:"외롭다 + -겠습니다"} },
+        full:"외롭겠습니다.", alts:["당신은 외롭겠습니다."], rule:{vi:"외롭다 → 외롭겠습니다", en:"외롭다 → 외롭겠습니다", ko:"외롭다 + -겠습니다"} },
     ];
     const card = UNIT18_CARDS[unitCardIdx];
     const total18 = UNIT18_CARDS.length;
     const C18 = { bg:"linear-gradient(150deg,#FCE4EC,#F8BBD0)", accent:"#AD1457", border:"#F48FB1" };
     const nativeText18 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText18   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect18 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect18 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit18Submit() {
       if (!unitCardInput.trim()) return;
@@ -10730,7 +10724,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const C19 = { bg:"linear-gradient(150deg,#E8EAF6,#C5CAE9)", accent:"#283593", border:"#9FA8DA" };
     const nativeText19 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText19   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect19 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect19 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit19Submit() {
       if (!unitCardInput.trim()) return;
@@ -10834,7 +10828,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const C20 = { bg:"linear-gradient(150deg,#FFFDE7,#FFF9C4)", accent:"#F9A825", border:"#FFF176" };
     const nativeText20 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText20   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect20 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect20 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit20Submit() {
       if (!unitCardInput.trim()) return;
@@ -10911,19 +10905,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const vi = lang?.code === "vi"; const en = lang?.code === "en";
     const UNIT21_CARDS = [
       { native:{vi:"Bạn đang học tiếng Hàn, phải không?",   en:"You are studying Korean, right?",    ko:"한국어(를) 공부하고 있죠?"},
-        full:"한국어(를) 공부하고 있죠?", rule:{vi:"동사 + -죠? (xác nhận)", en:"verb + -죠? (confirmation)", ko:"동사 + -죠? (확인)"} },
+        full:"한국어(를) 공부하고 있죠?", alts:["당신은 한국어(를) 공부하고 있죠?"], rule:{vi:"동사 + -죠? (xác nhận)", en:"verb + -죠? (confirmation)", ko:"동사 + -죠? (확인)"} },
       { native:{vi:"Đây là bệnh viện, phải không?",          en:"This is a hospital, right?",          ko:"여기가 병원이죠?"},
         full:"여기가 병원이죠?", rule:{vi:"이다 → 이죠? (xác nhận)", en:"이다 → 이죠? (confirmation)", ko:"이다 → 이죠?"} },
       { native:{vi:"Bạn đến từ Việt Nam, phải không?",       en:"You are from Vietnam, right?",        ko:"베트남에서 왔죠?"},
-        full:"베트남에서 왔죠?", rule:{vi:"오다 → 왔죠? (과거 확인)", en:"오다 → 왔죠? (past confirmation)", ko:"오다 → 왔죠?"} },
+        full:"베트남에서 왔죠?", alts:["당신은 베트남에서 왔죠?"], rule:{vi:"오다 → 왔죠? (과거 확인)", en:"오다 → 왔죠? (past confirmation)", ko:"오다 → 왔죠?"} },
       { native:{vi:"Ngày mai có buổi họp, phải không?",      en:"There is a meeting tomorrow, right?", ko:"내일 회의(가) 있지요?"},
         full:"내일 회의(가) 있지요?", rule:{vi:"있다 → 있지요? (정중 확인)", en:"있다 → 있지요? (polite confirmation)", ko:"있다 → 있지요? (정중형)"} },
       { native:{vi:"Bạn biết cô ấy, phải không?",            en:"You know her, right?",                ko:"그 사람(을) 알죠?"},
-        full:"그 사람(을) 알죠?", rule:{vi:"알다 → 알죠? (ㄹ탈락)", en:"알다 → 알죠? (ㄹ drops)", ko:"알다 → 알죠?"} },
+        full:"그 사람(을) 알죠?", alts:["당신은 그 사람(을) 알죠?"], rule:{vi:"알다 → 알죠? (ㄹ탈락)", en:"알다 → 알죠? (ㄹ drops)", ko:"알다 → 알죠?"} },
       { native:{vi:"Đây là tiếng Hàn khó, phải không?",     en:"Korean is difficult, right?",         ko:"한국어가 어렵죠?"},
         full:"한국어가 어렵죠?", rule:{vi:"어렵다 → 어렵죠?", en:"어렵다 → 어렵죠?", ko:"어렵다 → 어렵죠?"} },
       { native:{vi:"Bạn thích đồ ăn Hàn, phải không?",      en:"You like Korean food, right?",        ko:"한국 음식(을) 좋아하죠?"},
-        full:"한국 음식(을) 좋아하죠?", rule:{vi:"좋아하다 → 좋아하죠?", en:"좋아하다 → 좋아하죠?", ko:"좋아하다 → 좋아하죠?"} },
+        full:"한국 음식(을) 좋아하죠?", alts:["당신은 한국 음식(을) 좋아하죠?"], rule:{vi:"좋아하다 → 좋아하죠?", en:"좋아하다 → 좋아하죠?", ko:"좋아하다 → 좋아하죠?"} },
       { native:{vi:"Cửa hàng đóng cửa rồi, phải không?",    en:"The store is closed, right?",         ko:"가게(가) 문(을) 닫았죠?"},
         full:"가게(가) 문(을) 닫았죠?", rule:{vi:"닫다 → 닫았죠? (과거 확인)", en:"닫다 → 닫았죠? (past confirmation)", ko:"닫다 → 닫았죠?"} },
       { native:{vi:"Bộ phim này thú vị lắm, phải không?",       en:"This movie is really interesting, right?", ko:"이 영화(는) 정말 재미있죠?"},
@@ -10936,7 +10930,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const C21 = { bg:"linear-gradient(150deg,#E0F2F1,#B2DFDB)", accent:"#00695C", border:"#80CBC4" };
     const nativeText21 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText21   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect21 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect21 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit21Submit() {
       if (!unitCardInput.trim()) return;
@@ -11047,7 +11041,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const C22 = { bg:"linear-gradient(150deg,#E1F5FE,#B3E5FC)", accent:"#01579B", border:"#81D4FA" };
     const nativeText22 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText22   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect22 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect22 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit22Submit() {
       if (!unitCardInput.trim()) return;
@@ -11149,7 +11143,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const C23 = { bg:"linear-gradient(150deg,#F1F8E9,#DCEDC8)", accent:"#558B2F", border:"#AED581" };
     const nativeText23 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText23   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect23 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect23 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit23Submit() {
       if (!unitCardInput.trim()) return;
@@ -11247,7 +11241,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const C24 = { bg:"linear-gradient(150deg,#FFF3E0,#FFE0B2)", accent:"#E65100", border:"#FFCC80" };
     const nativeText24 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText24   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect24 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect24 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit24Submit() {
       if (!unitCardInput.trim()) return;
@@ -11325,7 +11319,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const UNIT25_CARDS = [
       // ── ~ㄴ 지 되다 / 지나다 (현재완료) ──
       { native:{vi:"Bạn đã đi làm được bao lâu rồi?",            en:"How long have you been working there?",              ko:"직장에 다닌 지 얼마나 되었습니까?"},
-        full:"직장에 다닌 지 얼마나 되었습니까?", rule:{vi:"다니다 → 다닌 지 얼마나 되었습니까?", en:"다니다 → 다닌 지 + how long + 되었습니까?", ko:"동사+ㄴ 지 얼마나 되었습니까?"} },
+        full:"직장에 다닌 지 얼마나 되었습니까?", alts:["당신은 직장에 다닌 지 얼마나 되었습니까?"], rule:{vi:"다니다 → 다닌 지 얼마나 되었습니까?", en:"다니다 → 다닌 지 + how long + 되었습니까?", ko:"동사+ㄴ 지 얼마나 되었습니까?"} },
       { native:{vi:"Tôi đã đi làm được 1 năm rồi.",              en:"It has been 1 year since I started working there.",  ko:"직장에 다닌 지 1년이 되었습니다."},
         full:"직장에 다닌 지 1년이 되었습니다.", rule:{vi:"다닌 지 1년이 되었습니다", en:"다닌 지 1년이 되었습니다", ko:"동사+ㄴ 지 + 기간 + 이/가 되었습니다"} },
       { native:{vi:"Tôi đã đến Hàn Quốc được 2 năm rồi.",        en:"It has been 2 years since I came to Korea.",         ko:"한국에 온 지 2년이 되었습니다."},
@@ -11337,7 +11331,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       { native:{vi:"Chúng tôi đã hẹn hò được 100 ngày rồi.",     en:"It has been 100 days since we started dating.",      ko:"사귄 지 100일이 되었습니다."},
         full:"사귄 지 100일이 되었습니다.", rule:{vi:"사귀다 → 사귄 지 100일이 되었습니다", en:"사귀다 → 사귄 지 100일이 되었습니다", ko:"사귄 지 + 기간 + 이/가 되었습니다"} },
       { native:{vi:"Bạn đã làm việc ở đây được bao lâu rồi?",    en:"How long have you worked here?",                    ko:"여기서 일한 지 얼마나 되었습니까?"},
-        full:"여기서 일한 지 얼마나 되었습니까?", rule:{vi:"일하다 → 일한 지 얼마나 되었습니까?", en:"일하다 → 일한 지 + how long + 되었습니까?", ko:"동사+ㄴ 지 얼마나 되었습니까?"} },
+        full:"여기서 일한 지 얼마나 되었습니까?", alts:["당신은 여기서 일한 지 얼마나 되었습니까?"], rule:{vi:"일하다 → 일한 지 얼마나 되었습니까?", en:"일하다 → 일한 지 + how long + 되었습니까?", ko:"동사+ㄴ 지 얼마나 되었습니까?"} },
       { native:{vi:"Tôi đã làm việc ở đây được 3 năm rồi.",      en:"It has been 3 years since I started working here.", ko:"여기서 일한 지 3년이 되었습니다."},
         full:"여기서 일한 지 3년이 되었습니다.", rule:{vi:"일한 지 3년이 되었습니다", en:"일한 지 3년이 되었습니다", ko:"일한 지 + 기간 + 이/가 되었습니다"} },
       // ── 들다: 돈 — 과거·현재 ──
@@ -11366,7 +11360,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const C25 = { bg:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", accent:"#4527A0", border:"#B39DDB" };
     const nativeText25 = vi ? card.native.vi : en ? card.native.en : (!lang || lang.code === "ko" ? card.native.en : card.native.ko);
     const ruleText25   = vi ? card.rule.vi   : en ? card.rule.en   : card.rule.ko;
-    const isCorrect25 = unitCardRevealed && (unitCardInput||"").trim().replace(/\s+/g,"") === (card.full||"").replace(/\s+/g,"");
+    const isCorrect25 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     function handleUnit25Submit() {
       if (!unitCardInput.trim()) return;
@@ -11454,7 +11448,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           { native:{vi:"Cô ấy đẹp nhất khi cười.",                en:"She is the most beautiful when she smiles.", ko:"그녀는 웃을 때 가장 예쁩니다."},
             full:"그녀는 웃을 때 가장 예쁩니다.", rule:{vi:"웃다 + -(으)ㄹ 때", en:"웃다 + -(으)ㄹ 때", ko:"웃다 + -(으)ㄹ 때"} },
           { native:{vi:"Bạn đã làm gì vào kì nghỉ?",              en:"What did you do on vacation?",            ko:"당신은 방학 때 무엇을 했습니까?"},
-            full:"당신은 방학 때 무엇을 했습니까?", rule:{vi:"방학 (danh từ) + 때", en:"방학 (noun) + 때", ko:"명사 + 때"} },
+            full:"당신은 방학 때 무엇을 했습니까?", alts:["방학 때 무엇을 했습니까?"], rule:{vi:"방학 (danh từ) + 때", en:"방학 (noun) + 때", ko:"명사 + 때"} },
           { native:{vi:"Tôi đã đi phượt vào kì nghỉ.",            en:"I went backpacking on vacation.",         ko:"저는 방학 때 배낭여행을 했습니다."},
             full:"저는 방학 때 배낭여행을 했습니다.", rule:{vi:"방학 + 때", en:"방학 + 때", ko:"명사 + 때"} },
           { native:{vi:"Trời lạnh khi đi làm vào buổi sáng.",     en:"It is cold when commuting in the morning.", ko:"아침에 출근할 때 날씨가 춥습니다."},
@@ -11929,7 +11923,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           { native:{vi:"Anh ấy đã làm hết sức để chiến thắng ở trận đấu.", en:"He did his best to win the game.",       ko:"그는 경기에서 이기기 위해서 최선을 다했습니다."},
             full:"그는 경기에서 이기기 위해서 최선을 다했습니다.", rule:{vi:"이기다 + -기 위해서", en:"이기다 + -기 위해서", ko:"동사 + -기 위해서"} },
           { native:{vi:"Bạn sống vì điều gì?",                           en:"What do you live for?",                    ko:"당신은 무엇을 위해서 삽니까?"},
-            full:"당신은 무엇을 위해서 삽니까?", rule:{vi:"무엇 + 을 위해서 (의문)", en:"무엇 + 을 위해서 (question)", ko:"무엇 + 을 위해서"} },
+            full:"당신은 무엇을 위해서 삽니까?", alts:["무엇을 위해서 삽니까?"], rule:{vi:"무엇 + 을 위해서 (의문)", en:"무엇 + 을 위해서 (question)", ko:"무엇 + 을 위해서"} },
           { native:{vi:"Bạn sống vì ai?",                                en:"Who do you live for?",                     ko:"당신은 누구를 위해서 삽니까?"},
             full:"당신은 누구를 위해서 삽니까?", rule:{vi:"누구 + 를 위해서 (의문)", en:"누구 + 를 위해서 (question)", ko:"누구 + 를 위해서"} },
           { native:{vi:"Tôi học tiếng Hàn để xin việc ở công ty Hàn Quốc.", en:"I study Korean to get a job at a Korean company.", ko:"저는 한국 회사에 취업하기 위해서 한국어를 공부합니다."},
