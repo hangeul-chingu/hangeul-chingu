@@ -12077,8 +12077,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         cards:[
           { native:{vi:"Nếu kiếm được nhiều tiền, tôi muốn đi du lịch thế giới.", en:"If I earn a lot of money, I want to travel around the world.", ko:"돈을 많이 벌면 세계 여행을 하고 싶습니다."},
             full:"돈을 많이 벌면 세계 여행을 하고 싶습니다.", rule:{vi:"벌다(받침) → 벌 + 면", en:"벌다(batchim) → 벌 + 면", ko:"벌다 → 벌면 (ㄹ 받침 → 면)"} },
-          { native:{vi:"Nếu học hành chăm chỉ thì sẽ vượt qua kì thi.", en:"If you study hard, you will pass the exam.", ko:"열심히 공부하면 시험에 합격할 것입니다."},
-            full:"열심히 공부하면 시험에 합격할 것입니다.", rule:{vi:"공부하다(모음) → 공부하 + 면", en:"공부하다(vowel) → 공부하 + 면", ko:"공부하다 → 공부하면 (모음 → 면)"} },
+          { native:{vi:"Nếu học hành chăm chỉ thì sẽ thi tốt.", en:"If you study hard, you will do well on the exam.", ko:"열심히 공부하면 시험을 잘 볼 것입니다."},
+            full:"열심히 공부하면 시험을 잘 볼 것입니다.", alts:["당신은 열심히 공부하면 시험을 잘 볼 것입니다."], rule:{vi:"공부하다(모음) → 공부하 + 면", en:"공부하다(vowel) → 공부하 + 면", ko:"공부하다 → 공부하면 (모음 → 면)"} },
           { native:{vi:"Nếu tâm trạng vui thì tôi hát.", en:"I sing when I feel good.", ko:"기분이 좋으면 노래를 부릅니다."},
             full:"기분이 좋으면 노래를 부릅니다.", rule:{vi:"좋다(받침 ㅎ) → 좋 + 으면", en:"좋다(batchim ㅎ) → 좋 + 으면", ko:"좋다 → 좋으면 (받침 있음 → 으면)"} },
           { native:{vi:"Nếu tôi uống cà phê thì không ngủ được.", en:"If I drink coffee, I cannot sleep.", ko:"커피를 마시면 잠을 못 잡니다."},
@@ -12086,7 +12086,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           { native:{vi:"Nếu ngày mai gặp bạn thì tôi định đi rạp chiếu phim.", en:"If I meet my friend tomorrow, I am going to the movies.", ko:"내일 친구를 만나면 영화관에 갈 것입니다."},
             full:"내일 친구를 만나면 영화관에 갈 것입니다.", rule:{vi:"만나다(모음) → 만나 + 면", en:"만나다(vowel) → 만나 + 면", ko:"만나다 → 만나면 (모음 → 면)"} },
           { native:{vi:"Nếu có thời gian thì chúng ta cùng ăn cơm nhé.", en:"If you have time, let us eat together.", ko:"시간이 있으면 같이 밥을 먹읍시다."},
-            full:"시간이 있으면 같이 밥을 먹읍시다.", rule:{vi:"있다(받침) → 있 + 으면", en:"있다(batchim) → 있 + 으면", ko:"있다 → 있으면 (받침 있음 → 으면)"} },
+            full:"시간이 있으면 같이 밥을 먹읍시다.", alts:["당신은 시간이 있으면 같이 밥을 먹읍시다."], rule:{vi:"있다(받침) → 있 + 으면", en:"있다(batchim) → 있 + 으면", ko:"있다 → 있으면 (받침 있음 → 으면)"} },
         ]
       },
     ];
