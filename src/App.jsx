@@ -10710,22 +10710,20 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   if (step === "unit19") {
     const vi = lang?.code === "vi"; const en = lang?.code === "en";
     const UNIT19_CARDS = [
-      { native:{vi:"Tôi định đi Hàn Quốc năm sau.",         en:"I plan to go to Korea next year.",    ko:"내년에 한국에 가려고 합니다."},
-        full:"내년에 한국에 가려고 합니다.", rule:{vi:"가다 + -(으)려고 하다 (kế hoạch)", en:"가다 + -(으)려고 하다 (plan)", ko:"가다 + -(으)려고 합니다"} },
+      { native:{vi:"Tôi định chuyển nhà tháng này.",        en:"I plan to move this month.",          ko:"이번 달에 이사를 하려고 합니다."},
+        full:"이번 달에 이사를 하려고 합니다.", rule:{vi:"이사하다 + -려고 하다 (kế hoạch)", en:"이사하다 + -려고 하다 (plan)", ko:"이사하다 + -려고 합니다"} },
       { native:{vi:"Tôi định học tiếng Hàn.",               en:"I plan to study Korean.",             ko:"한국어를 배우려고 합니다."},
         full:"한국어를 배우려고 합니다.", rule:{vi:"배우다 + -려고 하다", en:"배우다 + -려고 하다", ko:"배우다 + -려고 합니다"} },
       { native:{vi:"Tôi sắp xuất phát rồi.",                en:"I am about to leave.",                ko:"지금 막 출발하려고 합니다."},
         full:"지금 막 출발하려고 합니다.", rule:{vi:"출발하다 + -려고 하다 (sắp làm)", en:"출발하다 + -려고 하다 (about to)", ko:"출발하다 + -려고 합니다 (임박)"} },
-      { native:{vi:"Tôi định mua điện thoại mới.",          en:"I plan to buy a new phone.",          ko:"새 전화기를 사려고 합니다."},
-        full:"새 전화기를 사려고 합니다.", rule:{vi:"사다 + -려고 하다", en:"사다 + -려고 하다", ko:"사다 + -려고 합니다"} },
+      { native:{vi:"Tôi định kết hôn vào năm sau.",         en:"I plan to get married next year.",    ko:"내년에 결혼하려고 합니다."},
+        full:"내년에 결혼하려고 합니다.", rule:{vi:"결혼하다 + -려고 하다", en:"결혼하다 + -려고 하다", ko:"결혼하다 + -려고 합니다"} },
       { native:{vi:"Tôi định tìm việc làm mới.",            en:"I plan to look for a new job.",       ko:"새 직장을 찾으려고 합니다."},
         full:"새 직장을 찾으려고 합니다.", rule:{vi:"찾다 + -으려고 하다 (받침)", en:"찾다 + -으려고 하다 (consonant)", ko:"찾다 + -으려고 합니다"} },
       { native:{vi:"Tôi sắp đi ngủ rồi.",                   en:"I am about to go to sleep.",          ko:"이제 자려고 합니다."},
         full:"이제 자려고 합니다.", rule:{vi:"자다 + -려고 하다", en:"자다 + -려고 하다", ko:"자다 + -려고 합니다"} },
-      { native:{vi:"Tôi định gặp bạn bè cuối tuần.",        en:"I plan to meet friends on the weekend.", ko:"주말에 친구를 만나려고 합니다."},
-        full:"주말에 친구를 만나려고 합니다.", rule:{vi:"만나다 + -려고 하다", en:"만나다 + -려고 하다", ko:"만나다 + -려고 합니다"} },
-      { native:{vi:"Tôi định đăng ký lớp tiếng Hàn.",       en:"I plan to register for Korean class.", ko:"한국어 수업을 등록하려고 합니다."},
-        full:"한국어 수업을 등록하려고 합니다.", rule:{vi:"등록하다 + -려고 하다", en:"등록하다 + -려고 하다", ko:"등록하다 + -려고 합니다"} },
+      { native:{vi:"Tôi định làm việc ở Hàn Quốc.",         en:"I plan to work in Korea.",            ko:"한국에서 일하려고 합니다."},
+        full:"한국에서 일하려고 합니다.", rule:{vi:"일하다 + -려고 하다", en:"일하다 + -려고 하다", ko:"일하다 + -려고 합니다"} },
     ];
     const card = UNIT19_CARDS[unitCardIdx];
     const total19 = UNIT19_CARDS.length;
