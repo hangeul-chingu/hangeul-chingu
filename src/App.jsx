@@ -13417,7 +13417,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"만 / 밖에 — Giới hạn":en?"만 / 밖에 — Limitation":"만 / 밖에 — 한정 표현"}
+            {vi?"Giới hạn — 만 / 밖에":en?"Limitation — 만 / 밖에":"한정 표현 — 만 / 밖에"}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_MAN.accent, textAlign:"center", marginBottom:4}}>
             🎯 {vi?"Biểu thức giới hạn":en?"Limitation Expressions":"만 / 밖에 표현"}
