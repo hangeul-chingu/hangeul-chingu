@@ -12388,7 +12388,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           { native:{vi:"Lạnh thật, đóng cửa sổ nhé?", en:"It is cold, should we close the window?", ko:"날씨가 추운데 창문을 닫을까요?"},
             full:"날씨가 추운데 창문을 닫을까요?", rule:{vi:"춥다(형용사 ㅂ불규칙) → 추우 + ㄴ데", en:"춥다(adj ㅂ irreg.) → 추우 + ㄴ데", ko:"춥다 → 추운데 (ㅂ 불규칙: ㅂ→우 + ㄴ데)"} },
           { native:{vi:"Hôm nay hơi bận, lần sau mình gặp nhé?", en:"I am a little busy today, should we meet next time?", ko:"오늘 좀 바쁜데 다음에 만날까요?"},
-            full:"오늘 좀 바쁜데 다음에 만날까요?", rule:{vi:"바쁘다(형용사 으불규칙) → 바쁜 + 데", en:"바쁘다(adj 으 irreg.) → 바쁜 + 데", ko:"바쁘다 → 바쁜데 (으 불규칙: ㅡ 탈락 → ㄴ데)"} },
+            full:"저는 오늘 좀 바쁜데 다음에 만날까요?", rule:{vi:"바쁘다(형용사 으불규칙) → 바쁜 + 데", en:"바쁘다(adj 으 irreg.) → 바쁜 + 데", ko:"바쁘다 → 바쁜데 (으 불규칙: ㅡ 탈락 → ㄴ데)"} },
           { native:{vi:"Tôi đang học tiếng Hàn nhưng thấy khó.", en:"I am studying Korean, but it is difficult.", ko:"저는 한국어를 공부하는데 어렵습니다."},
             full:"저는 한국어를 공부하는데 어렵습니다.", rule:{vi:"공부하다(동사) → 공부하 + 는데", en:"공부하다(verb) → 공부하 + 는데", ko:"공부하다 → 공부하는데 (동사 현재 → -는데)"} },
         ]
@@ -13843,38 +13843,43 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const vi = lang?.code === "vi";
     const en = lang?.code === "en";
     const NOUN_SECTIONS = [
+      // ── 1. ~기 (명사형) (3개) ──
       {
         key:"~기 (명사형)", label:vi?"Danh từ hóa ~기":en?"Nominalization ~기":"동사/형용사 + 기 → 명사처럼 사용", color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"Động từ/Tính từ + -기 → dùng như danh từ. 공부하기(việc học), 말하기(nói), 듣기(nghe), 읽기(đọc), 쓰기(viết)", en:"Verb/Adj + -기 → used as noun. 공부하기(studying), 말하기(speaking), 듣기(listening), 읽기(reading), 쓰기(writing)", ko:"동사/형용사 + -기 → 명사처럼 사용. ~기는/~기를/~기가 형태로 주어·목적어 역할"},
         cards:[
-          { native:{vi:"Việc học tiếng Hàn thật sự rất thú vị.", en:"Studying Korean is really interesting.", ko:"한국어 공부하기는 정말 재미있습니다."},
-            full:"한국어 공부하기는 정말 재미있습니다.", rule:{vi:"공부하다 → 공부하기 + 는(주어 조사)", en:"공부하다 → 공부하기 + 는(subject particle)", ko:"공부하다 → 공부하기 (동사+기 → 명사, 주어로 사용)"} },
+          { native:{vi:"Việc học tiếng Hàn thật sự rất thú vị.", en:"Studying Korean is really interesting.", ko:"저는 한국어를 배우기가 재미있습니다."},
+            full:"저는 한국어를 배우기가 재미있습니다.", rule:{vi:"배우다 → 배우기 + 가(주어 조사)", en:"배우다 → 배우기 + 가(subject particle)", ko:"배우다 → 배우기 (동사+기 → 명사, 주어로 사용)"} },
           { native:{vi:"Ngày mai có bài thi nói, nghe, đọc, viết tiếng Hàn.", en:"There are Korean speaking, listening, reading, and writing tests tomorrow.", ko:"내일 한국어 말하기, 듣기, 읽기, 쓰기 시험이 있습니다."},
             full:"내일 한국어 말하기, 듣기, 읽기, 쓰기 시험이 있습니다.", rule:{vi:"말하기/듣기/읽기/쓰기 — 4가지 언어 기능을 기 명사형으로 나열", en:"말하기/듣기/읽기/쓰기 — 4 language skills listed as 기 nouns", ko:"말하기·듣기·읽기·쓰기 (기 명사형 나열 — 한국어 4대 기능)"} },
           { native:{vi:"Tôi không thích dậy sớm.", en:"I do not like waking up early.", ko:"저는 일찍 일어나기가 싫습니다."},
-            full:"저는 일찍 일어나기가 싫습니다.", rule:{vi:"일어나다 → 일어나기 + 가(주어 조사) + 싫다 (120% 추가)", en:"일어나다 → 일어나기 + 가(subject) + 싫다 (120% extra)", ko:"일어나다 → 일어나기 (기+가 주어 → 싫다 서술 — 120% 추가)"} },
+            full:"저는 일찍 일어나기가 싫습니다.", rule:{vi:"일어나다 → 일어나기 + 가(주어 조사) + 싫다", en:"일어나다 → 일어나기 + 가(subject) + 싫다", ko:"일어나다 → 일어나기 (기+가 주어 → 싫다 서술)"} },
         ]
       },
+      // ── 2. ~는 것 (명사형) (4개) ──
       {
         key:"~는 것 (명사형)", label:vi?"Danh từ hóa ~는 것":en?"Nominalization ~는 것":"동사 + 는 것 → 명사처럼 사용", color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"Động từ + -는 것 → dùng như danh từ (thường dùng hơn ~기 trong văn nói). 요리하는 것(việc nấu ăn), 공부하는 것(việc học)", en:"Verb + -는 것 → used as noun (more common than ~기 in spoken language). 요리하는 것(cooking), 공부하는 것(studying)", ko:"동사 + -는 것 → 명사처럼 사용. 구어에서 ~기보다 자주 사용. ~는 것은/~는 것을 형태"},
         cards:[
-          { native:{vi:"Mariá thích việc nấu ăn.", en:"Maria likes cooking.", ko:"마리아는 요리하는 것을 좋아합니다."},
-            full:"마리아는 요리하는 것을 좋아합니다.", rule:{vi:"요리하다 → 요리하는 것 + 을(목적어 조사)", en:"요리하다 → 요리하는 것 + 을(object particle)", ko:"요리하다 → 요리하는 것 (동사+는 것 → 명사, 목적어로 사용)"} },
+          { native:{vi:"Việc học tiếng Hàn thật sự rất thú vị.", en:"Studying Korean is really interesting.", ko:"한국어를 공부하는 것은 정말 재미있습니다."},
+            full:"한국어를 공부하는 것은 정말 재미있습니다.", rule:{vi:"공부하다 → 공부하는 것 + 은(주어 조사) (원본 473)", en:"공부하다 → 공부하는 것 + 은(subject particle) (original 473)", ko:"공부하다 → 공부하는 것 (동사+는 것 → 주어로 사용)"} },
+          { native:{vi:"Em trai (chị gái) của tôi thích nấu ăn.", en:"My younger brother likes to cook.", ko:"마리아는 요리하는 것을 좋아합니다."},
+            full:"마리아는 요리하는 것을 좋아합니다.", rule:{vi:"요리하다 → 요리하는 것 + 을(목적어 조사)", en:"요리하다 → 요리하는 것 + 을(object particle)", ko:"요리하다 → 요리하는 것 (동사+는 것 → 목적어로 사용)"} },
           { native:{vi:"Việc dễ nhất trên thế gian này là việc học.", en:"The easiest thing in the world is studying.", ko:"세상에서 가장 쉬운 것은 공부하는 것입니다."},
             full:"세상에서 가장 쉬운 것은 공부하는 것입니다.", rule:{vi:"공부하다 → 공부하는 것 + 입니다 (서술)", en:"공부하다 → 공부하는 것 + 입니다 (predicate)", ko:"공부하다 → 공부하는 것 (주어+서술어 양쪽에 활용)"} },
           { native:{vi:"Điều tôi muốn làm nhất bây giờ là gặp gia đình.", en:"The thing I want to do most now is meet my family.", ko:"지금 가장 하고 싶은 것은 가족을 만나는 것입니다."},
-            full:"지금 가장 하고 싶은 것은 가족을 만나는 것입니다.", rule:{vi:"만나다 → 만나는 것 (복합 활용 — 120% 추가)", en:"만나다 → 만나는 것 (complex use — 120% extra)", ko:"만나다 → 만나는 것 (것은~것입니다 복합 — 120% 추가)"} },
+            full:"지금 가장 하고 싶은 것은 가족을 만나는 것입니다.", rule:{vi:"만나다 → 만나는 것 (복합 활용)", en:"만나다 → 만나는 것 (complex use)", ko:"만나다 → 만나는 것 (것은~것입니다 복합)"} },
         ]
       },
+      // ── 3. ~음/ㅁ (명사형) (2개) ──
       {
         key:"~음/ㅁ (명사형)", label:vi?"Danh từ hóa ~음/ㅁ":en?"Nominalization ~음/ㅁ":"굳어진 명사형 — 기쁨·슬픔·웃음", color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"Động từ/Tính từ + -음/ㅁ → danh từ cố định. 기쁘다→기쁨, 슬프다→슬픔, 웃다→웃음. Thường dùng trong văn viết hoặc danh từ đã cố định", en:"Verb/Adj + -음/ㅁ → fixed nouns. 기쁘다→기쁨, 슬프다→슬픔, 웃다→웃음. Used mainly in written language or as fixed nouns", ko:"동사/형용사 + -음/ㅁ → 굳어진 명사. 기쁘다→기쁨, 슬프다→슬픔, 웃다→웃음. 문어체·고정 명사에 주로 사용"},
         cards:[
-          { native:{vi:"Trong cuộc sống có niềm vui và nỗi buồn.", en:"There is joy and sorrow in life.", ko:"인생에는 기쁨과 슬픔이 있습니다."},
-            full:"인생에는 기쁨과 슬픔이 있습니다.", rule:{vi:"기쁘다→기쁨 / 슬프다→슬픔 (음/ㅁ 명사형 굳어짐)", en:"기쁘다→기쁨 / 슬프다→슬픔 (fixed 음/ㅁ nouns)", ko:"기쁘다→기쁨 / 슬프다→슬픔 (음 명사형: 굳어진 명사)"} },
-          { native:{vi:"Nụ cười của Mariá thật đẹp.", en:"Maria's smile is beautiful.", ko:"마리아의 웃음이 아름답습니다."},
-            full:"마리아의 웃음이 아름답습니다.", rule:{vi:"웃다 → 웃음 (음 명사형 — 120% 추가)", en:"웃다 → 웃음 (음 nominalization — 120% extra)", ko:"웃다 → 웃음 (음 명사형: 굳어진 명사 — 120% 추가)"} },
+          { native:{vi:"Trong cuộc sống có niềm vui và nỗi buồn.", en:"There is joy and sorrow in life.", ko:"삶에는 기쁨과 슬픔이 있습니다."},
+            full:"삶에는 기쁨과 슬픔이 있습니다.", rule:{vi:"기쁘다→기쁨 / 슬프다→슬픔 (음/ㅁ 명사형 굳어짐)", en:"기쁘다→기쁨 / 슬프다→슬픔 (fixed 음/ㅁ nouns)", ko:"기쁘다→기쁨 / 슬프다→슬픔 (음 명사형: 굳어진 명사)"} },
+          { native:{vi:"Nụ cười của Maria thật đẹp.", en:"Maria's smile is beautiful.", ko:"마리아의 웃음이 아름답습니다."},
+            full:"마리아의 웃음이 아름답습니다.", rule:{vi:"웃다 → 웃음 (음 명사형)", en:"웃다 → 웃음 (음 nominalization)", ko:"웃다 → 웃음 (음 명사형: 굳어진 명사)"} },
         ]
       },
     ];
@@ -14073,44 +14078,65 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const vi = lang?.code === "vi";
     const en = lang?.code === "en";
     const CMP_SECTIONS = [
+      // ── 1. 비교급 — 보다 더/덜 (7개) ──
       {
         key:"비교급 — 보다 (더/덜)", label:vi?"So sánh hơn — 보다 (더/덜)":en?"Comparative — 보다 (더/덜)":"A보다 B가 더/덜 — 두 대상 비교", color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"A보다 B가 더 + 형용사 — B hơn A. A보다 B가 덜 + 형용사 — B kém hơn A. 더(nhiều hơn) ↔ 덜(ít hơn)", en:"A보다 B가 더 + adj — B is more than A. A보다 B가 덜 + adj — B is less than A. 더(more) ↔ 덜(less)", ko:"A보다 B가 더 + 형용사 — B가 A보다 정도가 큼. A보다 B가 덜 + 형용사 — B가 A보다 정도가 작음"},
         cards:[
+          { native:{vi:"Quả táo này to hơn quả dưa hấu.", en:"This apple is bigger than a watermelon.", ko:"이 사과는 수박보다 더 큽니다."},
+            full:"이 사과는 수박보다 더 큽니다.", rule:{vi:"수박 + 보다 + 더 + 크다 (A보다 더)", en:"수박 + 보다 + 더 + 크다 (more than A)", ko:"수박보다 더 크다 (A보다 더 — 비교급)"} },
+          { native:{vi:"Seoul đông hơn Cheonan.", en:"Seoul is more crowded than Cheonan.", ko:"서울은 천안보다 더 복잡합니다."},
+            full:"서울은 천안보다 더 복잡합니다.", rule:{vi:"천안 + 보다 + 더 + 복잡하다", en:"천안 + 보다 + 더 + 복잡하다 (more crowded)", ko:"천안보다 더 복잡하다 (A보다 더)"} },
+          { native:{vi:"Cheonan ít đông hơn Seoul.", en:"Cheonan is less crowded than Seoul.", ko:"천안은 서울보다 덜 복잡합니다."},
+            full:"천안은 서울보다 덜 복잡합니다.", rule:{vi:"서울 + 보다 + 덜 + 복잡하다 (A보다 덜)", en:"서울 + 보다 + 덜 + 복잡하다 (less crowded)", ko:"서울보다 덜 복잡하다 (A보다 덜 — 열등비교)"} },
           { native:{vi:"Tiếng Hàn khó hơn tiếng Anh.", en:"Korean is more difficult than English.", ko:"한국어는 영어보다 더 어렵습니다."},
-            full:"한국어는 영어보다 더 어렵습니다.", rule:{vi:"영어 + 보다 + 더 + 어렵다 (A보다 더 비교)", en:"영어 + 보다 + 더 + 어렵다 (more than A)", ko:"영어보다 더 어렵다 (A보다 더 — 비교급)"} },
+            full:"한국어는 영어보다 더 어렵습니다.", rule:{vi:"영어 + 보다 + 더 + 어렵다", en:"영어 + 보다 + 더 + 어렵다 (more difficult)", ko:"영어보다 더 어렵다 (A보다 더 — 비교급)"} },
           { native:{vi:"Tiếng Anh ít khó hơn tiếng Hàn.", en:"English is less difficult than Korean.", ko:"영어는 한국어보다 덜 어렵습니다."},
-            full:"영어는 한국어보다 덜 어렵습니다.", rule:{vi:"한국어 + 보다 + 덜 + 어렵다 (A보다 덜 비교)", en:"한국어 + 보다 + 덜 + 어렵다 (less than A)", ko:"한국어보다 덜 어렵다 (A보다 덜 — 열등비교)"} },
-          { native:{vi:"Mariá hát hay hơn ca sĩ.", en:"Maria sings better than a singer.", ko:"마리아는 가수보다 노래를 더 잘합니다."},
-            full:"마리아는 가수보다 노래를 더 잘합니다.", rule:{vi:"가수 + 보다 + 더 + 잘하다 (비교급 강조)", en:"가수 + 보다 + 더 + 잘하다 (comparative emphasis)", ko:"가수보다 더 잘한다 (보다+더 강조 비교)"} },
+            full:"영어는 한국어보다 덜 어렵습니다.", rule:{vi:"한국어 + 보다 + 덜 + 어렵다 (A보다 덜)", en:"한국어 + 보다 + 덜 + 어렵다 (less difficult)", ko:"한국어보다 덜 어렵다 (A보다 덜 — 열등비교)"} },
+          { native:{vi:"Maria hát hay hơn ca sĩ.", en:"Maria sings better than a singer.", ko:"마리아는 가수보다 노래를 더 잘합니다."},
+            full:"마리아는 가수보다 노래를 더 잘합니다.", rule:{vi:"가수 + 보다 + 더 + 잘하다", en:"가수 + 보다 + 더 + 잘하다 (comparative)", ko:"가수보다 더 잘한다 (보다+더 강조 비교)"} },
+          { native:{vi:"Hôm nay tôi hạnh phúc hơn hôm qua.", en:"I am happier today than yesterday.", ko:"저는 오늘이 어제보다 더 행복합니다."},
+            full:"저는 오늘이 어제보다 더 행복합니다.", rule:{vi:"어제 + 보다 + 더 + 행복하다", en:"어제 + 보다 + 더 + 행복하다 (comparative)", ko:"어제보다 더 행복하다 (A보다 더 — 독자 추가)"} },
         ]
       },
+      // ── 2. 동등비교 — 처럼/같이/만큼 (5개) ──
       {
         key:"동등비교 — 처럼/같이/만큼", label:vi?"So sánh ngang bằng — 처럼/같이/만큼":en?"Equal Comparison — 처럼/같이/만큼":"A처럼/같이/만큼 — 같은 정도 비교", color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"처럼/같이 — giống như A (như, tựa như). 만큼 — tương đương với A (bằng). 처럼≈같이 (có thể thay nhau)", en:"처럼/같이 — like A (resemblance). 만큼 — as much as A (equal degree). 처럼≈같이 (interchangeable)", ko:"처럼/같이 — A와 비슷하게 (모양·방식). 만큼 — A와 같은 정도로 (정도). 처럼≈같이 교체 가능"},
         cards:[
-          { native:{vi:"Mariá hát hay như ca sĩ.", en:"Maria sings as well as a singer.", ko:"마리아는 가수처럼 노래를 잘합니다."},
-            full:"마리아는 가수처럼 노래를 잘합니다.", rule:{vi:"가수 + 처럼 + 잘하다 (같은 방식·수준)", en:"가수 + 처럼 + 잘하다 (similar manner/level)", ko:"가수처럼 (처럼 — 모양·수준이 비슷함)"} },
-          { native:{vi:"Mariá hát hay như ca sĩ. (같이)", en:"Maria sings as well as a singer. (같이)", ko:"마리아는 가수같이 노래를 잘합니다."},
+          { native:{vi:"Quả táo này to bằng quả dưa hấu.", en:"This apple is as big as a watermelon.", ko:"이 사과는 수박만큼 큽니다."},
+            full:"이 사과는 수박만큼 큽니다.", rule:{vi:"수박 + 만큼 + 크다 (동등 비교)", en:"수박 + 만큼 + 크다 (equal degree)", ko:"수박만큼 크다 (만큼 — 같은 정도)"} },
+          { native:{vi:"Seoul đông đúc như Bangkok.", en:"Seoul is as crowded as Bangkok.", ko:"서울은 방콕만큼 복잡합니다."},
+            full:"서울은 방콕만큼 복잡합니다.", rule:{vi:"방콕 + 만큼 + 복잡하다 (동등 비교)", en:"방콕 + 만큼 + 복잡하다 (equal degree)", ko:"방콕만큼 복잡하다 (만큼 — 같은 정도)"} },
+          { native:{vi:"Maria hát hay như ca sĩ. (처럼)", en:"Maria sings as well as a singer. (처럼)", ko:"마리아는 가수처럼 노래를 잘합니다."},
+            full:"마리아는 가수처럼 노래를 잘합니다.", rule:{vi:"가수 + 처럼 + 잘하다 (같은 방식·수준)", en:"가수 + 처럼 + 잘하다 (similar manner)", ko:"가수처럼 (처럼 — 모양·수준이 비슷함)"} },
+          { native:{vi:"Maria hát hay như ca sĩ. (같이)", en:"Maria sings as well as a singer. (같이)", ko:"마리아는 가수같이 노래를 잘합니다."},
             full:"마리아는 가수같이 노래를 잘합니다.", rule:{vi:"가수 + 같이 + 잘하다 (처럼과 같은 뜻)", en:"가수 + 같이 + 잘하다 (same as 처럼)", ko:"가수같이 (같이 = 처럼, 구어에서 자주 사용)"} },
           { native:{vi:"Tôi muốn nói tiếng Hàn tốt như người bản ngữ.", en:"I want to speak Korean as well as a native speaker.", ko:"저는 원어민만큼 한국어를 잘하고 싶습니다."},
-            full:"저는 원어민만큼 한국어를 잘하고 싶습니다.", rule:{vi:"원어민 + 만큼 + 잘하다 (같은 정도, 120% 추가)", en:"원어민 + 만큼 + 잘하다 (equal degree, 120% extra)", ko:"원어민만큼 (만큼 — 같은 정도, 120% 추가)"} },
+            full:"저는 원어민만큼 한국어를 잘하고 싶습니다.", rule:{vi:"원어민 + 만큼 + 잘하다 (같은 정도)", en:"원어민 + 만큼 + 잘하다 (equal degree)", ko:"원어민만큼 (만큼 — 같은 정도 비교)"} },
         ]
       },
+      // ── 3. 최상급 — 가장/제일/중에서 (8개) ──
       {
         key:"최상급 — 가장/제일/중에서", label:vi?"So sánh nhất — 가장/제일/중에서":en?"Superlative — 가장/제일/중에서":"가장/제일 + 형용사 — 최상급 표현", color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"가장/제일 + 형용사 — nhất. 범위 표현: ~에서/~중에서 가장. 가장≈제일 (có thể thay nhau)", en:"가장/제일 + adjective — the most. Range: ~에서/~중에서 가장. 가장≈제일 (interchangeable)", ko:"가장/제일 + 형용사 — 최상급. 범위: ~에서/~중에서 가장. 가장(문어)≈제일(구어)"},
         cards:[
-          { native:{vi:"Mariá hát hay nhất trong lớp.", en:"Maria sings the best in class.", ko:"마리아는 우리 반에서 노래를 제일 잘합니다."},
+          { native:{vi:"Quả táo này là quả táo lớn nhất ở Hàn Quốc.", en:"This apple is the biggest in Korea.", ko:"이 사과는 한국에서 가장 큰 사과입니다."},
+            full:"이 사과는 한국에서 가장 큰 사과입니다.", rule:{vi:"한국에서 + 가장 + 크다 (범위+가장)", en:"한국에서 + 가장 + 크다 (range+superlative)", ko:"한국에서 가장 크다 (범위+가장 — 최상급)"} },
+          { native:{vi:"Seoul là thành phố đông đúc nhất ở Hàn Quốc.", en:"Seoul is the most crowded city in Korea.", ko:"서울은 한국에서 가장 복잡한 도시입니다."},
+            full:"서울은 한국에서 가장 복잡한 도시입니다.", rule:{vi:"한국에서 + 가장 + 복잡하다 (범위+가장)", en:"한국에서 + 가장 + 복잡하다 (range+superlative)", ko:"한국에서 가장 복잡한 (형용사관형 최상급)"} },
+          { native:{vi:"Maria hát hay nhất trong lớp.", en:"Maria sings the best in class.", ko:"마리아는 우리 반에서 노래를 제일 잘합니다."},
             full:"마리아는 우리 반에서 노래를 제일 잘합니다.", rule:{vi:"우리 반에서 + 제일 + 잘하다 (범위+제일)", en:"우리 반에서 + 제일 + 잘하다 (range+제일)", ko:"우리 반에서 제일 (범위+제일 — 구어 최상급)"} },
-          { native:{vi:"Mariá hát hay nhất trong số các học sinh lớp tôi.", en:"Maria sings the best among the students in class.", ko:"마리아는 우리 반 학생 중에서 노래를 가장 잘합니다."},
+          { native:{vi:"Maria hát hay nhất trong số các học sinh lớp tôi.", en:"Maria sings the best among the students in class.", ko:"마리아는 우리 반 학생 중에서 노래를 가장 잘합니다."},
             full:"마리아는 우리 반 학생 중에서 노래를 가장 잘합니다.", rule:{vi:"학생 중에서 + 가장 + 잘하다 (중에서+가장)", en:"학생 중에서 + 가장 + 잘하다 (among+가장)", ko:"학생 중에서 가장 (중에서+가장 — 문어 최상급)"} },
           { native:{vi:"Tôi yêu bố mẹ nhất trên thế gian.", en:"I love my parents the most in the world.", ko:"저는 세상에서 부모님을 가장 좋아합니다."},
-            full:"저는 세상에서 부모님을 가장 좋아합니다.", rule:{vi:"세상에서 + 가장 + 좋아하다 (넓은 범위 최상급)", en:"세상에서 + 가장 + 좋아하다 (widest range superlative)", ko:"세상에서 가장 (가장 넓은 범위의 최상급)"} },
+            full:"저는 세상에서 부모님을 가장 좋아합니다.", rule:{vi:"세상에서 + 가장 + 좋아하다 (가장 넓은 범위)", en:"세상에서 + 가장 + 좋아하다 (widest range)", ko:"세상에서 가장 (가장 넓은 범위의 최상급)"} },
+          { native:{vi:"Tôi yêu mẹ nhất trên thế gian.", en:"I love my mother the most in the world.", ko:"저는 세상에서 어머니를 가장 사랑합니다."},
+            full:"저는 세상에서 어머니를 가장 사랑합니다.", rule:{vi:"세상에서 + 가장 + 사랑하다", en:"세상에서 + 가장 + 사랑하다 (superlative)", ko:"세상에서 가장 사랑하다 (467 변형2 — 독자 추가)"} },
           { native:{vi:"Tình yêu của mẹ cao hơn bầu trời và sâu hơn biển cả.", en:"A mother's love is higher than the sky and deeper than the sea.", ko:"어머니의 사랑은 하늘보다 높고 바다보다 깊습니다."},
-            full:"어머니의 사랑은 하늘보다 높고 바다보다 깊습니다.", rule:{vi:"하늘보다 높고 + 바다보다 깊다 (감성 비교급 나열)", en:"하늘보다 높고 + 바다보다 깊다 (poetic comparative)", ko:"하늘보다 높고 바다보다 깊다 (비교급 나열 — 감성 표현)"} },
-          { native:{vi:"Tuân học chăm chỉ nhất trong lớp.", en:"Tuan studies the hardest in class.", ko:"투안은 우리 반에서 공부를 가장 열심히 합니다."},
-            full:"투안은 우리 반에서 공부를 가장 열심히 합니다.", rule:{vi:"우리 반에서 + 가장 + 열심히 (부사 최상급, 120% 추가)", en:"우리 반에서 + 가장 + 열심히 (adverb superlative, 120% extra)", ko:"가장 열심히 (부사에도 가장 적용 — 120% 추가)"} },
+            full:"어머니의 사랑은 하늘보다 높고 바다보다 깊습니다.", rule:{vi:"하늘보다 높고 + 바다보다 깊다 (비교급 나열)", en:"하늘보다 높고 + 바다보다 깊다 (poetic comparative)", ko:"하늘보다 높고 바다보다 깊다 (비교급 나열 — 감성 표현)"} },
+          { native:{vi:"Minho học chăm chỉ nhất trong lớp.", en:"Minho studies the hardest in class.", ko:"민호는 우리 반에서 공부를 가장 열심히 합니다."},
+            full:"민호는 우리 반에서 공부를 가장 열심히 합니다.", rule:{vi:"우리 반에서 + 가장 + 열심히 (부사 최상급)", en:"우리 반에서 + 가장 + 열심히 (adverb superlative)", ko:"가장 열심히 (부사에도 가장 적용)"} },
         ]
       },
     ];
