@@ -12958,17 +12958,17 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"ㅅ 불규칙 (규칙 혼합)", label:vi?"Bất quy tắc ㅅ (hỗn hợp)":en?"ㅅ Irregular (mixed)":"ㅅ 탈락 변화 + 규칙 판단", color:"#FBE9E7", accent:"#BF360C",
-        rule:{vi:"동사/형용사 받침 ㅅ + 모음 → ㅅ 탈락. 불규칙: 짓다→지어, 낫다→나아 / 규칙: 벗다→벗어, 씻다→씻어", en:"Verb/adj ㅅ batchim + vowel → ㅅ drops. Irregular: 짓다→지어, 낫다→나아 / Regular: 벗다→벗어, 씻다→씻어", ko:"받침 ㅅ + 모음 → ㅅ 탈락 (불규칙). 짓다→지어, 낫다→나아 / 벗다·씻다는 규칙"},
+        key:"ㅅ 불규칙", label:vi?"Bất quy tắc ㅅ":en?"ㅅ Irregular":"ㅅ 탈락 변화", color:"#FBE9E7", accent:"#BF360C",
+        rule:{vi:"Động từ có 받침 ㅅ + 모음 → ㅅ bị lược bỏ. 짓다→지어(지었다), 낫다→나아(나았다)", en:"Verb with ㅅ batchim + vowel → ㅅ drops. 짓다→지어(지었다), 낫다→나아(나았다)", ko:"받침 ㅅ + 모음 → ㅅ 탈락. 짓다→지어(지었다), 낫다→나아(나았다)"},
         cards:[
-          { native:{vi:"Tuân đã nấu cơm.", en:"Tuan cooked rice.", ko:"투안이 밥을 지었습니다."},
-            full:"투안이 밥을 지었습니다.", rule:{vi:"짓다 → 지어 (ㅅ 불규칙: ㅅ 탈락)", en:"짓다 → 지어 (ㅅ irregular: ㅅ drops)", ko:"짓다 → 지어 (ㅅ 불규칙: ㅅ 탈락)"} },
-          { native:{vi:"Nhờ bác sĩ mà bệnh đã khỏi.", en:"My illness got better thanks to the doctor.", ko:"의사 선생님 덕분에 병이 나았습니다."},
-            full:"의사 선생님 덕분에 병이 나았습니다.", rule:{vi:"낫다 → 나아 (ㅅ 불규칙: ㅅ 탈락)", en:"낫다 → 나아 (ㅅ irregular: ㅅ drops)", ko:"낫다 → 나아 (ㅅ 불규칙: ㅅ 탈락)"} },
-          { native:{vi:"Mariá đã cởi áo khoác. (Câu này có quy tắc không?)", en:"Maria took off her jacket. (Regular or irregular?)", ko:"마리아는 재킷을 벗었습니다. (규칙인가요?)"},
-            full:"마리아는 재킷을 벗었습니다. (규칙 — 벗다→벗어)", rule:{vi:"벗다 → 벗어 (규칙! ㅅ이지만 탈락 없음)", en:"벗다 → 벗어 (regular! ㅅ stays)", ko:"벗다 → 벗어 (규칙: ㅅ 탈락 없음 — 주의!)"} },
-          { native:{vi:"Mariá đã nhận quà từ bạn trai.", en:"Maria received a gift from her boyfriend.", ko:"마리아는 남자친구에게 선물을 받았습니다."},
-            full:"마리아는 남자친구에게 선물을 받았습니다.", rule:{vi:"받다 → 받아 (규칙: ㄷ 계열 규칙 동사)", en:"받다 → 받아 (regular: ㄷ-type regular verb)", ko:"받다 → 받아 (규칙 동사 — 120% 추가)"} },
+          { native:{vi:"Minho đã xây nhà.", en:"Minho built a house.", ko:"민호는 집을 지었습니다."},
+            full:"민호는 집을 지었습니다.", rule:{vi:"짓다 → 지어 (ㅅ 불규칙: ㅅ 탈락) — xây/짓다", en:"짓다 → 지어 (ㅅ irregular: ㅅ drops) — build/짓다", ko:"짓다 → 지어 (ㅅ 불규칙: ㅅ 탈락) — 건물을 짓다"} },
+          { native:{vi:"Maria đã sáng tác một bài hát.", en:"Maria composed a song.", ko:"마리아는 노래를 지었습니다."},
+            full:"마리아는 노래를 지었습니다.", rule:{vi:"짓다 → 지어 (ㅅ 불규칙: ㅅ 탈락) — sáng tác/짓다 (120% 추가)", en:"짓다 → 지어 (ㅅ irregular: ㅅ drops) — compose/짓다 (120% extra)", ko:"짓다 → 지어 (ㅅ 불규칙: ㅅ 탈락) — 노래를 짓다 (120% 추가)"} },
+          { native:{vi:"Bệnh cảm đã khỏi nhanh.", en:"The cold got better quickly.", ko:"감기가 빨리 나았습니다."},
+            full:"감기가 빨리 나았습니다.", rule:{vi:"낫다 → 나아 (ㅅ 불규칙: ㅅ 탈락)", en:"낫다 → 나아 (ㅅ irregular: ㅅ drops)", ko:"낫다 → 나아 (ㅅ 불규칙: ㅅ 탈락)"} },
+          { native:{vi:"Vết thương đã lành hẳn.", en:"The wound healed completely.", ko:"상처가 다 나았습니다."},
+            full:"상처가 다 나았습니다.", rule:{vi:"낫다 → 나아 (ㅅ 불규칙: ㅅ 탈락) (120% 추가)", en:"낫다 → 나아 (ㅅ irregular: ㅅ drops) (120% extra)", ko:"낫다 → 나아 (ㅅ 불규칙: ㅅ 탈락) (120% 추가)"} },
         ]
       },
       {
