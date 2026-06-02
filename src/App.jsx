@@ -1822,7 +1822,7 @@ function MigrationModal({ user, onComplete, onReject }) {
         {/* 헤더 */}
         <div style={{background:`linear-gradient(135deg,${C.pink},${C.orange})`,padding:"22px 24px 18px",textAlign:"center"}}>
           <div style={{fontSize:36,marginBottom:6}}>🤝</div>
-          <div style={{fontSize:17,fontWeight:900,color:"white",marginBottom:4}}>한글 친구와 함께하기 위한 약속</div>
+          <div style={{fontSize:17,fontWeight:900,color:"white",marginBottom:4}}>{txUI("한글 친구와 함께하기 위한 약속", lang)}</div>
           <div style={{fontSize:12,color:"rgba(255,255,255,0.85)"}}>상호 신뢰·상호 협조로 함께 성장해요</div>
         </div>
 
@@ -2768,7 +2768,7 @@ ${vocabList}
 
         {/* 약속 문구 */}
         <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:16,padding:"14px 18px",marginBottom:22,textAlign:"center",boxShadow:"0 2px 12px rgba(156,111,222,.10)"}}>
-          <div style={{fontSize:12,color:"#9C6FDE",fontWeight:800,marginBottom:4}}>💜 한글 친구의 약속</div>
+          <div style={{fontSize:12,color:"#9C6FDE",fontWeight:800,marginBottom:4}}>{txUI("💜 한글 친구의 약속", lang)}</div>
           <div style={{fontSize:12,color:"#666",lineHeight:1.6}}>
             {txUI("당신의 80시간은 새로운 세상을 열어줍니다.", lang)}
           </div>
@@ -2789,23 +2789,23 @@ ${vocabList}
       <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:16}}>🎯</div>
       {MyPageBtn}
-        <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>나만의 학습 계획</div>
+        <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>{txUI("나만의 학습 계획", lang)}</div>
         <div style={{fontSize:13,color:"#aaa",marginBottom:24,textAlign:"center"}}>
-          {lang?.code==="vi"?"Hãy đặt kế hoạch học của bạn!":lang?.code==="en"?"Set your learning plan!":"한글 친구와 함께 목표일을 정해요!"}
+          {txUI("한글 친구와 함께 목표일을 정해요!", lang)}
         </div>
 
         {/* 목표 선택 */}
         <div style={{width:"100%",maxWidth:360,marginBottom:16}}>
           <div style={{fontSize:13,fontWeight:800,color:"#9C6FDE",marginBottom:10,textAlign:"center"}}>
-            🎯 {lang?.code==="vi"?"Mục tiêu của bạn là gì?":lang?.code==="en"?"What's your goal?":"나의 목표를 선택해요!"}
+            🎯 {txUI("나의 목표를 선택해요!", lang)}
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {[
-              {id:"topik2", emoji:"🏆", label:lang?.code==="vi"?"Đạt TOPIK cấp 2":lang?.code==="en"?"Achieve TOPIK Level 2":"TOPIK 2급 달성하기",  badge:"80h"},
-              {id:"topik4", emoji:"🏆", label:lang?.code==="vi"?"Đạt TOPIK cấp 4":lang?.code==="en"?"Achieve TOPIK Level 4":"TOPIK 4급 달성하기",  disabled:true},
-              {id:"daily", emoji:"💬", label:lang?.code==="vi"?"Nói tiếng Hàn hàng ngày tự do":lang?.code==="en"?"Speak Korean freely in daily life":"일상 한국어 자유롭게 말하기", warn:true},
-              {id:"work",  emoji:"💼", label:lang?.code==="vi"?"Tiếng Hàn công việc":lang?.code==="en"?"Korean for work":"직장·현장 한국어 익히기", warn:true},
-              {id:"life",  emoji:"🏠", label:lang?.code==="vi"?"Thích nghi cuộc sống Hàn Quốc":lang?.code==="en"?"Adapt to life in Korea":"한국 생활 적응하기", badge:"80h"},
+              {id:"topik2", emoji:"🏆", label:txUI("TOPIK 2급 달성하기", lang),  badge:"80h"},
+              {id:"topik4", emoji:"🏆", label:txUI("TOPIK 4급 달성하기", lang),  disabled:true},
+              {id:"daily", emoji:"💬", label:txUI("일상 한국어 자유롭게 말하기", lang), warn:true},
+              {id:"work",  emoji:"💼", label:txUI("직장·현장 한국어 익히기", lang), warn:true},
+              {id:"life",  emoji:"🏠", label:txUI("한국 생활 적응하기", lang), badge:"80h"},
             ].map(g=>{
               const isSelected = studyGoal===g.id;
               if (g.disabled) return (
@@ -2814,7 +2814,7 @@ ${vocabList}
                   <span style={{fontSize:20}}>{g.emoji}</span>
                   <span style={{fontSize:13,fontWeight:500,color:"#aaa"}}>{g.label}</span>
                   <span style={{marginLeft:"auto",fontSize:11,color:"#bbb",fontWeight:700,background:"#eee",borderRadius:8,padding:"2px 8px"}}>
-                    {lang?.code==="vi"?"Sắp ra mắt":lang?.code==="en"?"Coming soon":"준비 중"}
+                    {txUI("준비 중", lang)}
                   </span>
                 </div>
               );
@@ -2896,7 +2896,7 @@ ${vocabList}
           {/* 주 몇 회 */}
           <div style={{marginBottom:20}}>
             <div style={{fontSize:13,fontWeight:800,color:"#9C6FDE",marginBottom:10}}>
-              📅 {lang?.code==="vi"?"Mỗi tuần học mấy ngày?":lang?.code==="en"?"How many days per week?":"일주일에 며칠 공부할 수 있어요?"}
+              📅 {txUI("일주일에 며칠 공부할 수 있어요?", lang)}
             </div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
               {[1,2,3,4,5,6,7].map(d=>(
@@ -2907,14 +2907,14 @@ ${vocabList}
               ))}
             </div>
             <div style={{fontSize:11,color:"#bbb",marginTop:6}}>
-              {lang?.code==="vi"?`${daysPerWeek} ngày/tuần`:lang?.code==="en"?`${daysPerWeek} day(s)/week`:`주 ${daysPerWeek}일`}
+              {lc==="vi"?`${daysPerWeek} ngày/tuần`:lc==="en"?`${daysPerWeek} day(s)/week`:lc==="zh"?`每周${daysPerWeek}天`:lc==="ja"?`週${daysPerWeek}日`:lc==="id"?`${daysPerWeek} hari/minggu`:lc==="ru"?`${daysPerWeek} дн./нед.`:lc==="th"?`${daysPerWeek} วัน/สัปดาห์`:lc==="mn"?`Долоо хоногт ${daysPerWeek} өдөр`:lc==="uz"?`Haftada ${daysPerWeek} kun`:`주 ${daysPerWeek}일`}
             </div>
           </div>
 
           {/* 하루 몇 분 */}
           <div style={{marginBottom:20}}>
             <div style={{fontSize:13,fontWeight:800,color:"#9C6FDE",marginBottom:10}}>
-              ⏱️ {lang?.code==="vi"?"Mỗi ngày học bao nhiêu phút?":lang?.code==="en"?"How many minutes per day?":"하루에 몇 분 공부할 수 있어요?"}
+              ⏱️ {txUI("하루에 몇 분 공부할 수 있어요?", lang)}
             </div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
               {[15,20,30,45,60,90].map(m=>(
@@ -2929,24 +2929,24 @@ ${vocabList}
           {/* D-Day 미리보기 */}
           <div style={{background:"linear-gradient(135deg,#9C6FDE15,#C084FC15)",borderRadius:14,padding:"16px",textAlign:"center"}}>
             <div style={{fontSize:12,color:"#aaa",marginBottom:4}}>
-              {lang?.code==="vi"?"Ngày hoàn thành dự kiến":lang?.code==="en"?"Estimated completion date":"목표 완주일"}
+              {txUI("목표 완주일", lang)}
             </div>
             <div style={{fontSize:20,fontWeight:900,color:"#9C6FDE"}}>{formatDate(preview)}</div>
             {studyGoal&&<div style={{fontSize:12,color:"#9C6FDE",fontWeight:700,marginTop:6,background:"#9C6FDE18",borderRadius:8,padding:"4px 10px",display:"inline-block"}}>
               {[{id:"topik2",label:"TOPIK 2급 달성"},{id:"topik4",label:"TOPIK 4급 달성"},{id:"daily",label:"일상 한국어 말하기"},{id:"work",label:"직장 한국어 익히기"},{id:"life",label:"한국 생활 적응"}].find(g=>g.id===studyGoal)?.label} 🎯
             </div>}
             <div style={{fontSize:11,color:"#bbb",marginTop:4}}>
-              {lang?.code==="vi"?"80 giờ học = thế giới mới!":lang?.code==="en"?"80 hours = a new world!":"80시간 = 새로운 세상! 🌏"}
+              {txUI("80시간 = 새로운 세상! 🌏", lang)}
             </div>
           </div>
         </div>
 
         <button onClick={()=>{ if(!studyGoal) return; confirmPlan(); }}
           style={{width:"100%",maxWidth:360,background:studyGoal?"linear-gradient(135deg,#9C6FDE,#C084FC)":"#ddd",color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:16,fontWeight:900,cursor:studyGoal?"pointer":"not-allowed",boxShadow:studyGoal?"0 4px 16px #9C6FDE44":"none",WebkitTapHighlightColor:"transparent",transition:"all .2s"}}>
-          {lang?.code==="vi"?"Bắt đầu thôi! 🚀":lang?.code==="en"?"Let's go! 🚀":"도전 시작! 🚀"}
+          {txUI("도전 시작! 🚀", lang)}
         </button>
         {!studyGoal&&<div style={{fontSize:12,color:"#bbb",marginTop:8,textAlign:"center"}}>
-          {lang?.code==="vi"?"Hãy chọn mục tiêu trước nhé!":lang?.code==="en"?"Please select your goal first!":"목표를 먼저 선택해 주세요!"}
+          {txUI("목표를 먼저 선택해 주세요!", lang)}
         </div>}
         <button onClick={()=>setStep("curriculum")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
       </div>
@@ -4730,7 +4730,7 @@ ${vocabList}
         <div style={{fontSize:17, fontWeight:900, color:"#9C6FDE", marginBottom:2, textAlign:"center"}}>
           {txUI("발음 학습", lang)} — {current.title}
         </div>
-        <div style={{fontSize:12, color:"#aaa", marginBottom:6, textAlign:"center"}}>{current[txUI("desc", lang)] || current.desc}</div>
+        <div style={{fontSize:12, color:"#aaa", marginBottom:6, textAlign:"center"}}>{lc==="vi"?current.descVi||current.desc:lc==="en"?current.descEn||current.desc:lc==="zh"?current.descZh||current.descEn||current.desc:lc==="ja"?current.descJa||current.descEn||current.desc:lc==="id"?current.descId||current.descEn||current.desc:lc==="ru"?current.descRu||current.descEn||current.desc:lc==="th"?current.descTh||current.descEn||current.desc:lc==="mn"?current.descMn||current.descEn||current.desc:lc==="uz"?current.descUz||current.descEn||current.desc:current.desc}</div>
 
         {/* 진행 표시 */}
         <div style={{display:"flex", gap:6, marginBottom:16}}>
@@ -4743,7 +4743,7 @@ ${vocabList}
 
         {/* 팁 배너 */}
         <div style={{background:"#F3EEFF", border:"1.5px solid #C084FC44", borderRadius:12, padding:"8px 14px", marginBottom:14, maxWidth:360, width:"100%", fontSize:12, color:"#9C6FDE", fontWeight:600, textAlign:"center"}}>
-          💡 {current[txUI("tip", lang)] || current.tip}
+          💡 {lc==="vi"?current.tipVi||current.tip:lc==="en"?current.tipEn||current.tip:lc==="zh"?current.tipZh||current.tipEn||current.tip:lc==="ja"?current.tipJa||current.tipEn||current.tip:lc==="id"?current.tipId||current.tipEn||current.tip:lc==="ru"?current.tipRu||current.tipEn||current.tip:lc==="th"?current.tipTh||current.tipEn||current.tip:lc==="mn"?current.tipMn||current.tipEn||current.tip:lc==="uz"?current.tipUz||current.tipEn||current.tip:current.tip}
         </div>
 
         {/* 쓰기 단계 / 학습 단계 분기 */}
@@ -4936,7 +4936,7 @@ STT 인식 결과: "${sttText}"
 유사도: ${similarity}%
 
 이 학습자의 발음이 통과 수준인지 판단하고, 짧은 피드백을 주세요.
-JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${lang?.code==="vi"?"베트남어":lang?.code==="en"?"영어":"한국어"})"}
+JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${txUI("한국어", lang)})"}
 `}]
             })
           });
@@ -7344,7 +7344,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                   </div>
                   {isWrong && q.hint && (
                     <div style={{fontSize:10, color:"#2E7D32", fontWeight:800, marginTop:2, textAlign:"center"}}>
-                      → {q.answer} ({typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint})
+                      → {q.answer} ({typeof q.hint === "object" ? (tx(q.hint, lc)) : q.hint})
                     </div>
                   )}
                   {isWrong && !q.hint && (
@@ -7523,7 +7523,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {josaTestQuestions.map(q=>(
             <div key={q.id} style={{background:"white",borderRadius:12,padding:"12px 14px",marginBottom:8,border:"1px solid #FFE0B2"}}>
               <div style={{fontSize:14,fontWeight:700,color:"#333",marginBottom:6}}>{q.sentence}</div>
-              <div style={{fontSize:11,color:"#FF9800",marginBottom:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
+              <div style={{fontSize:11,color:"#FF9800",marginBottom:6}}>{typeof q.hint === "object" ? (tx(q.hint, lc)) : q.hint}</div>
               <input
                 type="text"
                 value={josaTestAnswers[q.id]||""}
@@ -8053,8 +8053,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 <div key={q.id} style={{background:"white", borderRadius:16, padding:16, marginBottom:12, boxShadow:"0 2px 8px #E64A0011"}}>
                   <div style={{fontSize:12, color:"#aaa", marginBottom:6}}>문제 {qi+1}</div>
                   <div style={{fontSize:16, fontWeight:700, color:"#333", marginBottom:4}}>{q.sentence}</div>
-                  {(typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint) && <div style={{fontSize:12, color:"#888", marginBottom:8}}>
-                    💡 {(typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint).split(/(→|·|:)/).map((part, i) =>
+                  {(typeof q.hint === "object" ? (tx(q.hint, lc)) : q.hint) && <div style={{fontSize:12, color:"#888", marginBottom:8}}>
+                    💡 {(typeof q.hint === "object" ? (tx(q.hint, lc)) : q.hint).split(/(→|·|:)/).map((part, i) =>
                       i === 0
                         ? <strong key={i} style={{color:"#E64A00", fontWeight:900}}>{part}</strong>
                         : <span key={i} style={{color:"#888"}}>{part}</span>
@@ -8379,7 +8379,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={txUI("여기에 쓰세요...", lang)}
                 style={{width:"100%", border:"2px solid #BBDEFB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (tx(q.hint, lc)) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest2}
@@ -8794,7 +8794,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={txUI("여기에 쓰세요...", lang)}
                 style={{width:"100%", border:"2px solid #E1BEE7", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (tx(q.hint, lc)) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest3}
@@ -9326,7 +9326,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 placeholder={txUI("여기에 쓰세요...", lang)}
                 style={{width:"100%", border:"2px solid #C8E6C9", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (tx(q.hint, lc)) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest5}
@@ -10086,7 +10086,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
               <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
               <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #CE93D8", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (tx(q.hint, lc)) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest9} style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
@@ -10582,7 +10582,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
               <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
               <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #EF9A9A", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
-              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
+              <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (tx(q.hint, lc)) : q.hint}</div>
             </div>
           ))}
           <button type="button" onClick={gradeTest12} style={{width:"100%", background:`linear-gradient(135deg,#B71C1C,#7F0000)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
@@ -15582,7 +15582,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       <div style={{fontSize:36,marginBottom:8,marginTop:24}}>🌸</div>
       <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>오늘 뭐 배울까요?</div>
       <div style={{fontSize:13,color:"#aaa",marginBottom:20,textAlign:"center"}}>
-        {lang?.code==="vi"?"Hôm nay học gì?":lang?.code==="en"?"What do you want to learn today?":"What would you like to learn?"}
+        {txUI("What would you like to learn?", lang)}
       </div>
       <div style={{width:"100%",maxWidth:360,display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
         {BEG_TOPICS.map(t=>(
@@ -15590,7 +15590,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <span style={{fontSize:32}}>{t.emoji}</span>
             <span style={{fontSize:14,fontWeight:900,color:"#9C6FDE"}}>{t.ko}</span>
             <span style={{fontSize:11,color:"#bbb",textAlign:"center",lineHeight:1.4}}>
-              {lang?.code==="vi"?t.vi:lang?.code==="en"?t.en:t.hint}
+              {tx({vi:t.vi,en:t.en,ko:t.hint}, lc)}
             </span>
           </button>
         ))}
