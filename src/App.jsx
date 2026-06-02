@@ -56,6 +56,335 @@ const SECURITY_QUESTIONS = [
   "가장 감명깊게 읽은 책이나 영화 제목은?",
 ];
 
+
+// ════════════════════════════════════════════════════════
+// ✅ V328: 다국어 지원 시스템 (10개 언어)
+// 지원 언어: ko·vi·en·zh·ja·id·ru·th·mn·uz
+// 폴백 체인: 선택언어 → en → ko
+// ════════════════════════════════════════════════════════
+const SUPPORTED_LANGS = ["ko","vi","en","zh","ja","id","ru","th","mn","uz"];
+
+// ✅ V328: 다국어 UI 번역 테이블 (10개 언어)
+const UI_TRANSLATIONS = {
+  "발음 8단계 (8h)":{ko:"발음 8단계 (8h)",vi:"Phát âm 8 bước",en:"Pronunciation 8 steps",zh:"发音8步骤(8h)",ja:"発音8ステップ(8h)",id:"Pelafalan 8 Langkah (8j)",ru:"Произношение 8 шагов (8ч)",th:"การออกเสียง 8 ขั้นตอน (8ชม.)",mn:"Дуудлага 8 алхам (8ц)",uz:"Talaffuz 8 qadam (8s)"},
+  "시제 6단원 (6h)":{ko:"시제 6단원 (6h)",vi:"Thì 6 bài",en:"Tenses 6 units",zh:"时态6课(6h)",ja:"時制6課(6h)",id:"Kala 6 Unit (6j)",ru:"Времена 6 уроков (6ч)",th:"กาล 6 บทเรียน (6ชม.)",mn:"Цаг 6 нэгж (6ц)",uz:"Zamon 6 dars (6s)"},
+  "조사·대명사 (5h)":{ko:"조사·대명사 (5h)",vi:"Trợ từ·Đại từ",en:"Particles·Pronouns",zh:"助词·代词(5h)",ja:"助詞·代名詞(5h)",id:"Partikel·Kata Ganti (5j)",ru:"Частицы·Местоимения (5ч)",th:"อนุภาค·สรรพนาม (5ชม.)",mn:"Нөхцөл·Төлөөний үг (5ц)",uz:"Yuklama·Olmosh (5s)"},
+  "문장구조·의문대명사 (1h)":{ko:"문장구조·의문대명사 (1h)",vi:"Cấu trúc câu",en:"Sentence structure",zh:"句子结构·疑问代词(1h)",ja:"文構造·疑問代名詞(1h)",id:"Struktur Kalimat·Kata Tanya (1j)",ru:"Структура предложений·Вопросительные (1ч)",th:"โครงสร้างประโยค·คำถาม (1ชม.)",mn:"Өгүүлбэрийн бүтэц (1ц)",uz:"Gap tuzilishi (1s)"},
+  "서술어 25단원 (38h)":{ko:"서술어 25단원 (38h)",vi:"Vị ngữ 25 bài",en:"Predicates 25 units",zh:"谓语25课(38h)",ja:"述語25課(38h)",id:"Predikat 25 Unit (38j)",ru:"Сказуемое 25 уроков (38ч)",th:"ภาคแสดง 25 บทเรียน (38ชม.)",mn:"Өгүүлэгдэхүүн 25 нэгж (38ц)",uz:"Kesim 25 dars (38s)"},
+  "부사어·관형어·기타 (21h)":{ko:"부사어·관형어·기타 (21h)",vi:"Phó từ·Biểu hiện",en:"Adverbs·Expressions",zh:"副词·定语·其他(21h)",ja:"副詞·連体詞·その他(21h)",id:"Keterangan·Modifikator·Lainnya (21j)",ru:"Наречие·Определение·Другое (21ч)",th:"กริยาวิเศษณ์·ตัวขยาย·อื่นๆ (21ชม.)",mn:"Тодотгол·Бусад (21ц)",uz:"Ravish·Aniqlovchi·Boshqa (21s)"},
+  "숫자·부정법·격식체·정리 (1h)":{ko:"숫자·부정법·격식체·정리 (1h)",vi:"Số·Phủ định",en:"Numbers·Negation",zh:"数字·否定·正式体·总结(1h)",ja:"数字·否定·丁寧体·まとめ(1h)",id:"Angka·Negasi·Formal·Ringkasan (1j)",ru:"Числа·Отрицание·Стиль·Обзор (1ч)",th:"ตัวเลข·การปฏิเสธ·ทางการ·สรุป (1ชม.)",mn:"Тоо·Үгүйсгэл·Ёслол·Дүгнэлт (1ц)",uz:"Raqam·Inkor·Rasmiy·Xulosa (1s)"},
+  "완료!":{ko:"완료!",vi:"hoàn thành!",en:"Complete!",zh:"完成!",ja:"完了!",id:"Selesai!",ru:"Готово!",th:"เสร็จแล้ว!",mn:"Дууссан!",uz:"Tugadi!"},
+  "정말 잘하고 있어요! 💪":{ko:"정말 잘하고 있어요! 💪",vi:"Bạn đang tiến bộ thật tốt! 💪",en:"You're making great progress! 💪",zh:"做得非常好! 💪",ja:"とても頑張っています! 💪",id:"Anda melakukannya dengan baik! 💪",ru:"Вы делаете отличную работу! 💪",th:"คุณทำได้ดีมาก! 💪",mn:"Маш сайн байна! 💪",uz:"Juda yaxshi! 💪"},
+  "나의 학습 위치":{ko:"나의 학습 위치",vi:"Tiến trình học tập",en:"Learning Progress",zh:"我的学习进度",ja:"私の学習進捗",id:"Posisi Belajar Saya",ru:"Моя позиция в обучении",th:"ตำแหน่งการเรียนของฉัน",mn:"Миний суралцсан байдал",uz:"Mening o'quv joyi"},
+  "여기":{ko:"여기",vi:"Đang ở đây",en:"Here",zh:"这里",ja:"ここ",id:"Di Sini",ru:"Здесь",th:"ที่นี่",mn:"Энд",uz:"Bu yerda"},
+  "발음 8단계":{ko:"발음 8단계",vi:"Phát âm 8 bước",en:"Pronunciation 8 steps",zh:"发音8步骤",ja:"発音8ステップ",id:"Pelafalan 8 Langkah",ru:"Произношение 8 шагов",th:"การออกเสียง 8 ขั้นตอน",mn:"Дуудлага 8 алхам",uz:"Talaffuz 8 qadam"},
+  "시제 6단원":{ko:"시제 6단원",vi:"Thì 6 bài",en:"Tenses 6 units",zh:"时态6课",ja:"時制6課",id:"Kala 6 Unit",ru:"Времена 6 уроков",th:"กาล 6 บทเรียน",mn:"Цаг 6 нэгж",uz:"Zamon 6 dars"},
+  "조사 · 대명사":{ko:"조사 · 대명사",vi:"Trợ từ · Đại từ",en:"Particles · Pronouns",zh:"助词 · 代词",ja:"助詞 · 代名詞",id:"Partikel · Kata Ganti",ru:"Частицы · Местоимения",th:"อนุภาค · สรรพนาม",mn:"Нөхцөл · Төлөөний үг",uz:"Yuklama · Olmosh"},
+  "문장구조 · 의문대명사":{ko:"문장구조 · 의문대명사",vi:"Cấu trúc câu · Đại từ nghi vấn",en:"Sentence structure · Question pronouns",zh:"句子结构 · 疑问代词",ja:"文構造 · 疑問代名詞",id:"Struktur Kalimat · Kata Tanya",ru:"Структура · Вопросительные",th:"โครงสร้างประโยค · คำสรรพนามคำถาม",mn:"Өгүүлбэрийн бүтэц · Асуух төлөөний үг",uz:"Gap tuzilishi · So'roq olmoshlari"},
+  "서술어 25단원":{ko:"서술어 25단원",vi:"Vị ngữ 25 bài",en:"Predicates 25 units",zh:"谓语25课",ja:"述語25課",id:"Predikat 25 Unit",ru:"Сказуемое 25 уроков",th:"ภาคแสดง 25 บทเรียน",mn:"Өгүүлэгдэхүүн 25 нэгж",uz:"Kesim 25 dars"},
+  "부사어 · 관형어 · 존칭 · 간접화법 · 비교/최상급 · 기타":{ko:"부사어 · 관형어 · 존칭 · 간접화법 · 비교/최상급 · 기타",vi:"Phó từ · Quan hệ từ · Kính ngữ...",en:"Adverbs · Adjectives · Honorifics...",zh:"副词·定语·敬语·间接引语·比较级·其他",ja:"副詞·連体詞·敬語·間接話法·比較級·その他",id:"Adverbia·Modifikator·Hormat·Tidak Langsung·Komparatif·Lain",ru:"Наречие·Определение·Вежливость·Косвенная·Сравнение·Другое",th:"กริยาวิเศษณ์·ตัวขยาย·ภาษาสุภาพ·ทางอ้อม·เปรียบเทียบ·อื่นๆ",mn:"Тодотгол·Хүндэтгэл·Шууд бус·Харьцуулал·Бусад",uz:"Ravish·Aniqlovchi·Hurmat·Bilvosita·Taqqoslash·Boshqa"},
+  "숫자 · 부정법 · 격식체 · 기초문법 정리":{ko:"숫자 · 부정법 · 격식체 · 기초문법 정리",vi:"Số · Phủ định · Văn phong · Tổng kết",en:"Numbers · Negation · Register · Review",zh:"数字·否定·正式体·基础语法总结",ja:"数字·否定·丁寧体·基礎文法まとめ",id:"Angka·Negasi·Formal·Ringkasan Tata Bahasa",ru:"Числа·Отрицание·Стиль·Обзор грамматики",th:"ตัวเลข·การปฏิเสธ·ทางการ·สรุปไวยากรณ์พื้นฐาน",mn:"Тоо·Үгүйсгэл·Ёслол·Үндсэн дүрмийн дүгнэлт",uz:"Raqam·Inkor·Rasmiy·Asosiy grammatika xulosasi"},
+  "나의 80시간 커리큘럼":{ko:"나의 80시간 커리큘럼",vi:"80 giờ của bạn!",en:"Your 80 Hours!",zh:"我的80小时课程",ja:"私の80時間カリキュラム",id:"Kurikulum 80 Jam Saya",ru:"Мой учебный план 80 часов",th:"หลักสูตร 80 ชั่วโมงของฉัน",mn:"Миний 80 цагийн хөтөлбөр",uz:"Mening 80 soatlik rejam"},
+  "초급자용":{ko:"초급자용",vi:"Sơ cấp",en:"Beginner",zh:"初级者用",ja:"初級者用",id:"Untuk Pemula",ru:"Для начинающих",th:"สำหรับผู้เริ่มต้น",mn:"Анхан шатанд",uz:"Boshlang'ichlar uchun"},
+  "80시간 동안 이걸 배워요! 🌏":{ko:"80시간 동안 이걸 배워요! 🌏",vi:"Đây là những gì bạn sẽ học trong 80 giờ!",en:"Here's what you'll learn in 80 hours!",zh:"80小时内学习这些! 🌏",ja:"80時間でこれを学びます! 🌏",id:"Ini yang akan Anda pelajari dalam 80 jam! 🌏",ru:"Вот что вы изучите за 80 часов! 🌏",th:"นี่คือสิ่งที่คุณจะเรียนใน 80 ชั่วโมง! 🌏",mn:"80 цагт энийг сурна! 🌏",uz:"80 soatda bularni o'rganasiz! 🌏"},
+  "합계":{ko:"합계",vi:"Tổng cộng",en:"Total",zh:"合计",ja:"合計",id:"Total",ru:"Итого",th:"รวม",mn:"Нийт",uz:"Jami"},
+  "당신의 80시간은 새로운 세상을 열어줍니다.":{ko:"당신의 80시간은 새로운 세상을 열어줍니다.",vi:"80 giờ của bạn sẽ mở ra một thế giới mới.",en:"Your 80 hours will open a new world.",zh:"您的80小时将打开一个新世界。",ja:"あなたの80時間が新しい世界を開きます。",id:"80 jam Anda akan membuka dunia baru.",ru:"Ваши 80 часов откроют новый мир.",th:"80 ชั่วโมงของคุณจะเปิดโลกใหม่",mn:"Таны 80 цаг шинэ ертөнцийг нээнэ.",uz:"Sizning 80 soatingiz yangi dunyo ochadi."},
+  "학습 계획 세우기 →":{ko:"학습 계획 세우기 →",vi:"Tiếp theo! →",en:"Next! →",zh:"制定学习计划 →",ja:"学習計画を立てる →",id:"Buat Rencana Belajar →",ru:"Составить план обучения →",th:"วางแผนการเรียน →",mn:"Суралцах төлөвлөгөө →",uz:"O'quv rejasi tuzish →"},
+  "✅ 80시간 기초 과정 시작하기":{ko:"✅ 80시간 기초 과정 시작하기",vi:"✅ Bắt đầu khóa học cơ bản 80 giờ",en:"✅ Start the 80-hour basic course",zh:"✅ 开始80小时基础课程",ja:"✅ 80時間基礎コースを開始する",id:"✅ Mulai Kursus Dasar 80 Jam",ru:"✅ Начать базовый курс 80 часов",th:"✅ เริ่มหลักสูตรพื้นฐาน 80 ชั่วโมง",mn:"✅ 80 цагийн үндсэн сургалт эхлүүлэх",uz:"✅ 80 soatlik asosiy kursni boshlash"},
+  "💬 그래도 프리토킹 할게요":{ko:"💬 그래도 프리토킹 할게요",vi:"💬 Vẫn muốn thực hành nói tự do",en:"💬 I still want free talking",zh:"💬 我还是要自由交谈",ja:"💬 それでもフリートーキングします",id:"💬 Saya tetap mau bicara bebas",ru:"💬 Всё равно хочу свободную речь",th:"💬 ฉันยังต้องการพูดคุยอย่างอิสระ",mn:"💬 Чөлөөт яриа хийхийг хүсэж байна",uz:"💬 Baribir erkin gaplashaman"},
+  "← 뒤로 가기":{ko:"← 뒤로 가기",vi:"← Quay lại",en:"← Go back",zh:"← 返回",ja:"← 戻る",id:"← Kembali",ru:"← Назад",th:"← กลับ",mn:"← Буцах",uz:"← Orqaga"},
+  "기본 모음":{ko:"기본 모음",vi:"Nguyên âm cơ bản",en:"Basic Vowels",zh:"基本元音",ja:"基本母音",id:"Vokal Dasar",ru:"Основные гласные",th:"สระพื้นฐาน",mn:"Үндсэн эгшиг",uz:"Asosiy unlilar"},
+  "모음 쓰기":{ko:"모음 쓰기",vi:"Viết nguyên âm",en:"Vowel Writing",zh:"书写元音",ja:"母音を書く",id:"Menulis Vokal",ru:"Написание гласных",th:"การเขียนสระ",mn:"Эгшиг бичих",uz:"Unlillarni yozish"},
+  "모음1 단어":{ko:"모음1 단어",vi:"Từ vựng nguyên âm 1",en:"Vowel Words 1",zh:"元音1单词",ja:"母音1単語",id:"Kata Vokal 1",ru:"Слова с гласными 1",th:"คำศัพท์สระ 1",mn:"Эгшиг 1 үг",uz:"Unlilar 1 so'zlari"},
+  "복합 모음":{ko:"복합 모음",vi:"Nguyên âm phức",en:"Complex Vowels",zh:"复合元音",ja:"複合母音",id:"Vokal Kompleks",ru:"Сложные гласные",th:"สระประสม",mn:"Нийлмэл эгшиг",uz:"Murakkab unlilar"},
+  "복합 모음 쓰기":{ko:"복합 모음 쓰기",vi:"Viết nguyên âm phức",en:"Complex Vowel Writing",zh:"书写复合元音",ja:"複合母音を書く",id:"Menulis Vokal Kompleks",ru:"Написание сложных гласных",th:"การเขียนสระประสม",mn:"Нийлмэл эгшиг бичих",uz:"Murakkab unlillarni yozish"},
+  "모음2 단어":{ko:"모음2 단어",vi:"Từ vựng nguyên âm 2",en:"Vowel Words 2",zh:"元音2单词",ja:"母音2単語",id:"Kata Vokal 2",ru:"Слова с гласными 2",th:"คำศัพท์สระ 2",mn:"Эгшиг 2 үг",uz:"Unlilar 2 so'zlari"},
+  "받침 ㄱ·ㅋ":{ko:"받침 ㄱ·ㅋ",vi:"Batchim ㄱ·ㅋ",en:"Final ㄱ·ㅋ",zh:"收音 ㄱ·ㅋ",ja:"パッチム ㄱ·ㅋ",id:"Batchim ㄱ·ㅋ",ru:"Батчим ㄱ·ㅋ",th:"ตัวสะกด ㄱ·ㅋ",mn:"Бачим ㄱ·ㅋ",uz:"Batchim ㄱ·ㅋ"},
+  "받침 ㅇ":{ko:"받침 ㅇ",vi:"Batchim ㅇ",en:"Final ㅇ",zh:"收音 ㅇ",ja:"パッチム ㅇ",id:"Batchim ㅇ",ru:"Батчим ㅇ",th:"ตัวสะกด ㅇ",mn:"Бачим ㅇ",uz:"Batchim ㅇ"},
+  "받침 ㅁ·ㅂ":{ko:"받침 ㅁ·ㅂ",vi:"Batchim ㅁ·ㅂ",en:"Final ㅁ·ㅂ",zh:"收音 ㅁ·ㅂ",ja:"パッチム ㅁ·ㅂ",id:"Batchim ㅁ·ㅂ",ru:"Батчим ㅁ·ㅂ",th:"ตัวสะกด ㅁ·ㅂ",mn:"Бачим ㅁ·ㅂ",uz:"Batchim ㅁ·ㅂ"},
+  "받침 ㅂ·ㅍ":{ko:"받침 ㅂ·ㅍ",vi:"Batchim ㅂ·ㅍ",en:"Final ㅂ·ㅍ",zh:"收音 ㅂ·ㅍ",ja:"パッチム ㅂ·ㅍ",id:"Batchim ㅂ·ㅍ",ru:"Батчим ㅂ·ㅍ",th:"ตัวสะกด ㅂ·ㅍ",mn:"Бачим ㅂ·ㅍ",uz:"Batchim ㅂ·ㅍ"},
+  "받침 ㄹ":{ko:"받침 ㄹ",vi:"Batchim ㄹ",en:"Final ㄹ",zh:"收音 ㄹ",ja:"パッチム ㄹ",id:"Batchim ㄹ",ru:"Батчим ㄹ",th:"ตัวสะกด ㄹ",mn:"Бачим ㄹ",uz:"Batchim ㄹ"},
+  "받침 ㄴ":{ko:"받침 ㄴ",vi:"Batchim ㄴ",en:"Final ㄴ",zh:"收音 ㄴ",ja:"パッチム ㄴ",id:"Batchim ㄴ",ru:"Батчим ㄴ",th:"ตัวสะกด ㄴ",mn:"Бачим ㄴ",uz:"Batchim ㄴ"},
+  "받침 ㄷ":{ko:"받침 ㄷ",vi:"Batchim ㄷ",en:"Final ㄷ",zh:"收音 ㄷ",ja:"パッチム ㄷ",id:"Batchim ㄷ",ru:"Батчим ㄷ",th:"ตัวสะกด ㄷ",mn:"Бачим ㄷ",uz:"Batchim ㄷ"},
+  "겹받침 + 연음법칙":{ko:"겹받침 + 연음법칙",vi:"Batchim kép + quy tắc liên âm",en:"Double Batchim + Linking Sound",zh:"双收音+连音规则",ja:"二重パッチム+連音法則",id:"Batchim Ganda + Hukum Penghubung",ru:"Двойной батчим + правило связки",th:"บัตชิมคู่ + กฎการเชื่อมเสียง",mn:"Давхар бачим + холбох дүрэм",uz:"Qo'sh batchim + bog'lovchi qoida"},
+  "다음: 시제 6단원":{ko:"다음: 시제 6단원",vi:"Tiếp theo: Thì 6 bài",en:"Next: Tenses 6 units",zh:"下一步: 时态6课",ja:"次へ: 時制6課",id:"Berikutnya: Kala 6 Unit",ru:"Далее: Времена 6 уроков",th:"ถัดไป: กาล 6 บทเรียน",mn:"Дараа: Цаг 6 нэгж",uz:"Keyingi: Zamon 6 dars"},
+  "발음 학습 목차":{ko:"발음 학습 목차",vi:"Mục lục phát âm",en:"Pronunciation Syllabus",zh:"发音学习目录",ja:"発音学習目次",id:"Daftar Isi Pelafalan",ru:"Содержание произношения",th:"สารบัญการออกเสียง",mn:"Дуудлага суралцах гарчиг",uz:"Talaffuz o'quv mundarijasi"},
+  "총 8시간 · 14단계":{ko:"총 8시간 · 14단계",vi:"Tổng 8 giờ · 14 bước",en:"Total 8 hours · 14 steps",zh:"共8小时·14步骤",ja:"合計8時間·14ステップ",id:"Total 8 Jam · 14 Langkah",ru:"Всего 8 часов · 14 шагов",th:"รวม 8 ชั่วโมง · 14 ขั้นตอน",mn:"Нийт 8 цаг · 14 алхам",uz:"Jami 8 soat · 14 qadam"},
+  "발음 학습 시작! 🔤":{ko:"발음 학습 시작! 🔤",vi:"Bắt đầu học phát âm! 🔤",en:"Start Pronunciation! 🔤",zh:"开始发音学习! 🔤",ja:"発音学習開始! 🔤",id:"Mulai Belajar Pelafalan! 🔤",ru:"Начать изучение произношения! 🔤",th:"เริ่มเรียนการออกเสียง! 🔤",mn:"Дуудлага сурах эхлэх! 🔤",uz:"Talaffuzni o'rganishni boshlash! 🔤"},
+  "발음 학습":{ko:"발음 학습",vi:"Học phát âm",en:"Pronunciation Learning",zh:"发音学习",ja:"発音学習",id:"Belajar Pelafalan",ru:"Изучение произношения",th:"การเรียนการออกเสียง",mn:"Дуудлага сурах",uz:"Talaffuzni o'rganish"},
+  "desc":{ko:"desc",vi:"desc",en:"desc",zh:"desc",ja:"desc",id:"desc",ru:"desc",th:"desc",mn:"desc",uz:"desc"},
+  "tip":{ko:"tip",vi:"tip",en:"tip",zh:"tip",ja:"tip",id:"tip",ru:"tip",th:"tip",mn:"tip",uz:"tip"},
+  "쓰기 과제":{ko:"쓰기 과제",vi:"Bài tập viết",en:"Writing Task",zh:"写作练习",ja:"書き取り課題",id:"Tugas Menulis",ru:"Задание на письмо",th:"งานเขียน",mn:"Бичих даалгавар",uz:"Yozish vazifasi"},
+  "writeTask":{ko:"writeTask",vi:"writeTask",en:"writeTask",zh:"writeTask",ja:"writeTask",id:"writeTask",ru:"writeTask",th:"writeTask",mn:"writeTask",uz:"writeTask"},
+  "과제를 완료했나요?":{ko:"과제를 완료했나요?",vi:"Bạn đã hoàn thành bài tập chưa?",en:"Did you complete the task?",zh:"您完成任务了吗?",ja:"課題を完了しましたか?",id:"Apakah Anda menyelesaikan tugasnya?",ru:"Вы выполнили задание?",th:"คุณทำภารกิจเสร็จแล้วหรือยัง?",mn:"Даалгавраа дуусгасан уу?",uz:"Vazifani bajardingizmi?"},
+  "스스로 양심적으로 판단해서 완료했으면 아래 버튼을 눌러요 😊":{ko:"스스로 양심적으로 판단해서 완료했으면 아래 버튼을 눌러요 😊",vi:"Nếu bạn đã hoàn thành, hãy nhấn nút bên dưới 😊",en:"If you completed it honestly, press the button below 😊",zh:"如果诚实完成了，请点击下方按钮 😊",ja:"正直に完了したら下のボタンを押してください 😊",id:"Jika sudah selesai dengan jujur, tekan tombol di bawah 😊",ru:"Если честно выполнили, нажмите кнопку ниже 😊",th:"ถ้าทำเสร็จอย่างซื่อสัตย์ กดปุ่มด้านล่าง 😊",mn:"Үнэнчээр дуусгасан бол доорх товчийг дарна уу 😊",uz:"Halol bajarsangiz, quyidagi tugmani bosing 😊"},
+  "완료했어요 — 다음 단계로":{ko:"완료했어요 — 다음 단계로",vi:"Hoàn thành — Sang bước tiếp theo",en:"Done — Next step",zh:"完成 — 进入下一步",ja:"完了 — 次のステップへ",id:"Selesai — Langkah Berikutnya",ru:"Готово — Следующий шаг",th:"เสร็จแล้ว — ขั้นตอนถัดไป",mn:"Дуусгасан — Дараагийн алхам",uz:"Tayyor — Keyingi qadam"},
+  "탭하세요":{ko:"탭하세요",vi:"Chạm vào đây",en:"Tap here",zh:"点击这里",ja:"タップしてください",id:"Ketuk di sini",ru:"Нажмите здесь",th:"แตะที่นี่",mn:"Дарна уу",uz:"Bosing"},
+  "카드를 탭하면 예시 단어가 나와요 😊":{ko:"카드를 탭하면 예시 단어가 나와요 😊",vi:"Chạm vào thẻ để xem từ ví dụ 😊",en:"Tap the card to see example words 😊",zh:"点击卡片查看示例单词 😊",ja:"カードをタップすると例単語が表示されます 😊",id:"Ketuk kartu untuk melihat kata contoh 😊",ru:"Нажмите на карточку для просмотра примеров 😊",th:"แตะการ์ดเพื่อดูคำตัวอย่าง 😊",mn:"Картыг дарвал жишээ үг гарна 😊",uz:"Misol so'zlarni ko'rish uchun kartani bosing 😊"},
+  "다음 — 시제":{ko:"다음 — 시제",vi:"Tiếp theo — Thì",en:"Next — Tenses",zh:"下一步 — 时态",ja:"次へ — 時制",id:"Berikutnya — Kala",ru:"Далее — Времена",th:"ถัดไป — กาล",mn:"Дараа — Цаг",uz:"Keyingi — Zamon"},
+  "다음 단계로 →":{ko:"다음 단계로 →",vi:"Bước tiếp theo →",en:"Next step →",zh:"下一步 →",ja:"次のステップへ →",id:"Langkah berikutnya →",ru:"Следующий шаг →",th:"ขั้นตอนถัดไป →",mn:"Дараагийн алхам →",uz:"Keyingi qadam →"},
+  "시제 학습으로! 🚀":{ko:"시제 학습으로! 🚀",vi:"Học thì ngay! 🚀",en:"To Tenses! 🚀",zh:"开始时态学习! 🚀",ja:"時制学習へ! 🚀",id:"Ke Pelajaran Kala! 🚀",ru:"К изучению времён! 🚀",th:"ไปเรียนกาล! 🚀",mn:"Цаг сурах руу! 🚀",uz:"Zamonni o'rganishga! 🚀"},
+  "이 브라우저는 음성 인식을 지원하지 않아요":{ko:"이 브라우저는 음성 인식을 지원하지 않아요",vi:"Trình duyệt này không hỗ trợ nhận dạng giọng nói",en:"This browser does not support speech recognition",zh:"此浏览器不支持语音识别",ja:"このブラウザは音声認識をサポートしていません",id:"Browser ini tidak mendukung pengenalan suara",ru:"Этот браузер не поддерживает распознавание речи",th:"เบราว์เซอร์นี้ไม่รองรับการรู้จำเสียง",mn:"Энэ хөтөч дуу таних функцийг дэмждэггүй",uz:"Bu brauzer ovozni tanib bo'lmaydi"},
+  "소리를 인식하지 못했어요. 크게 다시 말해봐요! 🎤":{ko:"소리를 인식하지 못했어요. 크게 다시 말해봐요! 🎤",vi:"Không nhận ra âm thanh. Hãy nói to hơn! 🎤",en:"Couldn't recognize sound. Speak louder! 🎤",zh:"无法识别声音，请大声再说一遍! 🎤",ja:"音声を認識できませんでした。もっと大きく話してください! 🎤",id:"Tidak bisa mengenali suara. Bicara lebih keras! 🎤",ru:"Звук не распознан. Говорите громче! 🎤",th:"ไม่สามารถรู้จำเสียงได้ พูดดังขึ้น! 🎤",mn:"Дуу танигдсангүй. Чанга хэлнэ үү! 🎤",uz:"Ovoz tanilmadi. Balandroq gapiring! 🎤"},
+  "완벽해요! 🎉":{ko:"완벽해요! 🎉",vi:"Hoàn hảo! 🎉",en:"Perfect! 🎉",zh:"完美! 🎉",ja:"完璧です! 🎉",id:"Sempurna! 🎉",ru:"Отлично! 🎉",th:"สมบูรณ์แบบ! 🎉",mn:"Гайхалтай! 🎉",uz:"Mukammal! 🎉"},
+  "다시 해봐요! 💪":{ko:"다시 해봐요! 💪",vi:"Thử lại nhé! 💪",en:"Try again! 💪",zh:"再试一次! 💪",ja:"もう一度やってみましょう! 💪",id:"Coba lagi! 💪",ru:"Попробуйте ещё раз! 💪",th:"ลองอีกครั้ง! 💪",mn:"Дахин туршина уу! 💪",uz:"Yana sinab ko'ring! 💪"},
+  "테스트할 단어가 없어요":{ko:"테스트할 단어가 없어요",vi:"Không có từ để kiểm tra",en:"No words to test",zh:"没有要测试的单词",ja:"テストする単語がありません",id:"Tidak ada kata untuk diuji",ru:"Нет слов для теста",th:"ไม่มีคำศัพท์ที่จะทดสอบ",mn:"Тест хийх үг байхгүй",uz:"Sinov uchun so'z yo'q"},
+  "먼저 단어 학습 단계를 완료해 주세요":{ko:"먼저 단어 학습 단계를 완료해 주세요",vi:"Vui lòng hoàn thành bước học từ trước",en:"Please complete the word learning step first",zh:"请先完成单词学习步骤",ja:"まず単語学習ステップを完了してください",id:"Harap selesaikan langkah belajar kata terlebih dahulu",ru:"Сначала завершите этап изучения слов",th:"กรุณาทำขั้นตอนการเรียนคำศัพท์ให้เสร็จก่อน",mn:"Эхлээд үг судлах алхамыг дуусгана уу",uz:"Avval so'z o'rganish bosqichini tugatib oling"},
+  "학습으로 돌아가기":{ko:"학습으로 돌아가기",vi:"Quay lại học",en:"Back to learning",zh:"返回学习",ja:"学習に戻る",id:"Kembali ke Belajar",ru:"Вернуться к обучению",th:"กลับไปเรียน",mn:"Суралцаж буцах",uz:"O'qishga qaytish"},
+  "발음 테스트":{ko:"발음 테스트",vi:"Kiểm tra phát âm",en:"Pronunciation Test",zh:"发音测试",ja:"発音テスト",id:"Tes Pelafalan",ru:"Тест произношения",th:"ทดสอบการออกเสียง",mn:"Дуудлага тест",uz:"Talaffuz testi"},
+  "이 단어를 크게 발음해보세요":{ko:"이 단어를 크게 발음해보세요",vi:"Hãy phát âm to từ này",en:"Pronounce this word loudly",zh:"请大声发音这个单词",ja:"この単語を大きく発音してみてください",id:"Ucapkan kata ini dengan keras",ru:"Произнесите это слово громко",th:"ออกเสียงคำนี้ดังๆ",mn:"Энэ үгийг чанга дуудна уу",uz:"Bu so'zni baland ovozda ayting"},
+  "예시 듣기":{ko:"예시 듣기",vi:"Nghe ví dụ",en:"Listen to example",zh:"听示例",ja:"例を聞く",id:"Dengarkan contoh",ru:"Послушать пример",th:"ฟังตัวอย่าง",mn:"Жишээ сонсох",uz:"Misolni tinglash"},
+  "내가 말한 것":{ko:"내가 말한 것",vi:"Những gì tôi đã nói",en:"What I said",zh:"我说的",ja:"私が言ったこと",id:"Yang saya ucapkan",ru:"Что я сказал",th:"สิ่งที่ฉันพูด",mn:"Би хэлсэн зүйл",uz:"Men aytganim"},
+  "유사도":{ko:"유사도",vi:"Độ tương đồng",en:"Similarity",zh:"相似度",ja:"類似度",id:"Kemiripan",ru:"Сходство",th:"ความคล้ายคลึง",mn:"Ижил байдал",uz:"O'xshashlik"},
+  "평가 중...":{ko:"평가 중...",vi:"Đang đánh giá...",en:"Evaluating...",zh:"评估中...",ja:"評価中...",id:"Mengevaluasi...",ru:"Оценивается...",th:"กำลังประเมิน...",mn:"Үнэлж байна...",uz:"Baholanmoqda..."},
+  "🔴 듣는 중... (다시 누르면 종료)":{ko:"🔴 듣는 중... (다시 누르면 종료)",vi:"🔴 Đang nghe... (nhấn lại để dừng)",en:"🔴 Listening... (press again to stop)",zh:"🔴 正在听... (再次按下结束)",ja:"🔴 聞いています... (もう一度押すと終了)",id:"🔴 Mendengarkan... (tekan lagi untuk berhenti)",ru:"🔴 Слушаю... (нажмите ещё раз для остановки)",th:"🔴 กำลังฟัง... (กดอีกครั้งเพื่อหยุด)",mn:"🔴 Сонсож байна... (дахин дарвал зогсоно)",uz:"🔴 Tinglayapti... (to'xtatish uchun qayta bosing)"},
+  "🎤 말하기 시작":{ko:"🎤 말하기 시작",vi:"🎤 Bắt đầu nói",en:"🎤 Start speaking",zh:"🎤 开始说话",ja:"🎤 話し始める",id:"🎤 Mulai bicara",ru:"🎤 Начать говорить",th:"🎤 เริ่มพูด",mn:"🎤 Ярьж эхлэх",uz:"🎤 Gapira boshlang"},
+  "다시 시도":{ko:"다시 시도",vi:"Thử lại",en:"Try again",zh:"再试一次",ja:"再試行",id:"Coba lagi",ru:"Попробовать снова",th:"ลองอีกครั้ง",mn:"Дахин оролдох",uz:"Qayta urinish"},
+  "다음 문제 →":{ko:"다음 문제 →",vi:"Câu hỏi tiếp theo →",en:"Next question →",zh:"下一题 →",ja:"次の問題 →",id:"Soal berikutnya →",ru:"Следующий вопрос →",th:"คำถามถัดไป →",mn:"Дараагийн асуулт →",uz:"Keyingi savol →"},
+  "결과 보기 →":{ko:"결과 보기 →",vi:"Xem kết quả →",en:"View results →",zh:"查看结果 →",ja:"結果を見る →",id:"Lihat hasil →",ru:"Посмотреть результаты →",th:"ดูผลลัพธ์ →",mn:"Үр дүнг харах →",uz:"Natijalarni ko'rish →"},
+  "통과! 🎉":{ko:"통과! 🎉",vi:"Đạt! 🎉",en:"Passed! 🎉",zh:"通过! 🎉",ja:"合格! 🎉",id:"Lulus! 🎉",ru:"Пройдено! 🎉",th:"ผ่าน! 🎉",mn:"Тэнцсэн! 🎉",uz:"O'tdi! 🎉"},
+  "미통과 — 다시 연습해요":{ko:"미통과 — 다시 연습해요",vi:"Chưa đạt — Hãy luyện tập lại",en:"Not passed — Practice again",zh:"未通过 — 请再练习",ja:"不合格 — もう一度練習しましょう",id:"Belum lulus — Latihan lagi",ru:"Не пройдено — Практикуйтесь ещё",th:"ไม่ผ่าน — ฝึกอีกครั้ง",mn:"Тэнцээгүй — Дахин дадлага хийнэ үү",uz:"O'tmadi — Yana mashq qiling"},
+  "말한 것":{ko:"말한 것",vi:"Đã nói",en:"Said",zh:"说了",ja:"言ったこと",id:"Yang diucapkan",ru:"Сказанное",th:"สิ่งที่พูด",mn:"Хэлсэн зүйл",uz:"Aytilgan"},
+  "발음 테스트 다시 도전":{ko:"발음 테스트 다시 도전",vi:"Thử lại bài kiểm tra phát âm",en:"Retake pronunciation test",zh:"重新挑战发音测试",ja:"発音テストに再挑戦",id:"Coba lagi tes pelafalan",ru:"Пройти тест произношения снова",th:"ทำแบบทดสอบการออกเสียงอีกครั้ง",mn:"Дуудлага тестийг дахин өгөх",uz:"Talaffuz testini qayta topshirish"},
+  "학습 다시 보기":{ko:"학습 다시 보기",vi:"Xem lại bài học",en:"Review lesson",zh:"重新查看学习",ja:"学習を見直す",id:"Tinjau pelajaran",ru:"Повторить урок",th:"ทบทวนบทเรียน",mn:"Хичээлийг дахин харах",uz:"Darsni qayta ko'rish"},
+  "시제 1단원 — 동사 (현재·과거·미래)":{ko:"시제 1단원 — 동사 (현재·과거·미래)",vi:"Thì bài 1 — Động từ (hiện tại·quá khứ·tương lai)",en:"Tense Unit 1 — Verbs (present·past·future)",zh:"时态第1课 — 动词(现在·过去·将来)",ja:"時制第1課 — 動詞(現在·過去·未来)",id:"Kala Unit 1 — Kata Kerja (kini·lampau·depan)",ru:"Время Урок 1 — Глаголы (настоящее·прошедшее·будущее)",th:"กาล บทที่ 1 — กริยา (ปัจจุบัน·อดีต·อนาคต)",mn:"Цаг 1-р нэгж — Үйл үг (одоо·өнгөрсөн·ирээдүй)",uz:"Zamon 1-dars — Fe'l (hozir·o'tgan·kelajak)"},
+  "받침 있음 → +습니다":{ko:"받침 있음 → +습니다",vi:"Có batchim → +습니다",en:"With batchim → +습니다",zh:"有收音 → +습니다",ja:"パッチムあり → +습니다",id:"Ada batchim → +습니다",ru:"С батчимом → +습니다",th:"มีบัตชิม → +습니다",mn:"Бачимтай → +습니다",uz:"Batchim bor → +습니다"},
+  "받침 없음 → +ㅂ니다":{ko:"받침 없음 → +ㅂ니다",vi:"Không có batchim → +ㅂ니다",en:"No batchim → +ㅂ니다",zh:"无收音 → +ㅂ니다",ja:"パッチムなし → +ㅂ니다",id:"Tidak ada batchim → +ㅂ니다",ru:"Без батчима → +ㅂ니다",th:"ไม่มีบัตชิม → +ㅂ니다",mn:"Бачимгүй → +ㅂ니다",uz:"Batchim yo'q → +ㅂ니다"},
+  "현재":{ko:"현재",vi:"Hiện tại",en:"Present",zh:"现在",ja:"現在",id:"Kini",ru:"Настоящее",th:"ปัจจุบัน",mn:"Одоо",uz:"Hozirgi"},
+  "과거":{ko:"과거",vi:"Quá khứ",en:"Past",zh:"过去",ja:"過去",id:"Lampau",ru:"Прошедшее",th:"อดีต",mn:"Өнгөрсөн",uz:"O'tgan"},
+  "미래":{ko:"미래",vi:"Tương lai",en:"Future",zh:"将来",ja:"未来",id:"Masa Depan",ru:"Будущее",th:"อนาคต",mn:"Ирээдүй",uz:"Kelajak"},
+  "⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?":{ko:"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?",vi:"⚠️ Hàng có dấu (?) phải thêm '?' ở cuối! Ví dụ: ~ㅂ니까?",en:"⚠️ Question rows must end with '?'! Example: ~ㅂ니까?",zh:"⚠️ 问号行末尾必须加'?'! 例: ~ㅂ니까?",ja:"⚠️ 疑問符(?)の行は末尾に'?'をつけてください! 例: ~ㅂ니까?",id:"⚠️ Baris tanda tanya harus diakhiri '?'! Contoh: ~ㅂ니까?",ru:"⚠️ Строки с вопросом должны заканчиваться '?'! Пример: ~ㅂ니까?",th:"⚠️ แถวคำถามต้องลงท้ายด้วย '?'! ตัวอย่าง: ~ㅂ니까?",mn:"⚠️ Асуулгын мөрийн төгсгөлд '?' тавих ёстой! Жишээ: ~ㅂ니까?",uz:"⚠️ Savol qatorlari '?' bilan tugashi kerak! Misol: ~ㅂ니까?"},
+  "정답 보기 👀":{ko:"정답 보기 👀",vi:"Xem đáp án 👀",en:"View answer 👀",zh:"查看答案 👀",ja:"答えを見る 👀",id:"Lihat jawaban 👀",ru:"Посмотреть ответ 👀",th:"ดูคำตอบ 👀",mn:"Хариуг харах 👀",uz:"Javobni ko'rish 👀"},
+  "이전":{ko:"이전",vi:"Trước",en:"Previous",zh:"上一个",ja:"前へ",id:"Sebelumnya",ru:"Предыдущий",th:"ก่อนหน้า",mn:"Өмнөх",uz:"Oldingi"},
+  "다음 카드 →":{ko:"다음 카드 →",vi:"Thẻ tiếp theo →",en:"Next card →",zh:"下一张卡片 →",ja:"次のカード →",id:"Kartu berikutnya →",ru:"Следующая карточка →",th:"การ์ดถัดไป →",mn:"Дараагийн карт →",uz:"Keyingi karta →"},
+  "시제 2단원으로! 🚀":{ko:"시제 2단원으로! 🚀",vi:"Sang bài thì 2! 🚀",en:"To Tense Unit 2! 🚀",zh:"进入时态第2课! 🚀",ja:"時制第2課へ! 🚀",id:"Ke Kala Unit 2! 🚀",ru:"К уроку времени 2! 🚀",th:"ไปกาล บทที่ 2! 🚀",mn:"Цаг 2-р нэгж рүү! 🚀",uz:"Zamon 2-darsga! 🚀"},
+  "뒤로 (발음)":{ko:"뒤로 (발음)",vi:"Quay lại (phát âm)",en:"Back (pronunciation)",zh:"返回(发音)",ja:"戻る(発音)",id:"Kembali (pelafalan)",ru:"Назад (произношение)",th:"กลับ (การออกเสียง)",mn:"Буцах (дуудлага)",uz:"Orqaga (talaffuz)"},
+  "살다 → 살+ㅂ니다 → ㄹ탈락 → 삽니다":{ko:"살다 → 살+ㅂ니다 → ㄹ탈락 → 삽니다",vi:"살다 → 살+ㅂ니다 → ㄹ탈락 → 삽니다",en:"살다 → 살+ㅂ니다 → ㄹ drop → 삽니다",zh:"살다 → 살+ㅂ니다 → ㄹ탈락 → 삽니다",ja:"살다 → 살+ㅂ니다 → ㄹ脱落 → 삽니다",id:"살다 → 살+ㅂ니다 → ㄹ hilang → 삽니다",ru:"살다 → 살+ㅂ니다 → ㄹ выпадает → 삽니다",th:"살다 → 살+ㅂ니다 → ㄹ หาย → 삽니다",mn:"살다 → 살+ㅂ니다 → ㄹ унах → 삽니다",uz:"살다 → 살+ㅂ니다 → ㄹ tushadi → 삽니다"},
+  "알다 → 알+ㅂ니다 → ㄹ탈락 → 압니다":{ko:"알다 → 알+ㅂ니다 → ㄹ탈락 → 압니다",vi:"알다 → 알+ㅂ니다 → ㄹ탈락 → 압니다",en:"알다 → 알+ㅂ니다 → ㄹ drop → 압니다",zh:"알다 → 알+ㅂ니다 → ㄹ탈락 → 압니다",ja:"알다 → 알+ㅂ니다 → ㄹ脱落 → 압니다",id:"알다 → 알+ㅂ니다 → ㄹ hilang → 압니다",ru:"알다 → 알+ㅂ니다 → ㄹ выпадает → 압니다",th:"알다 → 알+ㅂ니다 → ㄹ หาย → 압니다",mn:"알다 → 알+ㅂ니다 → ㄹ унах → 압니다",uz:"알다 → 알+ㅂ니다 → ㄹ tushadi → 압니다"},
+  "만들다 → 만들+ㅂ니다 → ㄹ탈락 → 만듭니다":{ko:"만들다 → 만들+ㅂ니다 → ㄹ탈락 → 만듭니다",vi:"만들다 → 만들+ㅂ니다 → ㄹ탈락 → 만듭니다",en:"만들다 → 만들+ㅂ니다 → ㄹ drop → 만듭니다",zh:"만들다 → 만들+ㅂ니다 → ㄹ탈락 → 만듭니다",ja:"만들다 → 만들+ㅂ니다 → ㄹ脱落 → 만듭니다",id:"만들다 → 만들+ㅂ니다 → ㄹ hilang → 만듭니다",ru:"만들다 → 만들+ㅂ니다 → ㄹ выпадает → 만듭니다",th:"만들다 → 만들+ㅂ니다 → ㄹ หาย → 만듭니다",mn:"만들다 → 만들+ㅂ니다 → ㄹ унах → 만듭니다",uz:"만들다 → 만들+ㅂ니다 → ㄹ tushadi → 만듭니다"},
+  "팔다 → 팔+ㅂ니다 → ㄹ탈락 → 팝니다":{ko:"팔다 → 팔+ㅂ니다 → ㄹ탈락 → 팝니다",vi:"팔다 → 팔+ㅂ니다 → ㄹ탈락 → 팝니다",en:"팔다 → 팔+ㅂ니다 → ㄹ drop → 팝니다",zh:"팔다 → 팔+ㅂ니다 → ㄹ탈락 → 팝니다",ja:"팔다 → 팔+ㅂ니다 → ㄹ脱落 → 팝니다",id:"팔다 → 팔+ㅂ니다 → ㄹ hilang → 팝니다",ru:"팔다 → 팔+ㅂ니다 → ㄹ выпадает → 팝니다",th:"팔다 → 팔+ㅂ니다 → ㄹ หาย → 팝니다",mn:"팔다 → 팔+ㅂ니다 → ㄹ унах → 팝니다",uz:"팔다 → 팔+ㅂ니다 → ㄹ tushadi → 팝니다"},
+  "놀다 → 놀+ㅂ니다 → ㄹ탈락 → 놉니다":{ko:"놀다 → 놀+ㅂ니다 → ㄹ탈락 → 놉니다",vi:"놀다 → 놀+ㅂ니다 → ㄹ탈락 → 놉니다",en:"놀다 → 놀+ㅂ니다 → ㄹ drop → 놉니다",zh:"놀다 → 놀+ㅂ니다 → ㄹ탈락 → 놉니다",ja:"놀다 → 놀+ㅂ니다 → ㄹ脱落 → 놉니다",id:"놀다 → 놀+ㅂ니다 → ㄹ hilang → 놉니다",ru:"놀다 → 놀+ㅂ니다 → ㄹ выпадает → 놉니다",th:"놀다 → 놀+ㅂ니다 → ㄹ หาย → 놉니다",mn:"놀다 → 놀+ㅂ니다 → ㄹ унах → 놉니다",uz:"놀다 → 놀+ㅂ니다 → ㄹ tushadi → 놉니다"},
+  "열다 → 열+ㅂ니다 → ㄹ탈락 → 엽니다":{ko:"열다 → 열+ㅂ니다 → ㄹ탈락 → 엽니다",vi:"열다 → 열+ㅂ니다 → ㄹ탈락 → 엽니다",en:"열다 → 열+ㅂ니다 → ㄹ drop → 엽니다",zh:"열다 → 열+ㅂ니다 → ㄹ탈락 → 엽니다",ja:"열다 → 열+ㅂ니다 → ㄹ脱落 → 엽니다",id:"열다 → 열+ㅂ니다 → ㄹ hilang → 엽니다",ru:"열다 → 열+ㅂ니다 → ㄹ выпадает → 엽니다",th:"열다 → 열+ㅂ니다 → ㄹ หาย → 엽니다",mn:"열다 → 열+ㅂ니다 → ㄹ унах → 엽니다",uz:"열다 → 열+ㅂ니다 → ㄹ tushadi → 엽니다"},
+  "들다 → 들+ㅂ니다 → ㄹ탈락 → 듭니다":{ko:"들다 → 들+ㅂ니다 → ㄹ탈락 → 듭니다",vi:"들다 → 들+ㅂ니다 → ㄹ탈락 → 듭니다",en:"들다 → 들+ㅂ니다 → ㄹ drop → 듭니다",zh:"들다 → 들+ㅂ니다 → ㄹ탈락 → 듭니다",ja:"들다 → 들+ㅂ니다 → ㄹ脱落 → 듭니다",id:"들다 → 들+ㅂ니다 → ㄹ hilang → 듭니다",ru:"들다 → 들+ㅂ니다 → ㄹ выпадает → 듭니다",th:"들다 → 들+ㅂ니다 → ㄹ หาย → 듭니다",mn:"들다 → 들+ㅂ니다 → ㄹ унах → 듭니다",uz:"들다 → 들+ㅂ니다 → ㄹ tushadi → 듭니다"},
+  "울다 → 울+ㅂ니다 → ㄹ탈락 → 웁니다":{ko:"울다 → 울+ㅂ니다 → ㄹ탈락 → 웁니다",vi:"울다 → 울+ㅂ니다 → ㄹ탈락 → 웁니다",en:"울다 → ㄹ drop → 웁니다",zh:"울다 → ㄹ탈락 → 웁니다",ja:"울다 → ㄹ脱落 → 웁니다",id:"울다 → ㄹ hilang → 웁니다",ru:"울다 → ㄹ выпадает → 웁니다",th:"울다 → ㄹ หาย → 웁니다",mn:"울다 → ㄹ унах → 웁니다",uz:"울다 → ㄹ tushadi → 웁니다"},
+  "날다 → 날+ㅂ니다 → ㄹ탈락 → 납니다":{ko:"날다 → 날+ㅂ니다 → ㄹ탈락 → 납니다",vi:"날다 → 날+ㅂ니다 → ㄹ탈락 → 납니다",en:"날다 → ㄹ drop → 납니다",zh:"날다 → ㄹ탈락 → 납니다",ja:"날다 → ㄹ脱落 → 납니다",id:"날다 → ㄹ hilang → 납니다",ru:"날다 → ㄹ выпадает → 납니다",th:"날다 → ㄹ หาย → 납니다",mn:"날다 → ㄹ унах → 납니다",uz:"날다 → ㄹ tushadi → 납니다"},
+  "있다 → 있+습니다 → 있습니다 (그대로!)":{ko:"있다 → 있+습니다 → 있습니다 (그대로!)",vi:"있다 → 있습니다 (giữ nguyên!)",en:"있다 → 있습니다 (stays the same!)",zh:"있다 → 있습니다 (不变!)",ja:"있다 → 있습니다 (そのまま!)",id:"있다 → 있습니다 (tetap sama!)",ru:"있다 → 있습니다 (без изменений!)",th:"있다 → 있습니다 (เหมือนเดิม!)",mn:"있다 → 있습니다 (өөрчлөгдөхгүй!)",uz:"있다 → 있습니다 (o'zgarmaydi!)"},
+  "없다 → 없+습니다 → 없습니다 (그대로!)":{ko:"없다 → 없+습니다 → 없습니다 (그대로!)",vi:"없다 → 없습니다 (giữ nguyên!)",en:"없다 → 없습니다 (stays the same!)",zh:"없다 → 없습니다 (不变!)",ja:"없다 → 없습니다 (そのまま!)",id:"없다 → 없습니다 (tetap sama!)",ru:"없다 → 없습니다 (без изменений!)",th:"없다 → 없습니다 (เหมือนเดิม!)",mn:"없다 → 없습니다 (өөрчлөгдөхгүй!)",uz:"없다 → 없습니다 (o'zgarmaydi!)"},
+  "재미있다 → 재미있+습니다 → 재미있습니다 (그대로!)":{ko:"재미있다 → 재미있+습니다 → 재미있습니다 (그대로!)",vi:"재미있다 → 재미있습니다 (giữ nguyên!)",en:"재미있다 → 재미있습니다 (stays the same!)",zh:"재미있다 → 재미있습니다 (不变!)",ja:"재미있다 → 재미있습니다 (そのまま!)",id:"재미있다 → 재미있습니다 (tetap!)",ru:"재미있다 → 재미있습니다 (без изменений!)",th:"재미있다 → 재미있습니다 (เหมือนเดิม!)",mn:"재미있다 → 재미있습니다 (өөрчлөгдөхгүй!)",uz:"재미있다 → 재미있습니다 (o'zgarmaydi!)"},
+  "맛있다 → 맛있+습니다 → 맛있습니다 (그대로!)":{ko:"맛있다 → 맛있+습니다 → 맛있습니다 (그대로!)",vi:"맛있다 → 맛있습니다 (giữ nguyên!)",en:"맛있다 → 맛있습니다 (stays the same!)",zh:"맛있다 → 맛있습니다 (不变!)",ja:"맛있다 → 맛있습니다 (そのまま!)",id:"맛있다 → 맛있습니다 (tetap!)",ru:"맛있다 → 맛있습니다 (без изменений!)",th:"맛있다 → 맛있습니다 (เหมือนเดิม!)",mn:"맛있다 → 맛있습니다 (өөрчлөгдөхгүй!)",uz:"맛있다 → 맛있습니다 (o'zgarmaydi!)"},
+  "되다 → 되+ㅂ니다 → ㄹ탈락 → 됩니다":{ko:"되다 → 되+ㅂ니다 → ㄹ탈락 → 됩니다",vi:"되다 → ㄹ탈락 → 됩니다",en:"되다 → ㄹ drop → 됩니다",zh:"되다 → ㄹ탈락 → 됩니다",ja:"되다 → ㄹ脱落 → 됩니다",id:"되다 → ㄹ hilang → 됩니다",ru:"되다 → ㄹ выпадает → 됩니다",th:"되다 → ㄹ หาย → 됩니다",mn:"되다 → ㄹ унах → 됩니다",uz:"되다 → ㄹ tushadi → 됩니다"},
+  "쉬다 → 쉬+ㅂ니다 → ㄹ탈락 → 쉽니다":{ko:"쉬다 → 쉬+ㅂ니다 → ㄹ탈락 → 쉽니다",vi:"쉬다 → ㄹ탈락 → 쉽니다",en:"쉬다 → ㄹ drop → 쉽니다",zh:"쉬다 → ㄹ탈락 → 쉽니다",ja:"쉬다 → ㄹ脱落 → 쉽니다",id:"쉬다 → ㄹ hilang → 쉽니다",ru:"쉬다 → ㄹ выпадает → 쉽니다",th:"쉬다 → ㄹ หาย → 쉽니다",mn:"쉬다 → ㄹ унах → 쉽니다",uz:"쉬다 → ㄹ tushadi → 쉽니다"},
+  "같다 → 같+습니다 → 같습니다 (그대로!)":{ko:"같다 → 같+습니다 → 같습니다 (그대로!)",vi:"같다 → 같습니다 (giữ nguyên!)",en:"같다 → 같습니다 (stays the same!)",zh:"같다 → 같습니다 (不变!)",ja:"같다 → 같습니다 (そのまま!)",id:"같다 → 같습니다 (tetap!)",ru:"같다 → 같습니다 (без изменений!)",th:"같다 → 같습니다 (เหมือนเดิม!)",mn:"같다 → 같습니다 (өөрчлөгдөхгүй!)",uz:"같다 → 같습니다 (o'zgarmaydi!)"},
+  "싸다 → 싸+ㅂ니다 → ㄹ탈락 → 쌉니다":{ko:"싸다 → 싸+ㅂ니다 → ㄹ탈락 → 쌉니다",vi:"싸다 → ㄹ탈락 → 쌉니다",en:"싸다 → ㄹ drop → 쌉니다",zh:"싸다 → ㄹ탈락 → 쌉니다",ja:"싸다 → ㄹ脱落 → 쌉니다",id:"싸다 → ㄹ hilang → 쌉니다",ru:"싸다 → ㄹ выпадает → 쌉니다",th:"싸다 → ㄹ หาย → 쌉니다",mn:"싸다 → ㄹ унах → 쌉니다",uz:"싸다 → ㄹ tushadi → 쌉니다"},
+  "비싸다 → 비싸+ㅂ니다 → ㄹ탈락 → 비쌉니다":{ko:"비싸다 → 비싸+ㅂ니다 → ㄹ탈락 → 비쌉니다",vi:"비싸다 → ㄹ탈락 → 비쌉니다",en:"비싸다 → ㄹ drop → 비쌉니다",zh:"비싸다 → ㄹ탈락 → 비쌉니다",ja:"비싸다 → ㄹ脱落 → 비쌉니다",id:"비싸다 → ㄹ hilang → 비쌉니다",ru:"비싸다 → ㄹ выпадает → 비쌉니다",th:"비싸다 → ㄹ หาย → 비쌉니다",mn:"비싸다 → ㄹ унах → 비쌉니다",uz:"비싸다 → ㄹ tushadi → 비쌉니다"},
+  "시제 2단원 — ㄹ탈락 동사 + 있다/없다 계열":{ko:"시제 2단원 — ㄹ탈락 동사 + 있다/없다 계열",vi:"Thì bài 2 — Động từ ㄹ탈락 + 있다/없다",en:"Tense Unit 2 — ㄹ drop verbs + 있다/없다",zh:"时态第2课 — ㄹ脱落动词+있다/없다",ja:"時制第2課 — ㄹ脱落動詞+있다/없다",id:"Kala Unit 2 — Kata Kerja ㄹ탈락+있다/없다",ru:"Время Урок 2 — Глаголы ㄹ+있다/없다",th:"กาล บทที่ 2 — กริยา ㄹ탈락+있다/없다",mn:"Цаг 2-р нэгж — ㄹ унах үйл үг+있다/없다",uz:"Zamon 2-dars — ㄹ tushuvchi fe'l+있다/없다"},
+  "시제 3단원으로! 🚀":{ko:"시제 3단원으로! 🚀",vi:"Sang bài thì 3! 🚀",en:"To Tense Unit 3! 🚀",zh:"进入时态第3课! 🚀",ja:"時制第3課へ! 🚀",id:"Ke Kala Unit 3! 🚀",ru:"К уроку 3! 🚀",th:"ไปกาล บทที่ 3! 🚀",mn:"Цаг 3-р нэгж рүү! 🚀",uz:"Zamon 3-darsga! 🚀"},
+  "뒤로 (시제 1단원)":{ko:"뒤로 (시제 1단원)",vi:"Quay lại (Thì bài 1)",en:"Back (Tense Unit 1)",zh:"返回(时态第1课)",ja:"戻る(時制第1課)",id:"Kembali (Kala Unit 1)",ru:"Назад (Время Урок 1)",th:"กลับ (กาล บทที่ 1)",mn:"Буцах (Цаг 1-р нэгж)",uz:"Orqaga (Zamon 1-dars)"},
+  "주제":{ko:"주제",vi:"Chủ đề",en:"Topic",zh:"主题",ja:"テーマ",id:"Topik",ru:"Тема",th:"หัวข้อ",mn:"Сэдэв",uz:"Mavzu"},
+  "주어(주격)":{ko:"주어(주격)",vi:"Chủ ngữ",en:"Subject",zh:"主语",ja:"主語",id:"Subjek",ru:"Подлежащее",th:"ประธาน",mn:"Эзний тийн ялгал",uz:"Ega"},
+  "목적어":{ko:"목적어",vi:"Tân ngữ",en:"Object",zh:"宾语",ja:"目的語",id:"Objek",ru:"Дополнение",th:"กรรม",mn:"Үйл үгийн тийн ялгал",uz:"To'ldiruvchi"},
+  "and (연결)":{ko:"and (연결)",vi:"and (kết nối)",en:"and (connector)",zh:"and (连接)",ja:"and (接続)",id:"and (penghubung)",ru:"and (связка)",th:"and (เชื่อม)",mn:"and (холболт)",uz:"and (bog'lovchi)"},
+  "or (선택)":{ko:"or (선택)",vi:"or (lựa chọn)",en:"or (choice)",zh:"or (选择)",ja:"or (選択)",id:"or (pilihan)",ru:"or (выбор)",th:"or (ตัวเลือก)",mn:"or (сонголт)",uz:"or (tanlov)"},
+  "도 (함께)":{ko:"도 (함께)",vi:"도 (cùng)",en:"도 (also/too)",zh:"도 (也)",ja:"도 (も)",id:"도 (juga)",ru:"도 (тоже)",th:"도 (ด้วย)",mn:"도 (мөн)",uz:"도 (ham)"},
+  "2단계/8단계 — 조사·대명사":{ko:"2단계/8단계 — 조사·대명사",vi:"Bước 2/8 — Trợ từ·Đại từ",en:"Step 2/8 — Particles·Pronouns",zh:"第2步/8步 — 助词·代词",ja:"ステップ2/8 — 助詞·代名詞",id:"Langkah 2/8 — Partikel·Kata Ganti",ru:"Шаг 2/8 — Частицы·Местоимения",th:"ขั้นตอน 2/8 — อนุภาค·สรรพนาม",mn:"2-р алхам/8 — Нөхцөл·Төлөөний үг",uz:"2-qadam/8 — Yuklama·Olmosh"},
+  "조사 학습":{ko:"조사 학습",vi:"Học trợ từ",en:"Particle Learning",zh:"助词学习",ja:"助詞学習",id:"Belajar Partikel",ru:"Изучение частиц",th:"การเรียนอนุภาค",mn:"Нөхцөл сурах",uz:"Yuklama o'rganish"},
+  "어휘 선택 → 각 칸을 눌러서 확인해보세요":{ko:"어휘 선택 → 각 칸을 눌러서 확인해보세요",vi:"Chọn từ vựng → nhấn vào mỗi ô để kiểm tra",en:"Select vocabulary → tap each box to check",zh:"选择词汇 → 点击每格查看",ja:"語彙を選択 → 各セルをタップして確認",id:"Pilih kosakata → ketuk tiap kotak untuk cek",ru:"Выберите словарь → нажмите каждую ячейку",th:"เลือกคำศัพท์ → แตะแต่ละช่องเพื่อตรวจสอบ",mn:"Үгийн сан → Тус бүр дарж шалгана уу",uz:"So'z tanlang → har bir katakni bosib tekshiring"},
+  "핵심 규칙 — 받침 유무":{ko:"핵심 규칙 — 받침 유무",vi:"Quy tắc cốt lõi — có hay không có batchim",en:"Core Rule — with or without batchim",zh:"核心规则 — 有无收音",ja:"核心ルール — パッチムの有無",id:"Aturan Inti — ada tidaknya batchim",ru:"Основное правило — наличие батчима",th:"กฎหลัก — มีหรือไม่มีบัตชิม",mn:"Үндсэн дүрэм — бачим байгаа эсэх",uz:"Asosiy qoida — batchim bor yoki yo'q"},
+  "어휘를 선택하세요:":{ko:"어휘를 선택하세요:",vi:"Chọn từ vựng:",en:"Select vocabulary:",zh:"请选择词汇:",ja:"語彙を選択してください:",id:"Pilih kosakata:",ru:"Выберите словарь:",th:"เลือกคำศัพท์:",mn:"Үгийн санг сонгоно уу:",uz:"So'z tanlang:"},
+  "받침 있":{ko:"받침 있",vi:"Có batchim",en:"With batchim",zh:"有收音",ja:"パッチムあり",id:"Ada batchim",ru:"С батчимом",th:"มีบัตชิม",mn:"Бачимтай",uz:"Batchim bor"},
+  "받침 없":{ko:"받침 없",vi:"Không batchim",en:"No batchim",zh:"无收音",ja:"パッチムなし",id:"Tanpa batchim",ru:"Без батчима",th:"ไม่มีบัตชิม",mn:"Бачимгүй",uz:"Batchim yo'q"},
+  "받침 있음 → 은·이·을·과·이나·도":{ko:"받침 있음 → 은·이·을·과·이나·도",vi:"Có batchim → 은·이·을·과·이나·도",en:"With batchim → 은·이·을·과·이나·도",zh:"有收音 → 은·이·을·과·이나·도",ja:"パッチムあり → 은·이·을·과·이나·도",id:"Ada batchim → 은·이·을·과·이나·도",ru:"С батчимом → 은·이·을·과·이나·도",th:"มีบัตชิม → 은·이·을·과·이나·도",mn:"Бачимтай → 은·이·을·과·이나·도",uz:"Batchim bor → 은·이·을·과·이나·도"},
+  "받침 없음 → 는·가·를·와·나·도":{ko:"받침 없음 → 는·가·를·와·나·도",vi:"Không batchim → 는·가·를·와·나·도",en:"No batchim → 는·가·를·와·나·도",zh:"无收音 → 는·가·를·와·나·도",ja:"パッチムなし → 는·가·를·와·나·도",id:"Tanpa batchim → 는·가·를·와·나·도",ru:"Без батчима → 는·가·를·와·나·도",th:"ไม่มีบัตชิม → 는·가·를·와·나·도",mn:"Бачимгүй → 는·가·를·와·나·도",uz:"Batchim yo'q → 는·가·를·와·나·도"},
+  "각 칸을 눌러 확인하세요 👇":{ko:"각 칸을 눌러 확인하세요 👇",vi:"Nhấn vào mỗi ô để kiểm tra 👇",en:"Tap each box to check 👇",zh:"点击每格查看 👇",ja:"各セルをタップして確認 👇",id:"Ketuk tiap kotak untuk cek 👇",ru:"Нажмите каждую ячейку 👇",th:"แตะแต่ละช่องเพื่อตรวจสอบ 👇",mn:"Тус бүр дарж шалгана уу 👇",uz:"Har bir katakni bosib tekshiring 👇"},
+  "확인":{ko:"확인",vi:"Xác nhận",en:"Check",zh:"确认",ja:"確認",id:"Konfirmasi",ru:"Проверить",th:"ยืนยัน",mn:"Шалгах",uz:"Tasdiqlash"},
+  "다시 도전!":{ko:"다시 도전!",vi:"Thử lại!",en:"Try again!",zh:"再次挑战!",ja:"再挑戦!",id:"Coba lagi!",ru:"Попробовать снова!",th:"ลองอีกครั้ง!",mn:"Дахин оролдох!",uz:"Qayta sinash!"},
+  "← 위에서 어휘를 선택하세요!":{ko:"← 위에서 어휘를 선택하세요!",vi:"← Chọn từ vựng ở trên!",en:"← Select vocabulary above!",zh:"← 请在上方选择词汇!",ja:"← 上から語彙を選択してください!",id:"← Pilih kosakata di atas!",ru:"← Выберите словарь выше!",th:"← เลือกคำศัพท์ด้านบน!",mn:"← Дээрээс үгийн санг сонгоно уу!",uz:"← Yuqoridan so'z tanlang!"},
+  "의문 대명사 학습으로 →":{ko:"의문 대명사 학습으로 →",vi:"Sang học đại từ nghi vấn →",en:"To question pronouns →",zh:"进入疑问代词学习 →",ja:"疑問代名詞学習へ →",id:"Ke pelajaran kata tanya →",ru:"К вопросительным местоимениям →",th:"ไปเรียนสรรพนามคำถาม →",mn:"Асуух төлөөний үгийн хичээл рүү →",uz:"So'roq olmoshlarini o'rganishga →"},
+  "뒤로":{ko:"뒤로",vi:"Quay lại",en:"Back",zh:"返回",ja:"戻る",id:"Kembali",ru:"Назад",th:"กลับ",mn:"Буцах",uz:"Orqaga"},
+  "사람":{ko:"사람",vi:"Người",en:"Person",zh:"人",ja:"人",id:"Orang",ru:"Человек",th:"คน",mn:"Хүн",uz:"Odam"},
+  "주어":{ko:"주어",vi:"Chủ ngữ",en:"Subject",zh:"主语",ja:"主語",id:"Subjek",ru:"Подлежащее",th:"ประธาน",mn:"Эзний тийн ялгал",uz:"Ega"},
+  "부사어":{ko:"부사어",vi:"Phó từ",en:"Adverb",zh:"副词",ja:"副詞",id:"Adverbia",ru:"Наречие",th:"กริยาวิเศษณ์",mn:"Тодотгол үг",uz:"Ravish"},
+  "간접목적어":{ko:"간접목적어",vi:"Tân ngữ gián tiếp",en:"Indirect object",zh:"间接宾语",ja:"間接目的語",id:"Objek tidak langsung",ru:"Косвенное дополнение",th:"กรรมรอง",mn:"Шууд бус үйл үгийн тийн ялгал",uz:"Bilvosita to'ldiruvchi"},
+  "서술어":{ko:"서술어",vi:"Vị ngữ",en:"Predicate",zh:"谓语",ja:"述語",id:"Predikat",ru:"Сказуемое",th:"ภาคแสดง",mn:"Өгүүлэгдэхүүн",uz:"Kesim"},
+  "시간":{ko:"시간",vi:"Thời gian",en:"Time",zh:"时间",ja:"時間",id:"Waktu",ru:"Время",th:"เวลา",mn:"Цаг",uz:"Vaqt"},
+  "부사어(시간)":{ko:"부사어(시간)",vi:"Phó từ (thời gian)",en:"Adverb (time)",zh:"副词(时间)",ja:"副詞(時間)",id:"Adverbia (waktu)",ru:"Наречие (время)",th:"กริยาวิเศษณ์ (เวลา)",mn:"Тодотгол үг (цаг)",uz:"Ravish (vaqt)"},
+  "장소":{ko:"장소",vi:"Địa điểm",en:"Place",zh:"地点",ja:"場所",id:"Tempat",ru:"Место",th:"สถานที่",mn:"Газар",uz:"Joy"},
+  "부사어(장소·존재)":{ko:"부사어(장소·존재)",vi:"Phó từ (nơi·tồn tại)",en:"Adverb (place·existence)",zh:"副词(地点·存在)",ja:"副詞(場所·存在)",id:"Adverbia (tempat·keberadaan)",ru:"Наречие (место·существование)",th:"กริยาวิเศษณ์ (สถานที่·การมีอยู่)",mn:"Тодотгол үг (газар·оршин байдал)",uz:"Ravish (joy·mavjudlik)"},
+  "부사어(장소·행동)":{ko:"부사어(장소·행동)",vi:"Phó từ (nơi·hành động)",en:"Adverb (place·action)",zh:"副词(地点·行动)",ja:"副詞(場所·行動)",id:"Adverbia (tempat·tindakan)",ru:"Наречие (место·действие)",th:"กริยาวิเศษณ์ (สถานที่·การกระทำ)",mn:"Тодотгол үг (газар·үйлдэл)",uz:"Ravish (joy·harakat)"},
+  "사물":{ko:"사물",vi:"Đồ vật",en:"Object/Thing",zh:"事物",ja:"物",id:"Benda",ru:"Предмет",th:"สิ่งของ",mn:"Зүйл",uz:"Narsa"},
+  "목적어(구어)":{ko:"목적어(구어)",vi:"Tân ngữ (khẩu ngữ)",en:"Object (colloquial)",zh:"宾语(口语)",ja:"目的語(口語)",id:"Objek (percakapan)",ru:"Дополнение (разговорное)",th:"กรรม (ภาษาพูด)",mn:"Үйл үгийн тийн ялгал (ярианы хэл)",uz:"To'ldiruvchi (so'zlashuv)"},
+  "이유":{ko:"이유",vi:"Lý do",en:"Reason",zh:"原因",ja:"理由",id:"Alasan",ru:"Причина",th:"เหตุผล",mn:"Шалтгаан",uz:"Sabab"},
+  "부사어(이유·기본)":{ko:"부사어(이유·기본)",vi:"Phó từ (lý do·cơ bản)",en:"Adverb (reason·basic)",zh:"副词(原因·基本)",ja:"副詞(理由·基本)",id:"Adverbia (alasan·dasar)",ru:"Наречие (причина·основное)",th:"กริยาวิเศษณ์ (เหตุผล·พื้นฐาน)",mn:"Тодотгол үг (шалтгаан·үндсэн)",uz:"Ravish (sabab·asosiy)"},
+  "부사어(시간+이유)":{ko:"부사어(시간+이유)",vi:"Phó từ (thời gian+lý do)",en:"Adverb (time+reason)",zh:"副词(时间+原因)",ja:"副詞(時間+理由)",id:"Adverbia (waktu+alasan)",ru:"Наречие (время+причина)",th:"กริยาวิเศษณ์ (เวลา+เหตุผล)",mn:"Тодотгол үг (цаг+шалтгаан)",uz:"Ravish (vaqt+sabab)"},
+  "부사어(장소+이유)":{ko:"부사어(장소+이유)",vi:"Phó từ (nơi+lý do)",en:"Adverb (place+reason)",zh:"副词(地点+原因)",ja:"副詞(場所+理由)",id:"Adverbia (tempat+alasan)",ru:"Наречие (место+причина)",th:"กริยาวิเศษณ์ (สถานที่+เหตุผล)",mn:"Тодотгол үг (газар+шалтгаан)",uz:"Ravish (joy+sabab)"},
+  "간접목적어+목적어+이유":{ko:"간접목적어+목적어+이유",vi:"Tân ngữ gián tiếp+tân ngữ+lý do",en:"Indirect object+object+reason",zh:"间接宾语+宾语+原因",ja:"間接目的語+目的語+理由",id:"Objek tak langsung+objek+alasan",ru:"Косв. допол.+допол.+причина",th:"กรรมรอง+กรรม+เหตุผล",mn:"Шууд бус үйл үгийн тийн+шалтгаан",uz:"Bilvosita to'ldiruvchi+sabab"},
+  "의문 대명사":{ko:"의문 대명사",vi:"Đại từ nghi vấn",en:"Question pronouns",zh:"疑问代词",ja:"疑問代名詞",id:"Kata tanya",ru:"Вопросительные местоимения",th:"คำสรรพนามคำถาม",mn:"Асуух төлөөний үг",uz:"So'roq olmoshlari"},
+  "문장 성분별 사용법을 확인하세요":{ko:"문장 성분별 사용법을 확인하세요",vi:"Kiểm tra cách dùng theo thành phần câu",en:"Check usage by sentence component",zh:"按句子成分确认用法",ja:"文の成分別の使い方を確認してください",id:"Periksa penggunaan per komponen kalimat",ru:"Проверьте использование по компонентам",th:"ตรวจสอบการใช้งานตามส่วนประกอบประโยค",mn:"Өгүүлбэрийн гишүүдийн хэрэглээг шалгана уу",uz:"Gap bo'laklari bo'yicha foydalanishni tekshiring"},
+  "의문대명사 테스트! 📝":{ko:"의문대명사 테스트! 📝",vi:"Kiểm tra đại từ nghi vấn! 📝",en:"Question pronoun test! 📝",zh:"疑问代词测试! 📝",ja:"疑問代名詞テスト! 📝",id:"Tes kata tanya! 📝",ru:"Тест вопросительных местоимений! 📝",th:"ทดสอบสรรพนามคำถาม! 📝",mn:"Асуух төлөөний үгийн тест! 📝",uz:"So'roq olmoshlari testi! 📝"},
+  "돕다 → ㅂ탈락 → 도+아서 → 도왔습니다":{ko:"돕다 → ㅂ탈락 → 도+아서 → 도왔습니다",vi:"돕다 → ㅂ탈락 → 도왔습니다",en:"돕다 → ㅂ drop → 도왔습니다",zh:"돕다 → ㅂ탈락 → 도왔습니다",ja:"돕다 → ㅂ脱落 → 도왔습니다",id:"돕다 → ㅂ hilang → 도왔습니다",ru:"돕다 → ㅂ выпадает → 도왔습니다",th:"돕다 → ㅂ หาย → 도왔습니다",mn:"돕다 → ㅂ унах → 도왔습니다",uz:"돕다 → ㅂ tushadi → 도왔습니다"},
+  "눕다 → ㅂ탈락 → 누+워서 → 누웠습니다":{ko:"눕다 → ㅂ탈락 → 누+워서 → 누웠습니다",vi:"눕다 → ㅂ탈락 → 누웠습니다",en:"눕다 → ㅂ drop → 누웠습니다",zh:"눕다 → ㅂ탈락 → 누웠습니다",ja:"눕다 → ㅂ脱落 → 누웠습니다",id:"눕다 → ㅂ hilang → 누웠습니다",ru:"눕다 → ㅂ выпадает → 누웠습니다",th:"눕다 → ㅂ หาย → 누웠습니다",mn:"눕다 → ㅂ унах → 누웠습니다",uz:"눕다 → ㅂ tushadi → 누웠습니다"},
+  "쉽다 → ㅂ탈락 → 쉬+워서 → 쉬웠습니다":{ko:"쉽다 → ㅂ탈락 → 쉬+워서 → 쉬웠습니다",vi:"쉽다 → ㅂ탈락 → 쉬웠습니다",en:"쉽다 → ㅂ drop → 쉬웠습니다",zh:"쉽다 → ㅂ탈락 → 쉬웠습니다",ja:"쉽다 → ㅂ脱落 → 쉬웠습니다",id:"쉽다 → ㅂ hilang → 쉬웠습니다",ru:"쉽다 → ㅂ выпадает → 쉬웠습니다",th:"쉽다 → ㅂ หาย → 쉬웠습니다",mn:"쉽다 → ㅂ унах → 쉬웠습니다",uz:"쉽다 → ㅂ tushadi → 쉬웠습니다"},
+  "어렵다 → ㅂ탈락 → 어려+워서 → 어려웠습니다":{ko:"어렵다 → ㅂ탈락 → 어려+워서 → 어려웠습니다",vi:"어렵다 → ㅂ탈락 → 어려웠습니다",en:"어렵다 → ㅂ drop → 어려웠습니다",zh:"어렵다 → ㅂ탈락 → 어려웠습니다",ja:"어렵다 → ㅂ脱落 → 어려웠습니다",id:"어렵다 → ㅂ hilang → 어려웠습니다",ru:"어렵다 → ㅂ выпадает → 어려웠습니다",th:"어렵다 → ㅂ หาย → 어려웠습니다",mn:"어렵다 → ㅂ унах → 어려웠습니다",uz:"어렵다 → ㅂ tushadi → 어려웠습니다"},
+  "크다 → 으탈락 → 크+아서 → 컸습니다":{ko:"크다 → 으탈락 → 크+아서 → 컸습니다",vi:"크다 → 으탈락 → 컸습니다",en:"크다 → 으 drop → 컸습니다",zh:"크다 → 으탈락 → 컸습니다",ja:"크다 → 으脱落 → 컸습니다",id:"크다 → 으 hilang → 컸습니다",ru:"크다 → 으 выпадает → 컸습니다",th:"크다 → 으 หาย → 컸습니다",mn:"크다 → 으 унах → 컸습니다",uz:"크다 → 으 tushadi → 컸습니다"},
+  "기쁘다 → 으탈락 → 기쁘+어서 → 기뻤습니다":{ko:"기쁘다 → 으탈락 → 기쁘+어서 → 기뻤습니다",vi:"기쁘다 → 으탈락 → 기뻤습니다",en:"기쁘다 → 으 drop → 기뻤습니다",zh:"기쁘다 → 으탈락 → 기뻤습니다",ja:"기쁘다 → 으脱落 → 기뻤습니다",id:"기쁘다 → 으 hilang → 기뻤습니다",ru:"기쁘다 → 으 выпадает → 기뻤습니다",th:"기쁘다 → 으 หาย → 기뻤습니다",mn:"기쁘다 → 으 унах → 기뻤습니다",uz:"기쁘다 → 으 tushadi → 기뻤습니다"},
+  "예쁘다 → 으탈락 → 예쁘+어서 → 예뻤습니다":{ko:"예쁘다 → 으탈락 → 예쁘+어서 → 예뻤습니다",vi:"예쁘다 → 으탈락 → 예뻤습니다",en:"예쁘다 → 으 drop → 예뻤습니다",zh:"예쁘다 → 으탈락 → 예뻤습니다",ja:"예쁘다 → 으脱落 → 예뻤습니다",id:"예쁘다 → 으 hilang → 예뻤습니다",ru:"예쁘다 → 으 выпадает → 예뻤습니다",th:"예쁘다 → 으 หาย → 예뻤습니다",mn:"예쁘다 → 으 унах → 예뻤습니다",uz:"예쁘다 → 으 tushadi → 예뻤습니다"},
+  "슬프다 → 으탈락 → 슬프+어서 → 슬펐습니다":{ko:"슬프다 → 으탈락 → 슬프+어서 → 슬펐습니다",vi:"슬프다 → 으탈락 → 슬펐습니다",en:"슬프다 → 으 drop → 슬펐습니다",zh:"슬프다 → 으탈락 → 슬펐습니다",ja:"슬프다 → 으脱落 → 슬펐습니다",id:"슬프다 → 으 hilang → 슬펐습니다",ru:"슬프다 → 으 выпадает → 슬펐습니다",th:"슬프다 → 으 หาย → 슬펐습니다",mn:"슬프다 → 으 унах → 슬펐습니다",uz:"슬프다 → 으 tushadi → 슬펐습니다"},
+  "바쁘다 → 으탈락 → 바쁘+아서 → 바빴습니다":{ko:"바쁘다 → 으탈락 → 바쁘+아서 → 바빴습니다",vi:"바쁘다 → 으탈락 → 바빴습니다",en:"바쁘다 → 으 drop → 바빴습니다",zh:"바쁘다 → 으탈락 → 바빴습니다",ja:"바쁘다 → 으脱落 → 바빴습니다",id:"바쁘다 → 으 hilang → 바빴습니다",ru:"바쁘다 → 으 выпадает → 바빴습니다",th:"바쁘다 → 으 หาย → 바빴습니다",mn:"바쁘다 → 으 унах → 바빴습니다",uz:"바쁘다 → 으 tushadi → 바빴습니다"},
+  "아프다 → 으탈락 → 아프+아서 → 아팠습니다":{ko:"아프다 → 으탈락 → 아프+아서 → 아팠습니다",vi:"아프다 → 으탈락 → 아팠습니다",en:"아프다 → 으 drop → 아팠습니다",zh:"아프다 → 으탈락 → 아팠습니다",ja:"아프다 → 으脱落 → 아팠습니다",id:"아프다 → 으 hilang → 아팠습니다",ru:"아프다 → 으 выпадает → 아팠습니다",th:"아프다 → 으 หาย → 아팠습니다",mn:"아프다 → 으 унах → 아팠습니다",uz:"아프다 → 으 tushadi → 아팠습니다"},
+  "ㅂ불규칙":{ko:"ㅂ불규칙",vi:"Bất quy tắc ㅂ",en:"ㅂ Irregular",zh:"ㅂ不规则",ja:"ㅂ不規則",id:"Tidak beraturan ㅂ",ru:"Нерегулярное ㅂ",th:"ผิดปกติ ㅂ",mn:"ㅂ тэгш бус",uz:"ㅂ tartibsiz"},
+  "으탈락":{ko:"으탈락",vi:"Lược bỏ 으",en:"으 drop",zh:"으탈락",ja:"으脱落",id:"으 hilang",ru:"으 выпадает",th:"으 หายไป",mn:"으 унах",uz:"으 tushish"},
+  "시제 3단원 — ㅂ불규칙 + 으탈락 형용사":{ko:"시제 3단원 — ㅂ불규칙 + 으탈락 형용사",vi:"Thì bài 3 — Tính từ ㅂ bất quy tắc+으탈락",en:"Tense Unit 3 — ㅂ irregular + 으 drop adjectives",zh:"时态第3课 — ㅂ不规则+으탈락形容词",ja:"時制第3課 — ㅂ不規則+으脱落形容詞",id:"Kala Unit 3 — Kata Sifat ㅂ tdk beraturan+으탈락",ru:"Время Урок 3 — ㅂ нерегулярное+으 прилагательные",th:"กาล บทที่ 3 — คุณศัพท์ ㅂ ผิดปกติ+으탈락",mn:"Цаг 3-р нэгж — ㅂ тэгш бус+으 тэмдэг нэр",uz:"Zamon 3-dars — ㅂ tartibsiz+으 sifatlar"},
+  "시제 4단원으로! 🚀":{ko:"시제 4단원으로! 🚀",vi:"Sang bài thì 4! 🚀",en:"To Tense Unit 4! 🚀",zh:"进入时态第4课! 🚀",ja:"時制第4課へ! 🚀",id:"Ke Kala Unit 4! 🚀",ru:"К уроку 4! 🚀",th:"ไปกาล บทที่ 4! 🚀",mn:"Цаг 4-р нэгж рүү! 🚀",uz:"Zamon 4-darsga! 🚀"},
+  "뒤로 (시제 2단원)":{ko:"뒤로 (시제 2단원)",vi:"Quay lại (Thì bài 2)",en:"Back (Tense Unit 2)",zh:"返回(时态第2课)",ja:"戻る(時制第2課)",id:"Kembali (Kala Unit 2)",ru:"Назад (Время Урок 2)",th:"กลับ (กาล บทที่ 2)",mn:"Буцах (Цаг 2-р нэгж)",uz:"Orqaga (Zamon 2-dars)"},
+  "걷다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 걸었습니다":{ko:"걷다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 걸었습니다",vi:"걷다 → ㄷ→ㄹ → 걸었습니다",en:"걷다 → ㄷ irregular → ㄷ→ㄹ → 걸었습니다",zh:"걷다 → ㄷ不规则 → ㄷ→ㄹ → 걸었습니다",ja:"걷다 → ㄷ不規則 → ㄷ→ㄹ → 걸었습니다",id:"걷다 → ㄷ→ㄹ → 걸었습니다",ru:"걷다 → ㄷ нерегул. → ㄷ→ㄹ → 걸었습니다",th:"걷다 → ㄷ→ㄹ → 걸었습니다",mn:"걷다 → ㄷ→ㄹ → 걸었습니다",uz:"걷다 → ㄷ→ㄹ → 걸었습니다"},
+  "듣다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 들었습니다":{ko:"듣다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 들었습니다",vi:"듣다 → ㄷ→ㄹ → 들었습니다",en:"듣다 → ㄷ irregular → ㄷ→ㄹ → 들었습니다",zh:"듣다 → ㄷ不规则 → ㄷ→ㄹ → 들었습니다",ja:"듣다 → ㄷ不規則 → ㄷ→ㄹ → 들었습니다",id:"듣다 → ㄷ→ㄹ → 들었습니다",ru:"듣다 → ㄷ нерегул. → ㄷ→ㄹ → 들었습니다",th:"듣다 → ㄷ→ㄹ → 들었습니다",mn:"듣다 → ㄷ→ㄹ → 들었습니다",uz:"듣다 → ㄷ→ㄹ → 들었습니다"},
+  "묻다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 물었습니다":{ko:"묻다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 물었습니다",vi:"묻다 → ㄷ→ㄹ → 물었습니다",en:"묻다 → ㄷ irregular → ㄷ→ㄹ → 물었습니다",zh:"묻다 → ㄷ不规则 → ㄷ→ㄹ → 물었습니다",ja:"묻다 → ㄷ不規則 → ㄷ→ㄹ → 물었습니다",id:"묻다 → ㄷ→ㄹ → 물었습니다",ru:"묻다 → ㄷ нерегул. → ㄷ→ㄹ → 물었습니다",th:"묻다 → ㄷ→ㄹ → 물었습니다",mn:"묻다 → ㄷ→ㄹ → 물었습니다",uz:"묻다 → ㄷ→ㄹ → 물었습니다"},
+  "모르다 → 르불규칙 → 모르+아 → ㄹ이 두 개 → 몰랐습니다":{ko:"모르다 → 르불규칙 → 모르+아 → ㄹ이 두 개 → 몰랐습니다",vi:"모르다 → 르불규칙 → 몰랐습니다",en:"모르다 → 르 irregular → 몰랐습니다",zh:"모르다 → 르불규칙 → 몰랐습니다",ja:"모르다 → 르不規則 → 몰랐습니다",id:"모르다 → 르불규칙 → 몰랐습니다",ru:"모르다 → 르불규칙 → 몰랐습니다",th:"모르다 → 르불규칙 → 몰랐습니다",mn:"모르다 → 르불규칙 → 몰랐습니다",uz:"모르다 → 르불규칙 → 몰랐습니다"},
+  "빠르다 → 르불규칙 → 빠르+아 → ㄹ이 두 개 → 빨랐습니다":{ko:"빠르다 → 르불규칙 → 빠르+아 → ㄹ이 두 개 → 빨랐습니다",vi:"빠르다 → 르불규칙 → 빨랐습니다",en:"빠르다 → 르 irregular → 빨랐습니다",zh:"빠르다 → 르불규칙 → 빨랐습니다",ja:"빠르다 → 르不規則 → 빨랐습니다",id:"빠르다 → 르불규칙 → 빨랐습니다",ru:"빠르다 → 르불규칙 → 빨랐습니다",th:"빠르다 → 르불규칙 → 빨랐습니다",mn:"빠르다 → 르불규칙 → 빨랐습니다",uz:"빠르다 → 르불규칙 → 빨랐습니다"},
+  "다르다 → 르불규칙 → 다르+아 → ㄹ이 두 개 → 달랐습니다":{ko:"다르다 → 르불규칙 → 다르+아 → ㄹ이 두 개 → 달랐습니다",vi:"다르다 → 르불규칙 → 달랐습니다",en:"다르다 → 르 irregular → 달랐습니다",zh:"다르다 → 르불규칙 → 달랐습니다",ja:"다르다 → 르不規則 → 달랐습니다",id:"다르다 → 르불규칙 → 달랐습니다",ru:"다르다 → 르불규칙 → 달랐습니다",th:"다르다 → 르불규칙 → 달랐습니다",mn:"다르다 → 르불규칙 → 달랐습니다",uz:"다르다 → 르불규칙 → 달랐습니다"},
+  "쓰다 → 으탈락 → 쓰+어 → 썼습니다":{ko:"쓰다 → 으탈락 → 쓰+어 → 썼습니다",vi:"쓰다 → 으탈락 → 썼습니다",en:"쓰다 → 으 drop → 썼습니다",zh:"쓰다 → 으탈락 → 썼습니다",ja:"쓰다 → 으脱落 → 썼습니다",id:"쓰다 → 으 hilang → 썼습니다",ru:"쓰다 → 으 выпадает → 썼습니다",th:"쓰다 → 으 หาย → 썼습니다",mn:"쓰다 → 으 унах → 썼습니다",uz:"쓰다 → 으 tushadi → 썼습니다"},
+  "끄다 → 으탈락 → 끄+어 → 껐습니다":{ko:"끄다 → 으탈락 → 끄+어 → 껐습니다",vi:"끄다 → 으탈락 → 껐습니다",en:"끄다 → 으 drop → 껐습니다",zh:"끄다 → 으탈락 → 껐습니다",ja:"끄다 → 으脱落 → 껐습니다",id:"끄다 → 으 hilang → 껐습니다",ru:"끄다 → 으 выпадает → 껐습니다",th:"끄다 → 으 หาย → 껐습니다",mn:"끄다 → 으 унах → 껐습니다",uz:"끄다 → 으 tushadi → 껐습니다"},
+  "ㄷ불규칙":{ko:"ㄷ불규칙",vi:"Bất quy tắc ㄷ",en:"ㄷ Irregular",zh:"ㄷ不规则",ja:"ㄷ不規則",id:"Tidak beraturan ㄷ",ru:"Нерегулярное ㄷ",th:"ผิดปกติ ㄷ",mn:"ㄷ тэгш бус",uz:"ㄷ tartibsiz"},
+  "르불규칙":{ko:"르불규칙",vi:"Bất quy tắc 르",en:"르 Irregular",zh:"르不规则",ja:"르不規則",id:"Tidak beraturan 르",ru:"Нерегулярное 르",th:"ผิดปกติ 르",mn:"르 тэгш бус",uz:"르 tartibsiz"},
+  "으탈락(동사)":{ko:"으탈락(동사)",vi:"Lược bỏ 으 (động từ)",en:"으 drop (verb)",zh:"으탈락(动词)",ja:"으脱落(動詞)",id:"으 hilang (kata kerja)",ru:"으 выпадает (глагол)",th:"으 หายไป (กริยา)",mn:"으 унах (үйл үг)",uz:"으 tushish (fe'l)"},
+  "시제 4단원 — ㄷ불규칙 + 르불규칙 + 으탈락 동사":{ko:"시제 4단원 — ㄷ불규칙 + 르불규칙 + 으탈락 동사",vi:"Thì bài 4 — Động từ ㄷ bất quy tắc+르불규칙+으탈락",en:"Tense Unit 4 — ㄷ+르 irregular+으 drop verbs",zh:"时态第4课 — ㄷ+르不规则+으탈락动词",ja:"時制第4課 — ㄷ+르不規則+으脱落動詞",id:"Kala Unit 4 — Kata Kerja ㄷ+르+으탈락",ru:"Время Урок 4 — ㄷ+르 нерегулярное+으 глаголы",th:"กาล บทที่ 4 — กริยา ㄷ+르 ผิดปกติ+으탈락",mn:"Цаг 4-р нэгж — ㄷ+르 тэгш бус+으 үйл үг",uz:"Zamon 4-dars — ㄷ+르 tartibsiz+으 fe'llar"},
+  "시제 5단원으로! 🚀":{ko:"시제 5단원으로! 🚀",vi:"Sang bài thì 5! 🚀",en:"To Tense Unit 5! 🚀",zh:"进入时态第5课! 🚀",ja:"時制第5課へ! 🚀",id:"Ke Kala Unit 5! 🚀",ru:"К уроку 5! 🚀",th:"ไปกาล บทที่ 5! 🚀",mn:"Цаг 5-р нэгж рүү! 🚀",uz:"Zamon 5-darsga! 🚀"},
+  "뒤로 (시제 3단원)":{ko:"뒤로 (시제 3단원)",vi:"Quay lại (Thì bài 3)",en:"Back (Tense Unit 3)",zh:"返回(时态第3课)",ja:"戻る(時制第3課)",id:"Kembali (Kala Unit 3)",ru:"Назад (Время Урок 3)",th:"กลับ (กาล บทที่ 3)",mn:"Буцах (Цаг 3-р нэгж)",uz:"Orqaga (Zamon 3-dars)"},
+  "받다 → 규칙 동사! ㄷ이 그대로 → 받았습니다":{ko:"받다 → 규칙 동사! ㄷ이 그대로 → 받았습니다",vi:"받다 → động từ quy tắc → 받았습니다",en:"받다 → regular verb → 받았습니다",zh:"받다 → 规则动词 → 받았습니다",ja:"받다 → 規則動詞 → 받았습니다",id:"받다 → kata kerja beraturan → 받았습니다",ru:"받다 → правильный глагол → 받았습니다",th:"받다 → กริยาปกติ → 받았습니다",mn:"받다 → тэгш үйл үг → 받았습니다",uz:"받다 → to'g'ri fe'l → 받았습니다"},
+  "닫다 → 규칙 동사! ㄷ이 그대로 → 닫았습니다":{ko:"닫다 → 규칙 동사! ㄷ이 그대로 → 닫았습니다",vi:"닫다 → động từ quy tắc → 닫았습니다",en:"닫다 → regular verb → 닫았습니다",zh:"닫다 → 规则动词 → 닫았습니다",ja:"닫다 → 規則動詞 → 닫았습니다",id:"닫다 → kata kerja beraturan → 닫았습니다",ru:"닫다 → правильный глагол → 닫았습니다",th:"닫다 → กริยาปกติ → 닫았습니다",mn:"닫다 → тэгш үйл үг → 닫았습니다",uz:"닫다 → to'g'ri fe'l → 닫았습니다"},
+  "잡다 → 규칙 동사 → 잡았습니다":{ko:"잡다 → 규칙 동사 → 잡았습니다",vi:"잡다 → động từ quy tắc → 잡았습니다",en:"잡다 → regular verb → 잡았습니다",zh:"잡다 → 规则动词 → 잡았습니다",ja:"잡다 → 規則動詞 → 잡았습니다",id:"잡다 → kata kerja beraturan → 잡았습니다",ru:"잡다 → правильный глагол → 잡았습니다",th:"잡다 → กริยาปกติ → 잡았습니다",mn:"잡다 → тэгш үйл үг → 잡았습니다",uz:"잡다 → to'g'ri fe'l → 잡았습니다"},
+  "입다 → 규칙 동사 → 입었습니다":{ko:"입다 → 규칙 동사 → 입었습니다",vi:"입다 → động từ quy tắc → 입었습니다",en:"입다 → regular verb → 입었습니다",zh:"입다 → 规则动词 → 입었습니다",ja:"입다 → 規則動詞 → 입었습니다",id:"입다 → kata kerja beraturan → 입었습니다",ru:"입다 → правильный глагол → 입었습니다",th:"입다 → กริยาปกติ → 입었습니다",mn:"입다 → тэгш үйл үг → 입었습니다",uz:"입다 → to'g'ri fe'l → 입었습니다"},
+  "켜다 → 받침 없음 → ㄹ탈락 → 켭니다":{ko:"켜다 → 받침 없음 → ㄹ탈락 → 켭니다",vi:"켜다 → không batchim → ㄹ탈락 → 켭니다",en:"켜다 → no batchim → ㄹ drop → 켭니다",zh:"켜다 → 无收音 → ㄹ탈락 → 켭니다",ja:"켜다 → パッチムなし → ㄹ脱落 → 켭니다",id:"켜다 → tanpa batchim → ㄹ hilang → 켭니다",ru:"켜다 → без батчима → ㄹ выпадает → 켭니다",th:"켜다 → ไม่มีบัตชิม → ㄹ หาย → 켭니다",mn:"켜다 → бачимгүй → ㄹ унах → 켭니다",uz:"켜다 → batchim yo'q → ㄹ tushadi → 켭니다"},
+  "지우다 → 지우+어 → 지웠습니다":{ko:"지우다 → 지우+어 → 지웠습니다",vi:"지우다 → 지우+어 → 지웠습니다",en:"지우다 → 지우+어 → 지웠습니다",zh:"지우다 → 지웠습니다",ja:"지우다 → 지웠습니다",id:"지우다 → 지웠습니다",ru:"지우다 → 지웠습니다",th:"지우다 → 지웠습니다",mn:"지우다 → 지웠습니다",uz:"지우다 → 지웠습니다"},
+  "바꾸다 → 바꾸+어 → 바꿨습니다":{ko:"바꾸다 → 바꾸+어 → 바꿨습니다",vi:"바꾸다 → 바꾸+어 → 바꿨습니다",en:"바꾸다 → 바꾸+어 → 바꿨습니다",zh:"바꾸다 → 바꿨습니다",ja:"바꾸다 → 바꿨습니다",id:"바꾸다 → 바꿨습니다",ru:"바꾸다 → 바꿨습니다",th:"바꾸다 → 바꿨습니다",mn:"바꾸다 → 바꿨습니다",uz:"바꾸다 → 바꿨습니다"},
+  "그리다 → 그리+어 → 그렸습니다":{ko:"그리다 → 그리+어 → 그렸습니다",vi:"그리다 → 그리+어 → 그렸습니다",en:"그리다 → 그리+어 → 그렸습니다",zh:"그리다 → 그렸습니다",ja:"그리다 → 그렸습니다",id:"그리다 → 그렸습니다",ru:"그리다 → 그렸습니다",th:"그리다 → 그렸습니다",mn:"그리다 → 그렸습니다",uz:"그리다 → 그렸습니다"},
+  "시제 5단원 — 규칙 동사 보강 (받침 있음·없음)":{ko:"시제 5단원 — 규칙 동사 보강 (받침 있음·없음)",vi:"Thì bài 5 — Bổ sung động từ quy tắc",en:"Tense Unit 5 — Regular verb supplement",zh:"时态第5课 — 规则动词补充",ja:"時制第5課 — 規則動詞補強",id:"Kala Unit 5 — Suplemen kata kerja beraturan",ru:"Время Урок 5 — Дополнение правильных глаголов",th:"กาล บทที่ 5 — เสริมกริยาปกติ",mn:"Цаг 5-р нэгж — Тэгш үйл үгийн нэмэлт",uz:"Zamon 5-dars — To'g'ri fe'llar to'ldiruvchisi"},
+  "시제 6단원으로! 🚀":{ko:"시제 6단원으로! 🚀",vi:"Sang bài thì 6! 🚀",en:"To Tense Unit 6! 🚀",zh:"进入时态第6课! 🚀",ja:"時制第6課へ! 🚀",id:"Ke Kala Unit 6! 🚀",ru:"К уроку 6! 🚀",th:"ไปกาล บทที่ 6! 🚀",mn:"Цаг 6-р нэгж рүү! 🚀",uz:"Zamon 6-darsga! 🚀"},
+  "뒤로 (시제 4단원)":{ko:"뒤로 (시제 4단원)",vi:"Quay lại (Thì bài 4)",en:"Back (Tense Unit 4)",zh:"返回(时态第4课)",ja:"戻る(時制第4課)",id:"Kembali (Kala Unit 4)",ru:"Назад (Время Урок 4)",th:"กลับ (กาล บทที่ 4)",mn:"Буцах (Цаг 4-р нэгж)",uz:"Orqaga (Zamon 4-dars)"},
+  "하다 → 합니다 (현재) / 했습니다 (과거) / 할 것입니다 (미래)":{ko:"하다 → 합니다 (현재) / 했습니다 (과거) / 할 것입니다 (미래)",vi:"하다 → 합니다 (hiện tại) / 했습니다 (quá khứ) / 할 것입니다 (tương lai)",en:"하다 → 합니다 (present) / 했습니다 (past) / 할 것입니다 (future)",zh:"하다 → 합니다(现在)/했습니다(过去)/할 것입니다(将来)",ja:"하다 → 합니다(現在)/했습니다(過去)/할 것입니다(未来)",id:"하다 → 합니다(kini)/했습니다(lampau)/할 것입니다(depan)",ru:"하다 → 합니다(наст.)/했습니다(прош.)/할 것입니다(буд.)",th:"하다 → 합니다(ปัจจุบัน)/했습니다(อดีต)/할 것입니다(อนาคต)",mn:"하다 → 합니다(одоо)/했습니다(өнгөрсөн)/할 것입니다(ирээдүй)",uz:"하다 → 합니다(hozir)/했습니다(o'tgan)/할 것입니다(kelajak)"},
+  "시제 6단원 — 하다 동사":{ko:"시제 6단원 — 하다 동사",vi:"Thì bài 6 — Động từ 하다",en:"Tense Unit 6 — 하다 verbs",zh:"时态第6课 — 하다 动词",ja:"時制第6課 — 하다 動詞",id:"Kala Unit 6 — Kata Kerja 하다",ru:"Время Урок 6 — Глаголы 하다",th:"กาล บทที่ 6 — กริยา 하다",mn:"Цаг 6-р нэгж — 하다 үйл үг",uz:"Zamon 6-dars — 하다 fe'llari"},
+  "시제 완료! 🎉 → 최종 테스트":{ko:"시제 완료! 🎉 → 최종 테스트",vi:"Hoàn thành thì! 🎉 → Kiểm tra cuối",en:"Tenses complete! 🎉 → Final test",zh:"时态完成! 🎉 → 最终测试",ja:"時制完了! 🎉 → 最終テスト",id:"Kala selesai! 🎉 → Tes akhir",ru:"Времена завершены! 🎉 → Итоговый тест",th:"กาลเสร็จแล้ว! 🎉 → ทดสอบสุดท้าย",mn:"Цаг дуусгав! 🎉 → Эцсийн тест",uz:"Zamon tugadi! 🎉 → Yakuniy test"},
+  "뒤로 (시제 5단원)":{ko:"뒤로 (시제 5단원)",vi:"Quay lại (Thì bài 5)",en:"Back (Tense Unit 5)",zh:"返回(时态第5课)",ja:"戻る(時制第5課)",id:"Kembali (Kala Unit 5)",ru:"Назад (Время Урок 5)",th:"กลับ (กาล บทที่ 5)",mn:"Буцах (Цаг 5-р нэгж)",uz:"Orqaga (Zamon 5-dars)"},
+  "시제 마스터! 🎉 이제 조사로 넘어가요!":{ko:"시제 마스터! 🎉 이제 조사로 넘어가요!",vi:"Thành thạo thì! 🎉 Sang phần trợ từ!",en:"Tense master! 🎉 Now to particles!",zh:"时态大师! 🎉 进入助词学习!",ja:"時制マスター! 🎉 助詞へ進もう!",id:"Kuasai kala! 🎉 Ke partikel!",ru:"Мастер времён! 🎉 Теперь к частицам!",th:"ปราชญ์กาล! 🎉 ไปอนุภาคเลย!",mn:"Цагийн мэргэн! 🎉 Нөхцөл рүү!",uz:"Zamon ustasi! 🎉 Yuklamalarga!"},
+  "한 번 더 도전해봐요! 💪":{ko:"한 번 더 도전해봐요! 💪",vi:"Thử thêm một lần nữa! 💪",en:"Try one more time! 💪",zh:"再挑战一次! 💪",ja:"もう一度挑戦しましょう! 💪",id:"Coba sekali lagi! 💪",ru:"Попробуйте ещё раз! 💪",th:"ลองอีกครั้ง! 💪",mn:"Нэг удаа дахин оролдоно уу! 💪",uz:"Yana bir bor sinab ko'ring! 💪"},
+  "조사 학습으로! 🚀":{ko:"조사 학습으로! 🚀",vi:"Sang học trợ từ! 🚀",en:"To particle learning! 🚀",zh:"进入助词学习! 🚀",ja:"助詞学習へ! 🚀",id:"Ke belajar partikel! 🚀",ru:"К изучению частиц! 🚀",th:"ไปเรียนอนุภาค! 🚀",mn:"Нөхцөл сурах руу! 🚀",uz:"Yuklamalarni o'rganishga! 🚀"},
+  "다시 풀기 🔄":{ko:"다시 풀기 🔄",vi:"Làm lại 🔄",en:"Redo 🔄",zh:"重新作答 🔄",ja:"やり直す 🔄",id:"Ulangi 🔄",ru:"Переделать 🔄",th:"ทำใหม่ 🔄",mn:"Дахин хийх 🔄",uz:"Qayta bajarish 🔄"},
+  "시제 1단원부터 다시":{ko:"시제 1단원부터 다시",vi:"Làm lại từ bài thì 1",en:"Redo from Tense Unit 1",zh:"从时态第1课重来",ja:"時制第1課からやり直す",id:"Ulangi dari Kala Unit 1",ru:"Начать с урока времени 1",th:"ทำใหม่จากกาล บทที่ 1",mn:"Цаг 1-р нэгжээс дахин",uz:"Zamon 1-darsdan qayta"},
+  "시제 총합 테스트 (1~6단원)":{ko:"시제 총합 테스트 (1~6단원)",vi:"Kiểm tra tổng thì (bài 1~6)",en:"Tense total test (Units 1~6)",zh:"时态总合测试(第1~6课)",ja:"時制総合テスト(第1~6課)",id:"Tes total kala (Unit 1~6)",ru:"Итоговый тест времён (1~6)",th:"ทดสอบรวมกาล (บทที่ 1~6)",mn:"Цагийн нэгдсэн тест (1~6)",uz:"Zamon umumiy testi (1~6)"},
+  "⚠️ 불규칙 힌트는 채점 후 표시":{ko:"⚠️ 불규칙 힌트는 채점 후 표시",vi:"⚠️ Gợi ý bất quy tắc hiện sau chấm điểm",en:"⚠️ Irregular hints shown after grading",zh:"⚠️ 不规则提示在评分后显示",ja:"⚠️ 不規則ヒントは採点後表示",id:"⚠️ Petunjuk tak beraturan muncul setelah dinilai",ru:"⚠️ Подсказки после оценивания",th:"⚠️ 힌트จะแสดงหลังให้คะแนน",mn:"⚠️ Тэгш бус зөвлөмж үнэлгээний дараа",uz:"⚠️ Tartibsiz maslahatlar baholangandan keyin"},
+  "채점하기! 📊":{ko:"채점하기! 📊",vi:"Chấm điểm! 📊",en:"Grade! 📊",zh:"评分! 📊",ja:"採点する! 📊",id:"Nilai! 📊",ru:"Оценить! 📊",th:"ให้คะแนน! 📊",mn:"Үнэлэх! 📊",uz:"Baholash! 📊"},
+  "뒤로 (시제 6단원)":{ko:"뒤로 (시제 6단원)",vi:"Quay lại (Thì bài 6)",en:"Back (Tense Unit 6)",zh:"返回(时态第6课)",ja:"戻る(時制第6課)",id:"Kembali (Kala Unit 6)",ru:"Назад (Время Урок 6)",th:"กลับ (กาล บทที่ 6)",mn:"Буцах (Цаг 6-р нэгж)",uz:"Orqaga (Zamon 6-dars)"},
+  "조금 더 연습해요!":{ko:"조금 더 연습해요!",vi:"Hãy luyện tập thêm!",en:"Let's practice more!",zh:"再多练习一下!",ja:"もう少し練習しましょう!",id:"Ayo latihan lebih!",ru:"Давайте практикуем ещё!",th:"มาฝึกเพิ่มเติม!",mn:"Цааш дадлага хийцгээе!",uz:"Ko'proq mashq qilaylik!"},
+  "(없음)":{ko:"(없음)",vi:"(không có)",en:"(none)",zh:"(无)",ja:"(なし)",id:"(tidak ada)",ru:"(нет)",th:"(ไม่มี)",mn:"(байхгүй)",uz:"(yo'q)"},
+  "시도 안 함":{ko:"시도 안 함",vi:"Chưa thử",en:"Not attempted",zh:"未尝试",ja:"未試行",id:"Belum dicoba",ru:"Не попытался",th:"ยังไม่ได้ลอง",mn:"Оролдоогүй",uz:"Urinilmagan"},
+  "서술어 1단원으로! 🚀":{ko:"서술어 1단원으로! 🚀",vi:"Sang vị ngữ bài 1! 🚀",en:"To Predicate Unit 1! 🚀",zh:"进入谓语第1课! 🚀",ja:"述語第1課へ! 🚀",id:"Ke Predikat Unit 1! 🚀",ru:"К сказуемому Урок 1! 🚀",th:"ไปภาคแสดง บทที่ 1! 🚀",mn:"Өгүүлэгдэхүүн 1-р нэгж рүү! 🚀",uz:"Kesim 1-darsga! 🚀"},
+  "조사·대명사 처음부터 다시 학습":{ko:"조사·대명사 처음부터 다시 학습",vi:"Học lại trợ từ·đại từ từ đầu",en:"Relearn particles·pronouns from start",zh:"从头重新学习助词·代词",ja:"助詞·代名詞を最初からやり直す",id:"Belajar lagi partikel·kata ganti dari awal",ru:"Заново изучить частицы·местоимения",th:"เรียนอนุภาค·สรรพนามใหม่จากต้น",mn:"Нөхцөл·Төлөөний үгийг эхнээс дахин сур",uz:"Yuklama·olmoshlarni boshidan o'rganish"},
+  "조사·대명사 테스트":{ko:"조사·대명사 테스트",vi:"Kiểm tra trợ từ·đại từ",en:"Particles·Pronouns test",zh:"助词·代词测试",ja:"助詞·代名詞テスト",id:"Tes partikel·kata ganti",ru:"Тест частиц·местоимений",th:"ทดสอบอนุภาค·สรรพนาม",mn:"Нөхцөл·Төлөөний үгийн тест",uz:"Yuklama·olmoshlar testi"},
+  "✍️ 빈칸 채우기 + 🎤 따라 말하기":{ko:"✍️ 빈칸 채우기 + 🎤 따라 말하기",vi:"✍️ Điền vào chỗ trống + 🎤 Nhắc lại",en:"✍️ Fill in blanks + 🎤 Repeat",zh:"✍️ 填空 + 🎤 跟读",ja:"✍️ 空欄を埋める + 🎤 リピート",id:"✍️ Isi titik + 🎤 Ulangi",ru:"✍️ Заполни пропуски + 🎤 Повтори",th:"✍️ เติมช่องว่าง + 🎤 พูดตาม",mn:"✍️ Цоорхойг бөглөх + 🎤 Дагаж хэлэх",uz:"✍️ Bo'sh joylarni to'ldiring + 🎤 Takrorlang"},
+  "여기에 쓰세요...":{ko:"여기에 쓰세요...",vi:"Viết vào đây...",en:"Write here...",zh:"在此输入...",ja:"ここに入力してください...",id:"Tulis di sini...",ru:"Пишите здесь...",th:"เขียนที่นี่...",mn:"Энд бичнэ үү...",uz:"Bu yerga yozing..."},
+  "🔊 듣고 따라 말해보세요":{ko:"🔊 듣고 따라 말해보세요",vi:"🔊 Nghe và nhắc lại",en:"🔊 Listen and repeat",zh:"🔊 听后跟读",ja:"🔊 聴いて繰り返して",id:"🔊 Dengarkan dan ulangi",ru:"🔊 Слушайте и повторяйте",th:"🔊 ฟังแล้วพูดตาม",mn:"🔊 Сонсоод дагаж хэл",uz:"🔊 Tinglang va takrorlang"},
+  "은/는/이/가":{ko:"은/는/이/가",vi:"은/는/이/가",en:"은/는/이/가",zh:"은/는/이/가",ja:"은/는/이/가",id:"은/는/이/가",ru:"은/는/이/가",th:"은/는/이/가",mn:"은/는/이/가",uz:"은/는/이/가"},
+  "저는":{ko:"저는",vi:"저는",en:"저는",zh:"저는",ja:"저는",id:"저는",ru:"저는",th:"저는",mn:"저는",uz:"저는"},
+  "에":{ko:"에",vi:"에",en:"에",zh:"에",ja:"에",id:"에",ru:"에",th:"에",mn:"에",uz:"에"},
+  "오늘 아침에":{ko:"오늘 아침에",vi:"오늘 아침에",en:"오늘 아침에",zh:"오늘 아침에",ja:"오늘 아침에",id:"오늘 아침에",ru:"오늘 아침에",th:"오늘 아침에",mn:"오늘 아침에",uz:"오늘 아침에"},
+  "부사어(장소)":{ko:"부사어(장소)",vi:"Phó từ (địa điểm)",en:"Adverb (place)",zh:"副词(地点)",ja:"副詞(場所)",id:"Adverbia (tempat)",ru:"Наречие (место)",th:"กริยาวิเศษณ์ (สถานที่)",mn:"Тодотгол үг (газар)",uz:"Ravish (joy)"},
+  "에서":{ko:"에서",vi:"에서",en:"에서",zh:"에서",ja:"에서",id:"에서",ru:"에서",th:"에서",mn:"에서",uz:"에서"},
+  "학교에서":{ko:"학교에서",vi:"학교에서",en:"학교에서",zh:"학교에서",ja:"학교에서",id:"학교에서",ru:"학교에서",th:"학교에서",mn:"학교에서",uz:"학교에서"},
+  "에게":{ko:"에게",vi:"에게",en:"에게",zh:"에게",ja:"에게",id:"에게",ru:"에게",th:"에게",mn:"에게",uz:"에게"},
+  "친구에게":{ko:"친구에게",vi:"친구에게",en:"친구에게",zh:"친구에게",ja:"친구에게",id:"친구에게",ru:"친구에게",th:"친구에게",mn:"친구에게",uz:"친구에게"},
+  "을/를":{ko:"을/를",vi:"을/를",en:"을/를",zh:"을/를",ja:"을/를",id:"을/를",ru:"을/를",th:"을/를",mn:"을/를",uz:"을/를"},
+  "한국어를":{ko:"한국어를",vi:"한국어를",en:"한국어를",zh:"한국어를",ja:"한국어를",id:"한국어를",ru:"한국어를",th:"한국어를",mn:"한국어를",uz:"한국어를"},
+  "(동사/형용사)":{ko:"(동사/형용사)",vi:"(Động từ/Tính từ)",en:"(Verb/Adjective)",zh:"(动词/形容词)",ja:"(動詞/形容詞)",id:"(Kata Kerja/Kata Sifat)",ru:"(Глагол/Прилагательное)",th:"(กริยา/คุณศัพท์)",mn:"(Үйл үг/Тэмдэг нэр)",uz:"(Fe'l/Sifat)"},
+  "배웁니다":{ko:"배웁니다",vi:"배웁니다",en:"배웁니다",zh:"배웁니다",ja:"배웁니다",id:"배웁니다",ru:"배웁니다",th:"배웁니다",mn:"배웁니다",uz:"배웁니다"},
+  "한국어 문장 구조":{ko:"한국어 문장 구조",vi:"Cấu trúc câu tiếng Hàn",en:"Korean sentence structure",zh:"韩语句子结构",ja:"韓国語の文構造",id:"Struktur kalimat bahasa Korea",ru:"Структура корейского предложения",th:"โครงสร้างประโยคภาษาเกาหลี",mn:"Солонгос өгүүлбэрийн бүтэц",uz:"Koreyscha gap tuzilishi"},
+  "한국어는 서술어가 항상 문장 끝에 와요!":{ko:"한국어는 서술어가 항상 문장 끝에 와요!",vi:"Trong tiếng Hàn, vị ngữ luôn ở cuối câu!",en:"In Korean, the predicate always comes last!",zh:"韩语中谓语总是在句末!",ja:"韓国語は述語が常に文末に来ます!",id:"Dalam bahasa Korea, predikat selalu di akhir!",ru:"В корейском сказуемое всегда в конце!",th:"ภาษาเกาหลีภาคแสดงอยู่ท้ายประโยคเสมอ!",mn:"Солонгос хэлэнд өгүүлэгдэхүүн үргэлж сүүлд ирдэг!",uz:"Koreyschada kesim doim oxirida keladi!"},
+  "완전한 문장 예시":{ko:"완전한 문장 예시",vi:"Ví dụ câu đầy đủ",en:"Complete sentence example",zh:"完整句子示例",ja:"完全な文の例",id:"Contoh kalimat lengkap",ru:"Пример полного предложения",th:"ตัวอย่างประโยคสมบูรณ์",mn:"Бүрэн өгүүлбэрийн жишээ",uz:"To'liq gap namunasi"},
+  "조사·대명사":{ko:"조사·대명사",vi:"Trợ từ·Đại từ",en:"Particles·Pronouns",zh:"助词·代词",ja:"助詞·代名詞",id:"Partikel·Kata Ganti",ru:"Частицы·Местоимения",th:"อนุภาค·สรรพนาม",mn:"Нөхцөл·Төлөөний үг",uz:"Yuklama·Olmosh"},
+  "서술어 1단원 시작":{ko:"서술어 1단원 시작",vi:"Bắt đầu vị ngữ bài 1",en:"Start Predicate Unit 1",zh:"开始谓语第1课",ja:"述語第1課スタート",id:"Mulai Predikat Unit 1",ru:"Начало сказуемого Урок 1",th:"เริ่มภาคแสดง บทที่ 1",mn:"Өгүүлэгдэхүүн 1-р нэгж эхлэх",uz:"Kesim 1-darsni boshlash"},
+  "서술어 학습 시작! 🚀":{ko:"서술어 학습 시작! 🚀",vi:"Bắt đầu học vị ngữ! 🚀",en:"Start predicate learning! 🚀",zh:"开始谓语学习! 🚀",ja:"述語学習スタート! 🚀",id:"Mulai belajar predikat! 🚀",ru:"Начать изучение сказуемого! 🚀",th:"เริ่มเรียนภาคแสดง! 🚀",mn:"Өгүүлэгдэхүүн сурах эхлэх! 🚀",uz:"Kesimni o'rganishni boshlash! 🚀"},
+  "서술어 1단원 — A는 B이다 (A=B)":{ko:"서술어 1단원 — A는 B이다 (A=B)",vi:"Vị ngữ bài 1 — A는 B이다 (A=B)",en:"Predicate Unit 1 — A는 B이다 (A=B)",zh:"谓语第1课 — A는 B이다 (A=B)",ja:"述語第1課 — A는 B이다 (A=B)",id:"Predikat Unit 1 — A는 B이다 (A=B)",ru:"Сказуемое Урок 1 — A는 B이다 (A=B)",th:"ภาคแสดง บทที่ 1 — A는 B이다 (A=B)",mn:"Өгүүлэгдэхүүн 1-р нэгж — A는 B이다 (A=B)",uz:"Kesim 1-dars — A는 B이다 (A=B)"},
+  "핵심 규칙":{ko:"핵심 규칙",vi:"Quy tắc cốt lõi",en:"Core rule",zh:"核心规则",ja:"核心ルール",id:"Aturan inti",ru:"Основное правило",th:"กฎหลัก",mn:"Үндсэн дүрэм",uz:"Asosiy qoida"},
+  "합니다체로 작성하세요 (예: ~입니다, ~합니다)":{ko:"합니다체로 작성하세요 (예: ~입니다, ~합니다)",vi:"Viết theo thể hợp ni다 (vd: ~입니다, ~합니다)",en:"Write in formal style (e.g.: ~입니다, ~합니다)",zh:"用합니다体书写 (例: ~입니다, ~합니다)",ja:"합니다体で書いてください (例: ~입니다, ~합니다)",id:"Tulis dalam gaya formal (mis: ~입니다, ~합니다)",ru:"Пишите в официальном стиле (~입니다, ~합니다)",th:"เขียนแบบทางการ (เช่น: ~입니다, ~합니다)",mn:"Ёсчлолын хэлбэрээр бичнэ үү (~입니다, ~합니다)",uz:"Rasmiy uslubda yozing (~입니다, ~합니다)"},
+  "한국어로 입력하세요...":{ko:"한국어로 입력하세요...",vi:"Nhập tiếng Hàn...",en:"Enter in Korean...",zh:"请用韩语输入...",ja:"韓国語で入力してください...",id:"Masukkan dalam bahasa Korea...",ru:"Введите на корейском...",th:"ป้อนเป็นภาษาเกาหลี...",mn:"Солонгосоор оруулна уу...",uz:"Koreyschada kiriting..."},
+  "확인하기 ✓":{ko:"확인하기 ✓",vi:"Kiểm tra ✓",en:"Check ✓",zh:"确认 ✓",ja:"確認する ✓",id:"Periksa ✓",ru:"Проверить ✓",th:"ตรวจสอบ ✓",mn:"Шалгах ✓",uz:"Tekshirish ✓"},
+  "다음 →":{ko:"다음 →",vi:"Tiếp theo →",en:"Next →",zh:"下一个 →",ja:"次へ →",id:"Berikutnya →",ru:"Далее →",th:"ถัดไป →",mn:"Дараа →",uz:"Keyingi →"},
+  "누적 테스트로! 🚀":{ko:"누적 테스트로! 🚀",vi:"Sang bài kiểm tra tích lũy! 🚀",en:"To cumulative test! 🚀",zh:"进入累积测试! 🚀",ja:"累積テストへ! 🚀",id:"Ke tes kumulatif! 🚀",ru:"К накопительному тесту! 🚀",th:"ไปทดสอบสะสม! 🚀",mn:"Нэгдсэн тест рүү! 🚀",uz:"Kumulyativ testga! 🚀"},
+  "미통과 😢 다시 학습해요":{ko:"미통과 😢 다시 학습해요",vi:"Chưa đạt 😢 Hãy học lại",en:"Not passed 😢 Study again",zh:"未通过 😢 请重新学习",ja:"未合格 😢 もう一度学習しましょう",id:"Belum lulus 😢 Belajar lagi",ru:"Не пройдено 😢 Учитесь снова",th:"ไม่ผ่าน 😢 เรียนใหม่",mn:"Тэнцээгүй 😢 Дахин суралц",uz:"O'tmadi 😢 Qayta o'rganing"},
+  "통과 기준: 80점 이상":{ko:"통과 기준: 80점 이상",vi:"Tiêu chuẩn đạt: 80 điểm trở lên",en:"Pass criteria: 80+ points",zh:"通过标准: 80分以上",ja:"合格基準: 80点以上",id:"Kriteria lulus: 80+ poin",ru:"Критерий прохождения: 80+ баллов",th:"เกณฑ์ผ่าน: 80+ คะแนน",mn:"Тэнцэх шалгуур: 80+ оноо",uz:"O'tish mezoni: 80+ ball"},
+  "1단원":{ko:"1단원",vi:"Bài 1",en:"Unit 1",zh:"第1课",ja:"第1課",id:"Unit 1",ru:"Урок 1",th:"บทที่ 1",mn:"1-р нэгж",uz:"1-dars"},
+  "2단원으로 계속하기":{ko:"2단원으로 계속하기",vi:"Tiếp tục sang bài 2",en:"Continue to Unit 2",zh:"继续进入第2课",ja:"第2課に進む",id:"Lanjut ke Unit 2",ru:"Продолжить к уроку 2",th:"ดำเนินการต่อบทที่ 2",mn:"2-р нэгж рүү үргэлжлүүлэх",uz:"2-darsga o'tish"},
+  "2단원으로 계속하기 🚀":{ko:"2단원으로 계속하기 🚀",vi:"Tiếp tục sang bài 2 🚀",en:"Continue to Unit 2 🚀",zh:"继续进入第2课 🚀",ja:"第2課へ 🚀",id:"Lanjut ke Unit 2 🚀",ru:"Продолжить к уроку 2 🚀",th:"ไปบทที่ 2 🚀",mn:"2-р нэгж рүү 🚀",uz:"2-darsga 🚀"},
+  "1단원 처음부터 다시 학습 🔄":{ko:"1단원 처음부터 다시 학습 🔄",vi:"Học lại bài 1 từ đầu 🔄",en:"Relearn Unit 1 from start 🔄",zh:"从头重新学习第1课 🔄",ja:"第1課を最初からやり直す 🔄",id:"Belajar lagi Unit 1 dari awal 🔄",ru:"Заново учить Урок 1 🔄",th:"เรียนบทที่ 1 ใหม่จากต้น 🔄",mn:"1-р нэгжийг эхнээс дахин 🔄",uz:"1-darsni boshidan o'rganish 🔄"},
+  "누적 테스트 — 1단원":{ko:"누적 테스트 — 1단원",vi:"Kiểm tra tích lũy — Bài 1",en:"Cumulative test — Unit 1",zh:"累积测试 — 第1课",ja:"累積テスト — 第1課",id:"Tes kumulatif — Unit 1",ru:"Накопит. тест — Урок 1",th:"ทดสอบสะสม — บทที่ 1",mn:"Нэгдсэн тест — 1-р нэгж",uz:"Kumulyativ test — 1-dars"},
+  "문제 생성 중...":{ko:"문제 생성 중...",vi:"Đang tạo câu hỏi...",en:"Generating questions...",zh:"生成题目中...",ja:"問題生成中...",id:"Membuat soal...",ru:"Генерация вопросов...",th:"กำลังสร้างคำถาม...",mn:"Асуулт үүсгэж байна...",uz:"Savollar yaratilmoqda..."},
+  "답을 입력하세요...":{ko:"답을 입력하세요...",vi:"Nhập câu trả lời...",en:"Enter your answer...",zh:"请输入答案...",ja:"答えを入力してください...",id:"Masukkan jawaban...",ru:"Введите ответ...",th:"ป้อนคำตอบ...",mn:"Хариуг оруулна уу...",uz:"Javob kiriting..."},
+  "제출하기 ✅":{ko:"제출하기 ✅",vi:"Nộp bài ✅",en:"Submit ✅",zh:"提交 ✅",ja:"提出する ✅",id:"Kirim ✅",ru:"Отправить ✅",th:"ส่ง ✅",mn:"Илгээх ✅",uz:"Yuborish ✅"},
+  "정답":{ko:"정답",vi:"Đáp án",en:"Answer",zh:"答案",ja:"答え",id:"Jawaban",ru:"Ответ",th:"คำตอบ",mn:"Хариулт",uz:"Javob"},
+  "번역":{ko:"번역",vi:"Dịch nghĩa",en:"Translation",zh:"翻译",ja:"翻訳",id:"Terjemahan",ru:"Перевод",th:"การแปล",mn:"Орчуулга",uz:"Tarjima"},
+  "한국어로 작성하세요 (합니다체)":{ko:"한국어로 작성하세요 (합니다체)",vi:"Viết tiếng Hàn (thể hợp니다)",en:"Write in Korean (formal style)",zh:"用韩语书写(합니다体)",ja:"韓国語で書いてください(합니다体)",id:"Tulis dalam Korea (formal)",ru:"Пишите на корейском (офиц.)",th:"เขียนเป็นภาษาเกาหลี (ทางการ)",mn:"Солонгосоор бичнэ үү (ёсчлол)",uz:"Koreyschada yozing (rasmiy)"},
+  "한국어를 입력하세요...":{ko:"한국어를 입력하세요...",vi:"Nhập tiếng Hàn...",en:"Enter Korean...",zh:"请用韩语输入...",ja:"韓国語を入力...",id:"Masukkan bahasa Korea...",ru:"Введите корейский...",th:"ป้อนภาษาเกาหลี...",mn:"Солонгосоор оруулна уу...",uz:"Koreyschada kiriting..."},
+  "확인하기":{ko:"확인하기",vi:"Kiểm tra",en:"Check",zh:"确认",ja:"確認",id:"Periksa",ru:"Проверить",th:"ตรวจสอบ",mn:"Шалгах",uz:"Tekshirish"},
+  "시간 표현":{ko:"시간 표현",vi:"Biểu thức thời gian",en:"Time expression",zh:"时间表达",ja:"時間表現",id:"Ekspresi waktu",ru:"Временное выражение",th:"การแสดงเวลา",mn:"Цагийн илэрхийлэл",uz:"Vaqt ifodasi"},
+  "원인 표현":{ko:"원인 표현",vi:"Biểu thức nguyên nhân",en:"Cause expression",zh:"原因表达",ja:"原因表現",id:"Ekspresi penyebab",ru:"Выражение причины",th:"การแสดงสาเหตุ",mn:"Шалтгааны илэрхийлэл",uz:"Sabab ifodasi"},
+  "목적 표현":{ko:"목적 표현",vi:"Biểu thức mục đích",en:"Purpose expression",zh:"目的表达",ja:"目的表現",id:"Ekspresi tujuan",ru:"Выражение цели",th:"การแสดงวัตถุประสงค์",mn:"Зорилгын илэрхийлэл",uz:"Maqsad ifodasi"},
+  "조건 표현":{ko:"조건 표현",vi:"Biểu thức điều kiện",en:"Condition expression",zh:"条件表达",ja:"条件表現",id:"Ekspresi kondisi",ru:"Выражение условия",th:"การแสดงเงื่อนไข",mn:"Нөхцлийн илэрхийлэл",uz:"Shart ifodasi"},
+  "필수조건 표현":{ko:"필수조건 표현",vi:"Biểu thức điều kiện bắt buộc",en:"Required condition expression",zh:"必要条件表达",ja:"必須条件表現",id:"Ekspresi kondisi wajib",ru:"Выражение обязательного условия",th:"การแสดงเงื่อนไขที่จำเป็น",mn:"Заавал нөхцлийн илэрхийлэл",uz:"Majburiy shart ifodasi"},
+  "양보 표현":{ko:"양보 표현",vi:"Biểu thức nhượng bộ",en:"Concession expression",zh:"让步表达",ja:"譲歩表現",id:"Ekspresi konsesi",ru:"Выражение уступки",th:"การแสดงการยินยอม",mn:"Буулт хийх илэрхийлэл",uz:"Yon berish ifodasi"},
+  "배경·상황 표현":{ko:"배경·상황 표현",vi:"Biểu thức bối cảnh·tình huống",en:"Background·situation expression",zh:"背景·状况表达",ja:"背景·状況表現",id:"Ekspresi latar·situasi",ru:"Выражение фона·ситуации",th:"การแสดงพื้นหลัง·สถานการณ์",mn:"Дэвсгэр·нөхцөл байдлын илэрхийлэл",uz:"Fon·holat ifodasi"},
+  "관형어 — 명사 꾸미기":{ko:"관형어 — 명사 꾸미기",vi:"Định ngữ — bổ nghĩa danh từ",en:"Modifier — noun modification",zh:"定语 — 修饰名词",ja:"連体詞 — 名詞を修飾",id:"Modifikator — memodifikasi kata benda",ru:"Определение — модификация существительного",th:"ตัวขยาย — ขยายคำนาม",mn:"Тодотгол — нэр үгийг тодотгох",uz:"Aniqlovchi — otni izohlash"},
+  "관형어 표현":{ko:"관형어 표현",vi:"Biểu thức định ngữ",en:"Modifier expression",zh:"定语表达",ja:"連体詞表現",id:"Ekspresi modifikator",ru:"Выражение определения",th:"การแสดงตัวขยาย",mn:"Тодотгол илэрхийлэл",uz:"Aniqlovchi ifodasi"},
+  "간접화법 표현":{ko:"간접화법 표현",vi:"Biểu thức gián tiếp",en:"Indirect speech expression",zh:"间接引语表达",ja:"間接話法表現",id:"Ekspresi tidak langsung",ru:"Выражение косвенной речи",th:"การแสดงคำพูดทางอ้อม",mn:"Шууд бус яриа илэрхийлэл",uz:"Bilvosita nutq ifodasi"},
+  "불규칙 표현":{ko:"불규칙 표현",vi:"Biểu thức bất quy tắc",en:"Irregular expression",zh:"不规则表达",ja:"不規則表現",id:"Ekspresi tidak beraturan",ru:"Выражение нерегулярности",th:"การแสดงผิดปกติ",mn:"Тэгш бус илэрхийлэл",uz:"Tartibsiz ifoda"},
+  "단위명사 표현":{ko:"단위명사 표현",vi:"Biểu thức từ đơn vị",en:"Counter expression",zh:"单位名词表达",ja:"単位名詞表現",id:"Ekspresi kata satuan",ru:"Выражение счётных слов",th:"การแสดงคำนามนับ",mn:"Тоолох нэр үгийн илэрхийлэл",uz:"Sanoq so'z ifodasi"},
+  "빈도부사 표현":{ko:"빈도부사 표현",vi:"Biểu thức trạng từ tần suất",en:"Frequency adverb expression",zh:"频率副词表达",ja:"頻度副詞表現",id:"Ekspresi adverbia frekuensi",ru:"Выражение наречия частоты",th:"การแสดงกริยาวิเศษณ์ความถี่",mn:"Давтамжийн дайвар үгийн илэрхийлэл",uz:"Chastota ravish ifodasi"},
+  "감정 동사":{ko:"감정 동사",vi:"Động từ cảm xúc",en:"Emotion verbs",zh:"情感动词",ja:"感情動詞",id:"Kata kerja emosi",ru:"Эмоциональные глаголы",th:"กริยาอารมณ์",mn:"Сэтгэл хөдлөлийн үйл үг",uz:"Emotion fe'llari"},
+  "명사형 전환":{ko:"명사형 전환",vi:"Chuyển đổi danh từ",en:"Noun form conversion",zh:"名词形转换",ja:"名詞形転換",id:"Konversi bentuk nomina",ru:"Преобразование в форму существительного",th:"การแปลงรูปคำนาม",mn:"Нэр үгийн хэлбэр рүү хөрвүүлэх",uz:"Ot shakliga o'tkazish"},
+  "상태 변화 표현":{ko:"상태 변화 표현",vi:"Biểu thức thay đổi trạng thái",en:"State change expression",zh:"状态变化表达",ja:"状態変化表現",id:"Ekspresi perubahan keadaan",ru:"Выражение изменения состояния",th:"การแสดงการเปลี่ยนแปลงสภาวะ",mn:"Байдлын өөрчлөлтийн илэрхийлэл",uz:"Holat o'zgarishi ifodasi"},
+  "비교 표현":{ko:"비교 표현",vi:"Biểu thức so sánh",en:"Comparison expression",zh:"比较表达",ja:"比較表現",id:"Ekspresi perbandingan",ru:"Выражение сравнения",th:"การแสดงการเปรียบเทียบ",mn:"Харьцуулалтын илэрхийлэл",uz:"Taqqoslash ifodasi"},
+  "숫자 표현":{ko:"숫자 표현",vi:"Biểu thức số",en:"Number expression",zh:"数字表达",ja:"数字表現",id:"Ekspresi angka",ru:"Числовое выражение",th:"การแสดงตัวเลข",mn:"Тооны илэрхийлэл",uz:"Raqam ifodasi"},
+  "한국어 숫자":{ko:"한국어 숫자",vi:"Số tiếng Hàn",en:"Korean numbers",zh:"韩语数字",ja:"韓国語の数字",id:"Angka bahasa Korea",ru:"Корейские числа",th:"ตัวเลขภาษาเกาหลี",mn:"Солонгос тоо",uz:"Koreyscha raqamlar"},
+  "한국어 문장을 입력하세요...":{ko:"한국어 문장을 입력하세요...",vi:"Nhập câu tiếng Hàn...",en:"Enter Korean sentence...",zh:"请输入韩语句子...",ja:"韓国語の文を入力してください...",id:"Masukkan kalimat Korea...",ru:"Введите корейское предложение...",th:"ป้อนประโยคภาษาเกาหลี...",mn:"Солонгос өгүүлбэр оруулна уу...",uz:"Koreyscha gap kiriting..."},
+  "부정법":{ko:"부정법",vi:"Phép phủ định",en:"Negation",zh:"否定法",ja:"否定法",id:"Negasi",ru:"Отрицание",th:"การปฏิเสธ",mn:"Үгүйсгэл",uz:"Inkor"},
+  "안~·못~·~지 않다·~지 못하다":{ko:"안~·못~·~지 않다·~지 못하다",vi:"안~·못~·~지 않다·~지 못하다",en:"안~·못~·~지 않다·~지 못하다",zh:"안~·못~·~지 않다·~지 못하다",ja:"안~·못~·~지 않다·~지 못하다",id:"안~·못~·~지 않다·~지 못하다",ru:"안~·못~·~지 않다·~지 못하다",th:"안~·못~·~지 않다·~지 못하다",mn:"안~·못~·~지 않다·~지 못하다",uz:"안~·못~·~지 않다·~지 못하다"},
+  "격식체·구어체·문어체":{ko:"격식체·구어체·문어체",vi:"Trang trọng·Thông thường·Văn viết",en:"Formal·Spoken·Written",zh:"正式体·口语体·文语体",ja:"格式体·口語体·文語体",id:"Formal·Lisan·Tulisan",ru:"Офиц.·Разговорный·Письменный",th:"ทางการ·พูด·เขียน",mn:"Ёсчлол·Ярианы·Бичгийн",uz:"Rasmiy·So'zlashuv·Yozma"},
+  "합니다체 / 해요체 / 해체":{ko:"합니다체 / 해요체 / 해체",vi:"합니다체 / 해요체 / 해체",en:"합니다체 / 해요체 / 해체",zh:"합니다체 / 해요체 / 해체",ja:"합니다체 / 해요체 / 해체",id:"합니다체 / 해요체 / 해체",ru:"합니다체 / 해요체 / 해체",th:"합니다체 / 해요체 / 해체",mn:"합니다체 / 해요체 / 해체",uz:"합니다체 / 해요체 / 해체"},
+  "기초문법 총정리":{ko:"기초문법 총정리",vi:"Tổng kết ngữ pháp cơ bản",en:"Basic grammar review",zh:"基础语法总整理",ja:"基礎文法総まとめ",id:"Ringkasan tata bahasa dasar",ru:"Обзор базовой грамматики",th:"สรุปไวยากรณ์พื้นฐาน",mn:"Үндсэн дүрмийн нэгдсэн дүгнэлт",uz:"Asosiy grammatika xulosasi"},
+  "한국어 기초문법 한눈에 보기":{ko:"한국어 기초문법 한눈에 보기",vi:"Ngữ pháp cơ bản tiếng Hàn trong một cái nhìn",en:"Korean basic grammar at a glance",zh:"韩语基础语法一览",ja:"韓国語基礎文法一覧",id:"Tata bahasa dasar Korea sekilas",ru:"Базовая грамматика корейского в обзоре",th:"ไวยากรณ์พื้นฐานภาษาเกาหลีในมุมมองเดียว",mn:"Солонгосын үндсэн дүрмийг нэг харцаар",uz:"Koreyscha asosiy grammatika bir ko'rinishda"},
+  "80시간 커리큘럼 완료!":{ko:"80시간 커리큘럼 완료!",vi:"Hoàn thành chương trình 80 giờ!",en:"80-hour curriculum complete!",zh:"80小时课程完成!",ja:"80時間カリキュラム完了!",id:"Kurikulum 80 jam selesai!",ru:"Учебный план 80 часов завершён!",th:"หลักสูตร 80 ชั่วโมงเสร็จสิ้น!",mn:"80 цагийн хөтөлбөр дуусгав!",uz:"80 soatlik o'quv rejasi tugadi!"},
+};
+
+// UI 번역 헬퍼: tx(key, langCode)
+// 사용법: tx("완료!", lang?.code) → 선택 언어로 자동 반환
+
+// tx(obj, langCode): 언어코드에 맞는 번역 반환
+// obj 가 문자열이면 UI_TRANSLATIONS 테이블 참조
+// obj 가 객체이면 직접 해당 언어값 반환
+function tx(obj, langCode) {
+  if (!obj) return "";
+  const lc = langCode ?? "ko";
+  // 문자열 키: UI_TRANSLATIONS 테이블 참조
+  if (typeof obj === "string") {
+    const row = UI_TRANSLATIONS[obj];
+    if (row) return row[lc] ?? row.en ?? row.ko ?? obj;
+    return obj;
+  }
+  // 객체: 직접 언어값 반환
+  if (obj[lc] !== undefined) return obj[lc];
+  if (obj.en !== undefined) return obj.en;
+  return obj.ko ?? "";
+}
+
+// getLang(lang): lang 객체에서 코드 추출
+function getLang(lang) {
+  return lang?.code ?? "ko";
+}
+
+// txUI(ko, lang): UI 텍스트 단축 헬퍼
+// 사용: txUI("완료!", lang) → 선택 언어 자동 반환
+function txUI(ko, lang) {
+  return tx(ko, lang?.code);
+}
+
 // ════════════════════════════════════════════════════════
 // ════════════════════════════════════════════════════════
 // ✅ V277: 비주얼 온보딩 화면 (슬라이드 6장)
@@ -2263,8 +2592,16 @@ ${vocabList}
     const { passedCount, nextStep, nextLabel, completedLabel } = showProgress;
     const totalUnits = 25;
     const pct = Math.round((passedCount / totalUnits) * 100);
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     // 전체 80시간 커리큘럼 단계 맵
     // ✅ V266: 80시간 기준 누적 시간 계산 (현장 데이터 기반)
@@ -2286,13 +2623,13 @@ ${vocabList}
     const pctHours = Math.min(Math.round((elapsedHours / TOTAL_HOURS) * 100), 100);
 
     const CURRICULUM_MAP = [
-      { label: vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계 (8h)",      done: true },
-      { label: vi?"Thì 6 bài":en?"Tenses 6 units":"시제 6단원 (6h)",                  done: true },
-      { label: vi?"Trợ từ · Đại từ":en?"Particles · Pronouns":"조사·대명사 (5h)",    done: true },
-      { label: vi?"Cấu trúc câu":en?"Sentence structure":"문장구조·의문대명사 (1h)",  done: true },
-      { label: vi?"Vị ngữ 25 bài":en?"Predicates 25 units":"서술어 25단원 (38h)",      done: false, current: true, pct },
-      { label: vi?"Phó từ · Biểu hiện":en?"Adverbs · Expressions":"부사어·관형어·기타 (21h)", done: false },
-      { label: vi?"Số · Phủ định":en?"Numbers · Negation":"숫자·부정법·격식체·정리 (1h)", done: false },
+      { label: txUI("발음 8단계 (8h)", lang),      done: true },
+      { label: txUI("시제 6단원 (6h)", lang),                  done: true },
+      { label: txUI("조사·대명사 (5h)", lang),    done: true },
+      { label: txUI("문장구조·의문대명사 (1h)", lang),  done: true },
+      { label: txUI("서술어 25단원 (38h)", lang),      done: false, current: true, pct },
+      { label: txUI("부사어·관형어·기타 (21h)", lang), done: false },
+      { label: txUI("숫자·부정법·격식체·정리 (1h)", lang), done: false },
     ];
 
     return (
@@ -2302,15 +2639,15 @@ ${vocabList}
         <div style={{fontSize:56,marginBottom:8}}>🎉</div>
       {MyPageBtn}
         <div style={{fontSize:20,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
-          {completedLabel} {vi?"hoàn thành!":en?"Complete!":"완료!"}
+          {completedLabel} {txUI("완료!", lang)}
         </div>
         <div style={{fontSize:13,color:"#888",marginBottom:28,textAlign:"center"}}>
-          {vi?"Bạn đang tiến bộ thật tốt! 💪":en?"You're making great progress! 💪":"정말 잘하고 있어요! 💪"}
+          {txUI("정말 잘하고 있어요! 💪", lang)}
         </div>
 
         {/* 진행 바 */}
         <div style={{width:"100%",maxWidth:340,background:"white",borderRadius:18,padding:"20px 18px",marginBottom:16,boxShadow:"0 4px 20px rgba(156,111,222,.12)"}}>
-          <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:12}}>📊 {vi?"Tiến trình học tập":en?"Learning Progress":"나의 학습 위치"}</div>
+          <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:12}}>📊 {txUI("나의 학습 위치", lang)}</div>
 
           {/* 80시간 기준 진행 바 */}
           <div style={{marginBottom:16}}>
@@ -2342,7 +2679,7 @@ ${vocabList}
                 {s.done?"✓":s.current?"●":i+1}
               </div>
               <span style={{fontSize:12,fontWeight:s.current?800:500,color:s.done?"#00C896":s.current?"#9C6FDE":"#bbb",flex:1}}>{s.label}</span>
-              {s.current&&<span style={{fontSize:10,fontWeight:800,color:"#9C6FDE",background:"#F3EEFF",borderRadius:8,padding:"2px 7px"}}>📍 {vi?"Đang ở đây":en?"Here":"여기"}</span>}
+              {s.current&&<span style={{fontSize:10,fontWeight:800,color:"#9C6FDE",background:"#F3EEFF",borderRadius:8,padding:"2px 7px"}}>📍 {txUI("여기", lang)}</span>}
             </div>
           ))}
         </div>
@@ -2386,28 +2723,31 @@ ${vocabList}
   // ── D-Day 학습 계획 화면 (V131 신규) ──
   // ── 80시간 커리큘럼 미리보기 화면 ──
   if (step === "curriculum") {
-    const vi = lang?.code==="vi", en = lang?.code==="en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi", en = lc === "en";
+    const zh = lc==="zh", ja=lc==="ja", id=lc==="id";
+    const ru = lc==="ru", th=lc==="th", mn=lc==="mn", uz=lc==="uz";
     const items = [
-      { emoji:"🔤", label:vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계",                                    hours: 8,  color:"#E8F4FD", border:"#90CAF9" },
-      { emoji:"⏱️", label:vi?"Thì 6 bài":en?"Tenses 6 units":"시제 6단원",                                               hours: 6,  color:"#FFF3E0", border:"#FFCC80" },
-      { emoji:"🔗", label:vi?"Trợ từ · Đại từ":en?"Particles · Pronouns":"조사 · 대명사",                                 hours: 5,  color:"#E8F5E9", border:"#A5D6A7" },
-      { emoji:"📐", label:vi?"Cấu trúc câu · Đại từ nghi vấn":en?"Sentence structure · Question pronouns":"문장구조 · 의문대명사", hours: 1,  color:"#E3F2FD", border:"#90CAF9" },
-      { emoji:"📝", label:vi?"Vị ngữ 25 bài":en?"Predicates 25 units":"서술어 25단원",                                    hours:38,  color:"#F3EEFF", border:"#CE93D8" },
-      { emoji:"📖", label:vi?"Phó từ · Quan hệ từ · Kính ngữ...":en?"Adverbs · Adjectives · Honorifics...":"부사어 · 관형어 · 존칭 · 간접화법 · 비교/최상급 · 기타", hours:21,  color:"#FDE8F5", border:"#F48FB1" },
-      { emoji:"🔢", label:vi?"Số · Phủ định · Văn phong · Tổng kết":en?"Numbers · Negation · Register · Review":"숫자 · 부정법 · 격식체 · 기초문법 정리", hours: 1,  color:"#FFF8E1", border:"#FFD54F" },
+      { emoji:"🔤", label:txUI("발음 8단계", lang),                                    hours: 8,  color:"#E8F4FD", border:"#90CAF9" },
+      { emoji:"⏱️", label:txUI("시제 6단원", lang),                                               hours: 6,  color:"#FFF3E0", border:"#FFCC80" },
+      { emoji:"🔗", label:txUI("조사 · 대명사", lang),                                 hours: 5,  color:"#E8F5E9", border:"#A5D6A7" },
+      { emoji:"📐", label:txUI("문장구조 · 의문대명사", lang), hours: 1,  color:"#E3F2FD", border:"#90CAF9" },
+      { emoji:"📝", label:txUI("서술어 25단원", lang),                                    hours:38,  color:"#F3EEFF", border:"#CE93D8" },
+      { emoji:"📖", label:txUI("부사어 · 관형어 · 존칭 · 간접화법 · 비교/최상급 · 기타", lang), hours:21,  color:"#FDE8F5", border:"#F48FB1" },
+      { emoji:"🔢", label:txUI("숫자 · 부정법 · 격식체 · 기초문법 정리", lang), hours: 1,  color:"#FFF8E1", border:"#FFD54F" },
     ];
     return (
       <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:12}}>📚</div>
       {MyPageBtn}
         <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
-          {vi?"80 giờ của bạn!":en?"Your 80 Hours!":"나의 80시간 커리큘럼"}
+          {txUI("나의 80시간 커리큘럼", lang)}
           <span style={{fontSize:12,fontWeight:700,color:"white",background:"#9C6FDE",borderRadius:20,padding:"2px 10px",marginLeft:8,verticalAlign:"middle"}}>
-            {vi?"Sơ cấp":en?"Beginner":"초급자용"}
+            {txUI("초급자용", lang)}
           </span>
         </div>
         <div style={{fontSize:13,color:"#aaa",marginBottom:22,textAlign:"center"}}>
-          {vi?"Đây là những gì bạn sẽ học trong 80 giờ!":en?"Here's what you'll learn in 80 hours!":"80시간 동안 이걸 배워요! 🌏"}
+          {txUI("80시간 동안 이걸 배워요! 🌏", lang)}
         </div>
 
         {/* 커리큘럼 카드 */}
@@ -2421,7 +2761,7 @@ ${vocabList}
           ))}
           {/* 합계 */}
           <div style={{background:"linear-gradient(135deg,#9C6FDE,#C084FC)",borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <div style={{fontSize:14,fontWeight:900,color:"white"}}>🎯 {vi?"Tổng cộng":en?"Total":"합계"}</div>
+            <div style={{fontSize:14,fontWeight:900,color:"white"}}>🎯 {txUI("합계", lang)}</div>
             <div style={{fontSize:18,fontWeight:900,color:"white"}}>80h</div>
           </div>
         </div>
@@ -2430,13 +2770,13 @@ ${vocabList}
         <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:16,padding:"14px 18px",marginBottom:22,textAlign:"center",boxShadow:"0 2px 12px rgba(156,111,222,.10)"}}>
           <div style={{fontSize:12,color:"#9C6FDE",fontWeight:800,marginBottom:4}}>💜 한글 친구의 약속</div>
           <div style={{fontSize:12,color:"#666",lineHeight:1.6}}>
-            {vi?"80 giờ của bạn sẽ mở ra một thế giới mới.":en?"Your 80 hours will open a new world.":"당신의 80시간은 새로운 세상을 열어줍니다."}
+            {txUI("당신의 80시간은 새로운 세상을 열어줍니다.", lang)}
           </div>
         </div>
 
         <button onClick={()=>setStep("plan")}
           style={{width:"100%",maxWidth:360,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:16,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #9C6FDE44",WebkitTapHighlightColor:"transparent"}}>
-          {vi?"Tiếp theo! →":en?"Next! →":"학습 계획 세우기 →"}
+          {txUI("학습 계획 세우기 →", lang)}
         </button>
         <button onClick={()=>setStep("lang")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
       </div>
@@ -2501,8 +2841,10 @@ ${vocabList}
 
         {/* ✅ V262: daily/work 경고 팝업 */}
         {showGoalWarning&&(()=>{
-          const vi = lang?.code==="vi";
-          const en = lang?.code==="en";
+          const lc = lang?.code ?? "ko";
+          const vi = lc==="vi", en=lc==="en";
+          const zh=lc==="zh", ja=lc==="ja", id=lc==="id";
+          const ru=lc==="ru", th=lc==="th", mn=lc==="mn", uz=lc==="uz";
           const isWork = pendingGoal==="work";
           const title = vi
             ? (isWork?"Tiếng Hàn công việc":"Nói tiếng Hàn hàng ngày")
@@ -2535,15 +2877,15 @@ ${vocabList}
                 <div style={{fontSize:12,color:"#888",lineHeight:1.6,marginBottom:20,borderTop:"1px solid #eee",paddingTop:12}}>{msg3}</div>
                 <button onClick={()=>{setStudyGoal("topik2");setShowGoalWarning(false);setPendingGoal(null);}}
                   style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
-                  {vi?"✅ Bắt đầu khóa học cơ bản 80 giờ":en?"✅ Start the 80-hour basic course":"✅ 80시간 기초 과정 시작하기"}
+                  {txUI("✅ 80시간 기초 과정 시작하기", lang)}
                 </button>
                 <button onClick={()=>{setStudyGoal(pendingGoal);setShowGoalWarning(false);setPendingGoal(null);onBrowse?.();}}
                   style={{width:"100%",background:"white",color:"#9C6FDE",border:"2px solid #9C6FDE",borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:10}}>
-                  {vi?"💬 Vẫn muốn thực hành nói tự do":en?"💬 I still want free talking":"💬 그래도 프리토킹 할게요"}
+                  {txUI("💬 그래도 프리토킹 할게요", lang)}
                 </button>
                 <button onClick={()=>{setShowGoalWarning(false);setPendingGoal(null);}}
                   style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
-                  {vi?"← Quay lại":en?"← Go back":"← 뒤로 가기"}
+                  {txUI("← 뒤로 가기", lang)}
                 </button>
               </div>
             </div>
@@ -2613,24 +2955,32 @@ ${vocabList}
   // ── V145: 발음 화면 (그룹 A 전용 — TOPIK 2급, 한국 생활 적응) ──
   // ✅ V268: 발음 목차 화면
   if (step === "pronContents") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const PRON_CONTENTS = [
-      { no:"01", label:vi?"Nguyên âm cơ bản":en?"Basic Vowels":"기본 모음",         emoji:"🔤" },
-      { no:"02", label:vi?"Viết nguyên âm":en?"Vowel Writing":"모음 쓰기",           emoji:"✏️" },
-      { no:"03", label:vi?"Từ vựng nguyên âm 1":en?"Vowel Words 1":"모음1 단어",     emoji:"📖" },
-      { no:"04", label:vi?"Nguyên âm phức":en?"Complex Vowels":"복합 모음",           emoji:"🔤" },
-      { no:"05", label:vi?"Viết nguyên âm phức":en?"Complex Vowel Writing":"복합 모음 쓰기", emoji:"✏️" },
-      { no:"06", label:vi?"Từ vựng nguyên âm 2":en?"Vowel Words 2":"모음2 단어",     emoji:"📖" },
-      { no:"07", label:vi?"Phụ âm cuối ㄱ·ㅋ":en?"Batchim ㄱ·ㅋ":"받침 ㄱ·ㅋ",       emoji:"🧱" },
-      { no:"08", label:vi?"Phụ âm cuối ㅇ":en?"Batchim ㅇ":"받침 ㅇ",               emoji:"🧱" },
-      { no:"09", label:vi?"Phụ âm cuối ㅁ·ㅂ":en?"Batchim ㅁ·ㅂ":"받침 ㅁ·ㅂ",       emoji:"🧱" },
-      { no:"10", label:vi?"Phụ âm cuối ㅂ·ㅍ":en?"Batchim ㅂ·ㅍ":"받침 ㅂ·ㅍ",       emoji:"🧱" },
-      { no:"11", label:vi?"Phụ âm cuối ㄹ":en?"Batchim ㄹ":"받침 ㄹ",               emoji:"⭐" },
-      { no:"12", label:vi?"Phụ âm cuối ㄴ":en?"Batchim ㄴ":"받침 ㄴ",               emoji:"🧱" },
-      { no:"13", label:vi?"Phụ âm cuối ㄷ":en?"Batchim ㄷ":"받침 ㄷ",               emoji:"🧱" },
-      { no:"14", label:vi?"Phụ âm cuối kép + Liên âm":en?"Double Batchim + Liaison":"겹받침 + 연음법칙", emoji:"🔗" },
-      { no:"15", label:vi?"Thì 6 bài (tiếp theo)":en?"Tenses next":"다음: 시제 6단원",emoji:"⏱️", next:true },
+      { no:"01", label:txUI("기본 모음", lang),         emoji:"🔤" },
+      { no:"02", label:txUI("모음 쓰기", lang),           emoji:"✏️" },
+      { no:"03", label:txUI("모음1 단어", lang),     emoji:"📖" },
+      { no:"04", label:txUI("복합 모음", lang),           emoji:"🔤" },
+      { no:"05", label:txUI("복합 모음 쓰기", lang), emoji:"✏️" },
+      { no:"06", label:txUI("모음2 단어", lang),     emoji:"📖" },
+      { no:"07", label:txUI("받침 ㄱ·ㅋ", lang),       emoji:"🧱" },
+      { no:"08", label:txUI("받침 ㅇ", lang),               emoji:"🧱" },
+      { no:"09", label:txUI("받침 ㅁ·ㅂ", lang),       emoji:"🧱" },
+      { no:"10", label:txUI("받침 ㅂ·ㅍ", lang),       emoji:"🧱" },
+      { no:"11", label:txUI("받침 ㄹ", lang),               emoji:"⭐" },
+      { no:"12", label:txUI("받침 ㄴ", lang),               emoji:"🧱" },
+      { no:"13", label:txUI("받침 ㄷ", lang),               emoji:"🧱" },
+      { no:"14", label:txUI("겹받침 + 연음법칙", lang), emoji:"🔗" },
+      { no:"15", label:txUI("다음: 시제 6단원", lang),emoji:"⏱️", next:true },
     ];
 
     return (
@@ -2638,10 +2988,10 @@ ${vocabList}
         <div style={{fontSize:36,marginBottom:8}}>🔤</div>
       {MyPageBtn}
         <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
-          {vi?"Mục lục Phát âm":en?"Pronunciation Contents":"발음 학습 목차"}
+          {txUI("발음 학습 목차", lang)}
         </div>
         <div style={{fontSize:12,color:"#aaa",marginBottom:20,textAlign:"center"}}>
-          {vi?"Tổng 8 giờ · 14 bước":en?"8 hours total · 14 steps":"총 8시간 · 14단계"}
+          {txUI("총 8시간 · 14단계", lang)}
         </div>
 
         <div style={{width:"100%",maxWidth:360,display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
@@ -2665,7 +3015,7 @@ ${vocabList}
 
         <button onClick={()=>{ setPronStep(0); setFlipped({}); setStep("pronunciation"); }}
           style={{width:"100%",maxWidth:360,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:16,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #9C6FDE44"}}>
-          {vi?"Bắt đầu học phát âm! 🔤":en?"Start Pronunciation! 🔤":"발음 학습 시작! 🔤"}
+          {txUI("발음 학습 시작! 🔤", lang)}
         </button>
         <button onClick={()=>setStep("plan")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
       </div>
@@ -2673,8 +3023,16 @@ ${vocabList}
   }
 
   if (step === "pronunciation") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     // 발음 단계 목록
     const PRON_STEPS = [
@@ -4370,9 +4728,9 @@ ${vocabList}
         {/* 헤더 */}
         <div style={{fontSize:32, marginBottom:4}}>{current.emoji}</div>
         <div style={{fontSize:17, fontWeight:900, color:"#9C6FDE", marginBottom:2, textAlign:"center"}}>
-          {vi?"Phát âm":en?"Pronunciation":"발음 학습"} — {current.title}
+          {txUI("발음 학습", lang)} — {current.title}
         </div>
-        <div style={{fontSize:12, color:"#aaa", marginBottom:6, textAlign:"center"}}>{current[vi?"descVi":en?"descEn":"desc"] || current.desc}</div>
+        <div style={{fontSize:12, color:"#aaa", marginBottom:6, textAlign:"center"}}>{current[txUI("desc", lang)] || current.desc}</div>
 
         {/* 진행 표시 */}
         <div style={{display:"flex", gap:6, marginBottom:16}}>
@@ -4385,15 +4743,15 @@ ${vocabList}
 
         {/* 팁 배너 */}
         <div style={{background:"#F3EEFF", border:"1.5px solid #C084FC44", borderRadius:12, padding:"8px 14px", marginBottom:14, maxWidth:360, width:"100%", fontSize:12, color:"#9C6FDE", fontWeight:600, textAlign:"center"}}>
-          💡 {current[vi?"tipVi":en?"tipEn":"tip"] || current.tip}
+          💡 {current[txUI("tip", lang)] || current.tip}
         </div>
 
         {/* 쓰기 단계 / 학습 단계 분기 */}
         {current.type === "write" ? (
           <div style={{width:"100%", maxWidth:380, marginBottom:20}}>
             <div style={{background:"#FFF8E7", border:"2px solid #FFC107", borderRadius:16, padding:"18px 16px", marginBottom:16, textAlign:"center"}}>
-              <div style={{fontSize:16, fontWeight:900, color:"#E65100", marginBottom:8}}>✏️ {vi?"Bài tập viết":en?"Writing task":"쓰기 과제"}</div>
-              <div style={{fontSize:13, color:"#5D4037", lineHeight:1.7, marginBottom:12}}>{current[vi?"writeTaskVi":en?"writeTaskEn":"writeTask"] || current.writeTask}</div>
+              <div style={{fontSize:16, fontWeight:900, color:"#E65100", marginBottom:8}}>✏️ {txUI("쓰기 과제", lang)}</div>
+              <div style={{fontSize:13, color:"#5D4037", lineHeight:1.7, marginBottom:12}}>{current[txUI("writeTask", lang)] || current.writeTask}</div>
               <div style={{display:"flex", flexWrap:"wrap", gap:8, justifyContent:"center"}}>
                 {current.items.map((item,i)=>(
                   <div key={i} style={{background:"white", border:"2px solid #FFC107", borderRadius:10, padding:"8px 14px", fontSize:28, fontWeight:900, color:"#9C6FDE"}}>{item.char}</div>
@@ -4403,17 +4761,17 @@ ${vocabList}
             <div style={{background:"#F0FFF4", border:"2px solid #4CAF50", borderRadius:16, padding:"20px", textAlign:"center", marginBottom:12}}>
               <div style={{fontSize:24, marginBottom:8}}>✍️</div>
               <div style={{fontSize:13, color:"#2E7D32", fontWeight:700, marginBottom:4}}>
-                {vi?"Bạn đã viết xong chưa?":en?"Have you completed the writing?":"과제를 완료했나요?"}
+                {txUI("과제를 완료했나요?", lang)}
               </div>
               <div style={{fontSize:12, color:"#888", lineHeight:1.6}}>
-                {vi?"Hãy tự đánh giá thật lòng và nhấn nút bên dưới nhé 😊":en?"Be honest with yourself and press the button below 😊":"스스로 양심적으로 판단해서 완료했으면 아래 버튼을 눌러요 😊"}
+                {txUI("스스로 양심적으로 판단해서 완료했으면 아래 버튼을 눌러요 😊", lang)}
               </div>
             </div>
             <button onClick={()=>{
               if(pronStep < PRON_STEPS.length - 1){ setPronStep(s=>s+1); setFlipped({}); }
               else setStep("pronResult");
             }} style={{width:"100%", background:"linear-gradient(135deg,#4CAF50,#66BB6A)", color:"white", border:"none", borderRadius:50, padding:"13px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-              ✅ {vi?"Hoàn thành — Tiếp theo":en?"Done — Next step":"완료했어요 — 다음 단계로"}
+              ✅ {txUI("완료했어요 — 다음 단계로", lang)}
             </button>
           </div>
         ) : (
@@ -4431,7 +4789,7 @@ ${vocabList}
               ) : (
                 <>
                   <div style={{fontSize:22, fontWeight:900, color:"#9C6FDE", marginBottom:2, lineHeight:1.2, wordBreak:"keep-all"}}>{item.char}</div>
-                  <div style={{fontSize:9, color:"#bbb"}}>{vi?"Nhấn":en?"Tap":"탭하세요"}</div>
+                  <div style={{fontSize:9, color:"#bbb"}}>{txUI("탭하세요", lang)}</div>
                 </>
               )}
             </div>
@@ -4439,7 +4797,7 @@ ${vocabList}
         </div>
 
         <div style={{fontSize:11, color:"#bbb", marginBottom:20, textAlign:"center"}}>
-          {vi?"Chạm vào thẻ để xem từ ví dụ":en?"Tap a card to see example word":"카드를 탭하면 예시 단어가 나와요 😊"}
+          {txUI("카드를 탭하면 예시 단어가 나와요 😊", lang)}
         </div>
         </>
         )}
@@ -4447,12 +4805,12 @@ ${vocabList}
         {/* 발음 테스트 버튼 — 각 단계마다 테스트 후 다음으로 */}
         <button onClick={()=>{
           if(pronStep < PRON_STEPS.length - 1){ setPronStep(s=>s+1); setFlipped({}); }
-          else { setShowProgress({ passedCount: unitsPassed.length, completedLabel: vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계", nextStep:"tense1", nextLabel: vi?"Tiếp theo — Thì":en?"Next — Tenses":"다음 — 시제" }); }
+          else { setShowProgress({ passedCount: unitsPassed.length, completedLabel: txUI("발음 8단계", lang), nextStep:"tense1", nextLabel: txUI("다음 — 시제", lang) }); }
         }}
           style={{width:"100%", maxWidth:360, background:"linear-gradient(135deg,#9C6FDE,#C084FC)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C6FDE44"}}>
           {pronStep < PRON_STEPS.length - 1
-            ? (vi?"Bài tiếp theo →":en?"Next lesson →":"다음 단계로 →")
-            : (vi?"Tiếp theo — Thì! 🚀":en?"Next — Tenses! 🚀":"시제 학습으로! 🚀")}
+            ? (txUI("다음 단계로 →", lang))
+            : (txUI("시제 학습으로! 🚀", lang))}
         </button>
 
         <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer"}}>← 뒤로</button>
@@ -4464,8 +4822,16 @@ ${vocabList}
   // ✅ V153: 발음 STT 테스트 화면
   // ════════════════════════════════════════════════════════
   if (step === "pronTest") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const PRON_STEPS_COUNT = 17; // 총 발음 단계 수
 
     // 유사도 계산 함수 (레벤슈타인 거리 기반)
@@ -4490,7 +4856,7 @@ ${vocabList}
         return;
       }
       if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-        alert(vi?"Trình duyệt không hỗ trợ STT":en?"Browser doesn't support STT":"이 브라우저는 음성 인식을 지원하지 않아요");
+        alert(txUI("이 브라우저는 음성 인식을 지원하지 않아요", lang));
         return;
       }
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -4540,7 +4906,7 @@ ${vocabList}
         setPronTestListening(false);
         // 결과 없이 종료된 경우 — 다시 시도 안내
         if (!hasResult) {
-          setPronTestFeedback({ok:false, similarity:0, msg: vi?"Không nghe thấy. Thử lại nhé! 🎤":en?"Couldn't hear you. Try again! 🎤":"소리를 인식하지 못했어요. 크게 다시 말해봐요! 🎤"});
+          setPronTestFeedback({ok:false, similarity:0, msg: txUI("소리를 인식하지 못했어요. 크게 다시 말해봐요! 🎤", lang)});
           setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(인식 실패)", similarity:0, ok:false}]);
         }
       };
@@ -4551,7 +4917,7 @@ ${vocabList}
     async function judgePronunciation(sttText, target, similarity) {
       if (similarity >= 85) {
         // 바로 통과
-        setPronTestFeedback({ok:true, similarity, msg: vi?"Xuất sắc! Phát âm chuẩn!":en?"Excellent pronunciation!":"완벽해요! 🎉"});
+        setPronTestFeedback({ok:true, similarity, msg: txUI("완벽해요! 🎉", lang)});
         setPronTestResults(r=>[...r, {target, sttText, similarity, ok:true}]);
       } else if (similarity >= 50) {
         // Claude 판단
@@ -4589,7 +4955,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         setPronTestLoading(false);
       } else {
         // 바로 실패
-        setPronTestFeedback({ok:false, similarity, msg: vi?"Thử lại nhé! 💪":en?"Try again! 💪":"다시 해봐요! 💪"});
+        setPronTestFeedback({ok:false, similarity, msg: txUI("다시 해봐요! 💪", lang)});
         setPronTestResults(r=>[...r, {target, sttText, similarity, ok:false}]);
       }
     }
@@ -4615,14 +4981,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3EEFF,#E8E0FF)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 16px"}}>
         <div style={{fontSize:40, marginBottom:16}}>⚠️</div>
         <div style={{fontSize:16, fontWeight:900, color:"#9C6FDE", marginBottom:8, textAlign:"center"}}>
-          {vi?"Không có từ để kiểm tra":en?"No words to test yet":"테스트할 단어가 없어요"}
+          {txUI("테스트할 단어가 없어요", lang)}
         </div>
         <div style={{fontSize:13, color:"#aaa", marginBottom:24, textAlign:"center", lineHeight:1.6}}>
-          {vi?"Hãy học ít nhất một bước trước khi kiểm tra":en?"Please complete at least one learning step first":"먼저 단어 학습 단계를 완료해 주세요"}
+          {txUI("먼저 단어 학습 단계를 완료해 주세요", lang)}
         </div>
         <button onClick={()=>{ setPronStep(0); setFlipped({}); setStep("pronunciation"); }}
           style={{background:"linear-gradient(135deg,#9C6FDE,#C084FC)", color:"white", border:"none", borderRadius:50, padding:"12px 32px", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-          ← {vi?"Quay lại học":en?"Back to study":"학습으로 돌아가기"}
+          ← {txUI("학습으로 돌아가기", lang)}
         </button>
       </div>
     );
@@ -4633,7 +4999,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
           {/* 헤더 */}
           <div style={{fontSize:13, color:"#9C6FDE", fontWeight:700, marginBottom:4}}>
-            🎤 {vi?"Kiểm tra phát âm":en?"Pronunciation Test":"발음 테스트"} ({pronTestIdx+1}/{pronTestItems.length})
+            🎤 {txUI("발음 테스트", lang)} ({pronTestIdx+1}/{pronTestItems.length})
           </div>
           <div style={{display:"flex", gap:4, marginBottom:20}}>
             {pronTestItems.map((_,i)=>(
@@ -4644,7 +5010,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {/* 목표 단어 카드 */}
           <div style={{background:"white", borderRadius:20, padding:28, textAlign:"center", boxShadow:"0 8px 32px #9C6FDE22", marginBottom:20}}>
             <div style={{fontSize:13, color:"#aaa", marginBottom:8}}>
-              {vi?"Hãy đọc to từ này":en?"Read this word aloud":"이 단어를 크게 발음해보세요"}
+              {txUI("이 단어를 크게 발음해보세요", lang)}
             </div>
             <div style={{fontSize:48, fontWeight:900, color:"#7C3AED", marginBottom:4}}>
               {currentItem.word}
@@ -4661,17 +5027,17 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               window.speechSynthesis.cancel();
               window.speechSynthesis.speak(u);
             }} style={{marginTop:12, background:"#F3EEFF", border:"none", borderRadius:20, padding:"6px 16px", fontSize:12, color:"#9C6FDE", cursor:"pointer", fontWeight:700}}>
-              🔊 {vi?"Nghe mẫu":en?"Listen":"예시 듣기"}
+              🔊 {txUI("예시 듣기", lang)}
             </button>
           </div>
 
           {/* STT 결과 표시 */}
           {pronTestSTT && (
             <div style={{background:"white", borderRadius:14, padding:14, marginBottom:12, textAlign:"center"}}>
-              <div style={{fontSize:12, color:"#aaa", marginBottom:4}}>{vi?"Bạn đã nói":en?"You said":"내가 말한 것"}</div>
+              <div style={{fontSize:12, color:"#aaa", marginBottom:4}}>{txUI("내가 말한 것", lang)}</div>
               <div style={{fontSize:20, fontWeight:700, color:"#333"}}>{pronTestSTT}</div>
               <div style={{fontSize:12, color:"#9C6FDE", marginTop:4}}>
-                {vi?"Độ tương đồng":en?"Similarity":"유사도"}: {pronTestFeedback?.similarity}%
+                {txUI("유사도", lang)}: {pronTestFeedback?.similarity}%
               </div>
             </div>
           )}
@@ -4679,7 +5045,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {/* 피드백 */}
           {pronTestLoading && (
             <div style={{textAlign:"center", padding:12, color:"#9C6FDE", fontWeight:700}}>
-              ⏳ {vi?"Đang đánh giá...":en?"Evaluating...":"평가 중..."}
+              ⏳ {txUI("평가 중...", lang)}
             </div>
           )}
           {pronTestFeedback && !pronTestLoading && (
@@ -4696,8 +5062,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <button onClick={startSTT}
               style={{width:"100%", background: pronTestListening?"linear-gradient(135deg,#FF6B6B,#E64A00)":"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"16px 0", fontSize:16, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C6FDE44"}}>
               {pronTestListening
-                ? (vi?"🔴 Đang nghe... (nhấn lại để dừng)":en?"🔴 Listening... (tap again to stop)":"🔴 듣는 중... (다시 누르면 종료)")
-                : (vi?"🎤 Bắt đầu nói":en?"🎤 Speak now":"🎤 말하기 시작")}
+                ? (txUI("🔴 듣는 중... (다시 누르면 종료)", lang))
+                : (txUI("🎤 말하기 시작", lang))}
             </button>
           )}
           {pronTestFeedback && !pronTestLoading && (
@@ -4705,14 +5071,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               {!pronTestFeedback.ok && (
                 <button onClick={()=>{setPronTestSTT(""); setPronTestFeedback(null);}}
                   style={{flex:1, background:"white", border:"2px solid #9C6FDE", color:"#9C6FDE", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, cursor:"pointer"}}>
-                  🔄 {vi?"Thử lại":en?"Retry":"다시 시도"}
+                  🔄 {txUI("다시 시도", lang)}
                 </button>
               )}
               <button onClick={goNext}
                 style={{flex:2, background:"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
                 {pronTestIdx < pronTestItems.length-1
-                  ? (vi?"Câu tiếp →":en?"Next →":"다음 문제 →")
-                  : (vi?"Xem kết quả →":en?"See results →":"결과 보기 →")}
+                  ? (txUI("다음 문제 →", lang))
+                  : (txUI("결과 보기 →", lang))}
               </button>
             </div>
           )}
@@ -4725,8 +5091,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V153: 발음 테스트 결과 화면
   // ════════════════════════════════════════════════════════
   if (step === "pronResult") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const summary = pronTestResults[0]?._summary ? pronTestResults[0] : null;
     const details = pronTestResults.filter(r=>!r._summary);
     const passed = summary?.score >= 80;
@@ -4741,8 +5115,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:56}}>{passed?"🎉":"💪"}</div>
             <div style={{fontSize:22, fontWeight:900, color: passed?"#00A876":"#E64A00", marginBottom:4}}>
               {passed
-                ? (vi?"Qua rồi!":en?"Passed!":"통과! 🎉")
-                : (vi?"Chưa qua. Luyện lại nhé!":en?"Not passed. Practice more!":"미통과 — 다시 연습해요")}
+                ? (txUI("통과! 🎉", lang))
+                : (txUI("미통과 — 다시 연습해요", lang))}
             </div>
             <div style={{fontSize:28, fontWeight:900, color: passed?"#00C896":"#FF6B6B"}}>
               {summary?.passed}/{summary?.total} ({summary?.score}점)
@@ -4761,7 +5135,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                   </span>
                 </div>
                 <div style={{fontSize:12, color:"#888", marginTop:2}}>
-                  {vi?"Bạn nói":en?"You said":"말한 것"}: {r.sttText || "(없음)"}
+                  {txUI("말한 것", lang)}: {r.sttText || "(없음)"}
                 </div>
               </div>
             ))}
@@ -4776,16 +5150,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               } else {
                 setShowProgress({
                   passedCount: unitsPassed.length,
-                  completedLabel: vi?"Phát âm 8 bước":en?"Pronunciation 8 steps":"발음 8단계",
+                  completedLabel: txUI("발음 8단계", lang),
                   nextStep: "tense1",
-                  nextLabel: vi?"Tiếp theo — Thì":en?"Next — Tenses":"다음 — 시제",
+                  nextLabel: txUI("다음 — 시제", lang),
                 });
               }
             }}
               style={{width:"100%", background:"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
               {fromStep < PRON_STEPS_COUNT - 1
-                ? (vi?"Học bài tiếp theo →":en?"Next lesson →":"다음 단계로 →")
-                : (vi?"Tiếp theo — Thì! 🚀":en?"Next — Tenses! 🚀":"시제 학습으로! 🚀")}
+                ? (txUI("다음 단계로 →", lang))
+                : (txUI("시제 학습으로! 🚀", lang))}
             </button>
           ) : (
             <button onClick={()=>{
@@ -4796,13 +5170,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               setStep("pronTest");
             }}
               style={{width:"100%", background:"linear-gradient(135deg,#9C6FDE,#7C3AED)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-              🔄 {vi?"Làm lại bài kiểm tra":en?"Retake test":"발음 테스트 다시 도전"}
+              🔄 {txUI("발음 테스트 다시 도전", lang)}
             </button>
           )}
 
           <button onClick={()=>{setStep("pronunciation"); setPronStep(fromStep);}}
             style={{marginTop:10, width:"100%", background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer"}}>
-            ← {vi?"Xem lại bài học":en?"Review lesson":"학습 다시 보기"}
+            ← {txUI("학습 다시 보기", lang)}
           </button>
         </div>
       </div>
@@ -4815,8 +5189,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // 시제 1단원 — 규칙 동사 (현재·과거·미래)
   // ══════════════════════════════════════════
   if (step === "tense1") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     const TENSE1_CARDS = [
       { base:"먹다",    meaning:{vi:"ăn",       en:"eat"},    batchim:true,
@@ -4948,7 +5330,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           {/* 헤더 */}
           <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
-            📚 {vi?"시제 1단원 — Động từ (Hiện tại·Quá khứ·Tương lai)":en?"Tense Unit 1 — Verbs (Present·Past·Future)":"시제 1단원 — 동사 (현재·과거·미래)"}
+            📚 {txUI("시제 1단원 — 동사 (현재·과거·미래)", lang)}
           </div>
           <div style={{fontSize:12, color:"#555", background:"#F1F8E9", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
             {vi
@@ -4977,8 +5359,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <div style={{fontSize:12, color:"rgba(255,255,255,.9)", fontWeight:700, background:"rgba(0,0,0,.15)", borderRadius:6, padding:"4px 10px", display:"inline-block"}}>
                 {card.batchim
-                  ? (vi?"받침 있음 → +습니다":en?"Has final consonant → +습니다":"받침 있음 → +습니다")
-                  : (vi?"받침 없음 → +ㅂ니다":en?"No final consonant → +ㅂ니다":"받침 없음 → +ㅂ니다")}
+                  ? (txUI("받침 있음 → +습니다", lang))
+                  : (txUI("받침 없음 → +ㅂ니다", lang))}
               </div>
             </div>
 
@@ -4988,13 +5370,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"1px solid #f0f0f0"}}>
                 <div style={{background:"#f5f5f5"}} />
                 <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.pres, background:C.presLight}}>
-                  {vi?"Hiện tại":en?"Present":"현재"}
+                  {txUI("현재", lang)}
                 </div>
                 <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.past, background:C.pastLight}}>
-                  {vi?"Quá khứ":en?"Past":"과거"}
+                  {txUI("과거", lang)}
                 </div>
                 <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.fut, background:C.futLight}}>
-                  {vi?"Tương lai":en?"Future":"미래"}
+                  {txUI("미래", lang)}
                 </div>
               </div>
 
@@ -5022,7 +5404,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {/* ? 입력 안내 */}
             <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
               <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
-                {vi?"⚠️ Hàng (?) — nhớ gõ dấu '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — always end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+                {txUI("⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?", lang)}
               </div>
             </div>
 
@@ -5031,7 +5413,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{padding:"16px"}}>
                 <button onClick={() => setTenseRevealed(true)}
                   style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                  {vi?"Xem đáp án 👀":en?"Show answers 👀":"정답 보기 👀"}
+                  {txUI("정답 보기 👀", lang)}
                 </button>
               </div>
             )}
@@ -5042,25 +5424,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {tenseCardIdx > 0 && (
               <button onClick={() => { setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
                 style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>
-                ← {vi?"Trước":en?"Prev":"이전"}
+                ← {txUI("이전", lang)}
               </button>
             )}
             {tenseCardIdx < total - 1 ? (
               <button onClick={() => { setTenseCardIdx(i=>i+1); setTenseRevealed(false); }}
                 style={{flex:1, background:`linear-gradient(135deg,${C.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
+                {txUI("다음 카드 →", lang)}
               </button>
             ) : (
               <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense2"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo: Tense 2! 🚀":en?"Next: Tense 2! 🚀":"시제 2단원으로! 🚀"}
+                {txUI("시제 2단원으로! 🚀", lang)}
               </button>
             )}
           </div>
 
           <button onClick={() => setStep("pronResult")}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại phát âm":en?"Back to pronunciation":"뒤로 (발음)"}
+            ← {txUI("뒤로 (발음)", lang)}
           </button>
         </div>
       </div>
@@ -5069,100 +5451,108 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── 시제 2단원: ㄹ탈락 동사 + 있다/없다 계열 ──
   if (step === "tense2") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     const TENSE2_CARDS = [
       { base:"살다",    meaning:{vi:"sống/ở",   en:"live"},
         pres:"삽니다",    presQ:"삽니까?",
         past:"살았습니다",pastQ:"살았습니까?",
         fut:"살 것입니다",  futQ:"살 것입니까?",
-        rule:vi?"살다 → 살+ㅂ니다 → ㄹ탈락 → 삽니다":en?"살다 → 살+ㅂ니다 → ㄹ drop → 삽니다":"살다 → 살+ㅂ니다 → ㄹ탈락 → 삽니다" },
+        rule:txUI("살다 → 살+ㅂ니다 → ㄹ탈락 → 삽니다", lang) },
       { base:"알다",    meaning:{vi:"biết",     en:"know"},
         pres:"압니다",    presQ:"압니까?",
         past:"알았습니다",pastQ:"알았습니까?",
         fut:"알 것입니다",  futQ:"알 것입니까?",
-        rule:vi?"알다 → 알+ㅂ니다 → ㄹ탈락 → 압니다":en?"알다 → 알+ㅂ니다 → ㄹ drop → 압니다":"알다 → 알+ㅂ니다 → ㄹ탈락 → 압니다" },
+        rule:txUI("알다 → 알+ㅂ니다 → ㄹ탈락 → 압니다", lang) },
       { base:"만들다",  meaning:{vi:"làm/tạo",  en:"make"},
         pres:"만듭니다",  presQ:"만듭니까?",
         past:"만들었습니다",pastQ:"만들었습니까?",
         fut:"만들 것입니다",futQ:"만들 것입니까?",
-        rule:vi?"만들다 → 만들+ㅂ니다 → ㄹ탈락 → 만듭니다":en?"만들다 → 만들+ㅂ니다 → ㄹ drop → 만듭니다":"만들다 → 만들+ㅂ니다 → ㄹ탈락 → 만듭니다" },
+        rule:txUI("만들다 → 만들+ㅂ니다 → ㄹ탈락 → 만듭니다", lang) },
       { base:"팔다",    meaning:{vi:"bán",      en:"sell"},
         pres:"팝니다",    presQ:"팝니까?",
         past:"팔았습니다",pastQ:"팔았습니까?",
         fut:"팔 것입니다",  futQ:"팔 것입니까?",
-        rule:vi?"팔다 → 팔+ㅂ니다 → ㄹ탈락 → 팝니다":en?"팔다 → 팔+ㅂ니다 → ㄹ drop → 팝니다":"팔다 → 팔+ㅂ니다 → ㄹ탈락 → 팝니다" },
+        rule:txUI("팔다 → 팔+ㅂ니다 → ㄹ탈락 → 팝니다", lang) },
       { base:"놀다",    meaning:{vi:"chơi",     en:"play"},
         pres:"놉니다",    presQ:"놉니까?",
         past:"놀았습니다",pastQ:"놀았습니까?",
         fut:"놀 것입니다",  futQ:"놀 것입니까?",
-        rule:vi?"놀다 → 놀+ㅂ니다 → ㄹ탈락 → 놉니다":en?"놀다 → 놀+ㅂ니다 → ㄹ drop → 놉니다":"놀다 → 놀+ㅂ니다 → ㄹ탈락 → 놉니다" },
+        rule:txUI("놀다 → 놀+ㅂ니다 → ㄹ탈락 → 놉니다", lang) },
       { base:"열다",    meaning:{vi:"mở",       en:"open"},
         pres:"엽니다",    presQ:"엽니까?",
         past:"열었습니다",pastQ:"열었습니까?",
         fut:"열 것입니다",  futQ:"열 것입니까?",
-        rule:vi?"열다 → 열+ㅂ니다 → ㄹ탈락 → 엽니다":en?"열다 → 열+ㅂ니다 → ㄹ drop → 엽니다":"열다 → 열+ㅂ니다 → ㄹ탈락 → 엽니다" },
+        rule:txUI("열다 → 열+ㅂ니다 → ㄹ탈락 → 엽니다", lang) },
       { base:"들다",    meaning:{vi:"cầm/nâng", en:"hold/lift"},
         pres:"듭니다",    presQ:"듭니까?",
         past:"들었습니다",pastQ:"들었습니까?",
         fut:"들 것입니다",  futQ:"들 것입니까?",
-        rule:vi?"들다 → 들+ㅂ니다 → ㄹ탈락 → 듭니다":en?"들다 → 들+ㅂ니다 → ㄹ drop → 듭니다":"들다 → 들+ㅂ니다 → ㄹ탈락 → 듭니다" },
+        rule:txUI("들다 → 들+ㅂ니다 → ㄹ탈락 → 듭니다", lang) },
       { base:"울다",    meaning:{vi:"khóc",     en:"cry"},
         pres:"웁니다",    presQ:"웁니까?",
         past:"울었습니다",pastQ:"울었습니까?",
         fut:"울 것입니다",  futQ:"울 것입니까?",
-        rule:vi?"울다 → 울+ㅂ니다 → ㄹ탈락 → 웁니다":en?"울다 → 울+ㅂ니다 → ㄹ drop → 웁니다":"울다 → 울+ㅂ니다 → ㄹ탈락 → 웁니다" },
+        rule:txUI("울다 → 울+ㅂ니다 → ㄹ탈락 → 웁니다", lang) },
       { base:"날다",    meaning:{vi:"bay",      en:"fly"},
         pres:"납니다",    presQ:"납니까?",
         past:"날았습니다",pastQ:"날았습니까?",
         fut:"날 것입니다",  futQ:"날 것입니까?",
-        rule:vi?"날다 → 날+ㅂ니다 → ㄹ탈락 → 납니다":en?"날다 → 날+ㅂ니다 → ㄹ drop → 납니다":"날다 → 날+ㅂ니다 → ㄹ탈락 → 납니다" },
+        rule:txUI("날다 → 날+ㅂ니다 → ㄹ탈락 → 납니다", lang) },
       { base:"있다",    meaning:{vi:"có/ở",     en:"exist/have"},
         pres:"있습니다",  presQ:"있습니까?",
         past:"있었습니다",pastQ:"있었습니까?",
         fut:"있을 것입니다",futQ:"있을 것입니까?",
-        rule:vi?"있다 → 있+습니다 → 있습니다 (그대로!)":en?"있다 → 있+습니다 → 있습니다 (no change!)":"있다 → 있+습니다 → 있습니다 (그대로!)" },
+        rule:txUI("있다 → 있+습니다 → 있습니다 (그대로!)", lang) },
       { base:"없다",    meaning:{vi:"không có", en:"not exist"},
         pres:"없습니다",  presQ:"없습니까?",
         past:"없었습니다",pastQ:"없었습니까?",
         fut:"없을 것입니다",futQ:"없을 것입니까?",
-        rule:vi?"없다 → 없+습니다 → 없습니다 (그대로!)":en?"없다 → 없+습니다 → 없습니다 (no change!)":"없다 → 없+습니다 → 없습니다 (그대로!)" },
+        rule:txUI("없다 → 없+습니다 → 없습니다 (그대로!)", lang) },
       { base:"재미있다",meaning:{vi:"thú vị",   en:"interesting"},
         pres:"재미있습니다",presQ:"재미있습니까?",
         past:"재미있었습니다",pastQ:"재미있었습니까?",
         fut:"재미있을 것입니다",futQ:"재미있을 것입니까?",
-        rule:vi?"재미있다 → 재미있+습니다 → 재미있습니다 (그대로!)":en?"재미있다 → 재미있+습니다 → 재미있습니다 (no change!)":"재미있다 → 재미있+습니다 → 재미있습니다 (그대로!)" },
+        rule:txUI("재미있다 → 재미있+습니다 → 재미있습니다 (그대로!)", lang) },
       { base:"맛있다",  meaning:{vi:"ngon",     en:"delicious"},
         pres:"맛있습니다",presQ:"맛있습니까?",
         past:"맛있었습니다",pastQ:"맛있었습니까?",
         fut:"맛있을 것입니다",futQ:"맛있을 것입니까?",
-        rule:vi?"맛있다 → 맛있+습니다 → 맛있습니다 (그대로!)":en?"맛있다 → 맛있+습니다 → 맛있습니다 (no change!)":"맛있다 → 맛있+습니다 → 맛있습니다 (그대로!)" },
+        rule:txUI("맛있다 → 맛있+습니다 → 맛있습니다 (그대로!)", lang) },
       { base:"되다",    meaning:{vi:"trở thành",en:"become"},
         pres:"됩니다",    presQ:"됩니까?",
         past:"됐습니다",  pastQ:"됐습니까?",
         fut:"될 것입니다",  futQ:"될 것입니까?",
-        rule:vi?"되다 → 되+ㅂ니다 → ㄹ탈락 → 됩니다":en?"되다 → 되+ㅂ니다 → ㄹ drop → 됩니다":"되다 → 되+ㅂ니다 → ㄹ탈락 → 됩니다" },
+        rule:txUI("되다 → 되+ㅂ니다 → ㄹ탈락 → 됩니다", lang) },
       { base:"쉬다",    meaning:{vi:"nghỉ",     en:"rest"},
         pres:"쉽니다",    presQ:"쉽니까?",
         past:"쉬었습니다",pastQ:"쉬었습니까?",
         fut:"쉴 것입니다",  futQ:"쉴 것입니까?",
-        rule:vi?"쉬다 → 쉬+ㅂ니다 → ㄹ탈락 → 쉽니다":en?"쉬다 → 쉬+ㅂ니다 → ㄹ drop → 쉽니다":"쉬다 → 쉬+ㅂ니다 → ㄹ탈락 → 쉽니다" },
+        rule:txUI("쉬다 → 쉬+ㅂ니다 → ㄹ탈락 → 쉽니다", lang) },
       { base:"같다",    meaning:{vi:"giống",    en:"same/like"},
         pres:"같습니다",  presQ:"같습니까?",
         past:"같았습니다",pastQ:"같았습니까?",
         fut:"같을 것입니다",futQ:"같을 것입니까?",
-        rule:vi?"같다 → 같+습니다 → 같습니다 (그대로!)":en?"같다 → 같+습니다 → 같습니다 (no change!)":"같다 → 같+습니다 → 같습니다 (그대로!)" },
+        rule:txUI("같다 → 같+습니다 → 같습니다 (그대로!)", lang) },
       { base:"싸다",    meaning:{vi:"rẻ",       en:"cheap"},
         pres:"쌉니다",    presQ:"쌉니까?",
         past:"쌌습니다",  pastQ:"쌌습니까?",
         fut:"쌀 것입니다",  futQ:"쌀 것입니까?",
-        rule:vi?"싸다 → 싸+ㅂ니다 → ㄹ탈락 → 쌉니다":en?"싸다 → 싸+ㅂ니다 → ㄹ drop → 쌉니다":"싸다 → 싸+ㅂ니다 → ㄹ탈락 → 쌉니다" },
+        rule:txUI("싸다 → 싸+ㅂ니다 → ㄹ탈락 → 쌉니다", lang) },
       { base:"비싸다",  meaning:{vi:"đắt",      en:"expensive"},
         pres:"비쌉니다",  presQ:"비쌉니까?",
         past:"비쌌습니다",pastQ:"비쌌습니까?",
         fut:"비쌀 것입니다",futQ:"비쌀 것입니까?",
-        rule:vi?"비싸다 → 비싸+ㅂ니다 → ㄹ탈락 → 비쌉니다":en?"비싸다 → 비싸+ㅂ니다 → ㄹ drop → 비쌉니다":"비싸다 → 비싸+ㅂ니다 → ㄹ탈락 → 비쌉니다" },
+        rule:txUI("비싸다 → 비싸+ㅂ니다 → ㄹ탈락 → 비쌉니다", lang) },
       { base:"들어가다",    meaning:{vi:"đi vào",       en:"enter"},    batchim:false,
         pres:"들어갑니다",  presQ:"들어갑니까?",  past:"들어갔습니다", pastQ:"들어갔습니까?",  fut:"들어갈 것입니다",  futQ:"들어갈 것입니까?" },
       { base:"올라가다",    meaning:{vi:"đi lên",       en:"go up"},    batchim:false,
@@ -5229,7 +5619,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
 
           <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
-            📚 {vi?"시제 2단원 — Động từ ㄹ탈락 + 있다/없다":en?"Tense Unit 2 — ㄹ-drop Verbs + 있다/없다":"시제 2단원 — ㄹ탈락 동사 + 있다/없다 계열"}
+            📚 {txUI("시제 2단원 — ㄹ탈락 동사 + 있다/없다 계열", lang)}
           </div>
           <div style={{fontSize:12, color:"#555", background:"#EDE7F6", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
             {vi
@@ -5257,13 +5647,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"1px solid #f0f0f0"}}>
                 <div style={{background:"#f5f5f5"}} />
                 <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.pres, background:C.presLight}}>
-                  {vi?"Hiện tại":en?"Present":"현재"}
+                  {txUI("현재", lang)}
                 </div>
                 <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.past, background:C.pastLight}}>
-                  {vi?"Quá khứ":en?"Past":"과거"}
+                  {txUI("과거", lang)}
                 </div>
                 <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.fut, background:C.futLight}}>
-                  {vi?"Tương lai":en?"Future":"미래"}
+                  {txUI("미래", lang)}
                 </div>
               </div>
 
@@ -5287,7 +5677,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
               <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
                 <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
-                  {vi?"⚠️ Hàng (?) — nhớ gõ dấu '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — always end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+                  {txUI("⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?", lang)}
                 </div>
               </div>
 
@@ -5301,7 +5691,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 <div style={{padding:"16px"}}>
                   <button onClick={() => setTenseRevealed(true)}
                     style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#311B92)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                    {vi?"Xem đáp án 👀":en?"Show answers 👀":"정답 보기 👀"}
+                    {txUI("정답 보기 👀", lang)}
                   </button>
                 </div>
               )}
@@ -5312,25 +5702,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {tenseCardIdx > 0 && (
               <button onClick={() => { setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
                 style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>
-                ← {vi?"Trước":en?"Prev":"이전"}
+                ← {txUI("이전", lang)}
               </button>
             )}
             {tenseCardIdx < total - 1 ? (
               <button onClick={() => { setTenseCardIdx(i=>i+1); setTenseRevealed(false); }}
                 style={{flex:1, background:`linear-gradient(135deg,${C.accent},#311B92)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
+                {txUI("다음 카드 →", lang)}
               </button>
             ) : (
               <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense3"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo: Tense 3! 🚀":en?"Next: Tense 3! 🚀":"시제 3단원으로! 🚀"}
+                {txUI("시제 3단원으로! 🚀", lang)}
               </button>
             )}
           </div>
 
           <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setStep("tense1"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại Tense 1":en?"Back to Tense 1":"뒤로 (시제 1단원)"}
+            ← {txUI("뒤로 (시제 1단원)", lang)}
           </button>
         </div>
       </div>
@@ -5338,8 +5728,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "josa") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     // ── 18개 어휘 (받침 없음 9 / 받침 있음 9) ──
     // ── 21개 어휘: 받침 없음/있음 분산 + 연관성 인접 배치 ──
@@ -5379,12 +5777,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     ];
 
     const COLS = [
-      { key:"topic", label:vi?"Chủ đề":en?"Topic":"주제", josa_no:"는", josa_yes:"은" },
-      { key:"subj",  label:vi?"Chủ ngữ":en?"Subject":"주어(주격)", josa_no:"가", josa_yes:"이" },
-      { key:"obj",   label:vi?"Tân ngữ":en?"Object":"목적어", josa_no:"를", josa_yes:"을" },
-      { key:"and",   label:vi?"Và":en?"And":"and (연결)", josa_no:"와", josa_yes:"과" },
-      { key:"or",    label:vi?"Hoặc":en?"Or":"or (선택)", josa_no:"나", josa_yes:"이나" },
-      { key:"also",  label:vi?"Cũng":en?"Also":"도 (함께)", josa_no:"도", josa_yes:"도" },
+      { key:"topic", label:txUI("주제", lang), josa_no:"는", josa_yes:"은" },
+      { key:"subj",  label:txUI("주어(주격)", lang), josa_no:"가", josa_yes:"이" },
+      { key:"obj",   label:txUI("목적어", lang), josa_no:"를", josa_yes:"을" },
+      { key:"and",   label:txUI("and (연결)", lang), josa_no:"와", josa_yes:"과" },
+      { key:"or",    label:txUI("or (선택)", lang), josa_no:"나", josa_yes:"이나" },
+      { key:"also",  label:txUI("도 (함께)", lang), josa_no:"도", josa_yes:"도" },
     ];
 
     const selWord = josaSelWord;
@@ -5399,19 +5797,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           {/* 헤더 */}
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Bước 2/8 — Trợ từ & Đại từ":en?"Step 2/8 — Particles & Pronouns":"2단계/8단계 — 조사·대명사"}
+            {txUI("2단계/8단계 — 조사·대명사", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:"#E65100", textAlign:"center", marginBottom:4}}>
-            🏷️ {vi?"Trợ từ tiếng Hàn":en?"Korean Particles":"조사 학습"}
+            🏷️ {txUI("조사 학습", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:14}}>
-            {vi?"Chọn từ → nhấn ô để xem đáp án":en?"Pick a word → tap each cell to reveal":"어휘 선택 → 각 칸을 눌러서 확인해보세요"}
+            {txUI("어휘 선택 → 각 칸을 눌러서 확인해보세요", lang)}
           </div>
 
           {/* 핵심 규칙 — 항상 표시 */}
           <div style={{background:"white", borderRadius:14, border:"2px solid #FFE0B2", marginBottom:14, overflow:"hidden"}}>
             <div style={{padding:"10px 12px 4px", display:"flex", alignItems:"center", gap:6}}>
-              <span style={{fontSize:13, fontWeight:800, color:"#E65100"}}>📌 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙 — 받침 유무"}</span>
+              <span style={{fontSize:13, fontWeight:800, color:"#E65100"}}>📌 {txUI("핵심 규칙 — 받침 유무", lang)}</span>
             </div>
             <div style={{padding:"0 12px 12px"}}>
               <div style={{display:"grid", gridTemplateColumns:"1.2fr 1fr 1fr", gap:5, fontSize:12}}>
@@ -5431,7 +5829,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           {/* 어휘 선택 그리드 */}
           <div style={{fontSize:13, fontWeight:700, color:"#E65100", marginBottom:8}}>
-            📝 {vi?"Chọn một từ:":en?"Select a word:":"어휘를 선택하세요:"}
+            📝 {txUI("어휘를 선택하세요:", lang)}
           </div>
           {(() => {
             // 현재 완료된 어휘 인덱스 계산 (모든 COLS 행이 정답 처리된 것)
@@ -5462,7 +5860,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
                       {isDone ? "✅" : isUnlocked ? v.word : "🔒"}
                       <div style={{fontSize:9, opacity:0.7}}>
-                        {isDone ? v.word : isUnlocked ? (v.hasBatchim?(vi?"batchim":en?"batchim":"받침 있"):(vi?"không":en?"none":"받침 없")) : ""}
+                        {isDone ? v.word : isUnlocked ? (v.hasBatchim?(txUI("받침 있", lang)):(txUI("받침 없", lang))) : ""}
                       </div>
                     </button>
                   );
@@ -5480,11 +5878,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 <div style={{flex:1}}>
                   <div style={{fontSize:11, color:"#888"}}>
                     {vocab.hasBatchim
-                      ? (vi?"Có batchim → 은·이·을·과·이나·도":en?"Has batchim → 은·이·을·과·이나·도":"받침 있음 → 은·이·을·과·이나·도")
-                      : (vi?"Không batchim → 는·가·를·와·나·도":en?"No batchim → 는·가·를·와·나·도":"받침 없음 → 는·가·를·와·나·도")}
+                      ? (txUI("받침 있음 → 은·이·을·과·이나·도", lang))
+                      : (txUI("받침 없음 → 는·가·를·와·나·도", lang))}
                   </div>
                   <div style={{fontSize:11, color:"#aaa", marginTop:2}}>
-                    {vi?"Nhấn từng ô để xem":en?"Tap each row to reveal":"각 칸을 눌러 확인하세요 👇"}
+                    {txUI("각 칸을 눌러 확인하세요 👇", lang)}
                   </div>
                 </div>
                 <button onClick={()=>speak(vocab.word)}
@@ -5546,7 +5944,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                           setJosaRevealMap(prev=>({...prev,[mapKey+"_status"]:"wrong"}));
                         }
                       }} style={{background:"#FF9800", border:"none", borderRadius:8, padding:"5px 10px", fontSize:12, fontWeight:800, color:"white", cursor:"pointer", flexShrink:0}}>
-                        {vi?"Kiểm tra":en?"Check":"확인"}
+                        {txUI("확인", lang)}
                       </button>
                       {/* 정답 공개 후 */}
                       {status==="correct" && ex && (
@@ -5560,7 +5958,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                         <span style={{fontSize:12, fontWeight:900, color:"#4CAF50"}}>✅ {form} (-{josa})</span>
                       )}
                       {status==="wrong" && (
-                        <span style={{fontSize:12, color:"#E53935", fontWeight:700}}>❌ {vi?"Thử lại!":en?"Try again!":"다시 도전!"}</span>
+                        <span style={{fontSize:12, color:"#E53935", fontWeight:700}}>❌ {txUI("다시 도전!", lang)}</span>
                       )}
                     </div>
                   </div>
@@ -5572,18 +5970,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {/* 선택 안 했을 때 안내 */}
           {!vocab && (
             <div style={{background:"white", borderRadius:16, border:"2px dashed #FFE0B2", padding:"28px 20px", textAlign:"center", color:"#ccc", fontSize:14, marginBottom:14}}>
-              {vi?"← Chọn một từ phía trên!":en?"← Pick a word above!":"← 위에서 어휘를 선택하세요!"}
+              {txUI("← 위에서 어휘를 선택하세요!", lang)}
             </div>
           )}
 
           {/* 의문대명사로 이동 버튼 */}
           <button onClick={()=>{ setStep("qpron"); }}
             style={{width:"100%", maxWidth:400, background:"linear-gradient(135deg,#FF8C42,#FF6B35)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #FF6B3544", marginBottom:12}}>
-            ❓ {vi?"Đại từ nghi vấn →":en?"Question Pronouns →":"의문 대명사 학습으로 →"}
+            ❓ {txUI("의문 대명사 학습으로 →", lang)}
           </button>
           <button onClick={()=>{setStep("pronunciation"); setPronStep(7);}}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -5591,50 +5989,58 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "qpron") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
 
     // 의문대명사 데이터 (놀라운 한국어 방식: 주어/부사어/간접목적어/목적어/서술어)
     const QPRON = [
-      { word:"누구", meaning:vi?"ai":en?"who":"사람",
+      { word:"누구", meaning:txUI("사람", lang),
         rows:[
-          { role:vi?"Chủ ngữ":en?"Subject":"주어",                        form:"누가",        ex:"누가 BTS입니까?" },
-          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어",                   form:"누구와",      ex:"당신은 누구와 공부합니까?" },
-          { role:vi?"Tân ngữ gián tiếp":en?"Indirect Obj":"간접목적어",    form:"누구에게",    ex:"당신은 누구에게 선물을 주었습니까?" },
-          { role:vi?"Tân ngữ":en?"Object":"목적어",                        form:"누구를",      ex:"당신은 내일 누구를 만날 것입니까?" },
-          { role:vi?"Vị ngữ":en?"Predicate":"서술어",                      form:"누구입니까?", ex:"저 사람은 누구입니까?" },
+          { role:txUI("주어", lang),                        form:"누가",        ex:"누가 BTS입니까?" },
+          { role:txUI("부사어", lang),                   form:"누구와",      ex:"당신은 누구와 공부합니까?" },
+          { role:txUI("간접목적어", lang),    form:"누구에게",    ex:"당신은 누구에게 선물을 주었습니까?" },
+          { role:txUI("목적어", lang),                        form:"누구를",      ex:"당신은 내일 누구를 만날 것입니까?" },
+          { role:txUI("서술어", lang),                      form:"누구입니까?", ex:"저 사람은 누구입니까?" },
         ]
       },
-      { word:"언제", meaning:vi?"khi nào":en?"when":"시간",
+      { word:"언제", meaning:txUI("시간", lang),
         rows:[
-          { role:vi?"Chủ ngữ":en?"Subject":"주어",                        form:"언제가",      ex:"언제가 당신의 생일입니까?" },
-          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(시간)",              form:"언제",        ex:"당신은 언제 한국에 갔습니까?" },
-          { role:vi?"Vị ngữ":en?"Predicate":"서술어",                      form:"언제입니까?", ex:"회의는 언제입니까?" },
+          { role:txUI("주어", lang),                        form:"언제가",      ex:"언제가 당신의 생일입니까?" },
+          { role:txUI("부사어(시간)", lang),              form:"언제",        ex:"당신은 언제 한국에 갔습니까?" },
+          { role:txUI("서술어", lang),                      form:"언제입니까?", ex:"회의는 언제입니까?" },
         ]
       },
-      { word:"어디", meaning:vi?"ở đâu":en?"where":"장소",
+      { word:"어디", meaning:txUI("장소", lang),
         rows:[
-          { role:vi?"Chủ ngữ":en?"Subject":"주어",                        form:"어디가",      ex:"어디가 제일 좋습니까?" },
-          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(장소·존재)",         form:"어디에",      ex:"학교에 갑니다. → 당신은 어디에 갑니까?" },
-          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(장소·행동)",         form:"어디에서",    ex:"학교에서 공부합니다. → 당신은 어디에서 공부합니까?" },
-          { role:vi?"Vị ngữ":en?"Predicate":"서술어",                      form:"어디입니까?", ex:"도서관은 어디입니까?" },
+          { role:txUI("주어", lang),                        form:"어디가",      ex:"어디가 제일 좋습니까?" },
+          { role:txUI("부사어(장소·존재)", lang),         form:"어디에",      ex:"학교에 갑니다. → 당신은 어디에 갑니까?" },
+          { role:txUI("부사어(장소·행동)", lang),         form:"어디에서",    ex:"학교에서 공부합니다. → 당신은 어디에서 공부합니까?" },
+          { role:txUI("서술어", lang),                      form:"어디입니까?", ex:"도서관은 어디입니까?" },
         ]
       },
-      { word:"무엇(뭐)", meaning:vi?"cái gì":en?"what":"사물",
+      { word:"무엇(뭐)", meaning:txUI("사물", lang),
         rows:[
-          { role:vi?"Chủ ngữ":en?"Subject":"주어",                        form:"무엇이/뭐가", ex:"이것은 무엇입니까?" },
-          { role:vi?"Tân ngữ":en?"Object":"목적어",                        form:"무엇을",      ex:"당신은 무엇을 공부합니까? (= 무슨 과목을 공부합니까?)" },
-          { role:vi?"Tân ngữ":en?"Object":"목적어(구어)",                   form:"뭐를/뭘",     ex:"오늘 뭘 먹었습니까?" },
-          { role:vi?"Vị ngữ":en?"Predicate":"서술어",                      form:"무엇입니까?", ex:"이것은 무엇입니까? (= 이게 뭐예요?)" },
+          { role:txUI("주어", lang),                        form:"무엇이/뭐가", ex:"이것은 무엇입니까?" },
+          { role:txUI("목적어", lang),                        form:"무엇을",      ex:"당신은 무엇을 공부합니까? (= 무슨 과목을 공부합니까?)" },
+          { role:txUI("목적어(구어)", lang),                   form:"뭐를/뭘",     ex:"오늘 뭘 먹었습니까?" },
+          { role:txUI("서술어", lang),                      form:"무엇입니까?", ex:"이것은 무엇입니까? (= 이게 뭐예요?)" },
         ]
       },
-      { word:"왜", meaning:vi?"tại sao":en?"why":"이유",
+      { word:"왜", meaning:txUI("이유", lang),
         rows:[
-          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(이유·기본)",         form:"왜",          ex:"당신은 왜 한국어를 공부합니까?" },
-          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(시간+이유)",          form:"왜",          ex:"당신은 어제 왜 학교에 갔습니까?" },
-          { role:vi?"Trạng ngữ":en?"Adverbial":"부사어(장소+이유)",          form:"왜",          ex:"당신은 왜 도서관에서 공부합니까?" },
-          { role:vi?"Tân ngữ gián tiếp + Tân ngữ":en?"Indirect+Object":"간접목적어+목적어+이유", form:"왜", ex:"당신은 왜 친구에게 선물을 줍니까?" },
+          { role:txUI("부사어(이유·기본)", lang),         form:"왜",          ex:"당신은 왜 한국어를 공부합니까?" },
+          { role:txUI("부사어(시간+이유)", lang),          form:"왜",          ex:"당신은 어제 왜 학교에 갔습니까?" },
+          { role:txUI("부사어(장소+이유)", lang),          form:"왜",          ex:"당신은 왜 도서관에서 공부합니까?" },
+          { role:txUI("간접목적어+목적어+이유", lang), form:"왜", ex:"당신은 왜 친구에게 선물을 줍니까?" },
         ]
       },
     ];
@@ -5659,7 +6065,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:22, fontWeight:900, color:"#E65100", marginBottom:4}}>
-              {vi?"Đại từ nghi vấn":en?"Question Pronouns":"의문 대명사"}
+              {txUI("의문 대명사", lang)}
             </div>
             <div style={{fontSize:12, color:"#888"}}>누구 / 언제 / 어디 / 무엇 / 왜</div>
           </div>
@@ -5668,9 +6074,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {/* ── 의문대명사 섹션 (놀라운 한국어 방식) ── */}
           <div style={{background:"white", borderRadius:14, border:"2px solid #FFE0B2", overflow:"hidden", marginBottom:14}}>
             <div style={{background:"#FFF3E0", padding:"12px 16px", borderBottom:"1px solid #FFE0B2"}}>
-              <div style={{fontSize:14, fontWeight:900, color:"#E65100"}}>❓ {vi?"Đại từ nghi vấn":en?"Question Pronouns":"의문 대명사"}</div>
+              <div style={{fontSize:14, fontWeight:900, color:"#E65100"}}>❓ {txUI("의문 대명사", lang)}</div>
               <div style={{fontSize:11, color:"#aaa", marginTop:2}}>
-                {vi?"Xem cách dùng theo chức năng câu":en?"See usage by sentence function":"문장 성분별 사용법을 확인하세요"}
+                {txUI("문장 성분별 사용법을 확인하세요", lang)}
               </div>
             </div>
             {QPRON.map((qp, qi) => (
@@ -5758,11 +6164,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             setJosaTestLoading(false);
           }}
             style={{width:"100%", background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #FF6B3544"}}>
-            📝 {vi?"Làm bài kiểm tra!":en?"Take the test!":"의문대명사 테스트! 📝"}
+            📝 {txUI("의문대명사 테스트! 📝", lang)}
           </button>
           <button onClick={()=>{setStep("josa");}}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -5776,8 +6182,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ── 시제 3단원: ㅂ불규칙 + 으탈락 형용사 ──
 
   if (step === "tense3") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     const TENSE3_CARDS = [
       // ── ㅂ불규칙 동사/형용사 ──
@@ -5785,62 +6199,62 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         pres:"돕습니다",   presQ:"돕습니까?",
         past:"도왔습니다",  pastQ:"도왔습니까?",
         fut:"도울 것입니다",futQ:"도울 것입니까?",
-        rule:vi?"돕다 → 도+아서 → ㅂ탈락+오 → 도왔습니다":en?"돕다 → ㅂ drops → 도+와/았 → 도왔습니다":"돕다 → ㅂ탈락 → 도+아서 → 도왔습니다",
+        rule:txUI("돕다 → ㅂ탈락 → 도+아서 → 도왔습니다", lang),
         type:"ㅂ불규칙" },
       { base:"눕다",    meaning:{vi:"nằm xuống",  en:"lie down"},
         pres:"눕습니다",   presQ:"눕습니까?",
         past:"누웠습니다",  pastQ:"누웠습니까?",
         fut:"누울 것입니다",futQ:"누울 것입니까?",
-        rule:vi?"눕다 → ㅂ탈락 → 누+워서 → 누웠습니다":en?"눕다 → ㅂ drops → 누+워/었 → 누웠습니다":"눕다 → ㅂ탈락 → 누+워서 → 누웠습니다",
+        rule:txUI("눕다 → ㅂ탈락 → 누+워서 → 누웠습니다", lang),
         type:"ㅂ불규칙" },
       { base:"쉽다",    meaning:{vi:"dễ",         en:"easy"},
         pres:"쉽습니다",   presQ:"쉽습니까?",
         past:"쉬웠습니다",  pastQ:"쉬웠습니까?",
         fut:"쉬울 것입니다",futQ:"쉬울 것입니까?",
-        rule:vi?"쉽다 → ㅂ탈락 → 쉬+워서 → 쉬웠습니다":en?"쉽다 → ㅂ drops → 쉬+워/었 → 쉬웠습니다":"쉽다 → ㅂ탈락 → 쉬+워서 → 쉬웠습니다",
+        rule:txUI("쉽다 → ㅂ탈락 → 쉬+워서 → 쉬웠습니다", lang),
         type:"ㅂ불규칙" },
       { base:"어렵다",  meaning:{vi:"khó",        en:"difficult"},
         pres:"어렵습니다", presQ:"어렵습니까?",
         past:"어려웠습니다",pastQ:"어려웠습니까?",
         fut:"어려울 것입니다",futQ:"어려울 것입니까?",
-        rule:vi?"어렵다 → ㅂ탈락 → 어려+워서 → 어려웠습니다":en?"어렵다 → ㅂ drops → 어려+워/었 → 어려웠습니다":"어렵다 → ㅂ탈락 → 어려+워서 → 어려웠습니다",
+        rule:txUI("어렵다 → ㅂ탈락 → 어려+워서 → 어려웠습니다", lang),
         type:"ㅂ불규칙" },
       // ── 으탈락 형용사 ──
       { base:"크다",    meaning:{vi:"to/lớn",    en:"big"},
         pres:"큽니다",     presQ:"큽니까?",
         past:"컸습니다",   pastQ:"컸습니까?",
         fut:"클 것입니다",  futQ:"클 것입니까?",
-        rule:vi?"크다 → 으탈락 → 크+아서 → 컸습니다":en?"크다 → 으 drops → 크+아/어 → 컸습니다":"크다 → 으탈락 → 크+아서 → 컸습니다",
+        rule:txUI("크다 → 으탈락 → 크+아서 → 컸습니다", lang),
         type:"으탈락" },
       { base:"기쁘다",  meaning:{vi:"vui mừng",  en:"happy/glad"},
         pres:"기쁩니다",   presQ:"기쁩니까?",
         past:"기뻤습니다",  pastQ:"기뻤습니까?",
         fut:"기쁠 것입니다",futQ:"기쁠 것입니까?",
-        rule:vi?"기쁘다 → 으탈락 → 기쁘+어서 → 기뻤습니다":en?"기쁘다 → 으 drops → 기쁘+어/었 → 기뻤습니다":"기쁘다 → 으탈락 → 기쁘+어서 → 기뻤습니다",
+        rule:txUI("기쁘다 → 으탈락 → 기쁘+어서 → 기뻤습니다", lang),
         type:"으탈락" },
       { base:"예쁘다",  meaning:{vi:"đẹp",       en:"pretty"},
         pres:"예쁩니다",   presQ:"예쁩니까?",
         past:"예뻤습니다",  pastQ:"예뻤습니까?",
         fut:"예쁠 것입니다",futQ:"예쁠 것입니까?",
-        rule:vi?"예쁘다 → 으탈락 → 예쁘+어서 → 예뻤습니다":en?"예쁘다 → 으 drops → 예쁘+어/었 → 예뻤습니다":"예쁘다 → 으탈락 → 예쁘+어서 → 예뻤습니다",
+        rule:txUI("예쁘다 → 으탈락 → 예쁘+어서 → 예뻤습니다", lang),
         type:"으탈락" },
       { base:"슬프다",  meaning:{vi:"buồn",      en:"sad"},
         pres:"슬픕니다",   presQ:"슬픕니까?",
         past:"슬펐습니다",  pastQ:"슬펐습니까?",
         fut:"슬플 것입니다",futQ:"슬플 것입니까?",
-        rule:vi?"슬프다 → 으탈락 → 슬프+어서 → 슬펐습니다":en?"슬프다 → 으 drops → 슬프+어/었 → 슬펐습니다":"슬프다 → 으탈락 → 슬프+어서 → 슬펐습니다",
+        rule:txUI("슬프다 → 으탈락 → 슬프+어서 → 슬펐습니다", lang),
         type:"으탈락" },
       { base:"바쁘다",  meaning:{vi:"bận",       en:"busy"},
         pres:"바쁩니다",   presQ:"바쁩니까?",
         past:"바빴습니다",  pastQ:"바빴습니까?",
         fut:"바쁠 것입니다",futQ:"바쁠 것입니까?",
-        rule:vi?"바쁘다 → 으탈락 → 바쁘+아서 → 바빴습니다":en?"바쁘다 → 으 drops → 바쁘+아/었 → 바빴습니다":"바쁘다 → 으탈락 → 바쁘+아서 → 바빴습니다",
+        rule:txUI("바쁘다 → 으탈락 → 바쁘+아서 → 바빴습니다", lang),
         type:"으탈락" },
       { base:"아프다",  meaning:{vi:"đau/ốm",   en:"sick/painful"},
         pres:"아픕니다",   presQ:"아픕니까?",
         past:"아팠습니다",  pastQ:"아팠습니까?",
         fut:"아플 것입니다",futQ:"아플 것입니까?",
-        rule:vi?"아프다 → 으탈락 → 아프+아서 → 아팠습니다":en?"아프다 → 으 drops → 아프+아/었 → 아팠습니다":"아프다 → 으탈락 → 아프+아서 → 아팠습니다",
+        rule:txUI("아프다 → 으탈락 → 아프+아서 → 아팠습니다", lang),
         type:"으탈락" },
     ];
 
@@ -5854,8 +6268,8 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                  presLight:"#E3F2FD", pastLight:"#F3E5F5", futLight:"#E8F5E9" };
 
     const typeBadge = card.type === "ㅂ불규칙"
-      ? { bg:"#FF6B35", label: vi?"ㅂ불규칙":en?"ㅂ-irregular":"ㅂ불규칙" }
-      : { bg:"#512DA8", label: vi?"으탈락":en?"으-drop":"으탈락" };
+      ? { bg:"#FF6B35", label: txUI("ㅂ불규칙", lang) }
+      : { bg:"#512DA8", label: txUI("으탈락", lang) };
 
     const inp3 = tenseInputs[tenseCardIdx] || {};
     const setInp3 = (key, val) => setTenseInputs(prev => ({
@@ -5904,7 +6318,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
 
           <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
-            📚 {vi?"시제 3단원 — ㅂ불규칙 + 으탈락 형용사":en?"Tense Unit 3 — ㅂ-irregular + 으-drop":"시제 3단원 — ㅂ불규칙 + 으탈락 형용사"}
+            📚 {txUI("시제 3단원 — ㅂ불규칙 + 으탈락 형용사", lang)}
           </div>
           <div style={{fontSize:12, color:"#555", background:"#FFF3E0", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
             {vi
@@ -5937,13 +6351,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{display:"grid", gridTemplateColumns:"32px 1fr 1fr 1fr", borderBottom:"1px solid #f0f0f0"}}>
                 <div style={{background:"#f5f5f5"}} />
                 <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.pres, background:C.presLight}}>
-                  {vi?"Hiện tại":en?"Present":"현재"}
+                  {txUI("현재", lang)}
                 </div>
                 <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.past, background:C.pastLight}}>
-                  {vi?"Quá khứ":en?"Past":"과거"}
+                  {txUI("과거", lang)}
                 </div>
                 <div style={{padding:"10px 0", textAlign:"center", fontSize:13, fontWeight:900, color:C.fut, background:C.futLight}}>
-                  {vi?"Tương lai":en?"Future":"미래"}
+                  {txUI("미래", lang)}
                 </div>
               </div>
 
@@ -5967,7 +6381,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
               <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
                 <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
-                  {vi?"⚠️ Hàng (?) — nhớ gõ dấu '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — always end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+                  {txUI("⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?", lang)}
                 </div>
               </div>
 
@@ -5981,7 +6395,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 <div style={{padding:"16px"}}>
                   <button onClick={() => setTenseRevealed(true)}
                     style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#BF360C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                    {vi?"Xem đáp án 👀":en?"Show answers 👀":"정답 보기 👀"}
+                    {txUI("정답 보기 👀", lang)}
                   </button>
                 </div>
               )}
@@ -5992,25 +6406,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {tenseCardIdx > 0 && (
               <button onClick={() => { setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
                 style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>
-                ← {vi?"Trước":en?"Prev":"이전"}
+                ← {txUI("이전", lang)}
               </button>
             )}
             {tenseCardIdx < total - 1 ? (
               <button onClick={() => { setTenseCardIdx(i=>i+1); setTenseRevealed(false); }}
                 style={{flex:1, background:`linear-gradient(135deg,${C.accent},#BF360C)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
+                {txUI("다음 카드 →", lang)}
               </button>
             ) : (
               <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense4"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#1565C0,#0D47A1)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo: Tense 4! 🚀":en?"Next: Tense 4! 🚀":"시제 4단원으로! 🚀"}
+                {txUI("시제 4단원으로! 🚀", lang)}
               </button>
             )}
           </div>
 
           <button onClick={() => { setTenseCardIdx(0); setTenseRevealed(false); setStep("tense2"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại Tense 2":en?"Back to Tense 2":"뒤로 (시제 2단원)"}
+            ← {txUI("뒤로 (시제 2단원)", lang)}
           </button>
         </div>
       </div>
@@ -6019,8 +6433,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── 시제 4단원: ㄷ불규칙 + 르불규칙 + ㅅ불규칙 ──
   if (step === "tense4") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     const TENSE4_CARDS = [
       // ── ㄷ불규칙 ──
@@ -6028,51 +6450,51 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         pres:"걷습니다",  presQ:"걷습니까?",
         past:"걸었습니다", pastQ:"걸었습니까?",
         fut:"걸을 것입니다",futQ:"걸을 것입니까?",
-        rule:vi?"걷다 → ㄷ불규칙 → 걸+어서 → 걸었습니다":en?"걷다 → ㄷ→ㄹ irregular → 걸었습니다":"걷다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 걸었습니다",
+        rule:txUI("걷다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 걸었습니다", lang),
         type:"ㄷ불규칙" },
       { base:"듣다",  meaning:{vi:"nghe",     en:"listen"},
         pres:"듣습니다",  presQ:"듣습니까?",
         past:"들었습니다", pastQ:"들었습니까?",
         fut:"들을 것입니다",futQ:"들을 것입니까?",
-        rule:vi?"듣다 → ㄷ불규칙 → 들+어서 → 들었습니다":en?"듣다 → ㄷ→ㄹ irregular → 들었습니다":"듣다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 들었습니다",
+        rule:txUI("듣다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 들었습니다", lang),
         type:"ㄷ불규칙" },
       { base:"묻다",  meaning:{vi:"hỏi",      en:"ask"},
         pres:"묻습니다",  presQ:"묻습니까?",
         past:"물었습니다", pastQ:"물었습니까?",
         fut:"물을 것입니다",futQ:"물을 것입니까?",
-        rule:vi?"묻다 → ㄷ불규칙 → 물+어서 → 물었습니다":en?"묻다 → ㄷ→ㄹ irregular → 물었습니다":"묻다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 물었습니다",
+        rule:txUI("묻다 → ㄷ불규칙 → ㄷ이 ㄹ로 바뀜 → 물었습니다", lang),
         type:"ㄷ불규칙" },
       // ── 르불규칙 ──
       { base:"모르다", meaning:{vi:"không biết",en:"not know"},
         pres:"모릅니다",  presQ:"모릅니까?",
         past:"몰랐습니다", pastQ:"몰랐습니까?",
         fut:"모를 것입니다",futQ:"모를 것입니까?",
-        rule:vi?"모르다 → 르불규칙 → 모르+아 → ㄹ두개 → 몰랐습니다":en?"모르다 → 르 irregular → ㄹ doubles → 몰랐습니다":"모르다 → 르불규칙 → 모르+아 → ㄹ이 두 개 → 몰랐습니다",
+        rule:txUI("모르다 → 르불규칙 → 모르+아 → ㄹ이 두 개 → 몰랐습니다", lang),
         type:"르불규칙" },
       { base:"빠르다", meaning:{vi:"nhanh",    en:"fast"},
         pres:"빠릅니다",  presQ:"빠릅니까?",
         past:"빨랐습니다", pastQ:"빨랐습니까?",
         fut:"빠를 것입니다",futQ:"빠를 것입니까?",
-        rule:vi?"빠르다 → 르불규칙 → 빠르+아 → ㄹ두개 → 빨랐습니다":en?"빠르다 → 르 irregular → ㄹ doubles → 빨랐습니다":"빠르다 → 르불규칙 → 빠르+아 → ㄹ이 두 개 → 빨랐습니다",
+        rule:txUI("빠르다 → 르불규칙 → 빠르+아 → ㄹ이 두 개 → 빨랐습니다", lang),
         type:"르불규칙" },
       { base:"다르다", meaning:{vi:"khác",     en:"different"},
         pres:"다릅니다",  presQ:"다릅니까?",
         past:"달랐습니다", pastQ:"달랐습니까?",
         fut:"다를 것입니다",futQ:"다를 것입니까?",
-        rule:vi?"다르다 → 르불규칙 → 다르+아 → ㄹ두개 → 달랐습니다":en?"다르다 → 르 irregular → ㄹ doubles → 달랐습니다":"다르다 → 르불규칙 → 다르+아 → ㄹ이 두 개 → 달랐습니다",
+        rule:txUI("다르다 → 르불규칙 → 다르+아 → ㄹ이 두 개 → 달랐습니다", lang),
         type:"르불규칙" },
       // ── ㅅ불규칙 (쓰다·끄다는 으탈락 동사) ──
       { base:"쓰다",  meaning:{vi:"viết/dùng", en:"write/use"},
         pres:"씁니다",    presQ:"씁니까?",
         past:"썼습니다",  pastQ:"썼습니까?",
         fut:"쓸 것입니다", futQ:"쓸 것입니까?",
-        rule:vi?"쓰다 → 으탈락 → 쓰+어 → 썼습니다":en?"쓰다 → 으-drop → 쓰+어 → 썼습니다":"쓰다 → 으탈락 → 쓰+어 → 썼습니다",
+        rule:txUI("쓰다 → 으탈락 → 쓰+어 → 썼습니다", lang),
         type:"으탈락" },
       { base:"끄다",  meaning:{vi:"tắt",      en:"turn off"},
         pres:"끕니다",    presQ:"끕니까?",
         past:"껐습니다",  pastQ:"껐습니까?",
         fut:"끌 것입니다", futQ:"끌 것입니까?",
-        rule:vi?"끄다 → 으탈락 → 끄+어 → 껐습니다":en?"끄다 → 으-drop → 끄+어 → 껐습니다":"끄다 → 으탈락 → 끄+어 → 껐습니다",
+        rule:txUI("끄다 → 으탈락 → 끄+어 → 껐습니다", lang),
         type:"으탈락" },
       { base:"받다",    meaning:{vi:"nhận",       en:"receive"},    batchim:true,
         pres:"받습니다",  presQ:"받습니까?",  past:"받았습니다", pastQ:"받았습니까?",  fut:"받을 것입니다",  futQ:"받을 것입니까?" },
@@ -6098,10 +6520,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                  presLight:"#E3F2FD", pastLight:"#F3E5F5", futLight:"#FFF3E0" };
 
     const typeBadge = card.type === "ㄷ불규칙"
-      ? { bg:"#1565C0", label: vi?"ㄷ불규칙":en?"ㄷ-irregular":"ㄷ불규칙" }
+      ? { bg:"#1565C0", label: txUI("ㄷ불규칙", lang) }
       : card.type === "르불규칙"
-      ? { bg:"#6A1B9A", label: vi?"르불규칙":en?"르-irregular":"르불규칙" }
-      : { bg:"#E65100", label: vi?"으탈락(동사)":en?"으-drop(verb)":"으탈락(동사)" };
+      ? { bg:"#6A1B9A", label: txUI("르불규칙", lang) }
+      : { bg:"#E65100", label: txUI("으탈락(동사)", lang) };
 
     const inp4 = tenseInputs[tenseCardIdx] || {};
     const setInp4 = (key, val) => setTenseInputs(prev => ({
@@ -6143,7 +6565,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
-            📚 {vi?"시제 4단원 — ㄷ불규칙 + 르불규칙 + 으탈락 동사":en?"Tense Unit 4 — ㄷ/르 irregular + 으-drop":"시제 4단원 — ㄷ불규칙 + 르불규칙 + 으탈락 동사"}
+            📚 {txUI("시제 4단원 — ㄷ불규칙 + 르불규칙 + 으탈락 동사", lang)}
           </div>
           <div style={{fontSize:12, color:"#555", background:"#E8F5E9", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
             {vi
@@ -6192,7 +6614,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
                 <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
-                  {vi?"⚠️ Hàng (?) — nhớ gõ '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+                  {txUI("⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?", lang)}
                 </div>
               </div>
               {tenseRevealed && (
@@ -6204,7 +6626,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 <div style={{padding:"16px"}}>
                   <button onClick={()=>setTenseRevealed(true)}
                     style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                    {vi?"Xem đáp án 👀":en?"Show answers 👀":"정답 보기 👀"}
+                    {txUI("정답 보기 👀", lang)}
                   </button>
                 </div>
               )}
@@ -6214,24 +6636,24 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {tenseCardIdx > 0 && (
               <button onClick={()=>{ setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
                 style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>
-                ← {vi?"Trước":en?"Prev":"이전"}
+                ← {txUI("이전", lang)}
               </button>
             )}
             {tenseCardIdx < total-1 ? (
               <button onClick={()=>{ setTenseCardIdx(i=>i+1); setTenseRevealed(false); }}
                 style={{flex:1, background:`linear-gradient(135deg,${C.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
+                {txUI("다음 카드 →", lang)}
               </button>
             ) : (
               <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense5"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#AD1457,#880E4F)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo: Tense 5! 🚀":en?"Next: Tense 5! 🚀":"시제 5단원으로! 🚀"}
+                {txUI("시제 5단원으로! 🚀", lang)}
               </button>
             )}
           </div>
           <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense3"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại Tense 3":en?"Back to Tense 3":"뒤로 (시제 3단원)"}
+            ← {txUI("뒤로 (시제 3단원)", lang)}
           </button>
         </div>
       </div>
@@ -6240,57 +6662,65 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── 시제 5단원: 받다·닫다·잡다·입다 (규칙 ㄷ받침) + 받침 없는 규칙 보강 ──
   if (step === "tense5") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     const TENSE5_CARDS = [
       { base:"받다",   meaning:{vi:"nhận",    en:"receive"},
         pres:"받습니다",  presQ:"받습니까?",
         past:"받았습니다", pastQ:"받았습니까?",
         fut:"받을 것입니다",futQ:"받을 것입니까?",
-        rule:vi?"받다 → 규칙! 받+았 → 받았습니다 (ㄷ변화 없음)":en?"받다 → regular! ㄷ stays → 받았습니다":"받다 → 규칙 동사! ㄷ이 그대로 → 받았습니다",
+        rule:txUI("받다 → 규칙 동사! ㄷ이 그대로 → 받았습니다", lang),
         type:"규칙" },
       { base:"닫다",   meaning:{vi:"đóng",    en:"close"},
         pres:"닫습니다",  presQ:"닫습니까?",
         past:"닫았습니다", pastQ:"닫았습니까?",
         fut:"닫을 것입니다",futQ:"닫을 것입니까?",
-        rule:vi?"닫다 → 규칙! 닫+았 → 닫았습니다 (ㄷ변화 없음)":en?"닫다 → regular! ㄷ stays → 닫았습니다":"닫다 → 규칙 동사! ㄷ이 그대로 → 닫았습니다",
+        rule:txUI("닫다 → 규칙 동사! ㄷ이 그대로 → 닫았습니다", lang),
         type:"규칙" },
       { base:"잡다",   meaning:{vi:"bắt/nắm", en:"grab/catch"},
         pres:"잡습니다",  presQ:"잡습니까?",
         past:"잡았습니다", pastQ:"잡았습니까?",
         fut:"잡을 것입니다",futQ:"잡을 것입니까?",
-        rule:vi?"잡다 → 규칙! 잡+았 → 잡았습니다":en?"잡다 → regular → 잡았습니다":"잡다 → 규칙 동사 → 잡았습니다",
+        rule:txUI("잡다 → 규칙 동사 → 잡았습니다", lang),
         type:"규칙" },
       { base:"입다",   meaning:{vi:"mặc",     en:"wear"},
         pres:"입습니다",  presQ:"입습니까?",
         past:"입었습니다", pastQ:"입었습니까?",
         fut:"입을 것입니다",futQ:"입을 것입니까?",
-        rule:vi?"입다 → 규칙! 입+었 → 입었습니다":en?"입다 → regular → 입었습니다":"입다 → 규칙 동사 → 입었습니다",
+        rule:txUI("입다 → 규칙 동사 → 입었습니다", lang),
         type:"규칙" },
       { base:"켜다",   meaning:{vi:"bật",     en:"turn on"},
         pres:"켭니다",    presQ:"켭니까?",
         past:"켰습니다",  pastQ:"켰습니까?",
         fut:"켤 것입니다", futQ:"켤 것입니까?",
-        rule:vi?"켜다 → 받침 없음 → 켜+ㅂ니다 → ㄹ탈락 → 켭니다":en?"켜다 → no batchim → ㄹ drop → 켭니다":"켜다 → 받침 없음 → ㄹ탈락 → 켭니다",
+        rule:txUI("켜다 → 받침 없음 → ㄹ탈락 → 켭니다", lang),
         type:"규칙" },
       { base:"지우다",  meaning:{vi:"xóa",    en:"erase"},
         pres:"지웁니다",  presQ:"지웁니까?",
         past:"지웠습니다", pastQ:"지웠습니까?",
         fut:"지울 것입니다",futQ:"지울 것입니까?",
-        rule:vi?"지우다 → 지우+어 → 지웠습니다":en?"지우다 → 지우+어 → 지웠습니다":"지우다 → 지우+어 → 지웠습니다",
+        rule:txUI("지우다 → 지우+어 → 지웠습니다", lang),
         type:"규칙" },
       { base:"바꾸다",  meaning:{vi:"thay đổi",en:"change"},
         pres:"바꿉니다",  presQ:"바꿉니까?",
         past:"바꿨습니다", pastQ:"바꿨습니까?",
         fut:"바꿀 것입니다",futQ:"바꿀 것입니까?",
-        rule:vi?"바꾸다 → 바꾸+어 → 바꿨습니다":en?"바꾸다 → 바꾸+어 → 바꿨습니다":"바꾸다 → 바꾸+어 → 바꿨습니다",
+        rule:txUI("바꾸다 → 바꾸+어 → 바꿨습니다", lang),
         type:"규칙" },
       { base:"그리다",  meaning:{vi:"vẽ",     en:"draw"},
         pres:"그립니다",  presQ:"그립니까?",
         past:"그렸습니다", pastQ:"그렸습니까?",
         fut:"그릴 것입니다",futQ:"그릴 것입니까?",
-        rule:vi?"그리다 → 그리+어 → 그렸습니다":en?"그리다 → 그리+어 → 그렸습니다":"그리다 → 그리+어 → 그렸습니다",
+        rule:txUI("그리다 → 그리+어 → 그렸습니다", lang),
         type:"규칙" },
       { base:"켜다",    meaning:{vi:"bật",       en:"turn on"},    batchim:false,
         pres:"켭니다",  presQ:"켭니까?",  past:"켰습니다", pastQ:"켰습니까?",  fut:"켤 것입니다",  futQ:"켤 것입니까?" },
@@ -6355,7 +6785,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
-            📚 {vi?"시제 5단원 — 규칙 동사 보강 (받침 있음·없음)":en?"Tense Unit 5 — Regular Verbs (with/without batchim)":"시제 5단원 — 규칙 동사 보강 (받침 있음·없음)"}
+            📚 {txUI("시제 5단원 — 규칙 동사 보강 (받침 있음·없음)", lang)}
           </div>
           <div style={{fontSize:12, color:"#555", background:"#FCE4EC", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
             {vi
@@ -6399,7 +6829,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
                 <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
-                  {vi?"⚠️ Hàng (?) — nhớ gõ '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+                  {txUI("⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?", lang)}
                 </div>
               </div>
               {tenseRevealed && (
@@ -6411,7 +6841,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 <div style={{padding:"16px"}}>
                   <button onClick={()=>setTenseRevealed(true)}
                     style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#880E4F)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                    {vi?"Xem đáp án 👀":en?"Show answers 👀":"정답 보기 👀"}
+                    {txUI("정답 보기 👀", lang)}
                   </button>
                 </div>
               )}
@@ -6421,24 +6851,24 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {tenseCardIdx > 0 && (
               <button onClick={()=>{ setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
                 style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>
-                ← {vi?"Trước":en?"Prev":"이전"}
+                ← {txUI("이전", lang)}
               </button>
             )}
             {tenseCardIdx < total-1 ? (
               <button onClick={()=>{ setTenseCardIdx(i=>i+1); setTenseRevealed(false); }}
                 style={{flex:1, background:`linear-gradient(135deg,${C.accent},#880E4F)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
+                {txUI("다음 카드 →", lang)}
               </button>
             ) : (
               <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense6"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#00695C,#004D40)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo: Tense 6! 🚀":en?"Next: Tense 6! 🚀":"시제 6단원으로! 🚀"}
+                {txUI("시제 6단원으로! 🚀", lang)}
               </button>
             )}
           </div>
           <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense4"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại Tense 4":en?"Back to Tense 4":"뒤로 (시제 4단원)"}
+            ← {txUI("뒤로 (시제 4단원)", lang)}
           </button>
         </div>
       </div>
@@ -6447,8 +6877,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── 시제 6단원: 하다 동사 ──
   if (step === "tense6") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     const TENSE6_CARDS = [
       { base:"공부하다",  meaning:{vi:"học bài",    en:"study"},
@@ -6556,7 +6994,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
     const card = TENSE6_CARDS[tenseCardIdx];
     const total = TENSE6_CARDS.length;
     const meaning = vi ? card.meaning.vi : en ? card.meaning.en : card.meaning.en;
-    const rule6 = vi?"하다 → 합니다 (현재) / 했습니다 (과거) / 할 것입니다 (미래)":en?"하다 → 합니다 (pres) / 했습니다 (past) / 할 것입니다 (future)":"하다 → 합니다 (현재) / 했습니다 (과거) / 할 것입니다 (미래)";
+    const rule6 = txUI("하다 → 합니다 (현재) / 했습니다 (과거) / 할 것입니다 (미래)", lang);
 
     const C = { bg:"linear-gradient(150deg,#E0F2F1,#B2DFDB)", accent:"#00695C",
                  border:"#80CBC4",
@@ -6603,7 +7041,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, fontWeight:900, color:C.accent, marginBottom:2}}>
-            📚 {vi?"시제 6단원 — 하다 동사":en?"Tense Unit 6 — 하다 Verbs":"시제 6단원 — 하다 동사"}
+            📚 {txUI("시제 6단원 — 하다 동사", lang)}
           </div>
           <div style={{fontSize:12, color:"#555", background:"#E0F2F1", borderRadius:10, padding:"10px 14px", marginBottom:12, lineHeight:1.7}}>
             {vi
@@ -6647,7 +7085,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               </div>
               <div style={{padding:"8px 14px", background:"#FFF8E1", borderTop:"1px solid #FFE082"}}>
                 <div style={{fontSize:11, color:"#E65100", fontWeight:800}}>
-                  {vi?"⚠️ Hàng (?) — nhớ gõ '?' ở cuối! Ví dụ: ~ㅂ니까?":en?"⚠️ (?) row — end with '?'! e.g. ~ㅂ니까?":"⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?"}
+                  {txUI("⚠️ 물음표(?) 행은 반드시 끝에 '?'를 붙여 입력하세요! 예: ~ㅂ니까?", lang)}
                 </div>
               </div>
               {tenseRevealed && (
@@ -6659,7 +7097,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 <div style={{padding:"16px"}}>
                   <button onClick={()=>setTenseRevealed(true)}
                     style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                    {vi?"Xem đáp án 👀":en?"Show answers 👀":"정답 보기 👀"}
+                    {txUI("정답 보기 👀", lang)}
                   </button>
                 </div>
               )}
@@ -6669,24 +7107,24 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {tenseCardIdx > 0 && (
               <button onClick={()=>{ setTenseCardIdx(i=>i-1); setTenseRevealed(false); }}
                 style={{flex:1, background:"white", border:`2px solid ${C.border}`, borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:700, color:C.accent, cursor:"pointer"}}>
-                ← {vi?"Trước":en?"Prev":"이전"}
+                ← {txUI("이전", lang)}
               </button>
             )}
             {tenseCardIdx < total-1 ? (
               <button onClick={()=>{ setTenseCardIdx(i=>i+1); setTenseRevealed(false); }}
                 style={{flex:1, background:`linear-gradient(135deg,${C.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 카드 →"}
+                {txUI("다음 카드 →", lang)}
               </button>
             ) : (
               <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tenseTest"); }}
                 style={{flex:1, background:"linear-gradient(135deg,#1565C0,#0D47A1)", color:"white", border:"none", borderRadius:50, padding:"12px 0", fontSize:14, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tense hoàn thành! 🎉 → Kiểm tra":en?"Tense Complete! 🎉 → Final Test":"시제 완료! 🎉 → 최종 테스트"}
+                {txUI("시제 완료! 🎉 → 최종 테스트", lang)}
               </button>
             )}
           </div>
           <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setStep("tense5"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại Tense 5":en?"Back to Tense 5":"뒤로 (시제 5단원)"}
+            ← {txUI("뒤로 (시제 5단원)", lang)}
           </button>
         </div>
       </div>
@@ -6802,23 +7240,23 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
           <div style={{fontSize:15, fontWeight:700, color:"#333", marginBottom:20}}>
             {tenseTestResult.pass
-              ? (vi?"Xuất sắc! Sang phần Trợ từ! 🎉":en?"Excellent! On to Particles! 🎉":"시제 마스터! 🎉 이제 조사로 넘어가요!")
-              : (vi?"Cần ôn lại! Thử lại nhé 💪":en?"Review needed! Try again 💪":"한 번 더 도전해봐요! 💪")}
+              ? (txUI("시제 마스터! 🎉 이제 조사로 넘어가요!", lang))
+              : (txUI("한 번 더 도전해봐요! 💪", lang))}
           </div>
           {tenseTestResult.pass ? (
             <button onClick={()=>{ setJosaStep(0); setStep("josa"); }}
               style={{width:"100%", background:"linear-gradient(135deg,#2E7D32,#1B5E20)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-              {vi?"Sang Trợ từ! 🚀":en?"To Particles! 🚀":"조사 학습으로! 🚀"}
+              {txUI("조사 학습으로! 🚀", lang)}
             </button>
           ) : (
             <button onClick={()=>{ setTenseTestResult(null); setTenseTestAnswers({}); }}
               style={{width:"100%", background:"linear-gradient(135deg,#E65100,#BF360C)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-              {vi?"Thử lại 🔄":en?"Try again 🔄":"다시 풀기 🔄"}
+              {txUI("다시 풀기 🔄", lang)}
             </button>
           )}
           <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense1"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Học lại từ đầu":en?"Review from Tense 1":"시제 1단원부터 다시"}
+            ← {txUI("시제 1단원부터 다시", lang)}
           </button>
         </div>
       </div>
@@ -6830,7 +7268,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:14, fontWeight:900, color:C.accent, marginBottom:2}}>
-            🏆 {vi?"Kiểm tra tổng hợp Thì (Tense 1~6)":en?"Tense Final Test (Units 1~6)":"시제 총합 테스트 (1~6단원)"}
+            🏆 {txUI("시제 총합 테스트 (1~6단원)", lang)}
           </div>
 
           {/* 합니다체 기본 규칙 설명 */}
@@ -6847,7 +7285,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{fontSize:12, color:"#888", marginBottom:10, textAlign:"right"}}>
-            {vi?"⚠️ Bất quy tắc: xem gợi ý sau khi nộp bài":en?"⚠️ Irregular verbs: hints shown after grading":"⚠️ 불규칙 힌트는 채점 후 표시"}
+            {txUI("⚠️ 불규칙 힌트는 채점 후 표시", lang)}
           </div>
 
           <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:4, marginBottom:6, padding:"0 2px"}}>
@@ -6921,11 +7359,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           <button type="button" onClick={gradeTenseTest}
             style={{width:"100%", background:`linear-gradient(135deg,${C.accent},#1B5E20)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:8}}>
-            {vi?"Nộp bài! 📊":en?"Submit! 📊":"채점하기! 📊"}
+            {txUI("채점하기! 📊", lang)}
           </button>
           <button onClick={()=>{ setTenseCardIdx(0); setTenseRevealed(false); setTenseInputs({}); setStep("tense6"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại Tense 6":en?"Back to Tense 6":"뒤로 (시제 6단원)"}
+            ← {txUI("뒤로 (시제 6단원)", lang)}
           </button>
         </div>
       </div>
@@ -6936,8 +7374,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V154: 조사·대명사 테스트 화면
   // ════════════════════════════════════════════════════════
   if (step === "testJosa") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     // STT 예문 목록 (학습한 예시 문장 전체)
     const STT_SENTENCES = [
@@ -6998,7 +7444,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{textAlign:"center",marginBottom:20}}>
               <div style={{fontSize:48}}>{passed?"🎉":"😊"}</div>
               <div style={{fontSize:22,fontWeight:900,color:passed?"#E65100":"#FF9800",marginBottom:8}}>
-                {passed?(vi?"Xuất sắc!":en?"Excellent!":"통과! 🎉"):(vi?"Thử lại nhé!":en?"Try again!":"조금 더 연습해요!")}
+                {passed?(txUI("통과! 🎉", lang)):(txUI("조금 더 연습해요!", lang))}
               </div>
               <div style={{display:"flex",gap:12,justifyContent:"center",marginBottom:4}}>
                 <div style={{background:"white",borderRadius:12,padding:"8px 16px",textAlign:"center",boxShadow:"0 2px 8px #FF980022"}}>
@@ -7025,7 +7471,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                     <span style={{fontSize:13,color:"#333"}}>{r.sentence}</span>
                     <span style={{fontSize:12,color:r.ok?"#2E7D32":"#E65100",fontWeight:700}}>{r.ok?"✅":"❌"}</span>
                   </div>
-                  {!r.ok&&<div style={{fontSize:11,color:"#888",marginTop:2}}>정답: <b>{r.answer}</b> / 내 답: {r.userAns||(vi?"(trống)":en?"(empty)":"(없음)")}</div>}
+                  {!r.ok&&<div style={{fontSize:11,color:"#888",marginTop:2}}>정답: <b>{r.answer}</b> / 내 답: {r.userAns||(txUI("(없음)", lang))}</div>}
                 </div>
               ))}
             </div>
@@ -7039,19 +7485,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                     <span style={{fontSize:12,color:r?.ok?"#2E7D32":"#E65100",fontWeight:700}}>{r?.ok?"✅":"❌"}</span>
                   </div>
                   {r?.result&&<div style={{fontSize:11,color:"#888",marginTop:2}}>말한 것: {r.result} ({r.similarity}%)</div>}
-                  {!r?.result&&<div style={{fontSize:11,color:"#bbb",marginTop:2}}>{vi?"Chưa thử":en?"Not attempted":"시도 안 함"}</div>}
+                  {!r?.result&&<div style={{fontSize:11,color:"#bbb",marginTop:2}}>{txUI("시도 안 함", lang)}</div>}
                 </div>
               ))}
             </div>
             {passed ? (
               <button onClick={()=>{setJosaTestResult(null);setJosaTestAnswers({});setJosaTestQuestions([]);setStep("sentenceStructure");}}
                 style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A876)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #00C89644"}}>
-                {vi?"Tiếp theo! 🚀":en?"Next! 🚀":"서술어 1단원으로! 🚀"}
+                {txUI("서술어 1단원으로! 🚀", lang)}
               </button>
             ) : (
               <button onClick={()=>{setJosaTestResult(null);setJosaTestAnswers({});setJosaTestQuestions([]);setJosaStep(0);setJosaSTTMap({});setJosaListeningKey(null);setStep("josa");}}
                 style={{width:"100%",background:"linear-gradient(135deg,#FF9800,#E65100)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer"}}>
-                🔄 {vi?"Học lại từ đầu":en?"Study again":"조사·대명사 처음부터 다시 학습"}
+                🔄 {txUI("조사·대명사 처음부터 다시 학습", lang)}
               </button>
             )}
           </div>
@@ -7066,10 +7512,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%",maxWidth:400}}>
           <div style={{fontSize:14,fontWeight:900,color:"#E65100",marginBottom:2}}>
-            📝 {vi?"Bài kiểm tra — Trợ từ & Đại từ":en?"Test — Particles & Pronouns":"조사·대명사 테스트"}
+            📝 {txUI("조사·대명사 테스트", lang)}
           </div>
           <div style={{fontSize:12,color:"#aaa",marginBottom:18}}>
-            {vi?"빈칸 채우기 + 따라 말하기":en?"Fill in blanks + Speak along":"✍️ 빈칸 채우기 + 🎤 따라 말하기"}
+            {txUI("✍️ 빈칸 채우기 + 🎤 따라 말하기", lang)}
           </div>
 
           {/* 섹션1: 빈칸 채우기 */}
@@ -7083,7 +7529,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 value={josaTestAnswers[q.id]||""}
                 onChange={e=>setJosaTestAnswers(a=>({...a,[q.id]:e.target.value}))}
                 onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
-                placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
+                placeholder={txUI("여기에 쓰세요...", lang)}
                 style={{width:"100%",border:"2px solid #FFE0B2",borderRadius:8,padding:"7px 10px",fontSize:14,outline:"none",boxSizing:"border-box"}}
               />
             </div>
@@ -7091,7 +7537,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           {/* 섹션2: 따라 말하기 */}
           <div style={{fontSize:13,fontWeight:700,color:"#E65100",margin:"18px 0 8px"}}>🎤 따라 말하기</div>
-          <div style={{fontSize:11,color:"#aaa",marginBottom:10}}>{vi?"Nghe và đọc theo":en?"Listen and repeat":"🔊 듣고 따라 말해보세요"}</div>
+          <div style={{fontSize:11,color:"#aaa",marginBottom:10}}>{txUI("🔊 듣고 따라 말해보세요", lang)}</div>
           {STT_SENTENCES.map((sentence,i)=>{
             const key = i;
             const isListening = josaListeningKey === key;
@@ -7143,11 +7589,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           <button type="button" onClick={gradeJosaTest}
             style={{width:"100%",background:"linear-gradient(135deg,#FF6B35,#E64A00)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",marginTop:12,boxShadow:"0 4px 16px #FF6B3544"}}>
-            {vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}
+            {txUI("채점하기! 📊", lang)}
           </button>
           <button onClick={()=>{setJosaStep(5);setStep("josa");}}
             style={{marginTop:12,background:"none",border:"none",color:"#aaa",fontSize:12,cursor:"pointer",display:"block",margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -7159,15 +7605,23 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ 문장구조 학습 화면 (서술어 학습 전 필수)
   // ════════════════════════════════════════════════════════
   if (step === "sentenceStructure") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const rows = [
-      { role: vi?"Chủ ngữ":en?"Subject":"주어",            particle: vi?"은/는/이/가":en?"은/는/이/가":"은/는/이/가",  color:"#E3F2FD", ex: vi?"Tôi (저는)":en?"I (저는)":"저는" },
-      { role: vi?"Trạng ngữ (thời gian)":en?"Adverb (time)":"부사어(시간)",  particle: vi?"에":en?"에":"에",    color:"#FFF8E1", ex: vi?"sáng nay (오늘 아침에)":en?"this morning (오늘 아침에)":"오늘 아침에" },
-      { role: vi?"Trạng ngữ (nơi chốn)":en?"Adverb (place)":"부사어(장소)", particle: vi?"에서":en?"에서":"에서", color:"#FFF8E1", ex: vi?"ở trường (학교에서)":en?"at school (학교에서)":"학교에서" },
-      { role: vi?"Tân ngữ gián tiếp":en?"Indirect Object":"간접목적어",      particle: vi?"에게":en?"에게":"에게", color:"#F3E5F5", ex: vi?"cho bạn (친구에게)":en?"to friend (친구에게)":"친구에게" },
-      { role: vi?"Tân ngữ":en?"Object":"목적어",             particle: vi?"을/를":en?"을/를":"을/를",  color:"#E8F5E9", ex: vi?"tiếng Hàn (한국어를)":en?"Korean (한국어를)":"한국어를" },
-      { role: vi?"Vị ngữ":en?"Predicate":"서술어",           particle: vi?"":en?"":"(동사/형용사)",   color:"#FCE4D6", ex: vi?"học (배웁니다)":en?"learn (배웁니다)":"배웁니다" },
+      { role: txUI("주어", lang),            particle: txUI("은/는/이/가", lang),  color:"#E3F2FD", ex: txUI("저는", lang) },
+      { role: txUI("부사어(시간)", lang),  particle: txUI("에", lang),    color:"#FFF8E1", ex: txUI("오늘 아침에", lang) },
+      { role: txUI("부사어(장소)", lang), particle: txUI("에서", lang), color:"#FFF8E1", ex: txUI("학교에서", lang) },
+      { role: txUI("간접목적어", lang),      particle: txUI("에게", lang), color:"#F3E5F5", ex: txUI("친구에게", lang) },
+      { role: txUI("목적어", lang),             particle: txUI("을/를", lang),  color:"#E8F5E9", ex: txUI("한국어를", lang) },
+      { role: txUI("서술어", lang),           particle: txUI("(동사/형용사)", lang),   color:"#FCE4D6", ex: txUI("배웁니다", lang) },
     ];
     const exFull = vi
       ? "Tôi sáng nay ở trường cho bạn tiếng Hàn học."
@@ -7181,10 +7635,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <div style={{textAlign:"center",marginBottom:20}}>
             <div style={{fontSize:32}}>📐</div>
             <div style={{fontSize:19,fontWeight:900,color:"#1B5E20",marginBottom:6}}>
-              {vi?"Cấu trúc câu tiếng Hàn":en?"Korean Sentence Structure":"한국어 문장 구조"}
+              {txUI("한국어 문장 구조", lang)}
             </div>
             <div style={{fontSize:13,color:"#555"}}>
-              {vi?"Tiếng Hàn đặt động từ ở cuối câu!":en?"Korean puts the verb at the end!":"한국어는 서술어가 항상 문장 끝에 와요!"}
+              {txUI("한국어는 서술어가 항상 문장 끝에 와요!", lang)}
             </div>
           </div>
 
@@ -7202,7 +7656,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {/* 예문 전체 */}
           <div style={{background:"#F9FBE7",borderRadius:10,padding:"12px 14px",marginBottom:16,textAlign:"center"}}>
             <div style={{fontSize:11,color:"#888",marginBottom:4}}>
-              {vi?"Ví dụ đầy đủ":en?"Full example":"완전한 문장 예시"}
+              {txUI("완전한 문장 예시", lang)}
             </div>
             <div style={{fontSize:15,fontWeight:900,color:"#2E7D32",lineHeight:1.6}}>{exFull}</div>
           </div>
@@ -7219,13 +7673,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <button onClick={()=>{
             setShowProgress({
               passedCount: unitsPassed.length,
-              completedLabel: vi?"Trợ từ · Đại từ":en?"Particles · Pronouns":"조사·대명사",
+              completedLabel: txUI("조사·대명사", lang),
               nextStep: "unit1",
-              nextLabel: vi?"Bắt đầu vị ngữ Bài 1":en?"Start Predicates Unit 1":"서술어 1단원 시작",
+              nextLabel: txUI("서술어 1단원 시작", lang),
             });
           }}
             style={{width:"100%",background:"linear-gradient(135deg,#00C896,#00A876)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #00C89644"}}>
-            {vi?"Bắt đầu học vị ngữ! 🚀":en?"Start learning predicates! 🚀":"서술어 학습 시작! 🚀"}
+            {txUI("서술어 학습 시작! 🚀", lang)}
           </button>
         </div>
       </div>
@@ -7235,8 +7689,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V156: 서술어 1단원 학습 화면 — 이에요/이다 (A=B)
   // ════════════════════════════════════════════════════════
   if (step === "unit1") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnitCardSubmit() {
       if (!unitCardInput.trim()) return;
@@ -7323,7 +7785,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {/* 헤더 */}
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 1 — A là B (A=B)":en?"Unit 1 — A is B (A=B)":"서술어 1단원 — A는 B이다 (A=B)"}
+              {txUI("서술어 1단원 — A는 B이다 (A=B)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>
               {unitCardIdx + 1} / {total}
@@ -7337,7 +7799,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {/* 핵심 규칙 박스 */}
           <div style={{background:"#FFF9C4", border:"2px solid #F9A825", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
             <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>
-              📌 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}
+              📌 {txUI("핵심 규칙", lang)}
             </div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· 받침 <b>있음</b> → <b>이에요 / 입니다</b> &nbsp;예: 학생 → 학생<b>입니다</b></div>
@@ -7363,7 +7825,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           {/* 합니다체 안내 */}
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết bằng thể 합니다 (lịch sự)":en?"Write in 합니다 formal style":"합니다체로 작성하세요 (예: ~입니다, ~합니다)"}
+            ✍️ {txUI("합니다체로 작성하세요 (예: ~입니다, ~합니다)", lang)}
           </div>
 
           {/* 입력창 */}
@@ -7373,7 +7835,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               value={unitCardInput}
               onChange={e => { if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e => { if(e.key==="Enter") handleUnitCardSubmit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}}
             />
             {/* STT 마이크 버튼 — 인라인 Web Speech API */}
@@ -7413,24 +7875,24 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnitCardSubmit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background: unitCardInput.trim()?"linear-gradient(135deg,#00C896,#00A876)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor: unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total - 1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(true); setStep("test1"); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Kiểm tra tổng hợp! →":en?"Cumulative test! →":"누적 테스트로! 🚀"}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
 
           <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -7438,8 +7900,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "test1") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     // 채점 함수
     function gradeTest() {
       if (testQuestions.length === 0) return;
@@ -7505,14 +7975,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <div style={{fontSize:56}}>{testResult.passed?"🎉":"💪"}</div>
               <div style={{fontSize:22, fontWeight:900, color: testResult.passed?"#00A876":"#E64A00", marginBottom:4}}>
                 {testResult.passed
-                  ? (vi?"Xuất sắc! Qua rồi!":en?"Excellent! You passed!":"통과! 🎉")
-                  : (vi?"Chưa qua. Học lại nhé!":en?"Not passed. Study again!":"미통과 😢 다시 학습해요")}
+                  ? (txUI("통과! 🎉", lang))
+                  : (txUI("미통과 😢 다시 학습해요", lang))}
               </div>
               <div style={{fontSize:28, fontWeight:900, color: testResult.passed?"#00C896":"#FF6B6B"}}>
                 {testResult.score}점 ({testResult.correct}/{testResult.total})
               </div>
               <div style={{fontSize:13, color:"#888", marginTop:4}}>
-                {vi?"Tiêu chuẩn đạt: 80점 이상":en?"Pass standard: 80+ points":"통과 기준: 80점 이상"}
+                {txUI("통과 기준: 80점 이상", lang)}
               </div>
             </div>
 
@@ -7536,18 +8006,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 const newCount = [...new Set([...unitsPassed, 1])].length;
                 setShowProgress({
                   passedCount: newCount,
-                  completedLabel: vi?"Bài 1":en?"Unit 1":"1단원",
+                  completedLabel: txUI("1단원", lang),
                   nextStep: "unit2",
-                  nextLabel: vi?"Bài 2 — Tiếp tục":en?"Unit 2 — Continue":"2단원으로 계속하기",
+                  nextLabel: txUI("2단원으로 계속하기", lang),
                 });
               }}
                 style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #00C89644"}}>
-                {vi?"Tiếp tục — Bài 2! 🚀":en?"Continue — Unit 2! 🚀":"2단원으로 계속하기 🚀"}
+                {txUI("2단원으로 계속하기 🚀", lang)}
               </button>
             ) : (
               <button onClick={()=>{setUnitCardIdx(0); setTestResult(null); setTestAnswers({}); setTestQuestions([]); setStep("unit1");}}
                 style={{width:"100%", background:"linear-gradient(135deg,#FF8C42,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #FF8C4244"}}>
-                {vi?"Học lại từ đầu 🔄":en?"Study again from start 🔄":"1단원 처음부터 다시 학습 🔄"}
+                {txUI("1단원 처음부터 다시 학습 🔄", lang)}
               </button>
             )}
           </div>
@@ -7562,7 +8032,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#E64A00", marginBottom:4}}>
-            📝 {vi?"Bài kiểm tra — Tổng hợp (Bài 1)":en?"Test — Cumulative (Unit 1)":"누적 테스트 — 1단원"}
+            📝 {txUI("누적 테스트 — 1단원", lang)}
           </div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
             {vi?"Phạm vi: Phát âm + Trợ từ + Đại từ nghi vấn + Bài 1":
@@ -7574,7 +8044,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{textAlign:"center", padding:40}}>
               <div style={{fontSize:32, marginBottom:12}}>⏳</div>
               <div style={{color:"#E64A00", fontWeight:700}}>
-                {vi?"Đang tạo câu hỏi...":en?"Generating questions...":"문제 생성 중..."}
+                {txUI("문제 생성 중...", lang)}
               </div>
             </div>
           ) : (
@@ -7593,7 +8063,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                   <input
                     value={testAnswers[q.id]||""}
                     onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))}
-                    placeholder={vi?"Nhập câu trả lời...":en?"Type your answer...":"답을 입력하세요..."}
+                    placeholder={txUI("답을 입력하세요...", lang)}
                     style={{width:"100%", border:"2px solid #FFD0A0", borderRadius:10, padding:"10px 12px", fontSize:14, outline:"none", boxSizing:"border-box", fontFamily:"inherit"}}
                   />
                 </div>
@@ -7602,7 +8072,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               {testQuestions.length > 0 && (
                 <button onClick={gradeTest}
                   style={{width:"100%", background:"linear-gradient(135deg,#FF8C42,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:8, boxShadow:"0 4px 16px #FF8C4244"}}>
-                  {vi?"Nộp bài ✅":en?"Submit ✅":"제출하기 ✅"}
+                  {txUI("제출하기 ✅", lang)}
                 </button>
               )}
             </>
@@ -7616,8 +8086,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V168: 서술어 2단원 학습 화면 — 있다/없다/많다/적다
   // ════════════════════════════════════════════════════════
   if (step === "unit2") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnitCardSubmit() {
       if (!unitCardInput.trim()) return;
@@ -7698,7 +8176,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 2 — Có/Không có/Nhiều/Ít":en?"Unit 2 — Have/Don't have/Many/Few":"서술어 2단원 — 있다·없다·많다·적다"}
+              {txUI("서술어 2단원 — 있다·없다·많다·적다", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -7706,7 +8184,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FFF9C4", border:"2px solid #F9A825", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· 있다 → <b>있습니다</b> &nbsp;/&nbsp; 있습니까?</div>
               <div>· 없다 → <b>없습니다</b> &nbsp;/&nbsp; 없습니까?</div>
@@ -7720,13 +8198,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết bằng thể 합니다":en?"Write in 합니다 style":"합니다체로 작성하세요 (예: ~있습니다, ~없습니다)"}
+            ✍️ {txUI("합니다체로 작성하세요 (예: ~있습니다, ~없습니다)", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#A5D6A7"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnitCardSubmit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -7745,30 +8223,38 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnitCardSubmit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#00C896,#00A876)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("test2"); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#00C896,#00A876)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Kiểm tra Bài 2 →":en?"Take Unit 2 Test →":"2단원 테스트 →"}
+                {txUI("2단원 테스트 →", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
   }
 
   if (step === "test2") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     const TEST2_QUESTIONS = [
       // ── 1단원 복습 10문제 (이에요/예요/이다)
@@ -7833,7 +8319,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 {testResult.score}점 {testResult.passed?"— 통과!":"— 다시 도전!"}
               </div>
               <div style={{fontSize:13, color:"#888"}}>
-                {vi?"Phạm vi: Bài 1 + Bài 2A + Bài 2B":en?"Scope: Unit 1 + Unit 2A + Unit 2B":"범위: 서술어 1단원 + 2단원 (있다·없다·많다·적다)"}
+                {txUI("범위: 서술어 1단원 + 2단원 (있다·없다·많다·적다)", lang)}
               </div>
             </div>
             <div style={{background:"white", borderRadius:16, padding:16, marginBottom:16}}>
@@ -7852,17 +8338,17 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {testResult.passed ? (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,2])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`2단원`,nextStep:"unit3",nextLabel:"3단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#1E88E5,#1565C0)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #1E88E544"}}>
-                {vi?"Tiếp tục — Bài 3! 🚀":en?"Continue — Unit 3! 🚀":"3단원으로 계속하기 🚀"}
+                {txUI("3단원으로 계속하기 🚀", lang)}
               </button>
             ) : (
               <button onClick={()=>{setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit2");}}
                 style={{width:"100%", background:"linear-gradient(135deg,#FF8C42,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #FF8C4244"}}>
-                {vi?"Học lại từ đầu Bài 2 🔄":en?"Study Unit 2 again 🔄":"2단원 처음부터 다시 학습 🔄"}
+                {txUI("2단원 처음부터 다시 학습 🔄", lang)}
               </button>
             )}
             <button onClick={()=>{setTestResult(null); setTestAnswers({});}}
               style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-              ← {vi?"Thử lại":en?"Try again":"다시 풀기"}
+              ← {txUI("다시 풀기", lang)}
             </button>
           </div>
         </div>
@@ -7875,7 +8361,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#E64A00", marginBottom:4}}>
-            📝 {vi?"Bài kiểm tra — Tổng hợp (Bài 1+2)":en?"Test — Cumulative (Unit 1+2)":"누적 테스트 — 1·2A·2B단원"}
+            📝 {txUI("누적 테스트 — 1·2A·2B단원", lang)}
           </div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
             {vi?"Phạm vi: Bài 1 + Bài 2 (있다·없다·많다·적다)":
@@ -7890,7 +8376,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 value={testAnswers[q.id]||""}
                 onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))}
                 onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
-                placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
+                placeholder={txUI("여기에 쓰세요...", lang)}
                 style={{width:"100%", border:"2px solid #BBDEFB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
               <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
@@ -7898,11 +8384,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           ))}
           <button type="button" onClick={gradeTest2}
             style={{width:"100%", background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12, boxShadow:"0 4px 16px #FF6B3544"}}>
-            {vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}
+            {txUI("채점하기! 📊", lang)}
           </button>
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit2"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로 (2단원 학습)"}
+            ← {txUI("뒤로 (2단원 학습)", lang)}
           </button>
         </div>
       </div>
@@ -7913,8 +8399,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V172: 서술어 3단원 — 형용사 서술어 (크다·작다·좋다·나쁘다 등)
   // ════════════════════════════════════════════════════════
   if (step === "unit3") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnitCardSubmit() {
       if (!unitCardInput.trim()) return;
@@ -7975,7 +8469,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 3A — Tính từ thường":en?"Unit 3A — Regular adjectives":"서술어 3단원 — 일반 형용사"}
+              {txUI("서술어 3단원 — 일반 형용사", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -7983,7 +8477,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FFF9C4", border:"2px solid #F9A825", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· 받침 <b>있음</b> → <b>~습니다</b> &nbsp;예: 작다 → 작<b>습니다</b></div>
               <div>· 받침 <b>없음</b> → <b>~ㅂ니다</b> &nbsp;예: 싸다 → 쌉<b>니다</b></div>
@@ -7996,13 +8490,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết bằng thể 합니다":en?"Write in 합니다 style":"합니다체로 작성하세요 (예: ~큽니다, ~좋습니다)"}
+            ✍️ {txUI("합니다체로 작성하세요 (예: ~큽니다, ~좋습니다)", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#CE93D8"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnitCardSubmit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -8021,30 +8515,38 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnitCardSubmit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#9C27B0,#7B1FA2)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#9C27B0,#7B1FA2)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit3b"); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#9C27B0,#7B1FA2)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo — Bài 3B →":en?"Next — Unit 3B →":"다음 → 3B단원 🚀"}
+                {txUI("다음 → 3B단원 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
   }
 
   if (step === "unit3b") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnitCardSubmit() {
       if (!unitCardInput.trim()) return;
@@ -8082,7 +8584,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 3B — Tính từ bất quy tắc ㅂ":en?"Unit 3B — ㅂ irregular adjectives":"서술어 3B단원 — ㅂ불규칙 형용사"}
+              {txUI("서술어 3B단원 — ㅂ불규칙 형용사", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -8090,7 +8592,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FFF9C4", border:"2px solid #F9A825", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>ㅂ불규칙</b>: 춥다·덥다·어렵다·가볍다·무겁다·맵다</div>
               <div>· 합니다체: 어미 <b>~습니다</b> 그대로 붙임</div>
@@ -8103,13 +8605,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết bằng thể 합니다":en?"Write in 합니다 style":"합니다체로 작성하세요 (예: ~춥습니다, ~어렵습니다)"}
+            ✍️ {txUI("합니다체로 작성하세요 (예: ~춥습니다, ~어렵습니다)", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#9FA8DA"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnitCardSubmit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -8128,30 +8630,38 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnitCardSubmit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#3F51B5,#283593)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#3F51B5,#283593)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(true); setStep("test1"); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#3F51B5,#283593)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Kiểm tra tổng hợp! →":en?"Cumulative test! →":"누적 테스트로! 🚀"}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
   }
 
   if (step === "test3") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     const TEST3_QUESTIONS = [
       // ── 1단원 복습 10문제
@@ -8247,17 +8757,17 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {testResult.passed ? (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,3])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`3단원`,nextStep:"unit4",nextLabel:"4단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#9C27B0,#7B1FA2)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C27B044"}}>
-                {vi?"Tiếp tục — Bài 4! 🚀":en?"Continue — Unit 4! 🚀":"4단원으로 계속하기 🚀"}
+                {txUI("4단원으로 계속하기 🚀", lang)}
               </button>
             ) : (
               <button onClick={()=>{setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit3");}}
                 style={{width:"100%", background:"linear-gradient(135deg,#FF8C42,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #FF8C4244"}}>
-                {vi?"Học lại Bài 3 🔄":en?"Study Unit 3 again 🔄":"3단원 처음부터 다시 학습 🔄"}
+                {txUI("3단원 처음부터 다시 학습 🔄", lang)}
               </button>
             )}
             <button onClick={()=>{setTestResult(null); setTestAnswers({});}}
               style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-              ← {vi?"Thử lại":en?"Try again":"다시 풀기"}
+              ← {txUI("다시 풀기", lang)}
             </button>
           </div>
         </div>
@@ -8270,7 +8780,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
           <div style={{fontSize:14, fontWeight:900, color:"#E64A00", marginBottom:4}}>
-            📝 {vi?"Bài kiểm tra — Tổng hợp (Bài 1·2·3)":en?"Test — Cumulative (Unit 1·2·3)":"누적 테스트 — 1·2A·2B·3A·3B단원"}
+            📝 {txUI("누적 테스트 — 1·2A·2B·3A·3B단원", lang)}
           </div>
           <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>
             범위: 이에요/이다 + 있다·없다·많다·적다 + 형용사 서술어
@@ -8281,7 +8791,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <input type="text" value={testAnswers[q.id]||""}
                 onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))}
                 onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
-                placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
+                placeholder={txUI("여기에 쓰세요...", lang)}
                 style={{width:"100%", border:"2px solid #E1BEE7", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
               <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
@@ -8289,11 +8799,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           ))}
           <button type="button" onClick={gradeTest3}
             style={{width:"100%", background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12, boxShadow:"0 4px 16px #FF6B3544"}}>
-            {vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}
+            {txUI("채점하기! 📊", lang)}
           </button>
           <button onClick={()=>{const np=[...new Set([...unitsPassed,2])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`2단원`,nextStep:"unit3",nextLabel:"3단원으로 계속하기"});}}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로 (3단원 학습)"}
+            ← {txUI("뒤로 (3단원 학습)", lang)}
           </button>
         </div>
       </div>
@@ -8304,8 +8814,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V219: 서술어 4단원 — 의문대명사 실전 (모국어→한국어 전환)
   // ════════════════════════════════════════════════════════
   if (step === "unit4") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnit4Submit() {
       if (!unitCardInput.trim()) return;
@@ -8451,7 +8969,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 4 — Đại từ nghi vấn thực hành":en?"Unit 4 — Question Words in Practice":"서술어 4단원 — 의문대명사 실전"}
+              {txUI("서술어 4단원 — 의문대명사 실전", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -8459,7 +8977,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#F1F8E9", border:"2px solid #7CB342", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#558B2F", marginBottom:6}}>📌 {vi?"Từ để hỏi":en?"Question Words":"핵심 의문사"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#558B2F", marginBottom:6}}>📌 {txUI("핵심 의문사", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>누가/누구</b>: 사람 &nbsp;·&nbsp; <b>언제</b>: 시간 &nbsp;·&nbsp; <b>어디</b>: 장소</div>
               <div>· <b>무엇/무슨</b>: 사물·종류 &nbsp;·&nbsp; <b>왜</b>: 이유</div>
@@ -8472,13 +8990,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết bằng thể 합니다":en?"Write in 합니다 style":"합니다체로 질문 문장을 완성하세요"}
+            ✍️ {txUI("합니다체로 질문 문장을 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#A5D6A7"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit4Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -8497,22 +9015,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit4Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#43A047,#2E7D32)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#43A047,#2E7D32)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(true); setStep("test1"); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#43A047,#2E7D32)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Kiểm tra tổng hợp! →":en?"Cumulative test! →":"누적 테스트로! 🚀"}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -8521,8 +9039,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V219: 서술어 5단원 — 부드러운 명령 ~세요 (모국어→한국어 전환)
   // ════════════════════════════════════════════════════════
   if (step === "unit5") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnit5Submit() {
       if (!unitCardInput.trim()) return;
@@ -8598,7 +9124,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 5 — Câu lệnh nhẹ nhàng ~세요":en?"Unit 5 — Polite Commands ~세요":"서술어 5단원 — 부드러운 명령 ~세요"}
+              {txUI("서술어 5단원 — 부드러운 명령 ~세요", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -8606,7 +9132,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FFF8E1", border:"2px solid #FFB300", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#E65100", marginBottom:6}}>📌 {vi?"Quy tắc ~세요":en?"~세요 Rules":"~세요 변환 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#E65100", marginBottom:6}}>📌 {txUI("~세요 변환 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· 받침 없음: 동사 + <b>세요</b> &nbsp;예: 오다→오세요</div>
               <div>· 받침 있음: 동사 + <b>으세요</b> &nbsp;예: 읽다→읽으세요</div>
@@ -8620,13 +9146,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết bằng thể ~세요":en?"Write in ~세요 form":"~세요 형태로 문장을 완성하세요"}
+            ✍️ {txUI("~세요 형태로 문장을 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#FFCC80"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit5Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -8645,22 +9171,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit5Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#FB8C00,#E65100)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#FB8C00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,5])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`5단원`,nextStep:"unit6a",nextLabel:"6단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#FB8C00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp tục — Bài 6A! 🚀":en?"Continue — Unit 6A! 🚀":"6A단원으로 계속하기 🚀"}
+                {txUI("6A단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -8668,8 +9194,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ✅ V177: 누적 테스트 5 (1~5단원)
   if (step === "test5") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     // 포함 단원: 3·4·5단원 (2단원 졸업 — 3회 졸업 규칙 적용)
     const TEST5_QUESTIONS = [
@@ -8755,17 +9289,17 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {testResult.passed ? (
               <button onClick={()=>{setStep("learn"); onReady?.();}}
                 style={{width:"100%", background:"linear-gradient(135deg,#43A047,#2E7D32)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp tục học với 마중이! 🚀":en?"Continue with 마중이! 🚀":"마중이와 계속 학습하기 🚀"}
+                {txUI("마중이와 계속 학습하기 🚀", lang)}
               </button>
             ) : (
               <button onClick={()=>{setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit5");}}
                 style={{width:"100%", background:"linear-gradient(135deg,#FF8C42,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Học lại Bài 5 🔄":en?"Study Unit 5 again 🔄":"5단원 처음부터 다시 학습 🔄"}
+                {txUI("5단원 처음부터 다시 학습 🔄", lang)}
               </button>
             )}
             <button onClick={()=>{setTestResult(null); setTestAnswers({});}}
               style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-              ← {vi?"Thử lại":en?"Try again":"다시 풀기"}
+              ← {txUI("다시 풀기", lang)}
             </button>
           </div>
         </div>
@@ -8789,7 +9323,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
               <input type="text" value={testAnswers[q.id]||""}
                 onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))}
                 onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }}
-                placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."}
+                placeholder={txUI("여기에 쓰세요...", lang)}
                 style={{width:"100%", border:"2px solid #C8E6C9", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}}
               />
               <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
@@ -8797,11 +9331,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           ))}
           <button type="button" onClick={gradeTest5}
             style={{width:"100%", background:"linear-gradient(135deg,#FF6B35,#E64A00)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>
-            {vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}
+            {txUI("채점하기! 📊", lang)}
           </button>
           <button onClick={()=>{const np=[...new Set([...unitsPassed,4])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`4단원`,nextStep:"unit5",nextLabel:"5단원으로 계속하기"});}}
             style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로 (5단원 학습)"}
+            ← {txUI("뒤로 (5단원 학습)", lang)}
           </button>
         </div>
       </div>
@@ -8815,8 +9349,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V290: 서술어 6A단원 — [and] 와/과·-고 / [or] 이나·-거나 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit6a") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnit6aSubmit() {
       if (!unitCardInput.trim()) return;
@@ -8879,7 +9421,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 6A — AND (와/과·-고) / OR (이나·-거나)":en?"Unit 6A — AND (와/과·-고) / OR (이나·-거나)":"서술어 6A단원 — AND (와/과·-고) / OR (이나·-거나)"}
+              {txUI("서술어 6A단원 — AND (와/과·-고) / OR (이나·-거나)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -8887,7 +9429,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FFF9C4", border:"2px solid #F9A825", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {vi?"AND / OR 핵심":en?"AND / OR Core":"AND / OR 핵심"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {txUI("AND / OR 핵심", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>명사 and</b>: 와/과 &nbsp;예: 사과<b>와</b> 바나나</div>
               <div>· <b>동사·형용사 and</b>: -고 &nbsp;예: 먹<b>고</b> 갑니다</div>
@@ -8901,13 +9443,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu tiếng Hàn":en?"Write the Korean sentence":"한국어로 작성하세요"}
+            ✍️ {txUI("한국어로 작성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#FFE082"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit6aSubmit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -8926,22 +9468,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit6aSubmit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#F9A825,#F57F17)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#F9A825,#F57F17)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{setShowProgress({passedCount:unitsPassed.length,completedLabel:`6A단원`,nextStep:"unit6b",nextLabel:"6B단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#F9A825,#F57F17)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp tục — Bài 6B! 🚀":en?"Continue — Unit 6B! 🚀":"6B단원으로 계속하기 🚀"}
+                {txUI("6B단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -8951,8 +9493,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V290: 서술어 6B단원 — [but] 하지만·-지만 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit6b") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnit6bSubmit() {
       if (!unitCardInput.trim()) return;
@@ -9003,7 +9553,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 6B — BUT (하지만·-지만)":en?"Unit 6B — BUT (하지만·-지만)":"서술어 6B단원 — BUT (하지만·-지만)"}
+              {txUI("서술어 6B단원 — BUT (하지만·-지만)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9011,7 +9561,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#F3E5F5", border:"2px solid #AB47BC", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#6A1B9A", marginBottom:6}}>📌 {vi?"BUT 핵심":en?"BUT Core":"BUT 핵심"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#6A1B9A", marginBottom:6}}>📌 {txUI("BUT 핵심", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>하지만</b>: 두 문장 사이 &nbsp;예: 좋습니다. <b>하지만</b> 비쌉니다.</div>
               <div>· <b>-지만</b>: 한 문장 안 &nbsp;예: 좋<b>지만</b> 비쌉니다.</div>
@@ -9023,13 +9573,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu tiếng Hàn":en?"Write the Korean sentence":"한국어로 작성하세요"}
+            ✍️ {txUI("한국어로 작성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#CE93D8"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit6bSubmit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -9048,22 +9598,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit6bSubmit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#AB47BC,#6A1B9A)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#AB47BC,#6A1B9A)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,6])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`6단원`,nextStep:"unit7",nextLabel:"7단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#AB47BC,#6A1B9A)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp tục — Bài 7! 🚀":en?"Continue — Unit 7! 🚀":"7단원으로 계속하기 🚀"}
+                {txUI("7단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -9074,8 +9624,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V291: 서술어 7단원 — 진행형 -고 있습니다 / -는 중입니다 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit7") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnit7Submit() {
       if (!unitCardInput.trim()) return;
@@ -9126,7 +9684,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 7 — Đang làm (-고 있습니다 / -는 중입니다)":en?"Unit 7 — Progressive (-고 있습니다 / -는 중입니다)":"서술어 7단원 — 진행형 (-고 있습니다 / -는 중입니다)"}
+              {txUI("서술어 7단원 — 진행형 (-고 있습니다 / -는 중입니다)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9134,7 +9692,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#E0F7FA", border:"2px solid #00ACC1", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#006064", marginBottom:6}}>📌 {vi?"Quy tắc tiến hành":en?"Progressive Rule":"진행형 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#006064", marginBottom:6}}>📌 {txUI("진행형 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· 동사 + <b>-고 있습니다</b> = 지금 ~하는 중 &nbsp;예: 먹<b>고 있습니다</b></div>
               <div>· 동사 + <b>-는 중입니다</b> = 진행 상황 &nbsp;예: 회의하<b>는 중입니다</b></div>
@@ -9147,13 +9705,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"-고 있습니다 / -는 중입니다 로 작성하세요":en?"Write with -고 있습니다 / -는 중입니다":"진행형으로 완성하세요"}
+            ✍️ {txUI("진행형으로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#80DEEA"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit7Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -9172,22 +9730,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit7Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#00ACC1,#006064)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#00ACC1,#006064)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,7])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`7단원`,nextStep:"unit8",nextLabel:"8단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#00ACC1,#006064)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp tục — Bài 8! 🚀":en?"Continue — Unit 8! 🚀":"8단원으로 계속하기 🚀"}
+                {txUI("8단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -9196,8 +9754,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V292: 서술어 8단원 — 청유·제안 -ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요? (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit8") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnit8Submit() {
       if (!unitCardInput.trim()) return;
@@ -9242,7 +9808,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 8 — Rủ nhau / Đề nghị (-ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요?)":en?"Unit 8 — Let's / Shall we (-ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요?)":"서술어 8단원 — 청유·제안 (-ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요?)"}
+              {txUI("서술어 8단원 — 청유·제안 (-ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요?)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9250,7 +9816,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#F1F8E9", border:"2px solid #7CB342", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#33691E", marginBottom:6}}>📌 {vi?"Quy tắc rủ nhau / đề nghị":en?"Let's / Shall we Rules":"청유·제안 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#33691E", marginBottom:6}}>📌 {txUI("청유·제안 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· 받침 있음: 동사 + <b>-읍시다</b> &nbsp;예: 먹읍시다, 읽읍시다</div>
               <div>· 받침 없음: 동사 + <b>-ㅂ시다</b> &nbsp;예: 갑시다, 쉽시다</div>
@@ -9264,13 +9830,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết bằng thể -ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요?":en?"Write with -ㅂ시다/-(으)ㄹ까요?/-(으)ㄹ래요?":"적절한 청유·제안 어미로 완성하세요"}
+            ✍️ {txUI("적절한 청유·제안 어미로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#AED581"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit8Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -9289,22 +9855,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit8Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#7CB342,#33691E)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#7CB342,#33691E)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,8])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`8단원`,nextStep:"unit9",nextLabel:"9단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#7CB342,#33691E)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp tục — Bài 9! 🚀":en?"Continue — Unit 9! 🚀":"9단원으로 계속하기 🚀"}
+                {txUI("9단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -9313,8 +9879,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V293: 서술어 9단원 — 능력·가능 -(으)ㄹ 수 있다/없다 + -(으)ㄹ 줄 알다/모르다
   // ════════════════════════════════════════════════════════
   if (step === "unit9") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnit9Submit() {
       if (!unitCardInput.trim()) return;
@@ -9375,7 +9949,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 9 — Khả năng (-(으)ㄹ 수 있다/없다 · -(으)ㄹ 줄 알다/모르다)":en?"Unit 9 — Ability (-(으)ㄹ 수 있다/없다 · -(으)ㄹ 줄 알다/모르다)":"서술어 9단원 — 능력·가능"}
+              {txUI("서술어 9단원 — 능력·가능", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9383,7 +9957,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FFF3E0", border:"2px solid #E65100", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#BF360C", marginBottom:6}}>📌 {vi?"Quy tắc khả năng":en?"Ability Rules":"능력·가능 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#BF360C", marginBottom:6}}>📌 {txUI("능력·가능 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· 가능: 동사 + <b>-(으)ㄹ 수 있습니다</b> &nbsp;예: 먹<b>을 수 있습니다</b></div>
               <div>· 불가능: 동사 + <b>-(으)ㄹ 수 없습니다</b> &nbsp;예: 갈 수 없습니다</div>
@@ -9397,13 +9971,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"-(으)ㄹ 수 있다/없다 · -(으)ㄹ 줄 알다/모르다 로 완성하세요":en?"Complete with -(으)ㄹ 수 있다/없다 · -(으)ㄹ 줄 알다/모르다":"능력·가능 표현으로 완성하세요"}
+            ✍️ {txUI("능력·가능 표현으로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#FFAB40"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit9Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -9422,22 +9996,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit9Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#E65100,#BF360C)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#E65100,#BF360C)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setTestLoading(true); setStep("test1"); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#E65100,#BF360C)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Kiểm tra tổng hợp! 🚀":en?"Cumulative test! 🚀":"누적 테스트로! 🚀"}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -9493,11 +10067,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(106,27,154,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
           <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#6A1B9A":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
-          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(vi?"Tuyệt! Sang bài 10!":en?"Great! On to Unit 10!":"훌륭해요! 10단원으로!"):(vi?"Thử lại nhé!":en?"Try again!":"다시 도전!")}</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("훌륭해요! 10단원으로!", lang)):(txUI("다시 도전!", lang))}</div>
           {testResult.pass
-            ? <button onClick={()=>{const np=[...new Set([...unitsPassed,9])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`9단원`,nextStep:"unit10",nextLabel:"10단원으로 계속하기"});}} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp — Bài 10! 🚀":en?"Next — Unit 10! 🚀":"10단원으로! 🚀"}</button>
-            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit9"); }} style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Học lại Bài 9 🔄":en?"Retry Unit 9 🔄":"9단원 다시 학습 🔄"}</button>}
-          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Thử lại":en?"Try again":"다시 풀기"}</button>
+            ? <button onClick={()=>{const np=[...new Set([...unitsPassed,9])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`9단원`,nextStep:"unit10",nextLabel:"10단원으로 계속하기"});}} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("10단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit9"); }} style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("9단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
         </div>
       </div>
     );
@@ -9511,12 +10085,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {TEST9_Q.map((q,i) => (
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
               <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
-              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."} style={{width:"100%", border:"2px solid #CE93D8", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #CE93D8", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
               <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
             </div>
           ))}
-          <button type="button" onClick={gradeTest9} style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,8])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`8단원`,nextStep:"unit9",nextLabel:"9단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (9단원 학습)"}</button>
+          <button type="button" onClick={gradeTest9} style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#4A148C)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,8])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`8단원`,nextStep:"unit9",nextLabel:"9단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (9단원 학습)", lang)}</button>
         </div>
       </div>
     );
@@ -9527,8 +10101,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V294: 서술어 10단원 — 희망 -고 싶습니다 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit10") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnit10Submit() {
       if (!unitCardInput.trim()) return;
@@ -9583,7 +10165,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 10 — Muốn làm (-고 싶습니다)":en?"Unit 10 — Want to (-고 싶습니다)":"서술어 10단원 — 희망 -고 싶습니다"}
+              {txUI("서술어 10단원 — 희망 -고 싶습니다", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9591,7 +10173,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FCE4EC", border:"2px solid #E91E63", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#880E4F", marginBottom:6}}>📌 {vi?"Quy tắc muốn làm":en?"Want to Rules":"희망 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#880E4F", marginBottom:6}}>📌 {txUI("희망 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· 모든 동사 + <b>-고 싶습니다</b> = ~하고 싶다</div>
               <div>&nbsp;&nbsp;예: 가고 싶습니다 &nbsp;/&nbsp; 먹고 싶습니다</div>
@@ -9605,13 +10187,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"-고 싶습니다 형태로 완성하세요":en?"Write with -고 싶습니다":"-고 싶습니다로 완성하세요"}
+            ✍️ {txUI("-고 싶습니다로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#F48FB1"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit10Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -9630,22 +10212,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit10Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#E91E63,#880E4F)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#E91E63,#880E4F)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,10])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`10단원`,nextStep:"unit11",nextLabel:"11단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#E91E63,#880E4F)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp tục — Bài 11! 🚀":en?"Continue — Unit 11! 🚀":"11단원으로 계속하기 🚀"}
+                {txUI("11단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -9654,8 +10236,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V295: 서술어 11단원 — 소망 -았/었으면 좋겠습니다 (모국어→한국어)
   // ════════════════════════════════════════════════════════
   if (step === "unit11") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnit11Submit() {
       if (!unitCardInput.trim()) return;
@@ -9698,7 +10288,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 11 — Ước gì (-았/었으면 좋겠습니다)":en?"Unit 11 — I Wish (-았/었으면 좋겠습니다)":"서술어 11단원 — 소망 -았/었으면 좋겠습니다"}
+              {txUI("서술어 11단원 — 소망 -았/었으면 좋겠습니다", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9706,7 +10296,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#F3E5F5", border:"2px solid #7B1FA2", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#4A148C", marginBottom:6}}>📌 {vi?"Quy tắc ước gì":en?"I Wish Rules":"소망 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#4A148C", marginBottom:6}}>📌 {txUI("소망 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· ㅏ/ㅗ 어간: 동사 + <b>-았으면 좋겠습니다</b> &nbsp;예: 좋았으면, 많았으면</div>
               <div>· 그 외 어간: 동사 + <b>-었으면 좋겠습니다</b> &nbsp;예: 없었으면, 넓었으면</div>
@@ -9720,13 +10310,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"-았/었으면 좋겠습니다로 완성하세요":en?"Write with -았/었으면 좋겠습니다":"-았/었으면 좋겠습니다로 완성하세요"}
+            ✍️ {txUI("-았/었으면 좋겠습니다로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#BA68C8"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit11Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -9745,22 +10335,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit11Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#7B1FA2,#4A148C)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#7B1FA2,#4A148C)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,11])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`11단원`,nextStep:"unit12",nextLabel:"12단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#7B1FA2,#4A148C)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp tục — Bài 12! 🚀":en?"Continue — Unit 12! 🚀":"12단원으로 계속하기 🚀"}
+                {txUI("12단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -9769,8 +10359,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   // ✅ V296: 서술어 12단원 — 부정 표현 안/못/-지 않다/-지 못하다/-지 마세요/-지 맙시다
   // ════════════════════════════════════════════════════════
   if (step === "unit12") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     function handleUnit12Submit() {
       if (!unitCardInput.trim()) return;
@@ -9845,7 +10443,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:"#888", marginBottom:4}}>
-              {vi?"Bài 12 — Phủ định (안/못/-지 않다/-지 못하다/-지 마세요/-지 맙시다)":en?"Unit 12 — Negation (안/못/-지 않다/-지 못하다/-지 마세요/-지 맙시다)":"서술어 12단원 — 부정 표현"}
+              {txUI("서술어 12단원 — 부정 표현", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -9853,7 +10451,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#ECEFF1", border:"2px solid #546E7A", borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#263238", marginBottom:6}}>📌 {vi?"Quy tắc phủ định":en?"Negation Rules":"부정 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#263238", marginBottom:6}}>📌 {txUI("부정 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>안</b> + 동사: 의지 부정 &nbsp;예: 안 먹습니다</div>
               <div>· <b>못</b> + 동사: 능력 부정 &nbsp;예: 못 합니다</div>
@@ -9869,13 +10467,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText}</div>
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#C62828", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu phủ định bằng thể 합니다":en?"Write negation in 합니다 style":"부정 표현을 사용해 합니다체로 완성하세요"}
+            ✍️ {txUI("부정 표현을 사용해 합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect?"#2E7D32":"#C62828"):"#90A4AE"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit12Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -9894,22 +10492,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit12Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?"linear-gradient(135deg,#546E7A,#263238)":"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#546E7A,#263238)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,12])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`12단원`,nextStep:"unit13",nextLabel:"13단원으로 계속하기"});}}
                 style={{width:"100%", background:"linear-gradient(135deg,#546E7A,#263238)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp tục — Bài 13! 🚀":en?"Continue — Unit 13! 🚀":"13단원으로 계속하기 🚀"}
+                {txUI("13단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -9965,11 +10563,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(183,28,28,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
           <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#B71C1C":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
-          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(vi?"Xuất sắc! Sang bài 13!":en?"Excellent! Unit 13!":"훌륭해요! 13단원으로!"):(vi?"Thử lại!":en?"Try again!":"다시 도전!")}</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("훌륭해요! 13단원으로!", lang)):(txUI("다시 도전!", lang))}</div>
           {testResult.pass
-            ? <button onClick={()=>{const np=[...new Set([...unitsPassed,12])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`12단원`,nextStep:"unit13",nextLabel:"13단원으로 계속하기"});}} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Tiếp — Bài 13! 🚀":en?"Next — Unit 13! 🚀":"13단원으로! 🚀"}</button>
-            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit12"); }} style={{width:"100%", background:`linear-gradient(135deg,#B71C1C,#7F0000)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{vi?"Học lại Bài 12 🔄":en?"Retry Unit 12 🔄":"12단원 다시 학습 🔄"}</button>}
-          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Thử lại":en?"Try again":"다시 풀기"}</button>
+            ? <button onClick={()=>{const np=[...new Set([...unitsPassed,12])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`12단원`,nextStep:"unit13",nextLabel:"13단원으로 계속하기"});}} style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("13단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit12"); }} style={{width:"100%", background:`linear-gradient(135deg,#B71C1C,#7F0000)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("12단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
         </div>
       </div>
     );
@@ -9983,12 +10581,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {TEST12_Q.map((q,i) => (
             <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
               <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
-              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={vi?"Điền vào...":en?"Fill in...":"여기에 쓰세요..."} style={{width:"100%", border:"2px solid #EF9A9A", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>({...a,[q.id]:e.target.value}))} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #EF9A9A", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
               <div style={{fontSize:12, color:"#C62828", fontWeight:800, marginTop:6}}>{typeof q.hint === "object" ? (lang?.code==="vi"?q.hint.vi:lang?.code==="en"?q.hint.en:q.hint.ko) : q.hint}</div>
             </div>
           ))}
-          <button type="button" onClick={gradeTest12} style={{width:"100%", background:`linear-gradient(135deg,#B71C1C,#7F0000)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{vi?"Nộp bài!":en?"Submit!":"채점하기! 📊"}</button>
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,11])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`11단원`,nextStep:"unit12",nextLabel:"12단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로 (12단원 학습)"}</button>
+          <button type="button" onClick={gradeTest12} style={{width:"100%", background:`linear-gradient(135deg,#B71C1C,#7F0000)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,11])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`11단원`,nextStep:"unit12",nextLabel:"12단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (12단원 학습)", lang)}</button>
         </div>
       </div>
     );
@@ -10086,7 +10684,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C13.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Bài 13 — Cho phép · Cấm · Nghĩa vụ · Miễn trừ":en?"Unit 13 — Permission · Prohibition · Obligation · Exemption":"서술어 13단원 — 허락·금지·의무·면제"}
+              {txUI("서술어 13단원 — 허락·금지·의무·면제", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total13}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -10094,7 +10692,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#E0F7FA", border:`2px solid ${C13.border}`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#004D40", marginBottom:6}}>📌 {vi?"Quy tắc":en?"Key Rules":"핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#004D40", marginBottom:6}}>📌 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· 동사 + <b>-아/어도 됩니다</b>: 허락 &nbsp;예: 찍어도 됩니다</div>
               <div>· 동사 + <b>-(으)면 안 됩니다</b>: 금지 &nbsp;예: 피우면 안 됩니다</div>
@@ -10108,13 +10706,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText13}</div>
           </div>
           <div style={{background:"#B2DFDB", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#004D40", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect13?"#2E7D32":"#C62828"):"#80DEEA"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit13Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
             {"webkitSpeechRecognition" in window || "SpeechRecognition" in window ? (
               <div style={{display:"flex", justifyContent:"flex-end", marginTop:8}}>
@@ -10133,22 +10731,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit13Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,${C13.accent},#004D40)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total13-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,${C13.accent},#004D40)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total13})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total13})
               </button>
             ) : (
               <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test13"); }}
                 style={{width:"100%", background:"linear-gradient(135deg,#FF8F00,#E65100)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Kiểm tra tổng hợp! 🚀":en?"Cumulative test! 🚀":"누적 테스트로! 🚀"}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>setStep("test12")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>setStep("test12")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -10203,7 +10801,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C14.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Kinh nghiệm (đã từng)":en?"Experience (have ever)":"14단원 — 경험 (은/ㄴ 적이 있다·없다)"}
+              {txUI("14단원 — 경험 (은/ㄴ 적이 있다·없다)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total14}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -10211,7 +10809,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#F3E5F5", border:`2px solid #CE93D8`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#6A1B9A", marginBottom:6}}>📌 {vi?"Kinh 규칙":en?"Experience (have ever) Rules":"경험 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#6A1B9A", marginBottom:6}}>📌 {txUI("경험 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>동사+은/ㄴ 적이 있다</b>: {vi?'đã từng làm':en?'have done before':'경험 있음'}</div><div>· <b>동사+은/ㄴ 적이 없다</b>: {vi?'chưa từng':en?'have never done':'경험 없음'}</div>
             </div>
@@ -10222,13 +10820,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText14}</div>
           </div>
           <div style={{background:"#E1BEE7", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#6A1B9A", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect14?"#2E7D32":"#C62828"):"#CE93D8"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit14Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -10241,22 +10839,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit14Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#6A1B9A,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total14-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total14})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total14})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,14])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`14단원`,nextStep:"unit15",nextLabel:"15단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Bài 15! 🚀":en?"Continue — Unit 15! 🚀":"15단원으로 계속하기 🚀"}
+                {txUI("15단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("test13"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("test13"); }} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -10310,7 +10908,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C15.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Hành động vì người khác":en?"Doing for others":"15단원 — 남을 위한 행동 (~아/어 주다·드리다)"}
+              {txUI("15단원 — 남을 위한 행동 (~아/어 주다·드리다)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total15}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -10318,7 +10916,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#E8F5E9", border:`2px solid #81C784`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#2E7D32", marginBottom:6}}>📌 {vi?"Hành 규칙":en?"Doing for others Rules":"남을 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#2E7D32", marginBottom:6}}>📌 {txUI("남을 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>아/어 주다</b>: {vi?'làm gì đó cho người khác':en?'do something for others':'남을 위해 행동'}</div><div>· <b>아/어 드리다</b>: {vi?'(kính ngữ)':en?'(honorific form)':'(높임말)'}</div>
             </div>
@@ -10329,13 +10927,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText15}</div>
           </div>
           <div style={{background:"#C8E6C9", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#2E7D32", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect15?"#2E7D32":"#C62828"):"#81C784"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit15Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -10348,22 +10946,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit15Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#2E7D32,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total15-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#2E7D32,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total15})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total15})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,15])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`15단원`,nextStep:"unit16",nextLabel:"16단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#2E7D32,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Bài 16! 🚀":en?"Continue — Unit 16! 🚀":"16단원으로 계속하기 🚀"}
+                {txUI("16단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,13])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`13단원`,nextStep:"unit14",nextLabel:"14단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,13])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`13단원`,nextStep:"unit14",nextLabel:"14단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -10436,7 +11034,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C16.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Yêu cầu · Nhờ vả":en?"Requests":"16단원 — 요구·부탁 (~아/어 주세요·주시겠어요?)"}
+              {txUI("16단원 — 요구·부탁 (~아/어 주세요·주시겠어요?)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total16}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -10444,7 +11042,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FFF8E1", border:`2px solid #FFD54F`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {vi?"Yêu 규칙":en?"Requests Rules":"요구·부탁 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#F57F17", marginBottom:6}}>📌 {txUI("요구·부탁 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>아/어 주세요</b>: {vi?'xin hãy làm':en?'please do':'해 주세요 (부탁)'}</div><div>· <b>아/어 주시겠어요?</b>: {vi?'có thể làm giúp không?':en?'could you...? (polite)':'주시겠어요? (정중 부탁)'}</div>
             </div>
@@ -10455,13 +11053,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText16}</div>
           </div>
           <div style={{background:"#FFECB3", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#F57F17", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect16?"#2E7D32":"#C62828"):"#FFD54F"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit16Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -10474,22 +11072,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit16Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#F57F17,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total16-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#F57F17,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total16})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total16})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,16])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`16단원`,nextStep:"unit17",nextLabel:"17단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#F57F17,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Bài 17! 🚀":en?"Continue — Unit 17! 🚀":"17단원으로 계속하기 🚀"}
+                {txUI("17단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,14])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`14단원`,nextStep:"unit15",nextLabel:"15단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,14])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`14단원`,nextStep:"unit15",nextLabel:"15단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -10540,7 +11138,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C17.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Suy đoán (~것 같다)":en?"Guessing (~것 같다)":"17단원 — 추측 (~은/ㄴ/는 것 같습니다)"}
+              {txUI("17단원 — 추측 (~은/ㄴ/는 것 같습니다)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total17}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -10548,7 +11146,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#E3F2FD", border:`2px solid #90CAF9`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#1565C0", marginBottom:6}}>📌 {vi?"Suy 규칙":en?"Guessing (~것 같다) Rules":"추측 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#1565C0", marginBottom:6}}>📌 {txUI("추측 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>동사+은/ㄴ 것 같다</b>: {vi?'có vẻ đã làm (quá khứ)':en?'seems to have done (past)':'~한 것 같다 (과거)'}</div><div>· <b>형용사+ㄴ/은 것 같다</b>: {vi?'có vẻ... (hiện tại)':en?'seems... (present)':'~인 것 같다 (현재)'}</div><div>· <b>동사+는 것 같다</b>: {vi?'có vẻ đang làm':en?'seems to be doing':'~하는 것 같다 (진행)'}</div>
             </div>
@@ -10559,13 +11157,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText17}</div>
           </div>
           <div style={{background:"#BBDEFB", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#1565C0", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect17?"#2E7D32":"#C62828"):"#90CAF9"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit17Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -10578,22 +11176,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit17Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#1565C0,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total17-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#1565C0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total17})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total17})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,17])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`17단원`,nextStep:"unit18",nextLabel:"18단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#1565C0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Bài 18! 🚀":en?"Continue — Unit 18! 🚀":"18단원으로 계속하기 🚀"}
+                {txUI("18단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,15])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`15단원`,nextStep:"unit16",nextLabel:"16단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,15])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`15단원`,nextStep:"unit16",nextLabel:"16단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -10643,7 +11241,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C18.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Đồng cảm · Suy đoán":en?"Empathy · Guessing":"18단원 — 다른 사람 마음 추측 (~겠어요·겠습니다)"}
+              {txUI("18단원 — 다른 사람 마음 추측 (~겠어요·겠습니다)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total18}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -10651,7 +11249,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FCE4EC", border:`2px solid #F48FB1`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#AD1457", marginBottom:6}}>📌 {vi?"Đồng 규칙":en?"Empathy · Guessing Rules":"다른 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#AD1457", marginBottom:6}}>📌 {txUI("다른 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>겠어요</b>: {vi?'chắc là... (cảm thông)':en?'must be... (empathy)':'~겠어요 (공감 추측)'}</div><div>· <b>시겠어요</b>: {vi?'(kính ngữ)':en?'(honorific form)':'~시겠어요 (높임)'}</div>
             </div>
@@ -10662,13 +11260,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText18}</div>
           </div>
           <div style={{background:"#F8BBD0", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#AD1457", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect18?"#2E7D32":"#C62828"):"#F48FB1"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit18Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -10681,22 +11279,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit18Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#AD1457,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total18-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#AD1457,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total18})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total18})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,18])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`18단원`,nextStep:"unit19",nextLabel:"19단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#AD1457,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Bài 19! 🚀":en?"Continue — Unit 19! 🚀":"19단원으로 계속하기 🚀"}
+                {txUI("19단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,16])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`16단원`,nextStep:"unit17",nextLabel:"17단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,16])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`16단원`,nextStep:"unit17",nextLabel:"17단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -10739,7 +11337,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C19.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Kế hoạch · Tương lai gần":en?"Plans · Near Future":"19단원 — 계획·가까운 미래 (~(으)려고 합니다)"}
+              {txUI("19단원 — 계획·가까운 미래 (~(으)려고 합니다)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total19}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -10747,7 +11345,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#E8EAF6", border:`2px solid #9FA8DA`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#283593", marginBottom:6}}>📌 {vi?"Kế 규칙":en?"Plans · Near Future Rules":"계획·가까운 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#283593", marginBottom:6}}>📌 {txUI("계획·가까운 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>동사+(으)려고 하다</b>: {vi?'định làm / sắp làm':en?'plan to / about to':'~려고 합니다 (계획·임박)'}</div>
             </div>
@@ -10758,13 +11356,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText19}</div>
           </div>
           <div style={{background:"#C5CAE9", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#283593", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect19?"#2E7D32":"#C62828"):"#9FA8DA"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit19Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -10777,22 +11375,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit19Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#283593,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total19-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#283593,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total19})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total19})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,19])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`19단원`,nextStep:"unit20",nextLabel:"20단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#283593,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Bài 20! 🚀":en?"Continue — Unit 20! 🚀":"20단원으로 계속하기 🚀"}
+                {txUI("20단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,17])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`17단원`,nextStep:"unit18",nextLabel:"18단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,17])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`17단원`,nextStep:"unit18",nextLabel:"18단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -10843,7 +11441,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C20.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Cảm thán · Phát hiện mới":en?"Exclamation · Discovery":"20단원 — 감탄·새로운 사실 발견 (~네요·군요)"}
+              {txUI("20단원 — 감탄·새로운 사실 발견 (~네요·군요)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total20}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -10851,7 +11449,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FFFDE7", border:`2px solid #FFF176`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#F9A825", marginBottom:6}}>📌 {vi?"Cảm 규칙":en?"Exclamation · Discovery Rules":"감탄·새로운 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#F9A825", marginBottom:6}}>📌 {txUI("감탄·새로운 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>동사+네요</b>: {vi?'ồ, thật vậy à! (phát hiện)':en?'wow, really! (discovery)':'~네요 (새로운 발견)'}</div><div>· <b>군요</b>: {vi?'à, hóa ra vậy!':en?'oh, I see!':'~군요 (깨달음)'}</div>
             </div>
@@ -10862,13 +11460,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText20}</div>
           </div>
           <div style={{background:"#FFF9C4", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#F9A825", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect20?"#2E7D32":"#C62828"):"#FFF176"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit20Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -10881,22 +11479,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit20Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#F9A825,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total20-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#F9A825,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total20})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total20})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,20])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`20단원`,nextStep:"unit21",nextLabel:"21단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#F9A825,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Bài 21! 🚀":en?"Continue — Unit 21! 🚀":"21단원으로 계속하기 🚀"}
+                {txUI("21단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,18])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`18단원`,nextStep:"unit19",nextLabel:"19단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,18])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`18단원`,nextStep:"unit19",nextLabel:"19단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -10945,7 +11543,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C21.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Xác nhận (~죠?·지요?)":en?"Confirmation (~죠?·지요?)":"21단원 — 확인 (~죠?·지요?)"}
+              {txUI("21단원 — 확인 (~죠?·지요?)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total21}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -10953,7 +11551,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#E0F2F1", border:`2px solid #80CBC4`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#00695C", marginBottom:6}}>📌 {vi?"Xác 규칙":en?"Confirmation (~죠?·지요?) Rules":"확인 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#00695C", marginBottom:6}}>📌 {txUI("확인 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>죠?</b>: {vi?'phải không? (xác nhận)':en?'right? (confirmation)':'~죠? (확인 질문)'}</div><div>· <b>지요?</b>: {vi?'(dạng lịch sự hơn)':en?'(more formal form)':'~지요? (정중형)'}</div>
             </div>
@@ -10964,13 +11562,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText21}</div>
           </div>
           <div style={{background:"#B2DFDB", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#00695C", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect21?"#2E7D32":"#C62828"):"#80CBC4"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit21Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -10983,22 +11581,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit21Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#00695C,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total21-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#00695C,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total21})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total21})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,21])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`21단원`,nextStep:"unit22",nextLabel:"22단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#00695C,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Bài 22! 🚀":en?"Continue — Unit 22! 🚀":"22단원으로 계속하기 🚀"}
+                {txUI("22단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,19])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`19단원`,nextStep:"unit20",nextLabel:"20단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,19])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`19단원`,nextStep:"unit20",nextLabel:"20단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -11056,7 +11654,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C22.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Trạng thái 1 (~아/어 있다)":en?"State 1 (~아/어 있다)":"22단원 — 상태1 (동사+~아/어 있습니다)"}
+              {txUI("22단원 — 상태1 (동사+~아/어 있습니다)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total22}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -11064,7 +11662,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#E1F5FE", border:`2px solid #81D4FA`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#01579B", marginBottom:6}}>📌 {vi?"Trạng 규칙":en?"State 1 (~아/어 있다) Rules":"상태1 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#01579B", marginBottom:6}}>📌 {txUI("상태1 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>아/어 있다</b>: {vi?'đang ở trạng thái (kết quả còn kéo dài)':en?'in a state (result continues)':'동작 결과의 상태 지속'}</div><div>· <b>열려 있다</b>: {vi?'đang mở':en?'is open':'열다 → 열려 있다'}</div>
             </div>
@@ -11075,13 +11673,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText22}</div>
           </div>
           <div style={{background:"#B3E5FC", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#01579B", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect22?"#2E7D32":"#C62828"):"#81D4FA"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit22Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -11094,22 +11692,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit22Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#01579B,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total22-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#01579B,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total22})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total22})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,22])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`22단원`,nextStep:"unit23",nextLabel:"23단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#01579B,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Bài 23! 🚀":en?"Continue — Unit 23! 🚀":"23단원으로 계속하기 🚀"}
+                {txUI("23단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,20])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`20단원`,nextStep:"unit21",nextLabel:"21단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,20])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`20단원`,nextStep:"unit21",nextLabel:"21단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -11158,7 +11756,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C23.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Trạng thái 2 — Trang phục":en?"State 2 — Clothing":"23단원 — 상태2 착용 (착용동사+~고 있습니다)"}
+              {txUI("23단원 — 상태2 착용 (착용동사+~고 있습니다)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total23}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -11166,7 +11764,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#F1F8E9", border:`2px solid #AED581`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#558B2F", marginBottom:6}}>📌 {vi?"Trạng 규칙":en?"State 2 — Clothing Rules":"상태2 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#558B2F", marginBottom:6}}>📌 {txUI("상태2 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>입고 있다</b>: {vi?'đang mặc':en?'wearing (clothes)':'옷을 입고 있다'}</div><div>· <b>쓰고 있다</b>: {vi?'đang đội/đeo':en?'wearing (hat/glasses)':'모자/안경 쓰고 있다'}</div><div>· <b>끼고 있다</b>: {vi?'đang đeo':en?'wearing (ring/earphone)':'반지/이어폰 끼고 있다'}</div>
             </div>
@@ -11177,13 +11775,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText23}</div>
           </div>
           <div style={{background:"#DCEDC8", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#558B2F", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect23?"#2E7D32":"#C62828"):"#AED581"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit23Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -11196,22 +11794,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit23Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#558B2F,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total23-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#558B2F,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total23})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total23})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,23])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`23단원`,nextStep:"unit24",nextLabel:"24단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#558B2F,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Bài 24! 🚀":en?"Continue — Unit 24! 🚀":"24단원으로 계속하기 🚀"}
+                {txUI("24단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,21])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`21단원`,nextStep:"unit22",nextLabel:"22단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,21])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`21단원`,nextStep:"unit22",nextLabel:"22단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -11256,7 +11854,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C24.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Quyết định · Cam kết":en?"Decision · Commitment":"24단원 — 결정·결심·약속 (~기로 합니다)"}
+              {txUI("24단원 — 결정·결심·약속 (~기로 합니다)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total24}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -11264,7 +11862,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#FFF3E0", border:`2px solid #FFCC80`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#E65100", marginBottom:6}}>📌 {vi?"Quyết 규칙":en?"Decision · Commitment Rules":"결정·결심·약속 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#E65100", marginBottom:6}}>📌 {txUI("결정·결심·약속 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>동사+기로 하다</b>: {vi?'quyết định làm':en?'decide to do':'~기로 했습니다 (결정·약속)'}</div><div>· <b>-지 않기로 하다</b>: {vi?'quyết định không làm':en?'decide not to do':'~지 않기로 했습니다'}</div>
             </div>
@@ -11275,13 +11873,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText24}</div>
           </div>
           <div style={{background:"#FFE0B2", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#E65100", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect24?"#2E7D32":"#C62828"):"#FFCC80"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit24Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -11294,22 +11892,22 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit24Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#E65100,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total24-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#E65100,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total24})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total24})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,24])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`24단원`,nextStep:"unit25",nextLabel:"25단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#E65100,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Bài 25! 🚀":en?"Continue — Unit 25! 🚀":"25단원으로 계속하기 🚀"}
+                {txUI("25단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,22])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`22단원`,nextStep:"unit23",nextLabel:"23단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,22])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`22단원`,nextStep:"unit23",nextLabel:"23단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
@@ -11375,7 +11973,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{textAlign:"center", marginBottom:16}}>
             <div style={{fontSize:13, color:C25.accent, fontWeight:700, marginBottom:4}}>
-              {vi?"Thời gian · Chi phí":en?"Duration · Time · Cost":"25단원 — 기간·시간·돈 (~ㄴ지됐다·걸리다·들다)"}
+              {txUI("25단원 — 기간·시간·돈 (~ㄴ지됐다·걸리다·들다)", lang)}
             </div>
             <div style={{fontSize:11, color:"#aaa"}}>{unitCardIdx+1} / {total25}</div>
             <div style={{height:4, background:"#e0e0e0", borderRadius:4, marginTop:8}}>
@@ -11383,7 +11981,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </div>
           </div>
           <div style={{background:"#EDE7F6", border:`2px solid #B39DDB`, borderRadius:14, padding:"12px 16px", marginBottom:14}}>
-            <div style={{fontSize:12, fontWeight:900, color:"#4527A0", marginBottom:6}}>📌 {vi?"Thời 규칙":en?"Duration · Time · Cost Rules":"기간·시간·돈 핵심 규칙"}</div>
+            <div style={{fontSize:12, fontWeight:900, color:"#4527A0", marginBottom:6}}>📌 {txUI("기간·시간·돈 핵심 규칙", lang)}</div>
             <div style={{fontSize:12, color:"#555", lineHeight:1.7}}>
               <div>· <b>동사+ㄴ 지 됐다</b>: {vi?'đã ... được ... rồi':en?'have been doing for...':'~한 지 + 기간 + 됐다'}</div><div>· <b>걸리다</b>: {vi?'mất (thời gian)':en?'take (time)':'시간이 얼마나 걸립니까?'}</div><div>· <b>들다</b>: {vi?'tốn (tiền/công sức)':en?'cost (money/effort)':'돈이 얼마나 듭니까?'}</div>
             </div>
@@ -11394,13 +11992,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             <div style={{fontSize:18, fontWeight:700, color:"#333", lineHeight:1.6, textAlign:"center"}}>{nativeText25}</div>
           </div>
           <div style={{background:"#D1C4E9", borderRadius:10, padding:"8px 14px", marginBottom:10, fontSize:12, color:"#4527A0", fontWeight:700, textAlign:"center"}}>
-            ✍️ {vi?"Viết câu bằng thể 합니다":en?"Write the sentence in 합니다 style":"합니다체로 완성하세요"}
+            ✍️ {txUI("합니다체로 완성하세요", lang)}
           </div>
           <div style={{background:"white", borderRadius:14, border:`2px solid ${unitCardRevealed?(isCorrect25?"#2E7D32":"#C62828"):"#B39DDB"}`, padding:"14px 16px", marginBottom:12}}>
             <input type="text" value={unitCardInput}
               onChange={e=>{ if(!unitCardRevealed) setUnitCardInput(e.target.value); }}
               onKeyDown={e=>{ if(e.key==="Enter") handleUnit25Submit(); }}
-              placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어로 입력하세요..."}
+              placeholder={txUI("한국어로 입력하세요...", lang)}
               style={{width:"100%", border:"none", outline:"none", fontSize:16, color:"#333", background:"transparent", boxSizing:"border-box"}} />
           </div>
           {unitCardRevealed && (
@@ -11413,33 +12011,41 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={handleUnit25Submit} disabled={!unitCardInput.trim()}
               style={{width:"100%", background:unitCardInput.trim()?`linear-gradient(135deg,#4527A0,#111)`:"#ccc", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:unitCardInput.trim()?"pointer":"not-allowed"}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             unitCardIdx < total25-1 ? (
               <button onClick={()=>{ setUnitCardIdx(i=>i+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#4527A0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp theo →":en?"Next →":"다음 →"} ({unitCardIdx+2}/{total25})
+                {txUI("다음 →", lang)} ({unitCardIdx+2}/{total25})
               </button>
             ) : (
               <button onClick={()=>{const np=[...new Set([...unitsPassed,25])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:"서술어 25단원",nextStep:"unit_adv1",nextLabel:"부사어 1단원으로 계속하기"});}}
                 style={{width:"100%", background:`linear-gradient(135deg,#4527A0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {vi?"Tiếp — Trạng từ 1! 🚀":en?"Next — Adverb Unit 1! 🚀":"부사어 1단원으로 계속하기 🚀"}
+                {txUI("부사어 1단원으로 계속하기 🚀", lang)}
               </button>
             )
           )}
-          <button onClick={()=>{const np=[...new Set([...unitsPassed,23])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`23단원`,nextStep:"unit24",nextLabel:"24단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {vi?"Quay lại":en?"Back":"뒤로"}</button>
+          <button onClick={()=>{const np=[...new Set([...unitsPassed,23])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`23단원`,nextStep:"unit24",nextLabel:"24단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
         </div>
       </div>
     );
   }
   if (step === "unit_adv1") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const ADV1_SECTIONS = [
       // ── 1. 때 (원본 339~343, 5개 → 6개) ──
       {
-        key:"때", label:vi?"Khi":en?"When":"때", color:"#E3F2FD", accent:"#1565C0",
+        key:"때", label:txUI("때", lang), color:"#E3F2FD", accent:"#1565C0",
         rule:{vi:"Danh từ/Động từ + 때 (khi, lúc)", en:"Noun/Verb + 때 (when, at the time of)", ko:"명사/동사 + 때 — '~할 때'"},
         cards:[
           { native:{vi:"Tôi nghe nhạc khi học bài.",              en:"I listen to music when I study.",              ko:"저는 공부할 때 음악을 듣습니다."},
@@ -11458,7 +12064,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 2. 전에 (원본 344~347, 4개 → 5개) ──
       {
-        key:"전에", label:vi?"Trước khi":en?"Before":"전에", color:"#E8F5E9", accent:"#2E7D32",
+        key:"전에", label:txUI("전에", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"Danh từ/Động từ + 전에 (trước khi)", en:"Noun/Verb + 전에 (before)", ko:"명사/동사 + 전에 — '~하기 전에'"},
         cards:[
           { native:{vi:"Minho dự định mua nhà trước khi kết hôn.", en:"Minho plans to buy a house before marriage.", ko:"민호는 결혼하기 전에 집을 살 계획입니다."},
@@ -11475,7 +12081,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 3. 후에 (원본 348~352, 5개 → 6개) ──
       {
-        key:"후에", label:vi?"Sau khi":en?"After":"후에", color:"#FFF3E0", accent:"#E65100",
+        key:"후에", label:txUI("후에", lang), color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"Danh từ/Động từ + 후에 (sau khi)", en:"Noun/Verb + 후에 (after)", ko:"명사/동사 + 후에 — '~한 후에'"},
         cards:[
           { native:{vi:"Tôi muốn làm việc ở công ty Hàn Quốc sau khi tốt nghiệp.", en:"I want to work at a Korean company after graduation.", ko:"저는 졸업한 후에 한국 회사에서 일하고 싶습니다."},
@@ -11494,7 +12100,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 4. ~고 (원본 353~357 추정, 7개로 정리) ──
       {
-        key:"~고", label:vi?"Rồi (순차)":en?"And then (순차)":"~고 (순차)", color:"#F3E5F5", accent:"#6A1B9A",
+        key:"~고", label:txUI("~고 (순차)", lang), color:"#F3E5F5", accent:"#6A1B9A",
         rule:{vi:"Động từ + -고 (rồi sau đó — liệt kê tuần tự)", en:"Verb + -고 (and then — sequential)", ko:"동사 + -고 — 순차적 동작 나열"},
         cards:[
           { native:{vi:"Bố uống cà phê rồi xem báo.",               en:"Father drinks coffee and then reads the newspaper.", ko:"아버지는 커피를 마시고 신문을 읽습니다."},
@@ -11515,7 +12121,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 5. 동안 (원본 358~363, 6개 → 7개) ──
       {
-        key:"동안", label:vi?"Trong suốt":en?"During/For":"동안", color:"#E0F7FA", accent:"#00695C",
+        key:"동안", label:txUI("동안", lang), color:"#E0F7FA", accent:"#00695C",
         rule:{vi:"Danh từ/Động từ + 동안 (trong suốt, trong khoảng thời gian)", en:"Noun/Verb + 동안 (during, for a period of)", ko:"명사/동사 + 동안 — '~하는 동안'"},
         cards:[
           { native:{vi:"Maria đã làm thêm ở nhà hàng trong suốt kì nghỉ hè.", en:"Maria worked part-time at a restaurant during summer vacation.", ko:"마리아는 여름방학 동안 식당에서 아르바이트를 했습니다."},
@@ -11536,7 +12142,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 6. ~아/어서 (원본 364~368, 5개 → 6개) ──
       {
-        key:"~아/어서", label:vi?"Rồi (아/어서)":en?"And then (아/어서)":"~아/어서 (순차)", color:"#FFF8E1", accent:"#F57F17",
+        key:"~아/어서", label:txUI("~아/어서 (순차)", lang), color:"#FFF8E1", accent:"#F57F17",
         rule:{vi:"Động từ + -아/어서 (rồi — tuần tự, nguyên nhân)", en:"Verb + -아/어서 (and then — sequence)", ko:"동사 + -아/어서 — 순차 동작 (시제 변화 없음)"},
         cards:[
           { native:{vi:"Tôi đã đi đến nhà thi đấu rồi tập thể dục cùng chị gái.", en:"I went to the gym with my sister and worked out.", ko:"저는 어제 언니와 체육관에 가서 운동했습니다."},
@@ -11555,7 +12161,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 7. ~면서 (원본 369~373 추정, 6개) ──
       {
-        key:"~면서", label:vi?"Vừa...vừa...":en?"While doing":"~면서", color:"#FCE4EC", accent:"#AD1457",
+        key:"~면서", label:txUI("~면서", lang), color:"#FCE4EC", accent:"#AD1457",
         rule:{vi:"Động từ + -면서 (vừa...vừa... — hai hành động đồng thời)", en:"Verb + -면서 (while, simultaneously doing two actions)", ko:"동사 + -면서 — 두 동작 동시 진행"},
         cards:[
           { native:{vi:"Tôi vừa nghe nhạc vừa học bài.",              en:"I study while listening to music.",               ko:"저는 음악을 들으면서 공부합니다."},
@@ -11574,7 +12180,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 8. ~자마자 (원본 374~377, 4개 → 5개) ──
       {
-        key:"~자마자", label:vi?"Ngay sau khi":en?"As soon as":"~자마자", color:"#E8EAF6", accent:"#283593",
+        key:"~자마자", label:txUI("~자마자", lang), color:"#E8EAF6", accent:"#283593",
         rule:{vi:"Động từ + -자마자 (ngay khi vừa — hành động tiếp theo tức thì)", en:"Verb + -자마자 (as soon as — immediate next action)", ko:"동사 + -자마자 — 직후 즉시 다음 동작"},
         cards:[
           { native:{vi:"Ngay sau khi về đến nhà trời đã bắt đầu mưa.", en:"As soon as I arrived home, it started to rain.",  ko:"집에 도착하자마자 비가 내리기 시작했습니다."},
@@ -11591,7 +12197,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 9. ~다가 (원본 382~389, 8개 → 10개) ──
       {
-        key:"~다가", label:vi?"Đang...thì":en?"While doing (interrupted)":"~다가", color:"#F9FBE7", accent:"#558B2F",
+        key:"~다가", label:txUI("~다가", lang), color:"#F9FBE7", accent:"#558B2F",
         rule:{vi:"Động từ + -다가 (đang làm việc gì thì chuyển sang hoặc có điều gì xảy ra)", en:"Verb + -다가 (while doing, then switched / something happened)", ko:"동사 + -다가 — 동작 전환 또는 중단"},
         cards:[
           { native:{vi:"Hôm qua tôi đã ngủ khi đang làm bài tập.",    en:"I fell asleep while doing my homework yesterday.", ko:"저는 어제 숙제를 하다가 잠이 들었습니다."},
@@ -11618,7 +12224,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 10. ~부터~까지 (원본 378~381, 4개 → 5개) ──
       {
-        key:"~부터~까지", label:vi?"Từ...đến...":en?"From...to...":"~부터~까지", color:"#E1F5FE", accent:"#0277BD",
+        key:"~부터~까지", label:txUI("~부터~까지", lang), color:"#E1F5FE", accent:"#0277BD",
         rule:{vi:"(Thời điểm) + 부터 ~ (thời điểm) + 까지 (từ...đến...)", en:"(time) + 부터 ~ (time) + 까지 (from...to...)", ko:"시간/장소 + 부터 ~ 까지 — 시작과 끝 범위"},
         cards:[
           { native:{vi:"Từ hôm nay là kì nghỉ hè.",                    en:"It is summer vacation from today.",               ko:"오늘부터 여름방학입니다."},
@@ -11650,13 +12256,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Trạng ngữ 1 — Thời gian":en?"Adverb 1 — Time":"부사어 1단원 — 시간"}
+            {txUI("부사어 1단원 — 시간", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_ADV1.accent, textAlign:"center", marginBottom:4}}>
-            ⏱️ {vi?"Biểu thức thời gian":en?"Time Expressions":"시간 표현"}
+            ⏱️ {txUI("시간 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           {/* 섹션 표시 */}
@@ -11667,7 +12273,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           {/* 핵심 규칙 */}
           <div style={{background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -11678,17 +12284,17 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           {/* 모국어 예문 */}
           <div style={{background:"white", border:`2px solid ${card.sectionColor}`, borderRadius:14, padding:"18px 20px", marginBottom:16, textAlign:"center"}}>
-            <div style={{fontSize:13, color:"#aaa", marginBottom:6}}>🌏 {vi?"Dịch":en?"Translate":"번역"}</div>
+            <div style={{fontSize:13, color:"#aaa", marginBottom:6}}>🌏 {txUI("번역", lang)}</div>
             <div style={{fontSize:17, fontWeight:700, color:"#333", lineHeight:1.5}}>{nativeText}</div>
           </div>
 
           {/* 입력 */}
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:12, color:"#E65100", fontWeight:700, marginBottom:6}}>✍️ {vi?"Viết bằng tiếng Hàn (thể 합니다)":en?"Write in Korean (합니다 form)":"한국어로 작성하세요 (합니다체)"}</div>
+            <div style={{fontSize:12, color:"#E65100", fontWeight:700, marginBottom:6}}>✍️ {txUI("한국어로 작성하세요 (합니다체)", lang)}</div>
             <textarea
               value={unitCardInput}
               onChange={e => setUnitCardInput(e.target.value)}
-              placeholder={vi?"Nhập tiếng Hàn...":en?"Enter Korean...":"한국어를 입력하세요..."}
+              placeholder={txUI("한국어를 입력하세요...", lang)}
               style={{width:"100%", minHeight:60, border:`2px solid ${C_ADV1.border}`, borderRadius:10, padding:"10px 12px", fontSize:15, fontFamily:"inherit", resize:"vertical", boxSizing:"border-box"}}
             />
           </div>
@@ -11697,26 +12303,26 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_ADV1.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #8BC34A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#2E7D32"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv2"); }
               }} style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 2 →":en?"Adverb Unit 2 →":"부사어 2 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("부사어 2 →", lang))}
               </button>
             </div>
           )}
 
           <button onClick={()=>{const np=[...new Set([...unitsPassed,24])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`24단원`,nextStep:"unit25",nextLabel:"25단원으로 계속하기"});}}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -11724,12 +12330,20 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_adv2") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const ADV2_SECTIONS = [
       // ── 1. 명사+때문에 (원본 390~394 추정, 5개 → 6개) ──
       {
-        key:"명사+때문에", label:vi?"Vì (danh từ)":en?"Because of (noun)":"명사+때문에", color:"#FCE4EC", accent:"#C62828",
+        key:"명사+때문에", label:txUI("명사+때문에", lang), color:"#FCE4EC", accent:"#C62828",
         rule:{vi:"Danh từ + 때문에 (vì, do — nguyên nhân bằng danh từ)", en:"Noun + 때문에 (because of — noun cause)", ko:"명사 + 때문에 — 명사가 원인"},
         cards:[
           { native:{vi:"Vì cơn bão nên chuyến du lịch đã bị hủy.",       en:"The trip was canceled because of the typhoon.",   ko:"태풍 때문에 여행이 취소되었습니다."},
@@ -11748,7 +12362,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 2. 명사+덕분에 (원본 395~397 추정, 3개 → 4개) ──
       {
-        key:"명사+덕분에", label:vi?"Nhờ (danh từ)":en?"Thanks to (noun)":"명사+덕분에", color:"#E8F5E9", accent:"#2E7D32",
+        key:"명사+덕분에", label:txUI("명사+덕분에", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"Danh từ + 덕분에 (nhờ có — nguyên nhân tích cực)", en:"Noun + 덕분에 (thanks to — positive cause)", ko:"명사 + 덕분에 — 긍정적 원인 (고마운 대상)"},
         cards:[
           { native:{vi:"Nhờ thầy mà tôi đã học tốt tiếng Hàn.",          en:"I learned Korean well thanks to my teacher.",     ko:"선생님 덕분에 한국어를 잘 배웠습니다."},
@@ -11763,7 +12377,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 3. 명사+탓에 (원본 395~397 추정, 3개 → 4개) ──
       {
-        key:"명사+탓에", label:vi?"Tại vì (danh từ)":en?"Due to (noun, negative)":"명사+탓에", color:"#FFF3E0", accent:"#E65100",
+        key:"명사+탓에", label:txUI("명사+탓에", lang), color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"Danh từ + 탓에 (tại vì — nguyên nhân tiêu cực, đổ lỗi)", en:"Noun + 탓에 (due to — negative cause, blame)", ko:"명사 + 탓에 — 부정적 원인 (탓하는 뉘앙스)"},
         cards:[
           { native:{vi:"Tại vì bạn bè nên anh ấy đã thất bại trong kinh doanh.", en:"His business failed because of his friend.", ko:"친구 탓에 그는 사업에 실패했습니다."},
@@ -11778,7 +12392,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 4. ~아/어서 (원인) (원본 398~407, 12개) ──
       {
-        key:"~아/어서 (원인)", label:vi?"Vì...nên (아/어서)":en?"Because (아/어서)":"~아/어서 (원인)", color:"#E3F2FD", accent:"#1565C0",
+        key:"~아/어서 (원인)", label:txUI("~아/어서 (원인)", lang), color:"#E3F2FD", accent:"#1565C0",
         rule:{vi:"Động từ/Tính từ + -아/어서 (vì...nên — nguyên nhân, không đổi theo thì)", en:"Verb/Adj + -아/어서 (because — cause, tense-neutral)", ko:"동사/형용사 + -아/어서 — 원인·이유 (시제 변화 없음)"},
         cards:[
           { native:{vi:"Xin lỗi vì trễ.",                                 en:"I'm sorry for being late.",                      ko:"늦어서 죄송합니다."},
@@ -11809,7 +12423,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 5. ~(으)니까 (원본 408~413, 6개 → 7개) ──
       {
-        key:"~(으)니까", label:vi?"Vì...nên (으니까)":en?"Since/Because (으니까)":"~(으)니까", color:"#F3E5F5", accent:"#6A1B9A",
+        key:"~(으)니까", label:txUI("~(으)니까", lang), color:"#F3E5F5", accent:"#6A1B9A",
         rule:{vi:"Động từ/Tính từ + -(으)니까 (vì — dùng khi ra lệnh, đề nghị, hoặc phát hiện)", en:"Verb/Adj + -(으)니까 (since/because — used before commands, suggestions, or discoveries)", ko:"동사/형용사 + -(으)니까 — 명령·청유·발견 앞에 쓰는 이유"},
         cards:[
           { native:{vi:"Vì trời mưa lớn nên mình tan làm sớm nhé?",      en:"Since it rains a lot, shall we go home early?",   ko:"비가 많이 오니까 일찍 퇴근할까요?"},
@@ -11845,13 +12459,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Trạng ngữ 2 — Nguyên nhân":en?"Adverb 2 — Cause":"부사어 2단원 — 원인"}
+            {txUI("부사어 2단원 — 원인", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_ADV2.accent, textAlign:"center", marginBottom:4}}>
-            🔍 {vi?"Biểu thức nguyên nhân":en?"Cause Expressions":"원인 표현"}
+            🔍 {txUI("원인 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -11860,7 +12474,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -11869,16 +12483,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"white", border:`2px solid ${card.sectionColor}`, borderRadius:14, padding:"18px 20px", marginBottom:16, textAlign:"center"}}>
-            <div style={{fontSize:13, color:"#aaa", marginBottom:6}}>🌏 {vi?"Dịch":en?"Translate":"번역"}</div>
+            <div style={{fontSize:13, color:"#aaa", marginBottom:6}}>🌏 {txUI("번역", lang)}</div>
             <div style={{fontSize:17, fontWeight:700, color:"#333", lineHeight:1.5}}>{nativeText}</div>
           </div>
 
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:12, color:"#880E4F", fontWeight:700, marginBottom:6}}>✍️ {vi?"Viết bằng tiếng Hàn (thể 합니다)":en?"Write in Korean (합니다 form)":"한국어로 작성하세요 (합니다체)"}</div>
+            <div style={{fontSize:12, color:"#880E4F", fontWeight:700, marginBottom:6}}>✍️ {txUI("한국어로 작성하세요 (합니다체)", lang)}</div>
             <textarea
               value={unitCardInput}
               onChange={e => setUnitCardInput(e.target.value)}
-              placeholder={vi?"Nhập tiếng Hàn...":en?"Enter Korean...":"한국어를 입력하세요..."}
+              placeholder={txUI("한국어를 입력하세요...", lang)}
               style={{width:"100%", minHeight:60, border:`2px solid ${C_ADV2.border}`, borderRadius:10, padding:"10px 12px", fontSize:15, fontFamily:"inherit", resize:"vertical", boxSizing:"border-box"}}
             />
           </div>
@@ -11886,25 +12500,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_ADV2.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #8BC34A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#2E7D32"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv3"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#43A047" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 3 →":en?"Adverb Unit 3 →":"부사어 3 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("부사어 3 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv1"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -11912,12 +12526,20 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_adv3") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const ADV3_SECTIONS = [
       // ── 1. 위하여/위해(서) (원본 414~419·427, 9개) ──
       {
-        key:"위하여/위해(서)", label:vi?"Vì/Để (위해서)":en?"For/In order to (위해서)":"위하여/위해(서)", color:"#E8EAF6", accent:"#283593",
+        key:"위하여/위해(서)", label:txUI("위하여/위해(서)", lang), color:"#E8EAF6", accent:"#283593",
         rule:{vi:"Danh từ/Động từ + 을/를 위하여(위해/위해서) — mục đích (trang trọng hơn 려고)", en:"Noun/Verb + 을/를 위하여(위해/위해서) — purpose (more formal than 려고)", ko:"명사/동사 + 을/를 위하여(위해/위해서) — 목적·대상 (이동동사 아니어도 OK)"},
         cards:[
           { native:{vi:"Anh ấy đã bỏ thuốc lá vì sức khỏe.",              en:"He quit smoking for his health.",                   ko:"그는 건강을 위해서 담배를 끊었습니다."},
@@ -11942,7 +12564,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 2. ~려고+일반동사 (원본 423~428, 8개) ──
       {
-        key:"~려고+일반동사", label:vi?"Định làm (려고)":en?"Intend to (려고)":"~려고 (일반동사)", color:"#E0F2F1", accent:"#00695C",
+        key:"~려고+일반동사", label:txUI("~려고 (일반동사)", lang), color:"#E0F2F1", accent:"#00695C",
         rule:{vi:"Động từ + -(으)려고 + động từ thông thường — có ý định làm gì đó (không dùng với động từ di chuyển)", en:"Verb + -(으)려고 + general verb — intend to do (not used with movement verbs)", ko:"동사 + -(으)려고 + 일반동사 — 의도·목적 (이동동사 아닐 때)"},
         cards:[
           { native:{vi:"Vì sao bạn học tiếng Hàn?",                         en:"Why do you study Korean?",                          ko:"왜 한국어를 공부합니까?"},
@@ -11965,7 +12587,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 3. ~(으)러+이동동사 (원본 429~433, 7개) ──
       {
-        key:"~(으)러+이동동사", label:vi?"Để đi (으러)":en?"Go to do (으러)":"~(으)러 (이동동사)", color:"#FFF8E1", accent:"#F57F17",
+        key:"~(으)러+이동동사", label:txUI("~(으)러 (이동동사)", lang), color:"#FFF8E1", accent:"#F57F17",
         rule:{vi:"Động từ + -(으)러 + động từ di chuyển (가다/오다/다니다) — đi đến để làm gì", en:"Verb + -(으)러 + movement verb (가다/오다/다니다) — go/come somewhere to do something", ko:"동사 + -(으)러 + 이동동사(가다/오다/다니다) — 이동 목적"},
         cards:[
           { native:{vi:"Maria theo học ở trung tâm tiếng Anh để học tiếng Anh.", en:"Maria goes to an English school to learn English.", ko:"마리아는 영어를 배우러 영어학원에 다닙니다."},
@@ -12001,13 +12623,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Trạng ngữ 3 — Mục đích":en?"Adverb 3 — Purpose":"부사어 3단원 — 목적"}
+            {txUI("부사어 3단원 — 목적", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_ADV3.accent, textAlign:"center", marginBottom:4}}>
-            🎯 {vi?"Biểu thức mục đích":en?"Purpose Expressions":"목적 표현"}
+            🎯 {txUI("목적 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -12016,7 +12638,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -12025,16 +12647,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"white", border:`2px solid ${card.sectionColor}`, borderRadius:14, padding:"18px 20px", marginBottom:16, textAlign:"center"}}>
-            <div style={{fontSize:13, color:"#aaa", marginBottom:6}}>🌏 {vi?"Dịch":en?"Translate":"번역"}</div>
+            <div style={{fontSize:13, color:"#aaa", marginBottom:6}}>🌏 {txUI("번역", lang)}</div>
             <div style={{fontSize:17, fontWeight:700, color:"#333", lineHeight:1.5}}>{nativeText}</div>
           </div>
 
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:12, color:"#283593", fontWeight:700, marginBottom:6}}>✍️ {vi?"Viết bằng tiếng Hàn (thể 합니다)":en?"Write in Korean (합니다 form)":"한국어로 작성하세요 (합니다체)"}</div>
+            <div style={{fontSize:12, color:"#283593", fontWeight:700, marginBottom:6}}>✍️ {txUI("한국어로 작성하세요 (합니다체)", lang)}</div>
             <textarea
               value={unitCardInput}
               onChange={e => setUnitCardInput(e.target.value)}
-              placeholder={vi?"Nhập tiếng Hàn...":en?"Enter Korean...":"한국어를 입력하세요..."}
+              placeholder={txUI("한국어를 입력하세요...", lang)}
               style={{width:"100%", minHeight:60, border:`2px solid ${C_ADV3.border}`, borderRadius:10, padding:"10px 12px", fontSize:15, fontFamily:"inherit", resize:"vertical", boxSizing:"border-box"}}
             />
           </div>
@@ -12042,25 +12664,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_ADV3.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #8BC34A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#2E7D32"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv4"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#43A047" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 4 →":en?"Adverb Unit 4 →":"부사어 4 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("부사어 4 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv2"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -12068,11 +12690,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_adv4") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const ADV4_SECTIONS = [
       {
-        key:"~(으)면", label:vi?"Nếu... thì (으면)":en?"If... then (으면)":"~(으)면 (가정·조건)", color:"#E8F5E9", accent:"#2E7D32",
+        key:"~(으)면", label:txUI("~(으)면 (가정·조건)", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"Động từ/Tính từ + -(으)면 — điều kiện hoặc giả định (Nếu A thì B)", en:"Verb/Adjective + -(으)면 — condition or assumption (If A, then B)", ko:"동사/형용사 + -(으)면 — 조건·가정 (A이면 B한다). 받침 있으면 -으면, 없으면 -면"},
         cards:[
           { native:{vi:"Nếu kiếm được nhiều tiền, tôi muốn đi du lịch thế giới.", en:"If I earn a lot of money, I want to travel around the world.", ko:"돈을 많이 벌면 세계 여행을 하고 싶습니다."},
@@ -12106,13 +12736,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Trạng ngữ 4 — Điều kiện":en?"Adverb 4 — Condition":"부사어 4단원 — 가정·조건"}
+            {txUI("부사어 4단원 — 가정·조건", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_ADV4.accent, textAlign:"center", marginBottom:4}}>
-            🔀 {vi?"Biểu thức điều kiện":en?"Conditional Expressions":"조건 표현"}
+            🔀 {txUI("조건 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -12121,7 +12751,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#F1F8E9", border:"1.5px solid #AED581", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#558B2F", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#558B2F", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -12136,7 +12766,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_ADV4.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -12144,25 +12774,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_ADV4.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #8BC34A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#2E7D32"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv5"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#43A047" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 5 →":en?"Adverb Unit 5 →":"부사어 5 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("부사어 5 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv3"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -12170,11 +12800,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_adv5") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const ADV5_SECTIONS = [
       {
-        key:"~(으)려면 ~아/어야 하다", label:vi?"Muốn... thì phải... (려면/아야 하다)":en?"If you want to... you must... (려면/아야)":"~(으)려면 + ~아/어야 하다 (필수조건)", color:"#FFF3E0", accent:"#E65100",
+        key:"~(으)려면 ~아/어야 하다", label:txUI("~(으)려면 + ~아/어야 하다 (필수조건)", lang), color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"Động từ + -(으)려면 + động từ/tính từ + -아/어야 하다 — điều kiện bắt buộc (Muốn A thì phải B)", en:"Verb + -(으)려면 + verb/adj + -아/어야 하다 — necessary condition (To do A, you must B)", ko:"동사 + -(으)려면 + 동사/형용사 + -아/어야 하다 — 필수조건. 받침 있으면 -으려면, 없으면 -려면"},
         cards:[
           { native:{vi:"Nếu muốn đi du học Hàn Quốc thì phải thi TOPIK.", en:"If you want to study in Korea, you have to take the TOPIK test.", ko:"한국에 유학하려면 토픽 시험을 봐야 합니다."},
@@ -12208,13 +12846,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Trạng ngữ 5 — Điều kiện bắt buộc":en?"Adverb 5 — Necessary Condition":"부사어 5단원 — 필수조건"}
+            {txUI("부사어 5단원 — 필수조건", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_ADV5.accent, textAlign:"center", marginBottom:4}}>
-            ✅ {vi?"Biểu thức điều kiện bắt buộc":en?"Necessary Condition Expressions":"필수조건 표현"}
+            ✅ {txUI("필수조건 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -12223,7 +12861,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#FFF8E1", border:"1.5px solid #FFD54F", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#F57F17", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -12238,7 +12876,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_ADV5.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -12246,25 +12884,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_ADV5.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#FFF3E0", border:"2px solid #FFCC02", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#E65100", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#E65100", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#BF360C"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv6"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#F4511E" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 6 →":en?"Adverb Unit 6 →":"부사어 6 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("부사어 6 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv4"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -12272,11 +12910,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_adv6") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const ADV6_SECTIONS = [
       {
-        key:"~아/어도", label:vi?"Dù... nhưng vẫn (아/어도)":en?"Even if... (아/어도)":"~아/어도 (양보)", color:"#F3E5F5", accent:"#6A1B9A",
+        key:"~아/어도", label:txUI("~아/어도 (양보)", lang), color:"#F3E5F5", accent:"#6A1B9A",
         rule:{vi:"Động từ/Tính từ + -아/어도 — dù A nhưng vẫn B (양보). ㅏ/ㅗ → 아도, còn lại → 어도, 하다 → 해도", en:"Verb/Adjective + -아/어도 — even if A, still B (concession). ㅏ/ㅗ → 아도, others → 어도, 하다 → 해도", ko:"동사/형용사 + -아/어도 — A해도 B하다 (양보). ㅏ/ㅗ → 아도, 나머지 → 어도, 하다 → 해도"},
         cards:[
           { native:{vi:"Cho dù tập thể dục đi chăng nữa thì vẫn không giảm cân.", en:"No matter how much I exercise, I do not lose weight.", ko:"운동해도 살이 빠지지 않습니다."},
@@ -12310,13 +12956,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Trạng ngữ 6 — Nhượng bộ":en?"Adverb 6 — Concession":"부사어 6단원 — 양보"}
+            {txUI("부사어 6단원 — 양보", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_ADV6.accent, textAlign:"center", marginBottom:4}}>
-            🌀 {vi?"Biểu thức nhượng bộ":en?"Concession Expressions":"양보 표현"}
+            🌀 {txUI("양보 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -12325,7 +12971,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#EDE7F6", border:"1.5px solid #CE93D8", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#6A1B9A", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#6A1B9A", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -12340,7 +12986,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_ADV6.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -12348,25 +12994,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_ADV6.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#F3E5F5", border:"2px solid #AB47BC", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#6A1B9A", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#6A1B9A", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#4A148C"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv7"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#7B1FA2" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bài Phó từ 7 →":en?"Adverb Unit 7 →":"부사어 7 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("부사어 7 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv5"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -12374,11 +13020,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_adv7") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const ADV7_SECTIONS = [
       {
-        key:"~는데 / ~은/ㄴ데", label:vi?"Bối cảnh/Tình huống (는데/은데)":en?"Background/Context (는데/은데)":"~는데 / ~은/ㄴ데 (배경·상황)", color:"#E3F2FD", accent:"#0D47A1",
+        key:"~는데 / ~은/ㄴ데", label:txUI("~는데 / ~은/ㄴ데 (배경·상황)", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"Động từ hiện tại + -는데 / Tính từ(받침O) + -은데 / Tính từ(받침X) + -ㄴ데 — nêu bối cảnh trước, kết quả/đề nghị sau", en:"Present verb + -는데 / Adj(batchim) + -은데 / Adj(no batchim) + -ㄴ데 — set background, then result or suggestion", ko:"동사 현재 + -는데 / 형용사(받침O) + -은데 / 형용사(받침X) + -ㄴ데 — 앞 상황을 배경으로 뒤 내용 연결"},
         cards:[
           { native:{vi:"Trời đang mưa mà tôi không có ô.", en:"It is raining, but I do not have an umbrella.", ko:"비가 오는데 우산이 없습니다."},
@@ -12410,13 +13064,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Trạng ngữ 7 — Bối cảnh/Tình huống":en?"Adverb 7 — Background/Context":"부사어 7단원 — 배경·상황"}
+            {txUI("부사어 7단원 — 배경·상황", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_ADV7.accent, textAlign:"center", marginBottom:4}}>
-            🔗 {vi?"Biểu thức bối cảnh":en?"Background Expressions":"배경·상황 표현"}
+            🔗 {txUI("배경·상황 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -12425,7 +13079,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#E3F2FD", border:"1.5px solid #90CAF9", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#0D47A1", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#0D47A1", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -12440,7 +13094,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_ADV7.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -12448,25 +13102,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_ADV7.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#E3F2FD", border:"2px solid #42A5F5", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#0D47A1", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#0D47A1", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#0D47A1"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#1565C0" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Tần suất →":en?"Frequency →":"빈도부사 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("빈도부사 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv6"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -12474,55 +13128,63 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_rel") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const REL_SECTIONS = [
       {
-        key:"동사+는/은/을 (현재→과거→미래)", label:vi?"Định ngữ động từ (는/은/을)":en?"Verb Modifier (는/은/을)":"동사 관형 — 현재·과거·미래", color:"#E8F5E9", accent:"#2E7D32",
+        key:"동사+는/은/을 (현재→과거→미래)", label:txUI("동사 관형 — 현재·과거·미래", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"Động từ + -는(hiện tại) / -은/ㄴ(quá khứ) / -을/ㄹ(tương lai) + danh từ", en:"Verb + -는(present) / -은/ㄴ(past) / -을/ㄹ(future) + noun", ko:"동사 + -는(현재) / -은/ㄴ(과거) / -을/ㄹ(미래) + 명사 — 같은 명사에 시제만 바꿔 붙이기"},
         cards:[
-          { native:{vi:"Cái này là món ăn tôi đang ăn.", en:"This is the food I am eating.", ko:"이것은 제가 먹는 음식입니다."},
-            full:"이것은 제가 먹는 음식입니다.", rule:{vi:"먹다 → 먹 + 는 + 음식 (현재)", en:"먹다 → 먹 + 는 + 음식 (present)", ko:"먹다 → 먹는 (현재 → -는)"} },
-          { native:{vi:"Cái này là món ăn tôi đã ăn.", en:"This is the food I ate.", ko:"이것은 제가 먹은 음식입니다."},
-            full:"이것은 제가 먹은 음식입니다.", rule:{vi:"먹다(받침) → 먹 + 은 + 음식 (과거)", en:"먹다(batchim) → 먹 + 은 + 음식 (past)", ko:"먹다 → 먹은 (과거·받침 → -은)"} },
-          { native:{vi:"Cái này là món ăn tôi sẽ ăn.", en:"This is the food I will eat.", ko:"이것은 제가 먹을 음식입니다."},
-            full:"이것은 제가 먹을 음식입니다.", rule:{vi:"먹다(받침) → 먹 + 을 + 음식 (미래)", en:"먹다(batchim) → 먹 + 을 + 음식 (future)", ko:"먹다 → 먹을 (미래·받침 → -을)"} },
+          { native:{vi:"Đây là món quà tôi đã mua.", en:"This is the gift I bought.", ko:"이것은 제가 산 선물입니다."},
+            full:"이것은 제가 산 선물입니다.", rule:{vi:"사다(모음) → 산 + 선물 (과거 → -ㄴ)", en:"사다(no batchim) → 산 + 선물 (past → -ㄴ)", ko:"사다 → 산 (과거·모음 → -ㄴ)"} },
+          { native:{vi:"Đây là món quà tôi đang mua.", en:"This is the gift I am buying.", ko:"이것은 제가 사는 선물입니다."},
+            full:"이것은 제가 사는 선물입니다.", rule:{vi:"사다(모음) → 사 + 는 + 선물 (현재 → -는)", en:"사다(no batchim) → 사 + 는 + 선물 (present → -는)", ko:"사다 → 사는 (현재 → -는)"} },
+          { native:{vi:"Đây là món quà tôi sẽ mua.", en:"This is the gift I will buy.", ko:"이것은 제가 살 선물입니다."},
+            full:"이것은 제가 살 선물입니다.", rule:{vi:"사다(모음) → 살 + 선물 (미래 → -ㄹ)", en:"사다(no batchim) → 살 + 선물 (future → -ㄹ)", ko:"사다 → 살 (미래·모음 → -ㄹ)"} },
         ]
       },
       {
-        key:"관형절 누적 확장", label:vi?"Mở rộng mệnh đề định ngữ":en?"Expanding Modifier Clauses":"단문 → 복합 관형절 누적", color:"#E3F2FD", accent:"#0D47A1",
+        key:"관형절 누적 확장", label:txUI("단문 → 복합 관형절 누적", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"Thêm dần các mệnh đề định ngữ vào một câu — hình dung, thời gian, địa điểm, mục đích", en:"Add modifier clauses one by one — appearance, time, place, purpose", ko:"같은 사건에 관형절을 하나씩 추가 — 모습·시간·장소·목적 순서로 쌓기"},
         cards:[
-          { native:{vi:"Hôm qua Mariá đã mua nguyên liệu ở chợ.", en:"Maria bought ingredients at the market yesterday.", ko:"마리아는 어제 시장에서 재료를 샀습니다."},
-            full:"마리아는 어제 시장에서 재료를 샀습니다.", rule:{vi:"Câu đơn cơ bản — chưa có định ngữ", en:"Basic sentence — no modifier yet", ko:"기본 단문 — 관형절 없음"} },
-          { native:{vi:"Hôm qua Mariá tóc dài đã mua nguyên liệu ở chợ.", en:"Maria with long hair bought ingredients at the market yesterday.", ko:"머리가 긴 마리아는 어제 시장에서 재료를 샀습니다."},
-            full:"머리가 긴 마리아는 어제 시장에서 재료를 샀습니다.", rule:{vi:"긴(형용사관형) → 머리가 긴 + 마리아", en:"긴(adj modifier) → 머리가 긴 + 마리아", ko:"길다 → 긴 (형용사관형 추가)"} },
-          { native:{vi:"Hôm qua trời mưa nhiều, Mariá tóc dài đã mua nguyên liệu ở chợ.", en:"On the rainy day yesterday, Maria with long hair bought ingredients at the market.", ko:"비가 많이 온 어제 머리가 긴 마리아는 시장에서 재료를 샀습니다."},
-            full:"비가 많이 온 어제 머리가 긴 마리아는 시장에서 재료를 샀습니다.", rule:{vi:"온(동사관형) → 비가 많이 온 + 어제", en:"온(verb modifier) → 비가 많이 온 + 어제", ko:"오다 → 온 (동사관형 추가)"} },
-          { native:{vi:"Hôm qua trời mưa nhiều, Mariá tóc dài đã mua nguyên liệu ở chợ gần nhà.", en:"Maria with long hair bought ingredients at the market near her house on the rainy day yesterday.", ko:"비가 많이 온 어제 머리가 긴 마리아는 집 근처에 있는 시장에서 재료를 샀습니다."},
-            full:"비가 많이 온 어제 머리가 긴 마리아는 집 근처에 있는 시장에서 재료를 샀습니다.", rule:{vi:"있는(동사관형) → 집 근처에 있는 + 시장", en:"있는(verb modifier) → 집 근처에 있는 + 시장", ko:"있다 → 있는 (장소 관형 추가)"} },
-          { native:{vi:"Hôm qua Mariá tóc dài đã mua nguyên liệu để nấu kim chi jjigae ở chợ gần nhà.", en:"Maria with long hair bought ingredients to make kimchi stew at the market near her house yesterday.", ko:"머리가 긴 마리아는 어제 집 근처에 있는 시장에서 김치찌개를 끓일 재료를 샀습니다."},
-            full:"머리가 긴 마리아는 어제 집 근처에 있는 시장에서 김치찌개를 끓일 재료를 샀습니다.", rule:{vi:"끓일(동사관형 미래) → 김치찌개를 끓일 + 재료", en:"끓일(future modifier) → 김치찌개를 끓일 + 재료", ko:"끓이다 → 끓일 (목적 관형 추가)"} },
-          { native:{vi:"Hôm qua trời mưa nhiều, Mariá tóc dài đã mua nguyên liệu để nấu kim chi jjigae ở chợ gần nhà.", en:"Maria with long hair bought ingredients to make kimchi stew at the market near her house on the rainy day yesterday.", ko:"머리가 긴 마리아는 비가 많이 온 어제 집 근처에 있는 시장에서 김치찌개를 끓일 재료를 샀습니다."},
-            full:"머리가 긴 마리아는 비가 많이 온 어제 집 근처에 있는 시장에서 김치찌개를 끓일 재료를 샀습니다.", rule:{vi:"Kết hợp tất cả định ngữ — hình dung + thời gian + địa điểm + mục đích", en:"All modifiers combined — appearance + time + place + purpose", ko:"모든 관형절 결합 — 모습+시간+장소+목적 완전 복합"} },
-          { native:{vi:"Mariá đã dùng nguyên liệu mua ở chợ hôm qua để nấu kim chi jjigae.", en:"Maria cooked kimchi stew with the ingredients she bought at the market yesterday.", ko:"마리아가 어제 시장에서 산 재료로 김치찌개를 끓였습니다."},
-            full:"마리아가 어제 시장에서 산 재료로 김치찌개를 끓였습니다.", rule:{vi:"산(동사관형 과거) → 시장에서 산 + 재료 (복합관형 → 주어로 전환)", en:"산(past modifier) → 시장에서 산 + 재료 (modifier becomes subject)", ko:"사다 → 산 (복합관형이 주어로 전환 — 120% 추가)"} },
+          { native:{vi:"Hôm qua Maria đã mua sách ở thư viện.", en:"Maria bought a book at the library yesterday.", ko:"마리아는 어제 도서관에서 책을 샀습니다."},
+            full:"마리아는 어제 도서관에서 책을 샀습니다.", rule:{vi:"Câu đơn cơ bản — chưa có định ngữ", en:"Basic sentence — no modifier yet", ko:"기본 단문 — 관형절 없음"} },
+          { native:{vi:"Hôm qua Maria tóc dài đã mua sách ở thư viện.", en:"Maria with long hair bought a book at the library yesterday.", ko:"머리가 긴 마리아는 어제 도서관에서 책을 샀습니다."},
+            full:"머리가 긴 마리아는 어제 도서관에서 책을 샀습니다.", rule:{vi:"긴(형용사관형) → 머리가 긴 + 마리아", en:"긴(adj modifier) → 머리가 긴 + 마리아", ko:"길다 → 긴 (형용사관형 추가)"} },
+          { native:{vi:"Hôm qua trời mưa nhiều, Maria đã mua sách ở thư viện.", en:"Maria bought a book at the library on the rainy day yesterday.", ko:"마리아는 비가 많이 온 어제 도서관에서 책을 샀습니다."},
+            full:"마리아는 비가 많이 온 어제 도서관에서 책을 샀습니다.", rule:{vi:"온(동사관형) → 비가 많이 온 + 어제", en:"온(verb modifier) → 비가 많이 온 + 어제", ko:"오다 → 온 (동사관형 추가)"} },
+          { native:{vi:"Hôm qua Maria đã mua sách ở thư viện trước trường.", en:"Maria bought a book at the library in front of the school yesterday.", ko:"마리아는 어제 학교 앞에 있는 도서관에서 책을 샀습니다."},
+            full:"마리아는 어제 학교 앞에 있는 도서관에서 책을 샀습니다.", rule:{vi:"있는(동사관형) → 학교 앞에 있는 + 도서관", en:"있는(verb modifier) → 학교 앞에 있는 + 도서관", ko:"있다 → 있는 (장소 관형 추가)"} },
+          { native:{vi:"Hôm qua Maria đã mua sách sẽ đọc trong lớp ở thư viện.", en:"Maria bought a book to read in class at the library yesterday.", ko:"마리아는 어제 도서관에서 수업에서 읽을 책을 샀습니다."},
+            full:"마리아는 어제 도서관에서 수업에서 읽을 책을 샀습니다.", rule:{vi:"읽을(동사관형 미래) → 수업에서 읽을 + 책", en:"읽을(future modifier) → 수업에서 읽을 + 책", ko:"읽다 → 읽을 (목적 관형 추가)"} },
+          { native:{vi:"Hôm qua trời mưa nhiều, Maria tóc dài đã mua sách sẽ đọc trong lớp ở thư viện trước trường.", en:"Maria with long hair bought a book to read in class at the library in front of the school on the rainy day yesterday.", ko:"머리가 긴 마리아는 비가 많이 온 어제 학교 앞에 있는 도서관에서 수업에서 읽을 책을 샀습니다."},
+            full:"머리가 긴 마리아는 비가 많이 온 어제 학교 앞에 있는 도서관에서 수업에서 읽을 책을 샀습니다.", rule:{vi:"Kết hợp tất cả định ngữ — hình dung + thời gian + địa điểm + mục đích", en:"All modifiers combined — appearance + time + place + purpose", ko:"모든 관형절 결합 — 모습+시간+장소+목적 완전 복합"} },
+          { native:{vi:"Maria đã đọc cuốn sách mua ở thư viện hôm qua.", en:"Maria read the book she bought at the library yesterday.", ko:"마리아가 어제 도서관에서 산 책을 읽었습니다."},
+            full:"마리아가 어제 도서관에서 산 책을 읽었습니다.", rule:{vi:"산(동사관형 과거) → 도서관에서 산 + 책 (복합관형 → 목적어로 전환)", en:"산(past modifier) → 도서관에서 산 + 책 (modifier as object)", ko:"사다 → 산 (복합관형 목적어 전환 — 120% 추가)"} },
         ]
       },
       {
-        key:"관형절+명사 실용 문장", label:vi?"Câu thực dụng định ngữ + danh từ":en?"Practical Modifier + Noun Sentences":"관형절 실전 활용", color:"#FFF3E0", accent:"#E65100",
+        key:"관형절+명사 실용 문장", label:txUI("관형절 실전 활용", lang), color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"Mệnh đề định ngữ + danh từ → làm chủ ngữ hoặc tân ngữ của câu", en:"Modifier clause + noun → used as subject or object of the sentence", ko:"관형절+명사 → 문장의 주어나 목적어로 자유롭게 활용"},
         cards:[
-          { native:{vi:"Những người làm việc giỏi là những người giỏi quản lí thời gian.", en:"People who are good at work manage their time well.", ko:"일을 잘하는 사람들은 시간 관리를 잘합니다."},
-            full:"일을 잘하는 사람들은 시간 관리를 잘합니다.", rule:{vi:"잘하는(동사관형 현재) → 일을 잘하는 + 사람들", en:"잘하는(present modifier) → 일을 잘하는 + 사람들", ko:"잘하다 → 잘하는 + 사람들 (동사관형+명사 주어)"} },
-          { native:{vi:"Những người thành công không sợ sự thay đổi.", en:"Those who succeed are not afraid of change.", ko:"성공하는 사람들은 변화를 두려워하지 않습니다."},
-            full:"성공하는 사람들은 변화를 두려워하지 않습니다.", rule:{vi:"성공하는(동사관형 현재) → 성공하는 + 사람들", en:"성공하는(present modifier) → 성공하는 + 사람들", ko:"성공하다 → 성공하는 + 사람들 (동사관형+명사 주어)"} },
-          { native:{vi:"Thời điểm quan trọng nhất trong cuộc đời chính là bây giờ.", en:"The most important time in life is now.", ko:"인생에서 가장 중요한 시간은 지금입니다."},
-            full:"인생에서 가장 중요한 시간은 지금입니다.", rule:{vi:"중요한(형용사관형) → 가장 중요한 + 시간", en:"중요한(adj modifier) → 가장 중요한 + 시간", ko:"중요하다 → 중요한 + 시간 (형용사관형+명사 주어)"} },
-          { native:{vi:"Người quan trọng nhất trong cuộc đời là người mà mình đang gặp gỡ.", en:"The most important person in life is the person you are meeting now.", ko:"인생에서 가장 중요한 사람은 지금 만나는 사람입니다."},
-            full:"인생에서 가장 중요한 사람은 지금 만나는 사람입니다.", rule:{vi:"중요한 + 만나는 (형용사관형 + 동사관형 복합)", en:"중요한 + 만나는 (adj + verb modifier combined)", ko:"중요한+만나는 (형용사관형+동사관형 복합 활용)"} },
-          { native:{vi:"Người giỏi tiếng Hàn là người luyện tập đọc to mỗi ngày.", en:"A person good at Korean is someone who practices reading aloud every day.", ko:"한국어를 잘하는 사람은 매일 소리 내어 연습하는 사람입니다."},
-            full:"한국어를 잘하는 사람은 매일 소리 내어 연습하는 사람입니다.", rule:{vi:"잘하는 + 연습하는 (동사관형 복합 응용 — 120% 추가)", en:"잘하는 + 연습하는 (dual verb modifier — 120% extra)", ko:"잘하는+연습하는 (동사관형 이중 응용 — 120% 추가)"} },
+          { native:{vi:"Vào những ngày trời mưa, Minho uống cà phê tại một quán cà phê có bầu không khí tốt.", en:"On rainy days, Minho drinks coffee at a café with a nice atmosphere.", ko:"비가 오는 날에 민호는 분위기가 좋은 카페에서 커피를 마십니다."},
+            full:"비가 오는 날에 민호는 분위기가 좋은 카페에서 커피를 마십니다.", rule:{vi:"오는(동사관형) + 좋은(형용사관형) → 비가 오는 날 / 분위기가 좋은 카페", en:"오는(verb) + 좋은(adj) modifier → rainy day / nice atmosphere café", ko:"오는+좋은 (동사관형+형용사관형 복합)"} },
+          { native:{vi:"Những người giỏi tiếng Hàn luyện tập mỗi ngày.", en:"People who are good at Korean practice every day.", ko:"한국어를 잘하는 사람들은 매일 연습을 합니다."},
+            full:"한국어를 잘하는 사람들은 매일 연습을 합니다.", rule:{vi:"잘하는(동사관형 현재) → 한국어를 잘하는 + 사람들", en:"잘하는(present modifier) → 한국어를 잘하는 + 사람들", ko:"잘하다 → 잘하는 + 사람들 (동사관형+명사 주어)"} },
+          { native:{vi:"Những học sinh chăm chỉ học không sợ thi cử.", en:"Students who study hard do not dislike exams.", ko:"열심히 공부하는 학생들은 시험을 싫어하지 않습니다."},
+            full:"열심히 공부하는 학생들은 시험을 싫어하지 않습니다.", rule:{vi:"공부하는(동사관형 현재) → 열심히 공부하는 + 학생들", en:"공부하는(present modifier) → 열심히 공부하는 + 학생들", ko:"공부하다 → 공부하는 + 학생들 (동사관형+명사 주어)"} },
+          { native:{vi:"Quyết định quan trọng nhất trong cuộc đời chính là quyết định đang làm bây giờ.", en:"The most important decision in life is the one you are making right now.", ko:"인생에서 가장 중요한 결정은 바로 지금 하는 결정입니다."},
+            full:"인생에서 가장 중요한 결정은 바로 지금 하는 결정입니다.", rule:{vi:"중요한 + 하는 (형용사관형 + 동사관형 복합)", en:"중요한 + 하는 (adj + verb modifier combined)", ko:"중요한+하는 (형용사관형+동사관형 복합 활용)"} },
+          { native:{vi:"Cuốn sách tôi đang đọc bây giờ là cuốn sách quan trọng nhất.", en:"The book I am reading right now is the most important book.", ko:"지금 내가 읽고 있는 책이 가장 중요한 책입니다."},
+            full:"지금 내가 읽고 있는 책이 가장 중요한 책입니다.", rule:{vi:"읽고 있는(동사관형 진행) → 지금 읽고 있는 + 책 (120% 추가)", en:"읽고 있는(progressive modifier) → 지금 읽고 있는 + 책 (120% extra)", ko:"읽고 있다 → 읽고 있는 (진행 관형 — 120% 추가)"} },
         ]
       },
     ];
@@ -12542,13 +13204,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Định ngữ — 관형어":en?"Modifier — 관형어":"관형어 — 명사 꾸미기"}
+            {txUI("관형어 — 명사 꾸미기", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_REL.accent, textAlign:"center", marginBottom:4}}>
-            🔷 {vi?"Biểu thức định ngữ":en?"Modifier Expressions":"관형어 표현"}
+            🔷 {txUI("관형어 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -12557,7 +13219,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -12572,7 +13234,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_REL.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -12580,25 +13242,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_REL.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_counter"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Đơn vị →":en?"Unit Nouns →":"단위명사 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("단위명사 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_adv7"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -12606,11 +13268,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_indirect") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const IND_SECTIONS = [
       {
-        key:"~다고 하다 (진술)", label:vi?"Tường thuật (다고 하다)":en?"Reported Statement (다고 하다)":"진술 간접화법", color:"#E8F5E9", accent:"#2E7D32",
+        key:"~다고 하다 (진술)", label:txUI("진술 간접화법", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"Câu trực tiếp → 동사/형용사 + -다고 하다 (gián tiếp). 과거: ~다고 했습니다 / 현재: ~대요", en:"Direct → verb/adj + -다고 하다 (reported). Past: ~다고 했습니다 / Present: ~대요", ko:"직접화법 → 동사/형용사 + -다고 하다. 과거: ~다고 했습니다 / 현재: ~대요"},
         cards:[
           { native:{vi:'Maria nói: "Món ăn quá cay."', en:'Maria said: "The food is too spicy."', ko:'마리아는 "음식이 너무 맵습니다."라고 했습니다.'},
@@ -12622,7 +13292,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"~이라고 하다 (명사 진술)", label:vi?"Tường thuật danh từ (이라고 하다)":en?"Noun Statement (이라고 하다)":"명사 진술 간접화법", color:"#E0F2F1", accent:"#00695C",
+        key:"~이라고 하다 (명사 진술)", label:txUI("명사 진술 간접화법", lang), color:"#E0F2F1", accent:"#00695C",
         rule:{vi:"Danh từ + -이라고 하다 (có 받침) / -라고 하다 (không có 받침). Hiện tại: ~래요", en:"Noun + -이라고 하다 (batchim) / -라고 하다 (no batchim). Present: ~래요", ko:"명사 + -이라고 하다 (받침 있음) / -라고 하다 (받침 없음). 현재: ~래요"},
         cards:[
           { native:{vi:'Tuan nói: "Tôi là đầu bếp."', en:'Tuan said: "I am a cook."', ko:'투안은 "저는 요리사입니다."라고 했습니다.'},
@@ -12634,7 +13304,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"~냐고 하다 (질문)", label:vi?"Tường thuật câu hỏi (냐고 하다)":en?"Reported Question (냐고 하다)":"질문 간접화법", color:"#FFF8E1", accent:"#F57F17",
+        key:"~냐고 하다 (질문)", label:txUI("질문 간접화법", lang), color:"#FFF8E1", accent:"#F57F17",
         rule:{vi:"Câu hỏi trực tiếp → động từ/tính từ + -냐고 하다. 과거: ~냐고 했습니다 / 현재: ~냬요", en:"Direct question → verb/adj + -냐고 하다. Past: ~냐고 했습니다 / Present: ~냬요", ko:"직접 질문 → 동사/형용사 + -냐고 하다. 과거: ~냐고 했습니다 / 현재: ~냬요"},
         cards:[
           { native:{vi:'Maria hỏi tôi: "Bây giờ bạn đang ở đâu?"', en:'Maria asked me: "Where are you right now?"', ko:'마리아는 저에게 "지금 어디에 있습니까?"라고 물었습니다.'},
@@ -12646,7 +13316,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"~자고 하다 (청유)", label:vi?"Tường thuật đề nghị (자고 하다)":en?"Reported Suggestion (자고 하다)":"청유 간접화법", color:"#E3F2FD", accent:"#0D47A1",
+        key:"~자고 하다 (청유)", label:txUI("청유 간접화법", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"Câu đề nghị trực tiếp → động từ + -자고 하다. 과거: ~자고 했습니다 / 현재: ~재요", en:"Direct suggestion → verb + -자고 하다. Past: ~자고 했습니다 / Present: ~재요", ko:"직접 청유 → 동사 + -자고 하다. 과거: ~자고 했습니다 / 현재: ~재요"},
         cards:[
           { native:{vi:'Tuan nói với tôi: "Hãy cùng học nhé."', en:'Tuan said to me: "Let\'s study together."', ko:'투안은 저에게 "같이 공부합시다."라고 했습니다.'},
@@ -12658,7 +13328,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"~(으)라고 하다 (명령)", label:vi?"Tường thuật mệnh lệnh (라고 하다)":en?"Reported Command (라고 하다)":"명령 간접화법", color:"#FBE9E7", accent:"#BF360C",
+        key:"~(으)라고 하다 (명령)", label:txUI("명령 간접화법", lang), color:"#FBE9E7", accent:"#BF360C",
         rule:{vi:"Câu mệnh lệnh trực tiếp → động từ + -(으)라고 하다. 받침X → -라고, 받침O → -으라고. 현재: ~래요", en:"Direct command → verb + -(으)라고 하다. No batchim → -라고, batchim → -으라고. Present: ~래요", ko:"직접 명령 → 동사 + -(으)라고 하다. 받침 없으면 -라고, 있으면 -으라고. 현재: ~래요"},
         cards:[
           { native:{vi:'Minho nói với tôi: "Hãy đóng cửa lại."', en:'Minho said to me: "Please close the door."', ko:'민호는 저에게 "문을 닫으세요."라고 했습니다.'},
@@ -12670,7 +13340,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"~지 말라고 하다 (금지)", label:vi?"Tường thuật cấm đoán (말라고 하다)":en?"Reported Prohibition (말라고 하다)":"금지 간접화법", color:"#F3E5F5", accent:"#6A1B9A",
+        key:"~지 말라고 하다 (금지)", label:txUI("금지 간접화법", lang), color:"#F3E5F5", accent:"#6A1B9A",
         rule:{vi:"Câu cấm đoán trực tiếp → động từ + -지 말라고 하다. 과거: ~말라고 했습니다 / 현재: ~말래요", en:"Direct prohibition → verb + -지 말라고 하다. Past: ~말라고 했습니다 / Present: ~말래요", ko:"직접 금지 → 동사 + -지 말라고 하다. 과거: ~말라고 했습니다 / 현재: ~말래요"},
         cards:[
           { native:{vi:'Tuan nói với tôi: "Đừng gọi điện."', en:'Tuan said to me: "Please do not call."', ko:'투안은 저에게 "전화하지 마세요."라고 했습니다.'},
@@ -12698,13 +13368,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Gián tiếp hóa pháp":en?"Indirect Speech":"간접화법"}
+            {txUI("간접화법", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_IND.accent, textAlign:"center", marginBottom:4}}>
-            💬 {vi?"Biểu thức gián tiếp":en?"Reported Speech Expressions":"간접화법 표현"}
+            💬 {txUI("간접화법 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -12713,7 +13383,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -12728,7 +13398,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_IND.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -12736,25 +13406,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_IND.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_mankke"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"만/밖에 →":en?"만/밖에 →":"만/밖에 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("만/밖에 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -12762,11 +13432,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_honor") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const HON_SECTIONS = [
       {
-        key:"가족 존칭", label:vi?"Kính ngữ với gia đình":en?"Honorifics with Family":"가족 대상 존칭 표현", color:"#E8F5E9", accent:"#2E7D32",
+        key:"가족 존칭", label:txUI("가족 대상 존칭 표현", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"Dùng kính ngữ với người lớn tuổi/bề trên trong gia đình. Chủ ngữ + 께서, động từ đặc biệt: 드시다/계시다/주무시다/편찮으시다/돌아가시다", en:"Use honorifics with elders/superiors in family. Subject + 께서, special verbs: 드시다/계시다/주무시다/편찮으시다/돌아가시다", ko:"어른 주어 + 께서, 특별 존칭 동사 사용: 드시다/계시다/주무시다/편찮으시다/돌아가시다"},
         cards:[
           { native:{vi:"Bố đang đọc báo.", en:"My father is reading the newspaper.", ko:"아버지께서 신문을 읽으십니다."},
@@ -12788,7 +13466,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"직장·사회 존칭", label:vi?"Kính ngữ trong công việc/xã hội":en?"Honorifics at Work/Society":"직장·사회 대상 존칭 표현", color:"#E3F2FD", accent:"#0D47A1",
+        key:"직장·사회 존칭", label:txUI("직장·사회 대상 존칭 표현", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"Dùng kính ngữ với cấp trên, thầy cô, người lớn tuổi ngoài xã hội. 뵙다/모시다 — kính ngữ chiều từ dưới lên", en:"Use honorifics with superiors, teachers, elders in society. 뵙다/모시다 — humble verbs (speaker lowers self)", ko:"직장 상사·선생님·사회 어른 대상. 뵙다/모시다 — 자신을 낮추는 겸손 표현"},
         cards:[
           { native:{vi:"Giáo sư đã nói với sinh viên.", en:"The professor spoke to the students.", ko:"교수님께서 학생들에게 말씀하셨습니다."},
@@ -12820,13 +13498,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Kính ngữ":en?"Honorifics":"존칭 표현"}
+            {txUI("존칭 표현", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_HON.accent, textAlign:"center", marginBottom:4}}>
-            🙇 {vi?"Biểu thức kính ngữ":en?"Honorific Expressions":"존칭 표현"}
+            🙇 {txUI("존칭 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -12835,7 +13513,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -12850,7 +13528,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_HON.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -12858,25 +13536,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_HON.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Động từ cảm xúc →":en?"Emotion Verbs →":"감정 동사 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("감정 동사 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -12884,11 +13562,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_irreg") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const IRR_SECTIONS = [
       {
-        key:"ㅂ 불규칙", label:vi?"Bất quy tắc ㅂ":en?"ㅂ Irregular":"ㅂ → 우/오 변화", color:"#E8F5E9", accent:"#2E7D32",
+        key:"ㅂ 불규칙", label:txUI("ㅂ → 우/오 변화", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"Tính từ/động từ có 받침 ㅂ + 모음 → ㅂ bị lược bỏ, thêm 우(오). Ví dụ: 춥다→추워, 덥다→더워, 돕다→도와(ngoại lệ)", en:"Adj/verb with ㅂ batchim + vowel → ㅂ drops, add 우(오). Ex: 춥다→추워, 덥다→더워, 돕다→도와(exception)", ko:"받침 ㅂ + 모음 → ㅂ 탈락 후 우(오) 추가. 춥다→추워, 덥다→더워, 돕다→도와(예외)"},
         cards:[
           { native:{vi:"Hôm qua trời rất lạnh.", en:"It was very cold yesterday.", ko:"어제는 너무 추웠습니다."},
@@ -12906,7 +13592,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"으 불규칙", label:vi?"Bất quy tắc 으":en?"으 Irregular":"ㅡ 탈락 변화", color:"#FFF8E1", accent:"#F57F17",
+        key:"으 불규칙", label:txUI("ㅡ 탈락 변화", lang), color:"#FFF8E1", accent:"#F57F17",
         rule:{vi:"Động từ/tính từ kết thúc bằng ㅡ + 아/어 → ㅡ bị lược bỏ. 끄다→꺼, 쓰다→써, 크다→커", en:"Verb/adj ending in ㅡ + 아/어 → ㅡ drops. 끄다→꺼, 쓰다→써, 크다→커", ko:"어간 끝이 ㅡ + 아/어 → ㅡ 탈락. 끄다→꺼, 쓰다→써, 크다→커"},
         cards:[
           { native:{vi:"Hôm qua tôi bị đau đầu.", en:"I had a headache yesterday.", ko:"어제 머리가 아팠습니다."},
@@ -12922,7 +13608,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"르 불규칙", label:vi?"Bất quy tắc 르":en?"르 Irregular":"르 → ㄹㄹ 변화", color:"#E3F2FD", accent:"#0D47A1",
+        key:"르 불규칙", label:txUI("르 → ㄹㄹ 변화", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"Động từ kết thúc bằng 르 + 아/어 → 르 thành ㄹㄹ. 자르다→잘라, 다르다→달라, 부르다→불러", en:"Verb ending in 르 + 아/어 → 르 becomes ㄹㄹ. 자르다→잘라, 다르다→달라, 부르다→불러", ko:"어간 끝 르 + 아/어 → ㄹ 추가 후 러/라. 자르다→잘라, 다르다→달라, 부르다→불러"},
         cards:[
           { native:{vi:"Minho đã cắt tờ giấy.", en:"Minho cut the paper.", ko:"민호는 종이를 잘랐습니다."},
@@ -12938,7 +13624,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"ㄷ 불규칙 (규칙 혼합)", label:vi?"Bất quy tắc ㄷ (hỗn hợp)":en?"ㄷ Irregular (mixed)":"ㄷ → ㄹ 변화 + 규칙 판단", color:"#F3E5F5", accent:"#6A1B9A",
+        key:"ㄷ 불규칙 (규칙 혼합)", label:txUI("ㄷ → ㄹ 변화 + 규칙 판단", lang), color:"#F3E5F5", accent:"#6A1B9A",
         rule:{vi:"동사 받침 ㄷ + 모음 → ㄹ로 변화. 불규칙: 묻다→물어, 듣다→들어, 걷다→걸어 / 규칙: 닫다→닫아, 믿다→믿어, 받다→받아", en:"Verb ㄷ batchim + vowel → ㄹ. Irregular: 묻다→물어, 듣다→들어, 걷다→걸어 / Regular: 닫다→닫아, 믿다→믿어, 받다→받아", ko:"동사 ㄷ + 모음 → ㄹ (불규칙). 묻다→물어, 듣다→들어, 걷다→걸어 / 닫다·믿다·받다는 규칙"},
         cards:[
           { native:{vi:"Maria đã hỏi tên của Minho.", en:"Maria asked Minho his name.", ko:"마리아가 민호의 이름을 물었습니다."},
@@ -12956,7 +13642,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"ㅅ 불규칙", label:vi?"Bất quy tắc ㅅ":en?"ㅅ Irregular":"ㅅ 탈락 변화", color:"#FBE9E7", accent:"#BF360C",
+        key:"ㅅ 불규칙", label:txUI("ㅅ 탈락 변화", lang), color:"#FBE9E7", accent:"#BF360C",
         rule:{vi:"Động từ có 받침 ㅅ + 모음 → ㅅ bị lược bỏ. 짓다→지어(지었다), 낫다→나아(나았다)", en:"Verb with ㅅ batchim + vowel → ㅅ drops. 짓다→지어(지었다), 낫다→나아(나았다)", ko:"받침 ㅅ + 모음 → ㅅ 탈락. 짓다→지어(지었다), 낫다→나아(나았다)"},
         cards:[
           { native:{vi:"Minho đã xây nhà.", en:"Minho built a house.", ko:"민호는 집을 지었습니다."},
@@ -12970,7 +13656,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"ㄹ 탈락 (ㄹ + ㄴ·ㅂ·ㅅ)", label:vi?"Lược bỏ ㄹ (ㄹ + ㄴ·ㅂ·ㅅ)":en?"ㄹ Drop (ㄹ + ㄴ·ㅂ·ㅅ)":"ㄹ 받침 → ㄴ·ㅂ·ㅅ 앞에서 탈락", color:"#EDE7F6", accent:"#4527A0",
+        key:"ㄹ 탈락 (ㄹ + ㄴ·ㅂ·ㅅ)", label:txUI("ㄹ 받침 → ㄴ·ㅂ·ㅅ 앞에서 탈락", lang), color:"#EDE7F6", accent:"#4527A0",
         rule:{vi:"Động từ/tính từ kết thúc bằng ㄹ + ㄴ/ㅂ/ㅅ → ㄹ bị lược bỏ. 알다→압니다/아는/아세요, 살다→삽니다/사는/사세요, 만들다→만듭니다", en:"Verb/adj ending in ㄹ + ㄴ/ㅂ/ㅅ → ㄹ drops. 알다→압니다/아는/아세요, 살다→삽니다/사는/사세요, 만들다→만듭니다", ko:"받침 ㄹ + ㄴ·ㅂ·ㅅ → ㄹ 탈락. 알다→압니다/아는/아세요, 살다→삽니다/사는, 만들다→만듭니다"},
         cards:[
           { native:{vi:"Minho biết bài hát đó.", en:"Minho knows that song.", ko:"민호는 그 노래를 압니다."},
@@ -13004,13 +13690,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Động từ/Tính từ bất quy tắc":en?"Irregular Verbs/Adjectives":"동사·형용사 불규칙"}
+            {txUI("동사·형용사 불규칙", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_IRR.accent, textAlign:"center", marginBottom:4}}>
-            ⚡ {vi?"Biểu thức bất quy tắc":en?"Irregular Expressions":"불규칙 표현"}
+            ⚡ {txUI("불규칙 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -13019,7 +13705,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#F1F8E9", border:"1.5px solid #AED581", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -13034,7 +13720,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_IRR.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -13042,25 +13728,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_IRR.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_change"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#2E7D32" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Biến đổi →":en?"State Change →":"상태 변화 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("상태 변화 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -13068,8 +13754,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_counter") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const conceptLabel = vi
       ? "단위명사 (Từ đơn vị — từ dùng khi đếm số lượng)"
       : en
@@ -13077,7 +13771,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       : "단위명사 (수량을 셀 때 쓰는 단위 표현)";
     const CTR_SECTIONS = [
       {
-        key:"사람·동물 단위명사", label:vi?"Từ đơn vị người & động vật":en?"People & Animal Counters":"명(사람) · 마리(동물)", color:"#E8F5E9", accent:"#2E7D32",
+        key:"사람·동물 단위명사", label:txUI("명(사람) · 마리(동물)", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"명 — đếm người / 마리 — đếm động vật. Dùng số thuần Hàn: 한·두·세·네...", en:"명 — count people / 마리 — count animals. Use native Korean numbers: 한·두·세·네...", ko:"명 — 사람 셀 때 / 마리 — 동물 셀 때. 순우리말 수사 사용: 한·두·세·네..."},
         cards:[
           { native:{vi:"Trong bệnh viện có 3 giáo viên.", en:"There are three teachers in the hospital.", ko:"병원에 선생님이 세 명 있습니다."},
@@ -13087,7 +13781,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"사물 단위명사", label:vi?"Từ đơn vị đồ vật":en?"Object Counters":"개(일반) · 장(얇은 것) · 권(책)", color:"#E3F2FD", accent:"#0D47A1",
+        key:"사물 단위명사", label:txUI("개(일반) · 장(얇은 것) · 권(책)", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"개 — đếm đồ vật nói chung / 장 — đếm thứ mỏng như giấy / 권 — đếm sách·vở", en:"개 — general objects / 장 — flat thin things like paper / 권 — books/notebooks", ko:"개 — 사물 일반 / 장 — 종이처럼 얇고 납작한 것 / 권 — 책·노트"},
         cards:[
           { native:{vi:"Trên bàn ăn có 3 quả quýt.", en:"There are three tangerines on the table.", ko:"식탁에 귤이 세 개 있습니다."},
@@ -13099,7 +13793,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"용기 단위명사", label:vi?"Từ đơn vị đồ đựng":en?"Container Counters":"병(병) · 잔(잔·컵)", color:"#FFF8E1", accent:"#F57F17",
+        key:"용기 단위명사", label:txUI("병(병) · 잔(잔·컵)", lang), color:"#FFF8E1", accent:"#F57F17",
         rule:{vi:"병 — đếm chai/lọ / 잔 — đếm ly·tách. Dùng khi nói về đồ uống đựng trong vật chứa", en:"병 — bottles / 잔 — cups/glasses. Used when talking about drinks in containers", ko:"병 — 병·캔 / 잔 — 잔·컵. 음료를 담는 용기의 종류에 따라 구분"},
         cards:[
           { native:{vi:"Minho đã uống 3 chai nước.", en:"Minho drank three bottles of water.", ko:"민호는 물을 세 병 마셨습니다."},
@@ -13111,7 +13805,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"탈것·식물 단위명사", label:vi?"Từ đơn vị phương tiện & thực vật":en?"Vehicle & Plant Counters":"대(기계·탈것) · 척(배) · 그루(나무) · 켤레(쌍)", color:"#F3E5F5", accent:"#6A1B9A",
+        key:"탈것·식물 단위명사", label:txUI("대(기계·탈것) · 척(배) · 그루(나무) · 켤레(쌍)", lang), color:"#F3E5F5", accent:"#6A1B9A",
         rule:{vi:"대 — đếm máy móc·phương tiện / 척 — đếm tàu thuyền / 그루 — đếm cây / 켤레 — đếm đồ thành đôi", en:"대 — machines/vehicles / 척 — ships/boats / 그루 — trees / 켤레 — pairs (shoes/socks)", ko:"대 — 기계·탈것 / 척 — 배 / 그루 — 나무 / 켤레 — 쌍을 이루는 것(신발·양말)"},
         cards:[
           { native:{vi:"Trong bãi đỗ xe có 6 chiếc ô tô.", en:"There are six cars in the parking lot.", ko:"주차장에 차가 여섯 대 있습니다."},
@@ -13125,7 +13819,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"꽃·영상·옷 단위명사", label:vi?"Từ đơn vị hoa & phim & quần áo":en?"Flower, Film & Clothing Counters":"송이(꽃낱개) · 다발(묶음) · 편(영상) · 벌(옷)", color:"#FCE4EC", accent:"#880E4F",
+        key:"꽃·영상·옷 단위명사", label:txUI("송이(꽃낱개) · 다발(묶음) · 편(영상) · 벌(옷)", lang), color:"#FCE4EC", accent:"#880E4F",
         rule:{vi:"송이 — đếm từng bông hoa / 다발 — đếm bó hoa / 편 — đếm phim·tập / 벌 — đếm bộ quần áo", en:"송이 — single flowers / 다발 — bunches / 편 — films/episodes / 벌 — suits/sets of clothing", ko:"송이 — 꽃 낱개 / 다발 — 꽃 묶음 / 편 — 영화·드라마 편 / 벌 — 옷 한 세트"},
         cards:[
           { native:{vi:"Maria đã nhận được 1 bông hoa hồng.", en:"Maria received one rose.", ko:"마리아는 장미를 한 송이 받았습니다."},
@@ -13158,10 +13852,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {conceptLabel}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_CTR.accent, textAlign:"center", marginBottom:4}}>
-            🔢 {vi?"Từ đơn vị tiếng Hàn":en?"Korean Counter Words":"단위명사 표현"}
+            🔢 {txUI("단위명사 표현", lang)}
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:16}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -13170,7 +13864,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -13185,7 +13879,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_CTR.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -13193,25 +13887,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_CTR.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Cách thức →":en?"Manner →":"방식 표현 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("방식 표현 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -13219,8 +13913,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_freq") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const conceptLabel = vi
       ? "빈도부사 (Trạng từ tần suất — diễn đạt mức độ thường xuyên)"
       : en
@@ -13228,7 +13930,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       : "빈도부사 (얼마나 자주 하는지 나타내는 표현)";
     const FREQ_SECTIONS = [
       {
-        key:"높은 빈도 (100% → 자주)", label:vi?"Tần suất cao (항상→자주)":en?"High Frequency (항상→자주)":"항상 · 늘 · 매일 · 자주", color:"#E8F5E9", accent:"#2E7D32",
+        key:"높은 빈도 (100% → 자주)", label:txUI("항상 · 늘 · 매일 · 자주", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"항상(100%) → 늘(100%) → 매일(거의 매일) → 자주(자주). Thứ tự từ tần suất cao đến thấp dần", en:"항상(100%) → 늘(100%) → 매일(almost daily) → 자주(often). From highest to lower frequency", ko:"항상(100%) → 늘(100%) → 매일(거의 매일) → 자주(자주). 빈도 높은 것부터 낮아지는 순서"},
         cards:[
           { native:{vi:"Minho luôn luôn dậy sớm.", en:"Minho always gets up early.", ko:"민호는 항상 일찍 일어납니다."},
@@ -13242,7 +13944,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"낮은 빈도 (가끔 → 0%)", label:vi?"Tần suất thấp (가끔→전혀)":en?"Low Frequency (가끔→전혀)":"가끔 · 별로 · 전혀", color:"#FBE9E7", accent:"#BF360C",
+        key:"낮은 빈도 (가끔 → 0%)", label:txUI("가끔 · 별로 · 전혀", lang), color:"#FBE9E7", accent:"#BF360C",
         rule:{vi:"가끔(가끔) → 별로~지 않다(거의 안) → 전혀~지 않다(0%). Thứ tự từ ít thường xuyên đến không bao giờ", en:"가끔(sometimes) → 별로~지 않다(rarely) → 전혀~지 않다(never). From low to zero frequency", ko:"가끔(가끔) → 별로~지 않다(거의 안 함) → 전혀~지 않다(0%). 낮은 빈도에서 완전 부정으로"},
         cards:[
           { native:{vi:"Mariá thỉnh thoảng đi chợ.", en:"Maria sometimes goes to the market.", ko:"마리아는 가끔 시장에 갑니다."},
@@ -13283,12 +13985,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             {conceptLabel}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_FREQ.accent, textAlign:"center", marginBottom:4}}>
-            📊 {vi?"Trạng từ tần suất":en?"Frequency Adverbs":"빈도부사 표현"}
+            📊 {txUI("빈도부사 표현", lang)}
           </div>
 
           <div style={{background:"white", borderRadius:12, padding:"10px 14px", marginBottom:12, boxShadow:"0 1px 6px rgba(0,0,0,.08)"}}>
             <div style={{fontSize:11, color:"#999", marginBottom:6, textAlign:"center"}}>
-              {vi?"Thang tần suất":en?"Frequency Scale":"빈도 스펙트럼"}
+              {txUI("빈도 스펙트럼", lang)}
             </div>
             <div style={{display:"flex", gap:4, alignItems:"flex-end", height:36}}>
               {freqBar.map((f,i) => (
@@ -13301,7 +14003,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -13310,7 +14012,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#F1F8E9", border:"1.5px solid #AED581", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -13325,7 +14027,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_FREQ.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -13333,25 +14035,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_FREQ.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#2E7D32" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Danh từ hóa →":en?"Nominalization →":"명사형 전환 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("명사형 전환 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_counter"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -13359,11 +14061,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_mankke") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const MAN_SECTIONS = [
       {
-        key:"기본문 → 만 → 밖에 (사물)", label:vi?"Cơ bản → 만 → 밖에 (đồ vật)":en?"Basic → 만 → 밖에 (object)":"같은 상황 3연타 — 사물", color:"#E3F2FD", accent:"#0D47A1",
+        key:"기본문 → 만 → 밖에 (사물)", label:txUI("같은 상황 3연타 — 사물", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"만 + 긍정문 (chỉ có...) / 밖에 + 부정문 (không có gì ngoài...). Cùng nghĩa nhưng cấu trúc ngược nhau!", en:"만 + positive (only...) / 밖에 + negative (nothing but...). Same meaning, opposite structure!", ko:"만 + 긍정문 (오직~만) / 밖에 + 부정문 (~ 외에는 없다). 뜻은 같지만 구조가 반대!"},
         cards:[
           { native:{vi:"Trong túi có sách.", en:"There is a book in the bag.", ko:"가방에 책이 있습니다."},
@@ -13375,7 +14085,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"만 — 위치에 따라 의미 변화", label:vi?"만 — ý nghĩa thay đổi theo vị trí":en?"만 — meaning changes by position":"만의 위치 변화", color:"#E8F5E9", accent:"#2E7D32",
+        key:"만 — 위치에 따라 의미 변화", label:txUI("만의 위치 변화", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"만 gắn vào từ nào thì giới hạn từ đó. 민호만(chỉ Minho) / 저녁에만(chỉ buổi tối) / 공부만(chỉ học)", en:"만 limits the word it attaches to. 민호만(only Minho) / 저녁에만(only in the evening) / 공부만(only study)", ko:"만이 붙는 단어를 한정. 민호만(민호뿐) / 저녁에만(저녁 시간만) / 공부만(공부라는 행동만)"},
         cards:[
           { native:{vi:"Chỉ có Minho học vào buổi tối.", en:"Only Minho studies in the evening.", ko:"민호만 저녁에 공부를 합니다."},
@@ -13387,7 +14097,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"만/밖에 — 사람 주어 확장", label:vi?"만/밖에 — mở rộng với chủ ngữ người":en?"만/밖에 — expanded with person subject":"사람 주어에 만/밖에 적용", color:"#FFF3E0", accent:"#E65100",
+        key:"만/밖에 — 사람 주어 확장", label:txUI("사람 주어에 만/밖에 적용", lang), color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"만/밖에 kết hợp với chủ ngữ hoặc tân ngữ là người. 투안만(chỉ Tuan) / 마리아밖에(không ai ngoài Maria)", en:"만/밖에 with person as subject or object. 투안만(only Tuan) / 마리아밖에(no one but Maria)", ko:"사람 주어/목적어에 만/밖에 결합. 투안만(투안뿐) / 마리아밖에(마리아 외에는 없다)"},
         cards:[
           { native:{vi:"Chỉ có Tuan thích Maria.", en:"Only Tuan likes Maria.", ko:"투안만 마리아를 좋아합니다."},
@@ -13423,18 +14133,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Giới hạn — 만 / 밖에":en?"Limitation — 만 / 밖에":"한정 표현 — 만 / 밖에"}
+            {txUI("한정 표현 — 만 / 밖에", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_MAN.accent, textAlign:"center", marginBottom:4}}>
-            🎯 {vi?"Biểu thức giới hạn":en?"Limitation Expressions":"만 / 밖에 표현"}
+            🎯 {txUI("만 / 밖에 표현", lang)}
           </div>
           <div style={{background:"#E8EAF6", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
             <span style={{fontSize:12, color:"#3949AB", fontWeight:700}}>
-              {vi?"만 + 긍정문 = 밖에 + 부정문 (같은 뜻!)":en?"만 + positive = 밖에 + negative (same meaning!)":"만 + 긍정문 ＝ 밖에 + 부정문 (뜻이 같아요!)"}
+              {txUI("만 + 긍정문 ＝ 밖에 + 부정문 (뜻이 같아요!)", lang)}
             </span>
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -13443,7 +14153,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -13458,7 +14168,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_MAN.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -13466,25 +14176,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_MAN.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_approx"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Ước lượng →":en?"Approximation →":"대략 표현 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("대략 표현 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -13492,11 +14202,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_change") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const CHG_SECTIONS = [
       {
-        key:"~아/어지다 (상태 변화)", label:vi?"Trạng thái thay đổi (아/어지다)":en?"State Change (아/어지다)":"형용사+아/어지다 — 상태가 달라짐", color:"#E3F2FD", accent:"#0D47A1",
+        key:"~아/어지다 (상태 변화)", label:txUI("형용사+아/어지다 — 상태가 달라짐", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"Tính từ + -아/어지다 — trạng thái dần thay đổi. ㅏ/ㅗ → 아지다, còn lại → 어지다, 하다 → 해지다", en:"Adjective + -아/어지다 — state gradually changes. ㅏ/ㅗ → 아지다, others → 어지다, 하다 → 해지다", ko:"형용사 + -아/어지다 — 상태가 점점 달라짐. ㅏ/ㅗ → 아지다, 나머지 → 어지다, 하다 → 해지다"},
         cards:[
           { native:{vi:"Phòng học đã trở nên nóng.", en:"The classroom has gotten hot.", ko:"교실이 더워졌습니다."},
@@ -13514,7 +14232,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"~게 되다 (상황 변화)", label:vi?"Tình huống thay đổi (게 되다)":en?"Situation Change (게 되다)":"동사+게 되다 — 자연스럽게 그렇게 됨", color:"#FFF3E0", accent:"#E65100",
+        key:"~게 되다 (상황 변화)", label:txUI("동사+게 되다 — 자연스럽게 그렇게 됨", lang), color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"Động từ/Tính từ + -게 되다 — tình huống tự nhiên dẫn đến kết quả đó (không phải ý muốn chủ quan)", en:"Verb/Adj + -게 되다 — situation naturally leads to a result (not necessarily intentional)", ko:"동사/형용사 + -게 되다 — 의도보다 상황이 그렇게 됨. 자연스러운 결과·변화 강조"},
         cards:[
           { native:{vi:"Tôi đã trở nên thích bóng đá.", en:"I have come to love football.", ko:"저는 축구를 좋아하게 되었습니다."},
@@ -13546,10 +14264,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Biểu thức thay đổi trạng thái":en?"State Change Expressions":"상태 변화 표현"}
+            {txUI("상태 변화 표현", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_CHG.accent, textAlign:"center", marginBottom:4}}>
-            🔄 {vi?"Trạng thái & Tình huống thay đổi":en?"State & Situation Changes":"상태·상황 변화"}
+            🔄 {txUI("상태·상황 변화", lang)}
           </div>
           <div style={{background:"#E8EAF6", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
             <span style={{fontSize:12, color:"#3949AB", fontWeight:700}}>
@@ -13559,7 +14277,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </span>
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -13568,7 +14286,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -13583,7 +14301,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_CHG.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -13591,25 +14309,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_CHG.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_compare"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"So sánh →":en?"Comparison →":"비교 표현 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("비교 표현 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_mankke"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -13617,11 +14335,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_manner") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const MNR_SECTIONS = [
       {
-        key:"~게 + 동사 (방식 표현)", label:vi?"Phó từ ~게 + động từ":en?"Adverb ~게 + verb":"형용사+게 → 부사로 동사 수식", color:"#E3F2FD", accent:"#0D47A1",
+        key:"~게 + 동사 (방식 표현)", label:txUI("형용사+게 → 부사로 동사 수식", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"Tính từ + -게 + động từ — diễn đạt cách thức thực hiện hành động. 짧다→짧게, 싸다→싸게, 맛있다→맛있게", en:"Adjective + -게 + verb — describes the manner of an action. 짧다→짧게, 싸다→싸게, 맛있다→맛있게", ko:"형용사 + -게 + 동사 — 동작을 어떻게 하는지 방식을 나타냄. 모든 형용사에 -게 붙이기"},
         cards:[
           { native:{vi:"Xin hãy cắt tóc ngắn giúp tôi.", en:"Please cut my hair short.", ko:"머리를 짧게 잘라 주세요."},
@@ -13659,18 +14385,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Biểu thức cách thức":en?"Manner Expressions":"방식 표현"}
+            {txUI("방식 표현", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_MNR.accent, textAlign:"center", marginBottom:4}}>
-            ✏️ {vi?"Phó từ + Động từ":en?"Adverb + Verb":"부사 + 동사 표현"}
+            ✏️ {txUI("부사 + 동사 표현", lang)}
           </div>
           <div style={{background:"#E8EAF6", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
             <span style={{fontSize:12, color:"#283593", fontWeight:700}}>
-              {vi?"형용사 + -게/-히 → 부사 → 동작 방식 표현":en?"Adjective + -게/-히 → adverb → describes how action is done":"형용사 + -게/-히 → 부사 → 동작을 어떻게 하는지 표현"}
+              {txUI("형용사 + -게/-히 → 부사 → 동작을 어떻게 하는지 표현", lang)}
             </span>
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -13679,7 +14405,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -13694,7 +14420,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_MNR.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -13702,25 +14428,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_MNR.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#1565C0" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Bất quy tắc →":en?"Irregular Verbs →":"동사 불규칙 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("동사 불규칙 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_change"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -13728,11 +14454,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_emotion") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const EMO_SECTIONS = [
       {
-        key:"감정 형용사 vs 감정 동사", label:vi?"Tính từ cảm xúc vs Động từ cảm xúc":en?"Emotion Adjective vs Emotion Verb":"이/가 + 형용사 vs 을/를 + 동사", color:"#FCE4EC", accent:"#880E4F",
+        key:"감정 형용사 vs 감정 동사", label:txUI("이/가 + 형용사 vs 을/를 + 동사", lang), color:"#FCE4EC", accent:"#880E4F",
         rule:{vi:"Tính từ cảm xúc: 주어 + 이/가 + 형용사 (trạng thái cảm xúc) / Động từ cảm xúc: 주어 + 을/를 + 동사 (hành động cảm xúc). Trợ từ thay đổi!", en:"Emotion adjective: subject + 이/가 + adj (emotional state) / Emotion verb: subject + 을/를 + verb (emotional action). The particle changes!", ko:"감정 형용사: 주어 + 이/가 + 형용사 (감정 상태) / 감정 동사: 주어 + 을/를 + 동사 (감정 행동). 조사가 달라진다!"},
         cards:[
           { native:{vi:"Minho thích tôi. (Trạng thái — 이/가)", en:"Minho likes me. (State — 이/가)", ko:"민호는 제가 좋습니다. (형용사 상태)"},
@@ -13777,14 +14511,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Động từ cảm xúc":en?"Emotion Verbs":"감정 동사"}
+            {txUI("감정 동사", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_EMO.accent, textAlign:"center", marginBottom:4}}>
-            💗 {vi?"Cảm xúc — Tính từ vs Động từ":en?"Emotions — Adjective vs Verb":"감정 형용사 vs 감정 동사"}
+            💗 {txUI("감정 형용사 vs 감정 동사", lang)}
           </div>
           <div style={{background:"#FCE4EC", borderRadius:10, padding:"8px 14px", marginBottom:8, textAlign:"center"}}>
             <span style={{fontSize:12, color:"#880E4F", fontWeight:700}}>
-              {vi?"이/가 + 형용사 (trạng thái) ↔ 을/를 + 동사 (hành động)":en?"이/가 + adjective (state) ↔ 을/를 + verb (action)":"이/가 + 형용사 (상태) ↔ 을/를 + 동사 (행동) — 조사 주의!"}
+              {txUI("이/가 + 형용사 (상태) ↔ 을/를 + 동사 (행동) — 조사 주의!", lang)}
             </span>
           </div>
 
@@ -13797,11 +14531,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:"#FCE4EC", border:"1.5px solid #F06292", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#880E4F", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#880E4F", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -13816,7 +14550,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_EMO.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -13824,25 +14558,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_EMO.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#FCE4EC", border:"2px solid #E91E63", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#880E4F", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#880E4F", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#880E4F", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#AD1457" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Kính ngữ →":en?"Honorifics →":"존칭 표현 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("존칭 표현 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -13850,12 +14584,20 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_noun") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const NOUN_SECTIONS = [
       // ── 1. ~기 (명사형) (3개) ──
       {
-        key:"~기 (명사형)", label:vi?"Danh từ hóa ~기":en?"Nominalization ~기":"동사/형용사 + 기 → 명사처럼 사용", color:"#E8F5E9", accent:"#2E7D32",
+        key:"~기 (명사형)", label:txUI("동사/형용사 + 기 → 명사처럼 사용", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"Động từ/Tính từ + -기 → dùng như danh từ. 공부하기(việc học), 말하기(nói), 듣기(nghe), 읽기(đọc), 쓰기(viết)", en:"Verb/Adj + -기 → used as noun. 공부하기(studying), 말하기(speaking), 듣기(listening), 읽기(reading), 쓰기(writing)", ko:"동사/형용사 + -기 → 명사처럼 사용. ~기는/~기를/~기가 형태로 주어·목적어 역할"},
         cards:[
           { native:{vi:"Việc học tiếng Hàn thật sự rất thú vị.", en:"Studying Korean is really interesting.", ko:"저는 한국어를 배우기가 재미있습니다."},
@@ -13868,7 +14610,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 2. ~는 것 (명사형) (4개) ──
       {
-        key:"~는 것 (명사형)", label:vi?"Danh từ hóa ~는 것":en?"Nominalization ~는 것":"동사 + 는 것 → 명사처럼 사용", color:"#E3F2FD", accent:"#0D47A1",
+        key:"~는 것 (명사형)", label:txUI("동사 + 는 것 → 명사처럼 사용", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"Động từ + -는 것 → dùng như danh từ (thường dùng hơn ~기 trong văn nói). 요리하는 것(việc nấu ăn), 공부하는 것(việc học)", en:"Verb + -는 것 → used as noun (more common than ~기 in spoken language). 요리하는 것(cooking), 공부하는 것(studying)", ko:"동사 + -는 것 → 명사처럼 사용. 구어에서 ~기보다 자주 사용. ~는 것은/~는 것을 형태"},
         cards:[
           { native:{vi:"Việc học tiếng Hàn thật sự rất thú vị.", en:"Studying Korean is really interesting.", ko:"한국어를 공부하는 것은 정말 재미있습니다."},
@@ -13883,7 +14625,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 3. ~음/ㅁ (명사형) (2개) ──
       {
-        key:"~음/ㅁ (명사형)", label:vi?"Danh từ hóa ~음/ㅁ":en?"Nominalization ~음/ㅁ":"굳어진 명사형 — 기쁨·슬픔·웃음", color:"#FFF3E0", accent:"#E65100",
+        key:"~음/ㅁ (명사형)", label:txUI("굳어진 명사형 — 기쁨·슬픔·웃음", lang), color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"Động từ/Tính từ + -음/ㅁ → danh từ cố định. 기쁘다→기쁨, 슬프다→슬픔, 웃다→웃음. Thường dùng trong văn viết hoặc danh từ đã cố định", en:"Verb/Adj + -음/ㅁ → fixed nouns. 기쁘다→기쁨, 슬프다→슬픔, 웃다→웃음. Used mainly in written language or as fixed nouns", ko:"동사/형용사 + -음/ㅁ → 굳어진 명사. 기쁘다→기쁨, 슬프다→슬픔, 웃다→웃음. 문어체·고정 명사에 주로 사용"},
         cards:[
           { native:{vi:"Trong cuộc sống có niềm vui và nỗi buồn.", en:"There is joy and sorrow in life.", ko:"삶에는 기쁨과 슬픔이 있습니다."},
@@ -13909,18 +14651,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Danh từ hóa":en?"Nominalization":"명사형 전환"}
+            {txUI("명사형 전환", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_NOUN.accent, textAlign:"center", marginBottom:4}}>
-            📝 {vi?"Động từ/Tính từ → Danh từ":en?"Verb/Adj → Noun":"동사·형용사 → 명사처럼"}
+            📝 {txUI("동사·형용사 → 명사처럼", lang)}
           </div>
           <div style={{background:"#E8F5E9", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
             <span style={{fontSize:12, color:"#2E7D32", fontWeight:700}}>
-              {vi?"~기 / ~는 것 / ~음/ㅁ — 3가지 명사형 전환":en?"~기 / ~는 것 / ~음/ㅁ — 3 ways to nominalize":"~기 / ~는 것 / ~음/ㅁ — 동사·형용사를 명사로 전환"}
+              {txUI("~기 / ~는 것 / ~음/ㅁ — 동사·형용사를 명사로 전환", lang)}
             </span>
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -13929,7 +14671,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#F1F8E9", border:"1.5px solid #AED581", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -13944,7 +14686,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_NOUN.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -13952,25 +14694,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_NOUN.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#2E7D32" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Gián tiếp →":en?"Indirect Speech →":"간접화법 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("간접화법 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -13978,11 +14720,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_approx") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const APX_SECTIONS = [
       {
-        key:"쯤 · 정도 · 약 · 가량", label:vi?"Xấp xỉ — 쯤·정도·약·가량":en?"Approximation — 쯤·정도·약·가량":"수량·시간의 대략 표현", color:"#E8EAF6", accent:"#283593",
+        key:"쯤 · 정도 · 약 · 가량", label:txUI("수량·시간의 대략 표현", lang), color:"#E8EAF6", accent:"#283593",
         rule:{vi:"쯤/정도 — đứng sau danh từ (khoảng, độ). 약/가량 — đứng trước hoặc sau danh từ (khoảng). 약+수량+정도 cùng dùng được", en:"쯤/정도 — after noun (about, approximately). 약/가량 — before or after noun. 약+number+정도 can be combined", ko:"쯤/정도 — 명사 뒤 (두 시간쯤, 두 달 정도). 약/가량 — 명사 앞뒤 가능. 약+수량+정도 겹쳐 쓰기도 함"},
         cards:[
           { native:{vi:"Khoảng 20 người đã đến tiệc sinh nhật.", en:"About 20 people came to the birthday party.", ko:"생일 파티에 약 20명이 왔습니다."},
@@ -14016,18 +14766,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Biểu thức xấp xỉ":en?"Approximation Expressions":"대략 표현"}
+            {txUI("대략 표현", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_APX.accent, textAlign:"center", marginBottom:4}}>
-            🔢 {vi?"Xấp xỉ số lượng & thời gian":en?"Approximate Quantity & Time":"수량·시간의 대략 표현"}
+            🔢 {txUI("수량·시간의 대략 표현", lang)}
           </div>
           <div style={{background:"#E8EAF6", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
             <span style={{fontSize:12, color:"#283593", fontWeight:700}}>
-              {vi?"약(앞) / 쯤·정도·가량(뒤) — 위치가 달라요!":en?"약(before) / 쯤·정도·가량(after) — position differs!":"약(앞) / 쯤·정도·가량(뒤) — 위치가 달라요!"}
+              {txUI("약(앞) / 쯤·정도·가량(뒤) — 위치가 달라요!", lang)}
             </span>
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -14036,7 +14786,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#283593", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#283593", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -14051,7 +14801,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_APX.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -14059,25 +14809,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_APX.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#283593", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#283593", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#283593", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_rel"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#3949AB" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Định ngữ →":en?"Modifiers →":"관형어 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("관형어 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -14085,12 +14835,20 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
   }
 
   if (step === "unit_compare") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const CMP_SECTIONS = [
       // ── 1. 비교급 — 보다 더/덜 (7개) ──
       {
-        key:"비교급 — 보다 (더/덜)", label:vi?"So sánh hơn — 보다 (더/덜)":en?"Comparative — 보다 (더/덜)":"A보다 B가 더/덜 — 두 대상 비교", color:"#E8F5E9", accent:"#2E7D32",
+        key:"비교급 — 보다 (더/덜)", label:txUI("A보다 B가 더/덜 — 두 대상 비교", lang), color:"#E8F5E9", accent:"#2E7D32",
         rule:{vi:"A보다 B가 더 + 형용사 — B hơn A. A보다 B가 덜 + 형용사 — B kém hơn A. 더(nhiều hơn) ↔ 덜(ít hơn)", en:"A보다 B가 더 + adj — B is more than A. A보다 B가 덜 + adj — B is less than A. 더(more) ↔ 덜(less)", ko:"A보다 B가 더 + 형용사 — B가 A보다 정도가 큼. A보다 B가 덜 + 형용사 — B가 A보다 정도가 작음"},
         cards:[
           { native:{vi:"Quả táo này to hơn quả dưa hấu.", en:"This apple is bigger than a watermelon.", ko:"이 사과는 수박보다 더 큽니다."},
@@ -14111,7 +14869,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 2. 동등비교 — 처럼/같이/만큼 (5개) ──
       {
-        key:"동등비교 — 처럼/같이/만큼", label:vi?"So sánh ngang bằng — 처럼/같이/만큼":en?"Equal Comparison — 처럼/같이/만큼":"A처럼/같이/만큼 — 같은 정도 비교", color:"#E3F2FD", accent:"#0D47A1",
+        key:"동등비교 — 처럼/같이/만큼", label:txUI("A처럼/같이/만큼 — 같은 정도 비교", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"처럼/같이 — giống như A (như, tựa như). 만큼 — tương đương với A (bằng). 처럼≈같이 (có thể thay nhau)", en:"처럼/같이 — like A (resemblance). 만큼 — as much as A (equal degree). 처럼≈같이 (interchangeable)", ko:"처럼/같이 — A와 비슷하게 (모양·방식). 만큼 — A와 같은 정도로 (정도). 처럼≈같이 교체 가능"},
         cards:[
           { native:{vi:"Quả táo này to bằng quả dưa hấu.", en:"This apple is as big as a watermelon.", ko:"이 사과는 수박만큼 큽니다."},
@@ -14128,7 +14886,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       },
       // ── 3. 최상급 — 가장/제일/중에서 (8개) ──
       {
-        key:"최상급 — 가장/제일/중에서", label:vi?"So sánh nhất — 가장/제일/중에서":en?"Superlative — 가장/제일/중에서":"가장/제일 + 형용사 — 최상급 표현", color:"#FFF3E0", accent:"#E65100",
+        key:"최상급 — 가장/제일/중에서", label:txUI("가장/제일 + 형용사 — 최상급 표현", lang), color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"가장/제일 + 형용사 — nhất. 범위 표현: ~에서/~중에서 가장. 가장≈제일 (có thể thay nhau)", en:"가장/제일 + adjective — the most. Range: ~에서/~중에서 가장. 가장≈제일 (interchangeable)", ko:"가장/제일 + 형용사 — 최상급. 범위: ~에서/~중에서 가장. 가장(문어)≈제일(구어)"},
         cards:[
           { native:{vi:"Quả táo này là quả táo lớn nhất ở Hàn Quốc.", en:"This apple is the biggest in Korea.", ko:"이 사과는 한국에서 가장 큰 사과입니다."},
@@ -14166,18 +14924,18 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Biểu thức so sánh":en?"Comparison Expressions":"비교 표현"}
+            {txUI("비교 표현", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_CMP.accent, textAlign:"center", marginBottom:4}}>
-            ⚖️ {vi?"So sánh hơn · ngang bằng · nhất":en?"Comparative · Equal · Superlative":"비교급 · 동등 · 최상급"}
+            ⚖️ {txUI("비교급 · 동등 · 최상급", lang)}
           </div>
           <div style={{background:"#E8F5E9", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
             <span style={{fontSize:12, color:"#2E7D32", fontWeight:700}}>
-              {vi?"보다 더/덜 (hơn/kém) → 처럼/만큼 (như) → 가장/제일 (nhất)":en?"보다 더/덜 (more/less) → 처럼/만큼 (like/as) → 가장/제일 (most)":"보다 더/덜 (비교급) → 처럼/만큼 (동등) → 가장/제일 (최상급)"}
+              {txUI("보다 더/덜 (비교급) → 처럼/만큼 (동등) → 가장/제일 (최상급)", lang)}
             </span>
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -14186,7 +14944,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#F1F8E9", border:"1.5px solid #AED581", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1B5E20", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -14201,7 +14959,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e => setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu trả lời bằng tiếng Hàn...":en?"Type the answer in Korean...":"한국어로 입력하세요..."}
+            placeholder={txUI("한국어로 입력하세요...", lang)}
             style={{width:"100%", minHeight:72, border:`2px solid ${C_CMP.border}`, borderRadius:12, padding:"12px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:12}}
             disabled={unitCardRevealed}
           />
@@ -14209,25 +14967,25 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:C_CMP.accent, color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Xác nhận":en?"Check":"확인하기"}
+              {txUI("확인하기", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_number"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#2E7D32" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Số đếm →":en?"Numbers →":"숫자 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("숫자 →", lang))}
               </button>
             </div>
           )}
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_approx"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -14236,11 +14994,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── unit_number: 숫자 ──
   if (step === "unit_number") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const NUM_SECTIONS = [
       {
-        key:"고유어 수사", label:vi?"Số thuần Hàn":en?"Native Korean Numbers":"하나·둘·셋 — 사람·동물·물건 셀 때", color:"#E8F5E9", accent:"#1B5E20",
+        key:"고유어 수사", label:txUI("하나·둘·셋 — 사람·동물·물건 셀 때", lang), color:"#E8F5E9", accent:"#1B5E20",
         rule:{vi:"Số thuần Hàn dùng khi đếm người, đồ vật, động vật. 1~10: 하나·둘·셋·넷·다섯·여섯·일곱·여덟·아홉·열. Trước đơn vị: 하나→한, 둘→두, 셋→세, 넷→네", en:"Native Korean numbers are used for counting people, objects, animals. 1~10: 하나·둘·셋·넷·다섯·여섯·일곱·여덟·아홉·열. Before counters: 하나→한, 둘→두, 셋→세, 넷→네", ko:"사람·물건·동물을 셀 때 사용. 1~10: 하나·둘·셋·넷·다섯·여섯·일곱·여덟·아홉·열. 단위명사 앞: 하나→한, 둘→두, 셋→세, 넷→네"},
         cards:[
           { native:{vi:"Xin cho tôi một ly cà phê.", en:"Please give me one cup of coffee.", ko:"커피 한 잔 주세요."},
@@ -14258,7 +15024,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"한자어 수사", label:vi?"Số Hán-Hàn":en?"Sino-Korean Numbers":"일·이·삼 — 날짜·돈·층수·전화번호", color:"#E3F2FD", accent:"#0D47A1",
+        key:"한자어 수사", label:txUI("일·이·삼 — 날짜·돈·층수·전화번호", lang), color:"#E3F2FD", accent:"#0D47A1",
         rule:{vi:"Số Hán-Hàn dùng cho ngày tháng, tiền, tầng, số điện thoại, phút, giây. 1~10: 일·이·삼·사·오·육·칠·팔·구·십. 100=백, 1000=천, 10000=만", en:"Sino-Korean numbers are used for dates, money, floors, phone numbers, minutes, seconds. 1~10: 일·이·삼·사·오·육·칠·팔·구·십. 100=백, 1000=천, 10000=만", ko:"날짜·금액·층수·전화번호·분·초에 사용. 1~10: 일·이·삼·사·오·육·칠·팔·구·십. 100=백, 1000=천, 10000=만"},
         cards:[
           { native:{vi:"Hôm nay là ngày mười lăm tháng năm.", en:"Today is May 15th.", ko:"오늘은 오월 십오 일입니다."},
@@ -14271,12 +15037,12 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             full:"약속이 두 시 삼십 분입니다.", rule:{vi:"시(時)=고유어, 분(分)=한자어: 두 시 삼십 분", en:"시=native Korean, 분=Sino-Korean: 두 시 삼십 분", ko:"시는 고유어(두 시), 분은 한자어(삼십 분)"} },
           { native:{vi:"Số điện thoại của tôi là 010-1234-5678.", en:"My phone number is 010-1234-5678.", ko:"제 전화번호는 공일공-일이삼사-오육칠팔입니다."},
             full:"제 전화번호는 공일공-일이삼사-오육칠팔입니다.", rule:{vi:"전화번호는 한자어로 읽음: 공(0)·일(1)·이(2)...", en:"Phone numbers use Sino-Korean: 공(0)·일(1)·이(2)...", ko:"전화번호는 한자어: 공(0)·일(1)·이(2)..."} },
-          { native:{vi:"Tôi học tiếng Hàn được sáu tháng.", en:"I have studied Korean for six months.", ko:"한국어를 배운 지 육 개월이 됐습니다."},
+          { native:{vi:"Tôi học tiếng Hàn được sáu tháng.", en:"I have studied Korean for six months.", ko:"한국어를 배운 지 육 개월이 되었습니다."},
             full:"한국어를 배운 지 육 개월이 됐습니다.", rule:{vi:"개월(개월)은 한자어: 육(6)개월", en:"개월 uses Sino-Korean: 육개월", ko:"개월은 한자어: 육 개월"} },
         ]
       },
       {
-        key:"실생활 숫자 표현", label:vi?"Số trong cuộc sống":en?"Numbers in Daily Life":"날짜·시간·돈·나이 실전 표현", color:"#FFF3E0", accent:"#E65100",
+        key:"실생활 숫자 표현", label:txUI("날짜·시간·돈·나이 실전 표현", lang), color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"Quy tắc chọn: 나이·시(時)·개(個)·명(名)·잔(盞) → 고유어 / 날짜·월·분·초·원·층·번 → 한자어", en:"Rule: age, 시, 개, 명, 잔 → native Korean / dates, months, minutes, won, floors, numbers → Sino-Korean", ko:"고유어: 나이·시·개·명·잔 / 한자어: 날짜·월·분·원·층·번·전화번호"},
         cards:[
           { native:{vi:"Hôm nay là thứ Hai, ngày 3 tháng 3.", en:"Today is Monday, March 3rd.", ko:"오늘은 삼월 삼 일 월요일입니다."},
@@ -14304,10 +15070,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Biểu thức số đếm":en?"Number Expressions":"숫자 표현"}
+            {txUI("숫자 표현", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:C_NUM.accent, textAlign:"center", marginBottom:4}}>
-            🔢 {vi?"Số đếm tiếng Hàn":en?"Korean Numbers":"한국어 숫자"}
+            🔢 {txUI("한국어 숫자", lang)}
           </div>
           <div style={{background:"#E8EAF6", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
             <span style={{fontSize:12, color:"#3949AB", fontWeight:700}}>
@@ -14317,7 +15083,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
             </span>
           </div>
           <div style={{fontSize:12, color:"#888", textAlign:"center", marginBottom:12}}>
-            {vi?"Tiến trình":en?"Progress":""}{unitCardIdx + 1} / {total}
+            {lc==="vi"?"Tiến trình":lc==="en"?"Progress":""}{unitCardIdx + 1} / {total}
           </div>
 
           <div style={{background:card.sectionColor, border:`1.5px solid ${card.sectionAccent}30`, borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
@@ -14326,7 +15092,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc cốt lõi":en?"Core Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -14341,30 +15107,30 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e=>setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어 문장을 입력하세요..."}
+            placeholder={txUI("한국어 문장을 입력하세요...", lang)}
             style={{width:"100%", minHeight:70, borderRadius:10, border:"1.5px solid #A5D6A7", padding:"10px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:10}}
           />
 
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:"#1B5E20", color:"white", border:"none", borderRadius:12, padding:"13px", fontSize:15, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#E8F5E9", border:"2px solid #4CAF50", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:11, color:"#388E3C", fontWeight:700, marginBottom:6}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:11, color:"#388E3C", fontWeight:700, marginBottom:6}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:18, fontWeight:900, color:"#1B5E20", letterSpacing:1}}>{card.full}</div>
               </div>
               {unitCardIdx < total - 1 ? (
                 <button onClick={()=>{ setUnitCardIdx(unitCardIdx+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                   style={{width:"100%", background:"#388E3C", color:"white", border:"none", borderRadius:12, padding:"13px", fontSize:15, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                  {vi?"Tiếp theo →":en?"Next →":"다음 →"}
+                  {txUI("다음 →", lang)}
                 </button>
               ) : (
                 <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_neg"); }}
                   style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                  {vi?"Phủ định →":en?"Negation →":"부정법 →"}
+                  {txUI("부정법 →", lang)}
                 </button>
               )}
             </div>
@@ -14372,7 +15138,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_compare"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -14381,11 +15147,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── unit_neg: 부정법 ──
   if (step === "unit_neg") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const NEG_SECTIONS = [
       {
-        key:"안~ / 못~", label:vi?"안 vs 못":en?"안 vs 못":"의지 부정 vs 능력 부정", color:"#FFF3E0", accent:"#E65100",
+        key:"안~ / 못~", label:txUI("의지 부정 vs 능력 부정", lang), color:"#FFF3E0", accent:"#E65100",
         rule:{vi:"안 = không muốn (ý chí). 못 = không thể (năng lực/hoàn cảnh). 안 먹다 = không ăn (không muốn). 못 먹다 = không thể ăn (dị ứng, hoàn cảnh)", en:"안 = won't (choice/will). 못 = can't (ability/circumstances). 안 먹다 = won't eat. 못 먹다 = can't eat", ko:"안 = 의지 부정(하기 싫어서). 못 = 능력/상황 부정(할 수 없어서). 안 먹다=먹기 싫다. 못 먹다=먹을 수 없다"},
         cards:[
           { native:{vi:"Hôm nay tôi không đi làm. (tôi không muốn đi)", en:"I'm not going to work today. (by choice)", ko:"오늘 저는 회사에 안 갑니다."},
@@ -14399,13 +15173,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"~지 않다 / ~지 못하다", label:vi?"Phủ định dài":en?"Long-form Negation":"서술어 뒤에 붙이는 정중한 부정", color:"#F3E5F5", accent:"#6A1B9A",
+        key:"~지 않다 / ~지 못하다", label:txUI("서술어 뒤에 붙이는 정중한 부정", lang), color:"#F3E5F5", accent:"#6A1B9A",
         rule:{vi:"~지 않다 = 안~ (lịch sự hơn). ~지 못하다 = 못~ (lịch sự hơn). 가지 않다 = 안 가다. 가지 못하다 = 못 가다. 하다동사: 공부하지 않다 / 공부하지 못하다", en:"~지 않다 = polite form of 안~. ~지 못하다 = polite form of 못~. 가지 않다 = 안 가다. 하다 verbs: 공부하지 않다", ko:"~지 않다 = 안~의 정중한 표현. ~지 못하다 = 못~의 정중한 표현. 하다동사: 공부하지 않다/못하다"},
         cards:[
           { native:{vi:"Tuân không ăn sáng sáng nay.", en:"Tuan didn't eat breakfast this morning.", ko:"투안은 오늘 아침을 먹지 않았습니다."},
             full:"투안은 오늘 아침을 먹지 않았습니다.", rule:{vi:"먹지 않았다 = 안 먹었다 (dạng lịch sự)", en:"먹지 않았다 = polite form of 안 먹었다", ko:"먹지 않았다 = 안 먹었다 (정중체)"} },
-          { native:{vi:"Hôm qua tôi không ngủ được.", en:"I couldn't sleep yesterday.", ko:"저는 어제 잠을 자지 못했습니다."},
-            full:"저는 어제 잠을 자지 못했습니다.", rule:{vi:"자지 못했다 = 못 잤다 (dạng lịch sự)", en:"자지 못했다 = polite form of 못 잤다", ko:"자지 못했다 = 못 잤다 (정중체)"} },
+          { native:{vi:"Hôm qua tôi không giữ được hẹn.", en:"I couldn't keep my appointment yesterday.", ko:"저는 어제 약속을 지키지 못했습니다."},
+            full:"저는 어제 약속을 지키지 못했습니다.", rule:{vi:"지키지 못했다 = 못 지켰다 (dạng lịch sự)", en:"지키지 못했다 = polite form of 못 지켰다", ko:"지키지 못했다 = 못 지켰다 (정중체)"} },
           { native:{vi:"Lin không học tiếng Hàn ở trường.", en:"Lin doesn't study Korean at school.", ko:"린은 학교에서 한국어를 공부하지 않습니다."},
             full:"린은 학교에서 한국어를 공부하지 않습니다.", rule:{vi:"공부하지 않다 = 안 공부하다 (하다동사)", en:"공부하지 않다 = 안 공부하다 (하다 verb)", ko:"하다동사: 공부하지 않다 = 안 공부하다"} },
           { native:{vi:"Tôi không thể hoàn thành bài tập vì bận.", en:"I couldn't finish the homework because I was busy.", ko:"바빠서 숙제를 다 하지 못했습니다."},
@@ -14413,13 +15187,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"~지 마세요 / ~지 맙시다", label:vi?"Câu cấm":en?"Prohibition":"하지 말라는 표현 — 명령·청유 부정", color:"#FFEBEE", accent:"#B71C1C",
+        key:"~지 마세요 / ~지 맙시다", label:txUI("하지 말라는 표현 — 명령·청유 부정", lang), color:"#FFEBEE", accent:"#B71C1C",
         rule:{vi:"~지 마세요 = xin đừng~ (lệnh lịch sự). ~지 맙시다 = chúng ta đừng~ (đề nghị). ~지 마 = đừng~ (thân mật). 가지 마세요 / 먹지 맙시다 / 울지 마", en:"~지 마세요 = please don't~ (polite command). ~지 맙시다 = let's not~ (suggestion). ~지 마 = don't~ (informal)", ko:"~지 마세요 = (하지 말라는) 정중한 명령. ~지 맙시다 = 함께 하지 말자는 청유. ~지 마 = 친한 사이 명령"},
         cards:[
           { native:{vi:"Xin đừng hút thuốc ở đây.", en:"Please don't smoke here.", ko:"여기에서 담배를 피우지 마세요."},
             full:"여기에서 담배를 피우지 마세요.", rule:{vi:"피우지 마세요 = xin đừng hút", en:"피우지 마세요 = please don't smoke", ko:"~지 마세요: 정중한 금지 명령"} },
-          { native:{vi:"Chúng ta đừng lãng phí thức ăn nhé.", en:"Let's not waste food.", ko:"음식을 낭비하지 맙시다."},
-            full:"음식을 낭비하지 맙시다.", rule:{vi:"낭비하지 맙시다 = chúng ta đừng lãng phí", en:"낭비하지 맙시다 = let's not waste", ko:"~지 맙시다: 함께 하지 말자는 청유"} },
+          { native:{vi:"Chúng ta đừng cãi nhau nhé.", en:"Let's not fight.", ko:"싸우지 맙시다."},
+            full:"싸우지 맙시다.", rule:{vi:"싸우지 맙시다 = chúng ta đừng cãi nhau", en:"싸우지 맙시다 = let's not fight", ko:"~지 맙시다: 함께 하지 말자는 청유"} },
           { native:{vi:"Đừng lo lắng, mọi chuyện sẽ ổn thôi.", en:"Don't worry, everything will be okay.", ko:"걱정하지 마세요. 다 잘 될 거예요."},
             full:"걱정하지 마세요. 다 잘 될 거예요.", rule:{vi:"걱정하지 마세요 = đừng lo (하다동사+지 마세요)", en:"걱정하지 마세요 = don't worry (하다 verb)", ko:"하다동사+지 마세요: 걱정하지 마세요"} },
         ]
@@ -14440,10 +15214,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Phủ định":en?"Negation":"부정법"}
+            {txUI("부정법", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:"#E65100", textAlign:"center", marginBottom:4}}>
-            🚫 {vi?"Cách phủ định":en?"Korean Negation":"안~·못~·~지 않다·~지 못하다"}
+            🚫 {txUI("안~·못~·~지 않다·~지 못하다", lang)}
           </div>
           <div style={{background:"#FBE9E7", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
             <span style={{fontSize:12, color:"#B71C1C", fontWeight:700}}>
@@ -14462,7 +15236,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#FBE9E7", border:"1.5px solid #FFCCBC", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#BF360C", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#BF360C", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -14477,30 +15251,30 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e=>setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어 문장을 입력하세요..."}
+            placeholder={txUI("한국어 문장을 입력하세요...", lang)}
             style={{width:"100%", minHeight:70, borderRadius:10, border:"1.5px solid #FFCCBC", padding:"10px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:10}}
           />
 
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:"#E65100", color:"white", border:"none", borderRadius:12, padding:"13px", fontSize:15, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#FBE9E7", border:"2px solid #FF7043", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:11, color:"#BF360C", fontWeight:700, marginBottom:6}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:11, color:"#BF360C", fontWeight:700, marginBottom:6}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:18, fontWeight:900, color:"#BF360C", letterSpacing:1}}>{card.full}</div>
               </div>
               {unitCardIdx < total - 1 ? (
                 <button onClick={()=>{ setUnitCardIdx(unitCardIdx+1); setUnitCardInput(""); setUnitCardRevealed(false); }}
                   style={{width:"100%", background:"#E65100", color:"white", border:"none", borderRadius:12, padding:"13px", fontSize:15, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                  {vi?"Tiếp theo →":en?"Next →":"다음 →"}
+                  {txUI("다음 →", lang)}
                 </button>
               ) : (
                 <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_register"); }}
                   style={{width:"100%", background:"#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                  {vi?"Văn phong →":en?"Speech Styles →":"격식체·구어체·문어체 →"}
+                  {txUI("격식체·구어체·문어체 →", lang)}
                 </button>
               )}
             </div>
@@ -14508,7 +15282,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_number"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -14518,11 +15292,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── unit_register: 격식체·구어체·문어체 ──
   if (step === "unit_register") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
     const REG_SECTIONS = [
       {
-        key:"격식체 vs 구어체", label:vi?"Trang trọng vs Thông thường":en?"Formal vs Informal":"합니다체 vs 해요체 — 상황 구분", color:"#E8EAF6", accent:"#283593",
+        key:"격식체 vs 구어체", label:txUI("합니다체 vs 해요체 — 상황 구분", lang), color:"#E8EAF6", accent:"#283593",
         rule:{vi:"합니다체(격식): công sở, người lạ, phát biểu chính thức. 해요체(thông thường): cuộc sống hàng ngày, người quen. 가다→갑니다(격식)/가요(일상). 먹다→먹습니다/먹어요. 있다→있습니다/있어요", en:"합니다체(formal): workplace, strangers, official speech. 해요체(everyday): daily life, acquaintances. 가다→갑니다(formal)/가요(everyday). 먹다→먹습니다/먹어요", ko:"합니다체: 직장·공식 상황·모르는 사람. 해요체: 일상생활·아는 사람. 가다→갑니다(격식)/가요(일상). 먹다→먹습니다/먹어요"},
         cards:[
           { native:{vi:"(Báo cáo công việc - trang trọng) Tôi đã hoàn thành báo cáo.", en:"(Work report - formal) I have completed the report.", ko:"(업무 보고 - 격식) 보고서를 완성했습니다."},
@@ -14540,21 +15322,21 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
         ]
       },
       {
-        key:"문어체", label:vi?"Văn viết":en?"Written Style":"글로 쓸 때 — 신문·문자·SNS", color:"#E0F2F1", accent:"#00695C",
+        key:"문어체", label:txUI("글로 쓸 때 — 신문·문자·SNS", lang), color:"#E0F2F1", accent:"#00695C",
         rule:{vi:"문어체(văn viết): tin nhắn, SNS, bài báo, nhật ký. Bỏ 요: 갔어요→갔어, 먹었어요→먹었어. Hoặc dùng dạng từ điển: 가다, 먹다, 있다. Trong báo/tiểu thuyết: ~ㄴ다/는다(hiện tại), ~았/었다(quá khứ)", en:"문어체(written): texts, SNS, news, diary. Drop 요: 갔어요→갔어, 먹었어요→먹었어. Or use plain form: 가다, 먹다. News/novels: ~ㄴ다/는다(present), ~았/었다(past)", ko:"문어체: 문자·SNS·신문·일기에 사용. 요 생략: 갔어요→갔어. 또는 기본형: 가다, 먹다. 신문·소설: ~ㄴ다/는다(현재), ~았/었다(과거)"},
         cards:[
           { native:{vi:"(Tin nhắn bạn bè) Tôi sẽ đến muộn khoảng 10 phút.", en:"(Friend text) I'll be about 10 minutes late.", ko:"(친구 문자) 나 10분 정도 늦을 것 같아."},
             full:"나 10분 정도 늦을 것 같아.", rule:{vi:"문어체(친구 문자): 해체, 요 없음", en:"Written/informal: 해체, no 요", ko:"친구 문자: 해체 (요 없음), 자연스러운 문어체"} },
           { native:{vi:"(SNS caption) Hôm nay trời đẹp nên tôi đi dạo.", en:"(SNS post) The weather is nice today, so I went for a walk.", ko:"(SNS) 오늘 날씨가 좋아서 산책을 갔다."},
             full:"오늘 날씨가 좋아서 산책을 갔다.", rule:{vi:"문어체(SNS): ~았다 (quá khứ, văn viết)", en:"Written style(SNS): ~았다 (past, written)", ko:"SNS·일기: ~았다 (과거 문어체)"} },
-          { native:{vi:"(Bài báo) Chính phủ công bố chính sách kinh tế mới.", en:"(News article) The government announced a new economic policy.", ko:"(신문 기사) 정부가 새로운 경제 정책을 발표한다."},
-            full:"정부가 새로운 경제 정책을 발표한다.", rule:{vi:"문어체(báo): ~ㄴ다/는다 (hiện tại, thể văn viết trang trọng)", en:"News style: ~ㄴ다/는다 (present written form)", ko:"신문 기사: ~ㄴ다/는다 (현재 문어체)"} },
-          { native:{vi:"(Nhật ký) Hôm nay tôi đã gặp một người bạn cũ.", en:"(Diary) Today I met an old friend.", ko:"(일기) 오늘 오랜 친구를 만났다."},
-            full:"오늘 오랜 친구를 만났다.", rule:{vi:"문어체(nhật ký): ~았다 (quá khứ, không có 요)", en:"Diary style: ~았다 (past, no 요)", ko:"일기: ~았다 (과거 문어체, 요 없음)"} },
+          { native:{vi:"(Bài báo) Hôm nay trời quang đãng.", en:"(News article) The weather is clear today.", ko:"(신문 기사) 오늘 날씨가 맑다."},
+            full:"오늘 날씨가 맑다.", rule:{vi:"문어체(báo): 맑다 → 맑다 (hiện tại, thể văn viết)", en:"News style: 맑다 → 맑다 (present written form)", ko:"신문 기사: ~다 (현재 문어체)"} },
+          { native:{vi:"(Nhật ký) Hôm nay tôi đã gặp một người bạn lâu năm.", en:"(Diary) Today I met a long-time friend.", ko:"(일기) 오늘 오래된 친구를 만났다."},
+            full:"오늘 오래된 친구를 만났다.", rule:{vi:"문어체(nhật ký): ~았다 (quá khứ, không có 요)", en:"Diary style: ~았다 (past, no 요)", ko:"일기: ~았다 (과거 문어체, 요 없음)"} },
         ]
       },
       {
-        key:"3체 비교", label:vi?"So sánh 3 thể":en?"3-Style Comparison":"같은 내용, 3가지 표현", color:"#FFF8E1", accent:"#F57F17",
+        key:"3체 비교", label:txUI("같은 내용, 3가지 표현", lang), color:"#FFF8E1", accent:"#F57F17",
         rule:{vi:"Cùng nội dung, 3 cách nói: 합니다체(trang trọng) / 해요체(thông thường) / 해체·문어체(thân mật·văn viết). Chọn theo: với ai 말하는가? + 어디서 쓰는가?", en:"Same content, 3 styles: 합니다체(formal) / 해요체(everyday) / 해체(informal/written). Choose based on: who + where", ko:"같은 내용 3가지: 합니다체(격식) / 해요체(일상) / 해체·문어체(친밀·문자). 상황에 맞게 선택"},
         cards:[
           { native:{vi:"[격식] Tôi sẽ đi Hàn Quốc vào tuần tới.", en:"[Formal] I will go to Korea next week.", ko:"[격식] 저는 다음 주에 한국에 갑니다."},
@@ -14581,10 +15363,10 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
           <div style={{fontSize:13, color:"#aaa", textAlign:"center", marginBottom:4}}>
-            {vi?"Văn phong":en?"Speech Styles":"격식체·구어체·문어체"}
+            {txUI("격식체·구어체·문어체", lang)}
           </div>
           <div style={{fontSize:18, fontWeight:900, color:"#283593", textAlign:"center", marginBottom:4}}>
-            🗣️ {vi?"Ba thể trong tiếng Hàn":en?"Korean Speech Styles":"합니다체 / 해요체 / 해체"}
+            🗣️ {txUI("합니다체 / 해요체 / 해체", lang)}
           </div>
           <div style={{background:"#C5CAE9", borderRadius:10, padding:"8px 14px", marginBottom:12, textAlign:"center"}}>
             <span style={{fontSize:12, color:"#1A237E", fontWeight:700}}>
@@ -14603,7 +15385,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </div>
 
           <div style={{background:"#E8EAF6", border:"1.5px solid #9FA8DA", borderRadius:10, padding:"10px 14px", marginBottom:12}}>
-            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {vi?"Quy tắc":en?"Rule":"핵심 규칙"}</div>
+            <div style={{fontWeight:700, color:"#1A237E", fontSize:12, marginBottom:4}}>💡 {txUI("핵심 규칙", lang)}</div>
             <div style={{fontSize:13, color:"#555"}}>{ruleText}</div>
           </div>
 
@@ -14618,19 +15400,19 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           <textarea
             value={unitCardInput}
             onChange={e=>setUnitCardInput(e.target.value)}
-            placeholder={vi?"Nhập câu tiếng Hàn...":en?"Type the Korean sentence...":"한국어 문장을 입력하세요..."}
+            placeholder={txUI("한국어 문장을 입력하세요...", lang)}
             style={{width:"100%", minHeight:70, borderRadius:10, border:"1.5px solid #9FA8DA", padding:"10px 14px", fontSize:15, fontFamily:"inherit", resize:"none", outline:"none", boxSizing:"border-box", marginBottom:10}}
           />
 
           {!unitCardRevealed ? (
             <button onClick={()=>setUnitCardRevealed(true)}
               style={{width:"100%", background:"#283593", color:"white", border:"none", borderRadius:12, padding:"13px", fontSize:15, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-              {vi?"Kiểm tra ✓":en?"Check ✓":"확인하기 ✓"}
+              {txUI("확인하기 ✓", lang)}
             </button>
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #3F51B5", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:11, color:"#1A237E", fontWeight:700, marginBottom:6}}>✅ {vi?"Đáp án":en?"Answer":"정답"}</div>
+                <div style={{fontSize:11, color:"#1A237E", fontWeight:700, marginBottom:6}}>✅ {txUI("정답", lang)}</div>
                 <div style={{fontSize:18, fontWeight:900, color:"#1A237E", letterSpacing:1}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -14638,14 +15420,14 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
                 else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_review"); }
               }}
                 style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (vi?"Tiếp theo →":en?"Next →":"다음 →") : (vi?"Tổng ôn tập →":en?"Final Review →":"기초문법 정리 →")}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("기초문법 정리 →", lang))}
               </button>
             </div>
           )}
 
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_neg"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
@@ -14655,8 +15437,16 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
 
   // ── unit_review: 기초문법 총정리 ──
   if (step === "unit_review") {
-    const vi = lang?.code === "vi";
-    const en = lang?.code === "en";
+    const lc = lang?.code ?? "ko";
+    const vi = lc === "vi";
+    const en = lc === "en";
+    const zh = lc === "zh";
+    const ja = lc === "ja";
+    const id = lc === "id";
+    const ru = lc === "ru";
+    const th = lc === "th";
+    const mn = lc === "mn";
+    const uz = lc === "uz";
 
     const Section = ({title, accent, bg, children}) => (
       <div style={{marginBottom:16}}>
@@ -14689,15 +15479,15 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {/* 헤더 */}
           <div style={{textAlign:"center", marginBottom:20}}>
             <div style={{fontSize:13, color:"#aaa", marginBottom:2}}>
-              {vi?"Tổng ôn tập ngữ pháp":en?"Grammar Summary":"기초문법 총정리"}
+              {txUI("기초문법 총정리", lang)}
             </div>
             <div style={{fontSize:20, fontWeight:900, color:"#1A237E"}}>
-              🗂️ {vi?"Tổng hợp ngữ pháp cơ bản":en?"Korean Grammar at a Glance":"한국어 기초문법 한눈에 보기"}
+              🗂️ {txUI("한국어 기초문법 한눈에 보기", lang)}
             </div>
           </div>
 
           {/* 1. 문장 구조 */}
-          <Section title={vi?"1. Cấu trúc câu":en?"1. Sentence Structure":"1. 문장 구조"} accent="#1565C0" bg="#E3F2FD">
+          <Section title={txUI("1. 문장 구조", lang)} accent="#1565C0" bg="#E3F2FD">
             <div style={{fontSize:13, fontWeight:700, color:"#1565C0", marginBottom:6, textAlign:"center"}}>
               주어 ＋ 부사어 ＋ (간접목적어) ＋ 목적어 ＋ 서술어
             </div>
@@ -14709,56 +15499,56 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           </Section>
 
           {/* 2. 주어 */}
-          <Section title={vi?"2. Chủ ngữ":en?"2. Subject":"2. 주어"} accent="#283593" bg="#E8EAF6">
-            <Row accent="#283593" label={vi?"의문":en?"Question":"의문"} items={<><Tag text="누가" color="#283593"/><Tag text="무엇이" color="#283593"/></>}/>
-            <Row accent="#283593" label={vi?"1인칭":en?"1st":"1인칭"} items={<><Tag text="저/제가" color="#283593"/><Tag text="나/내가" color="#283593"/></>}/>
-            <Row accent="#283593" label={vi?"2·3인칭":en?"2·3rd":"2·3인칭"} items={<><Tag text="당신은" color="#283593"/><Tag text="그는/그녀는" color="#283593"/><Tag text="이것은/저것은" color="#283593"/></>}/>
-            <Row accent="#283593" label={vi?"지시":en?"Demonstr.":"지시"} items={<><Tag text="이/그/저" color="#283593"/><Tag text="이것/그것/저것" color="#283593"/></>}/>
+          <Section title={txUI("2. 주어", lang)} accent="#283593" bg="#E8EAF6">
+            <Row accent="#283593" label={txUI("의문", lang)} items={<><Tag text="누가" color="#283593"/><Tag text="무엇이" color="#283593"/></>}/>
+            <Row accent="#283593" label={txUI("1인칭", lang)} items={<><Tag text="저/제가" color="#283593"/><Tag text="나/내가" color="#283593"/></>}/>
+            <Row accent="#283593" label={txUI("2·3인칭", lang)} items={<><Tag text="당신은" color="#283593"/><Tag text="그는/그녀는" color="#283593"/><Tag text="이것은/저것은" color="#283593"/></>}/>
+            <Row accent="#283593" label={txUI("지시", lang)} items={<><Tag text="이/그/저" color="#283593"/><Tag text="이것/그것/저것" color="#283593"/></>}/>
           </Section>
 
           {/* 3. 부사어 */}
-          <Section title={vi?"3. Trạng ngữ":en?"3. Adverbials":"3. 부사어"} accent="#1B5E20" bg="#E8F5E9">
-            <Row accent="#1B5E20" label={vi?"시간":en?"Time":"시간"} items={<><Tag text="언제" color="#1B5E20"/><Tag text="어제·오늘·내일" color="#1B5E20"/><Tag text="~때" color="#1B5E20"/><Tag text="~후에·전에" color="#1B5E20"/></>}/>
-            <Row accent="#1B5E20" label={vi?"장소":en?"Place":"장소·방향"} items={<><Tag text="어디에서" color="#1B5E20"/><Tag text="에/에서/으로" color="#1B5E20"/><Tag text="~(으)로" color="#1B5E20"/></>}/>
-            <Row accent="#1B5E20" label={vi?"이유":en?"Reason":"이유·원인"} items={<><Tag text="~아/어서" color="#1B5E20"/><Tag text="~기 때문에" color="#1B5E20"/><Tag text="~(으)니까" color="#1B5E20"/></>}/>
-            <Row accent="#1B5E20" label={vi?"조건":en?"Condition":"조건·가정"} items={<><Tag text="~(으)면" color="#1B5E20"/><Tag text="~(으)려면" color="#1B5E20"/></>}/>
-            <Row accent="#1B5E20" label={vi?"양보":en?"Concession":"양보"} items={<><Tag text="~아/어도" color="#1B5E20"/></>}/>
-            <Row accent="#1B5E20" label={vi?"배경":en?"Background":"배경·상황"} items={<><Tag text="~는데/은데" color="#1B5E20"/></>}/>
-            <Row accent="#1B5E20" label={vi?"빈도":en?"Frequency":"빈도"} items={<><Tag text="항상" color="#1B5E20"/><Tag text="자주" color="#1B5E20"/><Tag text="가끔" color="#1B5E20"/><Tag text="거의 안" color="#1B5E20"/></>}/>
+          <Section title={txUI("3. 부사어", lang)} accent="#1B5E20" bg="#E8F5E9">
+            <Row accent="#1B5E20" label={txUI("시간", lang)} items={<><Tag text="언제" color="#1B5E20"/><Tag text="어제·오늘·내일" color="#1B5E20"/><Tag text="~때" color="#1B5E20"/><Tag text="~후에·전에" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={txUI("장소·방향", lang)} items={<><Tag text="어디에서" color="#1B5E20"/><Tag text="에/에서/으로" color="#1B5E20"/><Tag text="~(으)로" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={txUI("이유·원인", lang)} items={<><Tag text="~아/어서" color="#1B5E20"/><Tag text="~기 때문에" color="#1B5E20"/><Tag text="~(으)니까" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={txUI("조건·가정", lang)} items={<><Tag text="~(으)면" color="#1B5E20"/><Tag text="~(으)려면" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={txUI("양보", lang)} items={<><Tag text="~아/어도" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={txUI("배경·상황", lang)} items={<><Tag text="~는데/은데" color="#1B5E20"/></>}/>
+            <Row accent="#1B5E20" label={txUI("빈도", lang)} items={<><Tag text="항상" color="#1B5E20"/><Tag text="자주" color="#1B5E20"/><Tag text="가끔" color="#1B5E20"/><Tag text="거의 안" color="#1B5E20"/></>}/>
           </Section>
 
           {/* 4. 간접목적어·목적어 */}
-          <Section title={vi?"4. Bổ ngữ gián tiếp · Tân ngữ":en?"4. Indirect Object · Object":"4. 간접목적어 · 목적어"} accent="#4A148C" bg="#F3E5F5">
-            <Row accent="#4A148C" label={vi?"간접목적어":en?"Indirect":"간접목적어"} items={<><Tag text="누구에게" color="#4A148C"/><Tag text="누구께(존칭)" color="#4A148C"/><Tag text="누구한테" color="#4A148C"/></>}/>
-            <Row accent="#4A148C" label={vi?"목적어":en?"Object":"목적어"} items={<><Tag text="누구를/을" color="#4A148C"/><Tag text="무엇을/을" color="#4A148C"/><Tag text="어디를/을" color="#4A148C"/></>}/>
-            <Row accent="#4A148C" label={vi?"단위명사":en?"Counters":"단위명사"} items={<><Tag text="명/개/잔/병" color="#4A148C"/><Tag text="장/권/켤레" color="#4A148C"/><Tag text="대/척/송이" color="#4A148C"/></>}/>
+          <Section title={txUI("4. 간접목적어 · 목적어", lang)} accent="#4A148C" bg="#F3E5F5">
+            <Row accent="#4A148C" label={txUI("간접목적어", lang)} items={<><Tag text="누구에게" color="#4A148C"/><Tag text="누구께(존칭)" color="#4A148C"/><Tag text="누구한테" color="#4A148C"/></>}/>
+            <Row accent="#4A148C" label={txUI("목적어", lang)} items={<><Tag text="누구를/을" color="#4A148C"/><Tag text="무엇을/을" color="#4A148C"/><Tag text="어디를/을" color="#4A148C"/></>}/>
+            <Row accent="#4A148C" label={txUI("단위명사", lang)} items={<><Tag text="명/개/잔/병" color="#4A148C"/><Tag text="장/권/켤레" color="#4A148C"/><Tag text="대/척/송이" color="#4A148C"/></>}/>
           </Section>
 
           {/* 5. 서술어 */}
-          <Section title={vi?"5. Vị ngữ":en?"5. Predicate":"5. 서술어"} accent="#B71C1C" bg="#FFEBEE">
-            <Row accent="#B71C1C" label={vi?"이다":en?"이다":"이다"} items={<><Tag text="입니다" color="#B71C1C"/><Tag text="이에요/예요" color="#B71C1C"/><Tag text="이/가 아닙니다" color="#B71C1C"/></>}/>
-            <Row accent="#B71C1C" label={vi?"시제":en?"Tense":"동사·형용사 시제"} items={<><Tag text="합니다(현재)" color="#B71C1C"/><Tag text="했습니다(과거)" color="#B71C1C"/><Tag text="할 것입니다(미래)" color="#B71C1C"/></>}/>
-            <Row accent="#B71C1C" label={vi?"문어체":en?"Written":"격식·구어·문어"} items={<><Tag text="합니다체" color="#B71C1C"/><Tag text="해요체" color="#B71C1C"/><Tag text="해체·~다" color="#B71C1C"/></>}/>
-            <Row accent="#B71C1C" label={vi?"불규칙":en?"Irregular":"불규칙"} items={<><Tag text="ㅂ→우" color="#B71C1C"/><Tag text="ㄹ탈락" color="#B71C1C"/><Tag text="르→ㄹ라" color="#B71C1C"/><Tag text="ㄷ→ㄹ" color="#B71C1C"/><Tag text="ㅡ탈락" color="#B71C1C"/><Tag text="ㅅ탈락" color="#B71C1C"/></>}/>
-            <Row accent="#B71C1C" label={vi?"부정":en?"Negation":"부정법"} items={<><Tag text="안~/못~" color="#B71C1C"/><Tag text="~지 않다" color="#B71C1C"/><Tag text="~지 못하다" color="#B71C1C"/><Tag text="~지 마세요" color="#B71C1C"/></>}/>
-            <Row accent="#B71C1C" label={vi?"존칭":en?"Honorific":"존칭"} items={<><Tag text="~세요/으세요" color="#B71C1C"/><Tag text="드리다·모시다" color="#B71C1C"/><Tag text="드시다·주무시다" color="#B71C1C"/></>}/>
-            <Row accent="#B71C1C" label={vi?"가능·능력":en?"Ability":"가능·능력"} items={<><Tag text="~ㄹ 수 있다" color="#B71C1C"/><Tag text="~ㄹ 수 없다" color="#B71C1C"/></>}/>
-            <Row accent="#B71C1C" label={vi?"부탁·허락":en?"Request":"부탁·허락"} items={<><Tag text="~아/어 주세요" color="#B71C1C"/><Tag text="~아도 돼요" color="#B71C1C"/></>}/>
-            <Row accent="#B71C1C" label={vi?"변화":en?"Change":"변화"} items={<><Tag text="~아/어지다" color="#B71C1C"/><Tag text="~게 되다" color="#B71C1C"/></>}/>
+          <Section title={txUI("5. 서술어", lang)} accent="#B71C1C" bg="#FFEBEE">
+            <Row accent="#B71C1C" label={txUI("이다", lang)} items={<><Tag text="입니다" color="#B71C1C"/><Tag text="이에요/예요" color="#B71C1C"/><Tag text="이/가 아닙니다" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={txUI("동사·형용사 시제", lang)} items={<><Tag text="합니다(현재)" color="#B71C1C"/><Tag text="했습니다(과거)" color="#B71C1C"/><Tag text="할 것입니다(미래)" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={txUI("격식·구어·문어", lang)} items={<><Tag text="합니다체" color="#B71C1C"/><Tag text="해요체" color="#B71C1C"/><Tag text="해체·~다" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={txUI("불규칙", lang)} items={<><Tag text="ㅂ→우" color="#B71C1C"/><Tag text="ㄹ탈락" color="#B71C1C"/><Tag text="르→ㄹ라" color="#B71C1C"/><Tag text="ㄷ→ㄹ" color="#B71C1C"/><Tag text="ㅡ탈락" color="#B71C1C"/><Tag text="ㅅ탈락" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={txUI("부정법", lang)} items={<><Tag text="안~/못~" color="#B71C1C"/><Tag text="~지 않다" color="#B71C1C"/><Tag text="~지 못하다" color="#B71C1C"/><Tag text="~지 마세요" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={txUI("존칭", lang)} items={<><Tag text="~세요/으세요" color="#B71C1C"/><Tag text="드리다·모시다" color="#B71C1C"/><Tag text="드시다·주무시다" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={txUI("가능·능력", lang)} items={<><Tag text="~ㄹ 수 있다" color="#B71C1C"/><Tag text="~ㄹ 수 없다" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={txUI("부탁·허락", lang)} items={<><Tag text="~아/어 주세요" color="#B71C1C"/><Tag text="~아도 돼요" color="#B71C1C"/></>}/>
+            <Row accent="#B71C1C" label={txUI("변화", lang)} items={<><Tag text="~아/어지다" color="#B71C1C"/><Tag text="~게 되다" color="#B71C1C"/></>}/>
           </Section>
 
           {/* 6. 기타 표현 */}
-          <Section title={vi?"6. Biểu thức khác":en?"6. Other Expressions":"6. 기타 표현"} accent="#E65100" bg="#FFF3E0">
-            <Row accent="#E65100" label={vi?"비교":en?"Comparison":"비교"} items={<><Tag text="보다 더" color="#E65100"/><Tag text="처럼/같이" color="#E65100"/><Tag text="가장/제일" color="#E65100"/></>}/>
-            <Row accent="#E65100" label={vi?"관형어":en?"Modifier":"관형어"} items={<><Tag text="~는(현재)" color="#E65100"/><Tag text="~은/ㄴ(과거)" color="#E65100"/><Tag text="~을/ㄹ(미래)" color="#E65100"/></>}/>
-            <Row accent="#E65100" label={vi?"간접화법":en?"Indirect":"간접화법"} items={<><Tag text="~다고 했다" color="#E65100"/><Tag text="~냐고 물었다" color="#E65100"/><Tag text="~라고 했다" color="#E65100"/></>}/>
-            <Row accent="#E65100" label={vi?"명사형":en?"Nominalize":"명사형"} items={<><Tag text="~는 것" color="#E65100"/><Tag text="~기" color="#E65100"/><Tag text="~음/ㅁ" color="#E65100"/></>}/>
-            <Row accent="#E65100" label={vi?"접속":en?"Conjunct.":"접속"} items={<><Tag text="와/과·하고(and)" color="#E65100"/><Tag text="또는·나(or)" color="#E65100"/><Tag text="지만·그런데(but)" color="#E65100"/></>}/>
-            <Row accent="#E65100" label={vi?"숫자":en?"Numbers":"숫자"} items={<><Tag text="고유어(하나·둘)" color="#E65100"/><Tag text="한자어(일·이)" color="#E65100"/><Tag text="나이·시→고유어" color="#E65100"/><Tag text="날짜·돈→한자어" color="#E65100"/></>}/>
+          <Section title={txUI("6. 기타 표현", lang)} accent="#E65100" bg="#FFF3E0">
+            <Row accent="#E65100" label={txUI("비교", lang)} items={<><Tag text="보다 더" color="#E65100"/><Tag text="처럼/같이" color="#E65100"/><Tag text="가장/제일" color="#E65100"/></>}/>
+            <Row accent="#E65100" label={txUI("관형어", lang)} items={<><Tag text="~는(현재)" color="#E65100"/><Tag text="~은/ㄴ(과거)" color="#E65100"/><Tag text="~을/ㄹ(미래)" color="#E65100"/></>}/>
+            <Row accent="#E65100" label={txUI("간접화법", lang)} items={<><Tag text="~다고 했다" color="#E65100"/><Tag text="~냐고 물었다" color="#E65100"/><Tag text="~라고 했다" color="#E65100"/></>}/>
+            <Row accent="#E65100" label={txUI("명사형", lang)} items={<><Tag text="~는 것" color="#E65100"/><Tag text="~기" color="#E65100"/><Tag text="~음/ㅁ" color="#E65100"/></>}/>
+            <Row accent="#E65100" label={txUI("접속", lang)} items={<><Tag text="와/과·하고(and)" color="#E65100"/><Tag text="또는·나(or)" color="#E65100"/><Tag text="지만·그런데(but)" color="#E65100"/></>}/>
+            <Row accent="#E65100" label={txUI("숫자", lang)} items={<><Tag text="고유어(하나·둘)" color="#E65100"/><Tag text="한자어(일·이)" color="#E65100"/><Tag text="나이·시→고유어" color="#E65100"/><Tag text="날짜·돈→한자어" color="#E65100"/></>}/>
           </Section>
 
           {/* 7. 의문대명사 */}
-          <Section title={vi?"7. Đại từ nghi vấn":en?"7. Question Words":"7. 의문대명사"} accent="#00695C" bg="#E0F2F1">
+          <Section title={txUI("7. 의문대명사", lang)} accent="#00695C" bg="#E0F2F1">
             <div style={{display:"flex", flexWrap:"wrap", gap:6}}>
               {[
                 ["누가","who(주어)"],["누구를","who(목적어)"],["무엇을","what"],
@@ -14776,11 +15566,11 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${la
           {/* 완료 버튼 */}
           <button onClick={()=>{ setStep("learn"); }}
             style={{width:"100%", background:"linear-gradient(135deg,#1A237E,#00C896)", color:"white", border:"none", borderRadius:16, padding:"18px", fontSize:18, fontWeight:900, cursor:"pointer", marginTop:8, boxShadow:"0 4px 20px rgba(0,196,150,.3)"}}>
-            🎉 {vi?"Hoàn thành khóa học!":en?"Course Complete!":"80시간 커리큘럼 완료!"}
+            🎉 {txUI("80시간 커리큘럼 완료!", lang)}
           </button>
           <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_register"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
-            ← {vi?"Quay lại":en?"Back":"뒤로"}
+            ← {txUI("뒤로", lang)}
           </button>
         </div>
       </div>
