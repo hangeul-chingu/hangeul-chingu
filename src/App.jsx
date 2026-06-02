@@ -394,49 +394,57 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
   const [slide, setSlide] = useState(0);
   const [referral, setReferral] = useState(null);      // 유입 경로
 
+  // ✅ V329: LANGS → LANG_LIST와 동일하게 10개 언어로 확장 (my 제거)
   const LANGS = [
-    { code:"ko", flag:"🇰🇷", label:"한국어" },
+    { code:"ko", flag:"🇰🇷", label:"한국어로 시작할게요!" },
     { code:"vi", flag:"🇻🇳", label:"Tiếng Việt" },
+    { code:"zh", flag:"🇨🇳", label:"中文" },
     { code:"en", flag:"🇺🇸", label:"English" },
-    { code:"my", flag:"🇲🇲", label:"မြန်မာ" },
+    { code:"ja", flag:"🇯🇵", label:"日本語" },
+    { code:"id", flag:"🇮🇩", label:"Bahasa Indonesia" },
+    { code:"ru", flag:"🇷🇺", label:"Русский" },
+    { code:"th", flag:"🇹🇭", label:"ภาษาไทย" },
+    { code:"mn", flag:"🇲🇳", label:"Монгол" },
+    { code:"uz", flag:"🇺🇿", label:"O'zbek" },
   ];
 
+  // ✅ V329: 온보딩 번역 t 객체 → 10개 언어 확장
+  // 폴백: 해당 언어 없으면 en → ko 순으로 폴백
   const t = {
-    skip:   { ko:"건너뛰기", vi:"Bỏ qua", en:"Skip", my:"ကျော်သွား" },
-    start:  { ko:"시작하기 →", vi:"Bắt đầu →", en:"Start →", my:"စတင်ရန် →" },
-    next:   { ko:"다음 →", vi:"Tiếp →", en:"Next →", my:"ဆက် →" },
+    skip:   { ko:"건너뛰기", vi:"Bỏ qua", en:"Skip", zh:"跳过", ja:"スキップ", id:"Lewati", ru:"Пропустить", th:"ข้าม", mn:"Алгасах", uz:"O'tkazib yuborish" },
+    start:  { ko:"시작하기 →", vi:"Bắt đầu →", en:"Start →", zh:"开始 →", ja:"始める →", id:"Mulai →", ru:"Начать →", th:"เริ่ม →", mn:"Эхлэх →", uz:"Boshlash →" },
+    next:   { ko:"다음 →", vi:"Tiếp theo →", en:"Next →", zh:"下一个 →", ja:"次へ →", id:"Berikutnya →", ru:"Далее →", th:"ถัดไป →", mn:"Дараа →", uz:"Keyingi →" },
     // 슬라이드 1: 신뢰
-    s1h:    { ko:"200시간? 한글 친구는", vi:"200 giờ? Hangeul Chingu chỉ", en:"200 hours? Hangeul Chingu does it in", my:"၂၀၀နာရီ? Hangeul Chingu မှာ" },
-    s1big:  { ko:"80시간", vi:"80 giờ", en:"80 hours", my:"နာရီ ၈၀" },
-    s1proof:{ ko:"성실한 80시간 = TOPIK 2급 합격", vi:"80 giờ chăm chỉ = Đậu TOPIK cấp 2", en:"80 honest hours = TOPIK Level 2 pass", my:"သည်းခံသော နာရီ ၈၀ = TOPIK အဆင့် ၂ အောင်" },
-    s1sub:  { ko:"완주하면 됩니다. 그게 전부예요.", vi:"Chỉ cần hoàn thành. Đó là tất cả.", en:"Just finish it. That's all it takes.", my:"ပြီးမြောက်ရုံပဲ။ အဲ့ဒါပဲ လိုတာ။" },
+    s1h:    { ko:"200시간? 한글 친구는", vi:"200 giờ? Hangeul Chingu chỉ", en:"200 hours? Hangeul Chingu does it in", zh:"200小时? Hangeul Chingu 只需", ja:"200時間? Hangeul Chinguは", id:"200 jam? Hangeul Chingu hanya", ru:"200 часов? Hangeul Chingu за", th:"200 ชั่วโมง? Hangeul Chingu แค่", mn:"200 цаг уу? Hangeul Chingu зөвхөн", uz:"200 soat? Hangeul Chingu faqat" },
+    s1big:  { ko:"80시간", vi:"80 giờ", en:"80 hours", zh:"80小时", ja:"80時間", id:"80 jam", ru:"80 часов", th:"80 ชั่วโมง", mn:"80 цаг", uz:"80 soat" },
+    s1proof:{ ko:"성실한 80시간 = TOPIK 2급 합격", vi:"80 giờ chăm chỉ = Đậu TOPIK cấp 2", en:"80 honest hours = TOPIK Level 2 pass", zh:"认真80小时 = 通过TOPIK 2级", ja:"80時間の努力 = TOPIK 2級合格", id:"80 jam serius = Lulus TOPIK level 2", ru:"80 честных часов = сдать TOPIK уровня 2", th:"80 ชั่วโมงจริงจัง = ผ่าน TOPIK ระดับ 2", mn:"Шударга 80 цаг = TOPIK 2-р түвшин тэнцэх", uz:"80 soat halol = TOPIK 2-darajani topshirish" },
+    s1sub:  { ko:"완주하면 됩니다. 그게 전부예요.", vi:"Chỉ cần hoàn thành. Đó là tất cả.", en:"Just finish it. That's all it takes.", zh:"坚持完成就好。就这么简单。", ja:"やり遂げるだけでいい。それだけです。", id:"Selesaikan saja. Itu saja yang dibutuhkan.", ru:"Просто завершите. Это всё что нужно.", th:"แค่ทำให้เสร็จ นั่นคือทั้งหมด", mn:"Дуусгаж чадвал болно. Тэр л хангалттай.", uz:"Shunchaki tugating. Hammasi shu." },
     // 슬라이드 2: 공감
-    s2h:    { ko:"말하기·글쓰기, 아직 어렵나요?", vi:"Nói & Viết vẫn còn khó?", en:"Speaking & writing still feel hard?", my:"ပြောဆိုရေးသားရာမှာ ခက်နေသေးလား?" },
-    s2sub:  { ko:"혼자 공부해도 막히는 그 순간,\n한글 친구가 함께합니다", vi:"Khi bạn tự học mà bị bế tắc,\nHangeul Chingu ở bên bạn", en:"When you get stuck studying alone,\nHangeul Chingu is right there", my:"တစ်ယောက်တည်း လေ့လာရင်း တားဆီးနေရင်\nHangeul Chingu က ရှိနေပါတယ်" },
+    s2h:    { ko:"말하기·글쓰기, 아직 어렵나요?", vi:"Nói & Viết vẫn còn khó?", en:"Speaking & writing still feel hard?", zh:"说话·写作，还是觉得难吗？", ja:"話す・書くのがまだ難しいですか？", id:"Berbicara & menulis masih terasa sulit?", ru:"Говорить и писать всё ещё трудно?", th:"พูดและเขียน ยังรู้สึกยากอยู่ไหม?", mn:"Ярих, бичихэд хэвээр хэцүү үү?", uz:"Gapirish va yozish hali qiyin bo'lyaptimi?" },
+    s2sub:  { ko:"혼자 공부해도 막히는 그 순간,\n한글 친구가 함께합니다", vi:"Khi bạn tự học mà bị bế tắc,\nHangeul Chingu ở bên bạn", en:"When you get stuck studying alone,\nHangeul Chingu is right there", zh:"一个人学习卡住的那一刻，\n韩语朋友陪伴着你", ja:"一人で勉強していて行き詰まったとき、\nHangeul Chinguがそばにいます", id:"Saat belajar sendiri dan buntu,\nHangeul Chingu ada bersamamu", ru:"Когда застреваешь при самостоятельной учёбе,\nHangeul Chingu рядом", th:"เมื่อติดขัดตอนเรียนคนเดียว\nHangeul Chingu อยู่เคียงข้าง", mn:"Ганцаараа суралцаж гацсан тэр мөчид\nHangeul Chingu хамт байна", uz:"Yolg'iz o'qib qolib ketganingizda,\nHangeul Chingu yoningizda" },
     // 슬라이드 3: 해결
-    s3h:    { ko:"3가지 훈련으로 실력 완성", vi:"3 loại luyện tập để hoàn thiện", en:"3 training modes to master Korean", my:"ကျွမ်းကျင်မှုအပြည့်ရစေမည့် လေ့ကျင့်မှု ၃ မျိုး" },
-
+    s3h:    { ko:"3가지 훈련으로 실력 완성", vi:"3 loại luyện tập để hoàn thiện", en:"3 training modes to master Korean", zh:"通过3种训练掌握韩语", ja:"3種類のトレーニングで実力完成", id:"3 jenis latihan untuk kuasai bahasa Korea", ru:"3 типа тренировок для владения корейским", th:"3 รูปแบบการฝึกเพื่อเชี่ยวชาญภาษาเกาหลี", mn:"3 төрлийн дасгалаар чадвараа бүрдүүлэх", uz:"3 ta mashq turida koreys tilini egallash" },
     // 슬라이드 5: 유입 경로
-    s5h:    { ko:"한글 친구를 어떻게 알게 됐어요?", vi:"Bạn biết Hangeul Chingu qua đâu?", en:"How did you find Hangeul Chingu?", my:"Hangeul Chingu ကို ဘယ်လိုသိလဲ?" },
-    s5skip: { ko:"건너뛸게요", vi:"Bỏ qua", en:"Skip this", my:"ကျော်သွားမည်" },
+    s5h:    { ko:"한글 친구를 어떻게 알게 됐어요?", vi:"Bạn biết Hangeul Chingu qua đâu?", en:"How did you find Hangeul Chingu?", zh:"您是怎么了解到韩语朋友的？", ja:"Hangeul Chinguをどこで知りましたか？", id:"Bagaimana Anda menemukan Hangeul Chingu?", ru:"Как вы узнали о Hangeul Chingu?", th:"คุณรู้จัก Hangeul Chingu ได้อย่างไร?", mn:"Та Hangeul Chingu-г хаанаас мэдсэн бэ?", uz:"Hangeul Chinguni qayerdan bildingiz?" },
+    s5skip: { ko:"건너뛸게요", vi:"Bỏ qua", en:"Skip this", zh:"跳过", ja:"スキップします", id:"Lewati", ru:"Пропустить", th:"ข้ามไป", mn:"Алгасах", uz:"O'tkazaman" },
     // 슬라이드 6: 행동
-    s6h:    { ko:"지금 바로 시작하세요!", vi:"Bắt đầu ngay bây giờ!", en:"Start right now!", my:"ယခုပင် စတင်ပါ!" },
-    s6sub:  { ko:"80시간 후, 새로운 한국어 세상이 열립니다", vi:"Sau 80 giờ, một thế giới tiếng Hàn mới mở ra", en:"After 80 hours, a new Korean world opens up", my:"နာရီ ၈၀ နောက်မှာ ကိုရီးယားဘာသာ ကမ္ဘာသစ် ဖွင့်လှစ်လာမည်" },
+    s6h:    { ko:"지금 바로 시작하세요!", vi:"Bắt đầu ngay bây giờ!", en:"Start right now!", zh:"现在就开始吧！", ja:"今すぐ始めよう！", id:"Mulai sekarang juga!", ru:"Начните прямо сейчас!", th:"เริ่มเลยตอนนี้!", mn:"Яг одоо эхлэх!", uz:"Hoziroq boshlang!" },
+    s6sub:  { ko:"80시간 후, 새로운 한국어 세상이 열립니다", vi:"Sau 80 giờ, một thế giới tiếng Hàn mới mở ra", en:"After 80 hours, a new Korean world opens up", zh:"80小时后，韩语新世界为您打开", ja:"80時間後、新しい韓国語の世界が開きます", id:"Setelah 80 jam, dunia bahasa Korea baru terbuka", ru:"После 80 часов откроется новый мир корейского", th:"หลัง 80 ชั่วโมง โลกใหม่ของภาษาเกาหลีเปิดขึ้น", mn:"80 цагийн дараа Солонгос хэлний шинэ ертөнц нээгдэнэ", uz:"80 soatdan so'ng koreys tilining yangi dunyosi ochiladi" },
   };
 
   const L = initLang || "ko";
-  const tx = (key) => (t[key]?.[L] ?? t[key]?.ko ?? "");
+  const tx = (key) => (t[key]?.[L] ?? t[key]?.en ?? t[key]?.ko ?? "");
 
 
 
   // 유입 경로 선택지
   const REFERRALS = [
-    { id:"sns",    em:"📱", label:{ko:"SNS (인스타·페이스북)",vi:"MXH (Instagram·Facebook)",en:"SNS (Instagram·Facebook)",my:"SNS"} },
-    { id:"youtube",em:"▶️", label:{ko:"유튜브",vi:"YouTube",en:"YouTube",my:"YouTube"} },
-    { id:"friend", em:"👥", label:{ko:"지인 추천",vi:"Bạn bè giới thiệu",en:"Friend / Family",my:"မိတ်ဆွေ အကြံပြုချက်"} },
-    { id:"search", em:"🔍", label:{ko:"구글 검색",vi:"Tìm kiếm Google",en:"Google Search",my:"Google ရှာဖွေမှု"} },
-    { id:"school", em:"🏫", label:{ko:"학교·기관 소개",vi:"Trường học·Tổ chức giới thiệu",en:"School / Institution",my:"ကျောင်း / အဖွဲ့အစည်း"} },
-    { id:"other",  em:"✨", label:{ko:"기타",vi:"Khác",en:"Other",my:"အခြား"} },
+    { id:"sns",    em:"📱", label:{ko:"SNS (인스타·페이스북)",vi:"MXH (Instagram·Facebook)",en:"SNS (Instagram·Facebook)",zh:"SNS (Instagram·Facebook)",ja:"SNS (Instagram·Facebook)",id:"Media Sosial (Instagram·Facebook)",ru:"Соцсети (Instagram·Facebook)",th:"SNS (Instagram·Facebook)",mn:"SNS (Instagram·Facebook)",uz:"SNS (Instagram·Facebook)"} },
+    { id:"youtube",em:"▶️", label:{ko:"유튜브",vi:"YouTube",en:"YouTube",zh:"YouTube",ja:"YouTube",id:"YouTube",ru:"YouTube",th:"YouTube",mn:"YouTube",uz:"YouTube"} },
+    { id:"friend", em:"👥", label:{ko:"지인 추천",vi:"Bạn bè giới thiệu",en:"Friend / Family",zh:"朋友推荐",ja:"知人の紹介",id:"Teman / Keluarga",ru:"Друг / Семья",th:"เพื่อน / ครอบครัว",mn:"Найз нөхдийн зөвлөмж",uz:"Do'st / Oila"} },
+    { id:"search", em:"🔍", label:{ko:"구글 검색",vi:"Tìm kiếm Google",en:"Google Search",zh:"谷歌搜索",ja:"Google検索",id:"Google Search",ru:"Поиск Google",th:"Google ค้นหา",mn:"Google хайлт",uz:"Google qidiruv"} },
+    { id:"school", em:"🏫", label:{ko:"학교·기관 소개",vi:"Trường học·Tổ chức giới thiệu",en:"School / Institution",zh:"学校·机构介绍",ja:"学校·機関の紹介",id:"Sekolah / Institusi",ru:"Школа / Учреждение",th:"โรงเรียน / สถาบัน",mn:"Сургууль / Байгууллага",uz:"Maktab / Muassasa"} },
+    { id:"other",  em:"✨", label:{ko:"기타",vi:"Khác",en:"Other",zh:"其他",ja:"その他",id:"Lainnya",ru:"Другое",th:"อื่นๆ",mn:"Бусад",uz:"Boshqa"} },
   ];
 
   const SLIDES = [
@@ -467,10 +475,15 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
         <div style={{fontSize:80,marginBottom:20,lineHeight:1}}>😤</div>
         <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:16,lineHeight:1.4}}>{tx("s2h")}</div>
         <div style={{display:"flex",gap:12,marginBottom:24,justifyContent:"center",flexWrap:"wrap"}}>
-          {[["🗣️","말하기"],["✍️","글쓰기"],["📖","어휘"],["🎧","듣기"]].map(([em,lb])=>(
-            <div key={lb} style={{background:"#FFF0F5",border:`2px solid ${C.pink}33`,borderRadius:14,padding:"12px 16px",textAlign:"center",minWidth:64}}>
+          {[
+            ["🗣️",{ko:"말하기",vi:"Nói",en:"Speaking",zh:"口语",ja:"スピーキング",id:"Berbicara",ru:"Речь",th:"การพูด",mn:"Яриа",uz:"Gapirish"}],
+            ["✍️",{ko:"글쓰기",vi:"Viết",en:"Writing",zh:"写作",ja:"ライティング",id:"Menulis",ru:"Письмо",th:"การเขียน",mn:"Бичих",uz:"Yozish"}],
+            ["📖",{ko:"어휘",vi:"Từ vựng",en:"Vocabulary",zh:"词汇",ja:"語彙",id:"Kosakata",ru:"Словарь",th:"คำศัพท์",mn:"Үг",uz:"Lug'at"}],
+            ["🎧",{ko:"듣기",vi:"Nghe",en:"Listening",zh:"听力",ja:"リスニング",id:"Mendengar",ru:"Аудирование",th:"การฟัง",mn:"Сонсох",uz:"Tinglash"}],
+          ].map(([em,lb])=>(
+            <div key={em} style={{background:"#FFF0F5",border:`2px solid ${C.pink}33`,borderRadius:14,padding:"12px 16px",textAlign:"center",minWidth:64}}>
               <div style={{fontSize:28,marginBottom:4}}>{em}</div>
-              <div style={{fontSize:11,color:"#E91E8C",fontWeight:700}}>{lb}</div>
+              <div style={{fontSize:11,color:"#E91E8C",fontWeight:700}}>{lb[L]??lb.en??lb.ko}</div>
             </div>
           ))}
         </div>
@@ -482,9 +495,9 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
       <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,padding:"0 24px",textAlign:"center"}}>
         <div style={{fontSize:22,fontWeight:900,color:"#333",marginBottom:20,lineHeight:1.4}}>{tx("s3h")}</div>
         {[
-          {em:"🗣️",name:"프리토킹",desc:{ko:"AI 원어민 친구와 자유 대화",vi:"Hội thoại tự do với AI",en:"Free talk with AI friend",my:"AI နှင့် လွတ်လပ်သောစကားပြောဆို"},color:C.teal},
-          {em:"✍️",name:"논술",desc:{ko:"한국 초등 논술 구조로 글쓰기",vi:"Viết theo cấu trúc luận văn",en:"Essay writing, Korean style",my:"Korean Essay ပုံစံဖြင့် ရေးသား"},color:C.pink},
-          {em:"🎓",name:"하이터치",desc:{ko:"AI 튜터와 문법·어휘 1:1 훈련",vi:"Luyện ngữ pháp 1:1 với AI",en:"1:1 grammar & vocab with AI tutor",my:"AI နှင့် ၁ဆက်၁ သဒ္ဒါလေ့ကျင့်"},color:"#9C6FDE"},
+          {em:"🗣️",name:"프리토킹",desc:{ko:"AI 원어민 친구와 자유 대화",vi:"Hội thoại tự do với AI",en:"Free talk with AI friend",zh:"与AI朋友自由对话",ja:"AIと自由に会話",id:"Percakapan bebas dengan AI",ru:"Свободная речь с AI",th:"พูดคุยอิสระกับ AI",mn:"AI-тай чөлөөт яриа",uz:"AI bilan erkin suhbat"},color:C.teal},
+          {em:"✍️",name:"논술",desc:{ko:"한국 초등 논술 구조로 글쓰기",vi:"Viết theo cấu trúc luận văn",en:"Essay writing, Korean style",zh:"按韩国小学论述结构写作",ja:"韓国式エッセイ構造で書く",id:"Menulis esai gaya Korea",ru:"Письмо в корейском стиле эссе",th:"เขียนเรียงความสไตล์เกาหลี",mn:"Солонгос хэлбэрийн эссэ бичих",uz:"Koreys uslubida esse yozish"},color:C.pink},
+          {em:"🎓",name:"하이터치",desc:{ko:"AI 튜터와 문법·어휘 1:1 훈련",vi:"Luyện ngữ pháp 1:1 với AI",en:"1:1 grammar & vocab with AI tutor",zh:"与AI导师1对1语法词汇训练",ja:"AIチューターと1:1文法・語彙練習",id:"Latihan tata bahasa 1:1 dengan AI",ru:"1:1 грамматика и словарь с AI",th:"ฝึกไวยากรณ์ 1:1 กับ AI",mn:"AI-тай 1:1 дүрэм үгийн дасгал",uz:"AI bilan 1:1 grammatika va lug'at"},color:"#9C6FDE"},
         ].map(item=>(
           <div key={item.name} style={{width:"100%",display:"flex",alignItems:"center",gap:14,background:"white",borderRadius:16,padding:"13px 18px",marginBottom:8,boxShadow:`0 2px 12px ${item.color}20`,border:`1.5px solid ${item.color}22`}}>
             <div style={{fontSize:30,flexShrink:0}}>{item.em}</div>
