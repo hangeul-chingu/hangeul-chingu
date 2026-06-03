@@ -2097,14 +2097,22 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLear
     </button>
   ) : null;
 
-  const [step, setStep] = useState(() => {
-    if (skipToLearn) return "learn";
-    // ✅ V273: 재로그인 시 마지막 학습 위치 복귀
+  // ✅ V333: BegScreen 내부 이어하기 팝업 — 자동로그인 시에도 작동
+  const [showBegResumePopup, setShowBegResumePopup] = useState(()=>{
+    if (skipToLearn) return false;
     try {
       const saved = localStorage.getItem(`hc_step_${user?.uid}`);
-      const skipSteps = ["lang","curriculum","plan","learn","pronContents"];
-      if (saved && !skipSteps.includes(saved)) return saved;
-    } catch(e) {}
+      const skipSteps = ["lang","curriculum","plan","learn","pronContents",""];
+      return !!(saved && !skipSteps.includes(saved));
+    } catch(e) { return false; }
+  });
+  const [begResumeStep] = useState(()=>{
+    try { return localStorage.getItem(`hc_step_${user?.uid}`) || null; } catch(e) { return null; }
+  });
+
+  const [step, setStep] = useState(() => {
+    if (skipToLearn) return "learn";
+    // ✅ V273: 재로그인 시 마지막 학습 위치 복귀 — 팝업에서 선택 전까지는 lang부터
     return "lang";
   }); // lang → curriculum → plan → pronunciation → ... → learn
   const [lang, setLang] = useState(() => {
@@ -2777,8 +2785,47 @@ ${vocabList}
   }
 
   // ── 언어 선택 화면 ──
+  // 언어 선택 step의 팝업용 lc 계산
+  const begResumeLc = initLang || "ko";
+  const RESUME_T = {
+    title: {ko:"이어서 학습할까요? 📖",vi:"Tiếp tục học không? 📖",en:"Continue learning? 📖",zh:"继续学习？📖",ja:"続きから学習しますか？📖",id:"Lanjutkan belajar? 📖",ru:"Продолжить обучение? 📖",th:"เรียนต่อเลยไหม? 📖",mn:"Үргэлжлүүлэн суралцах уу? 📖",uz:"O'rganishni davom ettirasizmi? 📖"},
+    body:  {ko:"마지막 학습 위치로 바로 이동할 수 있어요.",vi:"Bạn có thể chuyển đến vị trí học cuối cùng ngay.",en:"You can jump right back to where you left off.",zh:"您可以直接跳转到上次学习的位置。",ja:"最後の学習位置にすぐ移動できます。",id:"Anda bisa langsung ke posisi belajar terakhir.",ru:"Вы можете сразу перейти к последнему месту.",th:"คุณสามารถไปที่ตำแหน่งการเรียนล่าสุดได้เลย",mn:"Сүүлийн сурсан байр руугаа шууд очиж болно.",uz:"So'nggi o'rganish joyingizga o'tishingiz mumkin."},
+    yes:   {ko:"이어서 학습하기 →",vi:"Tiếp tục học →",en:"Continue Learning →",zh:"继续学习 →",ja:"続きから学習する →",id:"Lanjutkan Belajar →",ru:"Продолжить →",th:"เรียนต่อ →",mn:"Үргэлжлүүлэх →",uz:"Davom etish →"},
+    no:    {ko:"처음부터 시작",vi:"Bắt đầu từ đầu",en:"Start from beginning",zh:"从头开始",ja:"最初から始める",id:"Mulai dari awal",ru:"Начать сначала",th:"เริ่มใหม่",mn:"Эхнээс эхлэх",uz:"Boshidan boshlash"},
+  };
+  const rt = (key) => RESUME_T[key]?.[begResumeLc] ?? RESUME_T[key]?.en ?? RESUME_T[key]?.ko ?? "";
+
   if (step === "lang") return (
     <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:begSpeak?"flex-start":"center",padding:begSpeak?"8px 0":"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+
+      {/* ✅ V333: 이어서 학습 팝업 (자동로그인 시에도 작동) */}
+      {showBegResumePopup && (
+        <div onClick={()=>setShowBegResumePopup(false)} style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",background:"rgba(0,0,0,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",boxSizing:"border-box"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"white",borderRadius:20,width:"100%",maxWidth:360,overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,0.25)"}}>
+            <div style={{background:"linear-gradient(135deg,#9C6FDE,#FF85A1)",padding:"20px 20px 16px",textAlign:"center"}}>
+              <div style={{fontSize:32,marginBottom:8}}>📖</div>
+              <div style={{fontSize:17,fontWeight:900,color:"white"}}>{rt("title")}</div>
+            </div>
+            <div style={{padding:"20px 20px 16px"}}>
+              <p style={{margin:"0 0 20px",fontSize:14,color:"#555",lineHeight:1.6,textAlign:"center"}}>{rt("body")}</p>
+              <button
+                onClick={()=>{
+                  setShowBegResumePopup(false);
+                  if(begResumeStep) setStep(begResumeStep);
+                }}
+                style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#B06EE8)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",marginBottom:10}}
+              >{rt("yes")}</button>
+              <button
+                onClick={()=>{
+                  try { localStorage.removeItem(`hc_step_${user?.uid}`); } catch(e) {}
+                  setShowBegResumePopup(false);
+                }}
+                style={{width:"100%",background:"none",border:"1px solid #ddd",borderRadius:50,padding:"12px 0",fontSize:14,color:"#888",cursor:"pointer"}}
+              >{rt("no")}</button>
+            </div>
+          </div>
+        </div>
+      )},background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:begSpeak?"flex-start":"center",padding:begSpeak?"8px 0":"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       {!begSpeak && <><div style={{fontSize:48,marginBottom:8}}>🌸</div>
       <div style={{fontSize:22,fontWeight:900,color:"#9C6FDE",marginBottom:4}}>한글 친구</div></>}
       <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center",width:"100%"}}>
@@ -2862,6 +2909,7 @@ ${vocabList}
   }
 
   if (step === "plan") {
+    const lc = lang?.code ?? "ko";
     const preview = calcGoalDate(daysPerWeek, minPerDay, studyGoal);
     return (
       <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
