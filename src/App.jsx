@@ -2085,7 +2085,7 @@ function checkAnswer(userInput, card) {
   return answers.includes(userAns);
 }
 
-function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLearn=false, onMyPage }) {
+function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLearn=false, onMyPage, initLang=null }) {
   // ✅ V274: 모든 학습 화면에서 마이페이지 접근 가능한 공통 버튼
   const MyPageBtn = onMyPage ? (
     <button onClick={e=>{e.stopPropagation();onMyPage();}}
@@ -2108,6 +2108,8 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLear
     return "lang";
   }); // lang → curriculum → plan → pronunciation → ... → learn
   const [lang, setLang] = useState(() => {
+    // ✅ V333: initLang(온보딩 선택 언어) 우선, 없으면 localStorage 복원
+    if (initLang) return initLang;
     // ✅ V282: lang 복원 — step 복귀 시 언어도 함께 복원
     try {
       const saved = localStorage.getItem(`hc_lang_${user?.uid}`);
@@ -18393,7 +18395,12 @@ export default function App() {
               >{ht("resumeYes")}</button>
               {/* 처음부터 버튼 */}
               <button
-                onClick={()=>setShowResumePopup(false)}
+                onClick={()=>{
+                  // 저장된 step 초기화 → BegScreen이 처음(lang 화면)부터 시작
+                  try { localStorage.removeItem(`hc_step_${user.uid}`); } catch(e) {}
+                  setShowResumePopup(false);
+                  setLevel("beg");
+                }}
                 style={{width:"100%",background:"none",border:"1px solid #ddd",borderRadius:50,padding:"12px 0",fontSize:14,color:"#888",cursor:"pointer",marginBottom:8}}
               >{ht("resumeNo")}</button>
             </div>
@@ -18740,7 +18747,7 @@ export default function App() {
     const beg_label = beg_stepLabels[beg_savedStep] || (beg_savedStep?.startsWith("unit") ? `서술어 ${beg_savedStep.replace("unit","")}단원` : beg_savedStep||"시작 전");
     return (
       <>
-        <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}} onMyPage={()=>setShowMyPage(true)}/>
+        <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}} onMyPage={()=>setShowMyPage(true)} initLang={onboardingLang||null}/>
         {showMyPage&&(
           <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:99999,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
             onClick={()=>setShowMyPage(false)}>
