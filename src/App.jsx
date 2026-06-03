@@ -18106,6 +18106,9 @@ export default function App() {
   // ✅ V276: 비주얼 온보딩 — 매번 표시 (skip 버튼으로 개인 선택)
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingLang, setOnboardingLang] = useState("ko");
+  // ✅ V333: 이어서 학습 팝업
+  const [showResumePopup, setShowResumePopup] = useState(false);
+  const [resumeStep, setResumeStep] = useState(null);
   // ✅ V332: 홈 화면 다국어 번역 테이블
   const hlc = onboardingLang || "ko";
   const HOME_T = {
@@ -18133,6 +18136,10 @@ export default function App() {
     logout:      {ko:"🚪 로그아웃",vi:"🚪 Đăng xuất",en:"🚪 Log out",zh:"🚪 退出登录",ja:"🚪 ログアウト",id:"🚪 Keluar",ru:"🚪 Выйти",th:"🚪 ออกจากระบบ",mn:"🚪 Гарах",uz:"🚪 Chiqish"},
     myPage:      {ko:"👤 마이페이지",vi:"👤 Trang cá nhân",en:"👤 My Page",zh:"👤 我的页面",ja:"👤 マイページ",id:"👤 Halaman Saya",ru:"👤 Мой профиль",th:"👤 หน้าของฉัน",mn:"👤 Миний хуудас",uz:"👤 Mening sahifam"},
     learner:     {ko:"학습자",vi:"Học viên",en:"Learner",zh:"学习者",ja:"学習者",id:"Pelajar",ru:"Учащийся",th:"ผู้เรียน",mn:"Суралцагч",uz:"O'rganuvchi"},
+    resumeTitle: {ko:"이어서 학습할까요? 📖",vi:"Tiếp tục học không? 📖",en:"Continue learning? 📖",zh:"继续学习？📖",ja:"続きから学習しますか？📖",id:"Lanjutkan belajar? 📖",ru:"Продолжить обучение? 📖",th:"เรียนต่อเลยไหม? 📖",mn:"Үргэлжлүүлэн суралцах уу? 📖",uz:"O'rganishni davom ettirasizmi? 📖"},
+    resumeBody:  {ko:"마지막 학습 위치로 바로 이동할 수 있어요.",vi:"Bạn có thể chuyển đến vị trí học cuối cùng ngay bây giờ.",en:"You can jump right back to where you left off.",zh:"您可以直接跳转到上次学习的位置。",ja:"最後の学習位置にすぐ移動できます。",id:"Anda bisa langsung ke posisi belajar terakhir.",ru:"Вы можете сразу перейти к последнему месту обучения.",th:"คุณสามารถไปที่ตำแหน่งการเรียนล่าสุดได้เลย",mn:"Сүүлийн сурсан байр руугаа шууд очиж болно.",uz:"So'nggi o'rganish joyingizga to'g'ridan-to'g'ri o'tishingiz mumkin."},
+    resumeYes:   {ko:"이어서 학습하기 →",vi:"Tiếp tục học →",en:"Continue Learning →",zh:"继续学习 →",ja:"続きから学習する →",id:"Lanjutkan Belajar →",ru:"Продолжить →",th:"เรียนต่อ →",mn:"Үргэлжлүүлэх →",uz:"Davom etish →"},
+    resumeNo:    {ko:"처음부터 시작",vi:"Bắt đầu từ đầu",en:"Start from beginning",zh:"从头开始",ja:"最初から始める",id:"Mulai dari awal",ru:"Начать сначала",th:"เริ่มใหม่",mn:"Эхнээс эхлэх",uz:"Boshidan boshlash"},
   };
   const ht = (key) => HOME_T[key]?.[hlc] ?? HOME_T[key]?.en ?? HOME_T[key]?.ko ?? "";
 
@@ -18167,6 +18174,19 @@ export default function App() {
     const key = `hc_promo_${user.uid}`;
     const count = parseInt(localStorage.getItem(key)||"0");
     if(count < 3){ setShowPromo(true); localStorage.setItem(key, String(count+1)); }
+  },[user]);
+
+  // ✅ V333: 로그인 후 이어서 학습 팝업 — 저장된 step이 있으면 팝업 표시
+  useEffect(()=>{
+    if(!user) return;
+    try {
+      const saved = localStorage.getItem(`hc_step_${user.uid}`);
+      const skipSteps = ["lang","curriculum","plan","learn","pronContents",""];
+      if(saved && !skipSteps.includes(saved)){
+        setResumeStep(saved);
+        setShowResumePopup(true);
+      }
+    } catch(e) {}
   },[user]);
   const {speaking, ttsHint, unlock, speak} = useTTS();
 
@@ -18350,6 +18370,36 @@ export default function App() {
 
       {/* TOPIK2 분기 팝업 */}
       {showTopik2Choice&&<Topik2ChoiceModal/>}
+
+      {/* ✅ V333: 이어서 학습 팝업 */}
+      {showResumePopup && (
+        <div onClick={()=>setShowResumePopup(false)} style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",background:"rgba(0,0,0,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",boxSizing:"border-box"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"white",borderRadius:20,width:"100%",maxWidth:360,overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,0.25)"}}>
+            {/* 헤더 */}
+            <div style={{background:"linear-gradient(135deg,#9C6FDE,#FF85A1)",padding:"20px 20px 16px",textAlign:"center"}}>
+              <div style={{fontSize:32,marginBottom:8}}>📖</div>
+              <div style={{fontSize:17,fontWeight:900,color:"white"}}>{ht("resumeTitle")}</div>
+            </div>
+            {/* 본문 */}
+            <div style={{padding:"20px 20px 8px"}}>
+              <p style={{margin:"0 0 20px",fontSize:14,color:"#555",lineHeight:1.6,textAlign:"center"}}>{ht("resumeBody")}</p>
+              {/* 이어서 학습하기 버튼 */}
+              <button
+                onClick={()=>{
+                  setShowResumePopup(false);
+                  setLevel("beg");
+                }}
+                style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#B06EE8)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",marginBottom:10}}
+              >{ht("resumeYes")}</button>
+              {/* 처음부터 버튼 */}
+              <button
+                onClick={()=>setShowResumePopup(false)}
+                style={{width:"100%",background:"none",border:"1px solid #ddd",borderRadius:50,padding:"12px 0",fontSize:14,color:"#888",cursor:"pointer",marginBottom:8}}
+              >{ht("resumeNo")}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ✅ V263: 오른쪽 상단 프로필 버튼 */}
       <button onClick={e=>{e.stopPropagation();setShowMyPage(true);}}
