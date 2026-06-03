@@ -10974,9 +10974,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total14})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,14])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`14단원`,nextStep:"unit15",nextLabel:"15단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test14"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("15단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
@@ -11081,9 +11081,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total15})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,15])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`15단원`,nextStep:"unit16",nextLabel:"16단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test15"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#2E7D32,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("16단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
@@ -11207,9 +11207,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total16})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,16])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`16단원`,nextStep:"unit17",nextLabel:"17단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test16"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#F57F17,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("17단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
@@ -11311,9 +11311,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total17})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,17])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`17단원`,nextStep:"unit18",nextLabel:"18단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test17"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#1565C0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("18단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
@@ -11414,9 +11414,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total18})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,18])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`18단원`,nextStep:"unit19",nextLabel:"19단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test18"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#AD1457,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("19단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
@@ -11510,9 +11510,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total19})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,19])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`19단원`,nextStep:"unit20",nextLabel:"20단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test19"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#283593,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("20단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
@@ -11614,9 +11614,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total20})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,20])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`20단원`,nextStep:"unit21",nextLabel:"21단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test20"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#F9A825,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("21단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
@@ -11716,9 +11716,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total21})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,21])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`21단원`,nextStep:"unit22",nextLabel:"22단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test21"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#00695C,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("22단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
@@ -11827,9 +11827,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total22})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,22])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`22단원`,nextStep:"unit23",nextLabel:"23단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test22"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#01579B,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("23단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
@@ -11929,9 +11929,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total23})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,23])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`23단원`,nextStep:"unit24",nextLabel:"24단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test23"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#558B2F,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("24단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
@@ -12027,9 +12027,9 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total24})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,24])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`24단원`,nextStep:"unit25",nextLabel:"25단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test24"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#E65100,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("25단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
@@ -12146,13 +12146,728 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
                 {txUI("다음 →", lang)} ({unitCardIdx+2}/{total25})
               </button>
             ) : (
-              <button onClick={()=>{const np=[...new Set([...unitsPassed,25])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:"서술어 25단원",nextStep:"unit_adv1",nextLabel:"부사어 1단원으로 계속하기"});}}
+              <button onClick={()=>{ setTestAnswers({}); setTestResult(null); setTestQuestions([]); setStep("test25"); }}
                 style={{width:"100%", background:`linear-gradient(135deg,#4527A0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>
-                {txUI("부사어 1단원으로 계속하기 🚀", lang)}
+                {txUI("누적 테스트로! 🚀", lang)}
               </button>
             )
           )}
           <button onClick={()=>{const np=[...new Set([...unitsPassed,23])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`23단원`,nextStep:"unit24",nextLabel:"24단원으로 계속하기"});}} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 13단원 ──
+  if (step === "test13") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST13_Q = [
+      { id:"t13_1", q:"여기서 사진을 찍___ 됩니다. (허락)", answer:"어도", answers:["어도"], hint:{ko:"💡 찍다+-어도 됩니다=허락", vi:"💡 được phép", en:"💡 permission"} },
+      { id:"t13_2", q:"수업 시간에 떠들___ 안 됩니다. (금지)", answer:"면", answers:["면"], hint:{ko:"💡 떠들다+-(으)면 안 됩니다=금지", vi:"💡 cấm", en:"💡 prohibited"} },
+      { id:"t13_3", q:"약을 먹___ 합니다. (의무)", answer:"어야", answers:["어야"], hint:{ko:"💡 먹다+-어야 합니다=의무", vi:"💡 phải làm", en:"💡 must do"} },
+      { id:"t13_4", q:"예약하지 않___ 됩니다. (면제)", answer:"아도", answers:["아도"], hint:{ko:"💡 -지 않아도 됩니다=면제", vi:"💡 không cần", en:"💡 don't have to"} },
+      { id:"t13_5", q:"카드로 결제해___ 됩니다. (허락)", answer:"도", answers:["도"], hint:{ko:"💡 결제하다+-해도 됩니다", vi:"💡 được phép", en:"💡 may pay"} },
+      { id:"t13_6", q:"여기에 주차하___ 안 됩니다. (금지)", answer:"면", answers:["면"], hint:{ko:"💡 주차하다+-면 안 됩니다", vi:"💡 cấm đỗ xe", en:"💡 must not park"} },
+      { id:"t13_7", q:"비자를 받___ 합니다. (의무)", answer:"아야", answers:["아야"], hint:{ko:"💡 받다+-아야 합니다", vi:"💡 phải xin visa", en:"💡 must get visa"} },
+      { id:"t13_8", q:"오늘은 요리하지 않___ 됩니다. (면제)", answer:"아도", answers:["아도"], hint:{ko:"💡 -지 않아도 됩니다", vi:"💡 không cần nấu", en:"💡 don't have to cook"} },
+      { id:"t13_9", q:"뛰___ 안 됩니다. (금지)", answer:"면", answers:["면"], hint:{ko:"💡 뛰다+-면 안 됩니다", vi:"💡 không được chạy", en:"💡 must not run"} },
+      { id:"t13_10", q:"창문을 열___ 됩니다. (허락)", answer:"어도", answers:["어도"], hint:{ko:"💡 열다+-어도 됩니다", vi:"💡 được mở cửa", en:"💡 may open"} },
+    ];
+    function gradeTest13() {
+      let ok=0;
+      TEST13_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST13_Q.length, pass: ok/TEST13_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#00838F":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("14단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,13])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`13단원`,nextStep:"unit14",nextLabel:"14단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#00838F,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("14단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit13"); }} style={{width:"100%", background:`linear-gradient(135deg,#00838F,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("13단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#004D40", marginBottom:4}}>📝 누적 테스트 — 1~13단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 허락·금지·의무·면제</div>
+          {TEST13_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#004D40", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest13} style={{width:"100%", background:`linear-gradient(135deg,#00838F,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit13"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (13단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 14단원 ──
+  if (step === "test14") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST14_Q = [
+      { id:"t14_1", q:"저는 제주도에 가 ___ 있습니다. (경험)", answer:"본 적이", answers:["본 적이"], hint:{ko:"💡 가다→가 본 적이 있습니다", vi:"💡 đã từng đi", en:"💡 have been to"} },
+      { id:"t14_2", q:"저는 김치를 먹어 ___ 없습니다. (경험)", answer:"본 적이", answers:["본 적이"], hint:{ko:"💡 먹다→먹어 본 적이 없습니다", vi:"💡 chưa từng ăn", en:"💡 have never eaten"} },
+      { id:"t14_3", q:"저는 한국 영화를 본 ___ 있습니다.", answer:"적이", answers:["적이"], hint:{ko:"💡 보다→본 적이 있습니다", vi:"💡 đã từng xem", en:"💡 have watched"} },
+      { id:"t14_4", q:"저는 스키를 탄 ___ 없습니다.", answer:"적이", answers:["적이"], hint:{ko:"💡 타다→탄 적이 없습니다", vi:"💡 chưa từng trượt", en:"💡 have never skied"} },
+      { id:"t14_5", q:"한국 음식을 만들어 본 ___ 있습니까?", answer:"적이", answers:["적이", "적이 있습니까", "적이 있습니까?"], hint:{ko:"💡 만들다→만들어 본 적이", vi:"💡 đã từng nấu chưa", en:"💡 have you ever made"} },
+      { id:"t14_6", q:"저는 외국에서 산 ___ 있습니다.", answer:"적이", answers:["적이"], hint:{ko:"💡 살다→산 적이 있습니다", vi:"💡 đã từng sống ở nước ngoài", en:"💡 have lived abroad"} },
+      { id:"t14_7", q:"아직 TOPIK 시험을 본 ___ 없습니다.", answer:"적이", answers:["적이"], hint:{ko:"💡 보다→본 적이 없습니다", vi:"💡 chưa từng thi", en:"💡 have never taken"} },
+      { id:"t14_8", q:"한국 드라마를 본 ___ 있습니다.", answer:"적이", answers:["적이"], hint:{ko:"💡 보다→본 적이 있습니다", vi:"💡 đã xem phim Hàn", en:"💡 have watched drama"} },
+      { id:"t14_9", q:"자전거를 탄 ___ 없습니다.", answer:"적이", answers:["적이"], hint:{ko:"💡 타다→탄 적이 없습니다", vi:"💡 chưa đi xe đạp", en:"💡 have never cycled"} },
+      { id:"t14_10", q:"전에 여기에 온 ___ 있습니까?", answer:"적이", answers:["적이", "적이 있습니까", "적이 있습니까?"], hint:{ko:"💡 오다→온 적이", vi:"💡 đã từng đến đây", en:"💡 have you been here"} },
+    ];
+    function gradeTest14() {
+      let ok=0;
+      TEST14_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST14_Q.length, pass: ok/TEST14_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#6A1B9A":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("15단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,14])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`14단원`,nextStep:"unit15",nextLabel:"15단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("15단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit14"); }} style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("14단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#4A148C", marginBottom:4}}>📝 누적 테스트 — 1~14단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 경험 (은/ㄴ 적이 있다·없다)</div>
+          {TEST14_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#4A148C", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest14} style={{width:"100%", background:`linear-gradient(135deg,#6A1B9A,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit14"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (14단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 15단원 ──
+  if (step === "test15") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST15_Q = [
+      { id:"t15_1", q:"제가 도와 ___. (동등한 상대)", answer:"주겠습니다", answers:["주겠습니다", "드리겠습니다"], hint:{ko:"💡 돕다+-아 주다/드리다", vi:"💡 giúp cho", en:"💡 will help"} },
+      { id:"t15_2", q:"선생님께 책을 가져다 ___. (웃어른)", answer:"드리겠습니다", answers:["드리겠습니다"], hint:{ko:"💡 웃어른=드리다", vi:"💡 dâng cho thầy", en:"💡 bring for teacher"} },
+      { id:"t15_3", q:"친구에게 사진을 보내 ___. (친구)", answer:"주겠습니다", answers:["주겠습니다"], hint:{ko:"💡 친구=주다", vi:"💡 gửi cho bạn", en:"💡 send to friend"} },
+      { id:"t15_4", q:"음식을 만들어 ___. (남을 위해)", answer:"주겠습니다", answers:["주겠습니다", "드리겠습니다"], hint:{ko:"💡 만들다+-어 주다", vi:"💡 nấu cho", en:"💡 cook for"} },
+      { id:"t15_5", q:"짐을 들어 ___. (도움)", answer:"드리겠습니다", answers:["드리겠습니다", "주겠습니다"], hint:{ko:"💡 들다+-어 드리다", vi:"💡 mang hộ", en:"💡 carry for"} },
+      { id:"t15_6", q:"제가 길을 알려 ___.", answer:"드리겠습니다", answers:["드리겠습니다", "주겠습니다"], hint:{ko:"💡 알리다+-어 드리다", vi:"💡 chỉ đường cho", en:"💡 show the way"} },
+      { id:"t15_7", q:"아이를 봐 ___. (친구에게)", answer:"주겠습니다", answers:["주겠습니다"], hint:{ko:"💡 보다+-아 주다=봐 주다", vi:"💡 trông trẻ cho", en:"💡 watch the child"} },
+      { id:"t15_8", q:"번역해 ___. (동등)", answer:"주겠습니다", answers:["주겠습니다"], hint:{ko:"💡 번역하다+-해 주다", vi:"💡 dịch cho", en:"💡 translate for"} },
+      { id:"t15_9", q:"교수님께 커피를 가져다 ___. (웃어른)", answer:"드리겠습니다", answers:["드리겠습니다"], hint:{ko:"💡 웃어른=드리다", vi:"💡 mang cho giáo sư", en:"💡 bring for professor"} },
+      { id:"t15_10", q:"사진을 찍어 ___. (부탁)", answer:"주겠습니다", answers:["주겠습니다", "드리겠습니다"], hint:{ko:"💡 찍다+-어 주다", vi:"💡 chụp ảnh cho", en:"💡 take photo for"} },
+    ];
+    function gradeTest15() {
+      let ok=0;
+      TEST15_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST15_Q.length, pass: ok/TEST15_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#2E7D32":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("16단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,15])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`15단원`,nextStep:"unit16",nextLabel:"16단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#2E7D32,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("16단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit15"); }} style={{width:"100%", background:`linear-gradient(135deg,#2E7D32,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("15단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#1B5E20", marginBottom:4}}>📝 누적 테스트 — 1~15단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 남을 위한 행동 (주다·드리다)</div>
+          {TEST15_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#1B5E20", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest15} style={{width:"100%", background:`linear-gradient(135deg,#2E7D32,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit15"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (15단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 16단원 ──
+  if (step === "test16") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST16_Q = [
+      { id:"t16_1", q:"창문을 닫아 ___.", answer:"주세요", answers:["주세요", "주세요."], hint:{ko:"💡 닫다+-아 주세요", vi:"💡 làm ơn đóng cửa sổ", en:"💡 please close"} },
+      { id:"t16_2", q:"천천히 말해 ___.", answer:"주세요", answers:["주세요", "주세요."], hint:{ko:"💡 말하다+-해 주세요", vi:"💡 làm ơn nói chậm", en:"💡 please speak slowly"} },
+      { id:"t16_3", q:"사진을 찍어 ___.", answer:"주세요", answers:["주세요", "주세요."], hint:{ko:"💡 찍다+-어 주세요", vi:"💡 làm ơn chụp ảnh", en:"💡 please take a photo"} },
+      { id:"t16_4", q:"문을 열어 ___.", answer:"주세요", answers:["주세요", "주세요."], hint:{ko:"💡 열다+-어 주세요", vi:"💡 làm ơn mở cửa", en:"💡 please open"} },
+      { id:"t16_5", q:"여기에 이름을 써 ___.", answer:"주세요", answers:["주세요", "주세요."], hint:{ko:"💡 쓰다+-어 주세요", vi:"💡 làm ơn viết tên", en:"💡 please write"} },
+      { id:"t16_6", q:"조금만 기다려 ___.", answer:"주세요", answers:["주세요", "주세요."], hint:{ko:"💡 기다리다+-어 주세요", vi:"💡 làm ơn chờ", en:"💡 please wait"} },
+      { id:"t16_7", q:"설명해 ___.", answer:"주세요", answers:["주세요", "주세요."], hint:{ko:"💡 설명하다+-해 주세요", vi:"💡 làm ơn giải thích", en:"💡 please explain"} },
+      { id:"t16_8", q:"다시 한번 읽어 ___.", answer:"주세요", answers:["주세요", "주세요."], hint:{ko:"💡 읽다+-어 주세요", vi:"💡 làm ơn đọc lại", en:"💡 please read again"} },
+      { id:"t16_9", q:"연락해 ___.", answer:"주세요", answers:["주세요", "주세요."], hint:{ko:"💡 연락하다+-해 주세요", vi:"💡 làm ơn liên lạc", en:"💡 please contact"} },
+      { id:"t16_10", q:"도와 ___.", answer:"주세요", answers:["주세요", "주세요."], hint:{ko:"💡 돕다+-아 주세요", vi:"💡 làm ơn giúp", en:"💡 please help"} },
+    ];
+    function gradeTest16() {
+      let ok=0;
+      TEST16_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST16_Q.length, pass: ok/TEST16_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#F57F17":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("17단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,16])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`16단원`,nextStep:"unit17",nextLabel:"17단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#F57F17,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("17단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit16"); }} style={{width:"100%", background:`linear-gradient(135deg,#F57F17,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("16단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#E65100", marginBottom:4}}>📝 누적 테스트 — 1~16단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 요구·부탁 (주세요)</div>
+          {TEST16_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#E65100", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest16} style={{width:"100%", background:`linear-gradient(135deg,#F57F17,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit16"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (16단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 17단원 ──
+  if (step === "test17") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST17_Q = [
+      { id:"t17_1", q:"오늘 비가 올 ___ 같습니다.", answer:"것", answers:["것"], hint:{ko:"💡 오다→올 것 같습니다", vi:"💡 có vẻ sẽ mưa", en:"💡 seems like rain"} },
+      { id:"t17_2", q:"그 사람은 학생인 ___ 같습니다.", answer:"것", answers:["것"], hint:{ko:"💡 이다→인 것 같습니다", vi:"💡 có vẻ là học sinh", en:"💡 seems a student"} },
+      { id:"t17_3", q:"배가 고픈 ___ 같습니다.", answer:"것", answers:["것"], hint:{ko:"💡 고프다→고픈 것 같습니다", vi:"💡 có vẻ đói", en:"💡 seems hungry"} },
+      { id:"t17_4", q:"이미 끝난 ___ 같습니다.", answer:"것", answers:["것"], hint:{ko:"💡 끝나다→끝난 것 같습니다", vi:"💡 có vẻ đã xong", en:"💡 seems finished"} },
+      { id:"t17_5", q:"지금 자고 있는 ___ 같습니다.", answer:"것", answers:["것"], hint:{ko:"💡 자다→자고 있는 것 같습니다", vi:"💡 có vẻ đang ngủ", en:"💡 seems sleeping"} },
+      { id:"t17_6", q:"많이 피곤한 ___ 같습니다.", answer:"것", answers:["것"], hint:{ko:"💡 피곤하다→피곤한 것 같습니다", vi:"💡 có vẻ mệt", en:"💡 seems tired"} },
+      { id:"t17_7", q:"이 음식은 맛있는 ___ 같습니다.", answer:"것", answers:["것"], hint:{ko:"💡 맛있다→맛있는 것 같습니다", vi:"💡 có vẻ ngon", en:"💡 seems delicious"} },
+      { id:"t17_8", q:"내일 눈이 올 ___ 같습니다.", answer:"것", answers:["것"], hint:{ko:"💡 오다→올 것 같습니다", vi:"💡 có vẻ sẽ có tuyết", en:"💡 seems like snow"} },
+      { id:"t17_9", q:"그 가방이 비싼 ___ 같습니다.", answer:"것", answers:["것"], hint:{ko:"💡 비싸다→비싼 것 같습니다", vi:"💡 có vẻ đắt", en:"💡 seems expensive"} },
+      { id:"t17_10", q:"많이 행복한 ___ 같습니다.", answer:"것", answers:["것"], hint:{ko:"💡 행복하다→행복한 것 같습니다", vi:"💡 có vẻ hạnh phúc", en:"💡 seems happy"} },
+    ];
+    function gradeTest17() {
+      let ok=0;
+      TEST17_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST17_Q.length, pass: ok/TEST17_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#1565C0":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("18단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,17])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`17단원`,nextStep:"unit18",nextLabel:"18단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#1565C0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("18단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit17"); }} style={{width:"100%", background:`linear-gradient(135deg,#1565C0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("17단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#0D47A1", marginBottom:4}}>📝 누적 테스트 — 1~17단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 추측 (것 같습니다)</div>
+          {TEST17_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#0D47A1", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest17} style={{width:"100%", background:`linear-gradient(135deg,#1565C0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit17"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (17단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 18단원 ──
+  if (step === "test18") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST18_Q = [
+      { id:"t18_1", q:"내일 비가 오___습니다. (추측)", answer:"겠", answers:["겠"], hint:{ko:"💡 -겠습니다=추측", vi:"💡 -겠습니다=có lẽ", en:"💡 -겠습니다=might"} },
+      { id:"t18_2", q:"많이 힘드___습니다. (타인 추측)", answer:"겠", answers:["겠"], hint:{ko:"💡 힘들다+-겠습니다", vi:"💡 có lẽ vất vả", en:"💡 must be hard"} },
+      { id:"t18_3", q:"배가 고프___습니다. (추측)", answer:"겠", answers:["겠"], hint:{ko:"💡 고프다+-겠습니다", vi:"💡 có lẽ đói", en:"💡 must be hungry"} },
+      { id:"t18_4", q:"기쁘___습니다. (감정 추측)", answer:"겠", answers:["겠"], hint:{ko:"💡 기쁘다+-겠습니다", vi:"💡 có lẽ vui", en:"💡 must be happy"} },
+      { id:"t18_5", q:"슬프___습니다. (감정 추측)", answer:"겠", answers:["겠"], hint:{ko:"💡 슬프다+-겠습니다", vi:"💡 có lẽ buồn", en:"💡 must be sad"} },
+      { id:"t18_6", q:"놀라___습니다. (추측)", answer:"겠", answers:["겠"], hint:{ko:"💡 놀라다+-겠습니다", vi:"💡 có lẽ ngạc nhiên", en:"💡 must be surprised"} },
+      { id:"t18_7", q:"어렵___습니다. (추측)", answer:"겠", answers:["겠"], hint:{ko:"💡 어렵다+-겠습니다", vi:"💡 có lẽ khó", en:"💡 must be difficult"} },
+      { id:"t18_8", q:"맛있___습니다. (보고 추측)", answer:"겠", answers:["겠"], hint:{ko:"💡 맛있다+-겠습니다", vi:"💡 có lẽ ngon", en:"💡 must be delicious"} },
+      { id:"t18_9", q:"춥___습니다. (날씨 추측)", answer:"겠", answers:["겠"], hint:{ko:"💡 춥다+-겠습니다", vi:"💡 có lẽ lạnh", en:"💡 must be cold"} },
+      { id:"t18_10", q:"피곤하___습니다. (추측)", answer:"겠", answers:["겠"], hint:{ko:"💡 피곤하다+-겠습니다", vi:"💡 có lẽ mệt", en:"💡 must be tired"} },
+    ];
+    function gradeTest18() {
+      let ok=0;
+      TEST18_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST18_Q.length, pass: ok/TEST18_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#AD1457":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("19단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,18])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`18단원`,nextStep:"unit19",nextLabel:"19단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#AD1457,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("19단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit18"); }} style={{width:"100%", background:`linear-gradient(135deg,#AD1457,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("18단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#880E4F", marginBottom:4}}>📝 누적 테스트 — 1~18단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 다른 사람 마음 추측 (겠습니다)</div>
+          {TEST18_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#880E4F", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest18} style={{width:"100%", background:`linear-gradient(135deg,#AD1457,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit18"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (18단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 19단원 ──
+  if (step === "test19") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST19_Q = [
+      { id:"t19_1", q:"저는 한국에 가___ 합니다. (계획)", answer:"려고", answers:["려고"], hint:{ko:"💡 가다+-(으)려고 합니다", vi:"💡 dự định đi", en:"💡 plan to go"} },
+      { id:"t19_2", q:"저는 한국어를 배우___ 합니다.", answer:"려고", answers:["려고"], hint:{ko:"💡 배우다+-려고 합니다", vi:"💡 dự định học", en:"💡 plan to learn"} },
+      { id:"t19_3", q:"저는 결혼하___ 합니다. (계획)", answer:"려고", answers:["려고"], hint:{ko:"💡 결혼하다+-려고 합니다", vi:"💡 dự định kết hôn", en:"💡 plan to marry"} },
+      { id:"t19_4", q:"저는 책을 읽___ 합니다. (받침)", answer:"으려고", answers:["으려고"], hint:{ko:"💡 읽다(받침)+-으려고", vi:"💡 dự định đọc", en:"💡 plan to read"} },
+      { id:"t19_5", q:"저는 운동을 시작하___ 합니다.", answer:"려고", answers:["려고"], hint:{ko:"💡 시작하다+-려고", vi:"💡 dự định bắt đầu", en:"💡 plan to start"} },
+      { id:"t19_6", q:"저는 이사하___ 합니다.", answer:"려고", answers:["려고"], hint:{ko:"💡 이사하다+-려고", vi:"💡 dự định chuyển nhà", en:"💡 plan to move"} },
+      { id:"t19_7", q:"저는 새 핸드폰을 사___ 합니다.", answer:"려고", answers:["려고"], hint:{ko:"💡 사다+-려고", vi:"💡 dự định mua", en:"💡 plan to buy"} },
+      { id:"t19_8", q:"저는 일찍 자___ 합니다.", answer:"려고", answers:["려고"], hint:{ko:"💡 자다+-려고", vi:"💡 dự định ngủ sớm", en:"💡 plan to sleep early"} },
+      { id:"t19_9", q:"저는 다이어트를 하___ 합니다.", answer:"려고", answers:["려고"], hint:{ko:"💡 하다+-려고", vi:"💡 dự định ăn kiêng", en:"💡 plan to diet"} },
+      { id:"t19_10", q:"저는 요리를 배우___ 합니다.", answer:"려고", answers:["려고"], hint:{ko:"💡 배우다+-려고", vi:"💡 dự định học nấu ăn", en:"💡 plan to cook"} },
+    ];
+    function gradeTest19() {
+      let ok=0;
+      TEST19_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST19_Q.length, pass: ok/TEST19_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#283593":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("20단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,19])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`19단원`,nextStep:"unit20",nextLabel:"20단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#283593,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("20단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit19"); }} style={{width:"100%", background:`linear-gradient(135deg,#283593,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("19단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#1A237E", marginBottom:4}}>📝 누적 테스트 — 1~19단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 계획·가까운 미래 (려고 합니다)</div>
+          {TEST19_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#1A237E", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest19} style={{width:"100%", background:`linear-gradient(135deg,#283593,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit19"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (19단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 20단원 ──
+  if (step === "test20") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST20_Q = [
+      { id:"t20_1", q:"꽃이 예쁘___! (감탄)", answer:"네요", answers:["네요", "네요!"], hint:{ko:"💡 예쁘다+-네요=감탄", vi:"💡 ôi đẹp quá", en:"💡 how pretty"} },
+      { id:"t20_2", q:"한국어를 잘하시___! (발견)", answer:"네요", answers:["네요", "네요!"], hint:{ko:"💡 잘하다+-네요", vi:"💡 ôi giỏi quá", en:"💡 wow speaks well"} },
+      { id:"t20_3", q:"날씨가 좋___! (감탄)", answer:"네요", answers:["네요", "네요!"], hint:{ko:"💡 좋다+-네요", vi:"💡 ôi thời tiết tốt", en:"💡 great weather"} },
+      { id:"t20_4", q:"이 음식이 맛있___! (발견)", answer:"네요", answers:["네요", "네요!"], hint:{ko:"💡 맛있다+-네요", vi:"💡 ôi ngon quá", en:"💡 so delicious"} },
+      { id:"t20_5", q:"벌써 도착했___! (발견)", answer:"네요", answers:["네요", "네요!"], hint:{ko:"💡 도착하다+-았네요", vi:"💡 ôi đã đến rồi", en:"💡 already arrived"} },
+      { id:"t20_6", q:"많이 컸___! (변화)", answer:"네요", answers:["네요", "네요!"], hint:{ko:"💡 크다+-었네요", vi:"💡 ôi đã lớn rồi", en:"💡 grown so much"} },
+      { id:"t20_7", q:"비가 오___! (새 사실)", answer:"네요", answers:["네요", "네요!"], hint:{ko:"💡 오다+-네요", vi:"💡 ôi trời mưa", en:"💡 oh it rains"} },
+      { id:"t20_8", q:"오늘 많이 바쁘___. (발견)", answer:"네요", answers:["네요"], hint:{ko:"💡 바쁘다+-네요", vi:"💡 hôm nay bận", en:"💡 seems busy today"} },
+      { id:"t20_9", q:"여기가 정말 아름답___! (감탄)", answer:"네요", answers:["네요", "네요!"], hint:{ko:"💡 아름답다+-네요(ㅂ불규칙)", vi:"💡 ôi đẹp quá", en:"💡 so beautiful"} },
+      { id:"t20_10", q:"한국이 많이 변했___. (발견)", answer:"네요", answers:["네요"], hint:{ko:"💡 변하다+-었네요", vi:"💡 Hàn Quốc đã thay đổi", en:"💡 Korea changed"} },
+    ];
+    function gradeTest20() {
+      let ok=0;
+      TEST20_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST20_Q.length, pass: ok/TEST20_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#F9A825":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("21단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,20])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`20단원`,nextStep:"unit21",nextLabel:"21단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#F9A825,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("21단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit20"); }} style={{width:"100%", background:`linear-gradient(135deg,#F9A825,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("20단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#F57F17", marginBottom:4}}>📝 누적 테스트 — 1~20단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 감탄·새로운 사실 (네요·군요)</div>
+          {TEST20_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#F57F17", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest20} style={{width:"100%", background:`linear-gradient(135deg,#F9A825,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit20"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (20단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 21단원 ──
+  if (step === "test21") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST21_Q = [
+      { id:"t21_1", q:"오늘 날씨가 좋___? (확인)", answer:"죠", answers:["죠", "죠?"], hint:{ko:"💡 좋다+-죠?=확인", vi:"💡 phải không", en:"💡 right confirmation"} },
+      { id:"t21_2", q:"내일 학교에 가___? (확인)", answer:"죠", answers:["죠", "죠?"], hint:{ko:"💡 가다+-죠?", vi:"💡 ngày mai đi học phải không", en:"💡 going tomorrow right"} },
+      { id:"t21_3", q:"김치를 좋아하___? (확인)", answer:"죠", answers:["죠", "죠?"], hint:{ko:"💡 좋아하다+-죠?", vi:"💡 thích kimchi phải không", en:"💡 like kimchi right"} },
+      { id:"t21_4", q:"이것이 한국 음식이___? (확인)", answer:"죠", answers:["죠", "죠?"], hint:{ko:"💡 이다+-죠?", vi:"💡 là đồ ăn Hàn phải không", en:"💡 Korean food right"} },
+      { id:"t21_5", q:"한국어를 배우고 있___? (확인)", answer:"죠", answers:["죠", "죠?"], hint:{ko:"💡 배우다+-고 있죠?", vi:"💡 đang học tiếng Hàn phải không", en:"💡 learning Korean right"} },
+      { id:"t21_6", q:"어제 만났___? (과거 확인)", answer:"죠", answers:["죠", "죠?"], hint:{ko:"💡 만나다+-았죠?", vi:"💡 hôm qua gặp rồi phải không", en:"💡 met yesterday right"} },
+      { id:"t21_7", q:"이미 먹었___? (과거)", answer:"죠", answers:["죠", "죠?"], hint:{ko:"💡 먹다+-었죠?", vi:"💡 đã ăn rồi phải không", en:"💡 already ate right"} },
+      { id:"t21_8", q:"여기가 서울이___? (확인)", answer:"죠", answers:["죠", "죠?"], hint:{ko:"💡 이다+-죠?", vi:"💡 đây là Seoul phải không", en:"💡 this is Seoul right"} },
+      { id:"t21_9", q:"내일도 바쁘___? (확인)", answer:"죠", answers:["죠", "죠?"], hint:{ko:"💡 바쁘다+-죠?", vi:"💡 ngày mai cũng bận phải không", en:"💡 busy tomorrow right"} },
+      { id:"t21_10", q:"한국 음식을 좋아하___? (확인)", answer:"죠", answers:["죠", "죠?"], hint:{ko:"💡 좋아하다+-죠?", vi:"💡 thích đồ ăn Hàn phải không", en:"💡 like Korean food right"} },
+    ];
+    function gradeTest21() {
+      let ok=0;
+      TEST21_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST21_Q.length, pass: ok/TEST21_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#00695C":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("22단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,21])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`21단원`,nextStep:"unit22",nextLabel:"22단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#00695C,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("22단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit21"); }} style={{width:"100%", background:`linear-gradient(135deg,#00695C,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("21단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#004D40", marginBottom:4}}>📝 누적 테스트 — 1~21단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 확인 (죠?·지요?)</div>
+          {TEST21_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#004D40", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest21} style={{width:"100%", background:`linear-gradient(135deg,#00695C,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit21"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (21단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 22단원 ──
+  if (step === "test22") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST22_Q = [
+      { id:"t22_1", q:"의자에 앉아 ___. (상태)", answer:"있습니다", answers:["있습니다", "있습니다."], hint:{ko:"💡 앉다+-아 있습니다=상태", vi:"💡 đang ngồi", en:"💡 is sitting"} },
+      { id:"t22_2", q:"문이 열려 ___. (상태)", answer:"있습니다", answers:["있습니다", "있습니다."], hint:{ko:"💡 열리다+-어 있습니다", vi:"💡 cửa đang mở", en:"💡 door is open"} },
+      { id:"t22_3", q:"벽에 그림이 걸려 ___. (상태)", answer:"있습니다", answers:["있습니다", "있습니다."], hint:{ko:"💡 걸리다+-어 있습니다", vi:"💡 tranh đang treo", en:"💡 picture hanging"} },
+      { id:"t22_4", q:"책상 위에 책이 놓여 ___. (상태)", answer:"있습니다", answers:["있습니다", "있습니다."], hint:{ko:"💡 놓이다+-어 있습니다", vi:"💡 sách đặt trên bàn", en:"💡 book placed"} },
+      { id:"t22_5", q:"불이 꺼져 ___. (상태)", answer:"있습니다", answers:["있습니다", "있습니다."], hint:{ko:"💡 꺼지다+-어 있습니다", vi:"💡 đèn đã tắt", en:"💡 light is off"} },
+      { id:"t22_6", q:"창문이 닫혀 ___. (상태)", answer:"있습니다", answers:["있습니다", "있습니다."], hint:{ko:"💡 닫히다+-어 있습니다", vi:"💡 cửa sổ đang đóng", en:"💡 window closed"} },
+      { id:"t22_7", q:"사람들이 줄을 서 ___. (상태)", answer:"있습니다", answers:["있습니다", "있습니다."], hint:{ko:"💡 서다+-어 있습니다", vi:"💡 đang xếp hàng", en:"💡 in line"} },
+      { id:"t22_8", q:"냉장고가 비어 ___. (상태)", answer:"있습니다", answers:["있습니다", "있습니다."], hint:{ko:"💡 비다+-어 있습니다", vi:"💡 tủ lạnh trống", en:"💡 fridge empty"} },
+      { id:"t22_9", q:"나무에 꽃이 피어 ___. (상태)", answer:"있습니다", answers:["있습니다", "있습니다."], hint:{ko:"💡 피다+-어 있습니다", vi:"💡 hoa đang nở", en:"💡 flowers blooming"} },
+      { id:"t22_10", q:"유리가 깨져 ___. (상태)", answer:"있습니다", answers:["있습니다", "있습니다."], hint:{ko:"💡 깨지다+-어 있습니다", vi:"💡 kính đã vỡ", en:"💡 glass broken"} },
+    ];
+    function gradeTest22() {
+      let ok=0;
+      TEST22_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST22_Q.length, pass: ok/TEST22_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#01579B":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("23단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,22])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`22단원`,nextStep:"unit23",nextLabel:"23단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#01579B,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("23단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit22"); }} style={{width:"100%", background:`linear-gradient(135deg,#01579B,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("22단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#0D47A1", marginBottom:4}}>📝 누적 테스트 — 1~22단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 상태1 (아/어 있습니다)</div>
+          {TEST22_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#0D47A1", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest22} style={{width:"100%", background:`linear-gradient(135deg,#01579B,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit22"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (22단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 23단원 ──
+  if (step === "test23") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST23_Q = [
+      { id:"t23_1", q:"모자를 쓰___ 있습니다. (착용)", answer:"고", answers:["고"], hint:{ko:"💡 쓰다+-고 있습니다=착용", vi:"💡 đang đội mũ", en:"💡 wearing hat"} },
+      { id:"t23_2", q:"안경을 끼___ 있습니다. (착용)", answer:"고", answers:["고"], hint:{ko:"💡 끼다+-고 있습니다", vi:"💡 đang đeo kính", en:"💡 wearing glasses"} },
+      { id:"t23_3", q:"코트를 입___ 있습니다. (착용)", answer:"고", answers:["고"], hint:{ko:"💡 입다+-고 있습니다", vi:"💡 đang mặc áo khoác", en:"💡 wearing coat"} },
+      { id:"t23_4", q:"신발을 신___ 있습니다. (착용)", answer:"고", answers:["고"], hint:{ko:"💡 신다+-고 있습니다", vi:"💡 đang đi giày", en:"💡 wearing shoes"} },
+      { id:"t23_5", q:"목도리를 두르___ 있습니다. (착용)", answer:"고", answers:["고"], hint:{ko:"💡 두르다+-고 있습니다", vi:"💡 đang quàng khăn", en:"💡 wearing scarf"} },
+      { id:"t23_6", q:"반지를 끼___ 있습니다. (착용)", answer:"고", answers:["고"], hint:{ko:"💡 끼다+-고 있습니다", vi:"💡 đang đeo nhẫn", en:"💡 wearing ring"} },
+      { id:"t23_7", q:"장갑을 끼___ 있습니다. (착용)", answer:"고", answers:["고"], hint:{ko:"💡 끼다+-고 있습니다", vi:"💡 đang đeo găng tay", en:"💡 wearing gloves"} },
+      { id:"t23_8", q:"청바지를 입___ 있습니다. (착용)", answer:"고", answers:["고"], hint:{ko:"💡 입다+-고 있습니다", vi:"💡 đang mặc quần jeans", en:"💡 wearing jeans"} },
+      { id:"t23_9", q:"넥타이를 매___ 있습니다. (착용)", answer:"고", answers:["고"], hint:{ko:"💡 매다+-고 있습니다", vi:"💡 đang thắt cà vạt", en:"💡 wearing tie"} },
+      { id:"t23_10", q:"마스크를 쓰___ 있습니다. (착용)", answer:"고", answers:["고"], hint:{ko:"💡 쓰다+-고 있습니다", vi:"💡 đang đeo khẩu trang", en:"💡 wearing mask"} },
+    ];
+    function gradeTest23() {
+      let ok=0;
+      TEST23_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST23_Q.length, pass: ok/TEST23_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#558B2F":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("24단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,23])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`23단원`,nextStep:"unit24",nextLabel:"24단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#558B2F,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("24단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit23"); }} style={{width:"100%", background:`linear-gradient(135deg,#558B2F,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("23단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#33691E", marginBottom:4}}>📝 누적 테스트 — 1~23단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 상태2 착용 (고 있습니다)</div>
+          {TEST23_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#33691E", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest23} style={{width:"100%", background:`linear-gradient(135deg,#558B2F,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit23"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (23단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 24단원 ──
+  if (step === "test24") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST24_Q = [
+      { id:"t24_1", q:"내년에 결혼하___ 했습니다. (결정)", answer:"기로", answers:["기로"], hint:{ko:"💡 결혼하다+-기로 했습니다", vi:"💡 đã quyết định kết hôn", en:"💡 decided to marry"} },
+      { id:"t24_2", q:"매일 운동하___ 했습니다. (결심)", answer:"기로", answers:["기로"], hint:{ko:"💡 운동하다+-기로 했습니다", vi:"💡 đã quyết định tập", en:"💡 decided to exercise"} },
+      { id:"t24_3", q:"한국어를 공부하___ 합니다. (결심)", answer:"기로", answers:["기로"], hint:{ko:"💡 공부하다+-기로 합니다", vi:"💡 quyết định học", en:"💡 decide to study"} },
+      { id:"t24_4", q:"내일 만나___ 했습니다. (약속)", answer:"기로", answers:["기로"], hint:{ko:"💡 만나다+-기로 했습니다", vi:"💡 đã hẹn gặp", en:"💡 promised to meet"} },
+      { id:"t24_5", q:"담배를 끊___ 했습니다. (결심)", answer:"기로", answers:["기로"], hint:{ko:"💡 끊다+-기로 했습니다", vi:"💡 đã quyết định bỏ thuốc", en:"💡 decided to quit"} },
+      { id:"t24_6", q:"같이 영화를 보___ 했습니다. (약속)", answer:"기로", answers:["기로"], hint:{ko:"💡 보다+-기로 했습니다", vi:"💡 đã hẹn xem phim", en:"💡 promised to watch"} },
+      { id:"t24_7", q:"청소하___ 했습니다. (결정)", answer:"기로", answers:["기로"], hint:{ko:"💡 청소하다+-기로", vi:"💡 đã quyết định dọn", en:"💡 decided to clean"} },
+      { id:"t24_8", q:"저축을 시작하___ 했습니다. (결심)", answer:"기로", answers:["기로"], hint:{ko:"💡 시작하다+-기로", vi:"💡 đã quyết định tiết kiệm", en:"💡 decided to save"} },
+      { id:"t24_9", q:"함께 여행 가___ 했습니다. (약속)", answer:"기로", answers:["기로"], hint:{ko:"💡 가다+-기로 했습니다", vi:"💡 đã hẹn đi du lịch", en:"💡 promised to travel"} },
+      { id:"t24_10", q:"일찍 일어나___ 했습니다. (결심)", answer:"기로", answers:["기로"], hint:{ko:"💡 일어나다+-기로", vi:"💡 đã quyết định dậy sớm", en:"💡 decided to wake early"} },
+    ];
+    function gradeTest24() {
+      let ok=0;
+      TEST24_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST24_Q.length, pass: ok/TEST24_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#E65100":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("25단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,24])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:`24단원`,nextStep:"unit25",nextLabel:"25단원으로!"}); }} style={{width:"100%", background:`linear-gradient(135deg,#E65100,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("25단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit24"); }} style={{width:"100%", background:`linear-gradient(135deg,#E65100,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("24단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#BF360C", marginBottom:4}}>📝 누적 테스트 — 1~24단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 결정·결심·약속 (기로 합니다)</div>
+          {TEST24_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#BF360C", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest24} style={{width:"100%", background:`linear-gradient(135deg,#E65100,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit24"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (24단원 학습)", lang)}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 누적 테스트 25단원 ──
+  if (step === "test25") {
+    const vi = lang?.code === "vi"; const en = lang?.code === "en";
+    const TEST25_Q = [
+      { id:"t25_1", q:"한국에 온 ___ 5년이 됐습니다.", answer:"지", answers:["지"], hint:{ko:"💡 오다→온 지+기간+됐습니다", vi:"💡 đã đến Hàn được 5 năm", en:"💡 5 years since came"} },
+      { id:"t25_2", q:"서울에서 부산까지 3시간이 ___.", answer:"걸립니다", answers:["걸립니다", "걸립니다."], hint:{ko:"💡 걸리다=시간 소요", vi:"💡 mất 3 tiếng", en:"💡 takes 3 hours"} },
+      { id:"t25_3", q:"이사하는 데 돈이 얼마나 ___?", answer:"듭니까", answers:["듭니까", "듭니까?"], hint:{ko:"💡 들다=비용 소요", vi:"💡 tốn bao nhiêu", en:"💡 how much costs"} },
+      { id:"t25_4", q:"한국어를 배운 ___ 2년이 됐습니다.", answer:"지", answers:["지"], hint:{ko:"💡 배우다→배운 지+기간", vi:"💡 đã học được 2 năm", en:"💡 2 years since learned"} },
+      { id:"t25_5", q:"병원까지 걸어서 30분이 ___.", answer:"걸립니다", answers:["걸립니다", "걸립니다."], hint:{ko:"💡 걸리다=소요 시간", vi:"💡 đi bộ mất 30 phút", en:"💡 30 min on foot"} },
+      { id:"t25_6", q:"이사 비용이 많이 ___.", answer:"듭니다", answers:["듭니다", "듭니다."], hint:{ko:"💡 들다=비용", vi:"💡 chi phí nhiều", en:"💡 costs a lot"} },
+      { id:"t25_7", q:"결혼한 ___ 10년이 됐습니다.", answer:"지", answers:["지"], hint:{ko:"💡 결혼하다→결혼한 지", vi:"💡 đã kết hôn được 10 năm", en:"💡 10 years since married"} },
+      { id:"t25_8", q:"비행기로 5시간이 ___.", answer:"걸립니다", answers:["걸립니다", "걸립니다."], hint:{ko:"💡 걸리다=소요", vi:"💡 đi máy bay mất 5 tiếng", en:"💡 5 hours by plane"} },
+      { id:"t25_9", q:"이 프로그램은 돈이 얼마나 ___?", answer:"듭니까", answers:["듭니까", "듭니까?"], hint:{ko:"💡 들다=비용 질문", vi:"💡 tốn bao nhiêu tiền", en:"💡 how much does it cost"} },
+      { id:"t25_10", q:"졸업한 ___ 3년이 됐습니다.", answer:"지", answers:["지"], hint:{ko:"💡 졸업하다→졸업한 지", vi:"💡 đã tốt nghiệp được 3 năm", en:"💡 3 years since graduated"} },
+    ];
+    function gradeTest25() {
+      let ok=0;
+      TEST25_Q.forEach(q=>{ const v=(testAnswers[q.id]||"").trim(); if(q.answers.includes(v)) ok++; });
+      setTestResult({score:ok, total:TEST25_Q.length, pass: ok/TEST25_Q.length>=0.8});
+    }
+    if (testResult) return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+        <DevJumpPanel />
+        <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
+          <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
+          <div style={{fontSize:22, fontWeight:900, color:testResult.pass?"#4527A0":"#E65100", marginBottom:8}}>{testResult.score}/{testResult.total}점</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:20}}>{testResult.pass?(txUI("부사어 1단원으로! 🎊", lang)):(txUI("다시 도전!", lang))}</div>
+          {testResult.pass
+            ? <button onClick={()=>{ const np=[...new Set([...unitsPassed,25])];setUnitsPassed(np);try{localStorage.setItem(`hc_units_${user?.uid}`,JSON.stringify(np));}catch(_){}setShowProgress({passedCount:np.length,completedLabel:"서술어 25단원",nextStep:"unit_adv1",nextLabel:"부사어 1단원으로 계속하기"}); }} style={{width:"100%", background:`linear-gradient(135deg,#4527A0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("부사어 1단원으로! 🚀", lang)}</button>
+            : <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setTestResult(null); setTestAnswers({}); setStep("unit25"); }} style={{width:"100%", background:`linear-gradient(135deg,#4527A0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer"}}>{txUI("25단원 다시 학습 🔄", lang)}</button>}
+          <button onClick={()=>{ setTestResult(null); setTestAnswers({}); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("다시 풀기", lang)}</button>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <DevJumpPanel />
+        {MyPageBtn}
+        <div style={{width:"100%", maxWidth:400}}>
+          <div style={{fontSize:14, fontWeight:900, color:"#311B92", marginBottom:4}}>📝 누적 테스트 — 1~25단원</div>
+          <div style={{fontSize:12, color:"#aaa", marginBottom:16}}>범위: 기간·시간·돈 (ㄴ지됐다·걸리다·들다)</div>
+          {TEST25_Q.map((q,i) => (
+            <div key={q.id} style={{background:"white", borderRadius:12, padding:"12px 14px", marginBottom:8}}>
+              <div style={{fontSize:13, fontWeight:700, color:"#333", marginBottom:6}}>{i+1}. {q.q}</div>
+              <input type="text" value={testAnswers[q.id]||""} onChange={e=>setTestAnswers(a=>{return {...a,[q.id]:e.target.value}})} onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") e.stopPropagation(); }} placeholder={txUI("여기에 쓰세요...", lang)} style={{width:"100%", border:"2px solid #B39DDB", borderRadius:8, padding:"7px 10px", fontSize:14, outline:"none", boxSizing:"border-box"}} />
+              <div style={{fontSize:12, color:"#311B92", fontWeight:800, marginTop:6}}>{q.hint[lang?.code] || q.hint.ko}</div>
+            </div>
+          ))}
+          <button type="button" onClick={gradeTest25} style={{width:"100%", background:`linear-gradient(135deg,#4527A0,#111)`, color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", marginTop:12}}>{txUI("채점하기! 📊", lang)}</button>
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit25"); }} style={{marginTop:12, background:"none", border:"none", color:"#aaa", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>← {txUI("뒤로 (25단원 학습)", lang)}</button>
         </div>
       </div>
     );
