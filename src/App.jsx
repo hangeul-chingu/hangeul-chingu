@@ -2837,7 +2837,7 @@ ${vocabList}
             </div>
           </div>
         </div>
-      )},background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:begSpeak?"flex-start":"center",padding:begSpeak?"8px 0":"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      )}
       {!begSpeak && <><div style={{fontSize:48,marginBottom:8}}>🌸</div>
       <div style={{fontSize:22,fontWeight:900,color:"#9C6FDE",marginBottom:4}}>한글 친구</div></>}
       <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center",width:"100%"}}>
