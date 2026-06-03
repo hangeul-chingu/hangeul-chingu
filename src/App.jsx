@@ -18106,6 +18106,35 @@ export default function App() {
   // ✅ V276: 비주얼 온보딩 — 매번 표시 (skip 버튼으로 개인 선택)
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingLang, setOnboardingLang] = useState("ko");
+  // ✅ V332: 홈 화면 다국어 번역 테이블
+  const hlc = onboardingLang || "ko";
+  const HOME_T = {
+    subtitle:    {ko:"이주배경 학습자를 위한 24시간 디지털 브릿지",vi:"Cầu nối kỹ thuật số 24/7 cho người học nhập cư",en:"24/7 Digital Bridge for Immigrant Learners",zh:"为移民背景学习者提供的24小时数字桥梁",ja:"移民背景の学習者のための24時間デジタルブリッジ",id:"Jembatan Digital 24 Jam untuk Pelajar Imigran",ru:"24-часовой цифровой мост для учащихся-мигрантов",th:"สะพานดิจิทัล 24 ชั่วโมงสำหรับผู้เรียนผู้อพยพ",mn:"Цагаачлалын суралцагчдад зориулсан 24 цагийн дижитал гүүр",uz:"Muhojir o'rganuvchilar uchun 24 soatlik raqamli ko'prik"},
+    greeting:    {ko:"안녕하세요",vi:"Xin chào",en:"Hello",zh:"你好",ja:"こんにちは",id:"Halo",ru:"Привет",th:"สวัสดี",mn:"Сайн байна уу",uz:"Salom"},
+    curricTitle: {ko:"📚 한글 친구 80시간 커리큘럼",vi:"📚 Chương trình 80 giờ Hangeul Chingu",en:"📚 Hangeul Chingu 80-Hour Curriculum",zh:"📚 韩语朋友80小时课程",ja:"📚 Hangeul Chingu 80時間カリキュラム",id:"📚 Kurikulum 80 Jam Hangeul Chingu",ru:"📚 Учебный план Hangeul Chingu на 80 часов",th:"📚 หลักสูตร 80 ชั่วโมง Hangeul Chingu",mn:"📚 Hangeul Chingu 80 цагийн хөтөлбөр",uz:"📚 Hangeul Chingu 80 soatlik o'quv dasturi"},
+    curricTotal: {ko:"총 80시간 = 새로운 세상! 🌏",vi:"Tổng 80 giờ = Thế giới mới! 🌏",en:"Total 80 hours = A new world! 🌏",zh:"共80小时 = 新世界！🌏",ja:"合計80時間 = 新しい世界！🌏",id:"Total 80 jam = Dunia baru! 🌏",ru:"Итого 80 часов = Новый мир! 🌏",th:"รวม 80 ชั่วโมง = โลกใหม่! 🌏",mn:"Нийт 80 цаг = Шинэ ертөнц! 🌏",uz:"Jami 80 soat = Yangi dunyo! 🌏"},
+    curricFold:  {ko:"접기 ▲",vi:"Thu gọn ▲",en:"Collapse ▲",zh:"收起 ▲",ja:"折りたたむ ▲",id:"Tutup ▲",ru:"Свернуть ▲",th:"ย่อ ▲",mn:"Хураах ▲",uz:"Yig'ish ▲"},
+    curricShow:  {ko:"📚 80시간 커리큘럼 보기 ▼",vi:"📚 Xem chương trình 80 giờ ▼",en:"📚 View 80-Hour Curriculum ▼",zh:"📚 查看80小时课程 ▼",ja:"📚 80時間カリキュラムを見る ▼",id:"📚 Lihat Kurikulum 80 Jam ▼",ru:"📚 Показать учебный план 80 часов ▼",th:"📚 ดูหลักสูตร 80 ชั่วโมง ▼",mn:"📚 80 цагийн хөтөлбөр харах ▼",uz:"📚 80 soatlik o'quv dasturini ko'rish ▼"},
+    levelTitle:  {ko:"나의 현재 한국어 수준은?",vi:"Trình độ tiếng Hàn hiện tại của bạn?",en:"What is your current Korean level?",zh:"您目前的韩语水平？",ja:"現在の韓国語レベルは？",id:"Apa level bahasa Korea Anda saat ini?",ru:"Ваш текущий уровень корейского?",th:"ระดับภาษาเกาหลีปัจจุบันของคุณ?",mn:"Таны одоогийн Солонгос хэлний түвшин?",uz:"Hozirgi koreys tili darajangiz?"},
+    noLevel:     {ko:"급수 없음",vi:"Chưa có cấp",en:"No level",zh:"无级别",ja:"級なし",id:"Belum ada level",ru:"Без уровня",th:"ไม่มีระดับ",mn:"Түвшингүй",uz:"Daraja yo'q"},
+    begBtn:      {ko:"처음 시작해요",vi:"Bắt đầu từ đầu",en:"Starting from scratch",zh:"从零开始",ja:"初めて始めます",id:"Mulai dari awal",ru:"Начинаю с нуля",th:"เริ่มต้นจากศูนย์",mn:"Эхнээс эхлэж байна",uz:"Noldan boshlayman"},
+    begSub:      {ko:"초급",vi:"Sơ cấp",en:"Beginner",zh:"初级",ja:"初級",id:"Pemula",ru:"Начальный",th:"ระดับต้น",mn:"Анхан шат",uz:"Boshlang'ich"},
+    topikBtn:    {ko:"TOPIK 준비해요",vi:"Chuẩn bị TOPIK",en:"Preparing for TOPIK",zh:"准备TOPIK考试",ja:"TOPIKを準備します",id:"Persiapan TOPIK",ru:"Готовлюсь к TOPIK",th:"เตรียมสอบ TOPIK",mn:"TOPIK-д бэлтгэж байна",uz:"TOPIK ga tayyorlanaman"},
+    topikSub:    {ko:"중·고급",vi:"Trung-Cao cấp",en:"Intermediate–Advanced",zh:"中高级",ja:"中・上級",id:"Menengah–Lanjut",ru:"Средний–Продвинутый",th:"กลาง–สูง",mn:"Дунд–Дээд",uz:"O'rta–Yuqori"},
+    or:          {ko:"— 또는 —",vi:"— hoặc —",en:"— or —",zh:"— 或者 —",ja:"— または —",id:"— atau —",ru:"— или —",th:"— หรือ —",mn:"— эсвэл —",uz:"— yoki —"},
+    back:        {ko:"← 뒤로",vi:"← Quay lại",en:"← Back",zh:"← 返回",ja:"← 戻る",id:"← Kembali",ru:"← Назад",th:"← กลับ",mn:"← Буцах",uz:"← Orqaga"},
+    topikSelect: {ko:"TOPIK 급수를 선택해 주세요",vi:"Vui lòng chọn cấp TOPIK",en:"Please select your TOPIK level",zh:"请选择TOPIK级别",ja:"TOPIK級数を選択してください",id:"Silakan pilih level TOPIK Anda",ru:"Пожалуйста, выберите уровень TOPIK",th:"กรุณาเลือกระดับ TOPIK ของคุณ",mn:"TOPIK түвшнийг сонгоно уу",uz:"TOPIK darajangizni tanlang"},
+    midLabel:    {ko:"중급",vi:"Trung cấp",en:"Intermediate",zh:"中级",ja:"中級",id:"Menengah",ru:"Средний",th:"ระดับกลาง",mn:"Дунд түвшин",uz:"O'rta daraja"},
+    midSub:      {ko:"TOPIK 3~4급",vi:"TOPIK cấp 3~4",en:"TOPIK Level 3~4",zh:"TOPIK 3~4级",ja:"TOPIK 3~4級",id:"TOPIK Level 3~4",ru:"TOPIK Уровень 3~4",th:"TOPIK ระดับ 3~4",mn:"TOPIK 3~4-р түвшин",uz:"TOPIK 3~4-daraja"},
+    midDesc:     {ko:"일상 대화 · 말하기 · 쓰기 훈련",vi:"Hội thoại hàng ngày · Nói · Viết",en:"Daily conversation · Speaking · Writing",zh:"日常对话·口语·写作训练",ja:"日常会話・スピーキング・ライティング練習",id:"Percakapan sehari-hari · Berbicara · Menulis",ru:"Повседневные разговоры · Речь · Письмо",th:"สนทนาประจำวัน · พูด · เขียน",mn:"Өдөр тутмын яриа · Яриа · Бичих",uz:"Kundalik suhbat · Gapirish · Yozish"},
+    advLabel:    {ko:"고급",vi:"Cao cấp",en:"Advanced",zh:"高级",ja:"上級",id:"Lanjut",ru:"Продвинутый",th:"ระดับสูง",mn:"Дээд түвшин",uz:"Yuqori daraja"},
+    advSub:      {ko:"TOPIK 5~6급",vi:"TOPIK cấp 5~6",en:"TOPIK Level 5~6",zh:"TOPIK 5~6级",ja:"TOPIK 5~6級",id:"TOPIK Level 5~6",ru:"TOPIK Уровень 5~6",th:"TOPIK ระดับ 5~6",mn:"TOPIK 5~6-р түвшин",uz:"TOPIK 5~6-daraja"},
+    advDesc:     {ko:"심화 토론 · 사회·문화 주제",vi:"Thảo luận chuyên sâu · Chủ đề xã hội & văn hóa",en:"In-depth discussion · Social & cultural topics",zh:"深入讨论·社会文化主题",ja:"深化討論・社会・文化テーマ",id:"Diskusi mendalam · Topik sosial & budaya",ru:"Углублённые дискуссии · Социальные и культурные темы",th:"อภิปรายเชิงลึก · หัวข้อสังคม & วัฒนธรรม",mn:"Гүнзгий хэлэлцүүлэг · Нийгэм, соёлын сэдэв",uz:"Chuqur muhokama · Ijtimoiy va madaniy mavzular"},
+    logout:      {ko:"🚪 로그아웃",vi:"🚪 Đăng xuất",en:"🚪 Log out",zh:"🚪 退出登录",ja:"🚪 ログアウト",id:"🚪 Keluar",ru:"🚪 Выйти",th:"🚪 ออกจากระบบ",mn:"🚪 Гарах",uz:"🚪 Chiqish"},
+    myPage:      {ko:"👤 마이페이지",vi:"👤 Trang cá nhân",en:"👤 My Page",zh:"👤 我的页面",ja:"👤 マイページ",id:"👤 Halaman Saya",ru:"👤 Мой профиль",th:"👤 หน้าของฉัน",mn:"👤 Миний хуудас",uz:"👤 Mening sahifam"},
+    learner:     {ko:"학습자",vi:"Học viên",en:"Learner",zh:"学习者",ja:"学習者",id:"Pelajar",ru:"Учащийся",th:"ผู้เรียน",mn:"Суралцагч",uz:"O'rganuvchi"},
+  };
+  const ht = (key) => HOME_T[key]?.[hlc] ?? HOME_T[key]?.en ?? HOME_T[key]?.ko ?? "";
 
   // ✅ V148: 기존 가입자 마이그레이션 체크 (dataOwnershipAgreed 없으면 팝업)
   useEffect(()=>{
@@ -18371,7 +18400,7 @@ export default function App() {
             <div style={{background:"white",borderRadius:"24px 24px 0 0",padding:"28px 24px 40px",width:"100%",maxWidth:480,boxShadow:"0 -8px 40px rgba(0,0,0,.2)"}}
               onClick={e=>e.stopPropagation()}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
-                <div style={{fontSize:16,fontWeight:900,color:"#333"}}>👤 마이페이지</div>
+                <div style={{fontSize:16,fontWeight:900,color:"#333"}}>{ht("myPage")}</div>
                 <button onClick={()=>setShowMyPage(false)} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#bbb"}}>✕</button>
               </div>
               {/* 프로필 카드 */}
@@ -18380,7 +18409,7 @@ export default function App() {
                   {(user.displayName||user.email||"?")[0].toUpperCase()}
                 </div>
                 <div>
-                  <div style={{fontSize:15,fontWeight:900,color:"#333"}}>{user.displayName||"학습자"}</div>
+                  <div style={{fontSize:15,fontWeight:900,color:"#333"}}>{user.displayName||ht("learner")}</div>
                   <div style={{fontSize:12,color:"#888"}}>{user.email}</div>
                   <div style={{fontSize:11,color:"#9C6FDE",fontWeight:700,marginTop:2}}>레벨 미선택</div>
                 </div>
@@ -18477,7 +18506,7 @@ export default function App() {
               </div>
 
               <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
-                🚪 로그아웃
+                {ht("logout")}
               </button>
             </div>
           </div>
@@ -18491,7 +18520,7 @@ export default function App() {
       {/* ── ① 80시간 커리큘럼 미리보기 ── */}
       {showCurricPreview && (
         <div style={{width:"100%",maxWidth:340,background:"white",borderRadius:18,padding:"18px 16px",marginBottom:20,boxShadow:"0 4px 20px rgba(156,111,222,.12)",border:"2px solid #9C6FDE22"}}>
-          <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:12,textAlign:"center"}}>📚 한글 친구 80시간 커리큘럼</div>
+          <div style={{fontSize:13,fontWeight:900,color:"#9C6FDE",marginBottom:12,textAlign:"center"}}>{ht("curricTitle")}</div>
           {[
             {emoji:"🔤",step:"1단계",label:"발음 8단계",time:"8시간",color:"#9C6FDE"},
             {emoji:"⏱️",step:"2단계",label:"시제 6단원",time:"6시간",color:"#E65100"},
@@ -18540,17 +18569,17 @@ export default function App() {
             </div>
             <span style={{fontSize:11,fontWeight:800,color:"#FF6B9D",background:"#FF6B9D18",borderRadius:8,padding:"2px 8px"}}>1시간</span>
           </div>
-          <div style={{textAlign:"center",marginTop:12,fontSize:12,color:"#aaa"}}>총 80시간 = 새로운 세상! 🌏</div>
+          <div style={{textAlign:"center",marginTop:12,fontSize:12,color:"#aaa"}}>{ht("curricTotal")}</div>
           <button onClick={e=>{e.stopPropagation();setShowCurricPreview(false);}}
             style={{width:"100%",marginTop:10,background:"none",border:"1px solid #eee",borderRadius:20,padding:"7px 0",fontSize:12,color:"#bbb",cursor:"pointer"}}>
-            접기 ▲
+            {ht("curricFold")}
           </button>
         </div>
       )}
       {!showCurricPreview && (
         <button onClick={e=>{e.stopPropagation();setShowCurricPreview(true);}}
           style={{width:"100%",maxWidth:340,marginBottom:16,background:"white",border:"1.5px solid #9C6FDE44",borderRadius:14,padding:"10px 0",fontSize:12,color:"#9C6FDE",fontWeight:700,cursor:"pointer"}}>
-          📚 80시간 커리큘럼 보기 ▼
+          {ht("curricShow")}
         </button>
       )}
 
@@ -18558,10 +18587,10 @@ export default function App() {
       {!showTopikChoice ? (
         <>
           <div style={{width:"100%",maxWidth:340,marginBottom:12}}>
-            <div style={{fontSize:13,fontWeight:900,color:"#555",marginBottom:10,textAlign:"center"}}>나의 현재 한국어 수준은?</div>
+            <div style={{fontSize:13,fontWeight:900,color:"#555",marginBottom:10,textAlign:"center"}}>{ht("levelTitle")}</div>
             <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center"}}>
               {[
-                {label:"급수 없음",go:"beg"},
+                {label:ht("noLevel"),go:"beg"},
                 {label:"TOPIK 1",go:"beg"},
                 {label:"TOPIK 2",go:"topik2modal"},
                 {label:"TOPIK 3",go:"mid"},
@@ -18582,15 +18611,15 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{fontSize:12,color:"#bbb",marginBottom:16,textAlign:"center"}}>— 또는 —</div>
+          <div style={{fontSize:12,color:"#bbb",marginBottom:16,textAlign:"center"}}>{ht("or")}</div>
 
           {/* 🌸 처음 시작해요 */}
           <button onClick={()=>setLevel("beg")} style={{width:"100%",maxWidth:340,marginBottom:14,background:"#F3EEFF",border:"2.5px solid #9C6FDE",borderRadius:20,padding:"18px 22px",cursor:"pointer",textAlign:"left",boxShadow:"0 4px 18px #9C6FDE28",display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
             <div style={{fontSize:36,flexShrink:0}}>🌸</div>
             <div>
               <div style={{display:"flex",alignItems:"baseline",gap:8}}>
-                <span style={{fontSize:18,fontWeight:900,color:"#9C6FDE"}}>처음 시작해요</span>
-                <span style={{fontSize:12,color:"#999",fontWeight:600}}>초급</span>
+                <span style={{fontSize:18,fontWeight:900,color:"#9C6FDE"}}>{ht("begBtn")}</span>
+                <span style={{fontSize:12,color:"#999",fontWeight:600}}>{ht("begSub")}</span>
               </div>
             </div>
           </button>
@@ -18600,8 +18629,8 @@ export default function App() {
             <div style={{fontSize:36,flexShrink:0}}>📚</div>
             <div style={{flex:1}}>
               <div style={{display:"flex",alignItems:"baseline",gap:8}}>
-                <span style={{fontSize:12,color:"#999",fontWeight:600}}>중·고급</span>
-                <span style={{fontSize:18,fontWeight:900,color:C.pink}}>TOPIK 준비해요</span>
+                <span style={{fontSize:12,color:"#999",fontWeight:600}}>{ht("topikSub")}</span>
+                <span style={{fontSize:18,fontWeight:900,color:C.pink}}>{ht("topikBtn")}</span>
               </div>
             </div>
             <div style={{fontSize:20,color:C.pink,opacity:.5,flexShrink:0}}>›</div>
@@ -18610,11 +18639,11 @@ export default function App() {
       ) : (
         /* ── 중급 / 고급 선택 ── */
         <>
-          <button onClick={e=>{e.stopPropagation();setShowTopikChoice(false);}} style={{alignSelf:"flex-start",marginLeft:"calc(50% - 170px)",background:"none",border:"none",color:"#aaa",fontSize:13,cursor:"pointer",marginBottom:8,padding:"4px 0"}}>← 뒤로</button>
-          <div style={{fontSize:13,color:"#888",marginBottom:12,textAlign:"center"}}>TOPIK 급수를 선택해 주세요</div>
+          <button onClick={e=>{e.stopPropagation();setShowTopikChoice(false);}} style={{alignSelf:"flex-start",marginLeft:"calc(50% - 170px)",background:"none",border:"none",color:"#aaa",fontSize:13,cursor:"pointer",marginBottom:8,padding:"4px 0"}}>{ht("back")}</button>
+          <div style={{fontSize:13,color:"#888",marginBottom:12,textAlign:"center"}}>{ht("topikSelect")}</div>
           {[
-            {key:"mid",emoji:"🌱",label:"중급",sub:"TOPIK 3~4급",desc:"일상 대화 · 말하기 · 쓰기 훈련",color:C.teal,bg:"#E8FAF8"},
-            {key:"adv",emoji:"🔥",label:"고급",sub:"TOPIK 5~6급",desc:"심화 토론 · 사회·문화 주제",color:C.pink,bg:"#FFF0F6"},
+            {key:"mid",emoji:"🌱",label:ht("midLabel"),sub:ht("midSub"),desc:ht("midDesc"),color:C.teal,bg:"#E8FAF8"},
+            {key:"adv",emoji:"🔥",label:ht("advLabel"),sub:ht("advSub"),desc:ht("advDesc"),color:C.pink,bg:"#FFF0F6"},
           ].map(o=>(
             <button key={o.key} onClick={()=>setLevel(o.key)} style={{width:"100%",maxWidth:340,marginBottom:14,background:o.bg,border:`2.5px solid ${o.color}`,borderRadius:20,padding:"20px 22px",cursor:"pointer",textAlign:"left",boxShadow:`0 4px 18px ${o.color}28`,display:"flex",alignItems:"center",gap:16,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
               <div style={{fontSize:40,flexShrink:0}}>{o.emoji}</div>
@@ -18822,7 +18851,7 @@ export default function App() {
                 </button>
               </div>
               <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
-                🚪 로그아웃
+                {ht("logout")}
               </button>
             </div>
           </div>
