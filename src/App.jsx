@@ -595,7 +595,38 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
   );
 }
 
-function AuthScreen({ onLogin }) {
+function AuthScreen({ onLogin, lang }) {
+  // ✅ V330: 로그인 화면 다국어 번역 테이블
+  const AUTH_T = {
+    login:       {ko:"로그인",     vi:"Đăng nhập",  en:"Login",        zh:"登录",    ja:"ログイン",   id:"Masuk",        ru:"Войти",        th:"เข้าสู่ระบบ",   mn:"Нэвтрэх",    uz:"Kirish"},
+    signup:      {ko:"회원가입",   vi:"Đăng ký",    en:"Sign Up",      zh:"注册",    ja:"会員登録",   id:"Daftar",       ru:"Регистрация",  th:"สมัครสมาชิก",  mn:"Бүртгүүлэх", uz:"Ro'yxatdan o'tish"},
+    email:       {ko:"이메일",     vi:"Email",      en:"Email",        zh:"邮箱",    ja:"メールアドレス",id:"Email",       ru:"Эл. почта",    th:"อีเมล",        mn:"И-мэйл",     uz:"Elektron pochta"},
+    password:    {ko:"비밀번호 (6자 이상)",vi:"Mật khẩu (6+ ký tự)",en:"Password (6+ chars)",zh:"密码（6位以上）",ja:"パスワード（6文字以上）",id:"Kata sandi (6+ karakter)",ru:"Пароль (6+ символов)",th:"รหัสผ่าน (6+ ตัวอักษร)",mn:"Нууц үг (6+ тэмдэгт)",uz:"Parol (6+ belgi)"},
+    name:        {ko:"이름",       vi:"Tên",        en:"Name",         zh:"姓名",    ja:"名前",       id:"Nama",         ru:"Имя",          th:"ชื่อ",         mn:"Нэр",        uz:"Ism"},
+    instrName:   {ko:"교수자 이름",vi:"Tên giáo viên",en:"Instructor name",zh:"讲师名",ja:"講師名",  id:"Nama instruktur",ru:"Имя инструктора",th:"ชื่อผู้สอน",mn:"Багшийн нэр",uz:"O'qituvchi ismi"},
+    learner:     {ko:"학습자",     vi:"Học viên",   en:"Learner",      zh:"学习者",  ja:"学習者",     id:"Pelajar",      ru:"Учащийся",     th:"ผู้เรียน",     mn:"Суралцагч",  uz:"O'rganuvchi"},
+    instructor:  {ko:"교수자",     vi:"Giáo viên",  en:"Instructor",   zh:"讲师",    ja:"講師",       id:"Instruktur",   ru:"Инструктор",   th:"ผู้สอน",       mn:"Багш",       uz:"O'qituvchi"},
+    doLogin:     {ko:"로그인",     vi:"Đăng nhập",  en:"Login",        zh:"登录",    ja:"ログイン",   id:"Masuk",        ru:"Войти",        th:"เข้าสู่ระบบ",   mn:"Нэвтрэх",    uz:"Kirish"},
+    doSignup:    {ko:"으로 가입하기",vi:"Đăng ký với tư cách",en:"Sign up as",zh:"注册为",ja:"として登録",id:"Daftar sebagai",ru:"Зарегистрироваться как",th:"สมัครในฐานะ",mn:"болж бүртгэх",uz:"sifatida ro'yxatdan o'tish"},
+    processing:  {ko:"처리 중...", vi:"Đang xử lý...",en:"Processing...",zh:"处理中...",ja:"処理中...",id:"Memproses...",ru:"Обработка...",  th:"กำลังดำเนินการ...",mn:"Боловсруулж байна...",uz:"Ishlanmoqda..."},
+    checking:    {ko:"확인 중...", vi:"Đang kiểm tra...",en:"Checking...",zh:"检查中...",ja:"確認中...",id:"Memeriksa...",ru:"Проверка...",  th:"กำลังตรวจสอบ...",mn:"Шалгаж байна...",uz:"Tekshirilmoqda..."},
+    forgotPw:    {ko:"비밀번호를 잊으셨나요?",vi:"Quên mật khẩu?",en:"Forgot password?",zh:"忘记密码？",ja:"パスワードを忘れましたか？",id:"Lupa kata sandi?",ru:"Забыли пароль?",th:"ลืมรหัสผ่าน?",mn:"Нууц үгээ мартсан уу?",uz:"Parolni unutdingizmi?"},
+    forgotTitle: {ko:"비밀번호 찾기",vi:"Tìm lại mật khẩu",en:"Reset Password",zh:"找回密码",ja:"パスワード再設定",id:"Reset Kata Sandi",ru:"Сброс пароля",th:"รีเซ็ตรหัสผ่าน",mn:"Нууц үг сэргээх",uz:"Parolni tiklash"},
+    enterEmail:  {ko:"가입하신 이메일을 입력해주세요",vi:"Nhập email đã đăng ký",en:"Enter your registered email",zh:"请输入注册邮箱",ja:"登録したメールアドレスを入力してください",id:"Masukkan email yang terdaftar",ru:"Введите зарегистрированный email",th:"ใส่อีเมลที่ลงทะเบียน",mn:"Бүртгэлтэй и-мэйлээ оруулна уу",uz:"Ro'yxatdan o'tgan elektron pochtangizni kiriting"},
+    nextBtn:     {ko:"다음 →",     vi:"Tiếp →",     en:"Next →",       zh:"下一步 →",ja:"次へ →",    id:"Lanjut →",     ru:"Далее →",      th:"ถัดไป →",       mn:"Дараах →",   uz:"Keyingi →"},
+    answerCheck: {ko:"답변 확인 →",vi:"Kiểm tra →",  en:"Check Answer →",zh:"验证答案 →",ja:"答え確認 →",id:"Periksa Jawaban →",ru:"Проверить ответ →",th:"ตรวจสอบคำตอบ →",mn:"Хариулт шалгах →",uz:"Javobni tekshirish →"},
+    resetPwBtn:  {ko:"비밀번호 재설정 이메일 보내기",vi:"Gửi email đặt lại mật khẩu",en:"Send Password Reset Email",zh:"发送重置密码邮件",ja:"パスワード再設定メールを送る",id:"Kirim Email Reset Kata Sandi",ru:"Отправить письмо для сброса пароля",th:"ส่งอีเมลรีเซ็ตรหัสผ่าน",mn:"Нууц үг сэргээх имэйл илгээх",uz:"Parol tiklash emailini yuborish"},
+    verifyTitle: {ko:"이메일 인증이 필요해요",vi:"Cần xác minh email",en:"Email Verification Required",zh:"需要验证邮箱",ja:"メール認証が必要です",id:"Verifikasi Email Diperlukan",ru:"Требуется подтверждение email",th:"ต้องยืนยันอีเมล",mn:"И-мэйл баталгаажуулалт шаардлагатай",uz:"Elektron pochtani tasdiqlash kerak"},
+    verifyDone:  {ko:"✅ 인증 완료했어요 →",vi:"✅ Đã xác minh →",en:"✅ Verified →",zh:"✅ 已验证 →",ja:"✅ 認証完了 →",id:"✅ Terverifikasi →",ru:"✅ Подтверждено →",th:"✅ ยืนยันแล้ว →",mn:"✅ Баталгаажсан →",uz:"✅ Tasdiqlandi →"},
+    resend:      {ko:"📨 인증 메일 재발송",vi:"📨 Gửi lại email xác minh",en:"📨 Resend Verification",zh:"📨 重新发送验证邮件",ja:"📨 認証メール再送",id:"📨 Kirim Ulang Verifikasi",ru:"📨 Повторная отправка",th:"📨 ส่งอีกครั้ง",mn:"📨 Дахин илгээх",uz:"📨 Qayta yuborish"},
+    logout:      {ko:"로그아웃",   vi:"Đăng xuất",  en:"Log out",      zh:"退出登录",ja:"ログアウト",  id:"Keluar",       ru:"Выйти",        th:"ออกจากระบบ",    mn:"Гарах",      uz:"Chiqish"},
+    brochure:    {ko:"📋 기관·학교·학원용 소개자료",vi:"📋 Tài liệu giới thiệu cho tổ chức",en:"📋 Brochure for Institutions",zh:"📋 机构介绍资料",ja:"📋 機関向け紹介資料",id:"📋 Brosur untuk Institusi",ru:"📋 Брошюра для организаций",th:"📋 เอกสารแนะนำสำหรับสถาบัน",mn:"📋 Байгууллагын танилцуулга",uz:"📋 Muassasalar uchun tanitma"},
+    quotation:   {ko:"📄 교육과정 표준 준수 견적서 요청",vi:"📄 Yêu cầu báo giá chương trình",en:"📄 Request Curriculum Quote",zh:"📄 请求课程报价",ja:"📄 カリキュラム見積もり依頼",id:"📄 Permintaan Penawaran Kurikulum",ru:"📄 Запрос коммерческого предложения",th:"📄 ขอใบเสนอราคาหลักสูตร",mn:"📄 Хөтөлбөрийн үнийн санал хүсэлт",uz:"📄 O'quv dasturi narxini so'rash"},
+    subtitle:    {ko:"이주배경 학습자를 위한 24시간 디지털 브릿지 · Korean Speaking & Writing Trainer",vi:"Cầu nối kỹ thuật số 24/7 cho người học nhập cư · Korean Speaking & Writing Trainer",en:"24/7 Digital Bridge for Immigrant Learners · Korean Speaking & Writing Trainer",zh:"为移民背景学习者提供的24小时数字桥梁 · Korean Speaking & Writing Trainer",ja:"移民背景の学習者のための24時間デジタルブリッジ · Korean Speaking & Writing Trainer",id:"Jembatan Digital 24 Jam untuk Pelajar Imigran · Korean Speaking & Writing Trainer",ru:"24-часовой цифровой мост для учащихся-мигрантов · Korean Speaking & Writing Trainer",th:"สะพานดิจิทัล 24 ชั่วโมงสำหรับผู้เรียนผู้อพยพ · Korean Speaking & Writing Trainer",mn:"Цагаачлалын суралцагчдад зориулсан 24 цагийн дижитал гүүр · Korean Speaking & Writing Trainer",uz:"Muhojir o'rganuvchilar uchun 24 soatlik raqamli ko'prik · Korean Speaking & Writing Trainer"},
+    noQuestion:  {ko:"보안질문이 등록되지 않은 계정입니다",vi:"Tài khoản chưa đăng ký câu hỏi bảo mật",en:"No security question registered",zh:"未设置安全问题的账户",ja:"セキュリティ質問が未登録のアカウントです",id:"Akun belum punya pertanyaan keamanan",ru:"Вопрос безопасности не зарегистрирован",th:"บัญชีไม่มีคำถามรักษาความปลอดภัย",mn:"Аюулгүйн асуулт бүртгэгдээгүй",uz:"Xavfsizlik savoli ro'yxatdan o'tmagan"},
+  };
+  const lc = lang || "ko";
+  const at = (key) => AUTH_T[key]?.[lc] ?? AUTH_T[key]?.en ?? AUTH_T[key]?.ko ?? "";
   const [showVerify, setShowVerify] = useState(false);   // ✅ V284: 이메일 인증 대기 화면
   const [verifyUser, setVerifyUser] = useState(null);    // ✅ V284: 인증 대기 중인 user 객체
   const [verifyMsg, setVerifyMsg] = useState("");        // ✅ V284: 인증 안내 메시지
@@ -714,27 +745,27 @@ function AuthScreen({ onLogin }) {
     setLoading(false);
   }
 
-  const roleLabel = { learner: "학습자", instructor: "교수자" };
+  const roleLabel = { learner: at("learner"), instructor: at("instructor") };
 
   // ✅ V263: 비밀번호 찾기 화면
   if (tab === "forgot") {
     return (
       <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:40,marginBottom:8}}>🔐</div>
-        <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:4}}>비밀번호 찾기</div>
+        <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:4}}>{at("forgotTitle")}</div>
         <div style={{fontSize:12,color:"#bbb",marginBottom:24}}>{forgotStep}단계 / 3단계</div>
         <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:24,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.1)"}}>
 
           {/* 1단계: 이메일 입력 */}
           {forgotStep===1&&<>
-            <div style={{fontSize:14,fontWeight:700,color:"#555",marginBottom:12}}>가입하신 이메일을 입력해주세요</div>
+            <div style={{fontSize:14,fontWeight:700,color:"#555",marginBottom:12}}>{at("enterEmail")}</div>
             <input value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)}
-              placeholder="이메일" type="email"
+              placeholder={at("email")} type="email"
               style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:14,boxSizing:"border-box"}}/>
             {forgotMsg&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{forgotMsg}</div>}
             <button onClick={handleForgotStep1} disabled={loading}
               style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:loading?0.5:1}}>
-              {loading?"확인 중...":"다음 →"}
+              {loading?at("checking"):at("nextBtn")}
             </button>
           </>}
 
@@ -742,7 +773,7 @@ function AuthScreen({ onLogin }) {
           {forgotStep===2&&<>
             <div style={{background:"#F3EEFF",borderRadius:12,padding:"14px",marginBottom:14}}>
               <div style={{fontSize:11,color:"#9C6FDE",fontWeight:700,marginBottom:4}}>보안 질문</div>
-              <div style={{fontSize:14,fontWeight:700,color:"#333"}}>{forgotQ||"보안질문이 등록되지 않은 계정입니다"}</div>
+              <div style={{fontSize:14,fontWeight:700,color:"#333"}}>{forgotQ||at("noQuestion")}</div>
             </div>
             <input value={forgotA} onChange={e=>setForgotA(e.target.value.slice(0,20))}
               placeholder="답변 입력 (최대 20자)" maxLength={20}
@@ -750,7 +781,7 @@ function AuthScreen({ onLogin }) {
             {forgotMsg&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{forgotMsg}</div>}
             <button onClick={handleForgotStep2} disabled={loading||!forgotQ}
               style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:(loading||!forgotQ)?0.5:1}}>
-              {loading?"확인 중...":"답변 확인 →"}
+              {loading?at("checking"):at("answerCheck")}
             </button>
             <button onClick={()=>{setForgotStep(1);setForgotMsg("");}}
               style={{width:"100%",marginTop:10,background:"none",border:"none",color:"#bbb",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
@@ -779,14 +810,14 @@ function AuthScreen({ onLogin }) {
                   {forgotMsg&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{forgotMsg}</div>}
                   <button onClick={handleForgotStep3} disabled={loading}
                     style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:loading?0.5:1}}>
-                    {loading?"처리 중...":"비밀번호 재설정 이메일 보내기"}
+                    {loading?at("processing"):at("resetPwBtn")}
                   </button>
                 </>
             }
           </>}
         </div>
         {forgotStep!==3&&<button onClick={()=>{setTab("login");setForgotStep(1);setForgotMsg("");}}
-          style={{marginTop:16,background:"none",border:"none",color:"#bbb",fontSize:13,cursor:"pointer"}}>← 로그인으로 돌아가기</button>}
+          style={{marginTop:16,background:"none",border:"none",color:"#bbb",fontSize:13,cursor:"pointer"}}>← {at("login")}</button>}
       </div>
     );
   }
@@ -811,18 +842,18 @@ function AuthScreen({ onLogin }) {
             else { setVerifyMsg("아직 인증이 완료되지 않았어요. 메일함을 확인해주세요 📬"); }
           } catch(e) { setVerifyMsg("오류가 발생했어요. 다시 시도해주세요."); }
         }} style={{width:"100%",padding:"14px 0",background:`linear-gradient(135deg,${C.pink},${C.orange})`,border:"none",borderRadius:50,color:"white",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:`0 6px 20px ${C.pink}40`}}>
-          ✅ 인증 완료했어요 →
+          {at("verifyDone")}
         </button>
         <button onClick={async()=>{
           setVerifyMsg("");
           try { await sendEmailVerification(verifyUser); setVerifyMsg("인증 메일을 다시 보냈어요 📨"); }
           catch(e) { setVerifyMsg("잠시 후 다시 시도해주세요."); }
         }} style={{width:"100%",padding:"12px 0",background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,color:C.teal,fontSize:14,fontWeight:700,cursor:"pointer"}}>
-          📨 인증 메일 다시 보내기
+          {at("resend")}
         </button>
         <button onClick={async()=>{ await signOut(auth); setShowVerify(false); setVerifyUser(null); setVerifyMsg(""); }}
           style={{background:"none",border:"none",color:"#bbb",fontSize:13,cursor:"pointer",padding:"8px 0"}}>
-          로그아웃
+          {at("logout")}
         </button>
       </div>
       {verifyMsg && <div style={{marginTop:16,fontSize:13,color:C.pink,textAlign:"center",fontWeight:600}}>{verifyMsg}</div>}
@@ -833,11 +864,11 @@ function AuthScreen({ onLogin }) {
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:52,marginBottom:8}}>🇰🇷</div>
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
-      <div style={{fontSize:13,color:"#888",marginBottom:32,textAlign:"center"}}>이주배경 학습자를 위한 24시간 디지털 브릿지 · Korean Speaking &amp; Writing Trainer</div>
+      <div style={{fontSize:13,color:"#888",marginBottom:32,textAlign:"center"}}>{at("subtitle")}</div>
       <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:24,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.1)"}}>
         {/* 로그인 / 회원가입 탭 */}
         <div style={{display:"flex",background:"#f5f5f5",borderRadius:12,padding:4,marginBottom:20}}>
-          {[["login","로그인"],["signup","회원가입"]].map(([k,l])=>(
+          {[["login",at("login")],["signup",at("signup")]].map(([k,l])=>(
             <button key={k} onClick={()=>{setTab(k);setError("");setDataOwnershipAgreed(false);setEmailAgreed(false);}} style={{flex:1,padding:"9px 0",border:"none",borderRadius:10,background:tab===k?"white":"transparent",fontWeight:tab===k?800:500,color:tab===k?C.pink:"#999",cursor:"pointer",fontSize:14,transition:"all .2s"}}>{l}</button>
           ))}
         </div>
@@ -847,23 +878,23 @@ function AuthScreen({ onLogin }) {
           <div style={{marginBottom:12}}>
             <div style={{fontSize:12,color:"#888",marginBottom:6,fontWeight:600}}>가입 유형</div>
             <div style={{display:"flex",gap:8}}>
-              {[["learner","🎓 학습자"],["instructor","👩‍🏫 교수자"]].map(([k,l])=>(
+              {[["learner","🎓 "+at("learner")],["instructor","👩\u200d🏫 "+at("instructor")]].map(([k,l])=>(
                 <button key={k} onClick={()=>setRole(k)} style={{flex:1,padding:"10px 0",border:`2px solid ${role===k?C.pink:"#eee"}`,borderRadius:12,background:role===k?`${C.pink}12`:"white",color:role===k?C.pink:"#aaa",fontWeight:role===k?800:500,fontSize:13,cursor:"pointer",transition:"all .2s"}}>{l}</button>
               ))}
             </div>
           </div>
-          <input value={name} onChange={e=>setName(e.target.value)} placeholder={role==="instructor"?"교수자 이름":"이름"} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
+          <input value={name} onChange={e=>setName(e.target.value)} placeholder={role==="instructor"?at("instrName"):at("name")} style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
         </>)}
 
-        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="이메일" type="email" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
-        <input value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} placeholder="비밀번호 (6자 이상)" type="password" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:tab==="signup"?10:6,boxSizing:"border-box"}}/>
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder={at("email")} type="email" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:10,boxSizing:"border-box"}}/>
+        <input value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} placeholder={at("password")} type="password" style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:tab==="signup"?10:6,boxSizing:"border-box"}}/>
 
         {/* ✅ V263: 비밀번호 찾기 링크 (로그인 탭만) */}
         {tab==="login"&&(
           <div style={{textAlign:"right",marginBottom:12}}>
             <button onClick={()=>{setTab("forgot");setError("");setForgotStep(1);setForgotMsg("");}}
               style={{background:"none",border:"none",color:C.pink,fontSize:12,fontWeight:700,cursor:"pointer",padding:0}}>
-              비밀번호를 잊으셨나요?
+              {at("forgotPw")}
             </button>
           </div>
         )}
@@ -904,13 +935,13 @@ function AuthScreen({ onLogin }) {
 
         {error&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{error}</div>}
         <button onClick={handleSubmit} disabled={loading} style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:16,fontWeight:900,cursor:"pointer",opacity:loading?0.5:1}}>
-          {loading?"처리 중...":tab==="login"?"로그인":`${roleLabel[role]}으로 가입하기`}
+          {loading?at("processing"):tab==="login"?at("doLogin"):`${roleLabel[role]} ${at("doSignup")}`}
         </button>
       </div>
       {/* ✅ V275: 기관·학교·학원용 버튼 1개로 통합 */}
       <div style={{marginTop:24,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
         <a href="https://padlet.com/roh053068/hangeul_chingu" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.teal,fontWeight:800,fontSize:14,boxShadow:`0 4px 16px ${C.teal}25`,WebkitTapHighlightColor:"transparent"}}>
-          📋 기관·학교·학원용 소개자료
+          {at("brochure")}
         </a>
         <CertRequestButton />
       </div>
@@ -18106,7 +18137,7 @@ export default function App() {
     />
   );
 
-  if (!user) return <AuthScreen onLogin={setUser}/>;
+  if (!user) return <AuthScreen onLogin={setUser} lang={onboardingLang}/>;
 
   // ✅ V148: 기존 가입자 마이그레이션 팝업
   if (showMigration) return (
