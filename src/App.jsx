@@ -623,10 +623,31 @@ function AuthScreen({ onLogin, lang }) {
     brochure:    {ko:"📋 기관·학교·학원용 소개자료",vi:"📋 Tài liệu giới thiệu cho tổ chức",en:"📋 Brochure for Institutions",zh:"📋 机构介绍资料",ja:"📋 機関向け紹介資料",id:"📋 Brosur untuk Institusi",ru:"📋 Брошюра для организаций",th:"📋 เอกสารแนะนำสำหรับสถาบัน",mn:"📋 Байгууллагын танилцуулга",uz:"📋 Muassasalar uchun tanitma"},
     quotation:   {ko:"📄 교육과정 표준 준수 견적서 요청",vi:"📄 Yêu cầu báo giá chương trình",en:"📄 Request Curriculum Quote",zh:"📄 请求课程报价",ja:"📄 カリキュラム見積もり依頼",id:"📄 Permintaan Penawaran Kurikulum",ru:"📄 Запрос коммерческого предложения",th:"📄 ขอใบเสนอราคาหลักสูตร",mn:"📄 Хөтөлбөрийн үнийн санал хүсэлт",uz:"📄 O'quv dasturi narxini so'rash"},
     subtitle:    {ko:"이주배경 학습자를 위한 24시간 디지털 브릿지 · Korean Speaking & Writing Trainer",vi:"Cầu nối kỹ thuật số 24/7 cho người học nhập cư · Korean Speaking & Writing Trainer",en:"24/7 Digital Bridge for Immigrant Learners · Korean Speaking & Writing Trainer",zh:"为移民背景学习者提供的24小时数字桥梁 · Korean Speaking & Writing Trainer",ja:"移民背景の学習者のための24時間デジタルブリッジ · Korean Speaking & Writing Trainer",id:"Jembatan Digital 24 Jam untuk Pelajar Imigran · Korean Speaking & Writing Trainer",ru:"24-часовой цифровой мост для учащихся-мигрантов · Korean Speaking & Writing Trainer",th:"สะพานดิจิทัล 24 ชั่วโมงสำหรับผู้เรียนผู้อพยพ · Korean Speaking & Writing Trainer",mn:"Цагаачлалын суралцагчдад зориулсан 24 цагийн дижитал гүүр · Korean Speaking & Writing Trainer",uz:"Muhojir o'rganuvchilar uchun 24 soatlik raqamli ko'prik · Korean Speaking & Writing Trainer"},
+    signupType:  {ko:"가입 유형",vi:"Loại tài khoản",en:"Account Type",zh:"注册类型",ja:"登録タイプ",id:"Tipe Akun",ru:"Тип аккаунта",th:"ประเภทบัญชี",mn:"Бүртгэлийн төрөл",uz:"Hisob turi"},
+    secQLabel:   {ko:"🔐 보안 질문 선택",vi:"🔐 Chọn câu hỏi bảo mật",en:"🔐 Security Question",zh:"🔐 选择安全问题",ja:"🔐 秘密の質問を選択",id:"🔐 Pilih Pertanyaan Keamanan",ru:"🔐 Выберите секретный вопрос",th:"🔐 เลือกคำถามรักษาความปลอดภัย",mn:"🔐 Аюулгүйн асуулт сонгох",uz:"🔐 Xavfsizlik savolini tanlang"},
+    secAPlace:   {ko:"답변 입력 (2자 이상, 최대 20자)",vi:"Nhập câu trả lời (2-20 ký tự)",en:"Enter answer (2–20 characters)",zh:"输入答案（2-20字）",ja:"答えを入力（2〜20文字）",id:"Masukkan jawaban (2-20 karakter)",ru:"Введите ответ (2–20 символов)",th:"ใส่คำตอบ (2-20 ตัวอักษร)",mn:"Хариулт оруулна уу (2-20 тэмдэгт)",uz:"Javob kiriting (2-20 belgi)"},
+    secAHint:    {ko:"비밀번호 분실 시 본인 확인에 사용됩니다",vi:"Dùng để xác minh khi quên mật khẩu",en:"Used for identity verification if password is lost",zh:"用于密码找回时的身份验证",ja:"パスワード紛失時の本人確認に使用されます",id:"Digunakan untuk verifikasi identitas jika lupa kata sandi",ru:"Используется для верификации при потере пароля",th:"ใช้สำหรับยืนยันตัวตนเมื่อลืมรหัสผ่าน",mn:"Нууц үг алдсан үед таних тэмдэг болно",uz:"Parol yo'qolganida shaxsni tasdiqlash uchun ishlatiladi"},
+    dataAgree:   {ko:"(필수) 학습 데이터 소유권 귀속 및 활용 동의",vi:"(Bắt buộc) Đồng ý quyền sở hữu và sử dụng dữ liệu học tập",en:"(Required) Consent to data ownership and use",zh:"（必须）同意学习数据归属及使用",ja:"（必須）学習データの帰属・利用に同意",id:"(Wajib) Setuju kepemilikan dan penggunaan data belajar",ru:"(Обязательно) Согласие на использование данных обучения",th:"(จำเป็น) ยินยอมเรื่องความเป็นเจ้าของและการใช้ข้อมูล",mn:"(Заавал) Сургалтын өгөгдлийн эзэмшил, ашиглалтын зөвшөөрөл",uz:"(Majburiy) O'rganish ma'lumotlari egaligi va foydalanishga rozilik"},
+    dataAgreeDesc:{ko:"학습자와 나눈 모든 대화 및 학습 데이터의 소유권은 한글 친구에 귀속되며, 이는 서비스의 고도화 및 인공지능 모델 업그레이드 연구를 위해 소중하게 사용됩니다.",vi:"Tất cả dữ liệu hội thoại và học tập thuộc quyền sở hữu của Hangeul Chingu và được sử dụng cho nghiên cứu nâng cao dịch vụ và mô hình AI.",en:"All conversation and learning data belongs to Hangeul Chingu and is used for service improvement and AI model research.",zh:"学习者与AI的所有对话及学习数据归韩语朋友所有，用于服务升级和人工智能模型研究。",ja:"学習者との全ての会話・学習データはHangeul Chinguに帰属し、サービス向上とAIモデル研究に活用されます。",id:"Semua data percakapan dan belajar menjadi milik Hangeul Chingu dan digunakan untuk penelitian peningkatan layanan dan model AI.",ru:"Все данные разговоров и обучения принадлежат Hangeul Chingu и используются для улучшения сервиса и исследования ИИ.",th:"ข้อมูลการสนทนาและการเรียนทั้งหมดเป็นของ Hangeul Chingu และใช้เพื่อการพัฒนาบริการและวิจัยโมเดล AI",mn:"Бүх яриа, сургалтын өгөгдөл Hangeul Chingu-д харьяалагдах ба үйлчилгээ сайжруулах, AI загвар судалгаанд ашиглагдана.",uz:"Barcha suhbat va o'rganish ma'lumotlari Hangeul Chinguга tegishli bo'lib, xizmatni yaxshilash va AI modelini tadqiq qilish uchun ishlatiladi."},
+    emailAgree:  {ko:"(선택) 업데이트 소식 이메일 수신 동의",vi:"(Tuỳ chọn) Đồng ý nhận email cập nhật",en:"(Optional) Agree to receive update emails",zh:"（可选）同意接收更新邮件",ja:"（任意）アップデート情報メール受信に同意",id:"(Opsional) Setuju menerima email pembaruan",ru:"(Необязательно) Согласие на получение обновлений по email",th:"(ไม่บังคับ) ยินยอมรับอีเมลอัพเดต",mn:"(Заавал биш) Шинэчлэлтийн и-мэйл хүлээн авахад зөвшөөрөх",uz:"(Ixtiyoriy) Yangilik emaillarini olishga rozilik"},
     noQuestion:  {ko:"보안질문이 등록되지 않은 계정입니다",vi:"Tài khoản chưa đăng ký câu hỏi bảo mật",en:"No security question registered",zh:"未设置安全问题的账户",ja:"セキュリティ質問が未登録のアカウントです",id:"Akun belum punya pertanyaan keamanan",ru:"Вопрос безопасности не зарегистрирован",th:"บัญชีไม่มีคำถามรักษาความปลอดภัย",mn:"Аюулгүйн асуулт бүртгэгдээгүй",uz:"Xavfsizlik savoli ro'yxatdan o'tmagan"},
   };
   const lc = lang || "ko";
   const at = (key) => AUTH_T[key]?.[lc] ?? AUTH_T[key]?.en ?? AUTH_T[key]?.ko ?? "";
+  // ✅ V331: 보안질문 다국어 목록
+  const SEC_QUESTIONS = {
+    ko:["나의 보물 제1호는?","아버지의 성함은?","어머니의 성함은?","본인이 태어난 고향은 어디인가?","유년시절 키웠던 반려동물의 이름은?","가장 기억에 남는 친구 이름은?","가장 감명깊게 읽은 책이나 영화 제목은?"],
+    vi:["Kỷ vật quý giá nhất của bạn?","Tên của bố bạn?","Tên của mẹ bạn?","Bạn sinh ra ở đâu?","Tên thú cưng thời thơ ấu?","Tên người bạn đáng nhớ nhất?","Tên sách hoặc phim ấn tượng nhất?"],
+    en:["Your most treasured item?","Your father's name?","Your mother's name?","Your hometown?","Your childhood pet's name?","Your most memorable friend's name?","Your most impactful book or movie?"],
+    zh:["你最珍贵的东西是什么？","父亲的名字？","母亲的名字？","你出生的家乡？","童年时养的宠物名字？","最难忘的朋友名字？","印象最深的书或电影名？"],
+    ja:["あなたの一番の宝物は？","お父さんの名前は？","お母さんの名前は？","生まれた故郷はどこですか？","幼少期に飼ったペットの名前は？","最も印象に残る友達の名前は？","最も感銘を受けた本や映画のタイトルは？"],
+    id:["Barang paling berharga Anda?","Nama ayah Anda?","Nama ibu Anda?","Kota kelahiran Anda?","Nama hewan peliharaan masa kecil?","Nama teman paling berkesan?","Judul buku atau film paling berkesan?"],
+    ru:["Ваша самая ценная вещь?","Имя отца?","Имя матери?","Ваш родной город?","Кличка домашнего животного в детстве?","Имя самого запоминающегося друга?","Название самой впечатляющей книги или фильма?"],
+    th:["สิ่งของที่คุณหวงแหนที่สุด?","ชื่อพ่อของคุณ?","ชื่อแม่ของคุณ?","บ้านเกิดของคุณ?","ชื่อสัตว์เลี้ยงในวัยเด็ก?","ชื่อเพื่อนที่จำได้มากที่สุด?","ชื่อหนังสือหรือภาพยนตร์ที่ประทับใจที่สุด?"],
+    mn:["Хамгийн эрхэм зүйл чинь юу вэ?","Аавынхаа нэр?","Ээжийнхээ нэр?","Төрсөн нутаг чинь хаана?","Бага насдаа өсгөсөн тэжээвэр амьтны нэр?","Хамгийн санаанд үлдсэн найзын нэр?","Хамгийн гүн сэтгэгдэл төрүүлсэн ном эсвэл кино?"],
+    uz:["Eng qimmatli narsangiz?","Otangizning ismi?","Onangizning ismi?","Tug'ilgan joyingiz?","Bolaligingizda uy hayvonining ismi?","Eng esda qolgan do'stingizning ismi?","Eng ta'sirli kitob yoki film nomi?"],
+  };
+  const secQList = SEC_QUESTIONS[lc] || SEC_QUESTIONS.en;
   const [showVerify, setShowVerify] = useState(false);   // ✅ V284: 이메일 인증 대기 화면
   const [verifyUser, setVerifyUser] = useState(null);    // ✅ V284: 인증 대기 중인 user 객체
   const [verifyMsg, setVerifyMsg] = useState("");        // ✅ V284: 인증 안내 메시지
@@ -876,7 +897,7 @@ function AuthScreen({ onLogin, lang }) {
         {/* 회원가입 전용 필드 */}
         {tab==="signup"&&(<>
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:12,color:"#888",marginBottom:6,fontWeight:600}}>가입 유형</div>
+            <div style={{fontSize:12,color:"#888",marginBottom:6,fontWeight:600}}>{at("signupType")}</div>
             <div style={{display:"flex",gap:8}}>
               {[["learner","🎓 "+at("learner")],["instructor","👩\u200d🏫 "+at("instructor")]].map(([k,l])=>(
                 <button key={k} onClick={()=>setRole(k)} style={{flex:1,padding:"10px 0",border:`2px solid ${role===k?C.pink:"#eee"}`,borderRadius:12,background:role===k?`${C.pink}12`:"white",color:role===k?C.pink:"#aaa",fontWeight:role===k?800:500,fontSize:13,cursor:"pointer",transition:"all .2s"}}>{l}</button>
@@ -902,15 +923,15 @@ function AuthScreen({ onLogin, lang }) {
         {/* ✅ V263: 보안질문 (회원가입 탭만) */}
         {tab==="signup"&&(<>
           <div style={{marginBottom:10}}>
-            <div style={{fontSize:12,color:"#888",marginBottom:6,fontWeight:600}}>🔐 보안 질문 선택</div>
+            <div style={{fontSize:12,color:"#888",marginBottom:6,fontWeight:600}}>{at("secQLabel")}</div>
             <select value={secQ} onChange={e=>setSecQ(e.target.value)}
               style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:13,marginBottom:8,boxSizing:"border-box",background:"white",color:"#333"}}>
-              {SECURITY_QUESTIONS.map((q,i)=><option key={i} value={q}>{q}</option>)}
+              {secQList.map((q,i)=><option key={i} value={q}>{q}</option>)}
             </select>
             <input value={secA} onChange={e=>setSecA(e.target.value.slice(0,20))}
-              placeholder="답변 입력 (2자 이상, 최대 20자)" maxLength={20}
+              placeholder={at("secAPlace")} maxLength={20}
               style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:13,boxSizing:"border-box"}}/>
-            <div style={{fontSize:11,color:"#bbb",marginTop:4}}>비밀번호 분실 시 본인 확인에 사용됩니다</div>
+            <div style={{fontSize:11,color:"#bbb",marginTop:4}}>{at("secAHint")}</div>
           </div>
 
           {/* 필수 동의 */}
@@ -919,8 +940,8 @@ function AuthScreen({ onLogin, lang }) {
               {dataOwnershipAgreed&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
             </div>
             <div>
-              <div style={{fontSize:12,fontWeight:700,color:"#333",marginBottom:3}}>(필수) 학습 데이터 소유권 귀속 및 활용 동의</div>
-              <div style={{fontSize:11,color:"#777",lineHeight:1.6}}>학습자와 나눈 모든 대화 및 학습 데이터의 소유권은 한글 친구에 귀속되며, 이는 <strong>서비스의 고도화 및 인공지능 모델 업그레이드 연구</strong>를 위해 소중하게 사용됩니다.</div>
+              <div style={{fontSize:12,fontWeight:700,color:"#333",marginBottom:3}}>{at("dataAgree")}</div>
+              <div style={{fontSize:11,color:"#777",lineHeight:1.6}}>{at("dataAgreeDesc")}</div>
             </div>
           </div>
 
@@ -929,7 +950,7 @@ function AuthScreen({ onLogin, lang }) {
             <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${emailAgreed?C.orange:"#ccc"}`,background:emailAgreed?C.orange:"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
               {emailAgreed&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
             </div>
-            <div style={{fontSize:12,fontWeight:600,color:"#555"}}>(선택) 업데이트 소식 이메일 수신 동의</div>
+            <div style={{fontSize:12,fontWeight:600,color:"#555"}}>{at("emailAgree")}</div>
           </div>
         </>)}
 
@@ -943,7 +964,7 @@ function AuthScreen({ onLogin, lang }) {
         <a href="https://padlet.com/roh053068/hangeul_chingu" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:`2px solid ${C.teal}55`,borderRadius:50,padding:"11px 22px",textDecoration:"none",color:C.teal,fontWeight:800,fontSize:14,boxShadow:`0 4px 16px ${C.teal}25`,WebkitTapHighlightColor:"transparent"}}>
           {at("brochure")}
         </a>
-        <CertRequestButton />
+        <CertRequestButton lang={lc}/>
       </div>
     </div>
   );
@@ -1772,17 +1793,28 @@ function JoinClassModal({ user, code, onClose }) {
   );
 }
 
-// ✅ V148: 교육과정 표준 준수 증명서 요청 컴포넌트
-function CertRequestButton() {
+// ✅ V331: 교육과정 표준 준수 증명서 요청 컴포넌트 (다국어)
+function CertRequestButton({ lang }) {
   const [email, setEmail] = useState("");
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const lc = lang || "ko";
+  const CERT_T = {
+    btn:     {ko:"📄 교육과정 표준 준수 견적서 요청",vi:"📄 Yêu cầu báo giá chương trình",en:"📄 Request Curriculum Quote",zh:"📄 请求课程报价",ja:"📄 カリキュラム見積もり依頼",id:"📄 Permintaan Penawaran Kurikulum",ru:"📄 Запрос коммерческого предложения",th:"📄 ขอใบเสนอราคาหลักสูตร",mn:"📄 Хөтөлбөрийн үнийн санал хүсэлт",uz:"📄 O'quv dasturi narxini so'rash"},
+    desc:    {ko:"요청자 이메일을 입력하면 개발자에게 요청 메일이 발송됩니다. 증명서는 이메일로 회신드립니다.",vi:"Nhập email của bạn để gửi yêu cầu đến nhà phát triển. Chứng nhận sẽ được gửi qua email.",en:"Enter your email to send a request. The certificate will be sent back by email.",zh:"输入邮箱后将向开发者发送请求邮件，证书将通过邮件回复。",ja:"メールアドレスを入力すると開発者に申請が送られます。証明書はメールで返信されます。",id:"Masukkan email Anda untuk mengirim permintaan ke pengembang. Sertifikat akan dikirim melalui email.",ru:"Введите email для отправки запроса разработчику. Сертификат будет отправлен по email.",th:"ใส่อีเมลเพื่อส่งคำขอไปยังผู้พัฒนา ใบรับรองจะตอบกลับทางอีเมล",mn:"И-мэйлээ оруулбал хөгжүүлэгчид хүсэлт илгээгдэнэ. Гэрчилгээ и-мэйлээр ирнэ.",uz:"Emailingizni kiriting, so'rov ishlab chiquvchiga yuboriladi. Sertifikat email orqali javob beriladi."},
+    placeholder:{ko:"요청자 이메일 주소",vi:"Địa chỉ email",en:"Your email address",zh:"申请人邮箱地址",ja:"申請者のメールアドレス",id:"Alamat email Anda",ru:"Ваш email адрес",th:"ที่อยู่อีเมลของคุณ",mn:"Таны и-мэйл хаяг",uz:"Sizning elektron pochta manzilingiz"},
+    sendBtn: {ko:"요청 메일 보내기",vi:"Gửi yêu cầu",en:"Send Request",zh:"发送请求邮件",ja:"申請メールを送る",id:"Kirim Permintaan",ru:"Отправить запрос",th:"ส่งคำขอ",mn:"Хүсэлт илгээх",uz:"So'rov yuborish"},
+    cancel:  {ko:"취소",vi:"Hủy",en:"Cancel",zh:"取消",ja:"キャンセル",id:"Batal",ru:"Отмена",th:"ยกเลิก",mn:"Цуцлах",uz:"Bekor qilish"},
+    success: {ko:"✅ 요청이 발송되었습니다! 이메일을 확인해 주세요.",vi:"✅ Yêu cầu đã được gửi! Vui lòng kiểm tra email.",en:"✅ Request sent! Please check your email.",zh:"✅ 请求已发送！请查看您的邮箱。",ja:"✅ 申請が送信されました！メールをご確認ください。",id:"✅ Permintaan terkirim! Silakan periksa email Anda.",ru:"✅ Запрос отправлен! Проверьте email.",th:"✅ ส่งคำขอแล้ว! กรุณาตรวจสอบอีเมล",mn:"✅ Хүсэлт илгээгдлээ! И-мэйлээ шалгана уу.",uz:"✅ So'rov yuborildi! Emailingizni tekshiring."},
+    errEmail:{ko:"올바른 이메일 주소를 입력해 주세요",vi:"Vui lòng nhập địa chỉ email hợp lệ",en:"Please enter a valid email address",zh:"请输入有效的邮箱地址",ja:"正しいメールアドレスを入力してください",id:"Masukkan alamat email yang valid",ru:"Введите корректный email адрес",th:"กรุณาใส่ที่อยู่อีเมลที่ถูกต้อง",mn:"Зөв и-мэйл хаяг оруулна уу",uz:"To'g'ri elektron pochta manzilini kiriting"},
+  };
+  const ct = (key) => CERT_T[key]?.[lc] ?? CERT_T[key]?.en ?? CERT_T[key]?.ko ?? "";
 
   function handleRequest() {
     const trimmed = email.trim();
     if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      setError("올바른 이메일 주소를 입력해 주세요");
+      setError(ct("errEmail"));
       return;
     }
     const subject = encodeURIComponent("교육과정 표준 준수 증명서 요청");
@@ -1796,33 +1828,33 @@ function CertRequestButton() {
 
   if (!open) return (
     <button onClick={()=>setOpen(true)} style={{display:"inline-flex",alignItems:"center",gap:8,background:"white",border:"2px solid #2E75B655",borderRadius:50,padding:"11px 22px",color:"#2E75B6",fontWeight:800,fontSize:14,boxShadow:"0 4px 16px #2E75B625",cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
-      📄 교육과정 표준 준수 증명서 요청
+      {ct("btn")}
     </button>
   );
 
   return (
     <div style={{width:"100%",maxWidth:360,background:"white",border:"2px solid #2E75B655",borderRadius:20,padding:"18px 20px",boxShadow:"0 4px 16px #2E75B625"}}>
-      <div style={{fontSize:13,fontWeight:800,color:"#2E75B6",marginBottom:4}}>📄 교육과정 표준 준수 증명서 요청</div>
-      <div style={{fontSize:12,color:"#888",marginBottom:12,lineHeight:1.6}}>요청자 이메일을 입력하면 개발자에게 요청 메일이 발송됩니다. 증명서는 이메일로 회신드립니다.</div>
+      <div style={{fontSize:13,fontWeight:800,color:"#2E75B6",marginBottom:4}}>{ct("btn")}</div>
+      <div style={{fontSize:12,color:"#888",marginBottom:12,lineHeight:1.6}}>{ct("desc")}</div>
       {sent ? (
         <div style={{background:"#E8F5EE",border:"1px solid #00C896",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#1E6B3C",fontWeight:600}}>
-          ✅ 요청이 발송되었습니다! 이메일을 확인해 주세요.
+          {ct("success")}
         </div>
       ) : (<>
         <input
           value={email}
           onChange={e=>{setEmail(e.target.value);setError("");}}
-          placeholder="요청자 이메일 주소"
+          placeholder={ct("placeholder")}
           type="email"
           style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`1.5px solid ${error?"#E53935":"#2E75B644"}`,outline:"none",fontSize:14,marginBottom:error?6:10,boxSizing:"border-box"}}
         />
         {error&&<div style={{fontSize:12,color:"#E53935",marginBottom:8}}>{error}</div>}
         <div style={{display:"flex",gap:8}}>
           <button onClick={handleRequest} style={{flex:1,background:"linear-gradient(135deg,#2E75B6,#1A3A5C)",color:"white",border:"none",borderRadius:50,padding:"11px 0",fontSize:14,fontWeight:800,cursor:"pointer"}}>
-            요청 메일 보내기
+            {ct("sendBtn")}
           </button>
           <button onClick={()=>{setOpen(false);setEmail("");setError("");}} style={{padding:"11px 16px",background:"#f5f5f5",border:"none",borderRadius:50,fontSize:13,color:"#999",cursor:"pointer"}}>
-            취소
+            {ct("cancel")}
           </button>
         </div>
       </>)}
