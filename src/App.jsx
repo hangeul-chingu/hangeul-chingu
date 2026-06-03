@@ -18883,6 +18883,9 @@ export default function App() {
   // ✅ V276: 비주얼 온보딩 — 매번 표시 (skip 버튼으로 개인 선택)
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingLang, setOnboardingLang] = useState("ko");
+  // ✅ V336: PWA 설치 유도 팝업
+  const [showPwaPopup, setShowPwaPopup] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
   // ✅ V333: 이어서 학습 팝업
   const [showResumePopup, setShowResumePopup] = useState(false);
   const [resumeStep, setResumeStep] = useState(null);
@@ -18929,6 +18932,16 @@ export default function App() {
       }
     }).catch(()=>{});
   },[user]);
+
+  // ✅ V336: beforeinstallprompt 이벤트 캐치 (Android Chrome PWA 설치용)
+  useEffect(()=>{
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
 
   // ✅ V148: 로그인 후 role 로드
   useEffect(()=>{
@@ -18984,13 +18997,76 @@ export default function App() {
   );
 
   // ✅ V275: 온보딩 — 로그인 전, 최초 1회
+  // ✅ V336: PWA 설치 유도 팝업
+  const PWA_T = {
+    ko: { title:"홈 화면에 추가하기", body:"한글 친구를 홈 화면에 추가하면 앱처럼 바로 실행할 수 있어요!", install:"홈 화면에 추가 →", ios:"iPhone: Safari 브라우저로 접속 → 하단 공유(□↑) → 홈 화면에 추가", skip:"괜찮아요, 다음에" },
+    vi: { title:"Thêm vào màn hình chính", body:"Thêm Hangeul Chingu vào màn hình chính để mở nhanh như ứng dụng!", install:"Thêm vào màn hình →", ios:"iPhone: Dùng Safari → Chia sẻ(□↑) → Thêm vào màn hình", skip:"Bỏ qua" },
+    en: { title:"Add to Home Screen", body:"Add Hangeul Chingu to your home screen for quick app-like access!", install:"Add to Home Screen →", ios:"iPhone: Use Safari → Share(□↑) → Add to Home Screen", skip:"Maybe later" },
+    zh: { title:"添加到主屏幕", body:"将韩语朋友添加到主屏幕，像应用一样快速启动！", install:"添加到主屏幕 →", ios:"iPhone: 用Safari → 分享(□↑) → 添加到主屏幕", skip:"以后再说" },
+    ja: { title:"ホーム画面に追加", body:"ホーム画面に追加するとアプリのようにすぐ起動できます！", install:"ホーム画面に追加 →", ios:"iPhone: Safariで開く → 共有(□↑) → ホーム画面に追加", skip:"後で" },
+    id: { title:"Tambah ke Layar Utama", body:"Tambahkan ke layar utama untuk akses cepat seperti aplikasi!", install:"Tambah ke Layar Utama →", ios:"iPhone: Buka Safari → Bagikan(□↑) → Tambah ke Layar Utama", skip:"Nanti saja" },
+    ru: { title:"На главный экран", body:"Добавьте на главный экран для быстрого запуска!", install:"Добавить на экран →", ios:"iPhone: Safari → Поделиться(□↑) → На экран Домой", skip:"Позже" },
+    th: { title:"เพิ่มในหน้าจอหลัก", body:"เพิ่มในหน้าจอหลักเพื่อเปิดได้เร็วเหมือนแอป!", install:"เพิ่มในหน้าจอหลัก →", ios:"iPhone: ใช้ Safari → แชร์(□↑) → เพิ่มในหน้าจอหลัก", skip:"ไว้ทีหลัง" },
+    mn: { title:"Нүүр дэлгэцэд нэмэх", body:"Нүүр дэлгэцэд нэмж апп шиг шууд нээгээрэй!", install:"Нүүр дэлгэцэд нэмэх →", ios:"iPhone: Safari → Хуваалцах(□↑) → Нүүр дэлгэцэд нэмэх", skip:"Дараа" },
+    uz: { title:"Bosh ekranga qo'shish", body:"Bosh ekranga qo'shib ilovadek tez oching!", install:"Bosh ekranga qo'shish →", ios:"iPhone: Safari → Ulashish(□↑) → Bosh ekranga qo'shish", skip:"Keyinroq" },
+  };
+  const pwt = PWA_T[onboardingLang] || PWA_T.en;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  if (showPwaPopup) return (
+    <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFF0F9,#F0FFFE)",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{background:"white",borderRadius:24,width:"100%",maxWidth:360,overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,0.15)"}}>
+        {/* 헤더 */}
+        <div style={{background:"linear-gradient(135deg,#9C6FDE,#FF85A1)",padding:"28px 24px 20px",textAlign:"center"}}>
+          <div style={{fontSize:48,marginBottom:8}}>📲</div>
+          <div style={{fontSize:18,fontWeight:900,color:"white",lineHeight:1.3}}>{pwt.title.replace("📲 ","")}</div>
+        </div>
+        {/* 로고 + 본문 */}
+        <div style={{padding:"24px 24px 8px",textAlign:"center"}}>
+          <div style={{fontSize:13,color:"#555",lineHeight:1.8,whiteSpace:"pre-line",marginBottom:20}}>{pwt.body}</div>
+
+          {/* Android: 설치 버튼 */}
+          {!isIOS && (
+            <button onClick={async()=>{
+              if(deferredPrompt){
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                setDeferredPrompt(null);
+              }
+              setShowPwaPopup(false);
+              setShowOnboarding(false);
+            }} style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#B06EE8)",color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",marginBottom:10}}>
+              {pwt.install}
+            </button>
+          )}
+
+          {/* iOS: 안내 문구 */}
+          {isIOS && (
+            <div style={{background:"#F3EEFF",borderRadius:14,padding:"12px 16px",marginBottom:12,fontSize:12,color:"#7C4FBF",lineHeight:1.7,textAlign:"left"}}>
+              {pwt.ios}
+            </div>
+          )}
+
+          {/* 건너뛰기 */}
+          <button onClick={()=>{
+            setShowPwaPopup(false);
+            setShowOnboarding(false);
+          }} style={{width:"100%",background:"none",border:"1px solid #eee",borderRadius:50,padding:"12px 0",fontSize:14,color:"#aaa",cursor:"pointer",marginBottom:16}}>
+            {pwt.skip}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   if (showOnboarding) return (
     <OnboardingScreen
       initLang={onboardingLang}
       onLangChange={setOnboardingLang}
       onDone={(selectedLang, referral)=>{
         setOnboardingLang(selectedLang);
-        setShowOnboarding(false);
+        // ✅ V336: 온보딩 완료 → PWA 설치 팝업 먼저 표시
+        setShowPwaPopup(true);
       }}
     />
   );
