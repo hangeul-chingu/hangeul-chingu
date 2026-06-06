@@ -5965,6 +5965,98 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
             </div>
           </div>
 
+          {/* ✅ V337: 한-베 언어 대조 카드 (베트남어 사용자 전용) */}
+          {vi && (
+            <div style={{background:"white", borderRadius:14, border:"2px solid #E3F2FD", marginBottom:14, overflow:"hidden"}}>
+              {/* 카드 헤더 */}
+              <div style={{background:"linear-gradient(135deg,#1565C0,#1976D2)", padding:"10px 14px", display:"flex", alignItems:"center", gap:8}}>
+                <span style={{fontSize:16}}>🇰🇷🇻🇳</span>
+                <span style={{fontSize:13, fontWeight:900, color:"white"}}>Tiếng Hàn vs Tiếng Việt — Khác nhau ở đâu?</span>
+              </div>
+
+              {/* ① 어순 대조 */}
+              <div style={{padding:"12px 14px 8px"}}>
+                <div style={{fontSize:11, fontWeight:800, color:"#1565C0", marginBottom:8}}>① Thứ tự từ (어순) — SOV vs SVO</div>
+                <div style={{display:"grid", gridTemplateColumns:"1fr auto 1fr", gap:6, alignItems:"center", marginBottom:6}}>
+                  <div style={{background:"#E3F2FD", borderRadius:10, padding:"10px 8px", textAlign:"center"}}>
+                    <div style={{fontSize:10, color:"#1565C0", fontWeight:800, marginBottom:4}}>🇰🇷 Tiếng Hàn (SOV)</div>
+                    <div style={{display:"flex", justifyContent:"center", gap:4, flexWrap:"wrap"}}>
+                      <span style={{background:"#1565C0", color:"white", borderRadius:6, padding:"3px 7px", fontSize:12, fontWeight:900}}>나는</span>
+                      <span style={{background:"#0288D1", color:"white", borderRadius:6, padding:"3px 7px", fontSize:12, fontWeight:900}}>밥을</span>
+                      <span style={{background:"#E65100", color:"white", borderRadius:6, padding:"3px 7px", fontSize:12, fontWeight:900}}>먹어요</span>
+                    </div>
+                    <div style={{fontSize:10, color:"#555", marginTop:4}}>Chủ ngữ → Tân ngữ → <b>Động từ (cuối)</b></div>
+                  </div>
+                  <div style={{textAlign:"center", fontSize:18, color:"#aaa"}}>⇄</div>
+                  <div style={{background:"#FFF3E0", borderRadius:10, padding:"10px 8px", textAlign:"center"}}>
+                    <div style={{fontSize:10, color:"#E65100", fontWeight:800, marginBottom:4}}>🇻🇳 Tiếng Việt (SVO)</div>
+                    <div style={{display:"flex", justifyContent:"center", gap:4, flexWrap:"wrap"}}>
+                      <span style={{background:"#E65100", color:"white", borderRadius:6, padding:"3px 7px", fontSize:12, fontWeight:900}}>Tôi</span>
+                      <span style={{background:"#F57C00", color:"white", borderRadius:6, padding:"3px 7px", fontSize:12, fontWeight:900}}>ăn</span>
+                      <span style={{background:"#FF9800", color:"white", borderRadius:6, padding:"3px 7px", fontSize:12, fontWeight:900}}>cơm</span>
+                    </div>
+                    <div style={{fontSize:10, color:"#555", marginTop:4}}>Chủ ngữ → <b>Động từ</b> → Tân ngữ</div>
+                  </div>
+                </div>
+                <div style={{background:"#FFF8E1", borderRadius:8, padding:"6px 10px", fontSize:11, color:"#F57F17", textAlign:"center"}}>
+                  💡 Trong tiếng Hàn, <b>động từ luôn ở cuối câu!</b>
+                </div>
+              </div>
+
+              <div style={{height:1, background:"#E3F2FD", margin:"0 14px"}} />
+
+              {/* ② 조사 개념 */}
+              <div style={{padding:"10px 14px 8px"}}>
+                <div style={{fontSize:11, fontWeight:800, color:"#1565C0", marginBottom:8}}>② Trợ từ (조사) — Tiếng Việt không có!</div>
+                <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
+                  <div style={{background:"#E3F2FD", borderRadius:10, padding:"9px 8px", textAlign:"center"}}>
+                    <div style={{fontSize:10, color:"#1565C0", fontWeight:800, marginBottom:5}}>🇰🇷 Tiếng Hàn</div>
+                    <div style={{fontSize:13, fontWeight:900, color:"#1565C0"}}>나<span style={{color:"#E65100"}}>는</span> / 나<span style={{color:"#E65100"}}>를</span></div>
+                    <div style={{fontSize:10, color:"#888", marginTop:3}}>trợ từ thay đổi theo chức năng</div>
+                  </div>
+                  <div style={{background:"#FFF3E0", borderRadius:10, padding:"9px 8px", textAlign:"center"}}>
+                    <div style={{fontSize:10, color:"#E65100", fontWeight:800, marginBottom:5}}>🇻🇳 Tiếng Việt</div>
+                    <div style={{fontSize:13, fontWeight:900, color:"#E65100"}}>Tôi / Tôi</div>
+                    <div style={{fontSize:10, color:"#888", marginTop:3}}>từ không thay đổi (불변)</div>
+                  </div>
+                </div>
+                <div style={{background:"#FFF8E1", borderRadius:8, padding:"6px 10px", fontSize:11, color:"#F57F17", textAlign:"center", marginTop:6}}>
+                  💡 Trợ từ cho biết vai trò của từ — chủ ngữ, tân ngữ, chủ đề...
+                </div>
+              </div>
+
+              <div style={{height:1, background:"#E3F2FD", margin:"0 14px"}} />
+
+              {/* ③ 받침 분기 */}
+              <div style={{padding:"10px 14px 12px"}}>
+                <div style={{fontSize:11, fontWeight:800, color:"#1565C0", marginBottom:8}}>③ Quy tắc chọn trợ từ — Batchim (받침)</div>
+                <div style={{display:"flex", justifyContent:"center", marginBottom:6}}>
+                  <div style={{background:"#1565C0", color:"white", borderRadius:8, padding:"5px 14px", fontSize:12, fontWeight:900}}>단어 (từ)</div>
+                </div>
+                <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:6}}>
+                  <div style={{background:"#F1F8E9", borderRadius:10, padding:"8px", textAlign:"center", border:"2px solid #4CAF50"}}>
+                    <div style={{fontSize:10, color:"#2E7D32", fontWeight:800, marginBottom:3}}>받침 없음 ✖</div>
+                    <div style={{fontSize:11, color:"#555", marginBottom:5}}>나, 지수, 커피...</div>
+                    <div style={{display:"flex", justifyContent:"center", gap:4, flexWrap:"wrap"}}>
+                      {[["는","주제"],["가","주어"],["를","목적"],["와","and"],["나","or"]].map(([j,r])=>(
+                        <span key={j} style={{background:"#4CAF50", color:"white", borderRadius:5, padding:"2px 6px", fontSize:11, fontWeight:900}}>{j}<span style={{fontSize:9, opacity:0.8}}> {r}</span></span>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{background:"#E3F2FD", borderRadius:10, padding:"8px", textAlign:"center", border:"2px solid #2196F3"}}>
+                    <div style={{fontSize:10, color:"#1565C0", fontWeight:800, marginBottom:3}}>받침 있음 ✔</div>
+                    <div style={{fontSize:11, color:"#555", marginBottom:5}}>당신, 정국, 빵...</div>
+                    <div style={{display:"flex", justifyContent:"center", gap:4, flexWrap:"wrap"}}>
+                      {[["은","주제"],["이","주어"],["을","목적"],["과","and"],["이나","or"]].map(([j,r])=>(
+                        <span key={j} style={{background:"#2196F3", color:"white", borderRadius:5, padding:"2px 6px", fontSize:11, fontWeight:900}}>{j}<span style={{fontSize:9, opacity:0.8}}> {r}</span></span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 어휘 선택 그리드 */}
           <div style={{fontSize:13, fontWeight:700, color:"#E65100", marginBottom:8}}>
             📝 {txUI("어휘를 선택하세요:", lang)}
