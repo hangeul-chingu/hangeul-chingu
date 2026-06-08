@@ -2150,6 +2150,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLear
   const [showResetModal, setShowResetModal] = useState(false);
   const [showGoalWarning, setShowGoalWarning] = useState(false); // ✅ V262: daily/work 경고 팝업
   const [pendingGoal, setPendingGoal] = useState(null); // ✅ V262: 팝업 대기 중인 goal
+  const [showMidLevelWarning, setShowMidLevelWarning] = useState(false); // ✅ V339: 중급 자기선언 권유 팝업
 
   // ✅ V145: 발음 화면 state (훅 규칙 — 컴포넌트 최상단에 선언)
   const [pronStep, setPronStep] = useState(0);
@@ -2918,6 +2919,73 @@ ${vocabList}
           style={{width:"100%",maxWidth:360,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:16,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #9C6FDE44",WebkitTapHighlightColor:"transparent"}}>
           {txUI("학습 계획 세우기 →", lang)}
         </button>
+
+        {/* ✅ V339: 중급 자기선언 버튼 */}
+        <button onClick={()=>setShowMidLevelWarning(true)}
+          style={{width:"100%",maxWidth:360,marginTop:12,background:"white",color:"#FF8C42",border:"2px solid #FF8C42",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:700,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+          🚀 {lc==="vi"?"Tôi đã biết tiếng Hàn trung cấp":lc==="en"?"I'm already intermediate level":lc==="zh"?"我已经是中级水平":lc==="ja"?"私はすでに中級レベルです":lc==="id"?"Saya sudah level menengah":lc==="ru"?"Я уже среднего уровня":lc==="th"?"ฉันอยู่ระดับกลางแล้ว":lc==="mn"?"Би дунд түвшинд байна":lc==="uz"?"Men allaqachon o'rta darajadaman":"나는 이미 중급이에요"}
+        </button>
+
+        {/* ✅ V339: 중급 자기선언 권유 팝업 */}
+        {showMidLevelWarning&&(()=>{
+          const lc2 = lang?.code ?? "ko";
+          const isEn = lc2==="en", isVi = lc2==="vi";
+          const title = isEn?"Already at intermediate level?":isVi?"Bạn đã ở trình độ trung cấp?":"이미 중급 실력이신가요?";
+          const msg1 = isEn
+            ? "That's great! However, even intermediate learners often have gaps in foundational grammar and vocabulary."
+            : isVi
+            ? "Tuyệt vời! Tuy nhiên, ngay cả người học trung cấp cũng thường có những khoảng trống về ngữ pháp và từ vựng cơ bản."
+            : "대단해요! 그런데 중급 실력이더라도 초급 기초에 빈틈이 생기는 경우가 많아요.";
+          const msg2 = isEn
+            ? "We recommend the 80-hour basic course first. A solid foundation will make your intermediate journey much smoother! 💪"
+            : isVi
+            ? "Chúng tôi khuyên bạn nên hoàn thành khóa học 80 giờ cơ bản trước. Nền tảng vững chắc sẽ giúp hành trình trung cấp của bạn dễ dàng hơn nhiều! 💪"
+            : "80시간 기초 과정을 먼저 해보시길 권유드려요. 기초가 탄탄하면 중급이 훨씬 쉬워져요! 💪";
+          const msg3 = isEn
+            ? "If you're confident in your foundation, you can go straight to the intermediate course."
+            : isVi
+            ? "Nếu bạn tự tin về nền tảng của mình, bạn có thể đi thẳng vào khóa trung cấp."
+            : "기초에 자신이 있다면 바로 중급으로 가셔도 좋아요.";
+          const handleMidLevelConfirm = async () => {
+            // Firestore에 중급 자기선언 저장
+            if (user?.uid) {
+              try {
+                await setDoc(doc(db, "users", user.uid), {
+                  midLevel: true,
+                  midLevelPath: "self",
+                  midLevelEnteredAt: serverTimestamp(),
+                }, { merge: true });
+              } catch(e) { console.error("midLevel 저장 오류:", e); }
+            }
+            setShowMidLevelWarning(false);
+            // 중급 진입: 현재는 프리토킹으로 연결 (추후 중급 커리큘럼 화면으로 교체)
+            onBrowse?.();
+          };
+          return (
+            <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+              <div style={{background:"white",borderRadius:20,padding:"28px 24px",maxWidth:360,width:"100%",boxShadow:"0 8px 40px rgba(0,0,0,0.2)"}}>
+                <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>🚀</div>
+                <div style={{fontSize:16,fontWeight:900,color:"#FF8C42",textAlign:"center",marginBottom:16}}>{title}</div>
+                <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:10}}>{msg1}</div>
+                <div style={{fontSize:13,color:"#333",lineHeight:1.7,marginBottom:10,fontWeight:600}}>{msg2}</div>
+                <div style={{fontSize:12,color:"#888",lineHeight:1.6,marginBottom:20,borderTop:"1px solid #eee",paddingTop:12}}>{msg3}</div>
+                <button onClick={()=>{setShowMidLevelWarning(false);setStep("plan");}}
+                  style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
+                  {txUI("✅ 80시간 기초 과정 시작하기", lang)}
+                </button>
+                <button onClick={handleMidLevelConfirm}
+                  style={{width:"100%",background:"white",color:"#FF8C42",border:"2px solid #FF8C42",borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:10}}>
+                  {isEn?"💬 I'll go straight to intermediate":isVi?"💬 Tôi sẽ học trung cấp ngay":"💬 그래도 중급으로 갈게요"}
+                </button>
+                <button onClick={()=>setShowMidLevelWarning(false)}
+                  style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
+                  {txUI("← 뒤로 가기", lang)}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+
         <button onClick={()=>setStep("lang")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
       </div>
     );
