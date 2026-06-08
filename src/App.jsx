@@ -18000,6 +18000,28 @@ function TopikCertTab({ user }) {
   );
 }
 
+// ✅ V341: 화용 퀴즈 데이터 (모듈 2 — 맥락·함의 훈련)
+const PRAGMATIC_QUIZ = [
+  { q:"친구가 갑자기 '밥 먹었어?'라고 문자를 보냈어요. 이 말의 진짜 의미는?",
+    opts:["식사 여부를 묻는 질문이에요","안부를 묻는 인사예요","같이 밥 먹자는 제안이에요","배가 고프다는 표현이에요"],
+    ans:1, exp:"한국어에서 '밥 먹었어?'는 식사 여부보다 '잘 지내?'처럼 안부를 묻는 인사로 쓰일 때가 많아요. 특히 친한 사이에서 자주 써요." },
+  { q:"회의에서 새 프로젝트를 제안했더니 상사가 '생각해 볼게요'라고 했어요. 이 말의 의미는?",
+    opts:["적극적으로 검토하겠다는 뜻이에요","나중에 다시 얘기하자는 뜻이에요","거절하는 표현일 가능성이 높아요","찬성한다는 뜻이에요"],
+    ans:2, exp:"'생각해 볼게요'는 직접 '싫다'고 말하기 어려울 때 완곡하게 거절하는 표현으로 자주 쓰여요. 한국어에서는 직접 거절보다 이런 간접 표현을 많이 사용해요." },
+  { q:"친구와 카페에 있는데 친구가 '좀 덥다'라고 했어요. 이 말의 진짜 의도는?",
+    opts:["날씨에 대해 이야기하고 싶은 거예요","창문이나 에어컨을 조절해 달라는 뜻이에요","옷을 너무 많이 입었다는 뜻이에요","운동을 너무 많이 했다는 뜻이에요"],
+    ans:1, exp:"'좀 덥다'는 단순한 날씨 이야기가 아니라 '창문 좀 열어줘' 또는 '에어컨 좀 켜줘'처럼 행동을 요청하는 함의가 담겨 있어요. 이것을 '간접 화행'이라고 해요." },
+  { q:"오랜 친구 집에서 이야기하다가 친구가 '시간이 늦었네요'라고 했어요. 이 말의 의미는?",
+    opts:["시계가 맞지 않는다는 뜻이에요","약속 시간에 늦었다는 뜻이에요","슬슬 자리를 마무리하자는 신호예요","내일 일찍 일어나야 한다는 뜻이에요"],
+    ans:2, exp:"'시간이 늦었네요'는 직접 '이제 가세요'라고 말하지 않고 방문객이 갈 때가 됐다고 부드럽게 알려주는 표현이에요. 한국에서 자주 쓰는 간접 표현이에요." },
+  { q:"처음 만난 한국인이 헤어질 때 '우리 언제 한번 봐요!'라고 했어요. 이 말은?",
+    opts:["구체적인 약속을 잡자는 제안이에요","다음에 또 만나고 싶다는 인사예요","연락처를 달라는 뜻이에요","다음 주에 만나자는 뜻이에요"],
+    ans:1, exp:"'우리 언제 한번 봐요'는 실제 약속이 아니라 '또 만나면 좋겠다'는 의미의 사교적 인사예요. 구체적인 날짜나 장소가 없다면 대부분 빈말에 가까운 표현이에요." },
+  { q:"카페에서 주문한 음식이 나왔는데 맛이 별로였어요. 직원이 '맛이 어떠세요?'라고 물었을 때 한국인 친구가 '괜찮아요'라고 했어요. 이 말은?",
+    opts:["맛이 정말 좋다는 뜻이에요","맛이 보통이거나 별로지만 직접 말하기 어려운 거예요","추가 주문을 하겠다는 뜻이에요","음식에 문제가 없다는 뜻이에요"],
+    ans:1, exp:"'괜찮아요'는 상황에 따라 '좋아요'가 아니라 '별로지만 그냥 먹겠다'는 의미일 때가 많아요. 한국에서는 부정적인 감정을 직접 표현하기보다 '괜찮아요'로 넘기는 경우가 흔해요." },
+];
+
 function WriteTab({level, uid}) {
   const [mode,        setMode]        = useState(null);
   const [wStep,       setWStep]       = useState(0);
@@ -18014,6 +18036,14 @@ function WriteTab({level, uid}) {
   const [submitLoad,  setSubmitLoad]  = useState(false);
   const [submitFeed,  setSubmitFeed]  = useState(null);
   const [feedDepth,   setFeedDepth]   = useState("normal");
+  // ✅ V341: 화용 퀴즈 state
+  const pqDoneKey = uid ? `hc_pq_done_${uid}` : null;
+  const [pqDone,    setPqDone]    = useState(()=> pqDoneKey ? !!localStorage.getItem(pqDoneKey) : true);
+  const [pqIdx,     setPqIdx]     = useState(0);
+  const [pqSel,     setPqSel]     = useState(null);
+  const [pqRevealed,setPqRevealed]= useState(false);
+  const [pqScore,   setPqScore]   = useState(0);
+  const [pqFinished,setPqFinished]= useState(false);
   const fileRef = useRef(null);
   const writeSys = PROMPTS.write[level === "beg" ? "beg" : level === "adv" ? "adv" : "mid"];
 
@@ -18069,6 +18099,94 @@ function WriteTab({level, uid}) {
 
   function resetWrite() {
     setWStep(0); setWText(["","",""]); setWFeed(["","",""]); setArtFeed(null); setMode(null);
+  }
+
+  // ✅ V341: 화용 퀴즈 — midLevel이고 아직 완료 안 했을 때 먼저 보여주기
+  if (level !== "adv" && !pqDone) {
+    const q = PRAGMATIC_QUIZ[pqIdx];
+    const isLast = pqIdx === PRAGMATIC_QUIZ.length - 1;
+    const handleNext = () => {
+      if (!pqRevealed) return;
+      if (isLast) {
+        setPqFinished(true);
+        if (pqDoneKey) localStorage.setItem(pqDoneKey, "1");
+        setPqDone(true);
+      } else {
+        setPqIdx(i => i + 1);
+        setPqSel(null);
+        setPqRevealed(false);
+      }
+    };
+    if (pqFinished) return (
+      <div style={{padding:"32px 16px",textAlign:"center"}}>
+        <div style={{fontSize:48,marginBottom:12}}>🎉</div>
+        <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:8}}>화용 퀴즈 완료!</div>
+        <div style={{fontSize:14,color:"#555",lineHeight:1.7,marginBottom:6}}>
+          {PRAGMATIC_QUIZ.length}문제 중 <span style={{color:"#00C896",fontWeight:900}}>{pqScore}개</span> 정답
+        </div>
+        <div style={{fontSize:13,color:"#888",marginBottom:24,lineHeight:1.7}}>
+          한국어 대화의 숨겨진 의미를 파악하는 능력이 생겼어요!<br/>
+          이제 논술 쓰기를 시작해볼까요? ✍️
+        </div>
+        <button onClick={()=>setPqDone(true)}
+          style={{background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"14px 40px",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #9C6FDE44"}}>
+          논술 시작하기 →
+        </button>
+      </div>
+    );
+    return (
+      <div style={{padding:"12px 4px"}}>
+        {/* 헤더 */}
+        <div style={{background:"linear-gradient(135deg,#9C6FDE22,#C084FC11)",borderRadius:16,padding:"16px",marginBottom:16,textAlign:"center"}}>
+          <div style={{fontSize:22,marginBottom:4}}>💬</div>
+          <div style={{fontSize:15,fontWeight:900,color:"#9C6FDE",marginBottom:2}}>화용 능력 퀴즈</div>
+          <div style={{fontSize:12,color:"#888"}}>한국어 대화의 진짜 의미를 파악해봐요!</div>
+        </div>
+        {/* 진행 바 */}
+        <div style={{display:"flex",gap:6,marginBottom:16,justifyContent:"center"}}>
+          {PRAGMATIC_QUIZ.map((_,i)=>(
+            <div key={i} style={{width:32,height:5,borderRadius:3,background:i<pqIdx?"#9C6FDE":i===pqIdx?"#C084FC":"#eee",transition:"background .3s"}}/>
+          ))}
+        </div>
+        {/* 문제 */}
+        <div style={{background:"white",borderRadius:16,padding:"18px 16px",boxShadow:"0 2px 12px rgba(156,111,222,.10)",marginBottom:14}}>
+          <div style={{fontSize:12,color:"#9C6FDE",fontWeight:700,marginBottom:8}}>Q{pqIdx+1}. 상황을 읽고 진짜 의미를 고르세요</div>
+          <div style={{fontSize:14,color:"#333",lineHeight:1.7,fontWeight:600,marginBottom:16}}>{q.q}</div>
+          {/* 선택지 */}
+          {q.opts.map((opt,i)=>{
+            const isCorrect = i===q.ans;
+            const isSelected = pqSel===i;
+            let bg = "white", border = "#eee", color = "#444";
+            if (pqRevealed) {
+              if (isCorrect) { bg="#E6FAF4"; border="#00C896"; color="#006B4F"; }
+              else if (isSelected && !isCorrect) { bg="#FEE2E2"; border="#F87171"; color="#991B1B"; }
+            } else if (isSelected) { bg="#F3EEFF"; border="#9C6FDE"; color="#5B21B6"; }
+            return (
+              <button key={i} onClick={()=>{ if (pqRevealed) return; setPqSel(i); setPqRevealed(true); if(i===q.ans) setPqScore(s=>s+1); }}
+                style={{width:"100%",display:"block",textAlign:"left",padding:"11px 14px",borderRadius:12,border:`2px solid ${border}`,background:bg,color,fontSize:13,fontWeight:isCorrect&&pqRevealed?700:400,cursor:pqRevealed?"default":"pointer",marginBottom:8,transition:"all .2s",WebkitTapHighlightColor:"transparent"}}>
+                {pqRevealed&&isCorrect?"✅ ":pqRevealed&&isSelected&&!isCorrect?"❌ ":""}{opt}
+              </button>
+            );
+          })}
+        </div>
+        {/* 해설 */}
+        {pqRevealed&&(
+          <div style={{background:"#F3EEFF",borderRadius:14,padding:"14px 16px",marginBottom:14,borderLeft:"4px solid #9C6FDE"}}>
+            <div style={{fontSize:12,fontWeight:700,color:"#9C6FDE",marginBottom:4}}>💡 해설</div>
+            <div style={{fontSize:13,color:"#444",lineHeight:1.7}}>{q.exp}</div>
+          </div>
+        )}
+        {/* 다음 버튼 */}
+        <button onClick={handleNext} disabled={!pqRevealed}
+          style={{width:"100%",background:pqRevealed?"linear-gradient(135deg,#9C6FDE,#C084FC)":"#ddd",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:pqRevealed?"pointer":"not-allowed",transition:"all .2s",WebkitTapHighlightColor:"transparent"}}>
+          {isLast?"결과 보기 🎉":"다음 문제 →"}
+        </button>
+        <button onClick={()=>{ if(pqDoneKey) localStorage.setItem(pqDoneKey,"1"); setPqDone(true); }}
+          style={{width:"100%",background:"none",border:"none",color:"#ccc",fontSize:12,cursor:"pointer",padding:"10px 0",marginTop:4}}>
+          건너뛰기 (나중에 하기)
+        </button>
+      </div>
+    );
   }
 
   if (!mode) return (
