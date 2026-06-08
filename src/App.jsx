@@ -19253,7 +19253,7 @@ function GameTab({level, midLevel}) {
             }
             return (
               <button key={i} onClick={()=>handleSelect(i)}
-                style={{width:"100%",background:bg,border,borderRadius:12,padding:"12px 14px",marginBottom:8,textAlign:"left",cursor:selected===null?"pointer":"default",color,fontSize:13,fontWeight:isSelected||isCorrect?700:400,transition:"all .2s"}}>
+                style={{width:"100%",background:bg,border,borderRadius:12,padding:"12px 14px",marginBottom:8,textAlign:"left",cursor:selected===null?"pointer":"default",color,fontSize:13,fontWeight:selected!==null&&(isSelected||isCorrect)?700:400,transition:"all .2s",WebkitAppearance:"none",appearance:"none"}}>
                 {selected !== null && isCorrect && "✅ "}
                 {selected !== null && isSelected && !isCorrect && "❌ "}
                 {opt}
