@@ -2088,7 +2088,7 @@ function checkAnswer(userInput, card) {
   return answers.includes(userAns);
 }
 
-function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, skipToLearn=false, onMyPage, initLang=null }) {
+function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel, skipToLearn=false, onMyPage, initLang=null }) {
   // ✅ V274: 모든 학습 화면에서 마이페이지 접근 가능한 공통 버튼
   const MyPageBtn = onMyPage ? (
     <button onClick={e=>{e.stopPropagation();onMyPage();}}
@@ -2958,8 +2958,8 @@ ${vocabList}
               } catch(e) { console.error("midLevel 저장 오류:", e); }
             }
             setShowMidLevelWarning(false);
-            // 중급 진입: 현재는 프리토킹으로 연결 (추후 중급 커리큘럼 화면으로 교체)
-            onBrowse?.();
+            // ✅ V340: onMidLevel 콜백으로 App state midLevel=true 설정 → 논술 탭 잠금 해제
+            onMidLevel?.();
           };
           return (
             <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
@@ -19043,6 +19043,7 @@ export default function App() {
   const [adminMode, setAdminMode] = useState(false);  // ✅ V151: 관리자 모드 토글
   const [joinCode, setJoinCode] = useState(null); // ✅ V148: URL ?join= 파라미터
   const [browseMode, setBrowseMode] = useState(false); // ✅ V270: daily/work 선택 후 탭 둘러보기 모드
+  const [midLevel, setMidLevel] = useState(false); // ✅ V340: 중급 자기선언 여부
   // ✅ V276: 비주얼 온보딩 — 매번 표시 (skip 버튼으로 개인 선택)
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingLang, setOnboardingLang] = useState("ko");
@@ -19110,7 +19111,11 @@ export default function App() {
   useEffect(()=>{
     if(!user) return;
     getDoc(doc(db, "users", user.uid)).then(d => {
-      if(d.exists()) setUserRole(d.data().role || "learner");
+      if(d.exists()) {
+        setUserRole(d.data().role || "learner");
+        // ✅ V340: 중급 자기선언 상태 복원
+        if(d.data().midLevel === true) setMidLevel(true);
+      }
     }).catch(()=>setUserRole("learner"));
   },[user]);
 
@@ -19761,7 +19766,7 @@ export default function App() {
     const beg_label = beg_stepLabels[beg_savedStep] || (beg_savedStep?.startsWith("unit") ? `서술어 ${beg_savedStep.replace("unit","")}단원` : beg_savedStep||"시작 전");
     return (
       <>
-        <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}} onMyPage={()=>setShowMyPage(true)} initLang={onboardingLang||null}/>
+        <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}} onMidLevel={()=>{setMidLevel(true);setBegReady(true);}} onMyPage={()=>setShowMyPage(true)} initLang={onboardingLang||null}/>
         {showMyPage&&(
           <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:99999,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
             onClick={()=>setShowMyPage(false)}>
@@ -19970,7 +19975,7 @@ export default function App() {
       <div style={{maxWidth:600,margin:"0 auto",padding:`12px 12px ${browseMode?"150px":"80px"}`,boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
         {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak} begReady={begReady} browseMode={browseMode}/>}
-        {tab==="write"&&(level==="beg"
+        {tab==="write"&&((level==="beg" && !midLevel)
           ? <div style={{padding:"48px 24px",textAlign:"center"}}>
               <div style={{fontSize:52,marginBottom:14}}>🔒</div>
               <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",marginBottom:8}}>논술은 중급부터 열려요!</div>
