@@ -18680,8 +18680,8 @@ function TutorTab({level, uid}) {
 }
 
 // ✅ V130: 게임 탭
-function GameTab({level}) {
-  const [game, setGame] = useState(null); // null | "flip" | "match" | "quiz"
+function GameTab({level, midLevel}) {
+  const [game, setGame] = useState(null); // null | "flip" | "match" | "quiz" | "polysemy"
   const isBeg = level === "beg";
 
   // ── 카드 뒤집기 게임 (초급용 — BEG_VOCAB 활용) ──
@@ -19088,6 +19088,189 @@ function GameTab({level}) {
     );
   }
 
+  // ── 모듈3: 다의어 챌린지 ──
+  function PolysemyGame() {
+    const POLYSEMY_DATA = [
+      { word:"먹다", meanings:[
+        { meaning:"음식을 먹다", example:"저는 밥을 먹었습니다.", correct:true },
+        { meaning:"나이를 먹다", example:"올해 서른 살을 먹었습니다.", correct:true },
+        { meaning:"욕을 먹다", example:"발표를 잘못해서 욕을 많이 먹었습니다.", correct:true },
+        { meaning:"겁을 먹다", example:"큰 개를 보고 겁을 먹었습니다.", correct:true },
+        { meaning:"마음을 먹다", example:"열심히 공부하기로 마음을 먹었습니다.", correct:true },
+      ], quizzes:[
+        { sentence:"그 사람은 비판을 많이 먹었습니다.", answer:2, options:["음식을 먹었다","나이가 많다","욕을 많이 받았다","겁이 났다"] },
+        { sentence:"올해 드디어 서른을 먹었어요.", answer:1, options:["밥을 먹었다","서른 살이 되었다","마음을 정했다","겁이 났다"] },
+        { sentence:"혼자 살기로 마음을 먹었습니다.", answer:2, options:["음식을 먹었다","겁이 났다","결심을 했다","나이를 먹었다"] },
+      ]},
+      { word:"보다", meanings:[
+        { meaning:"눈으로 보다", example:"영화를 보았습니다.", correct:true },
+        { meaning:"시험을 보다", example:"오늘 한국어 시험을 보았습니다.", correct:true },
+        { meaning:"아이를 보다", example:"할머니가 아이를 보아 주셨습니다.", correct:true },
+        { meaning:"~보다 (비교)", example:"사과가 바나나보다 비쌉니다.", correct:true },
+        { meaning:"의사에게 보이다", example:"병원에 가서 의사에게 보였습니다.", correct:true },
+      ], quizzes:[
+        { sentence:"오늘 수학 시험을 보았습니다.", answer:1, options:["수학을 구경했다","수학 시험에 응시했다","수학책을 읽었다","수학을 배웠다"] },
+        { sentence:"어머니가 아기를 봐 주셨습니다.", answer:2, options:["아기를 구경했다","아기와 놀았다","아기를 돌봐 주셨다","아기를 가르쳤다"] },
+        { sentence:"이 가방이 저 가방보다 큽니다.", answer:3, options:["두 가방을 보았다","가방을 비교했다","가방의 크기를 비교했다","가방을 구매했다"] },
+      ]},
+      { word:"가다", meanings:[
+        { meaning:"장소로 가다", example:"학교에 갔습니다.", correct:true },
+        { meaning:"시간이 가다", example:"시간이 빨리 갔습니다.", correct:true },
+        { meaning:"색이 가다", example:"옷 색깔이 빠졌습니다.", correct:true },
+        { meaning:"맛이 가다", example:"음식이 상했습니다.", correct:true },
+        { meaning:"머리가 가다", example:"요즘 기억력이 나빠졌습니다.", correct:true },
+      ], quizzes:[
+        { sentence:"여름에 음식이 금방 갑니다.", answer:1, options:["음식이 어딘가로 이동한다","음식이 상한다","음식이 팔린다","음식이 식는다"] },
+        { sentence:"이 셔츠는 색이 많이 갔어요.", answer:2, options:["셔츠가 어딘가 갔다","셔츠가 낡았다","색깔이 빠졌다","셔츠를 잃어버렸다"] },
+        { sentence:"시간이 정말 빨리 갑니다.", answer:0, options:["시간이 흘러간다","시간이 부족하다","시간이 멈췄다","시간이 되돌아간다"] },
+      ]},
+      { word:"들다", meanings:[
+        { meaning:"물건을 들다", example:"무거운 가방을 들었습니다.", correct:true },
+        { meaning:"마음에 들다", example:"이 옷이 마음에 들었습니다.", correct:true },
+        { meaning:"잠이 들다", example:"아이가 잠이 들었습니다.", correct:true },
+        { meaning:"나이가 들다", example:"나이가 들수록 지혜로워집니다.", correct:true },
+        { meaning:"비용이 들다", example:"이사하는 데 돈이 많이 들었습니다.", correct:true },
+      ], quizzes:[
+        { sentence:"이 디자인이 정말 마음에 듭니다.", answer:1, options:["디자인을 손에 들었다","디자인이 마음에 맞다","디자인을 가져갔다","디자인이 유행한다"] },
+        { sentence:"아이가 드디어 잠이 들었습니다.", answer:2, options:["아이가 잠을 가지러 갔다","아이가 잠자리에 누웠다","아이가 잠이 들기 시작했다","아이가 잠을 깼다"] },
+        { sentence:"이번 프로젝트에 비용이 많이 들었습니다.", answer:3, options:["프로젝트가 들어갔다","비용을 들고 갔다","프로젝트가 시작됐다","비용이 많이 필요했다"] },
+      ]},
+      { word:"나다", meanings:[
+        { meaning:"냄새가 나다", example:"꽃 냄새가 납니다.", correct:true },
+        { meaning:"소리가 나다", example:"밖에서 소리가 납니다.", correct:true },
+        { meaning:"열이 나다", example:"감기에 걸려서 열이 납니다.", correct:true },
+        { meaning:"생각이 나다", example:"갑자기 좋은 생각이 났습니다.", correct:true },
+        { meaning:"화가 나다", example:"그 말을 듣고 화가 났습니다.", correct:true },
+      ], quizzes:[
+        { sentence:"갑자기 좋은 방법이 생각이 났습니다.", answer:1, options:["생각이 나타났다","좋은 방법이 떠올랐다","생각이 밖으로 나갔다","방법을 생각했다"] },
+        { sentence:"그 말을 듣고 화가 많이 났습니다.", answer:2, options:["화재가 발생했다","화가 생겨났다","감정적으로 화가 생겼다","화를 냈다는 뜻이다"] },
+        { sentence:"이 음식에서 이상한 냄새가 납니다.", answer:0, options:["냄새가 발생한다","냄새가 나타난다","냄새가 퍼진다","냄새를 맡는다"] },
+      ]},
+    ];
+
+    const [wordIdx, setWordIdx] = useState(0);
+    const [phase, setPhase] = useState("map"); // "map" | "quiz"
+    const [quizIdx, setQuizIdx] = useState(0);
+    const [selected, setSelected] = useState(null);
+    const [score, setScore] = useState(0);
+    const [done, setDone] = useState(false);
+
+    const currentWord = POLYSEMY_DATA[wordIdx];
+    const currentQuiz = currentWord.quizzes[quizIdx];
+
+    function handleSelect(optIdx) {
+      if (selected !== null) return;
+      setSelected(optIdx);
+      if (optIdx === currentQuiz.answer) setScore(s => s + 1);
+    }
+
+    function handleNext() {
+      if (quizIdx < currentWord.quizzes.length - 1) {
+        setQuizIdx(q => q + 1);
+        setSelected(null);
+      } else {
+        setDone(true);
+      }
+    }
+
+    function handleNextWord() {
+      if (wordIdx < POLYSEMY_DATA.length - 1) {
+        setWordIdx(w => w + 1);
+        setPhase("map");
+        setQuizIdx(0);
+        setSelected(null);
+        setScore(0);
+        setDone(false);
+      } else {
+        setGame(null);
+      }
+    }
+
+    if (done) return (
+      <div style={{textAlign:"center",padding:"30px 16px"}}>
+        <div style={{fontSize:48,marginBottom:12}}>🎉</div>
+        <div style={{fontSize:20,fontWeight:900,color:"#6C3FC5",marginBottom:8}}>"{currentWord.word}" 완료!</div>
+        <div style={{fontSize:15,color:"#555",marginBottom:24}}>
+          {currentWord.quizzes.length}문제 중 <span style={{color:"#00C896",fontWeight:900}}>{score}개</span> 정답
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {wordIdx < POLYSEMY_DATA.length - 1 && (
+            <button onClick={handleNextWord}
+              style={{background:"linear-gradient(90deg,#6C3FC5,#9C6FDE)",color:"white",border:"none",borderRadius:14,padding:"14px",fontSize:15,fontWeight:900,cursor:"pointer"}}>
+              다음 단어 → "{POLYSEMY_DATA[wordIdx+1].word}"
+            </button>
+          )}
+          <button onClick={()=>setGame(null)}
+            style={{background:"white",border:"2px solid #ddd",borderRadius:14,padding:"12px",fontSize:14,color:"#888",cursor:"pointer"}}>
+            게임 선택으로 돌아가기
+          </button>
+        </div>
+      </div>
+    );
+
+    if (phase === "map") return (
+      <div style={{padding:"8px 0"}}>
+        <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
+          {POLYSEMY_DATA.map((d, i) => (
+            <button key={d.word} onClick={()=>{setWordIdx(i);setPhase("map");setQuizIdx(0);setSelected(null);setScore(0);setDone(false);}}
+              style={{padding:"4px 12px",borderRadius:20,border:`1.5px solid ${i===wordIdx?"#6C3FC5":"#ddd"}`,background:i===wordIdx?"#F0E8FF":"white",color:i===wordIdx?"#6C3FC5":"#888",fontSize:12,fontWeight:i===wordIdx?800:500,cursor:"pointer"}}>
+              {d.word}
+            </button>
+          ))}
+        </div>
+        <div style={{background:"#F8F4FF",borderRadius:18,padding:"18px 16px",marginBottom:16}}>
+          <div style={{fontSize:22,fontWeight:900,color:"#6C3FC5",marginBottom:4}}>"{currentWord.word}"의 다양한 의미</div>
+          <div style={{fontSize:13,color:"#888",marginBottom:14}}>같은 단어, 다른 뜻! 예문으로 확인해봐요.</div>
+          {currentWord.meanings.map((m, i) => (
+            <div key={i} style={{background:"white",borderRadius:12,padding:"12px 14px",marginBottom:8,borderLeft:"4px solid #9C6FDE"}}>
+              <div style={{fontSize:13,fontWeight:800,color:"#6C3FC5",marginBottom:4}}>💡 {m.meaning}</div>
+              <div style={{fontSize:13,color:"#444"}}>{m.example}</div>
+            </div>
+          ))}
+        </div>
+        <button onClick={()=>setPhase("quiz")}
+          style={{width:"100%",background:"linear-gradient(90deg,#6C3FC5,#9C6FDE)",color:"white",border:"none",borderRadius:14,padding:"14px",fontSize:15,fontWeight:900,cursor:"pointer"}}>
+          퀴즈 풀기 →
+        </button>
+      </div>
+    );
+
+    return (
+      <div style={{padding:"8px 0"}}>
+        <div style={{background:"white",borderRadius:16,padding:"16px",marginBottom:12,boxShadow:"0 2px 12px rgba(108,63,197,.08)"}}>
+          <div style={{fontSize:12,color:"#9C6FDE",fontWeight:700,marginBottom:8}}>문제 {quizIdx+1} / {currentWord.quizzes.length}</div>
+          <div style={{fontSize:14,fontWeight:700,color:"#333",marginBottom:16,lineHeight:1.6,background:"#F8F4FF",borderRadius:10,padding:"12px"}}>
+            "{currentQuiz.sentence}"<br/>
+            <span style={{fontSize:12,color:"#888",fontWeight:400}}>밑줄 친 표현의 의미는?</span>
+          </div>
+          {currentQuiz.options.map((opt, i) => {
+            const isCorrect = i === currentQuiz.answer;
+            const isSelected = i === selected;
+            let bg = "white", border = "1.5px solid #eee", color = "#333";
+            if (selected !== null) {
+              if (isCorrect) { bg="#E8F8F0"; border="2px solid #00C896"; color="#007A5E"; }
+              else if (isSelected) { bg="#FFF0F0"; border="2px solid #FF5C5C"; color="#CC0000"; }
+            }
+            return (
+              <button key={i} onClick={()=>handleSelect(i)}
+                style={{width:"100%",background:bg,border,borderRadius:12,padding:"12px 14px",marginBottom:8,textAlign:"left",cursor:selected===null?"pointer":"default",color,fontSize:13,fontWeight:isSelected||isCorrect?700:400,transition:"all .2s"}}>
+                {selected !== null && isCorrect && "✅ "}
+                {selected !== null && isSelected && !isCorrect && "❌ "}
+                {opt}
+              </button>
+            );
+          })}
+          {selected !== null && (
+            <button onClick={handleNext}
+              style={{width:"100%",background:"linear-gradient(90deg,#6C3FC5,#9C6FDE)",color:"white",border:"none",borderRadius:12,padding:"12px",fontSize:14,fontWeight:900,cursor:"pointer",marginTop:4}}>
+              {quizIdx < currentWord.quizzes.length - 1 ? "다음 문제 →" : "결과 보기 →"}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // ── 게임 선택 화면 ──
   if (!game) return (
     <div style={{padding:"16px 0"}}>
@@ -19115,6 +19298,15 @@ function GameTab({level}) {
           <div style={{fontSize:16,fontWeight:900,color:"#FFB347",marginBottom:4}}>4지선다 퀴즈</div>
           <div style={{fontSize:13,color:"#666"}}>뜻을 보고 알맞은 한국어를 골라요!</div>
         </button>
+        {midLevel && (
+          <button onClick={()=>setGame("polysemy")}
+            style={{background:"#F0E8FF",border:"2px solid #6C3FC5",borderRadius:18,padding:"20px",textAlign:"left",cursor:"pointer",WebkitTapHighlightColor:"transparent",position:"relative"}}>
+            <div style={{position:"absolute",top:12,right:12,background:"#6C3FC5",color:"white",fontSize:10,fontWeight:900,borderRadius:20,padding:"2px 8px"}}>중급</div>
+            <div style={{fontSize:28,marginBottom:6}}>🧠</div>
+            <div style={{fontSize:16,fontWeight:900,color:"#6C3FC5",marginBottom:4}}>다의어 챌린지</div>
+            <div style={{fontSize:13,color:"#666"}}>같은 단어, 다양한 뜻! 맥락으로 구별해봐요.</div>
+          </button>
+        )}
       </div>
     </div>
   );
@@ -19128,6 +19320,7 @@ function GameTab({level}) {
       {game === "flip" && <FlipGame />}
       {game === "match" && <MatchGame />}
       {game === "quiz" && <QuizGame />}
+      {game === "polysemy" && <PolysemyGame />}
     </div>
   );
 }
@@ -20102,7 +20295,7 @@ export default function App() {
           : <WriteTab level={level} uid={user.uid}/>
         )}
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
-        {tab==="game"&&<GameTab level={level}/>}
+        {tab==="game"&&<GameTab level={level} midLevel={midLevel}/>}
         {tab==="topik"&&<TopikCertTab user={user}/>}
 
         {/* ✅ V270: 둘러보기 모드 하단 고정 배너 */}
