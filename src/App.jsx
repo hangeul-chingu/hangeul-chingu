@@ -18069,6 +18069,7 @@ function WriteTab({level, uid, lang}) {
   const [pqFinished,setPqFinished]= useState(false);
   // ✅ V343: 담화 완성 훈련 state
   const dcDoneKey = uid ? `hc_dc_done_${uid}` : null;
+  // dcDone: localStorage에 완료 기록 있으면 true, 없으면 true(기본) — 화용 퀴즈 완료 시 false로 전환
   const [dcDone,    setDcDone]    = useState(()=> dcDoneKey ? !!localStorage.getItem(dcDoneKey) : true);
   const [dcIdx,     setDcIdx]     = useState(0);
   const [dcSel,     setDcSel]     = useState(null);
@@ -18078,14 +18079,16 @@ function WriteTab({level, uid, lang}) {
   // ✅ V344: 해설 번역 state
   const langCode = lang?.code ?? "ko";
   const needTrans = langCode !== "ko";
-  const [pqTrans, setPqTrans] = useState({}); // {idx: "번역문"}
+  const [pqTrans, setPqTrans] = useState({});
   const [dcTrans, setDcTrans] = useState({});
   const [transLoading, setTransLoading] = useState(false);
+  const transLoadingRef = useRef(false);
 
-  const fetchTrans = useCallback(async (korean, idx, type) => {
-    if (!needTrans) return;
+  async function fetchTrans(korean, idx, type) {
+    if (!needTrans || transLoadingRef.current) return;
     const cache = type === "pq" ? pqTrans : dcTrans;
     if (cache[idx]) return;
+    transLoadingRef.current = true;
     setTransLoading(true);
     try {
       const langName = {vi:"Vietnamese",zh:"Chinese",en:"English",ja:"Japanese",id:"Indonesian",ru:"Russian",th:"Thai",mn:"Mongolian",uz:"Uzbek",es:"Spanish"}[langCode] ?? "English";
@@ -18095,11 +18098,12 @@ function WriteTab({level, uid, lang}) {
       );
       if (type === "pq") setPqTrans(p => ({...p, [idx]: result}));
       else setDcTrans(p => ({...p, [idx]: result}));
-    } catch(e) { /* 번역 실패 시 조용히 무시 */ }
+    } catch(e) { /* silent */ }
+    transLoadingRef.current = false;
     setTransLoading(false);
-  }, [needTrans, langCode, pqTrans, dcTrans]);
+  }
   const fileRef = useRef(null);
-  const writeSys = PROMPTS.write[level === "beg" ? "beg" : level === "adv" ? "adv" : "mid"];
+  const writeSys = PROMPTS.write[level === "adv" ? "adv" : level === "beg" ? "beg" : "mid"] ?? PROMPTS.write["mid"];
 
   async function submitStep() {
     if (!wText[wStep].trim() || wLoad) return;
@@ -18588,6 +18592,7 @@ function WriteTab({level, uid, lang}) {
     </div>
   );
 }
+// ← WriteTab 종료
 
 function TutorTab({level, uid}) {
   const [started,    setStarted]    = useState(false);
