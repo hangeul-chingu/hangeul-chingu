@@ -18045,7 +18045,7 @@ const PRAGMATIC_QUIZ = [
     ans:1, exp:"'괜찮아요'는 상황에 따라 '좋아요'가 아니라 '별로지만 그냥 먹겠다'는 의미일 때가 많아요. 한국에서는 부정적인 감정을 직접 표현하기보다 '괜찮아요'로 넘기는 경우가 흔해요." },
 ];
 
-function WriteTab({level, uid}) {
+function WriteTab({level, uid, lang}) {
   const [mode,        setMode]        = useState(null);
   const [wStep,       setWStep]       = useState(0);
   const [wText,       setWText]       = useState(["","",""]);
@@ -18075,6 +18075,29 @@ function WriteTab({level, uid}) {
   const [dcRevealed,setDcRevealed]= useState(false);
   const [dcScore,   setDcScore]   = useState(0);
   const [dcFinished,setDcFinished]= useState(false);
+  // ✅ V344: 해설 번역 state
+  const langCode = lang?.code ?? "ko";
+  const needTrans = langCode !== "ko";
+  const [pqTrans, setPqTrans] = useState({}); // {idx: "번역문"}
+  const [dcTrans, setDcTrans] = useState({});
+  const [transLoading, setTransLoading] = useState(false);
+
+  async function fetchTrans(korean, idx, type) {
+    if (!needTrans) return;
+    const cache = type === "pq" ? pqTrans : dcTrans;
+    if (cache[idx]) return;
+    setTransLoading(true);
+    try {
+      const langName = {vi:"Vietnamese",zh:"Chinese",en:"English",ja:"Japanese",id:"Indonesian",ru:"Russian",th:"Thai",mn:"Mongolian",uz:"Uzbek",es:"Spanish"}[langCode] ?? "English";
+      const result = await callClaudeSimple(
+        `Translate the following Korean explanation into ${langName}. Return only the translated text, no extra words:\n\n${korean}`,
+        "You are a translator. Translate accurately and naturally."
+      );
+      if (type === "pq") setPqTrans(p => ({...p, [idx]: result}));
+      else setDcTrans(p => ({...p, [idx]: result}));
+    } catch(e) { /* 번역 실패 시 조용히 무시 */ }
+    setTransLoading(false);
+  }
   const fileRef = useRef(null);
   const writeSys = PROMPTS.write[level === "beg" ? "beg" : level === "adv" ? "adv" : "mid"];
 
@@ -18207,6 +18230,17 @@ function WriteTab({level, uid}) {
           <div style={{background:"#F3EEFF",borderRadius:14,padding:"14px 16px",marginBottom:14,borderLeft:"4px solid #9C6FDE"}}>
             <div style={{fontSize:12,fontWeight:700,color:"#9C6FDE",marginBottom:4}}>💡 해설</div>
             <div style={{fontSize:13,color:"#444",lineHeight:1.7}}>{q.exp}</div>
+            {needTrans && (
+              <div style={{marginTop:10,paddingTop:10,borderTop:"1px dashed #D8B4FE"}}>
+                {pqTrans[pqIdx]
+                  ? <div style={{fontSize:13,color:"#6B7280",lineHeight:1.7}}>{pqTrans[pqIdx]}</div>
+                  : <div style={{fontSize:12,color:"#9C6FDE",cursor:"pointer",fontWeight:700}}
+                      onClick={()=>fetchTrans(q.exp, pqIdx, "pq")}>
+                      {transLoading ? "번역 중..." : "🌏 모국어로 보기"}
+                    </div>
+                }
+              </div>
+            )}
           </div>
         )}
         {/* 다음 버튼 */}
@@ -18306,6 +18340,17 @@ function WriteTab({level, uid}) {
           <div style={{background:"#EFF6FF",borderRadius:14,padding:"14px 16px",marginBottom:14,borderLeft:"4px solid #3B82F6"}}>
             <div style={{fontSize:12,fontWeight:700,color:"#3B82F6",marginBottom:4}}>💡 해설</div>
             <div style={{fontSize:13,color:"#444",lineHeight:1.7}}>{dq.exp}</div>
+            {needTrans && (
+              <div style={{marginTop:10,paddingTop:10,borderTop:"1px dashed #BFDBFE"}}>
+                {dcTrans[dcIdx]
+                  ? <div style={{fontSize:13,color:"#6B7280",lineHeight:1.7}}>{dcTrans[dcIdx]}</div>
+                  : <div style={{fontSize:12,color:"#3B82F6",cursor:"pointer",fontWeight:700}}
+                      onClick={()=>fetchTrans(dq.exp, dcIdx, "dc")}>
+                      {transLoading ? "번역 중..." : "🌏 모국어로 보기"}
+                    </div>
+                }
+              </div>
+            )}
           </div>
         )}
         {/* 다음 버튼 */}
@@ -20424,7 +20469,7 @@ export default function App() {
               <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",marginBottom:8}}>논술은 중급부터 열려요!</div>
               <div style={{fontSize:13,color:"#999",lineHeight:1.8}}>프리토킹으로 말하기 기초를 먼저 다져요.<br/>TOPIK 3급 이상이 되면 논술이 열려요 😊</div>
             </div>
-          : <WriteTab level={level} uid={user.uid}/>
+          : <WriteTab level={level} uid={user.uid} lang={lang}/>
         )}
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
         {tab==="game"&&<GameTab level={level} midLevel={midLevel}/>}
