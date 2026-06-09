@@ -17463,7 +17463,60 @@ const ADV_QUIZ = [
   {q:"'눈이 높다'는 관용구의 뜻은?", answer:"기준이나 이상이 높다", opts:["기준이나 이상이 높다","시력이 좋다","높은 곳을 잘 본다","욕심이 없다"]},
 ];
 
-function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode}) {
+const SOCIAL_QUIZ = [
+  { situation:"퇴근할 때 인사를 합니다.",
+    q:"직장 상사에게 퇴근 인사로 가장 자연스러운 표현은?",
+    opts:["잘 가세요!","나 먼저 가요~","먼저 들어가겠습니다. 수고하셨습니다.","안녕~"],
+    ans:2,
+    exp:"직장 상사에게는 '먼저 들어가겠습니다. 수고하셨습니다.'처럼 격식체를 써야 해요. '잘 가세요'는 떠나는 사람에게 하는 말이라 방향이 반대이고, '나 먼저 가요'나 '안녕~'은 친한 친구에게 쓰는 표현이에요.",
+    pairs:[
+      {relation:"친한 친구", expr:"나 먼저 간다~ / 잘 가!"},
+      {relation:"직장 상사", expr:"먼저 들어가겠습니다. 수고하셨습니다."},
+      {relation:"처음 만난 어른", expr:"안녕히 계세요."},
+    ]},
+  { situation:"도움을 요청해야 합니다.",
+    q:"직장 동료에게 업무 도움을 부탁할 때 가장 자연스러운 표현은?",
+    opts:["이거 해줘.","바쁘신 거 알지만, 혹시 이것 좀 도와주실 수 있을까요?","왜 당신이 안 해요?","빨리 해주세요."],
+    ans:1,
+    exp:"부탁할 때는 상대방의 상황을 먼저 배려하는 표현이 자연스러워요. '바쁘신 거 알지만'처럼 상대를 인정한 뒤 '혹시 ~을 수 있을까요?'로 부탁하면 한국 직장 문화에 맞는 표현이에요.",
+    pairs:[
+      {relation:"친한 친구", expr:"나 좀 도와줄 수 있어?"},
+      {relation:"직장 동료", expr:"바쁘신 거 알지만, 혹시 도와주실 수 있을까요?"},
+      {relation:"공식 기관", expr:"도움을 요청드려도 될까요?"},
+    ]},
+  { situation:"실수를 해서 사과해야 합니다.",
+    q:"처음 만난 어른에게 사과할 때 가장 자연스러운 표현은?",
+    opts:["미안해요.","죄송합니다. 제가 실수를 했습니다.","미안~ 실수했어!","괜찮아요?"],
+    ans:1,
+    exp:"처음 만난 어른이나 공식적인 상황에서는 '죄송합니다'처럼 격식체로 사과해야 해요. '미안해요'는 어느 정도 친분이 있을 때, '미안~'은 친한 친구에게만 쓰는 표현이에요.",
+    pairs:[
+      {relation:"친한 친구", expr:"미안~ 내가 실수했어!"},
+      {relation:"직장 상사·어른", expr:"죄송합니다. 제가 실수했습니다."},
+      {relation:"공식 상황", expr:"깊이 사과드립니다."},
+    ]},
+  { situation:"칭찬을 받았습니다.",
+    q:"선생님이 '한국어 정말 늘었네요!'라고 했을 때 가장 자연스러운 반응은?",
+    opts:["맞아요, 저 잘하죠?","감사합니다. 아직 많이 부족하지만 열심히 하겠습니다.","별로예요.","고마워요~"],
+    ans:1,
+    exp:"한국 문화에서 칭찬을 받았을 때는 겸손하게 받는 게 자연스러워요. '감사합니다'로 고마움을 표현하고, '아직 부족하지만 열심히 하겠습니다'처럼 앞으로의 의지도 함께 표현하면 좋아요.",
+    pairs:[
+      {relation:"친한 친구", expr:"고마워~ 더 잘할게!"},
+      {relation:"선생님·어른", expr:"감사합니다. 아직 부족하지만 열심히 하겠습니다."},
+      {relation:"공식 자리", expr:"과분한 말씀이십니다. 감사합니다."},
+    ]},
+  { situation:"식사를 권유받았지만 거절해야 합니다.",
+    q:"직장 상사가 '같이 점심 먹을래요?'라고 했을 때 정중하게 거절하는 표현은?",
+    opts:["싫어요.","못 가요.","감사하지만 오늘은 선약이 있어서요. 다음에 꼭 함께 하고 싶습니다.","됐어요."],
+    ans:2,
+    exp:"상사의 제안을 거절할 때는 직접 거절하지 않고 이유를 먼저 말한 뒤 다음 기회를 제안하는 게 자연스러워요. '감사하지만 ~'으로 감사를 표하고, '다음에 꼭'을 덧붙이면 관계를 유지할 수 있어요.",
+    pairs:[
+      {relation:"친한 친구", expr:"나 오늘 약속 있어서~ 다음에 먹자!"},
+      {relation:"직장 상사", expr:"감사하지만 오늘은 선약이 있어서요. 다음에 꼭 함께 하고 싶습니다."},
+      {relation:"공식 자리", expr:"죄송하지만 일정이 있어서 함께하지 못할 것 같습니다."},
+    ]},
+];
+
+function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, midLevel}) {
   const [character, setCharacter] = useState(null);
   const [chatUI,    setChatUI]    = useState([]);
   const [apiMsgs,   setApiMsgs]   = useState([]);
@@ -17475,6 +17528,14 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode}) {
   const [context, setContext] = useState(null);
   // ✅ V130: 중·고급 퀴즈용 턴 카운트
   const [turnCount, setTurnCount] = useState(0);
+  // ✅ V346: 모듈5 사회언어학 훈련 state
+  const slDoneKey = uid ? `hc_sl_done_${uid}` : null;
+  const [slDone,    setSlDone]    = useState(()=> slDoneKey ? !!localStorage.getItem(slDoneKey) : true);
+  const [slIdx,     setSlIdx]     = useState(0);
+  const [slSel,     setSlSel]     = useState(null);
+  const [slRevealed,setSlRevealed]= useState(false);
+  const [slScore,   setSlScore]   = useState(0);
+  const [slFinished,setSlFinished]= useState(false);
   const chatEnd = useRef(null);
   // ✅ V144: STT 훅 연결
   const { listening, sttError, supported: sttSupported, iosChrome,
@@ -17614,6 +17675,104 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode}) {
     // browseMode가 아닐 때만 BegScreen으로 — browseMode면 일반 SpeakTab 그대로 사용
     if (!begReady) return <BegScreen user={{uid, displayName:"", email:""}} onBack={()=>{}} begSpeak={true}/>;
     return <BegScreen user={{uid, displayName:"", email:""}} onBack={()=>{}} begSpeak={true} skipToLearn={true}/>;
+  }
+
+  // ✅ V346: 모듈5 사회언어학 훈련 — midLevel이고 아직 완료 안 했을 때
+  if (midLevel && !slDone) {
+    const sq = SOCIAL_QUIZ[slIdx];
+    const isLast = slIdx === SOCIAL_QUIZ.length - 1;
+    const handleSlNext = () => {
+      if (!slRevealed) return;
+      if (isLast) {
+        setSlFinished(true);
+        if (slDoneKey) localStorage.setItem(slDoneKey, "1");
+        setSlDone(true);
+      } else {
+        setSlIdx(i => i + 1);
+        setSlSel(null);
+        setSlRevealed(false);
+      }
+    };
+    if (slFinished) return (
+      <div style={{padding:"32px 16px",textAlign:"center"}}>
+        <div style={{fontSize:48,marginBottom:12}}>🎉</div>
+        <div style={{fontSize:18,fontWeight:900,color:"#FF8C42",marginBottom:8}}>사회언어학 훈련 완료!</div>
+        <div style={{fontSize:14,color:"#555",lineHeight:1.7,marginBottom:6}}>
+          {SOCIAL_QUIZ.length}문제 중 <span style={{color:"#00C896",fontWeight:900}}>{slScore}개</span> 정답
+        </div>
+        <div style={{fontSize:13,color:"#888",marginBottom:24,lineHeight:1.7}}>
+          관계와 상황에 맞는 한국어 표현을 익혔어요!<br/>
+          이제 실전 대화를 시작해봐요 🗣️
+        </div>
+        <button onClick={()=>setSlDone(true)}
+          style={{background:"linear-gradient(135deg,#FF8C42,#FFB347)",color:"white",border:"none",borderRadius:50,padding:"14px 40px",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #FF8C4244"}}>
+          프리토킹 시작하기 →
+        </button>
+      </div>
+    );
+    return (
+      <div style={{padding:"12px 4px"}}>
+        {/* 헤더 */}
+        <div style={{background:"linear-gradient(135deg,#FF8C4222,#FFB34711)",borderRadius:16,padding:"16px",marginBottom:16,textAlign:"center"}}>
+          <div style={{fontSize:22,marginBottom:4}}>🎭</div>
+          <div style={{fontSize:15,fontWeight:900,color:"#FF8C42",marginBottom:2}}>사회언어학 훈련</div>
+          <div style={{fontSize:12,color:"#888"}}>관계와 상황에 맞는 표현을 골라봐요!</div>
+        </div>
+        {/* 진행 바 */}
+        <div style={{display:"flex",gap:6,marginBottom:16,justifyContent:"center"}}>
+          {SOCIAL_QUIZ.map((_,i)=>(
+            <div key={i} style={{width:32,height:5,borderRadius:3,background:i<slIdx?"#FF8C42":i===slIdx?"#FFB347":"#eee",transition:"background .3s"}}/>
+          ))}
+        </div>
+        {/* 상황 + 문제 */}
+        <div style={{background:"white",borderRadius:16,padding:"18px 16px",boxShadow:"0 2px 12px rgba(255,140,66,.10)",marginBottom:14}}>
+          <div style={{background:"#FFF3E8",borderRadius:10,padding:"10px 14px",marginBottom:12,borderLeft:"4px solid #FF8C42"}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#FF8C42",marginBottom:3}}>📍 상황</div>
+            <div style={{fontSize:13,color:"#444",fontWeight:600}}>{sq.situation}</div>
+          </div>
+          <div style={{fontSize:12,color:"#FF8C42",fontWeight:700,marginBottom:10}}>Q{slIdx+1}. {sq.q}</div>
+          {/* 선택지 */}
+          {sq.opts.map((opt,i)=>{
+            const isCorrect = i===sq.ans;
+            const isSelected = slSel===i;
+            let bg="white", border="#eee", color="#444";
+            if (slRevealed) {
+              if (isCorrect) { bg="#E6FAF4"; border="#00C896"; color="#006B4F"; }
+              else if (isSelected&&!isCorrect) { bg="#FEE2E2"; border="#F87171"; color="#991B1B"; }
+            } else if (isSelected) { bg="#FFF3E8"; border="#FF8C42"; color="#C05200"; }
+            return (
+              <button key={i} onClick={()=>{ if(slRevealed) return; setSlSel(i); setSlRevealed(true); if(i===sq.ans) setSlScore(s=>s+1); }}
+                style={{width:"100%",display:"block",textAlign:"left",padding:"11px 14px",borderRadius:12,border:`2px solid ${border}`,background:bg,color,fontSize:13,fontWeight:slRevealed&&(isCorrect||isSelected)?700:400,cursor:slRevealed?"default":"pointer",marginBottom:8,transition:"all .2s",WebkitTapHighlightColor:"transparent",WebkitAppearance:"none",appearance:"none"}}>
+                {slRevealed&&isCorrect?"✅ ":slRevealed&&isSelected&&!isCorrect?"❌ ":""}{opt}
+              </button>
+            );
+          })}
+        </div>
+        {/* 해설 + 관계별 표현 비교 */}
+        {slRevealed&&(
+          <div style={{background:"#FFF3E8",borderRadius:14,padding:"14px 16px",marginBottom:14,borderLeft:"4px solid #FF8C42"}}>
+            <div style={{fontSize:12,fontWeight:700,color:"#FF8C42",marginBottom:6}}>💡 해설</div>
+            <div style={{fontSize:13,color:"#444",lineHeight:1.7,marginBottom:10}}>{sq.exp}</div>
+            <div style={{fontSize:12,fontWeight:700,color:"#FF8C42",marginBottom:6}}>📊 관계별 표현 비교</div>
+            {sq.pairs.map((p,i)=>(
+              <div key={i} style={{display:"flex",gap:8,marginBottom:6,alignItems:"flex-start"}}>
+                <div style={{background:"#FF8C42",color:"white",borderRadius:8,padding:"2px 8px",fontSize:11,fontWeight:700,flexShrink:0,marginTop:1}}>{p.relation}</div>
+                <div style={{fontSize:12,color:"#555",lineHeight:1.6}}>"{p.expr}"</div>
+              </div>
+            ))}
+          </div>
+        )}
+        {/* 다음 버튼 */}
+        <button onClick={handleSlNext} disabled={!slRevealed}
+          style={{width:"100%",background:slRevealed?"linear-gradient(135deg,#FF8C42,#FFB347)":"#ddd",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:slRevealed?"pointer":"not-allowed",transition:"all .2s",WebkitTapHighlightColor:"transparent"}}>
+          {isLast?"결과 보기 🎉":"다음 문제 →"}
+        </button>
+        <button onClick={()=>{ if(slDoneKey) localStorage.setItem(slDoneKey,"1"); setSlDone(true); }}
+          style={{width:"100%",background:"none",border:"none",color:"#ccc",fontSize:12,cursor:"pointer",padding:"10px 0",marginTop:4}}>
+          건너뛰기 (나중에 하기)
+        </button>
+      </div>
+    );
   }
 
     if (!motivation) return (
@@ -20467,7 +20626,7 @@ export default function App() {
       </div>
       <div style={{maxWidth:600,margin:"0 auto",padding:`12px 12px ${browseMode?"150px":"80px"}`,boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
-        {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak} begReady={begReady} browseMode={browseMode}/>}
+        {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak} begReady={begReady} browseMode={browseMode} midLevel={midLevel}/>}
         {tab==="write"&&((level==="beg" && !midLevel)
           ? <div style={{padding:"48px 24px",textAlign:"center"}}>
               <div style={{fontSize:52,marginBottom:14}}>🔒</div>
