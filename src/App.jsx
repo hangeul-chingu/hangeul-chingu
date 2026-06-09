@@ -18082,7 +18082,7 @@ function WriteTab({level, uid, lang}) {
   const [dcTrans, setDcTrans] = useState({});
   const [transLoading, setTransLoading] = useState(false);
 
-  async function fetchTrans(korean, idx, type) {
+  const fetchTrans = useCallback(async (korean, idx, type) => {
     if (!needTrans) return;
     const cache = type === "pq" ? pqTrans : dcTrans;
     if (cache[idx]) return;
@@ -18097,7 +18097,7 @@ function WriteTab({level, uid, lang}) {
       else setDcTrans(p => ({...p, [idx]: result}));
     } catch(e) { /* 번역 실패 시 조용히 무시 */ }
     setTransLoading(false);
-  }
+  }, [needTrans, langCode, pqTrans, dcTrans]);
   const fileRef = useRef(null);
   const writeSys = PROMPTS.write[level === "beg" ? "beg" : level === "adv" ? "adv" : "mid"];
 
