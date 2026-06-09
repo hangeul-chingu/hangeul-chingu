@@ -18001,6 +18001,29 @@ function TopikCertTab({ user }) {
 }
 
 // ✅ V341: 화용 퀴즈 데이터 (모듈 2 — 맥락·함의 훈련)
+const DISCOURSE_QUIZ = [
+  { context:["투안: '오늘 발표가 너무 떨렸어요. 실수도 했고요.'", "마리아: (          )"],
+    q:"마리아의 가장 자연스러운 반응은?",
+    opts:["'다음엔 잘 하면 되죠.'","'많이 떨리셨겠어요. 그래도 끝까지 하셨잖아요!'","'저도 발표가 싫어요.'","'왜 실수를 했어요?'"],
+    ans:1, exp:"상대방이 힘든 감정을 표현할 때는 먼저 공감해 주는 게 자연스러워요. '많이 떨리셨겠어요'처럼 상대의 감정을 인정해 주는 표현이 한국어 대화에서 중요한 역할을 해요." },
+  { context:["유지: '이번 주말에 같이 등산 갈 수 있어요?'", "마리아: (          )"],
+    q:"마리아가 거절할 때 가장 자연스러운 표현은?",
+    opts:["'싫어요.'","'등산은 별로예요.'","'이번 주말은 좀 어려울 것 같아요. 다음에 꼭 같이 가요!'","'못 가요.'"],
+    ans:2, exp:"한국어에서 거절할 때는 이유를 부드럽게 말하고 다음 기회를 제안하는 게 자연스러워요. '어려울 것 같아요'는 완곡한 거절 표현이고, '다음에 꼭'은 관계를 유지하는 표현이에요." },
+  { context:["투안: '마리아 씨, 한국어 정말 잘하시네요!'", "마리아: (          )"],
+    q:"칭찬을 받았을 때 한국어로 가장 자연스러운 반응은?",
+    opts:["'맞아요, 저 잘하죠?'","'아니에요, 아직 많이 부족해요.'","'고마워요. 당신도 잘해요.'","'별말씀을요. 덕분이에요.'"],
+    ans:3, exp:"한국 문화에서는 칭찬을 받았을 때 바로 동의하기보다 겸손하게 받는 것이 자연스러워요. '별말씀을요. 덕분이에요'처럼 감사하면서 공을 돌리는 표현이 좋아요." },
+  { context:["유지: '이 보고서 검토 좀 해 주실 수 있어요?'", "투안: '(          )'"],
+    q:"부탁을 수락할 때 가장 자연스러운 표현은?",
+    opts:["'알겠어요.'","'네, 물론이죠! 언제까지 필요해요?'","'왜요?'","'그건 제 일이 아닌데요.'"],
+    ans:1, exp:"부탁을 수락할 때 단순히 '알겠어요'보다 '물론이죠!'처럼 적극적인 표현과 함께 '언제까지'처럼 구체적인 확인을 하는 것이 협력적인 대화 자세를 보여줘요." },
+  { context:["마리아: '도와주셔서 정말 감사합니다!'", "유지: (          )"],
+    q:"감사 인사를 받았을 때 가장 자연스러운 반응은?",
+    opts:["'알아요.'","'천만에요! 또 필요하면 언제든지 말해요.'","'그냥 한 거예요.'","'감사는요, 당연히 해야죠.'"],
+    ans:1, exp:"'천만에요'는 감사에 응하는 전통적인 표현이에요. 여기에 '또 필요하면 언제든지'를 더하면 관계를 따뜻하게 유지하는 대화가 완성돼요. 한국어 대화에서 마무리 표현이 중요해요." },
+];
+
 const PRAGMATIC_QUIZ = [
   { q:"친구가 갑자기 '밥 먹었어?'라고 문자를 보냈어요. 이 말의 진짜 의미는?",
     opts:["식사 여부를 묻는 질문이에요","안부를 묻는 인사예요","같이 밥 먹자는 제안이에요","배가 고프다는 표현이에요"],
@@ -18044,6 +18067,14 @@ function WriteTab({level, uid}) {
   const [pqRevealed,setPqRevealed]= useState(false);
   const [pqScore,   setPqScore]   = useState(0);
   const [pqFinished,setPqFinished]= useState(false);
+  // ✅ V343: 담화 완성 훈련 state
+  const dcDoneKey = uid ? `hc_dc_done_${uid}` : null;
+  const [dcDone,    setDcDone]    = useState(()=> dcDoneKey ? !!localStorage.getItem(dcDoneKey) : true);
+  const [dcIdx,     setDcIdx]     = useState(0);
+  const [dcSel,     setDcSel]     = useState(null);
+  const [dcRevealed,setDcRevealed]= useState(false);
+  const [dcScore,   setDcScore]   = useState(0);
+  const [dcFinished,setDcFinished]= useState(false);
   const fileRef = useRef(null);
   const writeSys = PROMPTS.write[level === "beg" ? "beg" : level === "adv" ? "adv" : "mid"];
 
@@ -18111,6 +18142,8 @@ function WriteTab({level, uid}) {
         setPqFinished(true);
         if (pqDoneKey) localStorage.setItem(pqDoneKey, "1");
         setPqDone(true);
+        // 담화 훈련 초기화 (최초 1회)
+        if (dcDoneKey && !localStorage.getItem(dcDoneKey)) setDcDone(false);
       } else {
         setPqIdx(i => i + 1);
         setPqSel(null);
@@ -18126,11 +18159,11 @@ function WriteTab({level, uid}) {
         </div>
         <div style={{fontSize:13,color:"#888",marginBottom:24,lineHeight:1.7}}>
           한국어 대화의 숨겨진 의미를 파악하는 능력이 생겼어요!<br/>
-          이제 논술 쓰기를 시작해볼까요? ✍️
+          다음 단계: 대화 흐름 훈련으로 넘어가봐요 💬
         </div>
-        <button onClick={()=>setPqDone(true)}
+        <button onClick={()=>{ setPqDone(true); if(dcDoneKey&&!localStorage.getItem(dcDoneKey)) setDcDone(false); }}
           style={{background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"14px 40px",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #9C6FDE44"}}>
-          논술 시작하기 →
+          담화 훈련으로 →
         </button>
       </div>
     );
@@ -18182,6 +18215,105 @@ function WriteTab({level, uid}) {
           {isLast?"결과 보기 🎉":"다음 문제 →"}
         </button>
         <button onClick={()=>{ if(pqDoneKey) localStorage.setItem(pqDoneKey,"1"); setPqDone(true); }}
+          style={{width:"100%",background:"none",border:"none",color:"#ccc",fontSize:12,cursor:"pointer",padding:"10px 0",marginTop:4}}>
+          건너뛰기 (나중에 하기)
+        </button>
+      </div>
+    );
+  }
+
+  // ✅ V343: 담화 완성 훈련 — 화용 퀴즈 완료 후, 논술 전 최초 1회
+  if (level !== "adv" && pqDone && !dcDone) {
+    const dq = DISCOURSE_QUIZ[dcIdx];
+    const isLast = dcIdx === DISCOURSE_QUIZ.length - 1;
+    const handleDcNext = () => {
+      if (!dcRevealed) return;
+      if (isLast) {
+        setDcFinished(true);
+        if (dcDoneKey) localStorage.setItem(dcDoneKey, "1");
+        setDcDone(true);
+      } else {
+        setDcIdx(i => i + 1);
+        setDcSel(null);
+        setDcRevealed(false);
+      }
+    };
+    if (dcFinished) return (
+      <div style={{padding:"32px 16px",textAlign:"center"}}>
+        <div style={{fontSize:48,marginBottom:12}}>💬</div>
+        <div style={{fontSize:18,fontWeight:900,color:"#3B82F6",marginBottom:8}}>담화 훈련 완료!</div>
+        <div style={{fontSize:14,color:"#555",lineHeight:1.7,marginBottom:6}}>
+          {DISCOURSE_QUIZ.length}문제 중 <span style={{color:"#00C896",fontWeight:900}}>{dcScore}개</span> 정답
+        </div>
+        <div style={{fontSize:13,color:"#888",marginBottom:24,lineHeight:1.7}}>
+          대화의 흐름을 읽는 능력이 생겼어요!<br/>
+          이제 논술 쓰기를 시작해볼까요? ✍️
+        </div>
+        <button onClick={()=>setDcDone(true)}
+          style={{background:"linear-gradient(135deg,#3B82F6,#60A5FA)",color:"white",border:"none",borderRadius:50,padding:"14px 40px",fontSize:15,fontWeight:900,cursor:"pointer",boxShadow:"0 4px 16px #3B82F644"}}>
+          논술 시작하기 →
+        </button>
+      </div>
+    );
+    return (
+      <div style={{padding:"12px 4px"}}>
+        {/* 헤더 */}
+        <div style={{background:"linear-gradient(135deg,#3B82F622,#60A5FA11)",borderRadius:16,padding:"16px",marginBottom:16,textAlign:"center"}}>
+          <div style={{fontSize:22,marginBottom:4}}>💬</div>
+          <div style={{fontSize:15,fontWeight:900,color:"#3B82F6",marginBottom:2}}>담화 완성 훈련</div>
+          <div style={{fontSize:12,color:"#888"}}>대화의 흐름에 맞는 자연스러운 표현을 골라봐요!</div>
+        </div>
+        {/* 진행 바 */}
+        <div style={{display:"flex",gap:6,marginBottom:16,justifyContent:"center"}}>
+          {DISCOURSE_QUIZ.map((_,i)=>(
+            <div key={i} style={{width:32,height:5,borderRadius:3,background:i<dcIdx?"#3B82F6":i===dcIdx?"#60A5FA":"#eee",transition:"background .3s"}}/>
+          ))}
+        </div>
+        {/* 대화 맥락 */}
+        <div style={{background:"white",borderRadius:16,padding:"18px 16px",boxShadow:"0 2px 12px rgba(59,130,246,.10)",marginBottom:14}}>
+          <div style={{fontSize:12,color:"#3B82F6",fontWeight:700,marginBottom:10}}>Q{dcIdx+1}. 대화를 읽고 빈칸에 들어갈 말을 고르세요</div>
+          {/* 대화 말풍선 */}
+          <div style={{marginBottom:16}}>
+            {dq.context.map((line, i) => {
+              const isBubble = line.includes("(          )");
+              return (
+                <div key={i} style={{background:isBubble?"#EFF6FF":"#F8FAFC",borderRadius:12,padding:"10px 14px",marginBottom:8,borderLeft:`3px solid ${isBubble?"#3B82F6":"#CBD5E1"}`,fontSize:13,color:isBubble?"#1D4ED8":"#334155",fontWeight:isBubble?700:400}}>
+                  {line}
+                </div>
+              );
+            })}
+          </div>
+          <div style={{fontSize:13,color:"#555",fontWeight:600,marginBottom:12}}>{dq.q}</div>
+          {/* 선택지 */}
+          {dq.opts.map((opt,i)=>{
+            const isCorrect = i===dq.ans;
+            const isSelected = dcSel===i;
+            let bg = "white", border = "#eee", color = "#444";
+            if (dcRevealed) {
+              if (isCorrect) { bg="#E6FAF4"; border="#00C896"; color="#006B4F"; }
+              else if (isSelected && !isCorrect) { bg="#FEE2E2"; border="#F87171"; color="#991B1B"; }
+            } else if (isSelected) { bg="#EFF6FF"; border="#3B82F6"; color="#1D4ED8"; }
+            return (
+              <button key={i} onClick={()=>{ if (dcRevealed) return; setDcSel(i); setDcRevealed(true); if(i===dq.ans) setDcScore(s=>s+1); }}
+                style={{width:"100%",display:"block",textAlign:"left",padding:"11px 14px",borderRadius:12,border:`2px solid ${border}`,background:bg,color,fontSize:13,fontWeight:dcRevealed&&(isCorrect||isSelected)?700:400,cursor:dcRevealed?"default":"pointer",marginBottom:8,transition:"all .2s",WebkitTapHighlightColor:"transparent",WebkitAppearance:"none",appearance:"none"}}>
+                {dcRevealed&&isCorrect?"✅ ":dcRevealed&&isSelected&&!isCorrect?"❌ ":""}{opt}
+              </button>
+            );
+          })}
+        </div>
+        {/* 해설 */}
+        {dcRevealed&&(
+          <div style={{background:"#EFF6FF",borderRadius:14,padding:"14px 16px",marginBottom:14,borderLeft:"4px solid #3B82F6"}}>
+            <div style={{fontSize:12,fontWeight:700,color:"#3B82F6",marginBottom:4}}>💡 해설</div>
+            <div style={{fontSize:13,color:"#444",lineHeight:1.7}}>{dq.exp}</div>
+          </div>
+        )}
+        {/* 다음 버튼 */}
+        <button onClick={handleDcNext} disabled={!dcRevealed}
+          style={{width:"100%",background:dcRevealed?"linear-gradient(135deg,#3B82F6,#60A5FA)":"#ddd",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:dcRevealed?"pointer":"not-allowed",transition:"all .2s",WebkitTapHighlightColor:"transparent"}}>
+          {isLast?"결과 보기 🎉":"다음 문제 →"}
+        </button>
+        <button onClick={()=>{ if(dcDoneKey) localStorage.setItem(dcDoneKey,"1"); setDcDone(true); }}
           style={{width:"100%",background:"none",border:"none",color:"#ccc",fontSize:12,cursor:"pointer",padding:"10px 0",marginTop:4}}>
           건너뛰기 (나중에 하기)
         </button>
