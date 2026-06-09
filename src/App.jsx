@@ -17530,12 +17530,21 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, mi
   const [turnCount, setTurnCount] = useState(0);
   // ✅ V346: 모듈5 사회언어학 훈련 state
   const slDoneKey = uid ? `hc_sl_done_${uid}` : null;
-  const [slDone,    setSlDone]    = useState(()=> slDoneKey ? !!localStorage.getItem(slDoneKey) : true);
+  const [slDone,    setSlDone]    = useState(()=> slDoneKey ? !!localStorage.getItem(slDoneKey) : false);
   const [slIdx,     setSlIdx]     = useState(0);
   const [slSel,     setSlSel]     = useState(null);
   const [slRevealed,setSlRevealed]= useState(false);
   const [slScore,   setSlScore]   = useState(0);
   const [slFinished,setSlFinished]= useState(false);
+  // ✅ V346: midLevel Firestore 로드 보완 — prop이 false여도 DB에서 재확인
+  const [slMidLevel, setSlMidLevel] = useState(midLevel);
+  useEffect(()=>{
+    if (midLevel) { setSlMidLevel(true); return; }
+    if (!uid || slDone) return;
+    getDoc(doc(db,"users",uid)).then(d=>{
+      if(d.exists()&&d.data().midLevel===true) setSlMidLevel(true);
+    }).catch(()=>{});
+  },[midLevel, uid]);
   const chatEnd = useRef(null);
   // ✅ V144: STT 훅 연결
   const { listening, sttError, supported: sttSupported, iosChrome,
@@ -17678,7 +17687,7 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, mi
   }
 
   // ✅ V346: 모듈5 사회언어학 훈련 — midLevel이고 아직 완료 안 했을 때
-  if (midLevel && !slDone) {
+  if (slMidLevel && !slDone) {
     const sq = SOCIAL_QUIZ[slIdx];
     const isLast = slIdx === SOCIAL_QUIZ.length - 1;
     const handleSlNext = () => {
