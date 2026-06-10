@@ -20080,15 +20080,6 @@ function GameTab({level, midLevel}) {
           </button>
         )}
         {midLevel && (
-          <button onClick={()=>setGame("drama")}
-            style={{background:"#FFF3E0",border:"2px solid #E65100",borderRadius:18,padding:"20px",textAlign:"left",cursor:"pointer",WebkitTapHighlightColor:"transparent",position:"relative"}}>
-            <div style={{position:"absolute",top:12,right:12,background:"#E65100",color:"white",fontSize:10,fontWeight:900,borderRadius:20,padding:"2px 8px"}}>중급</div>
-            <div style={{fontSize:28,marginBottom:6}}>🎬</div>
-            <div style={{fontSize:16,fontWeight:900,color:"#E65100",marginBottom:4}}>K드라마 상황 챌린지</div>
-            <div style={{fontSize:13,color:"#666"}}>키워드 입력 → AI가 상황 시나리오 생성!</div>
-          </button>
-        )}
-        {midLevel && (
           <button onClick={()=>setGame("polysemy")}
             style={{background:"#F0E8FF",border:"2px solid #6C3FC5",borderRadius:18,padding:"20px",textAlign:"left",cursor:"pointer",WebkitTapHighlightColor:"transparent",position:"relative"}}>
             <div style={{position:"absolute",top:12,right:12,background:"#6C3FC5",color:"white",fontSize:10,fontWeight:900,borderRadius:20,padding:"2px 8px"}}>중급</div>
