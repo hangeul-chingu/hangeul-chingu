@@ -18192,6 +18192,40 @@ const DISCOURSE_QUIZ = [
     ans:1, exp:"'천만에요'는 감사에 응하는 전통적인 표현이에요. 여기에 '또 필요하면 언제든지'를 더하면 관계를 따뜻하게 유지하는 대화가 완성돼요. 한국어 대화에서 마무리 표현이 중요해요." },
 ];
 
+// ✅ V348: 모듈1 — 어휘 출력 자동화 훈련 (이해→사용 전환)
+const VOCAB_OUTPUT_QUIZ = [
+  { situation: "친구가 생일 선물을 줬어요. 고마운 마음을 표현하고 싶어요.",
+    q: "가장 자연스러운 표현은?",
+    opts: ["'고마워요, 이거 좋아해요.'", "'정말 감사해요! 덕분에 기분이 너무 좋아요.'", "'받았어요.'", "'괜찮아요.'"],
+    ans: 1,
+    exp: "'덕분에'는 상대방의 행동 덕분에 좋은 결과가 생겼을 때 쓰는 표현이에요. 감사 표현에 '덕분에 ~했어요'를 붙이면 훨씬 자연스럽고 풍부해져요.",
+    vocab: "덕분에" },
+  { situation: "버스에서 자리를 양보받았어요. 자리에 앉으면서 뭐라고 할까요?",
+    q: "이 상황에서 가장 적절한 말은?",
+    opts: ["'왜 주세요?'", "'감사합니다, 앉을게요.'", "'괜찮아요, 저도 곧 내려요.'", "'어, 고마워요.'"],
+    ans: 1,
+    exp: "'앉을게요'는 상대방의 행동을 자연스럽게 수용하는 표현이에요. 상황에 맞게 '-을게요'를 쓰면 의도를 부드럽게 전달할 수 있어요.",
+    vocab: "-을게요" },
+  { situation: "동료가 '이 보고서 오늘까지 끝낼 수 있어요?'라고 물었어요. 확실하지 않아서 조심스럽게 답하고 싶어요.",
+    q: "가장 적절한 대답은?",
+    opts: ["'몰라요.'", "'해볼게요. 혹시 늦어지면 미리 말씀드릴게요.'", "'아마도요.'", "'안 돼요.'"],
+    ans: 1,
+    exp: "'해볼게요'는 확신은 없지만 노력하겠다는 의지를 담은 표현이에요. 여기에 '혹시 ~면'을 더하면 상대방을 배려하는 자연스러운 직장 표현이 완성돼요.",
+    vocab: "해볼게요 / 혹시 ~면" },
+  { situation: "식당에서 음식이 너무 맵게 나왔어요. 직원에게 부탁하고 싶어요.",
+    q: "가장 자연스러운 표현은?",
+    opts: ["'이거 매워요. 바꿔요.'", "'실례지만, 혹시 덜 매운 걸로 바꿀 수 있을까요?'", "'매운 거 싫어요.'", "'다른 거 주세요.'"],
+    ans: 1,
+    exp: "'실례지만'은 상대방에게 조심스럽게 부탁할 때 쓰는 표현이에요. '혹시 ~을 수 있을까요?'와 함께 쓰면 정중한 부탁 표현이 완성돼요.",
+    vocab: "실례지만 / 혹시 ~을 수 있을까요?" },
+  { situation: "친구가 요즘 힘들어 보여요. 걱정되는 마음을 전하고 싶어요.",
+    q: "가장 따뜻하게 전달되는 표현은?",
+    opts: ["'왜 힘들어요?'", "'요즘 괜찮아요?'", "'많이 힘들어 보이는데, 무슨 일 있어요? 얘기 들어줄게요.'", "'힘내요.'"],
+    ans: 2,
+    exp: "'~어 보이다'는 외모·상태에서 느껴지는 인상을 표현해요. 여기에 '얘기 들어줄게요'를 더하면 상대방이 마음을 열게 되는 따뜻한 표현이 돼요.",
+    vocab: "-어 보이다 / 얘기 들어줄게요" },
+];
+
 const PRAGMATIC_QUIZ = [
   { q:"친구가 갑자기 '밥 먹었어?'라고 문자를 보냈어요. 이 말의 진짜 의미는?",
     opts:["식사 여부를 묻는 질문이에요","안부를 묻는 인사예요","같이 밥 먹자는 제안이에요","배가 고프다는 표현이에요"],
@@ -18227,6 +18261,15 @@ function WriteTab({level, uid, lang}) {
   const [submitLoad,  setSubmitLoad]  = useState(false);
   const [submitFeed,  setSubmitFeed]  = useState(null);
   const [feedDepth,   setFeedDepth]   = useState("normal");
+  // ✅ V348: 모듈1 어휘 출력 자동화 훈련 state
+  const m1DoneKey = uid ? `hc_m1_done_${uid}` : null;
+  const [m1Done,    setM1Done]    = useState(()=> m1DoneKey ? !!localStorage.getItem(m1DoneKey) : false);
+  const [m1Idx,     setM1Idx]     = useState(0);
+  const [m1Sel,     setM1Sel]     = useState(null);
+  const [m1Revealed,setM1Revealed]= useState(false);
+  const [m1Score,   setM1Score]   = useState(0);
+  const [m1Finished,setM1Finished]= useState(false);
+
   // ✅ V341: 화용 퀴즈 state
   const pqDoneKey = uid ? `hc_pq_done_${uid}` : null;
   const [pqDone,    setPqDone]    = useState(()=> pqDoneKey ? !!localStorage.getItem(pqDoneKey) : true);
@@ -18325,6 +18368,127 @@ function WriteTab({level, uid, lang}) {
 
   function resetWrite() {
     setWStep(0); setWText(["","",""]); setWFeed(["","",""]); setArtFeed(null); setMode(null);
+  }
+
+  // ✅ V348: 모듈1 어휘 출력 자동화 훈련 — midLevel이고 m1 미완료 시 먼저 보여주기
+  if (level !== "adv" && !m1Done) {
+    const q = VOCAB_OUTPUT_QUIZ[m1Idx];
+    const isLast = m1Idx === VOCAB_OUTPUT_QUIZ.length - 1;
+    const handleNext = () => {
+      if (!m1Revealed) return;
+      if (isLast) {
+        setM1Finished(true);
+        if (m1DoneKey) localStorage.setItem(m1DoneKey, "1");
+        setM1Done(true);
+        // 화용 퀴즈도 초기화 트리거
+        if (pqDoneKey) { localStorage.removeItem(pqDoneKey); setPqDone(false); }
+      } else {
+        setM1Idx(i => i+1); setM1Sel(null); setM1Revealed(false);
+      }
+    };
+    if (m1Finished) {
+      return (
+        <div style={{padding:20, textAlign:"center"}}>
+          <div style={{fontSize:32, marginBottom:8}}>🎉</div>
+          <div style={{fontSize:17, fontWeight:900, color:"#1565C0", marginBottom:6}}>어휘 출력 훈련 완료!</div>
+          <div style={{fontSize:14, color:"#555", marginBottom:4}}>
+            {VOCAB_OUTPUT_QUIZ.length}문제 중 <b style={{color:"#E65100"}}>{m1Score}문제</b> 정답
+          </div>
+          <div style={{fontSize:13, color:"#777", marginBottom:16}}>이해하던 어휘를 직접 출력하는 연습을 했어요. 다음은 화용 퀴즈예요!</div>
+          <button onClick={()=>setM1Done(true)}
+            style={{background:"linear-gradient(135deg,#1565C0,#1976D2)",color:"white",border:"none",
+              borderRadius:12,padding:"12px 28px",fontSize:15,fontWeight:900,cursor:"pointer"}}>
+            💬 화용 퀴즈 시작하기 →
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div style={{padding:"16px 14px"}}>
+        {/* 헤더 */}
+        <div style={{background:"linear-gradient(135deg,#1565C0,#1976D2)",borderRadius:14,
+          padding:"12px 16px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:20}}>💡</span>
+          <div>
+            <div style={{fontSize:13,fontWeight:900,color:"white"}}>모듈 1 — 어휘 출력 자동화 훈련</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.85)"}}>이해는 되는데 입에서 안 나오는 표현을 직접 써봐요</div>
+          </div>
+          <div style={{marginLeft:"auto",background:"rgba(255,255,255,0.2)",borderRadius:8,
+            padding:"4px 10px",fontSize:12,fontWeight:900,color:"white"}}>
+            {m1Idx+1}/{VOCAB_OUTPUT_QUIZ.length}
+          </div>
+        </div>
+        {/* 진행 바 */}
+        <div style={{height:6,background:"#E3F2FD",borderRadius:3,marginBottom:14}}>
+          <div style={{height:6,background:"#1565C0",borderRadius:3,
+            width:`${((m1Idx+1)/VOCAB_OUTPUT_QUIZ.length)*100}%`,transition:"width 0.4s"}} />
+        </div>
+        {/* 상황 카드 */}
+        <div style={{background:"#FFF8E1",borderRadius:12,padding:"12px 14px",marginBottom:12,
+          borderLeft:"4px solid #FFC107"}}>
+          <div style={{fontSize:11,fontWeight:800,color:"#F57F17",marginBottom:4}}>📌 상황</div>
+          <div style={{fontSize:13,color:"#333",lineHeight:1.6}}>{q.situation}</div>
+        </div>
+        {/* 질문 */}
+        <div style={{fontSize:14,fontWeight:700,color:"#1565C0",marginBottom:10}}>{q.q}</div>
+        {/* 선택지 */}
+        <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:12}}>
+          {q.opts.map((opt,i)=>{
+            let bg="#F5F5F5", border="2px solid #E0E0E0", color="#333";
+            if (m1Revealed) {
+              if (i === q.ans) { bg="#E8F5E9"; border="2px solid #4CAF50"; color="#2E7D32"; }
+              else if (i === m1Sel) { bg="#FFEBEE"; border="2px solid #EF5350"; color="#C62828"; }
+            } else if (i === m1Sel) { bg="#E3F2FD"; border="2px solid #1565C0"; }
+            return (
+              <button key={i} onClick={()=>{ if(!m1Revealed){ setM1Sel(i); }}}
+                style={{background:bg,border,borderRadius:10,padding:"10px 14px",
+                  fontSize:13,color,textAlign:"left",cursor:m1Revealed?"default":"pointer",
+                  fontWeight:i===q.ans&&m1Revealed?700:400,transition:"all 0.2s"}}>
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+        {/* 확인/다음 버튼 */}
+        {!m1Revealed ? (
+          <button onClick={()=>{
+            if(m1Sel===null) return;
+            setM1Revealed(true);
+            if(m1Sel===q.ans) setM1Score(s=>s+1);
+          }} disabled={m1Sel===null}
+            style={{width:"100%",background:m1Sel===null?"#BDBDBD":"#1565C0",color:"white",
+              border:"none",borderRadius:12,padding:"13px",fontSize:15,fontWeight:900,cursor:m1Sel===null?"default":"pointer"}}>
+            ✅ 확인하기
+          </button>
+        ) : (
+          <div>
+            {/* 해설 */}
+            <div style={{background:"#E8F5E9",borderRadius:10,padding:"10px 14px",marginBottom:10,
+              borderLeft:"4px solid #4CAF50"}}>
+              <div style={{fontSize:11,fontWeight:800,color:"#2E7D32",marginBottom:3}}>
+                {m1Sel===q.ans?"✅ 정답이에요!":"💡 이 표현을 기억해요!"}
+              </div>
+              <div style={{fontSize:12,color:"#333",lineHeight:1.6}}>{q.exp}</div>
+              <div style={{marginTop:6,fontSize:12,fontWeight:900,color:"#1565C0"}}>
+                🔑 핵심 어휘: {q.vocab}
+              </div>
+            </div>
+            <button onClick={handleNext}
+              style={{width:"100%",background:"linear-gradient(135deg,#E65100,#F57C00)",
+                color:"white",border:"none",borderRadius:12,padding:"13px",fontSize:15,fontWeight:900,cursor:"pointer"}}>
+              {isLast ? "🎉 훈련 완료!" : "다음 문제 →"}
+            </button>
+          </div>
+        )}
+        {/* 건너뛰기 */}
+        <div style={{textAlign:"center",marginTop:8}}>
+          <button onClick={()=>{ if(m1DoneKey) localStorage.setItem(m1DoneKey,"1"); setM1Done(true); }}
+            style={{background:"none",border:"none",color:"#BDBDBD",fontSize:12,cursor:"pointer"}}>
+            건너뛰기 (이미 알고 있어요)
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // ✅ V341: 화용 퀴즈 — midLevel이고 아직 완료 안 했을 때 먼저 보여주기
@@ -19708,6 +19872,8 @@ export default function App() {
   // ✅ V276: 비주얼 온보딩 — 매번 표시 (skip 버튼으로 개인 선택)
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [onboardingLang, setOnboardingLang] = useState("ko");
+  // ✅ V349: 캐시 버스팅 팝업
+  const [showCacheBust, setShowCacheBust] = useState(false);
   // ✅ V336: PWA 설치 유도 팝업
   const [showPwaPopup, setShowPwaPopup] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -19757,6 +19923,30 @@ export default function App() {
       }
     }).catch(()=>{});
   },[user]);
+
+  // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
+  useEffect(()=>{
+    const APP_VERSION = "349";
+    const VER_KEY = "hc_app_ver";
+    const stored = localStorage.getItem(VER_KEY);
+    if (stored && stored !== APP_VERSION) {
+      // 버전이 다르면 팝업 표시
+      setShowCacheBust(true);
+    }
+    localStorage.setItem(VER_KEY, APP_VERSION);
+
+    // SW 등록 + 버전 전달 (sw.js에 캐시 버스팅 버전 자동 전달)
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").then(reg => {
+        const sw = reg.active || reg.installing || reg.waiting;
+        if (sw) sw.postMessage({ type: "SET_VERSION", version: APP_VERSION });
+        // 활성화 대기 중일 때도 전달
+        navigator.serviceWorker.ready.then(r => {
+          r.active?.postMessage({ type: "SET_VERSION", version: APP_VERSION });
+        });
+      }).catch(()=>{});
+    }
+  }, []);
 
   // ✅ V336: beforeinstallprompt 이벤트 캐치 (Android Chrome PWA 설치용)
   useEffect(()=>{
@@ -19839,6 +20029,48 @@ export default function App() {
     mn: { title:"Нүүр дэлгэцэд нэмэх", body:"Нүүр дэлгэцэд нэмж апп шиг шууд нээгээрэй!", install:"Нүүр дэлгэцэд нэмэх →", ios:"iPhone: Safari → Хуваалцах(□↑) → Нүүр дэлгэцэд нэмэх", skip:"Дараа" },
     uz: { title:"Bosh ekranga qo'shish", body:"Bosh ekranga qo'shib ilovadek tez oching!", install:"Bosh ekranga qo'shish →", ios:"iPhone: Safari → Ulashish(□↑) → Bosh ekranga qo'shish", skip:"Keyinroq" },
   };
+  // ✅ V349: 캐시 버스팅 팝업
+  if (showCacheBust) return (
+    <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#E3F2FD,#F0FFFE)",
+      display:"flex",alignItems:"center",justifyContent:"center",padding:"24px",
+      fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{background:"white",borderRadius:24,width:"100%",maxWidth:340,
+        overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,0.15)"}}>
+        <div style={{background:"linear-gradient(135deg,#1565C0,#1976D2)",
+          padding:"28px 24px 20px",textAlign:"center"}}>
+          <div style={{fontSize:48,marginBottom:8}}>🔄</div>
+          <div style={{fontSize:18,fontWeight:900,color:"white",marginBottom:4}}>
+            새 버전이 있어요!
+          </div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,0.85)"}}>
+            New version available!
+          </div>
+        </div>
+        <div style={{padding:"20px 24px"}}>
+          <div style={{fontSize:14,color:"#555",lineHeight:1.7,marginBottom:16,textAlign:"center"}}>
+            한글 친구가 업데이트됐어요.<br/>
+            아래 버튼을 눌러 최신 버전으로 접속해 주세요! 😊<br/>
+            <span style={{fontSize:12,color:"#999"}}>
+              (Hangeul Chingu has been updated. Please tap below.)
+            </span>
+          </div>
+          <button onClick={()=>{
+            window.location.href = window.location.origin + "?v=349&t=" + Date.now();
+          }} style={{width:"100%",background:"linear-gradient(135deg,#1565C0,#1976D2)",
+            color:"white",border:"none",borderRadius:14,padding:"15px",
+            fontSize:16,fontWeight:900,cursor:"pointer",marginBottom:10}}>
+            🚀 최신 버전으로 접속하기
+          </button>
+          <button onClick={()=>setShowCacheBust(false)}
+            style={{width:"100%",background:"none",border:"none",
+              color:"#BDBDBD",fontSize:13,cursor:"pointer",padding:"8px"}}>
+            나중에 할게요
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const pwt = PWA_T[onboardingLang] || PWA_T.en;
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
