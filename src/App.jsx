@@ -20194,7 +20194,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "349";
+    const APP_VERSION = "351";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
@@ -20203,15 +20203,30 @@ export default function App() {
     }
     localStorage.setItem(VER_KEY, APP_VERSION);
 
-    // SW 등록 + 버전 전달 (sw.js에 캐시 버스팅 버전 자동 전달)
+    // SW 등록 + 버전 전달 + SW_UPDATED 수신 시 자동 새로고침
     if ("serviceWorker" in navigator) {
+      // SW_UPDATED 메시지 수신 → 자동 새로고침
+      navigator.serviceWorker.addEventListener("message", (e) => {
+        if (e.data?.type === "SW_UPDATED") {
+          window.location.reload(true);
+        }
+      });
+
       navigator.serviceWorker.register("/sw.js").then(reg => {
         const sw = reg.active || reg.installing || reg.waiting;
         if (sw) sw.postMessage({ type: "SET_VERSION", version: APP_VERSION });
-        // 활성화 대기 중일 때도 전달
         navigator.serviceWorker.ready.then(r => {
           r.active?.postMessage({ type: "SET_VERSION", version: APP_VERSION });
         });
+
+        // SW 없는 첫 방문 기기 — 컨트롤러 없으면 즉시 새로고침
+        if (!navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then(() => {
+            if (navigator.serviceWorker.controller) {
+              window.location.reload(true);
+            }
+          });
+        }
       }).catch(()=>{});
     }
   }, []);
