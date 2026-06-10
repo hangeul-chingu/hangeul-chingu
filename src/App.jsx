@@ -19195,7 +19195,7 @@ function TutorTab({level, uid}) {
 
 // ✅ V130: 게임 탭
 function GameTab({level, midLevel}) {
-  const [game, setGame] = useState(null); // null | "flip" | "match" | "quiz" | "polysemy"
+  const [game, setGame] = useState(null); // null | "flip" | "match" | "quiz" | "polysemy" | "drama"
   const isBeg = level === "beg";
 
   // ── 카드 뒤집기 게임 (초급용 — BEG_VOCAB 활용) ──
@@ -19602,6 +19602,264 @@ function GameTab({level, midLevel}) {
     );
   }
 
+
+  // ✅ V350: K드라마 상황 챌린지 — AI 온디맨드 시나리오 생성
+  function DramaGame() {
+    const STEP = { KEYWORD: "keyword", CONFIRM: "confirm", SCENARIO: "scenario", PRACTICE: "practice", DONE: "done" };
+    const [step, setStep] = useState(STEP.KEYWORD);
+    const [keywords, setKeywords] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [confirmedSituation, setConfirmedSituation] = useState("");
+    const [scenario, setScenario] = useState(null); // {situation, lines:[{speaker,text,blank?}], blanks:[]}
+    const [answers, setAnswers] = useState({});
+    const [revealed, setRevealed] = useState({});
+    const [score, setScore] = useState(0);
+    const [checked, setChecked] = useState(false);
+
+    // Claude API 호출 헬퍼
+    async function callClaude(prompt) {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+      const data = await res.json();
+      return data.content?.[0]?.text || "";
+    }
+
+    // Step 1: 키워드로 상황 추론
+    async function handleKeyword() {
+      if (!keywords.trim()) return;
+      setLoading(true);
+      try {
+        const prompt = `학습자가 한국어 말하기 연습을 위해 다음 키워드를 입력했습니다: "${keywords}"
+이 키워드로 유추되는 일상 상황을 한 문장으로 추측해서 질문 형태로 답해주세요.
+예시 형식: "혹시 [상황 설명] 장면을 연습하고 싶으신가요?"
+반드시 이 형식 그대로, 한 문장으로만 답하세요. 다른 설명 없이.`;
+        const result = await callClaude(prompt);
+        setConfirmedSituation(result.trim());
+        setStep(STEP.CONFIRM);
+      } catch(e) {
+        setConfirmedSituation("상황을 파악하지 못했어요. 다시 시도해 주세요.");
+        setStep(STEP.CONFIRM);
+      }
+      setLoading(false);
+    }
+
+    // Step 2: 상황 확인 후 시나리오 생성
+    async function handleConfirm(yes) {
+      if (!yes) {
+        setStep(STEP.KEYWORD);
+        setKeywords("");
+        setConfirmedSituation("");
+        return;
+      }
+      setLoading(true);
+      try {
+        const situation = confirmedSituation.replace("혹시 ","").replace(" 장면을 연습하고 싶으신가요?","");
+        const prompt = `한국어 학습자를 위한 드라마 스타일 대화를 만들어주세요.
+상황: ${situation}
+
+다음 JSON 형식으로만 답하세요 (다른 설명 없이):
+{
+  "situation": "상황 설명 (한 줄)",
+  "lines": [
+    {"speaker": "A", "text": "대사 전체", "blank": "___"},
+    {"speaker": "B", "text": "대사 전체", "blank": null},
+    {"speaker": "A", "text": "대사 전체", "blank": "___"},
+    {"speaker": "B", "text": "대사 전체", "blank": null},
+    {"speaker": "A", "text": "대사 전체", "blank": "___"}
+  ]
+}
+
+규칙:
+- 총 6~8줄 대화
+- blank가 있는 줄은 그 대사에서 핵심 표현(2~4단어)을 blank:"___"로 표시, text에는 전체 대사 포함
+- blank가 없는 줄은 blank:null
+- blank가 있는 줄은 전체의 절반 이하
+- 자연스러운 구어체 한국어, 해요체 사용
+- 등장인물은 A, B 두 명만`;
+        const raw = await callClaude(prompt);
+        const clean = raw.replace(/```json|```/g, "").trim();
+        const parsed = JSON.parse(clean);
+        setScenario(parsed);
+        // 초기 답변 state
+        const init = {};
+        parsed.lines.forEach((l,i)=>{ if(l.blank) init[i]=""; });
+        setAnswers(init);
+        setRevealed({});
+        setScore(0);
+        setChecked(false);
+        setStep(STEP.SCENARIO);
+      } catch(e) {
+        alert("시나리오 생성 중 오류가 났어요. 다시 시도해 주세요.");
+        setStep(STEP.KEYWORD);
+      }
+      setLoading(false);
+    }
+
+    // 채점
+    function handleCheck() {
+      if (!scenario) return;
+      let correct = 0;
+      const newRevealed = {};
+      scenario.lines.forEach((l,i) => {
+        if (l.blank) {
+          const ans = (answers[i]||"").trim();
+          const correct_ans = l.blank === "___" ? l.text.split(" ").slice(-2).join(" ") : l.blank;
+          // 정답은 text에서 추출 (blank가 "___"이면 전체 text가 정답)
+          newRevealed[i] = l.text;
+          if (ans && l.text.includes(ans)) correct++;
+        }
+      });
+      setRevealed(newRevealed);
+      setScore(correct);
+      setChecked(true);
+    }
+
+    // ── 로딩 화면 ──
+    if (loading) return (
+      <div style={{textAlign:"center",padding:"40px 20px"}}>
+        <div style={{fontSize:36,marginBottom:12}}>🎬</div>
+        <div style={{fontSize:15,fontWeight:700,color:"#E65100"}}>
+          {step === STEP.KEYWORD ? "상황을 파악하는 중..." : "드라마 시나리오 만드는 중..."}
+        </div>
+        <div style={{fontSize:13,color:"#888",marginTop:6}}>잠깐만요! ✨</div>
+      </div>
+    );
+
+    // ── Step 1: 키워드 입력 ──
+    if (step === STEP.KEYWORD) return (
+      <div style={{padding:"8px 0"}}>
+        <div style={{background:"linear-gradient(135deg,#E65100,#FF7043)",borderRadius:14,padding:"16px",marginBottom:16,textAlign:"center"}}>
+          <div style={{fontSize:24,marginBottom:6}}>🎬</div>
+          <div style={{fontSize:16,fontWeight:900,color:"white",marginBottom:4}}>K드라마 상황 챌린지</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,0.85)"}}>연습하고 싶은 상황의 키워드를 2~3개 입력하세요</div>
+        </div>
+        <div style={{background:"#FFF3E0",borderRadius:12,padding:"14px",marginBottom:12}}>
+          <div style={{fontSize:12,color:"#E65100",fontWeight:700,marginBottom:8}}>💡 키워드 예시</div>
+          {[["병원, 처음, 긴장","병원 첫 방문"],["편의점, 알바, 손님","편의점 아르바이트"],["카페, 주문, 친구","친구와 카페"],["회사, 상사, 보고","직장 상황"],["집들이, 선물, 감사","집들이 방문"]].map(([kw,desc])=>(
+            <button key={kw} onClick={()=>setKeywords(kw)}
+              style={{display:"inline-block",margin:"3px",padding:"5px 10px",background:"white",border:"1.5px solid #FFB347",borderRadius:20,fontSize:12,color:"#E65100",cursor:"pointer",fontWeight:600}}>
+              {kw}
+            </button>
+          ))}
+        </div>
+        <div style={{marginBottom:12}}>
+          <input value={keywords} onChange={e=>setKeywords(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&handleKeyword()}
+            placeholder="키워드를 쉼표로 구분해서 입력하세요 (예: 병원, 긴장)"
+            style={{width:"100%",padding:"12px 14px",borderRadius:12,border:"2px solid #FFB347",fontSize:14,outline:"none",boxSizing:"border-box"}}/>
+        </div>
+        <button onClick={handleKeyword} disabled={!keywords.trim()}
+          style={{width:"100%",background:keywords.trim()?"linear-gradient(135deg,#E65100,#FF7043)":"#ddd",color:"white",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:900,cursor:keywords.trim()?"pointer":"default"}}>
+          🎬 상황 찾기 →
+        </button>
+      </div>
+    );
+
+    // ── Step 2: 상황 확인 ──
+    if (step === STEP.CONFIRM) return (
+      <div style={{padding:"8px 0"}}>
+        <div style={{background:"#FFF8E1",borderRadius:14,padding:"20px",marginBottom:16,textAlign:"center",border:"2px solid #FFB347"}}>
+          <div style={{fontSize:28,marginBottom:8}}>🤔</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#E65100",marginBottom:8,lineHeight:1.6}}>{confirmedSituation}</div>
+          <div style={{fontSize:13,color:"#888"}}>입력한 키워드: <b style={{color:"#E65100"}}>{keywords}</b></div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <button onClick={()=>handleConfirm(true)}
+            style={{background:"linear-gradient(135deg,#E65100,#FF7043)",color:"white",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:900,cursor:"pointer"}}>
+            ✅ 맞아요!
+          </button>
+          <button onClick={()=>handleConfirm(false)}
+            style={{background:"white",color:"#888",border:"2px solid #ddd",borderRadius:12,padding:"14px",fontSize:15,fontWeight:700,cursor:"pointer"}}>
+            ❌ 다시 할게요
+          </button>
+        </div>
+      </div>
+    );
+
+    // ── Step 3: 시나리오 + 빈칸 연습 ──
+    if (step === STEP.SCENARIO && scenario) return (
+      <div style={{padding:"8px 0"}}>
+        {/* 상황 설명 */}
+        <div style={{background:"linear-gradient(135deg,#E65100,#FF7043)",borderRadius:14,padding:"12px 16px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:20}}>🎬</span>
+          <div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.8)"}}>상황</div>
+            <div style={{fontSize:13,fontWeight:900,color:"white"}}>{scenario.situation}</div>
+          </div>
+        </div>
+        {/* 대화 */}
+        <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14}}>
+          {scenario.lines.map((line,i)=>{
+            const isA = line.speaker==="A";
+            const hasBlank = !!line.blank;
+            const isRevealed = !!revealed[i];
+            return (
+              <div key={i} style={{display:"flex",flexDirection:isA?"row":"row-reverse",alignItems:"flex-start",gap:8}}>
+                <div style={{width:32,height:32,borderRadius:16,background:isA?"#1565C0":"#E65100",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900,color:"white",flexShrink:0}}>
+                  {line.speaker}
+                </div>
+                <div style={{maxWidth:"75%"}}>
+                  {!hasBlank ? (
+                    <div style={{background:isA?"#E3F2FD":"#FFF3E0",borderRadius:isA?"0 12px 12px 12px":"12px 0 12px 12px",padding:"10px 12px",fontSize:14,color:"#333"}}>
+                      {line.text}
+                    </div>
+                  ) : (
+                    <div style={{background:isA?"#E3F2FD":"#FFF3E0",borderRadius:isA?"0 12px 12px 12px":"12px 0 12px 12px",padding:"10px 12px"}}>
+                      {isRevealed ? (
+                        <div>
+                          <div style={{fontSize:14,color:"#333",marginBottom:4}}>{line.text}</div>
+                          <div style={{fontSize:11,color:answers[i]&&line.text.includes(answers[i])?"#2E7D32":"#C62828",fontWeight:700}}>
+                            {answers[i]&&line.text.includes(answers[i])?"✅ 정답!":"💡 정답 확인"}
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{fontSize:12,color:"#888",marginBottom:4}}>빈칸을 채워보세요</div>
+                          <input value={answers[i]||""} onChange={e=>setAnswers(a=>({...a,[i]:e.target.value}))}
+                            placeholder="핵심 표현 입력..."
+                            style={{width:"100%",padding:"6px 10px",borderRadius:8,border:"2px solid #FFB347",fontSize:13,outline:"none",boxSizing:"border-box"}}/>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {/* 채점 버튼 */}
+        {!checked ? (
+          <button onClick={handleCheck}
+            style={{width:"100%",background:"linear-gradient(135deg,#E65100,#FF7043)",color:"white",border:"none",borderRadius:12,padding:"13px",fontSize:15,fontWeight:900,cursor:"pointer"}}>
+            ✅ 채점하기
+          </button>
+        ) : (
+          <div>
+            <div style={{background:"#E8F5E9",borderRadius:12,padding:"12px",textAlign:"center",marginBottom:10}}>
+              <div style={{fontSize:22,marginBottom:4}}>🎉</div>
+              <div style={{fontSize:15,fontWeight:900,color:"#2E7D32"}}>
+                {Object.keys(answers).length}문제 중 {score}개 정답!
+              </div>
+            </div>
+            <button onClick={()=>{setStep(STEP.KEYWORD);setKeywords("");setScenario(null);setChecked(false);}}
+              style={{width:"100%",background:"white",color:"#E65100",border:"2px solid #E65100",borderRadius:12,padding:"13px",fontSize:15,fontWeight:900,cursor:"pointer"}}>
+              🎬 새 상황 연습하기
+            </button>
+          </div>
+        )}
+      </div>
+    );
+
+    return null;
+  }
+
   // ── 모듈3: 다의어 챌린지 ──
   function PolysemyGame() {
     const POLYSEMY_DATA = [
@@ -19813,6 +20071,24 @@ function GameTab({level, midLevel}) {
           <div style={{fontSize:13,color:"#666"}}>뜻을 보고 알맞은 한국어를 골라요!</div>
         </button>
         {midLevel && (
+          <button onClick={()=>setGame("drama")}
+            style={{background:"#FFF3E0",border:"2px solid #E65100",borderRadius:18,padding:"20px",textAlign:"left",cursor:"pointer",WebkitTapHighlightColor:"transparent",position:"relative"}}>
+            <div style={{position:"absolute",top:12,right:12,background:"#E65100",color:"white",fontSize:10,fontWeight:900,borderRadius:20,padding:"2px 8px"}}>중급</div>
+            <div style={{fontSize:28,marginBottom:6}}>🎬</div>
+            <div style={{fontSize:16,fontWeight:900,color:"#E65100",marginBottom:4}}>K드라마 상황 챌린지</div>
+            <div style={{fontSize:13,color:"#666"}}>키워드 입력 → AI가 상황 시나리오 생성!</div>
+          </button>
+        )}
+        {midLevel && (
+          <button onClick={()=>setGame("drama")}
+            style={{background:"#FFF3E0",border:"2px solid #E65100",borderRadius:18,padding:"20px",textAlign:"left",cursor:"pointer",WebkitTapHighlightColor:"transparent",position:"relative"}}>
+            <div style={{position:"absolute",top:12,right:12,background:"#E65100",color:"white",fontSize:10,fontWeight:900,borderRadius:20,padding:"2px 8px"}}>중급</div>
+            <div style={{fontSize:28,marginBottom:6}}>🎬</div>
+            <div style={{fontSize:16,fontWeight:900,color:"#E65100",marginBottom:4}}>K드라마 상황 챌린지</div>
+            <div style={{fontSize:13,color:"#666"}}>키워드 입력 → AI가 상황 시나리오 생성!</div>
+          </button>
+        )}
+        {midLevel && (
           <button onClick={()=>setGame("polysemy")}
             style={{background:"#F0E8FF",border:"2px solid #6C3FC5",borderRadius:18,padding:"20px",textAlign:"left",cursor:"pointer",WebkitTapHighlightColor:"transparent",position:"relative"}}>
             <div style={{position:"absolute",top:12,right:12,background:"#6C3FC5",color:"white",fontSize:10,fontWeight:900,borderRadius:20,padding:"2px 8px"}}>중급</div>
@@ -19835,6 +20111,7 @@ function GameTab({level, midLevel}) {
       {game === "match" && <MatchGame />}
       {game === "quiz" && <QuizGame />}
       {game === "polysemy" && <PolysemyGame />}
+      {game === "drama" && <DramaGame />}
     </div>
   );
 }
