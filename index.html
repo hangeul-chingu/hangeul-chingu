@@ -10,12 +10,9 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
-    <!-- PWA manifest -->
-    <link rel="manifest" href="/manifest.json" />
+    <!-- PWA manifest — VitePWA가 자동 생성 -->
     <meta name="theme-color" content="#ff6b9d" />
     <meta name="mobile-web-app-capable" content="yes" />
-
-    <!-- iOS 지원 -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="한글 친구" />
@@ -25,7 +22,7 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- ✅ 기존 SW 강제 해제 + 캐시 전체 삭제 -->
+    <!-- ✅ 기존 수동 SW 강제 해제 (VitePWA로 전환) -->
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(registrations => {
