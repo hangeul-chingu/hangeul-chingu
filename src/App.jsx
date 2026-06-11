@@ -3613,6 +3613,9 @@ ${vocabList}
         desc:"교육·장소·음식 관련 어휘로 ㄱ계열 받침을 익힙니다.",
         descVi:"Học phụ âm cuối nhóm ㄱ qua từ vựng giáo dục, địa điểm và thức ăn.",
         descEn:"Learn the ㄱ-group final consonant through education, place, and food vocabulary.",
+        tip:"💡 [대표음화] ㄱ·ㄲ·ㅋ은 받침에서 모두 [ㄱ]으로 발음해요. 표기는 달라도 소리는 같아요! 예) 국[국] 부엌[부억] 볶다[볶따]",
+        tipVi:"💡 [Âm đại diện] ㄱ·ㄲ·ㅋ đều phát âm là [ㄱ] ở vị trí cuối. Chữ viết khác nhau nhưng âm thanh giống nhau! Ví dụ: 국[국] 부엌[부억]",
+        tipEn:"💡 [Representative sound] ㄱ·ㄲ·ㅋ are all pronounced as [ㄱ] at the end. Different spelling, same sound! e.g. 국[국] 부엌[부억]",
         items:[
           { char:"국",    word:"국",    meaning:{ko:"국",    vi:"canh",zh:"汤",en:"soup",ja:"スープ",id:"sup",ru:"суп",th:"ซุป",mn:"шөл",uz:"sho'rva",es:"soup"} },
           { char:"학교",  word:"학교",  meaning:{ko:"학교",  vi:"trường học",zh:"学校",en:"school",ja:"学校",id:"sekolah",ru:"школа",th:"โรงเรียน",mn:"сургууль",uz:"maktab",es:"school"} },
@@ -3767,6 +3770,9 @@ ${vocabList}
         desc:"사회생활 관련 어휘로 ㅇ받침을 익힙니다.",
         descVi:"Học phụ âm cuối ㅇ qua từ vựng về đời sống xã hội.",
         descEn:"Learn the final consonant ㅇ through social life vocabulary.",
+        tip:"💡 [비음] 받침 ㅇ은 콧속에서 울리는 소리예요. 입을 살짝 열고 코로 소리를 내보세요. 예) 형[형] 항상[항상] 강[강]",
+        tipVi:"💡 [Âm mũi] Phụ âm cuối ㅇ là âm vang trong mũi. Hé miệng nhẹ và phát âm qua mũi. Ví dụ: 형[형] 항상[항상]",
+        tipEn:"💡 [Nasal sound] ㅇ at the end resonates through the nose. Open your mouth slightly and let the sound come through your nose. e.g. 형[형] 항상[항상]",
         items:[
           { char:"형",    word:"형",    meaning:{ko:"형",    vi:"anh trai (em trai gọi)",zh:"兄",en:"older brother",ja:"お兄さん",id:"kakak laki-laki",ru:"старший брат",th:"พี่ชาย",mn:"ах",uz:"aka",es:"older brother"} },
           { char:"형제",  word:"형제",  meaning:{ko:"형제",  vi:"anh em",zh:"兄弟",en:"siblings",ja:"兄弟",id:"saudara laki-laki",ru:"братья",th:"พี่น้อง",mn:"ах дүү",uz:"aka-uka",es:"siblings"} },
@@ -3966,6 +3972,9 @@ ${vocabList}
         desc:"가족·음식·감정 관련 어휘로 ㅁ받침을 익힙니다.",
         descVi:"Học phụ âm cuối ㅁ qua từ vựng về gia đình, thức ăn và cảm xúc.",
         descEn:"Learn the final consonant ㅁ through family, food, and emotion vocabulary.",
+        tip:"💡 [비음+비음화] 받침 ㅁ은 입술을 다물고 코로 내는 소리예요. 뒤에 비음(ㄴ·ㅁ)이 오면 앞 받침도 비음으로 바뀌어요! 예) 엄마[엄마] 국물→[궁물] 입맛→[임맏]",
+        tipVi:"💡 [Âm mũi + đồng hóa mũi] Phụ âm cuối ㅁ phát âm bằng cách khép môi và phát qua mũi. Khi có âm mũi (ㄴ·ㅁ) theo sau, phụ âm cuối trước cũng biến thành âm mũi! Ví dụ: 국물→[궁물]",
+        tipEn:"💡 [Nasal + nasalization] ㅁ is made by closing your lips and humming through the nose. When followed by a nasal (ㄴ·ㅁ), the preceding final consonant also becomes nasal! e.g. 국물→[궁물]",
         items:[
           { char:"엄마",   word:"엄마",   meaning:{ko:"엄마",   vi:"mẹ",zh:"妈妈",en:"mom",ja:"ママ",id:"mama",ru:"мама",th:"แม่",mn:"ээж",uz:"oyi",es:"mom"} },
           { char:"부모님", word:"부모님", meaning:{ko:"부모님", vi:"bố mẹ",zh:"父母",en:"parents",ja:"両親",id:"orang tua",ru:"родители",th:"พ่อแม่",mn:"эцэг эх",uz:"ota-ona",es:"parents"} },
@@ -4079,6 +4088,9 @@ ${vocabList}
         desc:"직업·장소·신체 관련 어휘로 ㅂ계열 받침을 익힙니다.",
         descVi:"Học phụ âm cuối nhóm ㅂ qua từ vựng về nghề nghiệp, địa điểm và cơ thể.",
         descEn:"Learn the ㅂ-group final consonant through job, place, and body vocabulary.",
+        tip:"💡 [대표음화] ㅂ·ㅍ은 받침에서 모두 [ㅂ]으로 발음해요. 입술을 다물고 소리를 막아요. 예) 집[집] 직업[지겁] 앞[압]",
+        tipVi:"💡 [Âm đại diện] ㅂ·ㅍ đều phát âm là [ㅂ] ở vị trí cuối. Khép môi lại để chặn âm. Ví dụ: 집[집] 직업[지겁] 앞[압]",
+        tipEn:"💡 [Representative sound] ㅂ·ㅍ are both pronounced as [ㅂ] at the end. Close your lips to stop the sound. e.g. 집[집] 직업[지겁] 앞[압]",
         items:[
           { char:"직업",  word:"직업",  meaning:{ko:"직업",  vi:"nghề nghiệp",zh:"职业",en:"job",ja:"職業",id:"pekerjaan",ru:"профессия",th:"อาชีพ",mn:"мэргэжил",uz:"kasb",es:"job"} },
           { char:"종업원",word:"종업원",meaning:{ko:"종업원",vi:"nhân viên",zh:"员工",en:"employee",ja:"従業員",id:"karyawan",ru:"сотрудник",th:"พนักงาน",mn:"ажилтан",uz:"xodim",es:"employee"} },
@@ -4169,6 +4181,9 @@ ${vocabList}
         desc:"이 단계를 마치면 일상적인 한국어 대화가 가능합니다!",
         descVi:"Hoàn thành bước này, bạn có thể giao tiếp tiếng Hàn hàng ngày!",
         descEn:"After this step, you can hold everyday Korean conversations!",
+        tip:"💡 [유음화] ㄹ은 혀를 입천장에 살짝 튕기는 소리예요. ㄹ+ㄴ 또는 ㄴ+ㄹ이 만나면 둘 다 [ㄹㄹ]로 발음해요! 예) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",
+        tipVi:"💡 [Hóa âm lỏng] ㄹ là âm bật lưỡi nhẹ lên vòm miệng. Khi ㄹ+ㄴ hoặc ㄴ+ㄹ gặp nhau, cả hai đều phát âm thành [ㄹㄹ]! Ví dụ: 설날→[설랄] 일년→[일련]",
+        tipEn:"💡 [Lateralization] ㄹ is made by lightly flicking your tongue against the roof of your mouth. When ㄹ+ㄴ or ㄴ+ㄹ meet, both become [ㄹㄹ]! e.g. 설날→[설랄] 일년→[일련]",
         items:[
           { char:"말",    word:"말",    meaning:{ko:"말",    vi:"lời nói",zh:"话语",en:"word/speech",ja:"言葉",id:"kata",ru:"слово",th:"คำพูด",mn:"үг",uz:"so'z",es:"word/speech"} },
           { char:"글",    word:"글",    meaning:{ko:"글",    vi:"chữ viết",zh:"文字",en:"writing",ja:"文字",id:"tulisan",ru:"письмо",th:"การเขียน",mn:"бичиг",uz:"yozuv",es:"writing"} },
@@ -4407,6 +4422,9 @@ ${vocabList}
         desc:"일상 어휘로 ㄴ받침을 익힙니다.",
         descVi:"Học phụ âm cuối ㄴ qua từ vựng hàng ngày.",
         descEn:"Learn the final consonant ㄴ through everyday vocabulary.",
+        tip:"💡 [비음+연음] 받침 ㄴ은 혀를 윗니 뒤에 붙이고 코로 내는 소리예요. 다음 음절이 모음으로 시작하면 받침 ㄴ이 그대로 넘어가요! 예) 친구[친구] 문이[무니] 돈이[도니]",
+        tipVi:"💡 [Âm mũi + liên âm] Phụ âm cuối ㄴ phát âm bằng cách áp lưỡi vào sau răng trên và thoát qua mũi. Khi âm tiết tiếp theo bắt đầu bằng nguyên âm, ㄴ chuyển sang âm tiết đó! Ví dụ: 문이[무니] 돈이[도니]",
+        tipEn:"💡 [Nasal + liaison] ㄴ is made by pressing your tongue behind your upper teeth and humming through the nose. When the next syllable starts with a vowel, ㄴ moves to that syllable! e.g. 문이[무니] 돈이[도니]",
         items:[
           { char:"눈",    word:"눈",    meaning:{ko:"눈",    vi:"mắt / tuyết",zh:"眼睛 / 雪",en:"eye / snow",ja:"目 / 雪",id:"mata / salju",ru:"глаз / снег",th:"ตา / หิมะ",mn:"нүд / цас",uz:"ko'z / qor",es:"eye / snow"} },
           { char:"손",    word:"손",    meaning:{ko:"손",    vi:"bàn tay",zh:"手",en:"hand",ja:"手",id:"tangan",ru:"рука",th:"มือ",mn:"гар",uz:"qo'l",es:"hand"} },
@@ -4754,6 +4772,9 @@ ${vocabList}
         desc:"모양은 달라도 받침에서는 모두 같은 [ㄷ] 소리가 납니다.",
         descVi:"Dù hình dạng khác nhau, tất cả đều phát âm [ㄷ] ở vị trí phụ âm cuối.",
         descEn:"Though the shapes differ, all are pronounced as [ㄷ] in the final position.",
+        tip:"💡 [대표음화] 7가지 자음(ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ)이 받침에서 모두 [ㄷ]으로 발음돼요. 혀를 윗니 뒤에 살짝 대고 소리를 막아요. 예) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",
+        tipVi:"💡 [Âm đại diện] 7 phụ âm (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) đều phát âm thành [ㄷ] ở vị trí cuối. Đặt lưỡi nhẹ sau răng trên và chặn âm lại. Ví dụ: 옷[옫] 꽃[꼳] 낮[낟]",
+        tipEn:"💡 [Representative sound] 7 consonants (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) are all pronounced as [ㄷ] at the end. Place your tongue lightly behind your upper teeth and stop the sound. e.g. 옷[옫] 꽃[꼳] 낮[낟]",
         items:[
           { char:"옷",    word:"옷",    meaning:{ko:"옷",    vi:"quần áo",zh:"衣服",en:"clothes",ja:"服",id:"pakaian",ru:"одежда",th:"เสื้อผ้า",mn:"хувцас",uz:"kiyim",es:"clothes"} },
           { char:"꽃",    word:"꽃",    meaning:{ko:"꽃",    vi:"hoa",zh:"花",en:"flower",ja:"花",id:"bunga",ru:"цветок",th:"ดอกไม้",mn:"цэцэг",uz:"gul",es:"flower"} },
@@ -4924,7 +4945,7 @@ ${vocabList}
           { char:"밖으로",word:"밖으로",  meaning:{ko:"밖으로 → [바끄로]",vi:"ra ngoài → [바끄로]",zh:"向外→[바끄로]",en:"outside → [bakkeuro]",ja:"外へ",id:"keluar",ru:"наружу",th:"ออกข้างนอก",mn:"гадагш",uz:"tashqariga",es:"outside → [bakkeuro]"} },
           { char:"트럼펫을",word:"트럼펫을",meaning:{ko:"트럼펫을 → [트럼페들]",vi:"kèn trumpet → [트럼페들]",zh:"小号→[트럼페들]",en:"trumpet → [teurempeteul]",ja:"トランペットを",id:"terompet",ru:"трубу",th:"ทรัมเป็ต",mn:"бүрээ",uz:"truba",es:"trumpet → [teurempeteul]"} },
                 ],
-        tip:"⭐ 핵심 규칙 ① 겹받침: 하나만 발음 — 읽다[익따] 닭[닥] 삶[삼] ② 연음: 받침+모음 → 받침이 다음 음절로 — 밥을[바블] 책이[채기] 집에[지베]",
+        tip:"⭐ 핵심 규칙 ① 겹받침: 하나만 발음 — 읽다[익따] 닭[닥] 삶[삼] ② 연음: 받침+모음 → 받침이 다음 음절로 — 밥을[바블] 책이[채기] 집에[지베] 💡 지금까지 배운 음운 규칙(대표음화·비음화·유음화)이 연음과 결합하면 더 자연스러운 한국어가 됩니다!",
         tipVi:"⭐ Quy tắc cốt lõi ① Phụ âm đôi: chỉ phát âm một — 읽다[익따] 닭[닥] ② Liên âm: phụ âm cuối+nguyên âm → chuyển sang âm tiết sau — 밥을[바블] 책이[채기]",
         tipEn:"⭐ Key rules ① Double consonant: pronounce only one — 읽다[익따] 닭[닥] 삶[삼] ② Liaison: final+vowel → moves to next syllable — 밥을[바블] 책이[채기] 집에[지베]",
       },
