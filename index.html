@@ -4,10 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>한글 친구</title>
-<!-- ✅ 캐시 완전 차단 — 흰 화면 방지 -->
+
+    <!-- ✅ 캐시 완전 차단 -->
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+
     <!-- PWA manifest -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#ff6b9d" />
@@ -23,13 +25,14 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- PWA Service Worker 등록 -->
+    <!-- ✅ 기존 SW 강제 해제 + 캐시 전체 삭제 -->
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(() => console.log('한글 친구 SW 등록 완료'))
-            .catch((err) => console.log('SW 등록 실패:', err));
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          registrations.forEach(reg => reg.unregister());
+        });
+        caches.keys().then(keys => {
+          keys.forEach(key => caches.delete(key));
         });
       }
     </script>
