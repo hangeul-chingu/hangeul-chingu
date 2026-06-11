@@ -2386,7 +2386,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
 
   function confirmPlan() {
     setGoalDate(calcGoalDate(daysPerWeek, minPerDay, studyGoal));
-    const groupA = ["topik2", "life"];
+    const groupA = ["topik2", "life", "family"];
     if (groupA.includes(studyGoal)) {
       setStep("pronContents"); // ✅ V268: 발음 목차 화면 먼저
     } else {
