@@ -351,6 +351,7 @@ const UI_TRANSLATIONS = {
   "기초문법 총정리":{ko:"기초문법 총정리",vi:"Tổng kết ngữ pháp cơ bản",en:"Basic grammar review",zh:"基础语法总整理",ja:"基礎文法総まとめ",id:"Ringkasan tata bahasa dasar",ru:"Обзор базовой грамматики",th:"สรุปไวยากรณ์พื้นฐาน",mn:"Үндсэн дүрмийн нэгдсэн дүгнэлт",uz:"Asosiy grammatika xulosasi",es:"Resumen de gramática básica"},
   "한국어 기초문법 한눈에 보기":{ko:"한국어 기초문법 한눈에 보기",vi:"Ngữ pháp cơ bản tiếng Hàn trong một cái nhìn",en:"Korean basic grammar at a glance",zh:"韩语基础语法一览",ja:"韓国語基礎文法一覧",id:"Tata bahasa dasar Korea sekilas",ru:"Базовая грамматика корейского в обзоре",th:"ไวยากรณ์พื้นฐานภาษาเกาหลีในมุมมองเดียว",mn:"Солонгосын үндсэн дүрмийг нэг харцаар",uz:"Koreyscha asosiy grammatika bir ko'rinishda",es:"Gramática básica coreana de un vistazo"},
   "80시간 커리큘럼 완료!":{ko:"80시간 커리큘럼 완료!",vi:"Hoàn thành chương trình 80 giờ!",en:"80-hour curriculum complete!",zh:"80小时课程完成!",ja:"80時間カリキュラム完了!",id:"Kurikulum 80 jam selesai!",ru:"Учебный план 80 часов завершён!",th:"หลักสูตร 80 ชั่วโมงเสร็จสิ้น!",mn:"80 цагийн хөтөлбөр дуусгав!",uz:"80 soatlik o'quv rejasi tugadi!",es:"¡Currículo de 80 horas completado!"},
+  "가족과 소통하기":{ko:"가족과 소통하기",vi:"Giao tiếp với gia đình",en:"Communicate with family",zh:"与家人沟通",ja:"家族とコミュニケーション",id:"Berkomunikasi dengan keluarga",ru:"Общаться с семьёй",th:"สื่อสารกับครอบครัว",mn:"Гэр бүлтэйгээ харилцах",uz:"Oila bilan muloqot qilish",es:"Comunicarse con la familia"},
 };
 
 // UI 번역 헬퍼: tx(key, langCode)
@@ -2364,6 +2365,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
     daily:  80,   // 일상 한국어 (초급 완성으로 충분)
     work:   120,  // 직장·현장 (근거 탐색 중)
     life:   80,   // 한국 생활 적응 (초급 완성으로 충분)
+    family: 80,   // 가족과 소통 (초급 완성으로 충분)
   };
 
   // 목표별 D-Day 계산
@@ -3009,13 +3011,23 @@ ${vocabList}
             🎯 {txUI("나의 목표를 선택해요!", lang)}
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {[
-              {id:"topik2", emoji:"🏆", label:txUI("TOPIK 2급 달성하기", lang),  badge:"80h"},
-              {id:"topik4", emoji:"🏆", label:txUI("TOPIK 4급 달성하기", lang),  disabled:true},
-              {id:"daily", emoji:"💬", label:txUI("일상 한국어 자유롭게 말하기", lang), warn:true},
-              {id:"work",  emoji:"💼", label:txUI("직장·현장 한국어 익히기", lang), warn:true},
-              {id:"life",  emoji:"🏠", label:txUI("한국 생활 적응하기", lang), badge:"80h"},
-            ].map(g=>{
+            {(()=>{
+              const lc2 = lang?.code ?? "ko";
+              const isHeritage = ["uz","ru","mn"].includes(lc2);
+              const familyItem = {id:"family", emoji:"👨‍👩‍👧", label:txUI("가족과 소통하기", lang), badge:"80h", heritage: true};
+              const baseGoals = [
+                {id:"topik2", emoji:"🏆", label:txUI("TOPIK 2급 달성하기", lang),  badge:"80h"},
+                {id:"topik4", emoji:"🏆", label:txUI("TOPIK 4급 달성하기", lang),  disabled:true},
+                {id:"daily", emoji:"💬", label:txUI("일상 한국어 자유롭게 말하기", lang), warn:true},
+                {id:"work",  emoji:"💼", label:txUI("직장·현장 한국어 익히기", lang), warn:true},
+                {id:"life",  emoji:"🏠", label:txUI("한국 생활 적응하기", lang), badge:"80h"},
+                familyItem,
+              ];
+              const goals = isHeritage
+                ? [familyItem, ...baseGoals.filter(g=>g.id!=="family")]
+                : baseGoals;
+              return goals;
+            })().map(g=>{
               const isSelected = studyGoal===g.id;
               if (g.disabled) return (
                 <div key={g.id}
@@ -3142,7 +3154,7 @@ ${vocabList}
             </div>
             <div style={{fontSize:20,fontWeight:900,color:"#9C6FDE"}}>{formatDate(preview)}</div>
             {studyGoal&&<div style={{fontSize:12,color:"#9C6FDE",fontWeight:700,marginTop:6,background:"#9C6FDE18",borderRadius:8,padding:"4px 10px",display:"inline-block"}}>
-              {[{id:"topik2",label:"TOPIK 2급 달성"},{id:"topik4",label:"TOPIK 4급 달성"},{id:"daily",label:"일상 한국어 말하기"},{id:"work",label:"직장 한국어 익히기"},{id:"life",label:"한국 생활 적응"}].find(g=>g.id===studyGoal)?.label} 🎯
+              {[{id:"topik2",label:"TOPIK 2급 달성"},{id:"topik4",label:"TOPIK 4급 달성"},{id:"daily",label:"일상 한국어 말하기"},{id:"work",label:"직장 한국어 익히기"},{id:"life",label:"한국 생활 적응"},{id:"family",label:"가족과 소통하기"}].find(g=>g.id===studyGoal)?.label} 🎯
             </div>}
             <div style={{fontSize:11,color:"#bbb",marginTop:4}}>
               {txUI("80시간 = 새로운 세상! 🌏", lang)}
@@ -16639,7 +16651,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
         const startDate = new Date(); startDate.setDate(startDate.getDate()-1);
         const pct = Math.min(100, Math.round(((now-startDate)/Math.max(1,goalDate-startDate))*100));
         const dLeft = Math.max(0, Math.ceil((goalDate-now)/(1000*60*60*24)));
-        const goalLabel = [{id:"topik2",label:"TOPIK 2급"},{id:"topik4",label:"TOPIK 4급"},{id:"daily",label:"일상 말하기"},{id:"work",label:"직장 한국어"},{id:"life",label:"한국 생활 적응"}].find(g=>g.id===studyGoal)?.label||"목표";
+        const goalLabel = [{id:"topik2",label:"TOPIK 2급"},{id:"topik4",label:"TOPIK 4급"},{id:"daily",label:"일상 말하기"},{id:"work",label:"직장 한국어"},{id:"life",label:"한국 생활 적응"},{id:"family",label:"가족과 소통"}].find(g=>g.id===studyGoal)?.label||"목표";
         const msg = pct<20?"시작이 반이에요! 💪":pct<50?"잘 하고 있어요! 🌟":pct<80?"절반 넘었어요! 🔥":"거의 다 왔어요! 🏁";
         return (
           <div style={{background:"white",padding:"10px 16px",borderBottom:"1px solid #f0eaff",flexShrink:0}}>
