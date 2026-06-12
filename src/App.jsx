@@ -21,6 +21,7 @@ import {
   getDocs,
   onSnapshot,
   deleteField,
+  addDoc,
 } from "firebase/firestore";
 
 // ✅ V150: 최고 관리자 이메일 (이 이메일로만 AdminDashboard 접근 가능)
@@ -1498,6 +1499,8 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin }) {
                       </div>
                     );
                   })()}
+                  {/* ✅ V357: 교수자 음성 피드백 버튼 */}
+                  <VoiceFeedbackSender teacherId={user.uid} teacherName={teacherName} learnerId={st.id} learnerName={st.name || "학습자"} />
                 </div>
               ))
             )}
@@ -1515,6 +1518,139 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin }) {
 // ════════════════════════════════════════════════════════
 // ✅ V149: 견적서 생성 컴포넌트
 // ════════════════════════════════════════════════════════
+// ✅ V357: 교수자 → 학습자 음성 피드백 전송 컴포넌트
+function VoiceFeedbackSender({ teacherId, teacherName, learnerId, learnerName }) {
+  const [recording, setRecording] = React.useState(false);
+  const [sending, setSending] = React.useState(false);
+  const [sent, setSent] = React.useState(false);
+  const [error, setError] = React.useState("");
+  const mediaRecorderRef = React.useRef(null);
+  const chunksRef = React.useRef([]);
+
+  async function startRecording() {
+    setError(""); setSent(false);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        // base64 변환
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          setSending(true);
+          try {
+            const base64 = reader.result.split(",")[1];
+            await addDoc(collection(db, "voiceFeedbacks"), {
+              teacherId,
+              teacherName,
+              learnerId,
+              learnerName,
+              audioBase64: base64,
+              audioType: "audio/webm",
+              listened: false,
+              createdAt: serverTimestamp(),
+            });
+            setSent(true);
+            setTimeout(() => setSent(false), 3000);
+          } catch(e) {
+            setError("전송 실패. 다시 시도해주세요.");
+          }
+          setSending(false);
+        };
+        reader.readAsDataURL(blob);
+      };
+      mr.start();
+      mediaRecorderRef.current = mr;
+      setRecording(true);
+    } catch(e) {
+      setError("마이크 접근 권한이 필요해요.");
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorderRef.current && recording) {
+      mediaRecorderRef.current.stop();
+      setRecording(false);
+    }
+  }
+
+  return (
+    <div style={{marginTop:10, borderTop:"1px solid #F0F0F0", paddingTop:10}}>
+      <div style={{fontSize:12, fontWeight:700, color:"#555", marginBottom:6}}>🎤 음성 피드백 보내기</div>
+      {error && <div style={{fontSize:11, color:"#E53935", marginBottom:6}}>{error}</div>}
+      {sent && <div style={{fontSize:11, color:"#00A876", fontWeight:700, marginBottom:6}}>✅ {learnerName}님에게 전송됐어요!</div>}
+      {sending ? (
+        <div style={{fontSize:12, color:"#9C6FDE", fontWeight:700}}>⏳ 전송 중...</div>
+      ) : recording ? (
+        <button onClick={stopRecording} style={{width:"100%", background:"linear-gradient(135deg,#E53935,#C62828)", color:"white", border:"none", borderRadius:20, padding:"8px 0", fontSize:13, fontWeight:700, cursor:"pointer", animation:"pulse 1s infinite"}}>
+          ⏹ 녹음 중... (멈추면 전송)
+        </button>
+      ) : (
+        <button onClick={startRecording} style={{width:"100%", background:"linear-gradient(135deg,#2E75B6,#1A4A8A)", color:"white", border:"none", borderRadius:20, padding:"8px 0", fontSize:13, fontWeight:700, cursor:"pointer"}}>
+          🎤 {learnerName}님에게 음성 피드백 녹음
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ✅ V357: 학습자 화면 — 음성 피드백 수신 알림 컴포넌트
+function VoiceFeedbackReceiver({ userId }) {
+  const [feedbacks, setFeedbacks] = React.useState([]);
+  const [playing, setPlaying] = React.useState(null);
+
+  React.useEffect(() => {
+    if (!userId) return;
+    const q = query(
+      collection(db, "voiceFeedbacks"),
+      where("learnerId", "==", userId),
+      where("listened", "==", false)
+    );
+    const unsub = onSnapshot(q, snap => {
+      setFeedbacks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, [userId]);
+
+  async function playFeedback(fb) {
+    setPlaying(fb.id);
+    try {
+      const audioSrc = `data:${fb.audioType || "audio/webm"};base64,${fb.audioBase64}`;
+      const audio = new Audio(audioSrc);
+      audio.onended = async () => {
+        setPlaying(null);
+        // 들었으면 listened = true
+        await updateDoc(doc(db, "voiceFeedbacks", fb.id), { listened: true });
+      };
+      audio.play();
+    } catch(e) {
+      setPlaying(null);
+    }
+  }
+
+  if (feedbacks.length === 0) return null;
+
+  return (
+    <div style={{background:"linear-gradient(135deg,#FFF8E1,#FFF3CD)", borderRadius:14, padding:"12px 16px", marginBottom:12, boxShadow:"0 2px 8px rgba(255,160,0,0.15)"}}>
+      <div style={{fontSize:13, fontWeight:900, color:"#E65100", marginBottom:8}}>
+        🔔 선생님 음성 피드백 {feedbacks.length}개
+      </div>
+      {feedbacks.map(fb => (
+        <div key={fb.id} style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6}}>
+          <div style={{fontSize:12, color:"#555"}}>{fb.teacherName} 선생님</div>
+          <button onClick={() => playFeedback(fb)} disabled={playing === fb.id}
+            style={{background: playing===fb.id?"#FFE0B2":"#FF6F00", color:"white", border:"none", borderRadius:16, padding:"5px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
+            {playing === fb.id ? "▶ 재생 중..." : "▶ 듣기"}
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function QuoteTab({ teacherName }) {
   const [studentCount, setStudentCount] = useState(30);
   const [months, setMonths] = useState(6);
@@ -2964,6 +3100,8 @@ ${vocabList}
       <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:12}}>📚</div>
       {MyPageBtn}
+        {/* ✅ V357: 교수자 음성 피드백 수신 알림 */}
+        <VoiceFeedbackReceiver userId={user?.uid} />
         <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
           {txUI("나의 80시간 커리큘럼", lang)}
           <span style={{fontSize:12,fontWeight:700,color:"white",background:"#9C6FDE",borderRadius:20,padding:"2px 10px",marginLeft:8,verticalAlign:"middle"}}>
@@ -5215,49 +5353,80 @@ ${vocabList}
       rec.start();
     }
 
-    // 판단 함수
-    async function judgePronunciation(sttText, target, similarity) {
-      if (similarity >= 85) {
-        // 바로 통과
-        setPronTestFeedback({ok:true, similarity, msg: txUI("완벽해요! 🎉", lang)});
-        setPronTestResults(r=>[...r, {target, sttText, similarity, ok:true}]);
-      } else if (similarity >= 50) {
-        // Claude 판단
-        setPronTestLoading(true);
-        try {
-          const res = await fetch("https://api.anthropic.com/v1/messages",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({
-              model:"claude-sonnet-4-20250514",
-              max_tokens:200,
-              messages:[{role:"user", content:`
-한국어 초급 학습자의 발음을 평가해주세요.
+    // ✅ V356: 마중이 코칭 멘트 생성 함수
+    async function getMajungiCoaching(target, sttText, similarity, langCode) {
+      const langNames = {ko:"한국어",vi:"베트남어",zh:"중국어",en:"영어",ja:"일본어",id:"인도네시아어",ru:"러시아어",th:"태국어",mn:"몽골어",uz:"우즈베크어",es:"스페인어"};
+      const responseLang = langNames[langCode] || "한국어";
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            model:"claude-sonnet-4-6",
+            max_tokens:300,
+            system:`너는 마중이야. 한글 친구 앱의 한국어 발음 코치 캐릭터야.
+초급 학습자에게 따뜻하고 구체적인 발음 코칭을 해줘.
+반드시 ${responseLang}로 답해줘.
+JSON만 출력해. 다른 텍스트 없이.`,
+            messages:[{role:"user", content:`
 목표 단어: "${target}"
-STT 인식 결과: "${sttText}"
+학습자가 말한 것 (STT): "${sttText}"
 유사도: ${similarity}%
 
-이 학습자의 발음이 통과 수준인지 판단하고, 짧은 피드백을 주세요.
-JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${txUI("한국어", lang)})"}
+통과 여부 판단 + 코칭 멘트를 작성해줘.
+- 통과(similarity>=70): 칭찬 + 잘된 점 1가지
+- 미통과: 어디가 다른지 구체적으로 + 어떻게 하면 좋은지 팁 1가지 (입 모양, 혀 위치 등)
+- 멘트는 2문장 이내, 친근하게
+JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
 `}]
-            })
-          });
-          const data = await res.json();
-          const text = data.content?.[0]?.text || "";
-          const clean = text.replace(/```json|```/g,"").trim();
-          const parsed = JSON.parse(clean);
-          setPronTestFeedback({ok:parsed.pass, similarity, msg:parsed.feedback});
-          setPronTestResults(r=>[...r, {target, sttText, similarity, ok:parsed.pass}]);
+          })
+        });
+        const data = await res.json();
+        const text = data.content?.[0]?.text || "";
+        const clean = text.replace(/```json|```/g,"").trim();
+        return JSON.parse(clean);
+      } catch {
+        return null;
+      }
+    }
+
+    // 판단 함수
+    async function judgePronunciation(sttText, target, similarity) {
+      const langCode = lang?.code || "ko";
+      if (similarity >= 85) {
+        // 바로 통과 — 마중이 칭찬 코칭
+        setPronTestLoading(true);
+        const coaching = await getMajungiCoaching(target, sttText, similarity, langCode);
+        setPronTestLoading(false);
+        const msg = coaching?.coaching || txUI("완벽해요! 🎉", lang);
+        setPronTestFeedback({ok:true, similarity, msg});
+        setPronTestResults(r=>[...r, {target, sttText, similarity, ok:true}]);
+      } else if (similarity >= 50) {
+        // 마중이 판단 + 코칭
+        setPronTestLoading(true);
+        try {
+          const coaching = await getMajungiCoaching(target, sttText, similarity, langCode);
+          if (coaching) {
+            setPronTestFeedback({ok:coaching.pass, similarity, msg:coaching.coaching});
+            setPronTestResults(r=>[...r, {target, sttText, similarity, ok:coaching.pass}]);
+          } else {
+            const ok = similarity >= 70;
+            setPronTestFeedback({ok, similarity, msg: ok?"잘했어요! 😊":"다시 한번 해봐요! 💪"});
+            setPronTestResults(r=>[...r, {target, sttText, similarity, ok}]);
+          }
         } catch {
-          // Claude 실패 시 유사도 70% 기준으로 fallback
           const ok = similarity >= 70;
           setPronTestFeedback({ok, similarity, msg: ok?"잘했어요! 😊":"다시 한번 해봐요! 💪"});
           setPronTestResults(r=>[...r, {target, sttText, similarity, ok}]);
         }
         setPronTestLoading(false);
       } else {
-        // 바로 실패
-        setPronTestFeedback({ok:false, similarity, msg: txUI("다시 해봐요! 💪", lang)});
+        // 바로 실패 — 마중이 구체적 코칭
+        setPronTestLoading(true);
+        const coaching = await getMajungiCoaching(target, sttText, similarity, langCode);
+        setPronTestLoading(false);
+        const msg = coaching?.coaching || txUI("다시 해봐요! 💪", lang);
+        setPronTestFeedback({ok:false, similarity, msg});
         setPronTestResults(r=>[...r, {target, sttText, similarity, ok:false}]);
       }
     }
@@ -5376,8 +5545,13 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
           {pronTestFeedback && !pronTestLoading && (
             <div style={{background: pronTestFeedback.ok?"#F0FBF6":"#FFF0F0", borderRadius:14, padding:14, marginBottom:12, textAlign:"center"}}>
               <div style={{fontSize:24, marginBottom:4}}>{pronTestFeedback.ok?"✅":"❌"}</div>
+              {/* ✅ V356: 마중이 코칭 멘트 */}
+              <div style={{display:"flex", alignItems:"flex-start", gap:8, background:"white", borderRadius:10, padding:"10px 12px", marginBottom:8, textAlign:"left"}}>
+                <div style={{fontSize:22, flexShrink:0}}>🤖</div>
+                <div style={{fontSize:13, color:"#444", lineHeight:1.6, fontWeight:600}}>{pronTestFeedback.msg}</div>
+              </div>
               <div style={{fontSize:14, fontWeight:700, color: pronTestFeedback.ok?"#00A876":"#E64A00"}}>
-                {pronTestFeedback.msg}
+                {pronTestFeedback.ok ? txUI("잘했어요!", lang) : txUI("다시 해봐요!", lang)}
               </div>
             </div>
           )}
@@ -20310,7 +20484,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "355";
+    const APP_VERSION = "357";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
