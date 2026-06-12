@@ -554,18 +554,18 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
   return (
     <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",position:"relative"}}>
 
-      {/* 언어 선택 + 건너뛰기 */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 20px 0"}}>
-        <div style={{display:"flex",gap:6}}>
+      {/* ✅ V358: 언어 선택 + 건너뛰기 — 가로 스크롤로 11개 언어 대응 */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 20px 0",gap:8}}>
+        <div style={{display:"flex",gap:6,overflowX:"auto",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",msOverflowStyle:"none",flex:1,paddingBottom:2}}>
           {LANGS.map(lg=>(
             <button key={lg.code} onClick={()=>onLangChange(lg.code)}
-              style={{background:L===lg.code?C.pink:"white",border:`1.5px solid ${L===lg.code?C.pink:"#eee"}`,borderRadius:20,padding:"5px 10px",fontSize:16,cursor:"pointer",transition:"all .2s",boxShadow:L===lg.code?`0 2px 8px ${C.pink}40`:"none"}}>
+              style={{flexShrink:0,background:L===lg.code?C.pink:"white",border:`1.5px solid ${L===lg.code?C.pink:"#eee"}`,borderRadius:20,padding:"5px 10px",fontSize:16,cursor:"pointer",transition:"all .2s",boxShadow:L===lg.code?`0 2px 8px ${C.pink}40`:"none"}}>
               {lg.flag}
             </button>
           ))}
         </div>
         <button onClick={handleDone}
-          style={{background:"none",border:"none",color:"#bbb",fontSize:13,fontWeight:600,cursor:"pointer",padding:"6px 10px"}}>
+          style={{flexShrink:0,background:"none",border:"none",color:"#bbb",fontSize:13,fontWeight:600,cursor:"pointer",padding:"6px 4px"}}>
           {tx("skip")}
         </button>
       </div>
@@ -20484,7 +20484,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "357";
+    const APP_VERSION = "358";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
