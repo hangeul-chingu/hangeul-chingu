@@ -1419,8 +1419,9 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin }) {
                       연결 해제
                     </button>
                   </div>
-                  {/* 학습 통계 */}
-                  <div style={{display:"flex", gap:8}}>
+                  {/* ✅ V355: 학습 통계 + 진도 + 발음 데이터 */}
+                  {/* 기존 활동 횟수 */}
+                  <div style={{display:"flex", gap:8, marginBottom:10}}>
                     {[["🗣️","말하기", st.stats?.speak||0],["✍️","쓰기", st.stats?.write||0],["🤝","하이터치", st.stats?.tutor||0]].map(([icon, label, val]) => (
                       <div key={label} style={{flex:1, background:"#F5F8FF", borderRadius:10, padding:"10px 8px", textAlign:"center"}}>
                         <div style={{fontSize:16}}>{icon}</div>
@@ -1429,6 +1430,74 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin }) {
                       </div>
                     ))}
                   </div>
+                  {/* 진도 현황 */}
+                  {(() => {
+                    const up = st.unitsPassed || [];
+                    const total = 25;
+                    const pct = Math.round((up.length / total) * 100);
+                    const stepLabel = st.hc_step ? st.hc_step : null;
+                    return (
+                      <div style={{background:"#F0F7FF", borderRadius:10, padding:"10px 12px", marginBottom:8}}>
+                        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
+                          <span style={{fontSize:12, fontWeight:700, color:"#1A3A5C"}}>📊 커리큘럼 진도</span>
+                          <span style={{fontSize:12, fontWeight:900, color:"#2E75B6"}}>{up.length}/{total}단원 ({pct}%)</span>
+                        </div>
+                        <div style={{background:"#DCE9F8", borderRadius:20, height:8, overflow:"hidden"}}>
+                          <div style={{width:`${pct}%`, height:"100%", background:"linear-gradient(90deg,#2E75B6,#5BA3E0)", borderRadius:20, transition:"width 0.5s"}} />
+                        </div>
+                        {stepLabel && (
+                          <div style={{fontSize:11, color:"#666", marginTop:4}}>📍 현재 위치: {stepLabel}</div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                  {/* 발음 데이터 */}
+                  {(() => {
+                    const pronLog = st.pronLog || [];
+                    if (pronLog.length === 0) return (
+                      <div style={{fontSize:11, color:"#bbb", textAlign:"center", padding:"6px 0"}}>🎙️ 발음 테스트 기록 없음</div>
+                    );
+                    // 단계별 집계
+                    const stepMap = {};
+                    pronLog.forEach(log => {
+                      (log.details || []).forEach(d => {
+                        const key = d.target || "?";
+                        if (!stepMap[key]) stepMap[key] = {ok:0, total:0, sttTexts:[]};
+                        stepMap[key].total++;
+                        if (d.ok) stepMap[key].ok++;
+                        if (d.sttText && d.sttText !== "(인식 실패)") stepMap[key].sttTexts.push(d.sttText);
+                      });
+                    });
+                    const weak = Object.entries(stepMap)
+                      .map(([word, s]) => ({word, rate: Math.round((s.ok/s.total)*100), total: s.total, sttTexts: s.sttTexts}))
+                      .filter(s => s.rate < 80)
+                      .sort((a,b) => a.rate - b.rate)
+                      .slice(0, 4);
+                    const lastScore = pronLog[pronLog.length-1]?.score ?? null;
+                    return (
+                      <div style={{background:"#FFF8F0", borderRadius:10, padding:"10px 12px"}}>
+                        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
+                          <span style={{fontSize:12, fontWeight:700, color:"#7C3A00"}}>🎙️ 발음 연습 기록</span>
+                          {lastScore !== null && <span style={{fontSize:12, fontWeight:900, color:"#E65100"}}>최근 {lastScore}점</span>}
+                        </div>
+                        {weak.length === 0 ? (
+                          <div style={{fontSize:11, color:"#00A876", fontWeight:700}}>✅ 취약 발음 없음</div>
+                        ) : (
+                          weak.map(s => (
+                            <div key={s.word} style={{display:"flex", alignItems:"center", gap:6, marginBottom:4}}>
+                              <span style={{fontSize:12, fontWeight:700, color:"#333", minWidth:40}}>{s.word}</span>
+                              <div style={{flex:1, background:"#F0E0C8", borderRadius:20, height:6, overflow:"hidden"}}>
+                                <div style={{width:`${s.rate}%`, height:"100%", background: s.rate < 50?"#E53935":"#FF8F00", borderRadius:20}} />
+                              </div>
+                              <span style={{fontSize:11, color: s.rate < 50?"#E53935":"#FF8F00", fontWeight:700, minWidth:32}}>{s.rate}%</span>
+                              <span style={{fontSize:10, color:"#aaa"}}>{s.total}회</span>
+                            </div>
+                          ))
+                        )}
+                        <div style={{fontSize:10, color:"#999", marginTop:6}}>* STT 인식 기반 데이터 — 교수자 판단 참고용</div>
+                      </div>
+                    );
+                  })()}
                 </div>
               ))
             )}
@@ -2136,10 +2205,22 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
   const [turnCount, setTurnCount] = useState(0);
   const chatBottomRef = useRef(null);
 
+  // ✅ V355: unitsPassed 변경 시 Firestore 이중 저장
+  React.useEffect(() => {
+    if (!user?.uid || unitsPassed.length === 0) return;
+    try {
+      updateDoc(doc(db, "users", user.uid), { unitsPassed }).catch(()=>{});
+    } catch(e) {}
+  }, [unitsPassed]);
+
   // ✅ V263: step 변경 시 localStorage에 자동 저장 (마이페이지 이어하기용)
   useEffect(() => {
     if (user?.uid && step && step !== "lang" && step !== "curriculum") {
-      try { localStorage.setItem(`hc_step_${user.uid}`, step); } catch(e) {}
+      try {
+        localStorage.setItem(`hc_step_${user.uid}`, step);
+        // ✅ V355: hc_step Firestore 이중 저장
+        updateDoc(doc(db, "users", user.uid), { hc_step: step }).catch(()=>{});
+      } catch(e) {}
     }
   }, [step, user?.uid]);
 
@@ -5182,7 +5263,7 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
     }
 
     // 다음 문제 / 결과 보기
-    function goNext() {
+    async function goNext() {
       if (pronTestIdx < pronTestItems.length - 1) {
         setPronTestIdx(i=>i+1);
         setPronTestSTT("");
@@ -5193,7 +5274,30 @@ JSON으로만 응답: {"pass":true또는false,"feedback":"한 줄 피드백(${tx
         const total = pronTestResults.length;
         const score = Math.round((passed/total)*100);
         setStep("pronResult");
-        setPronTestResults(r => [{_summary:true, passed, total, score, fromStep: pronTestFromStep}, ...r]);
+        const newResults = [{_summary:true, passed, total, score, fromStep: pronTestFromStep}, ...pronTestResults];
+        setPronTestResults(newResults);
+        // ✅ V355: pronLog Firestore 저장
+        if (user?.uid) {
+          try {
+            const logEntry = {
+              step: pronTestFromStep,
+              score,
+              total,
+              passed,
+              timestamp: Date.now(),
+              details: pronTestResults.map(r => ({
+                target: r.target || "",
+                sttText: r.sttText || "",
+                similarity: r.similarity || 0,
+                ok: !!r.ok
+              }))
+            };
+            const userRef = doc(db, "users", user.uid);
+            const snap = await getDoc(userRef);
+            const existing = snap.exists() ? (snap.data().pronLog || []) : [];
+            await updateDoc(userRef, { pronLog: [...existing, logEntry] });
+          } catch(e) { console.warn("pronLog 저장 실패", e); }
+        }
       }
     }
 
@@ -20206,7 +20310,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "351";
+    const APP_VERSION = "355";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
