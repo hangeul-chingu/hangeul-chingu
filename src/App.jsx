@@ -2347,17 +2347,6 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
   const [turnCount, setTurnCount] = useState(0);
   const chatBottomRef = useRef(null);
 
-  // ✅ V263: step 변경 시 localStorage에 자동 저장 (마이페이지 이어하기용)
-  useEffect(() => {
-    if (user?.uid && step && step !== "lang" && step !== "curriculum") {
-      try {
-        localStorage.setItem(`hc_step_${user.uid}`, step);
-        // ✅ V355: hc_step Firestore 이중 저장
-        updateDoc(doc(db, "users", user.uid), { hc_step: step }).catch(()=>{});
-      } catch(e) {}
-    }
-  }, [step, user?.uid]);
-
   // ✅ V131: D-Day 학습 계획
   const [daysPerWeek, setDaysPerWeek] = useState(3);
   const [minPerDay, setMinPerDay] = useState(30);
@@ -2415,15 +2404,26 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
     try { return JSON.parse(localStorage.getItem(`hc_units_${user?.uid}`) || "[]"); }
     catch { return []; }
   });
+  const [showProgress, setShowProgress] = useState(null); // ✅ V263: {passedCount, nextStep, nextLabel}
 
-  // ✅ V355: unitsPassed 변경 시 Firestore 이중 저장 (unitsPassed 선언 직후 배치)
+  // ✅ V355+V263: Firestore 이중 저장 useEffect (모든 useState 선언 완료 후)
   React.useEffect(() => {
     if (!user?.uid || unitsPassed.length === 0) return;
     try {
       updateDoc(doc(db, "users", user.uid), { unitsPassed }).catch(()=>{});
     } catch(e) {}
   }, [unitsPassed]);
-  const [showProgress, setShowProgress] = useState(null); // ✅ V263: {passedCount, nextStep, nextLabel}
+
+  // ✅ V263: step 변경 시 localStorage에 자동 저장 (모든 useState 선언 후 배치)
+  useEffect(() => {
+    if (user?.uid && step && step !== "lang" && step !== "curriculum") {
+      try {
+        localStorage.setItem(`hc_step_${user.uid}`, step);
+        // ✅ V355: hc_step Firestore 이중 저장
+        updateDoc(doc(db, "users", user.uid), { hc_step: step }).catch(()=>{});
+      } catch(e) {}
+    }
+  }, [step, user?.uid]);
 
   // ✅ V164: test1 — API 제거, UNIT1_CARDS 기반 고정 10문제
   useEffect(() => {
