@@ -556,13 +556,19 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
 
       {/* ✅ V358: 언어 선택 + 건너뛰기 — 가로 스크롤로 11개 언어 대응 */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 20px 0",gap:8}}>
-        <div style={{display:"flex",gap:6,overflowX:"auto",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",msOverflowStyle:"none",flex:1,paddingBottom:2}}>
-          {LANGS.map(lg=>(
-            <button key={lg.code} onClick={()=>onLangChange(lg.code)}
-              style={{flexShrink:0,background:L===lg.code?C.pink:"white",border:`1.5px solid ${L===lg.code?C.pink:"#eee"}`,borderRadius:20,padding:"5px 10px",fontSize:16,cursor:"pointer",transition:"all .2s",boxShadow:L===lg.code?`0 2px 8px ${C.pink}40`:"none"}}>
-              {lg.flag}
-            </button>
-          ))}
+        <div style={{position:"relative",flex:1,display:"flex",alignItems:"center"}}>
+          <div id="lang-scroll-row" style={{display:"flex",gap:6,overflowX:"auto",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",msOverflowStyle:"none",width:"100%",paddingBottom:2}}>
+            {LANGS.map(lg=>(
+              <button key={lg.code} onClick={()=>onLangChange(lg.code)}
+                style={{flexShrink:0,background:L===lg.code?C.pink:"white",border:`1.5px solid ${L===lg.code?C.pink:"#eee"}`,borderRadius:20,padding:"5px 10px",fontSize:16,cursor:"pointer",transition:"all .2s",boxShadow:L===lg.code?`0 2px 8px ${C.pink}40`:"none"}}>
+                {lg.flag}
+              </button>
+            ))}
+          </div>
+          {/* ✅ V359: 스크롤 힌트 — 텍스트 없이 아이콘만 (언어 선택 전이라 한국어 불가) */}
+          <div style={{position:"absolute",right:0,top:0,bottom:0,display:"flex",alignItems:"center",background:"linear-gradient(to right, transparent, #FFF5F8 60%)",paddingLeft:16,paddingRight:2,pointerEvents:"none"}}>
+            <span style={{fontSize:16,opacity:0.5}}>›</span>
+          </div>
         </div>
         <button onClick={handleDone}
           style={{flexShrink:0,background:"none",border:"none",color:"#bbb",fontSize:13,fontWeight:600,cursor:"pointer",padding:"6px 4px"}}>
@@ -20484,7 +20490,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "358";
+    const APP_VERSION = "359";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
