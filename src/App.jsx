@@ -5337,11 +5337,10 @@ ${vocabList}
       setPronTestListening(true);
       setPronTestSTT("");
       setPronTestFeedback(null);
-      rec.onresult = async (e) => {
+      rec.onresult = (e) => {
+        // ✅ V370: onresult를 동기 함수로 변경 — async onresult가 안드로이드 Chrome에서 충돌 유발
         if (processed) return;
         const results = Array.from(e.results);
-        // ✅ V369: isFinal 또는 마지막 interim 결과 즉시 처리 — V152 원래 방식
-        // continuous:true에서 안드로이드는 isFinal이 늦게 오거나 안 올 수 있음
         const finalResult = results.find(r => r.isFinal);
         const useResult = finalResult || results[results.length - 1];
         if (!useResult) return;
@@ -5358,7 +5357,8 @@ ${vocabList}
           if (s > bestSim) { bestSim = s; bestText = useResult[i].transcript; }
         }
         setPronTestSTT(bestText);
-        await judgePronunciation(bestText, target, bestSim);
+        // async 작업은 별도로 실행
+        judgePronunciation(bestText, target, bestSim);
       };
       rec.onerror = (e) => {
         isListeningRef.current = false;
@@ -20507,7 +20507,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "369";
+    const APP_VERSION = "370";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
