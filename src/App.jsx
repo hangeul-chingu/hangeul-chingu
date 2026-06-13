@@ -1530,8 +1530,8 @@ function VoiceFeedbackSender({ teacherId, teacherName, learnerId, learnerName })
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
-  const mediaRecorderRef = React.useRef(null);
-  const chunksRef = React.useRef([]);
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
 
   async function startRecording() {
     setError(""); setSent(false);
