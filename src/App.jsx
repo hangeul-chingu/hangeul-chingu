@@ -5353,9 +5353,14 @@ ${vocabList}
           setPronTestDebug("onspeechstart: 말소리 감지!");
         };
         rec.onspeechend = () => {
-          setPronTestDebug(d => d + " → onspeechend");
-          // ✅ V374: 발화 끝나면 인식 종료 트리거 (continuous 모드에서 자동 종료 안 될 수 있음)
-          try { rec.stop(); } catch(e) {}
+          setPronTestDebug(d => d + " → onspeechend (0.6s 대기 후 stop)");
+          // ✅ V375: 즉시 stop()하면 인식 엔진이 결과를 만들 시간이 없어 onnomatch(빈결과) 유발.
+          // 0.6초 지연 후 stop() — 그 사이 onresult가 먼저 오면 자동으로 처리됨
+          setTimeout(() => {
+            if (!resultHandled) {
+              try { rec.stop(); } catch(e) {}
+            }
+          }, 600);
         };
         rec.onaudioend = () => {
           setPronTestDebug(d => d + " → onaudioend");
@@ -5365,6 +5370,7 @@ ${vocabList}
           isListeningRef.current = false;
           pronRecRef.current = null;
           setPronTestListening(false);
+          try { rec.stop(); } catch(e) {} // ✅ V375: continuous 세션 완전 종료 — 다음 문제로 넘어갈 때 잔존 세션 방지
           const bestSim = calcSimilarity(bestText, target);
           setPronTestSTT(bestText);
           judgePronunciation(bestText, target, bestSim);
@@ -20583,7 +20589,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "374";
+    const APP_VERSION = "375";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
