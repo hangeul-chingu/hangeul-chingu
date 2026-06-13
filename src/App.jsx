@@ -5252,7 +5252,19 @@ ${vocabList}
         <button onClick={()=>{
           if(pronStep < PRON_STEPS.length - 1){ setPronStep(s=>s+1); setFlipped({}); }
           else {
-            // 마지막 발음 단계 → 발음 테스트로 이동 (시제 직행 버그 수정)
+            // ✅ V362: 마지막 발음 단계 → 발음 테스트로 이동 (테스트 단어 세팅 추가)
+            // 현재 단계 items에서 word 추출 → pronTestItems 세팅
+            const currentItems = PRON_STEPS[pronStep]?.items || [];
+            const testWords = currentItems
+              .map(item => ({ word: item.word, char: item.char }))
+              .filter(item => item.word);
+            // 단어가 없으면 전체 단계에서 랜덤 10개 추출
+            const fallbackWords = testWords.length > 0 ? testWords :
+              PRON_STEPS.flatMap(s => (s.items||[]).map(item => ({ word: item.word, char: item.char })))
+                .filter(item => item.word)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 10);
+            setPronTestItems(fallbackWords);
             setPronTestIdx(0);
             setPronTestResults([]);
             setPronTestSTT("");
@@ -20498,7 +20510,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "361";
+    const APP_VERSION = "362";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
