@@ -1526,10 +1526,10 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin }) {
 // ════════════════════════════════════════════════════════
 // ✅ V357: 교수자 → 학습자 음성 피드백 전송 컴포넌트
 function VoiceFeedbackSender({ teacherId, teacherName, learnerId, learnerName }) {
-  const [recording, setRecording] = React.useState(false);
-  const [sending, setSending] = React.useState(false);
-  const [sent, setSent] = React.useState(false);
-  const [error, setError] = React.useState("");
+  const [recording, setRecording] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
   const mediaRecorderRef = React.useRef(null);
   const chunksRef = React.useRef([]);
 
@@ -1605,10 +1605,10 @@ function VoiceFeedbackSender({ teacherId, teacherName, learnerId, learnerName })
 
 // ✅ V357: 학습자 화면 — 음성 피드백 수신 알림 컴포넌트
 function VoiceFeedbackReceiver({ userId }) {
-  const [feedbacks, setFeedbacks] = React.useState([]);
-  const [playing, setPlaying] = React.useState(null);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [playing, setPlaying] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!userId) return;
     const q = query(
       collection(db, "voiceFeedbacks"),
@@ -2407,7 +2407,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
   const [showProgress, setShowProgress] = useState(null); // ✅ V263: {passedCount, nextStep, nextLabel}
 
   // ✅ V355+V263: Firestore 이중 저장 useEffect (모든 useState 선언 완료 후)
-  React.useEffect(() => {
+  useEffect(() => {
     if (!user?.uid || unitsPassed.length === 0) return;
     try {
       updateDoc(doc(db, "users", user.uid), { unitsPassed }).catch(()=>{});
