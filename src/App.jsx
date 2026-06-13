@@ -5381,24 +5381,31 @@ ${vocabList}
         }
       };
       rec.onerror = (e) => {
-        hasResult = true; // 에러도 결과로 처리해서 onend 중복 방지
+        console.log("[STT onerror]", e.error); // ✅ V365 진단 로그
+        if (silenceTimer) clearTimeout(silenceTimer);
+        hasResult = true;
         isListeningRef.current = false;
         pronRecRef.current = null;
         setPronTestListening(false);
-        if (e.error !== "aborted") {
-          setPronTestFeedback({ok:false, similarity:0, msg:"🎤 마이크를 확인하고 다시 시도해주세요"});
+        if (e.error === "not-allowed") {
+          setPronTestFeedback({ok:false, similarity:0, msg:"🎤 마이크 권한을 허용해주세요 (주소창 왼쪽 자물쇠 아이콘)"});
+        } else if (e.error === "no-speech") {
+          setPronTestFeedback({ok:false, similarity:0, msg:"소리를 인식하지 못했어요. 더 크게 말해봐요! 🎤"});
+        } else if (e.error !== "aborted") {
+          setPronTestFeedback({ok:false, similarity:0, msg:`🎤 오류: ${e.error} — 다시 시도해주세요`});
         }
       };
       rec.onend = () => {
+        console.log("[STT onend] hasResult:", hasResult); // ✅ V365 진단 로그
         isListeningRef.current = false;
         pronRecRef.current = null;
         setPronTestListening(false);
-        // 결과 없이 종료된 경우 — 다시 시도 안내
         if (!hasResult) {
           setPronTestFeedback({ok:false, similarity:0, msg: txUI("소리를 인식하지 못했어요. 크게 다시 말해봐요! 🎤", lang)});
           setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(인식 실패)", similarity:0, ok:false}]);
         }
       };
+      console.log("[STT] 시작"); // ✅ V365 진단 로그
       rec.start();
     }
 
@@ -20533,7 +20540,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "364";
+    const APP_VERSION = "365";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
