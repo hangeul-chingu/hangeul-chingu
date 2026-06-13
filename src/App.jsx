@@ -5332,11 +5332,13 @@ ${vocabList}
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         const rec = new SR();
         rec.lang = "ko-KR";
-        rec.interimResults = false;
-        rec.maxAlternatives = 1; // ✅ V373: 3→1, onnomatch 유발 가능성 감소
+        rec.continuous = true;       // ✅ V374: interim 결과로 onnomatch 선점 — 짧은 단어(닭 등) 빈 결과 방지
+        rec.interimResults = true;   // ✅ V374
+        rec.maxAlternatives = 1;
         pronRecRef.current = rec;
         isListeningRef.current = true;
         let resultHandled = false;
+        let bestSoFar = ""; // ✅ V374: interim으로 들어온 최선의 결과 저장
         setPronTestListening(true);
         setPronTestSTT("");
         setPronTestFeedback(null);
@@ -5352,65 +5354,83 @@ ${vocabList}
         };
         rec.onspeechend = () => {
           setPronTestDebug(d => d + " → onspeechend");
+          // ✅ V374: 발화 끝나면 인식 종료 트리거 (continuous 모드에서 자동 종료 안 될 수 있음)
+          try { rec.stop(); } catch(e) {}
         };
         rec.onaudioend = () => {
           setPronTestDebug(d => d + " → onaudioend");
         };
-        rec.onresult = async (e) => {
+        function finalize(bestText, target) {
           resultHandled = true;
-          setPronTestDebug("onresult: 결과 수신! [" + e.results[0][0].transcript + "]");
           isListeningRef.current = false;
           pronRecRef.current = null;
-          const target = pronTestItems[pronTestIdx]?.word || "";
-          let bestText = e.results[0][0].transcript;
-          let bestSim = calcSimilarity(bestText, target);
-          for (let i=0;i<e.results[0].length;i++) {
-            const t = e.results[0][i].transcript;
-            const s = calcSimilarity(t, target);
-            if (s > bestSim) { bestSim = s; bestText = t; }
-          }
-          setPronTestSTT(bestText);
           setPronTestListening(false);
-          await judgePronunciation(bestText, target, bestSim);
+          const bestSim = calcSimilarity(bestText, target);
+          setPronTestSTT(bestText);
+          judgePronunciation(bestText, target, bestSim);
+        }
+        rec.onresult = (e) => {
+          const results = Array.from(e.results);
+          const last = results[results.length - 1];
+          if (last && last[0] && last[0].transcript) {
+            bestSoFar = last[0].transcript;
+            setPronTestDebug("onresult: [" + bestSoFar + "]" + (last.isFinal ? " (final)" : " (interim)"));
+          }
+          if (last && last.isFinal && !resultHandled) {
+            const target = pronTestItems[pronTestIdx]?.word || "";
+            finalize(bestSoFar, target);
+          }
         };
         rec.onnomatch = (e) => {
-          // ✅ V373: onnomatch — 인식은 됐지만 신뢰도 낮음. e.results 있으면 그래도 사용
-          resultHandled = true;
-          setPronTestDebug("onnomatch 발생! results: " + (e.results ? e.results.length : 0));
+          setPronTestDebug(d => d + " → onnomatch (bestSoFar:[" + bestSoFar + "])");
+          if (resultHandled) return;
           isListeningRef.current = false;
           pronRecRef.current = null;
           setPronTestListening(false);
-          if (e.results && e.results.length > 0 && e.results[0] && e.results[0][0]) {
-            const target = pronTestItems[pronTestIdx]?.word || "";
-            const bestText = e.results[0][0].transcript;
-            const bestSim = calcSimilarity(bestText, target);
-            setPronTestSTT(bestText);
-            judgePronunciation(bestText, target, bestSim);
+          const target = pronTestItems[pronTestIdx]?.word || "";
+          if (bestSoFar) {
+            // interim으로 잡았던 텍스트를 그대로 사용
+            finalize(bestSoFar, target);
           } else {
-            setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 인식 신뢰도가 낮아요. 더 또렷하게 다시 말해봐요! 🎤"});
-            setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(onnomatch)", similarity:0, ok:false}]);
+            resultHandled = true;
+            setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 인식 신뢰도가 낮아요. 입을 마이크 가까이 대고 또렷하게 다시 말해봐요! 🎤"});
+            setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(onnomatch-empty)", similarity:0, ok:false}]);
           }
         };
         rec.onerror = (e) => {
+          setPronTestDebug(d => d + " → onerror:" + e.error);
+          if (resultHandled) return;
+          if (e.error === "aborted") return; // 정상 종료(stop 호출)
+          const target = pronTestItems[pronTestIdx]?.word || "";
+          if (bestSoFar) {
+            finalize(bestSoFar, target);
+            return;
+          }
           resultHandled = true;
-          setPronTestDebug("onerror: " + e.error + (e.message ? " / " + e.message : ""));
           isListeningRef.current = false;
           pronRecRef.current = null;
           setPronTestListening(false);
           setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 오류코드: " + e.error + " — 마이크에 더 가까이서 다시 말해봐요! 🎤"});
-          setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(인식 실패: "+e.error+")", similarity:0, ok:false}]);
+          setPronTestResults(r=>[...r, {target, sttText:"(인식 실패: "+e.error+")", similarity:0, ok:false}]);
         };
         rec.onend = () => {
-          setPronTestDebug(d => d + " → onend (resultHandled:" + resultHandled + ")");
-          if (isListeningRef.current) {
+          setPronTestDebug(d => d + " → onend (resultHandled:" + resultHandled + ", bestSoFar:[" + bestSoFar + "])");
+          if (resultHandled) {
             isListeningRef.current = false;
             pronRecRef.current = null;
             setPronTestListening(false);
-            if (!resultHandled) {
-              setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 결과 없이 종료됨 (onresult/onerror 미호출) — 다시 시도해주세요! 🎤"});
-              setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(결과없음)", similarity:0, ok:false}]);
-            }
+            return;
           }
+          const target = pronTestItems[pronTestIdx]?.word || "";
+          if (bestSoFar) {
+            finalize(bestSoFar, target);
+            return;
+          }
+          isListeningRef.current = false;
+          pronRecRef.current = null;
+          setPronTestListening(false);
+          setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 소리를 인식하지 못했어요. 입을 마이크 가까이 대고 다시 말해봐요! 🎤"});
+          setPronTestResults(r=>[...r, {target, sttText:"(결과없음)", similarity:0, ok:false}]);
         };
         try {
           rec.start();
@@ -20563,7 +20583,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "373";
+    const APP_VERSION = "374";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
