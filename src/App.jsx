@@ -5315,65 +5315,85 @@ ${vocabList}
     }
 
     // STT 시작
-    // ✅ V367: 단원 카드 STT와 동일한 단순 방식으로 완전 교체
+    // ✅ V371: getUserMedia 워밍업 추가 — 안드로이드 Chrome에서 SpeechRecognition no-speech 방지
     function startSTT() {
-      if (isListeningRef.current) {
-        if (pronRecRef.current) pronRecRef.current.stop();
+      // ✅ V153: 듣는 중일 때 버튼 재클릭 → 즉시 종료 후 평가
+      if (isListeningRef.current && pronRecRef.current) {
+        pronRecRef.current.stop();
         return;
       }
       if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
         alert(txUI("이 브라우저는 음성 인식을 지원하지 않아요", lang));
         return;
       }
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const rec = new SR();
-      rec.lang = "ko-KR";
-      rec.continuous = true;       // ✅ V368: V152 원래 방식 복원 — 안드로이드 짧은 단어 인식을 위해 필수
-      rec.interimResults = true;   // ✅ V368: V152 원래 방식 복원
-      rec.maxAlternatives = 3;
-      pronRecRef.current = rec;
-      isListeningRef.current = true;
-      let processed = false;
-      setPronTestListening(true);
-      setPronTestSTT("");
-      setPronTestFeedback(null);
-      rec.onresult = (e) => {
-        // ✅ V370: onresult를 동기 함수로 변경 — async onresult가 안드로이드 Chrome에서 충돌 유발
-        if (processed) return;
-        const results = Array.from(e.results);
-        const finalResult = results.find(r => r.isFinal);
-        const useResult = finalResult || results[results.length - 1];
-        if (!useResult) return;
-        processed = true;
-        rec.stop();
-        isListeningRef.current = false;
-        pronRecRef.current = null;
-        setPronTestListening(false);
-        const target = pronTestItems[pronTestIdx]?.word || "";
-        let bestText = useResult[0].transcript;
-        let bestSim = calcSimilarity(bestText, target);
-        for (let i = 0; i < useResult.length; i++) {
-          const s = calcSimilarity(useResult[i].transcript, target);
-          if (s > bestSim) { bestSim = s; bestText = useResult[i].transcript; }
+
+      function runRecognition() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const rec = new SR();
+        rec.lang = "ko-KR";
+        rec.interimResults = false;
+        rec.maxAlternatives = 3;
+        pronRecRef.current = rec;
+        isListeningRef.current = true;
+        setPronTestListening(true);
+        setPronTestSTT("");
+        setPronTestFeedback(null);
+        rec.onresult = async (e) => {
+          isListeningRef.current = false;
+          pronRecRef.current = null;
+          const target = pronTestItems[pronTestIdx]?.word || "";
+          let bestText = e.results[0][0].transcript;
+          let bestSim = calcSimilarity(bestText, target);
+          for (let i=0;i<e.results[0].length;i++) {
+            const t = e.results[0][i].transcript;
+            const s = calcSimilarity(t, target);
+            if (s > bestSim) { bestSim = s; bestText = t; }
+          }
+          setPronTestSTT(bestText);
+          setPronTestListening(false);
+          await judgePronunciation(bestText, target, bestSim);
+        };
+        rec.onerror = (e) => {
+          isListeningRef.current = false;
+          pronRecRef.current = null;
+          setPronTestListening(false);
+          if (e.error !== "aborted") {
+            setPronTestFeedback({ok:false, similarity:0, msg: txUI("소리를 인식하지 못했어요. 마이크에 더 가까이서 다시 말해봐요! 🎤", lang)});
+            setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(인식 실패: "+e.error+")", similarity:0, ok:false}]);
+          }
+        };
+        rec.onend = () => {
+          if (isListeningRef.current) {
+            isListeningRef.current = false;
+            pronRecRef.current = null;
+            setPronTestListening(false);
+          }
+        };
+        try {
+          rec.start();
+        } catch(err) {
+          isListeningRef.current = false;
+          pronRecRef.current = null;
+          setPronTestListening(false);
         }
-        setPronTestSTT(bestText);
-        // async 작업은 별도로 실행
-        judgePronunciation(bestText, target, bestSim);
-      };
-      rec.onerror = (e) => {
-        isListeningRef.current = false;
-        pronRecRef.current = null;
-        setPronTestListening(false);
-        if (e.error !== "aborted") {
-          setPronTestFeedback({ok:false, similarity:0, msg: txUI("소리를 인식하지 못했어요. 크게 다시 말해봐요! 🎤", lang)});
-        }
-      };
-      rec.onend = () => {
-        isListeningRef.current = false;
-        pronRecRef.current = null;
-        setPronTestListening(false);
-      };
-      rec.start();
+      }
+
+      // ✅ V371: 안드로이드 Chrome SpeechRecognition no-speech 버그 우회
+      // getUserMedia로 마이크 스트림을 먼저 활성화한 뒤 SpeechRecognition 시작
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => {
+            // 스트림은 SpeechRecognition이 내부적으로 별도 처리하므로 즉시 해제
+            stream.getTracks().forEach(t => t.stop());
+            runRecognition();
+          })
+          .catch(() => {
+            // getUserMedia 실패 시에도 일단 시도
+            runRecognition();
+          });
+      } else {
+        runRecognition();
+      }
     }
 
     // ✅ V356: 마중이 코칭 멘트 생성 함수
@@ -20507,7 +20527,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "370";
+    const APP_VERSION = "371";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
