@@ -2372,6 +2372,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
   const [pronTestSTT, setPronTestSTT] = useState("");       // STT 인식 결과
   const [pronTestListening, setPronTestListening] = useState(false);
   const [pronTestFeedback, setPronTestFeedback] = useState(null); // {ok, msg, similarity}
+  const [pronTestDebug, setPronTestDebug] = useState(""); // ✅ V372: STT 디버그 표시용 (임시)
   const [pronTestLoading, setPronTestLoading] = useState(false);
   const [pronTestFromStep, setPronTestFromStep] = useState(0); // 어느 발음 단계에서 왔는지
   const pronRecRef = useRef(null); // ✅ V153: STT 인스턴스 ref (재클릭 종료용)
@@ -5338,7 +5339,18 @@ ${vocabList}
         setPronTestListening(true);
         setPronTestSTT("");
         setPronTestFeedback(null);
+        setPronTestDebug("start() 호출됨"); // ✅ V372 디버그
+        rec.onstart = () => {
+          setPronTestDebug("onstart: 인식 시작됨");
+        };
+        rec.onaudiostart = () => {
+          setPronTestDebug("onaudiostart: 오디오 캡처 시작");
+        };
+        rec.onspeechstart = () => {
+          setPronTestDebug("onspeechstart: 말소리 감지!");
+        };
         rec.onresult = async (e) => {
+          setPronTestDebug("onresult: 결과 수신!");
           isListeningRef.current = false;
           pronRecRef.current = null;
           const target = pronTestItems[pronTestIdx]?.word || "";
@@ -5354,15 +5366,15 @@ ${vocabList}
           await judgePronunciation(bestText, target, bestSim);
         };
         rec.onerror = (e) => {
+          setPronTestDebug("onerror: " + e.error + (e.message ? " / " + e.message : ""));
           isListeningRef.current = false;
           pronRecRef.current = null;
           setPronTestListening(false);
-          if (e.error !== "aborted") {
-            setPronTestFeedback({ok:false, similarity:0, msg: txUI("소리를 인식하지 못했어요. 마이크에 더 가까이서 다시 말해봐요! 🎤", lang)});
-            setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(인식 실패: "+e.error+")", similarity:0, ok:false}]);
-          }
+          setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 오류코드: " + e.error + " — 마이크에 더 가까이서 다시 말해봐요! 🎤"});
+          setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(인식 실패: "+e.error+")", similarity:0, ok:false}]);
         };
         rec.onend = () => {
+          setPronTestDebug(d => d + " → onend");
           if (isListeningRef.current) {
             isListeningRef.current = false;
             pronRecRef.current = null;
@@ -5372,28 +5384,14 @@ ${vocabList}
         try {
           rec.start();
         } catch(err) {
+          setPronTestDebug("start() 예외: " + err.message);
           isListeningRef.current = false;
           pronRecRef.current = null;
           setPronTestListening(false);
         }
       }
 
-      // ✅ V371: 안드로이드 Chrome SpeechRecognition no-speech 버그 우회
-      // getUserMedia로 마이크 스트림을 먼저 활성화한 뒤 SpeechRecognition 시작
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-          .then(stream => {
-            // 스트림은 SpeechRecognition이 내부적으로 별도 처리하므로 즉시 해제
-            stream.getTracks().forEach(t => t.stop());
-            runRecognition();
-          })
-          .catch(() => {
-            // getUserMedia 실패 시에도 일단 시도
-            runRecognition();
-          });
-      } else {
-        runRecognition();
-      }
+      runRecognition(); // ✅ V372: getUserMedia 워밍업 제거 — 충돌 가능성 배제, 디버그로 원인 파악 우선
     }
 
     // ✅ V356: 마중이 코칭 멘트 생성 함수
@@ -5567,6 +5565,13 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
               🔊 {txUI("예시 듣기", lang)}
             </button>
           </div>
+
+          {/* ✅ V372: STT 디버그 정보 (임시) */}
+          {pronTestDebug && (
+            <div style={{background:"#FFFBEA", border:"1px solid #FFE08A", borderRadius:10, padding:"8px 12px", marginBottom:8, fontSize:12, color:"#7A5D00", textAlign:"center"}}>
+              🔍 {pronTestDebug}
+            </div>
+          )}
 
           {/* STT 결과 표시 */}
           {pronTestSTT && (
@@ -20527,7 +20532,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "371";
+    const APP_VERSION = "372";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
