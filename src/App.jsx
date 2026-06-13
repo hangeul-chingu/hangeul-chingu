@@ -5333,13 +5333,14 @@ ${vocabList}
         const rec = new SR();
         rec.lang = "ko-KR";
         rec.interimResults = false;
-        rec.maxAlternatives = 3;
+        rec.maxAlternatives = 1; // ✅ V373: 3→1, onnomatch 유발 가능성 감소
         pronRecRef.current = rec;
         isListeningRef.current = true;
+        let resultHandled = false;
         setPronTestListening(true);
         setPronTestSTT("");
         setPronTestFeedback(null);
-        setPronTestDebug("start() 호출됨"); // ✅ V372 디버그
+        setPronTestDebug("start() 호출됨");
         rec.onstart = () => {
           setPronTestDebug("onstart: 인식 시작됨");
         };
@@ -5349,8 +5350,15 @@ ${vocabList}
         rec.onspeechstart = () => {
           setPronTestDebug("onspeechstart: 말소리 감지!");
         };
+        rec.onspeechend = () => {
+          setPronTestDebug(d => d + " → onspeechend");
+        };
+        rec.onaudioend = () => {
+          setPronTestDebug(d => d + " → onaudioend");
+        };
         rec.onresult = async (e) => {
-          setPronTestDebug("onresult: 결과 수신!");
+          resultHandled = true;
+          setPronTestDebug("onresult: 결과 수신! [" + e.results[0][0].transcript + "]");
           isListeningRef.current = false;
           pronRecRef.current = null;
           const target = pronTestItems[pronTestIdx]?.word || "";
@@ -5365,7 +5373,26 @@ ${vocabList}
           setPronTestListening(false);
           await judgePronunciation(bestText, target, bestSim);
         };
+        rec.onnomatch = (e) => {
+          // ✅ V373: onnomatch — 인식은 됐지만 신뢰도 낮음. e.results 있으면 그래도 사용
+          resultHandled = true;
+          setPronTestDebug("onnomatch 발생! results: " + (e.results ? e.results.length : 0));
+          isListeningRef.current = false;
+          pronRecRef.current = null;
+          setPronTestListening(false);
+          if (e.results && e.results.length > 0 && e.results[0] && e.results[0][0]) {
+            const target = pronTestItems[pronTestIdx]?.word || "";
+            const bestText = e.results[0][0].transcript;
+            const bestSim = calcSimilarity(bestText, target);
+            setPronTestSTT(bestText);
+            judgePronunciation(bestText, target, bestSim);
+          } else {
+            setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 인식 신뢰도가 낮아요. 더 또렷하게 다시 말해봐요! 🎤"});
+            setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(onnomatch)", similarity:0, ok:false}]);
+          }
+        };
         rec.onerror = (e) => {
+          resultHandled = true;
           setPronTestDebug("onerror: " + e.error + (e.message ? " / " + e.message : ""));
           isListeningRef.current = false;
           pronRecRef.current = null;
@@ -5374,11 +5401,15 @@ ${vocabList}
           setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(인식 실패: "+e.error+")", similarity:0, ok:false}]);
         };
         rec.onend = () => {
-          setPronTestDebug(d => d + " → onend");
+          setPronTestDebug(d => d + " → onend (resultHandled:" + resultHandled + ")");
           if (isListeningRef.current) {
             isListeningRef.current = false;
             pronRecRef.current = null;
             setPronTestListening(false);
+            if (!resultHandled) {
+              setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 결과 없이 종료됨 (onresult/onerror 미호출) — 다시 시도해주세요! 🎤"});
+              setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(결과없음)", similarity:0, ok:false}]);
+            }
           }
         };
         try {
@@ -20532,7 +20563,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "372";
+    const APP_VERSION = "373";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
