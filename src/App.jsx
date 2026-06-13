@@ -5315,10 +5315,10 @@ ${vocabList}
     }
 
     // STT 시작
+    // ✅ V367: 단원 카드 STT와 동일한 단순 방식으로 완전 교체
     function startSTT() {
-      // ✅ V153: 듣는 중일 때 버튼 재클릭 → 즉시 종료 후 평가
-      if (isListeningRef.current && pronRecRef.current) {
-        pronRecRef.current.stop();
+      if (isListeningRef.current) {
+        if (pronRecRef.current) pronRecRef.current.stop();
         return;
       }
       if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
@@ -5328,60 +5328,41 @@ ${vocabList}
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SR();
       rec.lang = "ko-KR";
-      rec.interimResults = false;  // ✅ V366: 원복 — 다른 STT와 동일 방식
+      rec.interimResults = false;
       rec.maxAlternatives = 3;
-      // continuous 미설정 (기본값 false) — V354 원래 방식
       pronRecRef.current = rec;
       isListeningRef.current = true;
-      let hasResult = false;
       setPronTestListening(true);
       setPronTestSTT("");
       setPronTestFeedback(null);
       rec.onresult = async (e) => {
-        if (hasResult) return;
-        hasResult = true;
-        rec.stop();
         isListeningRef.current = false;
         pronRecRef.current = null;
+        setPronTestListening(false);
         const target = pronTestItems[pronTestIdx]?.word || "";
         const result = e.results[0];
         let bestText = result[0].transcript;
         let bestSim = calcSimilarity(bestText, target);
         for (let i = 0; i < result.length; i++) {
-          const t = result[i].transcript;
-          const s = calcSimilarity(t, target);
-          if (s > bestSim) { bestSim = s; bestText = t; }
+          const s = calcSimilarity(result[i].transcript, target);
+          if (s > bestSim) { bestSim = s; bestText = result[i].transcript; }
         }
         setPronTestSTT(bestText);
-        setPronTestListening(false);
         await judgePronunciation(bestText, target, bestSim);
       };
       rec.onerror = (e) => {
-        console.log("[STT onerror]", e.error); // ✅ V365 진단 로그
-        if (silenceTimer) clearTimeout(silenceTimer);
-        hasResult = true;
         isListeningRef.current = false;
         pronRecRef.current = null;
         setPronTestListening(false);
-        if (e.error === "not-allowed") {
-          setPronTestFeedback({ok:false, similarity:0, msg:"🎤 마이크 권한을 허용해주세요 (주소창 왼쪽 자물쇠 아이콘)"});
-        } else if (e.error === "no-speech") {
-          setPronTestFeedback({ok:false, similarity:0, msg:"소리를 인식하지 못했어요. 더 크게 말해봐요! 🎤"});
-        } else if (e.error !== "aborted") {
-          setPronTestFeedback({ok:false, similarity:0, msg:`🎤 오류: ${e.error} — 다시 시도해주세요`});
+        if (e.error !== "aborted") {
+          setPronTestFeedback({ok:false, similarity:0, msg: txUI("소리를 인식하지 못했어요. 크게 다시 말해봐요! 🎤", lang)});
         }
       };
       rec.onend = () => {
-        console.log("[STT onend] hasResult:", hasResult); // ✅ V365 진단 로그
         isListeningRef.current = false;
         pronRecRef.current = null;
         setPronTestListening(false);
-        if (!hasResult) {
-          setPronTestFeedback({ok:false, similarity:0, msg: txUI("소리를 인식하지 못했어요. 크게 다시 말해봐요! 🎤", lang)});
-          setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(인식 실패)", similarity:0, ok:false}]);
-        }
       };
-      console.log("[STT] 시작"); // ✅ V365 진단 로그
       rec.start();
     }
 
@@ -20516,7 +20497,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "366";
+    const APP_VERSION = "367";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
