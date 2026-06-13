@@ -5328,28 +5328,27 @@ ${vocabList}
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SR();
       rec.lang = "ko-KR";
-      rec.interimResults = true;   // ✅ 중간 결과도 받아서 짧은 단어 인식 개선
-      rec.continuous = true;        // ✅ 짧은 단어도 끊기지 않게
+      rec.interimResults = false;  // ✅ V362: isFinal만 받도록 변경 (continuous+interimResults 조합 오작동 방지)
+      rec.continuous = false;       // ✅ V362: 한 번 말하고 자동 종료 — isFinal 안 오는 버그 수정
       rec.maxAlternatives = 3;
       pronRecRef.current = rec;
       isListeningRef.current = true;
-      let hasResult = false;        // ✅ 결과 수신 여부 추적
+      let hasResult = false;
       setPronTestListening(true);
       setPronTestSTT("");
       setPronTestFeedback(null);
       rec.onresult = async (e) => {
-        // 최종 결과(isFinal)만 처리
-        const finalResult = Array.from(e.results).find(r => r.isFinal);
-        if (!finalResult) return; // 중간 결과는 무시
+        if (hasResult) return;
         hasResult = true;
-        rec.stop();
         isListeningRef.current = false;
         pronRecRef.current = null;
         const target = pronTestItems[pronTestIdx]?.word || "";
-        let bestText = finalResult[0].transcript;
+        // continuous=false 이면 results[0]이 최종 결과
+        const result = e.results[0];
+        let bestText = result[0].transcript;
         let bestSim = calcSimilarity(bestText, target);
-        for (let i=0;i<finalResult.length;i++) {
-          const t = finalResult[i].transcript;
+        for (let i = 0; i < result.length; i++) {
+          const t = result[i].transcript;
           const s = calcSimilarity(t, target);
           if (s > bestSim) { bestSim = s; bestText = t; }
         }
@@ -20510,7 +20509,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "362";
+    const APP_VERSION = "363";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
