@@ -5248,15 +5248,23 @@ ${vocabList}
         </>
         )}
 
-        {/* 발음 테스트 버튼 — 각 단계마다 테스트 후 다음으로 */}
+        {/* ✅ V361: 발음 학습 → 다음 단계 or 발음 테스트로 이동 */}
         <button onClick={()=>{
           if(pronStep < PRON_STEPS.length - 1){ setPronStep(s=>s+1); setFlipped({}); }
-          else { setShowProgress({ passedCount: unitsPassed.length, completedLabel: txUI("발음 8단계", lang), nextStep:"tense1", nextLabel: txUI("다음 — 시제", lang) }); }
+          else {
+            // 마지막 발음 단계 → 발음 테스트로 이동 (시제 직행 버그 수정)
+            setPronTestIdx(0);
+            setPronTestResults([]);
+            setPronTestSTT("");
+            setPronTestFeedback(null);
+            setPronTestFromStep(pronStep);
+            setStep("pronTest");
+          }
         }}
           style={{width:"100%", maxWidth:360, background:"linear-gradient(135deg,#9C6FDE,#C084FC)", color:"white", border:"none", borderRadius:50, padding:"14px 0", fontSize:15, fontWeight:900, cursor:"pointer", boxShadow:"0 4px 16px #9C6FDE44"}}>
           {pronStep < PRON_STEPS.length - 1
             ? (txUI("다음 단계로 →", lang))
-            : (txUI("시제 학습으로! 🚀", lang))}
+            : (txUI("발음 테스트 시작! 🎤", lang))}
         </button>
 
         <button onClick={()=>setStep("plan")} style={{marginTop:12, background:"none", border:"none", color:"#ccc", fontSize:12, cursor:"pointer"}}>← 뒤로</button>
@@ -20490,7 +20498,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "360";
+    const APP_VERSION = "361";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
