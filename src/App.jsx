@@ -5328,57 +5328,33 @@ ${vocabList}
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SR();
       rec.lang = "ko-KR";
-      rec.interimResults = true;   // ✅ V364: interim 결과도 받아서 처리
-      rec.continuous = true;        // ✅ V364: continuous=true — abort 방지
+      rec.interimResults = false;  // ✅ V366: 원복 — 다른 STT와 동일 방식
       rec.maxAlternatives = 3;
+      // continuous 미설정 (기본값 false) — V354 원래 방식
       pronRecRef.current = rec;
       isListeningRef.current = true;
       let hasResult = false;
-      let silenceTimer = null;     // ✅ V364: 묵음 타이머로 자동 종료
       setPronTestListening(true);
       setPronTestSTT("");
       setPronTestFeedback(null);
       rec.onresult = async (e) => {
         if (hasResult) return;
-        // interim 또는 final 결과 모두 처리
-        const results = Array.from(e.results);
-        const latestResult = results[results.length - 1];
-        if (!latestResult) return;
-        // 말이 감지되면 타이머 리셋
-        if (silenceTimer) clearTimeout(silenceTimer);
-        const transcript = latestResult[0].transcript;
-        setPronTestSTT(transcript);
-        // final이거나 1.2초 묵음이면 처리
-        if (latestResult.isFinal) {
-          hasResult = true;
-          if (silenceTimer) clearTimeout(silenceTimer);
-          rec.stop();
-          isListeningRef.current = false;
-          pronRecRef.current = null;
-          const target = pronTestItems[pronTestIdx]?.word || "";
-          let bestText = transcript;
-          let bestSim = calcSimilarity(bestText, target);
-          for (let i = 0; i < latestResult.length; i++) {
-            const t = latestResult[i].transcript;
-            const s = calcSimilarity(t, target);
-            if (s > bestSim) { bestSim = s; bestText = t; }
-          }
-          setPronTestListening(false);
-          await judgePronunciation(bestText, target, bestSim);
-        } else {
-          // interim: 1.5초 후 자동 처리
-          silenceTimer = setTimeout(async () => {
-            if (hasResult) return;
-            hasResult = true;
-            rec.stop();
-            isListeningRef.current = false;
-            pronRecRef.current = null;
-            const target = pronTestItems[pronTestIdx]?.word || "";
-            const bestSim = calcSimilarity(transcript, target);
-            setPronTestListening(false);
-            await judgePronunciation(transcript, target, bestSim);
-          }, 1500);
+        hasResult = true;
+        rec.stop();
+        isListeningRef.current = false;
+        pronRecRef.current = null;
+        const target = pronTestItems[pronTestIdx]?.word || "";
+        const result = e.results[0];
+        let bestText = result[0].transcript;
+        let bestSim = calcSimilarity(bestText, target);
+        for (let i = 0; i < result.length; i++) {
+          const t = result[i].transcript;
+          const s = calcSimilarity(t, target);
+          if (s > bestSim) { bestSim = s; bestText = t; }
         }
+        setPronTestSTT(bestText);
+        setPronTestListening(false);
+        await judgePronunciation(bestText, target, bestSim);
       };
       rec.onerror = (e) => {
         console.log("[STT onerror]", e.error); // ✅ V365 진단 로그
@@ -20540,7 +20516,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "365";
+    const APP_VERSION = "366";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
