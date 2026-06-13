@@ -5328,24 +5328,34 @@ ${vocabList}
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SR();
       rec.lang = "ko-KR";
-      rec.interimResults = false;
+      rec.continuous = true;       // ✅ V368: V152 원래 방식 복원 — 안드로이드 짧은 단어 인식을 위해 필수
+      rec.interimResults = true;   // ✅ V368: V152 원래 방식 복원
       rec.maxAlternatives = 3;
       pronRecRef.current = rec;
       isListeningRef.current = true;
+      let processed = false;
       setPronTestListening(true);
       setPronTestSTT("");
       setPronTestFeedback(null);
       rec.onresult = async (e) => {
+        if (processed) return;
+        // isFinal 결과 우선 처리
+        const results = Array.from(e.results);
+        const finalResult = results.find(r => r.isFinal);
+        const useResult = finalResult || results[results.length - 1];
+        if (!useResult) return;
+        if (!finalResult) return; // isFinal 아니면 기다림
+        processed = true;
+        rec.stop();
         isListeningRef.current = false;
         pronRecRef.current = null;
         setPronTestListening(false);
         const target = pronTestItems[pronTestIdx]?.word || "";
-        const result = e.results[0];
-        let bestText = result[0].transcript;
+        let bestText = useResult[0].transcript;
         let bestSim = calcSimilarity(bestText, target);
-        for (let i = 0; i < result.length; i++) {
-          const s = calcSimilarity(result[i].transcript, target);
-          if (s > bestSim) { bestSim = s; bestText = result[i].transcript; }
+        for (let i = 0; i < useResult.length; i++) {
+          const s = calcSimilarity(useResult[i].transcript, target);
+          if (s > bestSim) { bestSim = s; bestText = useResult[i].transcript; }
         }
         setPronTestSTT(bestText);
         await judgePronunciation(bestText, target, bestSim);
@@ -20497,7 +20507,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "367";
+    const APP_VERSION = "368";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
