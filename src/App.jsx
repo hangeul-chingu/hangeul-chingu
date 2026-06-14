@@ -30,7 +30,7 @@ const ADMIN_EMAIL = "roh053068@gmail.com";
 const DEV_EMAIL = "csyager@hanmail.net";
 // ✅ V382: 앱 버전 — 캐시버스팅 팝업 트리거 기준. 매 버전 배포 시 반드시 함께 갱신할 것!
 //          (기존에는 useEffect 내부에 하드코딩되어 있어 V381에서 갱신을 누락 → 캐시버스팅 팝업 미표시 버그 발생)
-const APP_VERSION = "382";
+const APP_VERSION = "383";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -5431,11 +5431,21 @@ ${vocabList}
         rec.onresult = (e) => {
           const results = Array.from(e.results);
           const last = results[results.length - 1];
-          if (last && last[0] && last[0].transcript) {
-            bestSoFar = last[0].transcript;
-            setPronTestDebug("onresult: [" + bestSoFar + "]" + (last.isFinal ? " (final)" : " (interim)"));
+          const transcript = last && last[0] ? last[0].transcript : "";
+
+          // ✅ V383: onresult 이벤트를 직접대입(덮어쓰기)이 아닌 append로 누적 기록
+          // (이전: 두 번째 onresult가 첫 번째 onresult의 finalize() 디버그 내용을 통째로 덮어써서
+          //  실제로 무슨 일이 있었는지 화면에서 알 수 없었음)
+          setPronTestDebug(d => d + " → onresult: [" + transcript + "]" + (last?.isFinal ? " (final)" : " (interim)"));
+
+          if (transcript) {
+            bestSoFar = transcript;
           }
-          if (last && last.isFinal && !resultHandled) {
+
+          // ✅ V383: isFinal이어도 transcript가 빈 문자열이면 finalize 보류 — 다음 result(실제 인식 결과)를 기다림
+          // (이전: 1차 result가 final+빈 문자열로 와서 calcSimilarity("",target)=0으로 조기 확정되고
+          //  resultHandled=true가 되어, 뒤이어 오는 진짜 인식 결과("앉다" 등)가 무시되는 버그가 있었음)
+          if (last && last.isFinal && transcript && !resultHandled) {
             const target = pronTestItems[pronTestIdx]?.word || "";
             finalize(bestSoFar, target);
           }
