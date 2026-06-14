@@ -28,6 +28,9 @@ import {
 const ADMIN_EMAIL = "roh053068@gmail.com";
 // ✅ V153: 개발자 학습자 이메일 (이 이메일로만 단계 점프 버튼 표시)
 const DEV_EMAIL = "csyager@hanmail.net";
+// ✅ V382: 앱 버전 — 캐시버스팅 팝업 트리거 기준. 매 버전 배포 시 반드시 함께 갱신할 것!
+//          (기존에는 useEffect 내부에 하드코딩되어 있어 V381에서 갱신을 누락 → 캐시버스팅 팝업 미표시 버그 발생)
+const APP_VERSION = "382";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -20628,7 +20631,6 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "380";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
@@ -20772,7 +20774,7 @@ export default function App() {
             </span>
           </div>
           <button onClick={()=>{
-            window.location.href = window.location.origin + "?v=349&t=" + Date.now();
+            window.location.href = window.location.origin + "?v=" + APP_VERSION + "&t=" + Date.now();
           }} style={{width:"100%",background:"linear-gradient(135deg,#1565C0,#1976D2)",
             color:"white",border:"none",borderRadius:14,padding:"15px",
             fontSize:16,fontWeight:900,cursor:"pointer",marginBottom:10}}>
