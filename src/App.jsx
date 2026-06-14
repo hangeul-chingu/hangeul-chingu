@@ -5337,6 +5337,21 @@ ${vocabList}
         rec.continuous = true;       // ✅ V374: interim 결과로 onnomatch 선점 — 짧은 단어(닭 등) 빈 결과 방지
         rec.interimResults = true;   // ✅ V374
         rec.maxAlternatives = 1;
+
+        // ✅ V378: SpeechGrammarList — 목표 단어를 인식 후보로 명시하여 짧은 단어 인식률 향상
+        const target = pronTestItems[pronTestIdx]?.word || "";
+        const GrammarListCtor = window.SpeechGrammarList || window.webkitSpeechGrammarList;
+        let grammarApplied = false;
+        if (GrammarListCtor && target) {
+          try {
+            const grammar = '#JSGF V1.0; grammar words; public <word> = ' + target + ' | ' + target + ' ' + target + ' ;';
+            const grammarList = new GrammarListCtor();
+            grammarList.addFromString(grammar, 1);
+            rec.grammars = grammarList;
+            grammarApplied = true;
+          } catch(e) { /* 그래머 미지원 브라우저는 무시 */ }
+        }
+
         pronRecRef.current = rec;
         isListeningRef.current = true;
         let resultHandled = false;
@@ -5344,7 +5359,7 @@ ${vocabList}
         setPronTestListening(true);
         setPronTestSTT("");
         setPronTestFeedback(null);
-        setPronTestDebug(retryCount > 0 ? `🔄 다시 인식 중... (${retryCount}/${MAX_RETRIES})` : "start() 호출됨");
+        setPronTestDebug((retryCount > 0 ? `🔄 다시 인식 중... (${retryCount}/${MAX_RETRIES})` : "start() 호출됨") + (grammarApplied ? " [그래머 적용]" : " [그래머 미지원]"));
 
         // ✅ V376: 결과 없이 끝났을 때 — 자동 재시도 또는 최종 실패 처리
         function handleEmptyResult() {
@@ -20601,7 +20616,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "377";
+    const APP_VERSION = "378";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
