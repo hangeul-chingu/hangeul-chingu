@@ -5254,15 +5254,19 @@ ${vocabList}
           if(pronStep < PRON_STEPS.length - 1){ setPronStep(s=>s+1); setFlipped({}); }
           else {
             // ✅ V362: 마지막 발음 단계 → 발음 테스트로 이동 (테스트 단어 세팅 추가)
-            // 현재 단계 items에서 word 추출 → pronTestItems 세팅
+            // ✅ V379: 1음절(1글자) 단어는 STT 인식이 거의 불가능 — 채점 대상에서 제외
+            // (예: "닭" 단독 1음절은 음향 컨텍스트 부족으로 Google STT가 빈 결과 반환,
+            //  "앉다" 2음절부터는 인식 가능 — 실측 데이터 기반)
             const currentItems = PRON_STEPS[pronStep]?.items || [];
-            const testWords = currentItems
+            const allWords = currentItems
               .map(item => ({ word: item.word, char: item.char }))
               .filter(item => item.word);
-            // 단어가 없으면 전체 단계에서 랜덤 10개 추출
-            const fallbackWords = testWords.length > 0 ? testWords :
+            const testWords = allWords.filter(item => item.word.length >= 2);
+            const finalWords = testWords.length > 0 ? testWords : allWords;
+            // 단어가 없으면 전체 단계에서 랜덤 10개 추출 (2음절 이상 우선)
+            const fallbackWords = finalWords.length > 0 ? finalWords :
               PRON_STEPS.flatMap(s => (s.items||[]).map(item => ({ word: item.word, char: item.char })))
-                .filter(item => item.word)
+                .filter(item => item.word && item.word.length >= 2)
                 .sort(() => Math.random() - 0.5)
                 .slice(0, 10);
             setPronTestItems(fallbackWords);
@@ -20616,7 +20620,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "378";
+    const APP_VERSION = "379";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
