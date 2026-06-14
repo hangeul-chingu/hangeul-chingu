@@ -5328,7 +5328,9 @@ ${vocabList}
         return;
       }
 
-      function runRecognition() {
+      const MAX_RETRIES = 3; // ✅ V376: 빈 결과 시 최대 자동 재시도 횟수
+
+      function runRecognition(retryCount) {
         const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
         const rec = new SR();
         rec.lang = "ko-KR";
@@ -5342,7 +5344,22 @@ ${vocabList}
         setPronTestListening(true);
         setPronTestSTT("");
         setPronTestFeedback(null);
-        setPronTestDebug("start() 호출됨");
+        setPronTestDebug(retryCount > 0 ? `🔄 다시 인식 중... (${retryCount}/${MAX_RETRIES})` : "start() 호출됨");
+
+        // ✅ V376: 결과 없이 끝났을 때 — 자동 재시도 또는 최종 실패 처리
+        function handleEmptyResult() {
+          isListeningRef.current = false;
+          pronRecRef.current = null;
+          if (retryCount < MAX_RETRIES) {
+            setPronTestDebug(`🔄 인식 결과 없음 — 자동 재시도 중... (${retryCount+1}/${MAX_RETRIES})`);
+            setTimeout(() => { runRecognition(retryCount + 1); }, 400);
+          } else {
+            setPronTestListening(false);
+            const target = pronTestItems[pronTestIdx]?.word || "";
+            setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 음성 인식이 잘 안 돼요. 마이크에 더 가까이서 천천히 다시 말해봐요! 🎤"});
+            setPronTestResults(r=>[...r, {target, sttText:"(결과없음-재시도"+MAX_RETRIES+"회 실패)", similarity:0, ok:false}]);
+          }
+        }
         rec.onstart = () => {
           setPronTestDebug("onstart: 인식 시작됨");
         };
@@ -5390,17 +5407,13 @@ ${vocabList}
         rec.onnomatch = (e) => {
           setPronTestDebug(d => d + " → onnomatch (bestSoFar:[" + bestSoFar + "])");
           if (resultHandled) return;
-          isListeningRef.current = false;
-          pronRecRef.current = null;
-          setPronTestListening(false);
+          resultHandled = true;
           const target = pronTestItems[pronTestIdx]?.word || "";
           if (bestSoFar) {
             // interim으로 잡았던 텍스트를 그대로 사용
             finalize(bestSoFar, target);
           } else {
-            resultHandled = true;
-            setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 인식 신뢰도가 낮아요. 입을 마이크 가까이 대고 또렷하게 다시 말해봐요! 🎤"});
-            setPronTestResults(r=>[...r, {target: pronTestItems[pronTestIdx]?.word||"", sttText:"(onnomatch-empty)", similarity:0, ok:false}]);
+            handleEmptyResult(); // ✅ V376: 빈 결과 → 자동 재시도
           }
         };
         rec.onerror = (e) => {
@@ -5413,11 +5426,7 @@ ${vocabList}
             return;
           }
           resultHandled = true;
-          isListeningRef.current = false;
-          pronRecRef.current = null;
-          setPronTestListening(false);
-          setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 오류코드: " + e.error + " — 마이크에 더 가까이서 다시 말해봐요! 🎤"});
-          setPronTestResults(r=>[...r, {target, sttText:"(인식 실패: "+e.error+")", similarity:0, ok:false}]);
+          handleEmptyResult(); // ✅ V376: 빈 결과 → 자동 재시도
         };
         rec.onend = () => {
           setPronTestDebug(d => d + " → onend (resultHandled:" + resultHandled + ", bestSoFar:[" + bestSoFar + "])");
@@ -5427,16 +5436,13 @@ ${vocabList}
             setPronTestListening(false);
             return;
           }
+          resultHandled = true;
           const target = pronTestItems[pronTestIdx]?.word || "";
           if (bestSoFar) {
             finalize(bestSoFar, target);
             return;
           }
-          isListeningRef.current = false;
-          pronRecRef.current = null;
-          setPronTestListening(false);
-          setPronTestFeedback({ok:false, similarity:0, msg: "⚠️ 소리를 인식하지 못했어요. 입을 마이크 가까이 대고 다시 말해봐요! 🎤"});
-          setPronTestResults(r=>[...r, {target, sttText:"(결과없음)", similarity:0, ok:false}]);
+          handleEmptyResult(); // ✅ V376: 빈 결과 → 자동 재시도
         };
         try {
           rec.start();
@@ -5448,7 +5454,7 @@ ${vocabList}
         }
       }
 
-      runRecognition(); // ✅ V372: getUserMedia 워밍업 제거 — 충돌 가능성 배제, 디버그로 원인 파악 우선
+      runRecognition(0); // ✅ V376: 재시도 카운트 0으로 시작
     }
 
     // ✅ V356: 마중이 코칭 멘트 생성 함수
@@ -20589,7 +20595,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "375";
+    const APP_VERSION = "376";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
