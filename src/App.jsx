@@ -5417,6 +5417,11 @@ ${vocabList}
           setPronTestListening(false);
           try { rec.stop(); } catch(e) {} // ✅ V375: continuous 세션 완전 종료 — 다음 문제로 넘어갈 때 잔존 세션 방지
           const bestSim = calcSimilarity(bestText, target);
+          // ✅ V381: 진단용 디버그 강화 — finalize에 실제로 전달되는 값/유사도/문자코드를 그대로 노출
+          // (이전 V380 적용에도 안드로이드에서 동일 증상 재현되어, bestSoFar 표시값과
+          //  실제 비교 대상이 일치하는지 직접 확인하기 위함)
+          const dumpCodes = (s) => Array.from(s).map(c => c.codePointAt(0).toString(16)).join(",");
+          setPronTestDebug(d => d + ` → finalize(bestText:[${bestText}] len${bestText.length} codes:${dumpCodes(bestText)} / target:[${target}] len${target.length} codes:${dumpCodes(target)} / 유사도:${bestSim}%)`);
           setPronTestSTT(bestText);
           judgePronunciation(bestText, target, bestSim);
         }
