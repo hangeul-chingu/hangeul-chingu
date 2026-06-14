@@ -5348,6 +5348,7 @@ ${vocabList}
 
         // ✅ V376: 결과 없이 끝났을 때 — 자동 재시도 또는 최종 실패 처리
         function handleEmptyResult() {
+          clearTimeout(overallTimeout); // ✅ V377
           isListeningRef.current = false;
           pronRecRef.current = null;
           if (retryCount < MAX_RETRIES) {
@@ -5370,19 +5371,24 @@ ${vocabList}
           setPronTestDebug("onspeechstart: 말소리 감지!");
         };
         rec.onspeechend = () => {
-          setPronTestDebug(d => d + " → onspeechend (0.6s 대기 후 stop)");
-          // ✅ V375: 즉시 stop()하면 인식 엔진이 결과를 만들 시간이 없어 onnomatch(빈결과) 유발.
-          // 0.6초 지연 후 stop() — 그 사이 onresult가 먼저 오면 자동으로 처리됨
-          setTimeout(() => {
-            if (!resultHandled) {
-              try { rec.stop(); } catch(e) {}
-            }
-          }, 600);
+          setPronTestDebug(d => d + " → onspeechend (자동 stop 안 함, 자연 isFinal 대기)");
+          // ✅ V377: 수동 stop() 완전 제거 — continuous 모드의 자연스러운 onresult(isFinal) 발생을
+          // 우리가 강제로 끊어버리고 있었을 가능성. Chrome이 발화 종료를 감지하면
+          // 자체적으로 isFinal 결과를 보내도록 그대로 둔다. 안전망은 overallTimeout이 담당.
         };
         rec.onaudioend = () => {
           setPronTestDebug(d => d + " → onaudioend");
         };
+        // ✅ V377: 전체 타임아웃 안전망 (4초) — 아무 결과도 안 오면 강제 종료 후 재시도/실패 처리
+        const overallTimeout = setTimeout(() => {
+          if (!resultHandled) {
+            setPronTestDebug(d => d + " → ⏱️ 4초 타임아웃");
+            try { rec.stop(); } catch(e) {}
+            // onend가 곧 발생하여 handleEmptyResult 또는 finalize로 이어짐
+          }
+        }, 4000);
         function finalize(bestText, target) {
+          clearTimeout(overallTimeout); // ✅ V377
           resultHandled = true;
           isListeningRef.current = false;
           pronRecRef.current = null;
@@ -20595,7 +20601,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "376";
+    const APP_VERSION = "377";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
