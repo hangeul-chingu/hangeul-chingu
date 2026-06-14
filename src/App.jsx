@@ -5307,8 +5307,11 @@ ${vocabList}
 
     // 유사도 계산 함수 (레벤슈타인 거리 기반)
     function calcSimilarity(a, b) {
-      const s1 = a.trim().toLowerCase();
-      const s2 = b.trim().toLowerCase();
+      // ✅ V380: 유니코드 정규화(NFC) — 안드로이드 Web Speech API가 한글을 NFD(자모분리형)로
+      // 반환하는 경우, NFC(완성형)인 target과 문자열 비교 시 100% 일치도 낮은 유사도로 잘못 판정됨.
+      // normalize('NFC')로 양쪽을 통일하여 정확히 비교
+      const s1 = a.normalize("NFC").trim().toLowerCase();
+      const s2 = b.normalize("NFC").trim().toLowerCase();
       if (s1 === s2) return 100;
       if (!s1 || !s2) return 0;
       const m = s1.length, n = s2.length;
@@ -20620,7 +20623,7 @@ export default function App() {
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
-    const APP_VERSION = "379";
+    const APP_VERSION = "380";
     const VER_KEY = "hc_app_ver";
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
