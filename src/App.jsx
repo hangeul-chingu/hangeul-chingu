@@ -17976,6 +17976,11 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, mi
   const [context, setContext] = useState(null);
   // ✅ V130: 중·고급 퀴즈용 턴 카운트
   const [turnCount, setTurnCount] = useState(0);
+  // ✅ V385: 한주연 교수 인사이트 — 내 발화 다시 듣기 (녹음→재생, 마중이 발음과 비교)
+  const [myVoiceRecording, setMyVoiceRecording] = useState(false);
+  const [myVoiceURL, setMyVoiceURL] = useState(null);
+  const [myVoiceError, setMyVoiceError] = useState("");
+  const myRecRef = useRef(null);
   // ✅ V346: 모듈5 사회언어학 훈련 state
   const slDoneKey = uid ? `hc_sl_done_${uid}` : null;
   const [slDone,    setSlDone]    = useState(()=> slDoneKey ? !!localStorage.getItem(slDoneKey) : false);
@@ -18071,6 +18076,34 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, mi
     };
     if (s.getVoices().length > 0) doSpeak();
     else { s.onvoiceschanged = ()=>{ s.onvoiceschanged=null; doSpeak(); }; setTimeout(doSpeak,1000); }
+  }
+
+  // ✅ V385: 한주연 교수 인사이트 — 내 발화 녹음/재생 토글
+  // ⚠️ STT(useSTT)와 완전히 독립된 별도 MediaRecorder. 발음테스트 STT 로직은 건드리지 않음.
+  async function toggleMyVoice() {
+    if (myVoiceRecording) {
+      try { myRecRef.current?.stop(); } catch(e) {}
+      return;
+    }
+    setMyVoiceError("");
+    setMyVoiceURL(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      const chunks = [];
+      mr.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      mr.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        setMyVoiceURL(URL.createObjectURL(blob));
+        setMyVoiceRecording(false);
+      };
+      mr.start();
+      myRecRef.current = mr;
+      setMyVoiceRecording(true);
+    } catch(e) {
+      setMyVoiceError("🎤 마이크 권한이 필요해요");
+    }
   }
 
   async function sendMsg() {
@@ -18390,6 +18423,41 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, mi
       {sttError === "denied" && (
         <div style={{background:"#FCE4D6",border:"1px solid #FF8C42",borderRadius:12,padding:"10px 14px",marginBottom:6,fontSize:13,color:"#5D4037",textAlign:"center"}}>
           🎤 마이크 권한이 거부됐어요. 브라우저 설정에서 마이크를 허용해주세요.
+        </div>
+      )}
+      {/* ✅ V385: 한주연 교수 인사이트 — 내 발화 다시 듣기 (녹음→재생, 마중이 발음과 비교) */}
+      <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:6}}>
+        <button onPointerDown={unlock} onClick={toggleMyVoice}
+          style={{
+            background: myVoiceRecording ? "linear-gradient(135deg,#FF6B6B,#FF4757)" : "#F3EEFF",
+            color: myVoiceRecording ? "white" : "#9C6FDE",
+            border:"none",borderRadius:50,padding:"8px 14px",fontSize:12,fontWeight:800,cursor:"pointer",
+            display:"flex",alignItems:"center",gap:6,WebkitTapHighlightColor:"transparent"}}>
+          {myVoiceRecording ? "⏹ 녹음 중지" : "🎙️ 내 발음 녹음"}
+        </button>
+        {myVoiceURL && !myVoiceRecording && (
+          <>
+            <audio controls src={myVoiceURL} style={{height:32,maxWidth:150}}/>
+            {chatUI.some(m=>m.role==="assistant"&&m.text) && (
+              <button onPointerDown={unlock} onClick={()=>{
+                const last=[...chatUI].reverse().find(m=>m.role==="assistant"&&m.text);
+                if(last) setTimeout(()=>speakAuto(last.text, character||"default"),100);
+              }}
+                style={{background:"#F3EEFF",color:"#9C6FDE",border:"none",borderRadius:50,padding:"8px 12px",fontSize:12,fontWeight:800,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+                🔊 마중이 발음 비교
+              </button>
+            )}
+          </>
+        )}
+      </div>
+      {myVoiceRecording && (
+        <div style={{fontSize:11,color:"#9C6FDE",textAlign:"center",marginBottom:6}}>
+          🎙️ 듣고 있어요... 한국어로 말해보고, 다 했으면 ⏹을 눌러요!
+        </div>
+      )}
+      {myVoiceError && (
+        <div style={{fontSize:11,color:"#E64A00",textAlign:"center",marginBottom:6}}>
+          {myVoiceError}
         </div>
       )}
       <div style={{display:"flex",gap:8,alignItems:"center"}}>
