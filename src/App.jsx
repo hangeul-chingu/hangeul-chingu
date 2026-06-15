@@ -32,7 +32,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "388";
+const APP_VERSION = "390";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -557,7 +557,7 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
   }
 
   return (
-    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",position:"relative"}}>
+    <div style={{minHeight:"100dvh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",position:"relative"}}>
 
       {/* ✅ V358: 언어 선택 + 건너뛰기 — 가로 스크롤로 11개 언어 대응 */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 20px 0",gap:8}}>
@@ -786,7 +786,7 @@ function AuthScreen({ onLogin, lang }) {
   // ✅ V263: 비밀번호 찾기 화면
   if (tab === "forgot") {
     return (
-      <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:40,marginBottom:8}}>🔐</div>
         <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:4}}>{at("forgotTitle")}</div>
         <div style={{fontSize:12,color:"#bbb",marginBottom:24}}>{forgotStep}단계 / 3단계</div>
@@ -860,7 +860,7 @@ function AuthScreen({ onLogin, lang }) {
 
   // ✅ V284: 이메일 인증 대기 화면
   if (showVerify && verifyUser) return (
-    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",padding:"20px 24px"}}>
+    <div style={{minHeight:"100dvh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",padding:"20px 24px"}}>
       <div style={{fontSize:64,marginBottom:16}}>📧</div>
       <div style={{fontSize:22,fontWeight:900,color:"#333",marginBottom:10,textAlign:"center"}}>인증 메일을 보냈어요!</div>
       <div style={{fontSize:14,color:"#666",lineHeight:1.8,textAlign:"center",marginBottom:6}}>
@@ -897,7 +897,7 @@ function AuthScreen({ onLogin, lang }) {
   );
 
   return (
-    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:"100dvh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:52,marginBottom:8}}>🇰🇷</div>
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
       <div style={{fontSize:13,color:"#888",marginBottom:32,textAlign:"center"}}>{at("subtitle")}</div>
@@ -1053,7 +1053,7 @@ function AdminDashboard({ user, onLogout, onExitAdmin }) {
   const STATUS_LABEL = { ai_reviewed:"AI 판독 완료 — 승인 대기", approved:"✅ 승인 완료", rejected:"❌ 반려", pending:"제출됨" };
 
   return (
-    <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#1A1A2E,#16213E)", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#1A1A2E,#16213E)", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       {/* 헤더 */}
       <div style={{background:"linear-gradient(135deg,#0F3460,#1A1A2E)", padding:"20px 20px 0", color:"white", borderBottom:"1px solid #ffffff15"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", maxWidth:800, margin:"0 auto"}}>
@@ -1320,7 +1320,7 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin }) {
   const teacherName = teacherData?.name || user.displayName || "선생님";
 
   return (
-    <div style={{minHeight:"100vh", background:`linear-gradient(150deg,#F0F4FF,#E8F0FB)`, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:"100dvh", background:`linear-gradient(150deg,#F0F4FF,#E8F0FB)`, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       {/* 헤더 */}
       <div style={{background:"linear-gradient(135deg,#2E75B6,#1A3A5C)", padding:"20px 20px 16px", color:"white"}}>
         <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start"}}>
@@ -2966,7 +2966,7 @@ ${vocabList}
     ];
 
     return (
-      <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#E8F8F2,#F3EEFF 60%,#FFF0F9)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"28px 24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh",background:"linear-gradient(150deg,#E8F8F2,#F3EEFF 60%,#FFF0F9)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"28px 24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
 
         {/* 완료 뱃지 */}
         <div style={{fontSize:56,marginBottom:8}}>🎉</div>
@@ -3043,7 +3043,7 @@ ${vocabList}
   const rt = (key) => RESUME_T[key]?.[begResumeLc] ?? RESUME_T[key]?.en ?? RESUME_T[key]?.ko ?? "";
 
   if (step === "lang") return (
-    <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:begSpeak?"flex-start":"center",padding:begSpeak?"8px 0":"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:begSpeak?"auto":"100dvh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:begSpeak?"flex-start":"center",padding:begSpeak?"8px 0":"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
 
       {/* ✅ V333: 이어서 학습 팝업 (자동로그인 시에도 작동) */}
       {showBegResumePopup && (
@@ -3109,7 +3109,7 @@ ${vocabList}
       { emoji:"🔢", label:txUI("숫자 · 부정법 · 격식체 · 기초문법 정리", lang), hours: 1,  color:"#FFF8E1", border:"#FFD54F" },
     ];
     return (
-      <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:begSpeak?"auto":"100dvh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:12}}>📚</div>
       {MyPageBtn}
         {/* ✅ V357: 교수자 음성 피드백 수신 알림 */}
@@ -3228,7 +3228,7 @@ ${vocabList}
     const lc = lang?.code ?? "ko";
     const preview = calcGoalDate(daysPerWeek, minPerDay, studyGoal);
     return (
-      <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:begSpeak?"auto":"100dvh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:16}}>🎯</div>
       {MyPageBtn}
         <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>{txUI("나만의 학습 계획", lang)}</div>
@@ -3436,7 +3436,7 @@ ${vocabList}
     ];
 
     return (
-      <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh",background:`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"28px 20px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:36,marginBottom:8}}>🔤</div>
       {MyPageBtn}
         <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>
@@ -5174,7 +5174,7 @@ ${vocabList}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:`linear-gradient(150deg,${C.bg},#F3EEFF)`, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 20px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:`linear-gradient(150deg,${C.bg},#F3EEFF)`, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 20px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         {/* 헤더 */}
@@ -5624,7 +5624,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
 
     const currentItem = pronTestItems[pronTestIdx];
     if (!currentItem) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3EEFF,#E8E0FF)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#F3EEFF,#E8E0FF)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"28px 16px"}}>
         <div style={{fontSize:40, marginBottom:16}}>⚠️</div>
         <div style={{fontSize:16, fontWeight:900, color:"#9C6FDE", marginBottom:8, textAlign:"center"}}>
           {txUI("테스트할 단어가 없어요", lang)}
@@ -5640,7 +5640,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     );
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3EEFF,#E8E0FF)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#F3EEFF,#E8E0FF)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{width:"100%", maxWidth:380}}>
       {MyPageBtn}
           {/* 헤더 */}
@@ -5767,7 +5767,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const PRON_STEPS_COUNT = 17;
 
     return (
-      <div style={{minHeight:"100vh", background: passed?"linear-gradient(150deg,#E8F8F2,#D0F0E4)":"linear-gradient(150deg,#FFF0F0,#FFE0E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background: passed?"linear-gradient(150deg,#E8F8F2,#D0F0E4)":"linear-gradient(150deg,#FFF0F0,#FFE0E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{width:"100%", maxWidth:380}}>
       {MyPageBtn}
           <div style={{textAlign:"center", marginBottom:24}}>
@@ -5982,7 +5982,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
                  presLight:"#E3F2FD", pastLight:"#F3E5F5", futLight:"#FFF3E0" };
 
     return (
-      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -6272,7 +6272,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     };
 
     return (
-      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -6449,7 +6449,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const vocab = selWord ? VOCAB.find(v => v.word === selWord) : null;
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
 
@@ -6810,7 +6810,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FFE0B2)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF3E0,#FFE0B2)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -7063,7 +7063,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     };
 
     return (
-      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -7311,7 +7311,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     };
 
     return (
-      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -7531,7 +7531,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     };
 
     return (
-      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -7787,7 +7787,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     };
 
     return (
-      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -7979,7 +7979,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const C = { bg:"linear-gradient(150deg,#E8F5E9,#DCEDC8)", accent:"#2E7D32", border:"#A5D6A7" };
 
     if (tenseTestResult) return (
-      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:380, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(46,125,50,.15)"}}>
           <div style={{fontSize:52, marginBottom:8}}>{tenseTestResult.pass ? "🏆" : "💪"}</div>
@@ -8014,7 +8014,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     );
 
     return (
-      <div style={{minHeight:"100vh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -8177,7 +8177,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
 
     // 로딩 중
     if (josaTestLoading) return (
-      <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+      <div style={{minHeight:"100dvh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
         <DevJumpPanel />
         <div style={{fontSize:40,marginBottom:16}}>📝</div>
         <div style={{fontSize:15,color:"#FF9800",fontWeight:700}}>문제 만드는 중...</div>
@@ -8188,7 +8188,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     if (josaTestResult) {
       const {passed,score,writingScore,sttScore,writingFb,sttFb} = josaTestResult;
       return (
-        <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",padding:"24px 16px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{minHeight:"100dvh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",padding:"24px 16px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <DevJumpPanel />
       {MyPageBtn}
           <div style={{width:"100%",maxWidth:400}}>
@@ -8258,7 +8258,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
 
     // 문제 풀기 화면
     return (
-      <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",padding:"24px 16px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh",background:"linear-gradient(150deg,#FFFBF0,#FFF3E0)",display:"flex",flexDirection:"column",alignItems:"center",padding:"24px 16px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%",maxWidth:400}}>
@@ -8380,7 +8380,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       ? "I this morning at school to friend Korean learn."
       : "저는 오늘 아침에 학교에서 친구에게 한국어를 배웁니다.";
     return (
-      <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#E8F5E9,#F1F8E9)",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px 0"}}>
+      <div style={{minHeight:"100dvh",background:"linear-gradient(160deg,#E8F5E9,#F1F8E9)",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px 0"}}>
         <div style={{width:"100%",maxWidth:420,background:"white",borderRadius:20,padding:"28px 20px",boxShadow:"0 4px 24px #00000018"}}>
       {MyPageBtn}
           <div style={{textAlign:"center",marginBottom:20}}>
@@ -8528,7 +8528,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F0FFF4,#E8F5E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#F0FFF4,#E8F5E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -8697,7 +8697,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
 
     // 로딩 화면
     if (testLoading) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8F8F2,#D0F0E4)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#E8F8F2,#D0F0E4)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:48, marginBottom:16}}>⏳</div>
         <div style={{fontSize:18, fontWeight:700, color:"#00A876"}}>문제 생성 중...</div>
         <div style={{fontSize:13, color:"#888", marginTop:8}}>잠깐만요 🙏</div>
@@ -8706,7 +8706,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
 
     // 문제가 없으면 (API 실패 후 fallback도 없는 경우) 방어
     if (testQuestions.length === 0) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8F8F2,#D0F0E4)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", padding:24}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#E8F8F2,#D0F0E4)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", padding:24}}>
         <div style={{fontSize:48, marginBottom:16}}>⚠️</div>
         <div style={{fontSize:16, fontWeight:700, color:"#E64A00", marginBottom:8}}>문제를 불러오지 못했어요</div>
         <div style={{fontSize:12, color:"#aaa", marginBottom:4}}>loading: {String(testLoading)}</div>
@@ -8719,7 +8719,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     // 결과 화면
     if (testResult) {
       return (
-        <div style={{minHeight:"100vh", background: testResult.passed?"linear-gradient(150deg,#E8F8F2,#D0F0E4)":"linear-gradient(150deg,#FFF0F0,#FFE0E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{minHeight:"100dvh", background: testResult.passed?"linear-gradient(150deg,#E8F8F2,#D0F0E4)":"linear-gradient(150deg,#FFF0F0,#FFE0E0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"28px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <div style={{width:"100%", maxWidth:400}}>
       {MyPageBtn}
             <div style={{textAlign:"center", marginBottom:24}}>
@@ -8778,7 +8778,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
 
     // 문제 풀기 화면
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -8921,7 +8921,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F0FFF4,#E8F5E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#F0FFF4,#E8F5E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -9060,7 +9060,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
 
     if (testResult) {
       return (
-        <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <DevJumpPanel />
       {MyPageBtn}
           <div style={{width:"100%", maxWidth:400}}>
@@ -9107,7 +9107,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -9214,7 +9214,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#EDE7F6)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#F3E5F5,#EDE7F6)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -9329,7 +9329,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8EAF6,#C5CAE9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#E8EAF6,#C5CAE9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -9481,7 +9481,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
 
     if (testResult) {
       return (
-        <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <DevJumpPanel />
       {MyPageBtn}
           <div style={{width:"100%", maxWidth:400}}>
@@ -9526,7 +9526,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -9714,7 +9714,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8F5E9,#C8E6C9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#E8F5E9,#C8E6C9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -9869,7 +9869,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FFCC80)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF3E0,#FFCC80)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -10013,7 +10013,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
 
     if (testResult) {
       return (
-        <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+        <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
           <DevJumpPanel />
       {MyPageBtn}
           <div style={{width:"100%", maxWidth:400}}>
@@ -10058,7 +10058,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF8F0,#FFE8D0)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -10166,7 +10166,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF8E1,#FFE082)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF8E1,#FFE082)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -10298,7 +10298,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#CE93D8)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#F3E5F5,#CE93D8)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -10429,7 +10429,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E0F7FA,#80DEEA)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#E0F7FA,#80DEEA)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -10553,7 +10553,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F1F8E9,#AED581)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#F1F8E9,#AED581)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -10694,7 +10694,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FFAB40)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF3E0,#FFAB40)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -10813,7 +10813,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST9_Q.length, pass: ok/TEST9_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#E1BEE7)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#F3E5F5,#E1BEE7)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(106,27,154,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -10827,7 +10827,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#E1BEE7)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#F3E5F5,#E1BEE7)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -10910,7 +10910,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FCE4EC,#F48FB1)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FCE4EC,#F48FB1)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -11033,7 +11033,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#F3E5F5,#BA68C8)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#F3E5F5,#BA68C8)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -11188,7 +11188,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#ECEFF1,#90A4AE)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#ECEFF1,#90A4AE)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -11309,7 +11309,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST12_Q.length, pass: ok/TEST12_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFEBEE,#FFCDD2)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFEBEE,#FFCDD2)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(183,28,28,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -11323,7 +11323,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFEBEE,#FFCDD2)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFEBEE,#FFCDD2)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -11429,7 +11429,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const isCorrect13 = unitCardRevealed && checkAnswer(unitCardInput, card);
 
     return (
-      <div style={{minHeight:"100vh", background:C13.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C13.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -11546,7 +11546,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C14.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C14.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -11653,7 +11653,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C15.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C15.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -11779,7 +11779,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C16.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C16.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -11883,7 +11883,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C17.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C17.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -11986,7 +11986,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C18.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C18.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -12082,7 +12082,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C19.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C19.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -12186,7 +12186,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C20.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C20.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -12288,7 +12288,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C21.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C21.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -12399,7 +12399,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C22.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C22.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -12501,7 +12501,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C23.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C23.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -12599,7 +12599,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C24.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C24.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -12718,7 +12718,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     }
 
     return (
-      <div style={{minHeight:"100vh", background:C25.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C25.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -12804,7 +12804,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST13_Q.length, pass: ok/TEST13_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -12818,7 +12818,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -12859,7 +12859,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST14_Q.length, pass: ok/TEST14_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -12873,7 +12873,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -12914,7 +12914,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST15_Q.length, pass: ok/TEST15_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -12928,7 +12928,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -12969,7 +12969,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST16_Q.length, pass: ok/TEST16_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -12983,7 +12983,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -13024,7 +13024,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST17_Q.length, pass: ok/TEST17_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -13038,7 +13038,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -13079,7 +13079,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST18_Q.length, pass: ok/TEST18_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -13093,7 +13093,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -13134,7 +13134,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST19_Q.length, pass: ok/TEST19_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -13148,7 +13148,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -13189,7 +13189,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST20_Q.length, pass: ok/TEST20_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -13203,7 +13203,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -13244,7 +13244,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST21_Q.length, pass: ok/TEST21_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -13258,7 +13258,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -13299,7 +13299,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST22_Q.length, pass: ok/TEST22_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -13313,7 +13313,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -13354,7 +13354,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST23_Q.length, pass: ok/TEST23_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -13368,7 +13368,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -13409,7 +13409,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST24_Q.length, pass: ok/TEST24_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -13423,7 +13423,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -13464,7 +13464,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       setTestResult({score:ok, total:TEST25_Q.length, pass: ok/TEST25_Q.length>=0.8});
     }
     if (testResult) return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 16px"}}>
         <DevJumpPanel />
         <div style={{background:"white", borderRadius:24, padding:"32px 24px", maxWidth:360, width:"100%", textAlign:"center", boxShadow:"0 4px 24px rgba(69,39,160,.12)"}}>
           <div style={{fontSize:48, marginBottom:8}}>{testResult.pass?"🎉":"💪"}</div>
@@ -13478,7 +13478,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       </div>
     );
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#EDE7F6,#D1C4E9)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
         {MyPageBtn}
         <div style={{width:"100%", maxWidth:400}}>
@@ -13717,7 +13717,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_ADV1.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_ADV1.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -13920,7 +13920,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_ADV2.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_ADV2.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -14084,7 +14084,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_ADV3.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_ADV3.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -14197,7 +14197,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_ADV4.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_ADV4.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -14307,7 +14307,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_ADV5.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_ADV5.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -14417,7 +14417,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_ADV6.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_ADV6.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -14525,7 +14525,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_ADV7.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_ADV7.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -14665,7 +14665,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_REL.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_REL.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -14829,7 +14829,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_IND.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_IND.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -14959,7 +14959,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_HON.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_HON.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -15151,7 +15151,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_IRR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_IRR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -15310,7 +15310,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_CTR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_CTR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -15443,7 +15443,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const currentFreqIdx = unitCardIdx < 4 ? Math.min(unitCardIdx, 3) : unitCardIdx - 4 + 4;
 
     return (
-      <div style={{minHeight:"100vh", background:C_FREQ.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_FREQ.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -15594,7 +15594,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_MAN.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_MAN.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -15725,7 +15725,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_CHG.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_CHG.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -15846,7 +15846,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_MNR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_MNR.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -15972,7 +15972,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
       : ["좋다/좋아하다","싫다/싫어하다","무섭다/무서워하다","그립다/그리워하다"];
 
     return (
-      <div style={{minHeight:"100vh", background:C_EMO.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_EMO.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -16112,7 +16112,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_NOUN.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_NOUN.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -16227,7 +16227,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_APX.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_APX.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -16385,7 +16385,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_CMP.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_CMP.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -16531,7 +16531,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:C_NUM.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:C_NUM.bg, display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -16675,7 +16675,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#FFF3E0,#FBE9E7)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#FFF3E0,#FBE9E7)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -16824,7 +16824,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     const cardRule = vi ? card.rule.vi : en ? card.rule.en : card.rule.ko;
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#E8EAF6,#E0F2F1)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#E8EAF6,#E0F2F1)", display:"flex", flexDirection:"column", alignItems:"center", padding:"24px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:420}}>
@@ -16937,7 +16937,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
     );
 
     return (
-      <div style={{minHeight:"100vh", background:"linear-gradient(150deg,#ECEFF1,#E8EAF6)", display:"flex", flexDirection:"column", alignItems:"center", padding:"20px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      <div style={{minHeight:"100dvh", background:"linear-gradient(150deg,#ECEFF1,#E8EAF6)", display:"flex", flexDirection:"column", alignItems:"center", padding:"20px 16px 60px", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <DevJumpPanel />
       {MyPageBtn}
         <div style={{width:"100%", maxWidth:480}}>
@@ -17044,7 +17044,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
   }
 
   if (step === "topic") return (
-    <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:begSpeak?"auto":"100dvh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{fontSize:36,marginBottom:8,marginTop:24}}>🌸</div>
       <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>오늘 뭐 배울까요?</div>
       <div style={{fontSize:13,color:"#aaa",marginBottom:20,textAlign:"center"}}>
@@ -17067,7 +17067,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
 
   // ── 학습 채팅 화면 ──
   return (
-    <div style={{minHeight:begSpeak?"auto":"100vh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:begSpeak?"auto":"100dvh",background:begSpeak?"transparent":`linear-gradient(150deg,${C.bg},#F3EEFF)`,display:"flex",flexDirection:"column",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       {/* ✅ V274: 모든 학습 화면 공통 마이페이지 버튼 */}
       {MyPageBtn}
       {/* 헤더 */}
@@ -19253,7 +19253,7 @@ function WriteTab({level, uid, lang}) {
   );
 
   if (mode === "culture") return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFF3E8,#FFF8F0)",padding:"20px 16px",maxWidth:700,margin:"0 auto"}}>
+    <div style={{minHeight:"100dvh",background:"linear-gradient(150deg,#FFF3E8,#FFF8F0)",padding:"20px 16px",maxWidth:700,margin:"0 auto"}}>
       <button onClick={()=>setMode(null)} style={{background:"none",border:"none",color:"#FF8C42",fontWeight:700,fontSize:14,cursor:"pointer",marginBottom:16}}>← 논술 모드 선택으로</button>
       <div style={{textAlign:"center",marginBottom:24}}>
         <div style={{fontSize:36,marginBottom:8}}>🎎</div>
@@ -20748,6 +20748,38 @@ export default function App() {
     }
   }, []);
 
+  // ✅ V390: 앱 재진입(PWA 백그라운드 복귀·탭 재방문) 시 새 버전 자동 감지
+  // 기존 V349 로직은 마운트 시 1회(localStorage vs APP_VERSION 비교)만 동작 —
+  // PWA 아이콘으로 재진입 시 브라우저가 기존 인스턴스를 그대로 복귀시키면(재마운트 없음)
+  // 이 비교 자체가 재실행되지 않아 새 배포를 영영 감지하지 못하는 경우가 있었음.
+  // → 화면이 다시 보일 때마다 SW에게 "최신인지" 직접 확인(registration.update())시키고,
+  //   실제로 새 SW가 컨트롤러를 가져가는 순간(controllerchange)을 감지해 팝업 표시.
+  // APP_VERSION 문자열 일치 여부와 무관하게 동작 → V381/385~387류 버그 재발 방지.
+  useEffect(()=>{
+    if (!("serviceWorker" in navigator)) return;
+
+    const onControllerChange = () => setShowCacheBust(true);
+    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+
+    const checkUpdate = () => {
+      if (document.visibilityState !== "visible") return;
+      navigator.serviceWorker.getRegistration().then(reg => reg && reg.update()).catch(()=>{});
+    };
+    document.addEventListener("visibilitychange", checkUpdate);
+    window.addEventListener("pageshow", checkUpdate); // 뒤로가기/bfcache 복원 포함
+    checkUpdate(); // 최초 진입 시에도 1회 확인
+
+    // 앱을 오래 켜두는 경우(작업 중 백그라운드 전환 없이) 대비 — 5분마다 추가 확인
+    const interval = setInterval(checkUpdate, 5 * 60 * 1000);
+
+    return () => {
+      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+      document.removeEventListener("visibilitychange", checkUpdate);
+      window.removeEventListener("pageshow", checkUpdate);
+      clearInterval(interval);
+    };
+  }, []);
+
   // ✅ V336: beforeinstallprompt 이벤트 캐치 (Android Chrome PWA 설치용)
   useEffect(()=>{
     const handler = (e) => {
@@ -20810,7 +20842,7 @@ export default function App() {
   }
 
   if (user===undefined) return (
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:C.bg}}>
+    <div style={{minHeight:"100dvh",display:"flex",alignItems:"center",justifyContent:"center",background:C.bg}}>
       <div style={{fontSize:40}}>🇰🇷</div>
     </div>
   );
@@ -20831,7 +20863,7 @@ export default function App() {
   };
   // ✅ V349: 캐시 버스팅 팝업
   if (showCacheBust) return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#E3F2FD,#F0FFFE)",
+    <div style={{minHeight:"100dvh",background:"linear-gradient(150deg,#E3F2FD,#F0FFFE)",
       display:"flex",alignItems:"center",justifyContent:"center",padding:"24px",
       fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{background:"white",borderRadius:24,width:"100%",maxWidth:340,
@@ -20875,7 +20907,7 @@ export default function App() {
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   if (showPwaPopup) return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(150deg,#FFF0F9,#F0FFFE)",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:"100dvh",background:"linear-gradient(150deg,#FFF0F9,#F0FFFE)",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{background:"white",borderRadius:24,width:"100%",maxWidth:360,overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,0.15)"}}>
         {/* 헤더 */}
         <div style={{background:"linear-gradient(135deg,#9C6FDE,#FF85A1)",padding:"28px 24px 20px",textAlign:"center"}}>
@@ -20975,7 +21007,7 @@ export default function App() {
     const btnLabel = `${visitLabel} 방문 환영해요! ${count===1?"🚀":count===2?"😊":"🌸"}`;
     const badgeLabel = `${visitLabel} 방문이에요! ${count===1?"👋":count===2?"😊":"🎉"}`;
     return (
-      <div onClick={unlock} style={{minHeight:"100vh",background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",padding:"16px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",boxSizing:"border-box"}}>
+      <div onClick={unlock} style={{minHeight:"100dvh",background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"center",justifyContent:"center",padding:"16px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",boxSizing:"border-box"}}>
         <div style={{background:"white",borderRadius:20,width:"100%",maxWidth:360,overflow:"hidden"}}>
           {/* 헤더 */}
           <div style={{background:"#9C6FDE",padding:"18px 20px 14px",textAlign:"center"}}>
@@ -21080,7 +21112,7 @@ export default function App() {
   // ✅ V126: beg는 탭 화면으로 진입 (BegScreen은 프리토킹 탭 안에서 제공)
 
   if (!level) return (
-    <div onClick={unlock} style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"32px 24px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",position:"relative"}}>
+    <div onClick={unlock} style={{minHeight:"100dvh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",padding:"32px 24px 40px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",position:"relative"}}>
 
       {/* TOPIK2 분기 팝업 */}
       {showTopik2Choice&&<Topik2ChoiceModal/>}
@@ -21495,7 +21527,7 @@ export default function App() {
   }
 
   return (
-    <div style={{minHeight:"100vh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+    <div style={{minHeight:"100dvh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       {showStats&&<StatsModal user={user} onClose={()=>setShowStats(false)}/>}
 
       {/* ✅ V267: 마이페이지 모달 - 탭 화면 최상단 */}
