@@ -30,7 +30,7 @@ const ADMIN_EMAIL = "roh053068@gmail.com";
 const DEV_EMAIL = "csyager@hanmail.net";
 // ✅ V382: 앱 버전 — 캐시버스팅 팝업 트리거 기준. 매 버전 배포 시 반드시 함께 갱신할 것!
 //          (기존에는 useEffect 내부에 하드코딩되어 있어 V381에서 갱신을 누락 → 캐시버스팅 팝업 미표시 버그 발생)
-const APP_VERSION = "383";
+const APP_VERSION = "384";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -5675,8 +5675,9 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
             </button>
           </div>
 
-          {/* ✅ V372: STT 디버그 정보 (임시) */}
-          {pronTestDebug && (
+          {/* ✅ V384: STT 디버그 정보 — V383으로 핵심 버그(빈 final 조기확정) 해결 확인됨.
+              일반 학습자 화면에서는 제거하고, 개발자(DEV_EMAIL)에게만 계속 표시 (추후 디버깅용) */}
+          {isDev && pronTestDebug && (
             <div style={{background:"#FFFBEA", border:"1px solid #FFE08A", borderRadius:10, padding:"8px 12px", marginBottom:8, fontSize:12, color:"#7A5D00", textAlign:"center"}}>
               🔍 {pronTestDebug}
             </div>
