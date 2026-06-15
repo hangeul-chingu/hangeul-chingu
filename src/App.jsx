@@ -32,7 +32,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "390";
+const APP_VERSION = "391";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -358,6 +358,29 @@ const UI_TRANSLATIONS = {
   "한국어 기초문법 한눈에 보기":{ko:"한국어 기초문법 한눈에 보기",vi:"Ngữ pháp cơ bản tiếng Hàn trong một cái nhìn",en:"Korean basic grammar at a glance",zh:"韩语基础语法一览",ja:"韓国語基礎文法一覧",id:"Tata bahasa dasar Korea sekilas",ru:"Базовая грамматика корейского в обзоре",th:"ไวยากรณ์พื้นฐานภาษาเกาหลีในมุมมองเดียว",mn:"Солонгосын үндсэн дүрмийг нэг харцаар",uz:"Koreyscha asosiy grammatika bir ko'rinishda",es:"Gramática básica coreana de un vistazo"},
   "80시간 커리큘럼 완료!":{ko:"80시간 커리큘럼 완료!",vi:"Hoàn thành chương trình 80 giờ!",en:"80-hour curriculum complete!",zh:"80小时课程完成!",ja:"80時間カリキュラム完了!",id:"Kurikulum 80 jam selesai!",ru:"Учебный план 80 часов завершён!",th:"หลักสูตร 80 ชั่วโมงเสร็จสิ้น!",mn:"80 цагийн хөтөлбөр дуусгав!",uz:"80 soatlik o'quv rejasi tugadi!",es:"¡Currículo de 80 horas completado!"},
   "가족과 소통하기":{ko:"가족과 소통하기",vi:"Giao tiếp với gia đình",en:"Communicate with family",zh:"与家人沟通",ja:"家族とコミュニケーション",id:"Berkomunikasi dengan keluarga",ru:"Общаться с семьёй",th:"สื่อสารกับครอบครัว",mn:"Гэр бүлтэйгээ харилцах",uz:"Oila bilan muloqot qilish",es:"Comunicarse con la familia"},
+  // ✅ V391: 학습계획(plan) 화면 다국어 번역 — 21개 신규
+  "나만의 학습 계획":{ko:"나만의 학습 계획",vi:"Kế hoạch học tập của tôi",en:"My Learning Plan",zh:"我的学习计划",ja:"私だけの学習計画",id:"Rencana Belajar Saya",ru:"Мой план обучения",th:"แผนการเรียนของฉัน",mn:"Миний сурах төлөвлөгөө",uz:"Mening o'quv rejam",es:"Mi plan de aprendizaje"},
+  "한글 친구와 함께 목표일을 정해요!":{ko:"한글 친구와 함께 목표일을 정해요!",vi:"Cùng Hangeul Chingu đặt ngày mục tiêu nhé!",en:"Let's set your goal date with Hangeul Chingu!",zh:"和韩文朋友一起定下目标日期吧!",ja:"한글친구と一緒に目標日を決めましょう!",id:"Ayo tentukan tanggal target bersama Hangeul Chingu!",ru:"Давай установим дату цели вместе с Hangeul Chingu!",th:"ให้ฮันกึลชิงงูช่วยกำหนดวันเป้าหมายกันเถอะ!",mn:"Hangeul Chingu-той хамт зорилтот огноогоо тогтооцгооё!",uz:"Hangeul Chingu bilan birga maqsad sanasini belgilaylik!",es:"¡Definamos juntos tu fecha objetivo con Hangeul Chingu!"},
+  "나의 목표를 선택해요!":{ko:"나의 목표를 선택해요!",vi:"Chọn mục tiêu của bạn!",en:"Choose your goal!",zh:"选择我的目标!",ja:"私の目標を選びましょう!",id:"Pilih tujuanmu!",ru:"Выбери свою цель!",th:"เลือกเป้าหมายของฉัน!",mn:"Зорилгоо сонгоё!",uz:"Maqsadingizni tanlang!",es:"¡Elige tu objetivo!"},
+  "TOPIK 2급 달성하기":{ko:"TOPIK 2급 달성하기",vi:"Đạt TOPIK cấp 2",en:"Achieve TOPIK Level 2",zh:"达成TOPIK 2级",ja:"TOPIK 2級を達成する",id:"Mencapai TOPIK level 2",ru:"Достичь TOPIK 2 уровня",th:"บรรลุ TOPIK ระดับ 2",mn:"TOPIK 2-р түвшинд хүрэх",uz:"TOPIK 2-darajaga erishish",es:"Lograr el nivel 2 de TOPIK"},
+  "TOPIK 4급 달성하기":{ko:"TOPIK 4급 달성하기",vi:"Đạt TOPIK cấp 4",en:"Achieve TOPIK Level 4",zh:"达成TOPIK 4级",ja:"TOPIK 4級を達成する",id:"Mencapai TOPIK level 4",ru:"Достичь TOPIK 4 уровня",th:"บรรลุ TOPIK ระดับ 4",mn:"TOPIK 4-р түвшинд хүрэх",uz:"TOPIK 4-darajaga erishish",es:"Lograr el nivel 4 de TOPIK"},
+  "일상 한국어 자유롭게 말하기":{ko:"일상 한국어 자유롭게 말하기",vi:"Nói tiếng Hàn hàng ngày tự do",en:"Speak everyday Korean freely",zh:"自由地说日常韩语",ja:"日常韓国語を自由に話す",id:"Berbicara bahasa Korea sehari-hari dengan bebas",ru:"Свободно говорить на бытовом корейском",th:"พูดภาษาเกาหลีในชีวิตประจำวันได้อย่างเป็นธรรมชาติ",mn:"Өдөр тутмын солонгос хэлээр чөлөөтэй ярих",uz:"Kundalik koreys tilida erkin gaplashish",es:"Hablar coreano cotidiano con libertad"},
+  "직장·현장 한국어 익히기":{ko:"직장·현장 한국어 익히기",vi:"Học tiếng Hàn nơi làm việc",en:"Learn workplace Korean",zh:"学习职场·现场韩语",ja:"職場·現場の韓国語を学ぶ",id:"Belajar bahasa Korea tempat kerja",ru:"Изучить корейский для работы",th:"เรียนภาษาเกาหลีสำหรับที่ทำงาน",mn:"Ажлын байрны солонгос хэл сурах",uz:"Ish joyidagi koreys tilini o'rganish",es:"Aprender coreano para el trabajo"},
+  "한국 생활 적응하기":{ko:"한국 생활 적응하기",vi:"Hòa nhập cuộc sống Hàn Quốc",en:"Adapt to life in Korea",zh:"适应韩国生活",ja:"韓国生活に適応する",id:"Beradaptasi dengan kehidupan di Korea",ru:"Адаптироваться к жизни в Корее",th:"ปรับตัวกับชีวิตในเกาหลี",mn:"Солонгосын амьдралд дасан зохицох",uz:"Koreyadagi hayotga moslashish",es:"Adaptarse a la vida en Corea"},
+  "준비 중":{ko:"준비 중",vi:"Đang chuẩn bị",en:"Coming soon",zh:"准备中",ja:"準備中",id:"Segera hadir",ru:"Скоро",th:"เร็วๆนี้",mn:"Бэлтгэж байна",uz:"Tez kunda",es:"Próximamente"},
+  "일주일에 며칠 공부할 수 있어요?":{ko:"일주일에 며칠 공부할 수 있어요?",vi:"Một tuần bạn học được mấy ngày?",en:"How many days a week can you study?",zh:"一周能学习几天?",ja:"一週間に何日勉強できますか?",id:"Berapa hari dalam seminggu kamu bisa belajar?",ru:"Сколько дней в неделю вы можете учиться?",th:"คุณเรียนได้กี่วันต่อสัปดาห์?",mn:"Долоо хоногт хэдэн өдөр сурах боломжтой вэ?",uz:"Haftada nechta kun shug'ullanishingiz mumkin?",es:"¿Cuántos días a la semana puedes estudiar?"},
+  "하루에 몇 분 공부할 수 있어요?":{ko:"하루에 몇 분 공부할 수 있어요?",vi:"Một ngày bạn học được bao nhiêu phút?",en:"How many minutes a day can you study?",zh:"一天能学习几分钟?",ja:"一日何分勉強できますか?",id:"Berapa menit sehari kamu bisa belajar?",ru:"Сколько минут в день вы можете учиться?",th:"คุณเรียนได้กี่นาทีต่อวัน?",mn:"Өдөрт хэдэн минут сурах боломжтой вэ?",uz:"Kuniga necha daqiqa shug'ullanishingiz mumkin?",es:"¿Cuántos minutos al día puedes estudiar?"},
+  "목표 완주일":{ko:"목표 완주일",vi:"Ngày hoàn thành mục tiêu",en:"Goal completion date",zh:"目标完成日",ja:"目標完了日",id:"Tanggal target selesai",ru:"Дата достижения цели",th:"วันที่บรรลุเป้าหมาย",mn:"Зорилгод хүрэх огноо",uz:"Maqsadga erishish sanasi",es:"Fecha de finalización del objetivo"},
+  "80시간 = 새로운 세상! 🌏":{ko:"80시간 = 새로운 세상! 🌏",vi:"80 giờ = một thế giới mới! 🌏",en:"80 hours = a new world! 🌏",zh:"80小时=全新世界! 🌏",ja:"80時間=新しい世界! 🌏",id:"80 jam = dunia baru! 🌏",ru:"80 часов = новый мир! 🌏",th:"80 ชั่วโมง = โลกใหม่! 🌏",mn:"80 цаг = шинэ ертөнц! 🌏",uz:"80 soat = yangi dunyo! 🌏",es:"¡80 horas = un nuevo mundo! 🌏"},
+  "도전 시작! 🚀":{ko:"도전 시작! 🚀",vi:"Bắt đầu thử thách! 🚀",en:"Start the challenge! 🚀",zh:"开始挑战! 🚀",ja:"チャレンジ開始! 🚀",id:"Mulai tantangan! 🚀",ru:"Начать испытание! 🚀",th:"เริ่มความท้าทาย! 🚀",mn:"Сорилтоо эхэлье! 🚀",uz:"Sinovni boshlash! 🚀",es:"¡Comenzar el desafío! 🚀"},
+  "목표를 먼저 선택해 주세요!":{ko:"목표를 먼저 선택해 주세요!",vi:"Vui lòng chọn mục tiêu trước!",en:"Please choose your goal first!",zh:"请先选择目标!",ja:"まず目標を選んでください!",id:"Silakan pilih tujuan terlebih dahulu!",ru:"Сначала выберите цель!",th:"กรุณาเลือกเป้าหมายก่อน!",mn:"Эхлээд зорилгоо сонгоно уу!",uz:"Avval maqsadni tanlang!",es:"¡Elige primero tu objetivo!"},
+  "← 뒤로":{ko:"← 뒤로",vi:"← Quay lại",en:"← Back",zh:"← 返回",ja:"← 戻る",id:"← Kembali",ru:"← Назад",th:"← กลับ",mn:"← Буцах",uz:"← Orqaga",es:"← Atrás"},
+  "TOPIK 2급 달성":{ko:"TOPIK 2급 달성",vi:"Đạt TOPIK cấp 2",en:"TOPIK Level 2",zh:"达成TOPIK 2级",ja:"TOPIK 2級達成",id:"TOPIK level 2",ru:"TOPIK 2 уровень",th:"TOPIK ระดับ 2",mn:"TOPIK 2-р түвшин",uz:"TOPIK 2-daraja",es:"Nivel 2 de TOPIK"},
+  "TOPIK 4급 달성":{ko:"TOPIK 4급 달성",vi:"Đạt TOPIK cấp 4",en:"TOPIK Level 4",zh:"达成TOPIK 4级",ja:"TOPIK 4級達成",id:"TOPIK level 4",ru:"TOPIK 4 уровень",th:"TOPIK ระดับ 4",mn:"TOPIK 4-р түвшин",uz:"TOPIK 4-daraja",es:"Nivel 4 de TOPIK"},
+  "일상 한국어 말하기":{ko:"일상 한국어 말하기",vi:"Nói tiếng Hàn hàng ngày",en:"Everyday Korean speaking",zh:"日常韩语对话",ja:"日常韓国語会話",id:"Berbicara bahasa Korea sehari-hari",ru:"Бытовой корейский",th:"การพูดภาษาเกาหลีในชีวิตประจำวัน",mn:"Өдөр тутмын солонгос ярих",uz:"Kundalik koreys tili",es:"Coreano cotidiano"},
+  "직장 한국어 익히기":{ko:"직장 한국어 익히기",vi:"Tiếng Hàn nơi làm việc",en:"Workplace Korean",zh:"职场韩语",ja:"職場韓国語",id:"Bahasa Korea tempat kerja",ru:"Корейский для работы",th:"ภาษาเกาหลีที่ทำงาน",mn:"Ажлын солонгос хэл",uz:"Ish joyidagi koreys tili",es:"Coreano laboral"},
+  "한국 생활 적응":{ko:"한국 생활 적응",vi:"Hòa nhập cuộc sống Hàn Quốc",en:"Life in Korea",zh:"适应韩国生活",ja:"韓国生活適応",id:"Adaptasi hidup di Korea",ru:"Жизнь в Корее",th:"การปรับตัวในเกาหลี",mn:"Солонгос амьдралд дасан зохицох",uz:"Koreyadagi hayotga moslashish",es:"Vida en Corea"},
+  "80시간":{ko:"80시간",vi:"80 giờ",en:"80 hours",zh:"80小时",ja:"80時間",id:"80 jam",ru:"80 часов",th:"80 ชั่วโมง",mn:"80 цаг",uz:"80 soat",es:"80 horas"},
 };
 
 // UI 번역 헬퍼: tx(key, langCode)
@@ -3283,7 +3306,7 @@ ${vocabList}
                   style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",borderRadius:14,border:`2px solid ${isSelected?"#9C6FDE":"#eee"}`,background:isSelected?"#F3EEFF":"white",cursor:"pointer",textAlign:"left",WebkitTapHighlightColor:"transparent",transition:"all .15s"}}>
                   <span style={{fontSize:20}}>{g.emoji}</span>
                   <span style={{fontSize:13,fontWeight:isSelected?800:500,color:isSelected?"#9C6FDE":"#555"}}>{g.label}</span>
-                  {g.badge&&<span style={{marginLeft:4,fontSize:11,fontWeight:800,color:"#00C896",background:"#E6FAF4",borderRadius:8,padding:"2px 7px"}}>80시간</span>}
+                  {g.badge&&<span style={{marginLeft:4,fontSize:11,fontWeight:800,color:"#00C896",background:"#E6FAF4",borderRadius:8,padding:"2px 7px"}}>{txUI("80시간", lang)}</span>}
                   {isSelected&&<span style={{marginLeft:"auto",color:"#9C6FDE",fontSize:16}}>✓</span>}
                 </button>
               );
@@ -3385,7 +3408,7 @@ ${vocabList}
             </div>
             <div style={{fontSize:20,fontWeight:900,color:"#9C6FDE"}}>{formatDate(preview)}</div>
             {studyGoal&&<div style={{fontSize:12,color:"#9C6FDE",fontWeight:700,marginTop:6,background:"#9C6FDE18",borderRadius:8,padding:"4px 10px",display:"inline-block"}}>
-              {[{id:"topik2",label:"TOPIK 2급 달성"},{id:"topik4",label:"TOPIK 4급 달성"},{id:"daily",label:"일상 한국어 말하기"},{id:"work",label:"직장 한국어 익히기"},{id:"life",label:"한국 생활 적응"},{id:"family",label:"가족과 소통하기"}].find(g=>g.id===studyGoal)?.label} 🎯
+              {txUI([{id:"topik2",label:"TOPIK 2급 달성"},{id:"topik4",label:"TOPIK 4급 달성"},{id:"daily",label:"일상 한국어 말하기"},{id:"work",label:"직장 한국어 익히기"},{id:"life",label:"한국 생활 적응"},{id:"family",label:"가족과 소통하기"}].find(g=>g.id===studyGoal)?.label, lang)} 🎯
             </div>}
             <div style={{fontSize:11,color:"#bbb",marginTop:4}}>
               {txUI("80시간 = 새로운 세상! 🌏", lang)}
@@ -3400,7 +3423,7 @@ ${vocabList}
         {!studyGoal&&<div style={{fontSize:12,color:"#bbb",marginTop:8,textAlign:"center"}}>
           {txUI("목표를 먼저 선택해 주세요!", lang)}
         </div>}
-        <button onClick={()=>setStep("curriculum")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
+        <button onClick={()=>setStep("curriculum")} style={{marginTop:14,background:"none",border:"none",color:"#ccc",fontSize:13,cursor:"pointer"}}>{txUI("← 뒤로", lang)}</button>
       </div>
     );
   }
