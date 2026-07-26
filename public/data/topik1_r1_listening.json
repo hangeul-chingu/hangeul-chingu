@@ -1,0 +1,755 @@
+{
+  "examId": "TOPIK1_R1",
+  "section": "listening",
+  "maxScore": 100,
+  "items": [
+    {
+      "id": 1,
+      "points": 4,
+      "groupId": null,
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "네, 이름이에요."
+        },
+        {
+          "key": 2,
+          "text": "아니요, 이름이 없어요."
+        },
+        {
+          "key": 3,
+          "text": "제 이름은 마리예요."
+        },
+        {
+          "key": 4,
+          "text": "이름을 써요."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 2,
+      "points": 4,
+      "groupId": null,
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "네, 물을 마셔요."
+        },
+        {
+          "key": 2,
+          "text": "아니요, 물이 없어요."
+        },
+        {
+          "key": 3,
+          "text": "네, 물이 좋아요."
+        },
+        {
+          "key": 4,
+          "text": "아니요, 물을 줘요."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 3,
+      "points": 3,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "공책이 두 개 있어요."
+        },
+        {
+          "key": 2,
+          "text": "책상 위에 있어요."
+        },
+        {
+          "key": 3,
+          "text": "친구가 가지고 있어요."
+        },
+        {
+          "key": 4,
+          "text": "공책이 새 거예요."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 4,
+      "points": 3,
+      "groupId": null,
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "주말에 친구를 만나요."
+        },
+        {
+          "key": 2,
+          "text": "주말이 좋아요."
+        },
+        {
+          "key": 3,
+          "text": "친구가 주말에 와요."
+        },
+        {
+          "key": 4,
+          "text": "다음 주에 만나요."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 5,
+      "points": 4,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "그래서 우산을 가져왔어요."
+        },
+        {
+          "key": 2,
+          "text": "그래서 에어컨을 켰어요."
+        },
+        {
+          "key": 3,
+          "text": "그래서 옷을 많이 입었어요."
+        },
+        {
+          "key": 4,
+          "text": "그래서 늦게 일어났어요."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 6,
+      "points": 3,
+      "groupId": null,
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "괜찮아요, 천천히 오세요."
+        },
+        {
+          "key": 2,
+          "text": "미안해요, 저도 늦었어요."
+        },
+        {
+          "key": 3,
+          "text": "고마워요, 정말 친절하시네요."
+        },
+        {
+          "key": 4,
+          "text": "축하해요, 잘 됐네요."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 7,
+      "points": 3,
+      "groupId": null,
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "서점"
+        },
+        {
+          "key": 2,
+          "text": "도서관"
+        },
+        {
+          "key": 3,
+          "text": "학교 식당"
+        },
+        {
+          "key": 4,
+          "text": "우체국"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 8,
+      "points": 3,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "은행"
+        },
+        {
+          "key": 2,
+          "text": "우체국"
+        },
+        {
+          "key": 3,
+          "text": "편의점"
+        },
+        {
+          "key": 4,
+          "text": "미용실"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 9,
+      "points": 3,
+      "groupId": null,
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "미용실"
+        },
+        {
+          "key": 2,
+          "text": "옷 가게"
+        },
+        {
+          "key": 3,
+          "text": "신발 가게"
+        },
+        {
+          "key": 4,
+          "text": "안경점"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 10,
+      "points": 4,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "병원"
+        },
+        {
+          "key": 2,
+          "text": "약국"
+        },
+        {
+          "key": 3,
+          "text": "마트"
+        },
+        {
+          "key": 4,
+          "text": "빵집"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 11,
+      "points": 3,
+      "groupId": null,
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "가족"
+        },
+        {
+          "key": 2,
+          "text": "친구"
+        },
+        {
+          "key": 3,
+          "text": "나이"
+        },
+        {
+          "key": 4,
+          "text": "직업"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 12,
+      "points": 3,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "건강"
+        },
+        {
+          "key": 2,
+          "text": "취미"
+        },
+        {
+          "key": 3,
+          "text": "운동"
+        },
+        {
+          "key": 4,
+          "text": "음식"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 13,
+      "points": 4,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "계획"
+        },
+        {
+          "key": 2,
+          "text": "날씨"
+        },
+        {
+          "key": 3,
+          "text": "여행"
+        },
+        {
+          "key": 4,
+          "text": "교통"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 14,
+      "points": 3,
+      "groupId": null,
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "교통"
+        },
+        {
+          "key": 2,
+          "text": "운동"
+        },
+        {
+          "key": 3,
+          "text": "날씨"
+        },
+        {
+          "key": 4,
+          "text": "휴가"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 15,
+      "points": 4,
+      "groupId": null,
+      "answer": 1,
+      "choices": null,
+      "passage": null,
+      "prompt": null,
+      "image": "topik1_r1_q15.png"
+    },
+    {
+      "id": 16,
+      "points": 4,
+      "groupId": null,
+      "answer": 1,
+      "choices": null,
+      "passage": null,
+      "prompt": null,
+      "image": "topik1_r1_q16.png"
+    },
+    {
+      "id": 17,
+      "points": 3,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "수미 씨는 청소를 했습니다."
+        },
+        {
+          "key": 2,
+          "text": "수미 씨는 어제 영화를 봤습니다."
+        },
+        {
+          "key": 3,
+          "text": "두 사람은 같이 영화를 봤습니다."
+        },
+        {
+          "key": 4,
+          "text": "수미 씨는 영화를 좋아하지 않습니다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 18,
+      "points": 3,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "가방은 삼만 원입니다."
+        },
+        {
+          "key": 2,
+          "text": "지금 가방이 세일 중입니다."
+        },
+        {
+          "key": 3,
+          "text": "여자는 가방을 사지 않았습니다."
+        },
+        {
+          "key": 4,
+          "text": "가방 가격을 모릅니다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 19,
+      "points": 3,
+      "groupId": null,
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "여자는 등산화가 있습니다."
+        },
+        {
+          "key": 2,
+          "text": "남자는 등산을 싫어합니다."
+        },
+        {
+          "key": 3,
+          "text": "남자가 여자에게 등산화를 빌려줄 겁니다."
+        },
+        {
+          "key": 4,
+          "text": "두 사람은 등산을 안 갑니다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 20,
+      "points": 3,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "회의는 두 시에 시작합니다."
+        },
+        {
+          "key": 2,
+          "text": "회의가 두 시 삼십 분으로 늦어질 것 같습니다."
+        },
+        {
+          "key": 3,
+          "text": "남자는 점심을 이미 먹었습니다."
+        },
+        {
+          "key": 4,
+          "text": "두 사람은 같이 점심을 먹을 겁니다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 21,
+      "points": 3,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "이미 내려야 할 역을 지났습니다."
+        },
+        {
+          "key": 2,
+          "text": "한 정거장 더 가야 합니다."
+        },
+        {
+          "key": 3,
+          "text": "지금 인주역에 있습니다."
+        },
+        {
+          "key": 4,
+          "text": "남자는 목적지를 모릅니다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 22,
+      "points": 3,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "바쁠 때는 운동을 쉬어도 된다."
+        },
+        {
+          "key": 2,
+          "text": "짧더라도 매일 몸을 움직이는 것이 중요하다."
+        },
+        {
+          "key": 3,
+          "text": "운동은 시간이 많을 때 해야 한다."
+        },
+        {
+          "key": 4,
+          "text": "건강보다 일이 더 중요하다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 23,
+      "points": 3,
+      "groupId": null,
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "가방은 무조건 싸야 한다."
+        },
+        {
+          "key": 2,
+          "text": "비싼 물건은 사지 않는 것이 좋다."
+        },
+        {
+          "key": 3,
+          "text": "오래 쓸 수 있다면 비싸도 좋은 선택일 수 있다."
+        },
+        {
+          "key": 4,
+          "text": "가방은 자주 바꾸는 것이 좋다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 24,
+      "points": 3,
+      "groupId": null,
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "발표는 미리 준비할 필요 없다."
+        },
+        {
+          "key": 2,
+          "text": "준비를 미리 해 두면 나중에 덜 힘들다."
+        },
+        {
+          "key": 3,
+          "text": "발표 준비는 어렵지 않다."
+        },
+        {
+          "key": 4,
+          "text": "마지막에 한 번에 끝내는 게 좋다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 25,
+      "points": 3,
+      "groupId": "G25_26",
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "도서관 이용 규칙을 안내하려고"
+        },
+        {
+          "key": 2,
+          "text": "그림책 읽기 행사를 알리려고"
+        },
+        {
+          "key": 3,
+          "text": "도서관 휴관을 안내하려고"
+        },
+        {
+          "key": 4,
+          "text": "책 대출 방법을 설명하려고"
+        }
+      ],
+      "passage": null,
+      "prompt": "여자가 왜 이 이야기를 하고 있는지 고르십시오."
+    },
+    {
+      "id": 26,
+      "points": 4,
+      "groupId": "G25_26",
+      "answer": 4,
+      "choices": [
+        {
+          "key": 1,
+          "text": "행사는 저녁에 열립니다."
+        },
+        {
+          "key": 2,
+          "text": "행사는 두 시간 동안 진행됩니다."
+        },
+        {
+          "key": 3,
+          "text": "누구나 행사에 참여할 수 있습니다."
+        },
+        {
+          "key": 4,
+          "text": "행사는 2층에서 열립니다."
+        }
+      ],
+      "passage": null,
+      "prompt": "들은 내용과 같은 것을 고르십시오."
+    },
+    {
+      "id": 27,
+      "points": 3,
+      "groupId": "G27_28",
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "회사 점심 메뉴"
+        },
+        {
+          "key": 2,
+          "text": "점심시간 걷기 모임"
+        },
+        {
+          "key": 3,
+          "text": "회사 근처 맛집"
+        },
+        {
+          "key": 4,
+          "text": "운동화 구입"
+        }
+      ],
+      "passage": null,
+      "prompt": "두 사람이 무엇에 대해 이야기를 하고 있는지 고르십시오."
+    },
+    {
+      "id": 28,
+      "points": 4,
+      "groupId": "G27_28",
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "모임은 매일 합니다."
+        },
+        {
+          "key": 2,
+          "text": "모임은 일주일에 두 번 합니다."
+        },
+        {
+          "key": 3,
+          "text": "모임은 일주일에 세 번 합니다."
+        },
+        {
+          "key": 4,
+          "text": "모임은 저녁에 합니다."
+        }
+      ],
+      "passage": null,
+      "prompt": "들은 내용과 같은 것을 고르십시오."
+    },
+    {
+      "id": 29,
+      "points": 3,
+      "groupId": "G29_30",
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "라디오 일이 직업이라서"
+        },
+        {
+          "key": 2,
+          "text": "마을 어르신들께 정보를 전하고 싶어서"
+        },
+        {
+          "key": 3,
+          "text": "유명해지고 싶어서"
+        },
+        {
+          "key": 4,
+          "text": "회사에서 시켜서"
+        }
+      ],
+      "passage": null,
+      "prompt": "여자가 이 일을 시작한 이유를 고르십시오."
+    },
+    {
+      "id": 30,
+      "points": 4,
+      "groupId": "G29_30",
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "여자는 혼자서만 방송을 합니다."
+        },
+        {
+          "key": 2,
+          "text": "처음부터 여러 사람이 함께 시작했습니다."
+        },
+        {
+          "key": 3,
+          "text": "지금은 마을 주민들도 방송에 출연합니다."
+        },
+        {
+          "key": 4,
+          "text": "방송 내용은 음악뿐입니다."
+        }
+      ],
+      "passage": null,
+      "prompt": "들은 내용과 같은 것을 고르십시오."
+    }
+  ]
+}
