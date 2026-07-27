@@ -6,7 +6,7 @@
     {
       "id": 31,
       "points": 2,
-      "groupId": null,
+      "groupId": "G31_33",
       "answer": 4,
       "choices": [
         {
@@ -32,7 +32,7 @@
     {
       "id": 32,
       "points": 2,
-      "groupId": null,
+      "groupId": "G31_33",
       "answer": 2,
       "choices": [
         {
@@ -58,7 +58,7 @@
     {
       "id": 33,
       "points": 2,
-      "groupId": null,
+      "groupId": "G31_33",
       "answer": 1,
       "choices": [
         {
@@ -84,7 +84,7 @@
     {
       "id": 34,
       "points": 2,
-      "groupId": null,
+      "groupId": "G34_39",
       "answer": 1,
       "choices": [
         {
@@ -110,7 +110,7 @@
     {
       "id": 35,
       "points": 2,
-      "groupId": null,
+      "groupId": "G34_39",
       "answer": 2,
       "choices": [
         {
@@ -136,7 +136,7 @@
     {
       "id": 36,
       "points": 2,
-      "groupId": null,
+      "groupId": "G34_39",
       "answer": 3,
       "choices": [
         {
@@ -162,7 +162,7 @@
     {
       "id": 37,
       "points": 3,
-      "groupId": null,
+      "groupId": "G34_39",
       "answer": 2,
       "choices": [
         {
@@ -188,7 +188,7 @@
     {
       "id": 38,
       "points": 3,
-      "groupId": null,
+      "groupId": "G34_39",
       "answer": 1,
       "choices": [
         {
@@ -214,7 +214,7 @@
     {
       "id": 39,
       "points": 2,
-      "groupId": null,
+      "groupId": "G34_39",
       "answer": 2,
       "choices": [
         {
@@ -240,7 +240,7 @@
     {
       "id": 40,
       "points": 3,
-      "groupId": null,
+      "groupId": "G40_42",
       "answer": 4,
       "choices": [
         {
@@ -266,7 +266,7 @@
     {
       "id": 41,
       "points": 3,
-      "groupId": null,
+      "groupId": "G40_42",
       "answer": 1,
       "choices": [
         {
@@ -292,7 +292,7 @@
     {
       "id": 42,
       "points": 3,
-      "groupId": null,
+      "groupId": "G40_42",
       "answer": 4,
       "choices": [
         {
@@ -318,7 +318,7 @@
     {
       "id": 43,
       "points": 3,
-      "groupId": null,
+      "groupId": "G43_45",
       "answer": 3,
       "choices": [
         {
@@ -344,7 +344,7 @@
     {
       "id": 44,
       "points": 3,
-      "groupId": null,
+      "groupId": "G43_45",
       "answer": 2,
       "choices": [
         {
@@ -370,7 +370,7 @@
     {
       "id": 45,
       "points": 3,
-      "groupId": null,
+      "groupId": "G43_45",
       "answer": 4,
       "choices": [
         {
@@ -396,7 +396,7 @@
     {
       "id": 46,
       "points": 3,
-      "groupId": null,
+      "groupId": "G46_48",
       "answer": 4,
       "choices": [
         {
@@ -422,7 +422,7 @@
     {
       "id": 47,
       "points": 3,
-      "groupId": null,
+      "groupId": "G46_48",
       "answer": 4,
       "choices": [
         {
@@ -448,7 +448,7 @@
     {
       "id": 48,
       "points": 2,
-      "groupId": null,
+      "groupId": "G46_48",
       "answer": 3,
       "choices": [
         {
