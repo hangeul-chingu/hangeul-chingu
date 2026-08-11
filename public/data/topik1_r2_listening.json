@@ -1,0 +1,829 @@
+{
+  "examId": "TOPIK1_R2",
+  "section": "listening",
+  "maxScore": 100,
+  "items": [
+    {
+      "id": 1,
+      "points": 4,
+      "groupId": "G1_4",
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "네, 좋아해요."
+        },
+        {
+          "key": 2,
+          "text": "아니요, 다른 거 마셔요."
+        },
+        {
+          "key": 3,
+          "text": "네, 커피예요."
+        },
+        {
+          "key": 4,
+          "text": "아니요, 시간이 없어요."
+        }
+      ],
+      "passage": null,
+      "prompt": "커피 좋아해요?"
+    },
+    {
+      "id": 2,
+      "points": 4,
+      "groupId": "G1_4",
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "제 친구예요."
+        },
+        {
+          "key": 2,
+          "text": "다음 주예요."
+        },
+        {
+          "key": 3,
+          "text": "생일 파티예요."
+        },
+        {
+          "key": 4,
+          "text": "아니요, 생일이 아니에요."
+        }
+      ],
+      "passage": null,
+      "prompt": "생일이 언제예요?"
+    },
+    {
+      "id": 3,
+      "points": 3,
+      "groupId": "G1_4",
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "이건 제 우산이에요."
+        },
+        {
+          "key": 2,
+          "text": "우산이 두 개예요."
+        },
+        {
+          "key": 3,
+          "text": "가방 안에 있어요."
+        },
+        {
+          "key": 4,
+          "text": "지난주에 샀어요."
+        }
+      ],
+      "passage": null,
+      "prompt": "우산이 어디 있어요?"
+    },
+    {
+      "id": 4,
+      "points": 3,
+      "groupId": "G1_4",
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "네, 시간 있어요."
+        },
+        {
+          "key": 2,
+          "text": "아니요, 저녁을 먹었어요."
+        },
+        {
+          "key": 3,
+          "text": "네, 저녁이에요."
+        },
+        {
+          "key": 4,
+          "text": "아니요, 사람이 많아요."
+        }
+      ],
+      "passage": null,
+      "prompt": "저녁에 시간 있어요?"
+    },
+    {
+      "id": 5,
+      "points": 4,
+      "groupId": "G5_6",
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "네, 좋아요. 몇 시에 만날까요?"
+        },
+        {
+          "key": 2,
+          "text": "아니요, 밥을 안 먹었어요."
+        },
+        {
+          "key": 3,
+          "text": "네, 저녁이 맛있어요."
+        },
+        {
+          "key": 4,
+          "text": "아니요, 어제 만났어요."
+        }
+      ],
+      "passage": null,
+      "prompt": "오늘 저녁에 같이 밥 먹을까요?"
+    },
+    {
+      "id": 6,
+      "points": 3,
+      "groupId": "G5_6",
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "괜찮아요. 조심히 오세요."
+        },
+        {
+          "key": 2,
+          "text": "네, 길을 몰라요."
+        },
+        {
+          "key": 3,
+          "text": "아니요, 안 막혀요."
+        },
+        {
+          "key": 4,
+          "text": "늦게 오세요."
+        }
+      ],
+      "passage": null,
+      "prompt": "죄송해요, 길이 많이 막혀서 늦었어요."
+    },
+    {
+      "id": 7,
+      "points": 3,
+      "groupId": "G7_10",
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "세탁소"
+        },
+        {
+          "key": 2,
+          "text": "옷가게"
+        },
+        {
+          "key": 3,
+          "text": "신발가게"
+        },
+        {
+          "key": 4,
+          "text": "미용실"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 8,
+      "points": 3,
+      "groupId": "G7_10",
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "병원"
+        },
+        {
+          "key": 2,
+          "text": "식당"
+        },
+        {
+          "key": 3,
+          "text": "미용실"
+        },
+        {
+          "key": 4,
+          "text": "편의점"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 9,
+      "points": 3,
+      "groupId": "G7_10",
+      "answer": 4,
+      "choices": [
+        {
+          "key": 1,
+          "text": "택시 안"
+        },
+        {
+          "key": 2,
+          "text": "학교"
+        },
+        {
+          "key": 3,
+          "text": "식당"
+        },
+        {
+          "key": 4,
+          "text": "정류장"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 10,
+      "points": 4,
+      "groupId": "G7_10",
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "택배 회사"
+        },
+        {
+          "key": 2,
+          "text": "도서관"
+        },
+        {
+          "key": 3,
+          "text": "은행"
+        },
+        {
+          "key": 4,
+          "text": "카페"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 11,
+      "points": 3,
+      "groupId": "G11_14",
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "여행"
+        },
+        {
+          "key": 2,
+          "text": "건강"
+        },
+        {
+          "key": 3,
+          "text": "운동"
+        },
+        {
+          "key": 4,
+          "text": "쇼핑"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 12,
+      "points": 3,
+      "groupId": "G11_14",
+      "answer": 4,
+      "choices": [
+        {
+          "key": 1,
+          "text": "날씨"
+        },
+        {
+          "key": 2,
+          "text": "운동"
+        },
+        {
+          "key": 3,
+          "text": "가족"
+        },
+        {
+          "key": 4,
+          "text": "요리"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 13,
+      "points": 4,
+      "groupId": "G11_14",
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "교통"
+        },
+        {
+          "key": 2,
+          "text": "직업"
+        },
+        {
+          "key": 3,
+          "text": "계절"
+        },
+        {
+          "key": 4,
+          "text": "건강"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 14,
+      "points": 3,
+      "groupId": "G11_14",
+      "answer": 4,
+      "choices": [
+        {
+          "key": 1,
+          "text": "공부"
+        },
+        {
+          "key": 2,
+          "text": "가족"
+        },
+        {
+          "key": 3,
+          "text": "여행"
+        },
+        {
+          "key": 4,
+          "text": "취미"
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 15,
+      "points": 4,
+      "groupId": "G15_16",
+      "answer": 3,
+      "choices": null,
+      "passage": null,
+      "prompt": null,
+      "images": [
+        "topik1_r2_q15_1.png",
+        "topik1_r2_q15_2.png",
+        "topik1_r2_q15_3.png",
+        "topik1_r2_q15_4.png"
+      ]
+    },
+    {
+      "id": 16,
+      "points": 4,
+      "groupId": "G15_16",
+      "answer": 2,
+      "choices": null,
+      "passage": null,
+      "prompt": null,
+      "images": [
+        "topik1_r2_q16_1.png",
+        "topik1_r2_q16_2.png",
+        "topik1_r2_q16_3.png",
+        "topik1_r2_q16_4.png"
+      ]
+    },
+    {
+      "id": 17,
+      "points": 3,
+      "groupId": "G17_21",
+      "answer": 4,
+      "choices": [
+        {
+          "key": 1,
+          "text": "남자는 책을 이미 반납했다."
+        },
+        {
+          "key": 2,
+          "text": "여자는 오늘 도서관에 안 간다."
+        },
+        {
+          "key": 3,
+          "text": "남자는 책을 새로 살 것이다."
+        },
+        {
+          "key": 4,
+          "text": "여자가 남자의 책을 반납해 주기로 했다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 18,
+      "points": 3,
+      "groupId": "G17_21",
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "남자는 지갑을 선물로 추천했다."
+        },
+        {
+          "key": 2,
+          "text": "여자의 동생은 다음 달 생일이다."
+        },
+        {
+          "key": 3,
+          "text": "여자는 이미 선물을 샀다."
+        },
+        {
+          "key": 4,
+          "text": "동생은 지갑을 싫어한다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 19,
+      "points": 3,
+      "groupId": "G17_21",
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "남자는 수영을 배우고 있다."
+        },
+        {
+          "key": 2,
+          "text": "여자는 수영을 그만뒀다."
+        },
+        {
+          "key": 3,
+          "text": "여자는 주말에 수영장에 갈 것이다."
+        },
+        {
+          "key": 4,
+          "text": "남자는 주말에 여행을 간다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 20,
+      "points": 3,
+      "groupId": "G17_21",
+      "answer": 4,
+      "choices": [
+        {
+          "key": 1,
+          "text": "남자의 아르바이트는 항상 두 시에 시작한다."
+        },
+        {
+          "key": 2,
+          "text": "사장님은 오늘 안 나온다."
+        },
+        {
+          "key": 3,
+          "text": "여자도 같은 아르바이트를 한다."
+        },
+        {
+          "key": 4,
+          "text": "남자는 오늘 평소보다 일찍 가야 한다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 21,
+      "points": 3,
+      "groupId": "G17_21",
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "여자는 이사 준비를 다 끝냈다."
+        },
+        {
+          "key": 2,
+          "text": "여자는 아직 부엌 짐을 다 못 쌌다."
+        },
+        {
+          "key": 3,
+          "text": "여자는 옷을 아직 안 쌌다."
+        },
+        {
+          "key": 4,
+          "text": "남자가 이사를 도와주러 왔다."
+        }
+      ],
+      "passage": null,
+      "prompt": null
+    },
+    {
+      "id": 22,
+      "points": 3,
+      "groupId": "G22_24",
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "커피는 건강에 안 좋다."
+        },
+        {
+          "key": 2,
+          "text": "아침 식사를 꼭 챙겨 먹는 것이 좋다."
+        },
+        {
+          "key": 3,
+          "text": "시간이 없으면 아침을 안 먹어도 된다."
+        },
+        {
+          "key": 4,
+          "text": "커피는 힘이 나게 해 준다."
+        }
+      ],
+      "passage": null,
+      "prompt": "남자의 중심 생각을 고르십시오."
+    },
+    {
+      "id": 23,
+      "points": 3,
+      "groupId": "G22_24",
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "여행은 자주 갈수록 좋다."
+        },
+        {
+          "key": 2,
+          "text": "휴가 때는 집에서 쉬는 게 낫다."
+        },
+        {
+          "key": 3,
+          "text": "새로운 곳으로 여행 가는 것이 좋다."
+        },
+        {
+          "key": 4,
+          "text": "안 가본 곳은 위험할 수 있다."
+        }
+      ],
+      "passage": null,
+      "prompt": "여자의 중심 생각을 고르십시오."
+    },
+    {
+      "id": 24,
+      "points": 3,
+      "groupId": "G22_24",
+      "answer": 4,
+      "choices": [
+        {
+          "key": 1,
+          "text": "시간은 누구에게나 똑같이 주어진다."
+        },
+        {
+          "key": 2,
+          "text": "계획 없이 사는 것도 괜찮다."
+        },
+        {
+          "key": 3,
+          "text": "다음 달 계획은 여자가 세워야 한다."
+        },
+        {
+          "key": 4,
+          "text": "미리 계획을 세우는 것이 좋다."
+        }
+      ],
+      "passage": null,
+      "prompt": "남자의 중심 생각을 고르십시오."
+    },
+    {
+      "id": 25,
+      "points": 3,
+      "groupId": "G25_26",
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "문화센터 이용 시간 안내"
+        },
+        {
+          "key": 2,
+          "text": "요리 교실 안내"
+        },
+        {
+          "key": 3,
+          "text": "전화 신청 방법 안내"
+        },
+        {
+          "key": 4,
+          "text": "문화센터 위치 안내"
+        }
+      ],
+      "passage": null,
+      "prompt": "남자가 왜 이 이야기를 하고 있는지 고르십시오"
+    },
+    {
+      "id": 26,
+      "points": 4,
+      "groupId": "G25_26",
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "요리 교실은 주말에 연다."
+        },
+        {
+          "key": 2,
+          "text": "요리 교실은 오후에 시작한다."
+        },
+        {
+          "key": 3,
+          "text": "요리 교실 신청은 전화로 한다."
+        },
+        {
+          "key": 4,
+          "text": "다음 주 아무 때나 전화해도 된다."
+        }
+      ],
+      "passage": null,
+      "prompt": "들은 내용과 같은 것을 고르십시오"
+    },
+    {
+      "id": 27,
+      "points": 3,
+      "groupId": "G27_28",
+      "answer": 1,
+      "choices": [
+        {
+          "key": 1,
+          "text": "회사 영어 모임"
+        },
+        {
+          "key": 2,
+          "text": "회사 점심 메뉴"
+        },
+        {
+          "key": 3,
+          "text": "회사 회의 시간"
+        },
+        {
+          "key": 4,
+          "text": "회사 신입사원 교육"
+        }
+      ],
+      "passage": null,
+      "prompt": "두 사람이 무엇에 대해 이야기를 하고 있는지 고르십시오"
+    },
+    {
+      "id": 28,
+      "points": 4,
+      "groupId": "G27_28",
+      "answer": 4,
+      "choices": [
+        {
+          "key": 1,
+          "text": "모임은 한 달 전에 시작했다."
+        },
+        {
+          "key": 2,
+          "text": "아무나 할 수 없다."
+        },
+        {
+          "key": 3,
+          "text": "모임은 매일 한다."
+        },
+        {
+          "key": 4,
+          "text": "모임은 화요일 점심시간에 한다."
+        }
+      ],
+      "passage": null,
+      "prompt": "들은 내용과 같은 것을 고르십시오"
+    },
+    {
+      "id": 29,
+      "points": 3,
+      "groupId": "G29_30",
+      "answer": 2,
+      "choices": [
+        {
+          "key": 1,
+          "text": "시간이 적게 걸려서"
+        },
+        {
+          "key": 2,
+          "text": "손님들이 맛있다고 해서"
+        },
+        {
+          "key": 3,
+          "text": "다른 일이 바빠서"
+        },
+        {
+          "key": 4,
+          "text": "값이 싸져서"
+        }
+      ],
+      "passage": null,
+      "prompt": "여자가 이곳에 온 이유를 고르십시오"
+    },
+    {
+      "id": 30,
+      "points": 4,
+      "groupId": "G29_30",
+      "answer": 3,
+      "choices": [
+        {
+          "key": 1,
+          "text": "빵집은 문을 연 지 얼마 안 됐다."
+        },
+        {
+          "key": 2,
+          "text": "주말에는 빵을 적게 만든다."
+        },
+        {
+          "key": 3,
+          "text": "하루에 보통 백 개 정도 만든다."
+        },
+        {
+          "key": 4,
+          "text": "매일 오십 개만 만든다."
+        }
+      ],
+      "passage": null,
+      "prompt": "들은 내용과 같은 것을 고르십시오"
+    }
+  ],
+  "sectionNotes": {
+    "1": "다음을 듣고 〈보기〉와 같이 물음에 맞는 대답을 고르십시오.",
+    "5": "다음을 듣고 〈보기〉와 같이 이어지는 말을 고르십시오.",
+    "7": "여기는 어디입니까? 〈보기〉와 같이 알맞은 것을 고르십시오.",
+    "11": "다음은 무엇에 대해 말하고 있습니까? 〈보기〉와 같이 알맞은 것을 고르십시오.",
+    "15": "다음을 듣고 가장 알맞은 그림을 고르십시오. (각 4점)",
+    "17": "다음을 듣고 〈보기〉와 같이 대화 내용과 같은 것을 고르십시오. (각 3점)",
+    "22": "다음을 듣고 중심 생각을 고르십시오. (각 3점)",
+    "25": "다음을 듣고 물음에 답하십시오.",
+    "27": "다음을 듣고 물음에 답하십시오.",
+    "29": "다음을 듣고 물음에 답하십시오."
+  },
+  "examples": {
+    "1": {
+      "passage": "가방이 예뻐요?",
+      "choices": [
+        "네, 예뻐요.",
+        "아니요, 가방이 없어요.",
+        "네, 가방이에요.",
+        "아니요, 가방을 사요."
+      ],
+      "answer": 1
+    },
+    "5": {
+      "passage": "오늘 저녁에 시간 있어요?",
+      "choices": [
+        "네, 있어요. 몇 시에 만날까요?",
+        "아니요, 저녁을 안 먹었어요.",
+        "네, 저녁이 맛있어요.",
+        "아니요, 어제 만났어요."
+      ],
+      "answer": 1
+    },
+    "7": {
+      "passage": "어서 오세요. 뭘 드릴까요? / 아이스크림 두 개 주세요.",
+      "choices": [
+        "학교",
+        "병원",
+        "아이스크림 가게",
+        "은행"
+      ],
+      "answer": 3
+    },
+    "11": {
+      "passage": "무슨 음식을 좋아해요? / 저는 김치찌개를 좋아해요.",
+      "choices": [
+        "시간",
+        "날씨",
+        "음식",
+        "가족"
+      ],
+      "answer": 3
+    },
+    "17": {
+      "passage": "이거 언제 샀어요? / 지난주에 샀어요. 마음에 들어서 매일 써요.",
+      "choices": [
+        "남자는 어제 이것을 샀다.",
+        "여자는 이것을 지난주에 샀다.",
+        "남자는 이것을 안 좋아한다.",
+        "여자는 이것을 아직 못 샀다."
+      ],
+      "answer": 2
+    }
+  }
+}
