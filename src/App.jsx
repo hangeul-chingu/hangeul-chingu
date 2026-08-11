@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "471";
+const APP_VERSION = "472";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -23207,10 +23207,13 @@ function ExamItemChoices({ it, answers, selectAnswer }) {
     return (
       <>
         {/* ✅ V419: 그래프·차트형(mc_chart) 문항 — choices가 있어도 image가 있으면 위에 표시.
-            기존엔 choices가 있으면 image 필드를 아예 확인하지 않아 그래프 자체가 안 뜨던 문제 수정 */}
+            기존엔 choices가 있으면 image 필드를 아예 확인하지 않아 그래프 자체가 안 뜨던 문제 수정
+            ✅ V472: width:100%만 있고 최대 너비 제한이 없어서, 데스크탑 등 화면이 넓을 때
+            정사각형에 가까운 이미지(40번 아이콘 등)가 화면 높이만큼 거대하게 늘어나
+            선택지가 스크롤을 한참 내려야 보이는 문제 발견(노치성님 실사용 확인) → maxWidth 추가 */}
         {it.image && (
           <img src={`/images/${it.image}`} alt={`${it.id}번 문항 그래프`}
-            style={{width:"100%",borderRadius:12,marginBottom:12,border:"1px solid #eee"}}
+            style={{width:"100%",maxWidth:360,display:"block",margin:"0 auto 12px",borderRadius:12,border:"1px solid #eee"}}
             onError={e=>{ e.target.style.display = "none"; }} />
         )}
         {it.choices.map(c => {
@@ -23250,7 +23253,7 @@ function ExamItemChoices({ it, answers, selectAnswer }) {
     <>
       {it.image && (
         <img src={`/images/${it.image}`} alt={`${it.id}번 문항 그림`}
-          style={{width:"100%",borderRadius:12,marginBottom:10,border:"1px solid #eee"}}
+          style={{width:"100%",maxWidth:360,display:"block",margin:"0 auto 10px",borderRadius:12,border:"1px solid #eee"}}
           onError={e=>{ e.target.style.display = "none"; }} />
       )}
       <div style={{display:"flex",gap:8}}>
