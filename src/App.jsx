@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "482";
+const APP_VERSION = "483";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -23196,6 +23196,40 @@ function PassageCard({ card }) {
         <div style={{fontSize:13,color:"#444",marginBottom:10}}><b>제목</b> &nbsp;&nbsp;&nbsp; {card.subject}</div>
         <div style={{borderTop:"1px solid #eee",margin:"10px 0"}}/>
         <div style={{fontSize:13,color:"#333",lineHeight:1.9,whiteSpace:"pre-line"}}>{card.body}</div>
+      </div>
+    );
+  }
+  // ✅ V483: 그래프형(막대) — categories/values/unit 구조화 데이터를 이미지 없이 SVG로 직접 렌더링.
+  //   쓰기 53번 DataChart와 같은 시각 언어(보라색 #7C3AED)로 통일해, 이런 문항이 이미지 파일
+  //   생성 단계를 깜빡해도 항상 정상적으로 표시되도록 함(TOPIK2 R2 10번에서 발견된 버그 재발방지).
+  if (card.type === "bar") {
+    const cats = card.categories || [];
+    const vals = card.values || [];
+    const unit = card.unit || "%";
+    const maxV = Math.max(...vals, 1);
+    const W = 320, H = 190, padL = 12, padR = 12, padT = 22, padB = 34;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const n = cats.length || 1;
+    const gap = plotW / n;
+    const barW = gap * 0.5;
+    return (
+      <div style={{background:cream,borderRadius:14,padding:"16px",marginBottom:16}}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height:"auto"}}>
+          <line x1={padL} y1={H-padB} x2={W-padR} y2={H-padB} stroke="#ccc" strokeWidth={1}/>
+          {cats.map((c,i) => {
+            const v = vals[i] || 0;
+            const barH = maxV > 0 ? (v/maxV) * plotH : 0;
+            const x = padL + i*gap + (gap-barW)/2;
+            const y = padT + plotH - barH;
+            return (
+              <g key={i}>
+                <rect x={x} y={y} width={barW} height={barH} fill="#7C3AED" rx={3}/>
+                <text x={x+barW/2} y={y-6} fontSize={11} fontWeight="800" fill="#7C3AED" textAnchor="middle">{v}{unit}</text>
+                <text x={x+barW/2} y={H-padB+16} fontSize={10} fill="#666" textAnchor="middle">{c}</text>
+              </g>
+            );
+          })}
+        </svg>
       </div>
     );
   }
