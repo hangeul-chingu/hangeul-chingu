@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "484";
+const APP_VERSION = "485";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -25085,15 +25085,15 @@ export default function App() {
 
   // ✅ V423: 쓰기 모의고사 응시 화면 — 전체화면 오버레이 (51~54번 AI 자동채점)
   // ✅ V473: TOPIK2_R1 단일 비교였던 걸 배열로 바꿔 TOPIK2_R2 추가
-  if (examView && ["TOPIK2_R1","TOPIK2_R2"].includes(examView.examId) && examView.section === "writing") {
+  if (examView && ["TOPIK2_R1","TOPIK2_R2","TOPIK2_R3"].includes(examView.examId) && examView.section === "writing") {
     return <TopikWritingExam uid={user.uid} examId={examView.examId} onClose={()=>setExamView(null)} />;
   }
   // ✅ V413: 듣기 모의고사 응시 화면 — 전체화면 오버레이 (V415: TOPIK1_R1·TOPIK2_R1 공용, V471: TOPIK1_R2, V473: TOPIK2_R2 추가)
-  if (examView && ["TOPIK1_R1","TOPIK1_R2","TOPIK2_R1","TOPIK2_R2"].includes(examView.examId) && examView.section === "listening") {
+  if (examView && ["TOPIK1_R1","TOPIK1_R2","TOPIK2_R1","TOPIK2_R2","TOPIK2_R3"].includes(examView.examId) && examView.section === "listening") {
     return <TopikListeningExam uid={user.uid} examId={examView.examId} onClose={()=>setExamView(null)} />;
   }
   // ✅ V412: 읽기 모의고사 응시 화면 — 전체화면 오버레이 (V415: TOPIK1_R1·TOPIK2_R1 공용, V471: TOPIK1_R2, V473: TOPIK2_R2 추가)
-  if (examView && ["TOPIK1_R1","TOPIK1_R2","TOPIK2_R1","TOPIK2_R2"].includes(examView.examId)) {
+  if (examView && ["TOPIK1_R1","TOPIK1_R2","TOPIK2_R1","TOPIK2_R2","TOPIK2_R3"].includes(examView.examId)) {
     return <TopikReadingExam uid={user.uid} examId={examView.examId} onClose={()=>setExamView(null)} />;
   }
 
@@ -25419,6 +25419,19 @@ export default function App() {
                 buttons={TOPIK2_BUTTONS} compact={false}
                 setShowMyPage={setShowMyPage} setExamView={setExamView}
               />
+              {/* ✅ V485: TOPIK Ⅱ 3회차 — 1·2회차와 동일 자격조건(중급 모듈 5개 완료) 공유 */}
+              <TopikMypageCard
+                levelLabel="Ⅱ" examId="TOPIK2_R3" roundLabel=" 3회"
+                checking={midModulesFirestore===null}
+                unlocked={(midModulesFirestore ? ["m1","pq","dc","sl","m3"].filter(k=>midModulesFirestore[k]).length : 0)>=5 || isDev}
+                progressCurrent={midModulesFirestore ? ["m1","pq","dc","sl","m3"].filter(k=>midModulesFirestore[k]).length : 0} progressTotal={5}
+                unlockedIntroFull="중급 모듈을"
+                lockedIntroFull="중급 모듈 5개를 모두 마치면 모의고사에 도전할 수 있어요."
+                lockedSuffixFull={diff=>`${diff}개 모듈만 더 하면 열려요! 🔓`}
+                lockedCompact={diff=>`TOPIK Ⅱ 3회: 중급 모듈 ${diff}개만 더 하면 응시 가능!`}
+                buttons={TOPIK2_BUTTONS} compact={false}
+                setShowMyPage={setShowMyPage} setExamView={setExamView}
+              />
 
               {/* ✅ V451: 중급 모듈 여정 지도 — 5개 모듈 완료 여부만 표시(세부 진행률(%) 없음,
                   노치성님 결정 260803). 80h 트랙 JourneyMapList 컴포넌트·midJourneyStages
@@ -25711,6 +25724,19 @@ export default function App() {
                 buttons={TOPIK2_BUTTONS} compact={true}
                 setShowMyPage={setShowMyPage} setExamView={setExamView}
               />
+              {/* ✅ V485: TOPIK Ⅱ 3회차 — 1·2회차와 동일 자격조건(중급 모듈 5개 완료) 공유 */}
+              <TopikMypageCard
+                levelLabel="Ⅱ" examId="TOPIK2_R3" roundLabel=" 3회"
+                checking={midModulesFirestore===null}
+                unlocked={(midModulesFirestore ? ["m1","pq","dc","sl","m3"].filter(k=>midModulesFirestore[k]).length : 0)>=5 || isDev}
+                progressCurrent={midModulesFirestore ? ["m1","pq","dc","sl","m3"].filter(k=>midModulesFirestore[k]).length : 0} progressTotal={5}
+                unlockedIntroFull="중급 모듈을"
+                lockedIntroFull="중급 모듈 5개를 모두 마치면 모의고사에 도전할 수 있어요."
+                lockedSuffixFull={diff=>`${diff}개 모듈만 더 하면 열려요! 🔓`}
+                lockedCompact={diff=>`TOPIK Ⅱ 3회: 중급 모듈 ${diff}개만 더 하면 응시 가능!`}
+                buttons={TOPIK2_BUTTONS} compact={true}
+                setShowMyPage={setShowMyPage} setExamView={setExamView}
+              />
               {/* ✅ V445: 1단계(KIIP 안내 배너) — 다른 두 마이페이지엔 있던 KIIP 카드가
                   이 축약 팝업(BegScreen 내부)에만 없었던 것을 발견해 추가(V405/V406과 동일한
                   누락 패턴 재발). KIIP은 완주 게이트가 없으므로 TOPIK처럼 "자격 획득" 감지가
@@ -25962,6 +25988,19 @@ export default function App() {
                 lockedIntroFull="중급 모듈 5개를 모두 마치면 모의고사에 도전할 수 있어요."
                 lockedSuffixFull={diff=>`${diff}개 모듈만 더 하면 열려요! 🔓`}
                 lockedCompact={diff=>`TOPIK Ⅱ 2회: 중급 모듈 ${diff}개만 더 하면 응시 가능!`}
+                buttons={TOPIK2_BUTTONS} compact={false}
+                setShowMyPage={setShowMyPage} setExamView={setExamView}
+              />
+              {/* ✅ V485: TOPIK Ⅱ 3회차 — 1·2회차와 동일 자격조건(중급 모듈 5개 완료) 공유 */}
+              <TopikMypageCard
+                levelLabel="Ⅱ" examId="TOPIK2_R3" roundLabel=" 3회"
+                checking={midModulesFirestore===null}
+                unlocked={(midModulesFirestore ? ["m1","pq","dc","sl","m3"].filter(k=>midModulesFirestore[k]).length : 0)>=5 || isDev}
+                progressCurrent={midModulesFirestore ? ["m1","pq","dc","sl","m3"].filter(k=>midModulesFirestore[k]).length : 0} progressTotal={5}
+                unlockedIntroFull="중급 모듈을"
+                lockedIntroFull="중급 모듈 5개를 모두 마치면 모의고사에 도전할 수 있어요."
+                lockedSuffixFull={diff=>`${diff}개 모듈만 더 하면 열려요! 🔓`}
+                lockedCompact={diff=>`TOPIK Ⅱ 3회: 중급 모듈 ${diff}개만 더 하면 응시 가능!`}
                 buttons={TOPIK2_BUTTONS} compact={false}
                 setShowMyPage={setShowMyPage} setExamView={setExamView}
               />
