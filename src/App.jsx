@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "483";
+const APP_VERSION = "484";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -23229,6 +23229,38 @@ function PassageCard({ card }) {
               </g>
             );
           })}
+        </svg>
+      </div>
+    );
+  }
+  // ✅ V484: 꺾은선그래프(line) — categories/values/unit 구조화 데이터를 이미지 없이 SVG로
+  //   직접 렌더링. "bar"와 동일한 이유(이런 문항이 이미지 파일 생성 단계를 깜빡해도 항상
+  //   정상 표시되도록)로 추가 — TOPIK2 R3 10번(유학생 수 5개년 추이)에서 발견된 공백 해소.
+  if (card.type === "line") {
+    const cats = card.categories || [];
+    const vals = card.values || [];
+    const unit = card.unit || "";
+    const maxV = Math.max(...vals, 1);
+    const minV = Math.min(...vals, 0);
+    const W = 320, H = 190, padL = 20, padR = 16, padT = 26, padB = 34;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const n = cats.length || 1;
+    const range = (maxV - minV) || 1;
+    const xAt = i => n > 1 ? padL + (i/(n-1))*plotW : padL + plotW/2;
+    const yAt = v => padT + plotH - ((v-minV)/range)*plotH;
+    const points = vals.map((v,i)=>`${xAt(i)},${yAt(v)}`).join(" ");
+    return (
+      <div style={{background:cream,borderRadius:14,padding:"16px",marginBottom:16}}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height:"auto"}}>
+          <line x1={padL} y1={H-padB} x2={W-padR} y2={H-padB} stroke="#ccc" strokeWidth={1}/>
+          <polyline points={points} fill="none" stroke="#7C3AED" strokeWidth={2}/>
+          {vals.map((v,i) => (
+            <g key={i}>
+              <circle cx={xAt(i)} cy={yAt(v)} r={3.5} fill="#7C3AED"/>
+              <text x={xAt(i)} y={yAt(v)-8} fontSize={11} fontWeight="800" fill="#7C3AED" textAnchor="middle">{v}{unit}</text>
+              <text x={xAt(i)} y={H-padB+16} fontSize={10} fill="#666" textAnchor="middle">{cats[i]}</text>
+            </g>
+          ))}
         </svg>
       </div>
     );
