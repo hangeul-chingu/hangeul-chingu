@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "485";
+const APP_VERSION = "486";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -25088,12 +25088,12 @@ export default function App() {
   if (examView && ["TOPIK2_R1","TOPIK2_R2","TOPIK2_R3"].includes(examView.examId) && examView.section === "writing") {
     return <TopikWritingExam uid={user.uid} examId={examView.examId} onClose={()=>setExamView(null)} />;
   }
-  // ✅ V413: 듣기 모의고사 응시 화면 — 전체화면 오버레이 (V415: TOPIK1_R1·TOPIK2_R1 공용, V471: TOPIK1_R2, V473: TOPIK2_R2 추가)
-  if (examView && ["TOPIK1_R1","TOPIK1_R2","TOPIK2_R1","TOPIK2_R2","TOPIK2_R3"].includes(examView.examId) && examView.section === "listening") {
+  // ✅ V413: 듣기 모의고사 응시 화면 — 전체화면 오버레이 (V415: TOPIK1_R1·TOPIK2_R1 공용, V471: TOPIK1_R2, V473: TOPIK2_R2, V486: TOPIK1_R3 추가)
+  if (examView && ["TOPIK1_R1","TOPIK1_R2","TOPIK1_R3","TOPIK2_R1","TOPIK2_R2","TOPIK2_R3"].includes(examView.examId) && examView.section === "listening") {
     return <TopikListeningExam uid={user.uid} examId={examView.examId} onClose={()=>setExamView(null)} />;
   }
-  // ✅ V412: 읽기 모의고사 응시 화면 — 전체화면 오버레이 (V415: TOPIK1_R1·TOPIK2_R1 공용, V471: TOPIK1_R2, V473: TOPIK2_R2 추가)
-  if (examView && ["TOPIK1_R1","TOPIK1_R2","TOPIK2_R1","TOPIK2_R2","TOPIK2_R3"].includes(examView.examId)) {
+  // ✅ V412: 읽기 모의고사 응시 화면 — 전체화면 오버레이 (V415: TOPIK1_R1·TOPIK2_R1 공용, V471: TOPIK1_R2, V473: TOPIK2_R2, V486: TOPIK1_R3 추가)
+  if (examView && ["TOPIK1_R1","TOPIK1_R2","TOPIK1_R3","TOPIK2_R1","TOPIK2_R2","TOPIK2_R3"].includes(examView.examId)) {
     return <TopikReadingExam uid={user.uid} examId={examView.examId} onClose={()=>setExamView(null)} />;
   }
 
@@ -25385,6 +25385,19 @@ export default function App() {
                 lockedIntroFull="서술어 25단원을 모두 마치면 모의고사에 도전할 수 있어요."
                 lockedSuffixFull={diff=>`${diff}단원만 더 하면 열려요! 🔓`}
                 lockedCompact={diff=>`TOPIK Ⅰ 2회: ${diff}단원만 더 하면 응시 가능!`}
+                buttons={TOPIK1_BUTTONS} compact={false}
+                setShowMyPage={setShowMyPage} setExamView={setExamView}
+              />
+              {/* ✅ V486: TOPIK Ⅰ 3회차 — 1·2회차와 동일 자격조건(서술어 25단원 완주) 공유 */}
+              <TopikMypageCard
+                levelLabel="Ⅰ" examId="TOPIK1_R3" roundLabel=" 3회"
+                checking={examUnitsFirestore===null}
+                unlocked={examUnitsFirestore>=25 || isDev}
+                progressCurrent={examUnitsFirestore||0} progressTotal={25}
+                unlockedIntroFull="25단원을"
+                lockedIntroFull="서술어 25단원을 모두 마치면 모의고사에 도전할 수 있어요."
+                lockedSuffixFull={diff=>`${diff}단원만 더 하면 열려요! 🔓`}
+                lockedCompact={diff=>`TOPIK Ⅰ 3회: ${diff}단원만 더 하면 응시 가능!`}
                 buttons={TOPIK1_BUTTONS} compact={false}
                 setShowMyPage={setShowMyPage} setExamView={setExamView}
               />
@@ -25696,6 +25709,19 @@ export default function App() {
                 buttons={TOPIK1_BUTTONS} compact={true}
                 setShowMyPage={setShowMyPage} setExamView={setExamView}
               />
+              {/* ✅ V486: TOPIK Ⅰ 3회차 (축약형) */}
+              <TopikMypageCard
+                levelLabel="Ⅰ" examId="TOPIK1_R3" roundLabel=" 3회"
+                checking={examUnitsFirestore===null}
+                unlocked={examUnitsFirestore>=25 || isDev}
+                progressCurrent={examUnitsFirestore||0} progressTotal={25}
+                unlockedIntroFull="25단원을"
+                lockedIntroFull="서술어 25단원을 모두 마치면 모의고사에 도전할 수 있어요."
+                lockedSuffixFull={diff=>`${diff}단원만 더 하면 열려요! 🔓`}
+                lockedCompact={diff=>`TOPIK Ⅰ 3회: ${diff}단원만 더 하면 응시 가능!`}
+                buttons={TOPIK1_BUTTONS} compact={true}
+                setShowMyPage={setShowMyPage} setExamView={setExamView}
+              />
               <div style={{fontSize:11,fontWeight:800,color:"#999",margin:"14px 2px 6px",letterSpacing:1,borderTop:"1px solid #eee",paddingTop:10}}>TOPIK Ⅱ</div>
               {/* ✅ V416: TOPIK Ⅱ 안내 — 이 축약 팝업엔 아예 없던 것을 신규 추가
                   ✅ V427: 공용 컴포넌트(TopikMypageCard)로 리팩터링, 문구·스타일 동일 */}
@@ -25957,6 +25983,19 @@ export default function App() {
                 lockedIntroFull="서술어 25단원을 모두 마치면 모의고사에 도전할 수 있어요."
                 lockedSuffixFull={diff=>`${diff}단원만 더 하면 열려요! 🔓`}
                 lockedCompact={diff=>`TOPIK Ⅰ 2회: ${diff}단원만 더 하면 응시 가능!`}
+                buttons={TOPIK1_BUTTONS} compact={false}
+                setShowMyPage={setShowMyPage} setExamView={setExamView}
+              />
+              {/* ✅ V486: TOPIK Ⅰ 3회차 — 1·2회차와 동일 자격조건(서술어 25단원 완주) 공유 */}
+              <TopikMypageCard
+                levelLabel="Ⅰ" examId="TOPIK1_R3" roundLabel=" 3회"
+                checking={examUnitsFirestore===null}
+                unlocked={examUnitsFirestore>=25 || isDev}
+                progressCurrent={examUnitsFirestore||0} progressTotal={25}
+                unlockedIntroFull="25단원을"
+                lockedIntroFull="서술어 25단원을 모두 마치면 모의고사에 도전할 수 있어요."
+                lockedSuffixFull={diff=>`${diff}단원만 더 하면 열려요! 🔓`}
+                lockedCompact={diff=>`TOPIK Ⅰ 3회: ${diff}단원만 더 하면 응시 가능!`}
                 buttons={TOPIK1_BUTTONS} compact={false}
                 setShowMyPage={setShowMyPage} setExamView={setExamView}
               />
