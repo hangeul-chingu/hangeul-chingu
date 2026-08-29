@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "489";
+const APP_VERSION = "492";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -108,6 +108,21 @@ const SUPPORTED_LANGS = ["ko","vi","en","zh","ja","id","ru","th","mn","uz"];
 
 // ✅ V328: 다국어 UI 번역 테이블 (10개 언어)
 const UI_TRANSLATIONS = {
+  // ✅ V491: 커리큘럼 안내 신규 문구 (13개)
+  "한글 친구, 이렇게 되어있어요":{ko:"한글 친구, 이렇게 되어있어요",vi:"Người bạn Hangeul được xây dựng như thế này",en:"Here's how Hangeul Friend is structured",zh:"韩文朋友是这样构成的",ja:"ハングル友達はこうなっています",id:"Beginilah struktur Hangeul Friend",ru:"Вот как устроен «Друг хангыля»",th:"Hangeul Friend เป็นแบบนี้",mn:"Хангул найз ийм бүтэцтэй",uz:"Hangul Do'st mana shunday tuzilgan",es:"Así está estructurado Hangeul Friend",fr:"Voici comment Hangeul Friend est structuré",ne:"हान्गुल फ्रेन्ड यसरी बनेको छ",de:"So ist Hangeul Friend aufgebaut"},
+  "당신에게 필요한 곳까지, 이 길로 갈 수 있어요":{ko:"당신에게 필요한 곳까지, 이 길로 갈 수 있어요",vi:"Con đường này sẽ đưa bạn đến nơi bạn cần",en:"This path can take you where you need to go",zh:"沿着这条路,可以到达你需要的地方",ja:"あなたに必要な場所まで、この道で行けます",id:"Jalan ini bisa membawa Anda ke tempat yang Anda butuhkan",ru:"Этот путь приведёт вас туда, куда вам нужно",th:"เส้นทางนี้จะพาคุณไปยังที่ที่คุณต้องการ",mn:"Энэ зам таныг хэрэгтэй газар хүргэнэ",uz:"Bu yo'l sizni kerakli joyga olib boradi",es:"Este camino puede llevarte adonde necesitas ir",fr:"Ce chemin peut vous mener là où vous devez aller",ne:"यो बाटोले तपाईंलाई चाहिने ठाउँसम्म पुर्याउन सक्छ",de:"Dieser Weg kann Sie dorthin bringen, wo Sie hinmüssen"},
+  "지금 여기서 시작해요":{ko:"지금 여기서 시작해요",vi:"Bắt đầu ngay tại đây",en:"Start here, right now",zh:"现在就从这里开始",ja:"今ここから始めましょう",id:"Mulai dari sini sekarang",ru:"Начните прямо здесь и сейчас",th:"เริ่มตรงนี้เลยตอนนี้",mn:"Яг одоо эндээс эхэлье",uz:"Hoziroq shu yerdan boshlang",es:"Empieza aquí, ahora mismo",fr:"Commencez ici, maintenant",ne:"अहिले यहीँबाट सुरु गरौं",de:"Beginnen Sie jetzt hier"},
+  "80시간 기초 과정":{ko:"80시간 기초 과정",vi:"Khóa cơ bản 80 giờ",en:"80-hour basic course",zh:"80小时基础课程",ja:"80時間基礎コース",id:"Kursus Dasar 80 Jam",ru:"Базовый курс 80 часов",th:"หลักสูตรพื้นฐาน 80 ชั่วโมง",mn:"80 цагийн үндсэн сургалт",uz:"80 soatlik asosiy kurs",es:"Curso básico de 80 horas",fr:"Cours de base de 80 heures",ne:"80-घण्टा आधारभूत पाठ्यक्रम",de:"80-Stunden-Grundkurs"},
+  "중급 5개 모듈":{ko:"중급 5개 모듈",vi:"5 mô-đun trung cấp",en:"5 intermediate modules",zh:"中级5个模块",ja:"中級5モジュール",id:"5 modul menengah",ru:"5 модулей среднего уровня",th:"5 โมดูลระดับกลาง",mn:"Дунд шатны 5 модуль",uz:"5 ta o'rta daraja moduli",es:"5 módulos intermedios",fr:"5 modules intermédiaires",ne:"5 मध्यम स्तर मोड्युल",de:"5 Module für Fortgeschrittene"},
+  "어휘 출력·화용 능력·다의어·담화 단위·사회언어학적 적절성":{ko:"어휘 출력·화용 능력·다의어·담화 단위·사회언어학적 적절성",vi:"Sản sinh từ vựng·Năng lực dụng học·Từ đa nghĩa·Đơn vị diễn ngôn·Tính phù hợp ngôn ngữ xã hội",en:"Vocabulary production·Pragmatics·Polysemy·Discourse units·Sociolinguistic appropriateness",zh:"词汇输出·语用能力·多义词·话语单位·社会语言学恰当性",ja:"語彙産出·語用能力·多義語·談話単位·社会言語学的適切性",id:"Produksi kosakata·Kompetensi pragmatik·Polisemi·Unit wacana·Kesesuaian sosiolinguistik",ru:"Продукция лексики·Прагматическая компетенция·Полисемия·Единицы дискурса·Социолингвистическая уместность",th:"การผลิตคำศัพท์·ความสามารถเชิงวัจนปฏิบัติ·คำหลายความหมาย·หน่วยวัจนกรรม·ความเหมาะสมทางสังคมภาษาศาสตร์",mn:"Үгсийн сангийн гаргалт·Прагматик чадвар·Олон утгат үг·Ярианы нэгж·Нийгэм хэл шинжлэлийн тохиромж",uz:"Lug'at ishlab chiqarish·Pragmatik kompetensiya·Ko'p ma'nolilik·Diskurs birliklari·Sotsiolingvistik moslik",es:"Producción de vocabulario·Competencia pragmática·Polisemia·Unidades del discurso·Adecuación sociolingüística",fr:"Production lexicale·Compétence pragmatique·Polysémie·Unités de discours·Adéquation sociolinguistique",ne:"शब्दावली उत्पादन·व्यावहारिक क्षमता·बहुअर्थी शब्द·प्रवचन एकाइ·समाजभाषिक उपयुक्तता",de:"Wortschatzproduktion·Pragmatische Kompetenz·Polysemie·Diskurseinheiten·Soziolinguistische Angemessenheit"},
+  "TOPIK Ⅰ · Ⅱ":{ko:"TOPIK Ⅰ · Ⅱ",vi:"TOPIK Ⅰ · Ⅱ",en:"TOPIK Ⅰ · Ⅱ",zh:"TOPIK Ⅰ · Ⅱ",ja:"TOPIK Ⅰ · Ⅱ",id:"TOPIK Ⅰ · Ⅱ",ru:"TOPIK Ⅰ · Ⅱ",th:"TOPIK Ⅰ · Ⅱ",mn:"TOPIK Ⅰ · Ⅱ",uz:"TOPIK Ⅰ · Ⅱ",es:"TOPIK Ⅰ · Ⅱ",fr:"TOPIK Ⅰ · Ⅱ",ne:"TOPIK Ⅰ · Ⅱ",de:"TOPIK Ⅰ · Ⅱ"},
+  "각 3회차 · AI 자동채점":{ko:"각 3회차 · AI 자동채점",vi:"Mỗi phần 3 lượt · AI tự động chấm điểm",en:"3 sessions each · AI auto-grading",zh:"各3次 · AI自动评分",ja:"各3回 · AI自動採点",id:"Masing-masing 3 sesi · Penilaian otomatis",ru:"По 3 попытки · Автопроверка ИИ",th:"อย่างละ 3 ครั้ง · ตรวจอัตโนมัติด้วย AI",mn:"Тус бүр 3 удаа · AI автомат үнэлгээ",uz:"Har biri 3 marta · AI avtomatik baholash",es:"3 sesiones cada uno · Calificación automática con IA",fr:"3 sessions chacun · Correction automatique par IA",ne:"प्रत्येक 3 पटक · AI स्वचालित मूल्याङ्कन",de:"Je 3 Durchgänge · KI-Auto-Bewertung"},
+  "KIIP 5단계와 같은 길이에요":{ko:"KIIP 5단계와 같은 길이에요",vi:"Có độ dài tương đương KIIP cấp 5",en:"It's the same length as KIIP Level 5",zh:"与KIIP五级长度相同",ja:"KIIP5段階と同じ長さです",id:"Panjangnya sama dengan KIIP Tahap 5",ru:"По объёму это как 5-й уровень KIIP",th:"ความยาวเท่ากับ KIIP ระดับ 5",mn:"KIIP 5-р шаттай ижил урттай",uz:"KIIP 5-bosqich bilan bir xil uzunlikda",es:"Tiene la misma extensión que el Nivel 5 de KIIP",fr:"C'est la même durée que le niveau 5 du KIIP",ne:"यो KIIP चरण 5 जत्तिकै लामो छ",de:"Genauso lang wie KIIP Stufe 5"},
+  "KIIP 5단계":{ko:"KIIP 5단계",vi:"KIIP cấp 5",en:"KIIP Level 5",zh:"KIIP五级",ja:"KIIP5段階",id:"KIIP Tahap 5",ru:"KIIP уровень 5",th:"KIIP ระดับ 5",mn:"KIIP 5-р шат",uz:"KIIP 5-bosqich",es:"KIIP Nivel 5",fr:"KIIP niveau 5",ne:"KIIP चरण 5",de:"KIIP Stufe 5"},
+  "한국사회이해 50과":{ko:"한국사회이해 50과",vi:"Hiểu biết xã hội Hàn Quốc, 50 bài",en:"Understanding Korean Society, 50 lessons",zh:"韩国社会理解 50课",ja:"韓国社会理解 50課",id:"Pemahaman Masyarakat Korea, 50 pelajaran",ru:"Понимание корейского общества, 50 уроков",th:"ความเข้าใจสังคมเกาหลี 50 บท",mn:"Солонгосын нийгмийн ойлголт 50 хичээл",uz:"Koreya jamiyatini tushunish, 50 dars",es:"Comprensión de la sociedad coreana, 50 lecciones",fr:"Comprendre la société coréenne, 50 leçons",ne:"कोरियाली समाज बुझाइ, 50 पाठ",de:"Koreanische Gesellschaft verstehen, 50 Lektionen"},
+  "매일 만나는 곳":{ko:"매일 만나는 곳",vi:"Nơi bạn ghé mỗi ngày",en:"Where you come every day",zh:"每天都来的地方",ja:"毎日訪れる場所",id:"Tempat yang Anda kunjungi setiap hari",ru:"Место, куда вы заходите каждый день",th:"ที่ที่คุณมาทุกวัน",mn:"Өдөр бүр ирдэг газар",uz:"Har kuni keladigan joyingiz",es:"El lugar al que vienes cada día",fr:"L'endroit où vous venez chaque jour",ne:"हरेक दिन आउने ठाउँ",de:"Der Ort, den Sie täglich besuchen"},
+  "좋아요, 다음 →":{ko:"좋아요, 다음 →",vi:"Được rồi, tiếp theo →",en:"Great, next →",zh:"好的,下一步 →",ja:"いいですね、次へ →",id:"Bagus, lanjut →",ru:"Отлично, далее →",th:"ดีเลย ถัดไป →",mn:"За, дараагийнх →",uz:"Yaxshi, keyingi →",es:"Bien, siguiente →",fr:"Parfait, suivant →",ne:"राम्रो, अर्को →",de:"Gut, weiter →"},
+  "아까 고르신 게 이거였죠? 다른 것도 괜찮아요 🙂":{ko:"아까 고르신 게 이거였죠? 다른 것도 괜찮아요 🙂",vi:"Đây là lựa chọn của bạn lúc nãy phải không? Chọn cái khác cũng được nhé 🙂",en:"Was this what you picked earlier? Feel free to choose another 🙂",zh:"这是您之前选的吗？换一个也没关系 🙂",ja:"さっき選んだのはこれでしたよね？他のものでも大丈夫です 🙂",id:"Ini pilihan Anda tadi, bukan? Pilih yang lain juga tidak apa-apa 🙂",ru:"Это то, что вы выбрали раньше? Можно выбрать и другое 🙂",th:"นี่คือสิ่งที่คุณเลือกไว้เมื่อกี้ใช่ไหม? เลือกอย่างอื่นก็ได้นะ 🙂",mn:"Энэ саяын сонголт мөн үү? Өөрийг нь сонгож болно 🙂",uz:"Bu avval tanlaganingizmi? Boshqasini ham tanlashingiz mumkin 🙂",es:"¿Esto fue lo que elegiste antes? También puedes elegir otra cosa 🙂",fr:"C'est bien ce que vous aviez choisi tout à l'heure ? Vous pouvez aussi en choisir un autre 🙂",ne:"यो अघि तपाईंले छान्नुभएको हो? अर्को पनि छान्न सक्नुहुन्छ 🙂",de:"War das Ihre vorherige Wahl? Sie können auch etwas anderes wählen 🙂"},
   // ✅ V444: 1단계(완주 순간 배너) 신규 문구
   "새로운 자격이 열렸어요!":{ko:"새로운 자격이 열렸어요!",vi:"Một tư cách mới đã được mở ra!",en:"A new milestone has opened up!",zh:"新资格已解锁!",ja:"新しい資格が開放されました!",id:"Kualifikasi baru telah terbuka!",ru:"Открылась новая возможность!",th:"ปลดล็อกคุณสมบัติใหม่แล้ว!",mn:"Шинэ эрх нээгдлээ!",uz:"Yangi imkoniyat ochildi!",es:"¡Se ha desbloqueado un nuevo logro!",fr:"Une nouvelle qualification s'est débloquée !",ne:"नयाँ योग्यता खुल्यो!",de:"Eine neue Berechtigung wurde freigeschaltet!"},
   "TOPIK Ⅰ 모의고사 응시 자격 획득!":{ko:"TOPIK Ⅰ 모의고사 응시 자격 획득!",vi:"Bạn đã đủ điều kiện thi thử TOPIK Ⅰ!",en:"You've earned eligibility for the TOPIK Ⅰ mock exam!",zh:"获得TOPIK Ⅰ模拟考试资格!",ja:"TOPIK Ⅰ模擬試験の受験資格を獲得しました!",id:"Anda memenuhi syarat untuk ujian simulasi TOPIK Ⅰ!",ru:"Вы получили право сдавать пробный экзамен TOPIK Ⅰ!",th:"คุณได้รับสิทธิ์สอบ TOPIK Ⅰ ภาคจำลองแล้ว!",mn:"TOPIK Ⅰ дадлага шалгалт өгөх эрх авлаа!",uz:"TOPIK Ⅰ sinov imtihoniga kirish huquqiga ega bo'ldingiz!",es:"¡Has obtenido la elegibilidad para el examen simulado TOPIK Ⅰ!",fr:"Vous avez obtenu l'éligibilité à l'examen blanc TOPIK Ⅰ !",ne:"तपाईंले TOPIK Ⅰ नमूना परीक्षा दिने योग्यता प्राप्त गर्नुभयो!",de:"Sie haben die Berechtigung für die TOPIK-Ⅰ-Probeprüfung erhalten!"},
@@ -542,6 +557,197 @@ function txUI(ko, lang) {
 // ✅ V277: 비주얼 온보딩 화면 (슬라이드 6장)
 // 신뢰→공감→해결→실력선택→유입경로→행동
 // ════════════════════════════════════════════════════════
+// ✅ V490: 전체지도 화면 — 온보딩 완료 직후, 로그인 전에 의무 노출.
+// 1단계(레이아웃)만 구현 — "다 보이되 위계는 다르게" 중 위계(강조) 로직은 2단계에서 추가 예정.
+// lang은 로그인 전이라 객체가 아니라 문자열(onboardingLang)로 들어오므로, txUI 재사용을 위해
+// 내부에서 {code: langCode} 형태로 감싸서 사용한다(그대로 넘기면 무조건 한국어로 폴백되는 버그 발생).
+function FullMapScreen({ langCode, onNext }) {
+  const lang = { code: langCode || "ko" };
+
+  // ✅ 니즈진단: 선택한 목표를 세션에 저장하고, 해당 경로 카드만 강조
+  const [needsGoal, setNeedsGoal] = useState(() => {
+    try { return sessionStorage.getItem("hc_needs_diag_goal") || null; } catch(e) { return null; }
+  });
+  const needsGoals = [
+    {id:"topik2", emoji:"🏆", label:txUI("TOPIK 2급 달성하기", lang)},
+    {id:"kiip",   emoji:"🏛️", label:txUI("KIIP(사회통합프로그램) 준비하기", lang)},
+    {id:"topik4", emoji:"🏆", label:txUI("TOPIK 4급 달성하기", lang)},
+    {id:"daily",  emoji:"💬", label:txUI("일상 한국어 자유롭게 말하기", lang)},
+    {id:"work",   emoji:"💼", label:txUI("직장·현장 한국어 익히기", lang)},
+    {id:"life",   emoji:"🏠", label:txUI("한국 생활 적응하기", lang)},
+    {id:"family", emoji:"👨‍👩‍👧", label:txUI("가족과 소통하기", lang)},
+  ];
+  const handleNeedsClick = (id) => {
+    setNeedsGoal(id);
+    try { sessionStorage.setItem("hc_needs_diag_goal", id); } catch(e) {}
+  };
+  const highlightIntermediate = !!needsGoal && ["topik2","kiip","topik4","work"].includes(needsGoal);
+  const highlightKiip = needsGoal === "kiip";
+  const withEmphasis = (baseStyle, active, theme) => {
+    if (!needsGoal) return baseStyle;
+    if (!active) return {...baseStyle, opacity:0.45};
+    return theme === "gold"
+      ? {...baseStyle, border:"3px solid #E0A800", background:"#FFF3CD", boxShadow:"0 6px 22px rgba(224,168,0,.28)"}
+      : {...baseStyle, border:"2px solid #9C6FDE", background:"#F3EAFF", boxShadow:"0 6px 22px rgba(156,111,222,.28)"};
+  };
+
+  const begItems = [
+    { emoji:"🔤", label:txUI("발음 8단계", lang) },
+    { emoji:"⏱️", label:txUI("시제 6단원", lang) },
+    { emoji:"🔗", label:txUI("조사 · 대명사", lang) },
+    { emoji:"📐", label:txUI("문장구조 · 의문대명사", lang) },
+    { emoji:"📝", label:txUI("서술어 25단원", lang) },
+    { emoji:"📖", label:txUI("부사어 · 관형어 · 존칭 · 간접화법 · 비교/최상급 · 기타", lang) },
+    { emoji:"🔢", label:txUI("숫자 · 부정법 · 격식체 · 기초문법 정리", lang) },
+  ];
+
+  const dailyTabs = [
+    { emoji:"🗣️", name: txUI("프리토킹", lang) },
+    { emoji:"✍️", name: txUI("논술", lang) },
+    { emoji:"🎓", name: txUI("하이터치", lang) },
+    { emoji:"🎮", name: txUI("게임", lang) },
+    { emoji:"🏆", name: txUI("TOPIK인증", lang) },
+  ];
+
+  const Arrow = () => (
+    <div style={{textAlign:"center",color:"#C4A8F0",fontSize:20,margin:"2px 0",lineHeight:1}}>↓</div>
+  );
+
+  const Card = ({children, style}) => (
+    <div style={{background:"white",borderRadius:20,padding:"18px 18px",
+      boxShadow:"0 4px 20px rgba(156,111,222,.10)",width:"100%",maxWidth:360,...style}}>
+      {children}
+    </div>
+  );
+
+  return (
+    <div style={{minHeight:"100dvh",background:"linear-gradient(150deg,#FAF5FF,#F3EEFF)",
+      display:"flex",flexDirection:"column",alignItems:"center",padding:"32px 20px 40px",
+      fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+
+      <div style={{fontSize:38,marginBottom:6}}>🗺️</div>
+      <div style={{fontSize:19,fontWeight:900,color:"#4A2C82",textAlign:"center",marginBottom:4}}>
+        {txUI("한글 친구, 이렇게 되어있어요", lang)}
+      </div>
+      <div style={{fontSize:13,color:"#9C8CB5",textAlign:"center",marginBottom:24}}>
+        {txUI("당신에게 필요한 곳까지, 이 길로 갈 수 있어요", lang)}
+      </div>
+
+      {/* 니즈진단: 요즘 뭐가 제일 필요하세요? */}
+      <div style={{width:"100%",maxWidth:360,marginBottom:24}}>
+        <div style={{fontSize:14,fontWeight:800,color:"#4A2C82",textAlign:"center",marginBottom:10}}>
+          {txUI("요즘 뭐가 제일 필요하세요?", lang)}
+        </div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center"}}>
+          {needsGoals.map(g=>{
+            const isActive = needsGoal===g.id;
+            return (
+              <button key={g.id} onClick={()=>handleNeedsClick(g.id)}
+                style={{display:"flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:20,
+                  border: isActive ? "2px solid #9C6FDE" : "1px solid #E4D6FA",
+                  background: isActive ? "#F3EAFF" : "white",
+                  color: isActive ? "#4A2C82" : "#7A5AA8",
+                  fontSize:12,fontWeight:800,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+                <span>{g.emoji}</span><span>{g.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 시작점 */}
+      <div style={{background:"#4A2C82",color:"white",borderRadius:50,padding:"6px 18px",
+        fontSize:12,fontWeight:800,marginBottom:10}}>
+        📍 {txUI("지금 여기서 시작해요", lang)}
+      </div>
+      <Arrow/>
+
+      {/* 노드 1: 80h 기초 */}
+      <Card style={withEmphasis({}, true, "purple")}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+          <div style={{fontSize:15,fontWeight:900,color:"#9C6FDE"}}>📚 {txUI("80시간 기초 과정", lang)}</div>
+          <div style={{fontSize:11,fontWeight:800,color:"#00C896",background:"#E6FAF4",borderRadius:8,padding:"2px 8px"}}>80h</div>
+        </div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+          {begItems.map((it,i)=>(
+            <div key={i} style={{fontSize:11,color:"#7A5AA8",background:"#F6F0FF",borderRadius:20,
+              padding:"5px 10px",display:"flex",alignItems:"center",gap:4}}>
+              <span>{it.emoji}</span><span>{it.label}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+      <Arrow/>
+
+      {/* 노드 2: 중급 5모듈 */}
+      <Card style={withEmphasis({}, highlightIntermediate, "purple")}>
+        <div style={{fontSize:15,fontWeight:900,color:"#9C6FDE",marginBottom:10}}>
+          🧩 {txUI("중급 5개 모듈", lang)}
+        </div>
+        <div style={{fontSize:12,color:"#888",marginBottom:10,lineHeight:1.6}}>
+          {txUI("어휘 출력·화용 능력·다의어·담화 단위·사회언어학적 적절성", lang)}
+        </div>
+        <div style={{display:"flex",gap:8,justifyContent:"center"}}>
+          {[dailyTabs[0],dailyTabs[1],dailyTabs[3]].map((t,i)=>(
+            <div key={i} style={{fontSize:11,color:"#7A5AA8",display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+              <span style={{fontSize:18}}>{t.emoji}</span><span>{t.name}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+      <Arrow/>
+
+      {/* 노드 3: TOPIK Ⅰ·Ⅱ */}
+      <Card style={withEmphasis({border:"2px solid #FFD54F"}, highlightIntermediate, "gold")}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{fontSize:15,fontWeight:900,color:"#B8860B"}}>🏆 {txUI("TOPIK Ⅰ · Ⅱ", lang)}</div>
+          <div style={{fontSize:11,fontWeight:800,color:"#B8860B",background:"#FFF8E1",borderRadius:8,padding:"2px 8px"}}>
+            {txUI("각 3회차 · AI 자동채점", lang)}
+          </div>
+        </div>
+      </Card>
+
+      {/* KIIP 분기 — 점선 연결 */}
+      <div style={{display:"flex",alignItems:"center",gap:6,margin:"6px 0",color:"#B8860B",fontSize:11}}>
+        <div style={{width:24,height:0,borderTop:"2px dashed #E0C468"}}/>
+        {txUI("KIIP 5단계와 같은 길이에요", lang)}
+        <div style={{width:24,height:0,borderTop:"2px dashed #E0C468"}}/>
+      </div>
+      <Card style={withEmphasis({border:"2px dashed #E0C468",marginBottom:24}, highlightKiip, "gold")}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{fontSize:15,fontWeight:900,color:"#B8860B"}}>🏛️ {txUI("KIIP 5단계", lang)}</div>
+          <div style={{fontSize:11,fontWeight:800,color:"#B8860B",background:"#FFF8E1",borderRadius:8,padding:"2px 8px"}}>
+            {txUI("한국사회이해 50과", lang)}
+          </div>
+        </div>
+      </Card>
+
+      {/* 하단: 매일 만나는 4탭 + TOPIK인증 */}
+      <div style={{fontSize:13,fontWeight:800,color:"#9C8CB5",marginBottom:10}}>
+        {txUI("매일 만나는 곳", lang)}
+      </div>
+      <div style={{display:"flex",gap:14,justifyContent:"center",marginBottom:30,flexWrap:"wrap"}}>
+        {dailyTabs.map((t,i)=>(
+          <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+            <div style={{width:44,height:44,borderRadius:16,background:"white",display:"flex",
+              alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 2px 10px rgba(156,111,222,.12)"}}>
+              {t.emoji}
+            </div>
+            <span style={{fontSize:10,color:"#9C8CB5"}}>{t.name}</span>
+          </div>
+        ))}
+      </div>
+
+      <button onClick={onNext}
+        style={{width:"100%",maxWidth:360,background:"linear-gradient(135deg,#9C6FDE,#C084FC)",
+          color:"white",border:"none",borderRadius:50,padding:"15px 0",fontSize:15,fontWeight:900,
+          cursor:"pointer",boxShadow:"0 4px 16px rgba(156,111,222,.3)"}}>
+        {txUI("좋아요, 다음 →", lang)}
+      </button>
+    </div>
+  );
+}
+
 function OnboardingScreen({ onDone, initLang, onLangChange }) {
   const [slide, setSlide] = useState(0);
 
@@ -937,6 +1143,13 @@ function AuthScreen({ onLogin, lang }) {
           setLoading(false);
           return;
         }
+        // ✅ 로그인 전 진단에서 골라둔 학습 목표 힌트가 있으면 계정에 이어붙임
+        try {
+          const pendingGoalHint = sessionStorage.getItem("hc_needs_diag_goal");
+          if (pendingGoalHint) {
+            await setDoc(doc(db, "users", cred.user.uid), { pendingGoalHint }, { merge: true });
+          }
+        } catch (e) {}
         onLogin(cred.user);
       }
     } catch (e) {
@@ -2723,6 +2936,26 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
   const [minPerDay, setMinPerDay] = useState(30);
   const [goalDate, setGoalDate] = useState(null);   // 확정된 목표일 (Date)
   const [studyGoal, setStudyGoal] = useState(null); // ✅ V140: 학습 목표
+  const [pendingGoalHint, setPendingGoalHint] = useState(null); // ✅ 로그인 전 진단에서 골라둔 목표 힌트(있으면 plan 단계에서 미리 선택)
+
+  // ✅ plan 단계 진입 시, 로그인 때 저장해둔 pendingGoalHint를 읽어와 studyGoal 기본값으로 미리 채워줌
+  // (학습자가 언제든 다른 목표로 바꿀 수 있도록 안내만 하고 강제하지 않음)
+  useEffect(() => {
+    if (step !== "plan" || studyGoal || !user?.uid) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        const hint = snap.data()?.pendingGoalHint;
+        if (!cancelled && hint) {
+          setStudyGoal(hint);
+          setPendingGoalHint(hint);
+        }
+      } catch (e) {}
+    })();
+    return () => { cancelled = true; };
+  }, [step]);
+
   const [showResetModal, setShowResetModal] = useState(false);
   const [showGoalWarning, setShowGoalWarning] = useState(false); // ✅ V262: daily/work 경고 팝업
   const [pendingGoal, setPendingGoal] = useState(null); // ✅ V262: 팝업 대기 중인 goal
@@ -3645,6 +3878,9 @@ ${vocabList}
           <div style={{fontSize:13,fontWeight:800,color:"#9C6FDE",marginBottom:10,textAlign:"center"}}>
             🎯 {txUI("나의 목표를 선택해요!", lang)}
           </div>
+          {pendingGoalHint&&<div style={{fontSize:11,color:"#9C6FDE",background:"#9C6FDE12",borderRadius:10,padding:"6px 10px",marginBottom:10,textAlign:"center"}}>
+            {txUI("아까 고르신 게 이거였죠? 다른 것도 괜찮아요 🙂", lang)}
+          </div>}
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             {(()=>{
               const lc2 = lang?.code ?? "ko";
@@ -24518,6 +24754,7 @@ export default function App() {
   const [midLevel, setMidLevel] = useState(false); // ✅ V340: 중급 자기선언 여부
   // ✅ V276: 비주얼 온보딩 — 매번 표시 (skip 버튼으로 개인 선택)
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showFullMap, setShowFullMap] = useState(false); // ✅ V490: 온보딩 직후~로그인 전 전체지도 화면
   const [onboardingLang, setOnboardingLang] = useState("ko");
   // ✅ V349: 캐시 버스팅 팝업
   const [showCacheBust, setShowCacheBust] = useState(false);
@@ -24988,14 +25225,35 @@ export default function App() {
     </div>
   );
 
+  // ✅ V490: showFullMap 체크를 showOnboarding보다 먼저 배치 — showOnboarding은 명시적으로
+  // false로 바뀌지 않는 기존 구조(showPwaPopup도 동일 패턴)라, 순서가 바뀌면 onDone 이후
+  // 다시 showOnboarding 블록으로 되돌아가 전체지도가 영영 표시되지 않는 버그가 생긴다.
+  if (showFullMap) return (
+    <FullMapScreen
+      langCode={onboardingLang}
+      onNext={()=>{
+        try { localStorage.setItem("hc_seen_fullmap", "1"); } catch(e) {}
+        setShowFullMap(false);
+        setShowPwaPopup(true);
+      }}
+    />
+  );
+
   if (showOnboarding) return (
     <OnboardingScreen
       initLang={onboardingLang}
       onLangChange={setOnboardingLang}
       onDone={(selectedLang, referral)=>{
         setOnboardingLang(selectedLang);
-        // ✅ V336: 온보딩 완료 → PWA 설치 팝업 먼저 표시
-        setShowPwaPopup(true);
+        // ✅ V491: 전체지도는 온보딩(V276, 매번 표시)과 달리 건너뛰기 버튼이 없는 의무 노출 화면이라,
+        // 매번 뜨면 오히려 신뢰를 해침 — localStorage 플래그로 기기당 최초 1회만 노출.
+        let alreadySeen = false;
+        try { alreadySeen = localStorage.getItem("hc_seen_fullmap") === "1"; } catch(e) {}
+        if (alreadySeen) {
+          setShowPwaPopup(true);
+        } else {
+          setShowFullMap(true);
+        }
       }}
     />
   );
