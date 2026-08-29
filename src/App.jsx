@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "487";
+const APP_VERSION = "488";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -24625,6 +24625,14 @@ export default function App() {
     const stored = localStorage.getItem(VER_KEY);
     if (stored && stored !== APP_VERSION) {
       // 버전이 다르면 팝업 표시
+      // ✅ V488: 반복 카운터를 "진짜 트리거 시점"인 여기서 1회만 증가시킴
+      // (기존엔 렌더링 함수 본문에서 증가시켜, 재렌더링될 때마다 카운트가
+      // 올라가는 버그가 있었음 — 진짜 반복이 아닌데도 "계속 반복되고 있어요"로
+      // 오판하는 원인이었음. 노치성님 실사용 스크린샷으로 발견, 260830.)
+      try {
+        const c = parseInt(sessionStorage.getItem("hc_cachebust_count")||"0",10) + 1;
+        sessionStorage.setItem("hc_cachebust_count", String(c));
+      } catch(e) {}
       setShowCacheBust(true);
     }
     localStorage.setItem(VER_KEY, APP_VERSION);
@@ -24675,6 +24683,11 @@ export default function App() {
     const onControllerChange = () => {
       const lastSeen = localStorage.getItem("hc_app_ver");
       if (lastSeen !== APP_VERSION) {
+        // ✅ V488: 여기도 진짜 트리거 시점이므로 카운터 증가
+        try {
+          const c = parseInt(sessionStorage.getItem("hc_cachebust_count")||"0",10) + 1;
+          sessionStorage.setItem("hc_cachebust_count", String(c));
+        } catch(e) {}
         setShowCacheBust(true);
       }
     };
@@ -24837,10 +24850,11 @@ export default function App() {
   // ✅ V470: 같은 세션에서 반복 표시되는지 카운트 — 2회 이상이면 재로드 버튼이
   // 아무 효과가 없는 무한루프 상황으로 보고, 다른 안내(사이트 데이터 삭제)로 전환
   if (showCacheBust) {
+    // ✅ V488: 여기서는 더 이상 카운터를 증가시키지 않음(증가는 위 두 트리거 지점에서
+    // 1회씩만 발생) — 렌더링될 때마다 값을 "읽기만" 해서 isLooping을 판정한다.
     let cacheBustCount = 1;
     try {
-      cacheBustCount = parseInt(sessionStorage.getItem("hc_cachebust_count") || "0", 10) + 1;
-      sessionStorage.setItem("hc_cachebust_count", String(cacheBustCount));
+      cacheBustCount = parseInt(sessionStorage.getItem("hc_cachebust_count") || "1", 10);
     } catch(e) {}
     const isLooping = cacheBustCount >= 2;
 
