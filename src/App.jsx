@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "488";
+const APP_VERSION = "489";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -431,6 +431,8 @@ const UI_TRANSLATIONS = {
   "80시간 = 새로운 세상! 🌏":{ko:"80시간 = 새로운 세상! 🌏",vi:"80 giờ = một thế giới mới! 🌏",en:"80 hours = a new world! 🌏",zh:"80小时=全新世界! 🌏",ja:"80時間=新しい世界! 🌏",id:"80 jam = dunia baru! 🌏",ru:"80 часов = новый мир! 🌏",th:"80 ชั่วโมง = โลกใหม่! 🌏",mn:"80 цаг = шинэ ертөнц! 🌏",uz:"80 soat = yangi dunyo! 🌏",es:"¡80 horas = un nuevo mundo! 🌏",fr:"80 heures = un nouveau monde ! 🌏",ne:"80 घण्टा = नयाँ संसार! 🌏",de:"80 Stunden = eine neue Welt! 🌏"},
   "도전 시작! 🚀":{ko:"도전 시작! 🚀",vi:"Bắt đầu thử thách! 🚀",en:"Start the challenge! 🚀",zh:"开始挑战! 🚀",ja:"チャレンジ開始! 🚀",id:"Mulai tantangan! 🚀",ru:"Начать испытание! 🚀",th:"เริ่มความท้าทาย! 🚀",mn:"Сорилтоо эхэлье! 🚀",uz:"Sinovni boshlash! 🚀",es:"¡Comenzar el desafío! 🚀",fr:"Commencer le défi ! 🚀",ne:"चुनौती सुरु! 🚀",de:"Herausforderung starten! 🚀"},
   "목표를 먼저 선택해 주세요!":{ko:"목표를 먼저 선택해 주세요!",vi:"Vui lòng chọn mục tiêu trước!",en:"Please choose your goal first!",zh:"请先选择目标!",ja:"まず目標を選んでください!",id:"Silakan pilih tujuan terlebih dahulu!",ru:"Сначала выберите цель!",th:"กรุณาเลือกเป้าหมายก่อน!",mn:"Эхлээд зорилгоо сонгоно уу!",uz:"Avval maqsadni tanlang!",es:"¡Elige primero tu objetivo!",fr:"Veuillez d'abord choisir votre objectif !",ne:"कृपया पहिले लक्ष्य छान्नुहोस्!",de:"Bitte wählen Sie zuerst Ihr Ziel!"},
+  "KIIP(사회통합프로그램) 준비하기":{ko:"KIIP(사회통합프로그램) 준비하기",vi:"Chuẩn bị KIIP (Chương trình hòa nhập xã hội)",en:"Prepare for KIIP (Social Integration Program)",zh:"准备KIIP(社会统合项目)",ja:"KIIP（社会統合プログラム）準備",id:"Persiapan KIIP (Program Integrasi Sosial)",ru:"Подготовка к KIIP (Программа социальной интеграции)",th:"เตรียมสอบ KIIP (โครงการบูรณาการทางสังคม)",mn:"KIIP (Нийгмийн интеграцийн хөтөлбөр) бэлтгэх",uz:"KIIP (Ijtimoiy integratsiya dasturi)ga tayyorgarlik",es:"Preparar el KIIP (Programa de Integración Social)",fr:"Préparer le KIIP (Programme d'intégration sociale)",ne:"KIIP (सामाजिक एकीकरण कार्यक्रम) तयारी",de:"Vorbereitung auf KIIP (Sozialintegrationsprogramm)"},
+  "혹시 이미 중급이신가요?":{ko:"혹시 이미 중급이신가요?",vi:"Bạn đã ở trình độ trung cấp rồi phải không?",en:"Are you already at intermediate level?",zh:"您已经是中级水平了吗？",ja:"もしかしてすでに中級ですか？",id:"Apakah Anda sudah level menengah?",ru:"Вы уже среднего уровня?",th:"คุณอยู่ระดับกลางแล้วใช่ไหม?",mn:"Та аль хэдийн дунд түвшинд байна уу?",uz:"Balki siz allaqachon o'rta darajadasiz?",es:"¿Ya tienes nivel intermedio?",fr:"Êtes-vous déjà de niveau intermédiaire ?",ne:"के तपाईं पहिले नै मध्यम तहमा हुनुहुन्छ?",de:"Sind Sie bereits auf Mittelstufe?"},
   "← 뒤로":{ko:"← 뒤로",vi:"← Quay lại",en:"← Back",zh:"← 返回",ja:"← 戻る",id:"← Kembali",ru:"← Назад",th:"← กลับ",mn:"← Буцах",uz:"← Orqaga",es:"← Atrás",fr:"← Retour",ne:"← पछाडि",de:"← Zurück"},
   "TOPIK 2급 달성":{ko:"TOPIK 2급 달성",vi:"Đạt TOPIK cấp 2",en:"TOPIK Level 2",zh:"达成TOPIK 2级",ja:"TOPIK 2級達成",id:"TOPIK level 2",ru:"TOPIK 2 уровень",th:"TOPIK ระดับ 2",mn:"TOPIK 2-р түвшин",uz:"TOPIK 2-daraja",es:"Nivel 2 de TOPIK",fr:"TOPIK niveau 2",ne:"TOPIK तह 2 हासिल",de:"TOPIK Stufe 2 erreicht"},
   "TOPIK 4급 달성":{ko:"TOPIK 4급 달성",vi:"Đạt TOPIK cấp 4",en:"TOPIK Level 4",zh:"达成TOPIK 4级",ja:"TOPIK 4級達成",id:"TOPIK level 4",ru:"TOPIK 4 уровень",th:"TOPIK ระดับ 4",mn:"TOPIK 4-р түвшин",uz:"TOPIK 4-daraja",es:"Nivel 4 de TOPIK",fr:"TOPIK niveau 4",ne:"TOPIK तह 4 हासिल",de:"TOPIK Stufe 4 erreicht"},
@@ -3694,23 +3696,22 @@ ${vocabList}
           </div>
         </div>
 
-        {/* ✅ V262: daily/work 경고 팝업 */}
+        {/* ✅ V262: daily 경고 팝업 (✅ V488: work는 groupA 편입으로 더 이상 이 팝업을 거치지 않아 daily 전용으로 단순화 — isWork 죽은 분기 제거) */}
         {showGoalWarning&&(()=>{
           const lc = lang?.code ?? "ko";
           const vi = lc==="vi", en=lc==="en";
           const zh=lc==="zh", ja=lc==="ja", id=lc==="id";
           const ru=lc==="ru", th=lc==="th", mn=lc==="mn", uz=lc==="uz";
-          const isWork = pendingGoal==="work";
           const title = vi
-            ? (isWork?"Tiếng Hàn công việc":"Nói tiếng Hàn hàng ngày")
+            ? "Nói tiếng Hàn hàng ngày"
             : en
-            ? (isWork?"Korean for work":"Speak Korean freely")
-            : (isWork?"직장·현장 한국어":"일상 한국어 말하기");
+            ? "Speak Korean freely"
+            : "일상 한국어 말하기";
           const msg1 = vi
-            ? `Bạn đang bắt đầu với tư cách người mới học. ${isWork?"Tiếng Hàn công việc":"Nói tiếng Hàn tự do"} đòi hỏi nền tảng cơ bản vững chắc.`
+            ? "Bạn đang bắt đầu với tư cách người mới học. Nói tiếng Hàn tự do đòi hỏi nền tảng cơ bản vững chắc."
             : en
-            ? `You're starting as a beginner. ${isWork?"Workplace Korean":"Free speaking"} requires a solid foundation first.`
-            : `초급으로 학습을 시작하셨습니다. ${isWork?"직장·현장 한국어":"자유로운 말하기"}를 잘하려면 기초가 먼저 필요해요.`;
+            ? "You're starting as a beginner. Free speaking requires a solid foundation first."
+            : "초급으로 학습을 시작하셨습니다. 자유로운 말하기를 잘하려면 기초가 먼저 필요해요.";
           const msg2 = vi
             ? "Chúng tôi khuyên bạn nên hoàn thành khóa học cơ bản 80 giờ trước. Nền tảng vững chắc sẽ giúp bạn tiến bộ nhanh hơn rất nhiều! 💪"
             : en
@@ -3725,7 +3726,7 @@ ${vocabList}
             <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
               <div style={{background:"white",borderRadius:20,padding:"28px 24px",maxWidth:360,width:"100%",boxShadow:"0 8px 40px rgba(0,0,0,0.2)"}}>
       {MyPageBtn}
-                <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>{isWork?"🏗️":"💬"}</div>
+                <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>💬</div>
                 <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",textAlign:"center",marginBottom:16}}>{title}</div>
                 <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:10}}>{msg1}</div>
                 <div style={{fontSize:13,color:"#333",lineHeight:1.7,marginBottom:10,fontWeight:600}}>{msg2}</div>
