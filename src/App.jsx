@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "486";
+const APP_VERSION = "487";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2726,6 +2726,67 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
   const [pendingGoal, setPendingGoal] = useState(null); // ✅ V262: 팝업 대기 중인 goal
   const [showMidLevelWarning, setShowMidLevelWarning] = useState(false); // ✅ V339: 중급 자기선언 권유 팝업
 
+  // ✅ V487: 중급 자기선언 팝업을 공유 함수로 승격 — 기존엔 curriculum 단계 지역 IIFE였으나,
+  // plan 단계 상단에도 발견 링크를 추가하면서 동일 팝업을 두 곳에서 재사용해야 하므로 끌어올림.
+  // 내용·로직은 V339 원본과 100% 동일, 렌더 위치만 공유화.
+  const renderMidLevelWarningPopup = () => {
+    if (!showMidLevelWarning) return null;
+    const lc2 = lang?.code ?? "ko";
+    const isEn = lc2==="en", isVi = lc2==="vi";
+    const title = isEn?"Already at intermediate level?":isVi?"Bạn đã ở trình độ trung cấp?":"이미 중급 실력이신가요?";
+    const msg1 = isEn
+      ? "That's great! However, even intermediate learners often have gaps in foundational grammar and vocabulary."
+      : isVi
+      ? "Tuyệt vời! Tuy nhiên, ngay cả người học trung cấp cũng thường có những khoảng trống về ngữ pháp và từ vựng cơ bản."
+      : "대단해요! 그런데 중급 실력이더라도 초급 기초에 빈틈이 생기는 경우가 많아요.";
+    const msg2 = isEn
+      ? "We recommend the 80-hour basic course first. A solid foundation will make your intermediate journey much smoother! 💪"
+      : isVi
+      ? "Chúng tôi khuyên bạn nên hoàn thành khóa học 80 giờ cơ bản trước. Nền tảng vững chắc sẽ giúp hành trình trung cấp của bạn dễ dàng hơn nhiều! 💪"
+      : "80시간 기초 과정을 먼저 해보시길 권유드려요. 기초가 탄탄하면 중급이 훨씬 쉬워져요! 💪";
+    const msg3 = isEn
+      ? "If you're confident in your foundation, you can go straight to the intermediate course."
+      : isVi
+      ? "Nếu bạn tự tin về nền tảng của mình, bạn có thể đi thẳng vào khóa trung cấp."
+      : "기초에 자신이 있다면 바로 중급으로 가셔도 좋아요.";
+    const handleMidLevelConfirm = async () => {
+      if (user?.uid) {
+        try {
+          await setDoc(doc(db, "users", user.uid), {
+            midLevel: true,
+            midLevelPath: "self",
+            midLevelEnteredAt: serverTimestamp(),
+          }, { merge: true });
+        } catch(e) { console.error("midLevel 저장 오류:", e); }
+      }
+      setShowMidLevelWarning(false);
+      onMidLevel?.();
+    };
+    return (
+      <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+        <div style={{background:"white",borderRadius:20,padding:"28px 24px",maxWidth:360,width:"100%",boxShadow:"0 8px 40px rgba(0,0,0,0.2)"}}>
+          <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>🚀</div>
+          <div style={{fontSize:16,fontWeight:900,color:"#FF8C42",textAlign:"center",marginBottom:16}}>{title}</div>
+          <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:10}}>{msg1}</div>
+          <div style={{fontSize:13,color:"#333",lineHeight:1.7,marginBottom:10,fontWeight:600}}>{msg2}</div>
+          <div style={{fontSize:12,color:"#888",lineHeight:1.6,marginBottom:20,borderTop:"1px solid #eee",paddingTop:12}}>{msg3}</div>
+          <button onClick={()=>{setShowMidLevelWarning(false);setStep("preview");}}
+            style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
+            {txUI("✅ 80시간 기초 과정 시작하기", lang)}
+          </button>
+          <button onClick={handleMidLevelConfirm}
+            style={{width:"100%",background:"white",color:"#FF8C42",border:"2px solid #FF8C42",borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:10}}>
+            {isEn?"💬 I'll go straight to intermediate":isVi?"💬 Tôi sẽ học trung cấp ngay":"💬 그래도 중급으로 갈게요"}
+          </button>
+          <button onClick={()=>setShowMidLevelWarning(false)}
+            style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
+            {txUI("← 뒤로 가기", lang)}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   // ✅ V145: 발음 화면 state (훅 규칙 — 컴포넌트 최상단에 선언)
   const [pronStep, setPronStep] = useState(0);
   const [josaStep, setJosaStep] = useState(0);   // V147: 조사·대명사 단계
@@ -2957,6 +3018,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
   // ⚠️ V142: 근거 탐색 중 — 추후 수정 가능
   const GOAL_HOURS = {
     topik2: 80,   // 초급 완성 (저자 80시간 기준)
+    kiip:   160,  // ✅ V487: KIIP 5단계 자격은 TOPIK4~5급 수준 필요 — topik4와 동일 가중치(근거 탐색 중)
     topik4: 160,  // 중급 완성 (근거 탐색 중)
     daily:  80,   // 일상 한국어 (초급 완성으로 충분)
     work:   120,  // 직장·현장 (근거 탐색 중)
@@ -2982,7 +3044,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
 
   function confirmPlan() {
     setGoalDate(calcGoalDate(daysPerWeek, minPerDay, studyGoal));
-    const groupA = ["topik2", "life", "family"];
+    const groupA = ["topik2", "life", "family", "topik4", "work", "kiip"]; // ✅ V487: topik4·work·kiip 편입 — 라벨 정직성 원칙(선택한 목표 라벨을 그대로 유지한 채 구조화 트랙으로 연결)
     if (groupA.includes(studyGoal)) {
       setStep("pronContents"); // ✅ V268: 발음 목차 화면 먼저
     } else {
@@ -3525,65 +3587,8 @@ ${vocabList}
           🚀 {lc==="vi"?"Tôi đã biết tiếng Hàn trung cấp":lc==="en"?"I'm already intermediate level":lc==="zh"?"我已经是中级水平":lc==="ja"?"私はすでに中級レベルです":lc==="id"?"Saya sudah level menengah":lc==="ru"?"Я уже среднего уровня":lc==="th"?"ฉันอยู่ระดับกลางแล้ว":lc==="mn"?"Би дунд түвшинд байна":lc==="uz"?"Men allaqachon o'rta darajadaman":"나는 이미 중급이에요"}
         </button>
 
-        {/* ✅ V339: 중급 자기선언 권유 팝업 */}
-        {showMidLevelWarning&&(()=>{
-          const lc2 = lang?.code ?? "ko";
-          const isEn = lc2==="en", isVi = lc2==="vi";
-          const title = isEn?"Already at intermediate level?":isVi?"Bạn đã ở trình độ trung cấp?":"이미 중급 실력이신가요?";
-          const msg1 = isEn
-            ? "That's great! However, even intermediate learners often have gaps in foundational grammar and vocabulary."
-            : isVi
-            ? "Tuyệt vời! Tuy nhiên, ngay cả người học trung cấp cũng thường có những khoảng trống về ngữ pháp và từ vựng cơ bản."
-            : "대단해요! 그런데 중급 실력이더라도 초급 기초에 빈틈이 생기는 경우가 많아요.";
-          const msg2 = isEn
-            ? "We recommend the 80-hour basic course first. A solid foundation will make your intermediate journey much smoother! 💪"
-            : isVi
-            ? "Chúng tôi khuyên bạn nên hoàn thành khóa học 80 giờ cơ bản trước. Nền tảng vững chắc sẽ giúp hành trình trung cấp của bạn dễ dàng hơn nhiều! 💪"
-            : "80시간 기초 과정을 먼저 해보시길 권유드려요. 기초가 탄탄하면 중급이 훨씬 쉬워져요! 💪";
-          const msg3 = isEn
-            ? "If you're confident in your foundation, you can go straight to the intermediate course."
-            : isVi
-            ? "Nếu bạn tự tin về nền tảng của mình, bạn có thể đi thẳng vào khóa trung cấp."
-            : "기초에 자신이 있다면 바로 중급으로 가셔도 좋아요.";
-          const handleMidLevelConfirm = async () => {
-            // Firestore에 중급 자기선언 저장
-            if (user?.uid) {
-              try {
-                await setDoc(doc(db, "users", user.uid), {
-                  midLevel: true,
-                  midLevelPath: "self",
-                  midLevelEnteredAt: serverTimestamp(),
-                }, { merge: true });
-              } catch(e) { console.error("midLevel 저장 오류:", e); }
-            }
-            setShowMidLevelWarning(false);
-            // ✅ V340: onMidLevel 콜백으로 App state midLevel=true 설정 → 논술 탭 잠금 해제
-            onMidLevel?.();
-          };
-          return (
-            <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
-              <div style={{background:"white",borderRadius:20,padding:"28px 24px",maxWidth:360,width:"100%",boxShadow:"0 8px 40px rgba(0,0,0,0.2)"}}>
-                <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>🚀</div>
-                <div style={{fontSize:16,fontWeight:900,color:"#FF8C42",textAlign:"center",marginBottom:16}}>{title}</div>
-                <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:10}}>{msg1}</div>
-                <div style={{fontSize:13,color:"#333",lineHeight:1.7,marginBottom:10,fontWeight:600}}>{msg2}</div>
-                <div style={{fontSize:12,color:"#888",lineHeight:1.6,marginBottom:20,borderTop:"1px solid #eee",paddingTop:12}}>{msg3}</div>
-                <button onClick={()=>{setShowMidLevelWarning(false);setStep("preview");}}
-                  style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
-                  {txUI("✅ 80시간 기초 과정 시작하기", lang)}
-                </button>
-                <button onClick={handleMidLevelConfirm}
-                  style={{width:"100%",background:"white",color:"#FF8C42",border:"2px solid #FF8C42",borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:10}}>
-                  {isEn?"💬 I'll go straight to intermediate":isVi?"💬 Tôi sẽ học trung cấp ngay":"💬 그래도 중급으로 갈게요"}
-                </button>
-                <button onClick={()=>setShowMidLevelWarning(false)}
-                  style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
-                  {txUI("← 뒤로 가기", lang)}
-                </button>
-              </div>
-            </div>
-          );
-        })()}
+        {/* ✅ V487: 중급 자기선언 팝업 — 공유 함수 호출로 교체(로직 동일) */}
+        {renderMidLevelWarningPopup()}
 
         <button onClick={()=>setStep("lang")} style={{marginTop:14,background:"none",border:"none",color:"#595959",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
       </div>
@@ -3622,9 +3627,16 @@ ${vocabList}
         <div style={{fontSize:36,marginBottom:8,marginTop:begSpeak?0:16}}>🎯</div>
       {MyPageBtn}
         <div style={{fontSize:18,fontWeight:900,color:"#9C6FDE",marginBottom:4,textAlign:"center"}}>{txUI("나만의 학습 계획", lang)}</div>
-        <div style={{fontSize:13,color:"#aaa",marginBottom:24,textAlign:"center"}}>
+        <div style={{fontSize:13,color:"#aaa",marginBottom:12,textAlign:"center"}}>
           {txUI("한글 친구와 함께 목표일을 정해요!", lang)}
         </div>
+
+        {/* ✅ V487: 중급 자기선언 발견 링크 — 목표 선택보다 먼저, 별도 층위 질문으로 분리 */}
+        <button onClick={()=>setShowMidLevelWarning(true)}
+          style={{background:"none",border:"none",color:"#FF8C42",fontSize:12,fontWeight:700,cursor:"pointer",marginBottom:20,textDecoration:"underline",WebkitTapHighlightColor:"transparent"}}>
+          🚀 {txUI("혹시 이미 중급이신가요?", lang)}
+        </button>
+        {renderMidLevelWarningPopup()}
 
         {/* 목표 선택 */}
         <div style={{width:"100%",maxWidth:360,marginBottom:16}}>
@@ -3638,9 +3650,10 @@ ${vocabList}
               const familyItem = {id:"family", emoji:"👨‍👩‍👧", label:txUI("가족과 소통하기", lang), badge:"80h", heritage: true};
               const baseGoals = [
                 {id:"topik2", emoji:"🏆", label:txUI("TOPIK 2급 달성하기", lang),  badge:"80h"},
-                {id:"topik4", emoji:"🏆", label:txUI("TOPIK 4급 달성하기", lang),  disabled:true},
+                {id:"kiip",   emoji:"🏛️", label:txUI("KIIP(사회통합프로그램) 준비하기", lang), badge:"160h"}, // ✅ V487: 신규 — 2번째 자리(상단) 배치, groupA 편입으로 80h→TOPIK Ⅱ 경로 재사용. badge는 GOAL_HOURS.kiip(160h)와 일치
+                {id:"topik4", emoji:"🏆", label:txUI("TOPIK 4급 달성하기", lang),  badge:"160h"}, // ✅ V487: disabled 해제 — groupA 편입으로 활성화. badge를 GOAL_HOURS.topik4(160h)와 일치시킴(기존 80h는 불일치 버그였음)
                 {id:"daily", emoji:"💬", label:txUI("일상 한국어 자유롭게 말하기", lang), warn:true},
-                {id:"work",  emoji:"💼", label:txUI("직장·현장 한국어 익히기", lang), warn:true},
+                {id:"work",  emoji:"💼", label:txUI("직장·현장 한국어 익히기", lang), badge:"120h"}, // ✅ V487: warn 제거 — groupA 편입으로 경고팝업 없이 바로 구조화 트랙 진입(라벨 정직성). badge를 GOAL_HOURS.work(120h)와 일치시킴
                 {id:"life",  emoji:"🏠", label:txUI("한국 생활 적응하기", lang), badge:"80h"},
                 familyItem,
               ];
@@ -3673,7 +3686,7 @@ ${vocabList}
                   style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",borderRadius:14,border:`2px solid ${isSelected?"#9C6FDE":"#eee"}`,background:isSelected?"#F3EEFF":"white",cursor:"pointer",textAlign:"left",WebkitTapHighlightColor:"transparent",transition:"all .15s"}}>
                   <span style={{fontSize:20}}>{g.emoji}</span>
                   <span style={{fontSize:13,fontWeight:isSelected?800:500,color:isSelected?"#9C6FDE":"#555"}}>{g.label}</span>
-                  {g.badge&&<span style={{marginLeft:4,fontSize:11,fontWeight:800,color:"#00C896",background:"#E6FAF4",borderRadius:8,padding:"2px 7px"}}>{txUI("80시간", lang)}</span>}
+                  {g.badge&&<span style={{marginLeft:4,fontSize:11,fontWeight:800,color:"#00C896",background:"#E6FAF4",borderRadius:8,padding:"2px 7px"}}>{g.badge}</span>}
                   {isSelected&&<span style={{marginLeft:"auto",color:"#9C6FDE",fontSize:16}}>✓</span>}
                 </button>
               );
@@ -3775,7 +3788,7 @@ ${vocabList}
             </div>
             <div style={{fontSize:20,fontWeight:900,color:"#9C6FDE"}}>{formatDate(preview)}</div>
             {studyGoal&&<div style={{fontSize:12,color:"#9C6FDE",fontWeight:700,marginTop:6,background:"#9C6FDE18",borderRadius:8,padding:"4px 10px",display:"inline-block"}}>
-              {txUI([{id:"topik2",label:"TOPIK 2급 달성"},{id:"topik4",label:"TOPIK 4급 달성"},{id:"daily",label:"일상 한국어 말하기"},{id:"work",label:"직장 한국어 익히기"},{id:"life",label:"한국 생활 적응"},{id:"family",label:"가족과 소통하기"}].find(g=>g.id===studyGoal)?.label, lang)} 🎯
+              {txUI([{id:"topik2",label:"TOPIK 2급 달성"},{id:"kiip",label:"KIIP 준비"},{id:"topik4",label:"TOPIK 4급 달성"},{id:"daily",label:"일상 한국어 말하기"},{id:"work",label:"직장 한국어 익히기"},{id:"life",label:"한국 생활 적응"},{id:"family",label:"가족과 소통하기"}].find(g=>g.id===studyGoal)?.label, lang)} 🎯
             </div>}
             <div style={{fontSize:11,color:"#bbb",marginTop:4}}>
               {txUI("80시간 = 새로운 세상! 🌏", lang)}
@@ -17385,7 +17398,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
         const startDate = new Date(); startDate.setDate(startDate.getDate()-1);
         const pct = Math.min(100, Math.round(((now-startDate)/Math.max(1,goalDate-startDate))*100));
         const dLeft = Math.max(0, Math.ceil((goalDate-now)/(1000*60*60*24)));
-        const goalLabel = [{id:"topik2",label:"TOPIK 2급"},{id:"topik4",label:"TOPIK 4급"},{id:"daily",label:"일상 말하기"},{id:"work",label:"직장 한국어"},{id:"life",label:"한국 생활 적응"},{id:"family",label:"가족과 소통"}].find(g=>g.id===studyGoal)?.label||"목표";
+        const goalLabel = [{id:"topik2",label:"TOPIK 2급"},{id:"kiip",label:"KIIP"},{id:"topik4",label:"TOPIK 4급"},{id:"daily",label:"일상 말하기"},{id:"work",label:"직장 한국어"},{id:"life",label:"한국 생활 적응"},{id:"family",label:"가족과 소통"}].find(g=>g.id===studyGoal)?.label||"목표";
         const msg = pct<20?"시작이 반이에요! 💪":pct<50?"잘 하고 있어요! 🌟":pct<80?"절반 넘었어요! 🔥":"거의 다 왔어요! 🏁";
         return (
           <div style={{background:"white",padding:"10px 16px",borderBottom:"1px solid #f0eaff",flexShrink:0}}>
