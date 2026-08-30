@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "492";
+const APP_VERSION = "493";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -561,7 +561,7 @@ function txUI(ko, lang) {
 // 1단계(레이아웃)만 구현 — "다 보이되 위계는 다르게" 중 위계(강조) 로직은 2단계에서 추가 예정.
 // lang은 로그인 전이라 객체가 아니라 문자열(onboardingLang)로 들어오므로, txUI 재사용을 위해
 // 내부에서 {code: langCode} 형태로 감싸서 사용한다(그대로 넘기면 무조건 한국어로 폴백되는 버그 발생).
-function FullMapScreen({ langCode, onNext }) {
+function FullMapScreen({ langCode, onNext, onSkip }) {
   const lang = { code: langCode || "ko" };
 
   // ✅ 니즈진단: 선택한 목표를 세션에 저장하고, 해당 경로 카드만 강조
@@ -623,9 +623,19 @@ function FullMapScreen({ langCode, onNext }) {
   return (
     <div style={{minHeight:"100dvh",background:"linear-gradient(150deg,#FAF5FF,#F3EEFF)",
       display:"flex",flexDirection:"column",alignItems:"center",padding:"32px 20px 40px",
-      fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",position:"relative"}}>
 
-      <div style={{fontSize:38,marginBottom:6}}>🗺️</div>
+      {/* ✅ V493: 건너뛰기 — 우측 상단 고정. 여러 번 봐서 이미 아는 사람은 바로 지나갈 수 있게.
+          position:sticky로 스크롤해도 항상 눌리는 위치에 남아있음(맨 위로 다시 스크롤할 필요 없음). */}
+      <button onClick={onSkip || onNext}
+        style={{position:"sticky",top:12,alignSelf:"flex-end",zIndex:10,
+          background:"rgba(255,255,255,0.85)",border:"1px solid #E4D6FA",borderRadius:20,
+          padding:"6px 14px",fontSize:12,fontWeight:700,color:"#9C8CB5",cursor:"pointer",
+          marginBottom:-36,WebkitTapHighlightColor:"transparent"}}>
+        {txUI("건너뛰기", lang)} →
+      </button>
+
+      <div style={{fontSize:38,marginBottom:6,marginTop:20}}>🗺️</div>
       <div style={{fontSize:19,fontWeight:900,color:"#4A2C82",textAlign:"center",marginBottom:4}}>
         {txUI("한글 친구, 이렇게 되어있어요", lang)}
       </div>
@@ -25232,7 +25242,11 @@ export default function App() {
     <FullMapScreen
       langCode={onboardingLang}
       onNext={()=>{
-        try { localStorage.setItem("hc_seen_fullmap", "1"); } catch(e) {}
+        // ✅ V493: 게이트 제거로 이 값을 더 이상 읽지 않으므로 기록도 제거
+        setShowFullMap(false);
+        setShowPwaPopup(true);
+      }}
+      onSkip={()=>{
         setShowFullMap(false);
         setShowPwaPopup(true);
       }}
@@ -25245,15 +25259,11 @@ export default function App() {
       onLangChange={setOnboardingLang}
       onDone={(selectedLang, referral)=>{
         setOnboardingLang(selectedLang);
-        // ✅ V491: 전체지도는 온보딩(V276, 매번 표시)과 달리 건너뛰기 버튼이 없는 의무 노출 화면이라,
-        // 매번 뜨면 오히려 신뢰를 해침 — localStorage 플래그로 기기당 최초 1회만 노출.
-        let alreadySeen = false;
-        try { alreadySeen = localStorage.getItem("hc_seen_fullmap") === "1"; } catch(e) {}
-        if (alreadySeen) {
-          setShowPwaPopup(true);
-        } else {
-          setShowFullMap(true);
-        }
+        // ✅ V493: V491에서 넣었던 "최초 1회만" localStorage 게이트 제거 — 전체지도에
+        // 건너뛰기 버튼을 추가했으므로(오른쪽 상단), 매번 표시해도 급한 사용자는 바로
+        // 지나갈 수 있음. 여러 번 봤지만 제대로 안 본 사람에게 계속 기회를 준다는
+        // 노치성님 판단(260830)에 따라 온보딩(V276)과 동일하게 "매번 표시" 방식으로 통일.
+        setShowFullMap(true);
       }}
     />
   );
