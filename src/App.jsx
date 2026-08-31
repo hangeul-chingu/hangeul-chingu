@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "493";
+const APP_VERSION = "495";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -108,6 +108,12 @@ const SUPPORTED_LANGS = ["ko","vi","en","zh","ja","id","ru","th","mn","uz"];
 
 // ✅ V328: 다국어 UI 번역 테이블 (10개 언어)
 const UI_TRANSLATIONS = {
+  // ✅ V495: KIIP 목표 선택 시 안내 팝업 문구 (5개) — KIIP 0~4단계 콘텐츠 부재로 TOPIK Ⅱ 트랙 재사용을 고지
+  "KIIP 준비, 이렇게 안내해드려요":{ko:"KIIP 준비, 이렇게 안내해드려요",vi:"Chuẩn bị KIIP, chúng tôi hướng dẫn như sau",zh:"KIIP 备考,我们这样为您引导",en:"Preparing for KIIP — here's how we guide you",ja:"KIIP対策、このようにご案内します",id:"Persiapan KIIP, begini panduan kami",ru:"Подготовка к KIIP — вот как мы вас направляем",th:"การเตรียมสอบ KIIP เราแนะนำแบบนี้",mn:"KIIP-д бэлтгэх нь — бид ингэж чиглүүлнэ",uz:"KIIP tayyorgarligi — sizni shunday yo'naltiramiz",es:"Preparación para el KIIP: así te guiamos",fr:"Préparation au KIIP : voici comment nous vous guidons",ne:"KIIP तयारी, हामी यसरी मार्गदर्शन गर्छौं",de:"KIIP-Vorbereitung – so begleiten wir Sie"},
+  "KIIP 5단계(한국사회이해)는 TOPIK 4급 이상의 한국어 실력이 필요해요.":{ko:"KIIP 5단계(한국사회이해)는 TOPIK 4급 이상의 한국어 실력이 필요해요.",vi:"KIIP cấp 5 (Hiểu biết xã hội Hàn Quốc) yêu cầu trình độ tiếng Hàn từ TOPIK cấp 4 trở lên.",zh:"KIIP 五级(韩国社会理解)需要 TOPIK 4级以上的韩语水平。",en:"KIIP Level 5 (Understanding Korean Society) requires Korean skills at TOPIK Level 4 or above.",ja:"KIIP5段階(韓国社会理解)には、TOPIK4級以上の韓国語力が必要です。",id:"KIIP Tahap 5 (Pemahaman Masyarakat Korea) memerlukan kemampuan bahasa Korea setara TOPIK tingkat 4 atau lebih tinggi.",ru:"Для KIIP уровня 5 («Понимание корейского общества») нужен корейский на уровне TOPIK 4 или выше.",th:"KIIP ระดับ 5 (ความเข้าใจสังคมเกาหลี) ต้องมีความสามารถภาษาเกาหลีระดับ TOPIK 4 ขึ้นไป",mn:"KIIP 5-р шат (Солонгосын нийгмийг ойлгох) нь TOPIK 4-р зэрэг ба түүнээс дээш солонгос хэлний түвшин шаарддаг.",uz:"KIIP 5-bosqich (Koreya jamiyatini tushunish) TOPIK 4-daraja yoki undan yuqori koreys tili bilimini talab qiladi.",es:"El Nivel 5 del KIIP (Comprensión de la Sociedad Coreana) requiere un nivel de coreano de TOPIK 4 o superior.",fr:"Le niveau 5 du KIIP (Comprendre la société coréenne) exige un coréen équivalent au TOPIK 4 ou plus.",ne:"KIIP चरण 5 (कोरियाली समाज बुझाइ) का लागि TOPIK तह 4 वा माथिको कोरियाली भाषा दक्षता चाहिन्छ।",de:"KIIP Stufe 5 (Koreanische Gesellschaft verstehen) setzt Koreanischkenntnisse auf TOPIK-Niveau 4 oder höher voraus."},
+  "한글친구는 이 경로를 TOPIK Ⅱ 과정으로 안내해드려요 — 완주하면 실제 KIIP 5단계 수준과 같아져요.":{ko:"한글친구는 이 경로를 TOPIK Ⅱ 과정으로 안내해드려요 — 완주하면 실제 KIIP 5단계 수준과 같아져요.",vi:"Người bạn Hangeul hướng dẫn lộ trình này qua khóa TOPIK Ⅱ — hoàn thành xong, bạn sẽ đạt trình độ tương đương KIIP cấp 5 thực tế.",zh:"韩文朋友通过 TOPIK Ⅱ 课程为您引导这条路径——完成后,您的水平将与实际的 KIIP 五级相当。",en:"Hangeul Friend guides this path through the TOPIK Ⅱ course — once you complete it, you'll reach the same level as the actual KIIP Level 5.",ja:"ハングル友達はこの道をTOPIK Ⅱコースでご案内します — 修了すれば、実際のKIIP5段階と同じレベルになります。",id:"Hangeul Friend memandu jalur ini melalui kursus TOPIK Ⅱ — setelah menyelesaikannya, kemampuan Anda setara dengan KIIP Tahap 5 yang sebenarnya.",ru:"«Друг хангыля» ведёт по этому пути через курс TOPIK Ⅱ — пройдя его до конца, вы достигнете уровня настоящего KIIP 5.",th:"Hangeul Friend จะพาคุณไปตามเส้นทางนี้ผ่านหลักสูตร TOPIK Ⅱ — เมื่อเรียนจบ ระดับของคุณจะเทียบเท่ากับ KIIP ระดับ 5 จริง",mn:"Хангул найз энэ замыг TOPIK Ⅱ хичээлээр чиглүүлнэ — үүнийг эцэс хүртэл нь давбал бодит KIIP 5-р шаттай ижил түвшинд хүрнэ.",uz:"Hangul Do'st bu yo'lni TOPIK Ⅱ kursi orqali yo'naltiradi — uni tugatganingizda darajangiz haqiqiy KIIP 5-bosqich bilan bir xil bo'ladi.",es:"Hangeul Friend te guía por este camino a través del curso TOPIK Ⅱ; al completarlo, alcanzarás el mismo nivel que el KIIP Nivel 5 real.",fr:"Hangeul Friend vous guide sur ce parcours grâce au cours TOPIK Ⅱ — une fois terminé, vous atteindrez le niveau du véritable KIIP 5.",ne:"हान्गुल फ्रेन्डले यो मार्ग TOPIK Ⅱ पाठ्यक्रमबाट मार्गदर्शन गर्छ — पूरा गरेपछि तपाईंको स्तर वास्तविक KIIP चरण 5 सँग बराबर हुन्छ।",de:"Hangeul Friend führt Sie auf diesem Weg über den TOPIK-Ⅱ-Kurs — wenn Sie ihn abschließen, erreichen Sie dasselbe Niveau wie das echte KIIP Stufe 5."},
+  "단, 진짜 KIIP 프로그램 등록은 정부 사이트(사회통합정보망)에서 별도로 신청하셔야 해요.":{ko:"단, 진짜 KIIP 프로그램 등록은 정부 사이트(사회통합정보망)에서 별도로 신청하셔야 해요.",vi:"Tuy nhiên, việc đăng ký chương trình KIIP thật sự phải được thực hiện riêng trên trang web của chính phủ (Mạng thông tin hòa nhập xã hội).",zh:"但是,真正的 KIIP 项目报名需要在政府网站(社会统合信息网)另行申请。",en:"However, to register for the actual KIIP program, you must apply separately on the government site (the Social Integration Information Network).",ja:"ただし、実際のKIIPプログラムへの登録は、政府サイト(社会統合情報網)で別途申請する必要があります。",id:"Namun, pendaftaran program KIIP yang sebenarnya harus diajukan secara terpisah di situs pemerintah (Jaringan Informasi Integrasi Sosial).",ru:"Однако регистрацию в самой программе KIIP нужно оформлять отдельно на государственном сайте (Сеть информации о социальной интеграции).",th:"อย่างไรก็ตาม การลงทะเบียนโปรแกรม KIIP จริงต้องยื่นสมัครแยกต่างหากที่เว็บไซต์ของรัฐบาล (เครือข่ายข้อมูลบูรณาการทางสังคม)",mn:"Гэхдээ жинхэнэ KIIP хөтөлбөрт бүртгүүлэхийн тулд засгийн газрын сайтад (Нийгмийн эв нэгдлийн мэдээллийн сүлжээ) тусад нь өргөдөл гаргах шаардлагатай.",uz:"Ammo haqiqiy KIIP dasturiga ro'yxatdan o'tish uchun hukumat saytida (Ijtimoiy integratsiya axborot tarmog'i) alohida ariza berishingiz kerak.",es:"Sin embargo, la inscripción en el programa KIIP real debe solicitarse por separado en el sitio del gobierno (la Red de Información de Integración Social).",fr:"Cependant, l'inscription au véritable programme KIIP doit être effectuée séparément sur le site du gouvernement (le Réseau d'information sur l'intégration sociale).",ne:"तर, वास्तविक KIIP कार्यक्रममा दर्ता गर्न सरकारी वेबसाइट (सामाजिक एकीकरण सूचना सञ्जाल) मा छुट्टै आवेदन दिनुपर्छ।",de:"Für die Anmeldung zum eigentlichen KIIP-Programm müssen Sie sich jedoch separat auf der Regierungswebsite (dem Informationsnetz für soziale Integration) registrieren."},
+  "확인했어요":{ko:"확인했어요",vi:"Tôi đã hiểu",zh:"我知道了",en:"Got it",ja:"確認しました",id:"Saya mengerti",ru:"Понятно",th:"รับทราบแล้ว",mn:"Ойлголоо",uz:"Tushundim",es:"Entendido",fr:"J'ai compris",ne:"बुझेँ",de:"Verstanden"},
   // ✅ V491: 커리큘럼 안내 신규 문구 (13개)
   "한글 친구, 이렇게 되어있어요":{ko:"한글 친구, 이렇게 되어있어요",vi:"Người bạn Hangeul được xây dựng như thế này",en:"Here's how Hangeul Friend is structured",zh:"韩文朋友是这样构成的",ja:"ハングル友達はこうなっています",id:"Beginilah struktur Hangeul Friend",ru:"Вот как устроен «Друг хангыля»",th:"Hangeul Friend เป็นแบบนี้",mn:"Хангул найз ийм бүтэцтэй",uz:"Hangul Do'st mana shunday tuzilgan",es:"Así está estructurado Hangeul Friend",fr:"Voici comment Hangeul Friend est structuré",ne:"हान्गुल फ्रेन्ड यसरी बनेको छ",de:"So ist Hangeul Friend aufgebaut"},
   "당신에게 필요한 곳까지, 이 길로 갈 수 있어요":{ko:"당신에게 필요한 곳까지, 이 길로 갈 수 있어요",vi:"Con đường này sẽ đưa bạn đến nơi bạn cần",en:"This path can take you where you need to go",zh:"沿着这条路,可以到达你需要的地方",ja:"あなたに必要な場所まで、この道で行けます",id:"Jalan ini bisa membawa Anda ke tempat yang Anda butuhkan",ru:"Этот путь приведёт вас туда, куда вам нужно",th:"เส้นทางนี้จะพาคุณไปยังที่ที่คุณต้องการ",mn:"Энэ зам таныг хэрэгтэй газар хүргэнэ",uz:"Bu yo'l sizni kerakli joyga olib boradi",es:"Este camino puede llevarte adonde necesitas ir",fr:"Ce chemin peut vous mener là où vous devez aller",ne:"यो बाटोले तपाईंलाई चाहिने ठाउँसम्म पुर्याउन सक्छ",de:"Dieser Weg kann Sie dorthin bringen, wo Sie hinmüssen"},
@@ -625,13 +631,15 @@ function FullMapScreen({ langCode, onNext, onSkip }) {
       display:"flex",flexDirection:"column",alignItems:"center",padding:"32px 20px 40px",
       fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",position:"relative"}}>
 
-      {/* ✅ V493: 건너뛰기 — 우측 상단 고정. 여러 번 봐서 이미 아는 사람은 바로 지나갈 수 있게.
-          position:sticky로 스크롤해도 항상 눌리는 위치에 남아있음(맨 위로 다시 스크롤할 필요 없음). */}
+      {/* ✅ V494: 건너뛰기 — 우측 상단 고정. 여러 번 봐서 이미 아는 사람은 바로 지나갈 수 있게.
+          V493에서 position:sticky+음수마진으로 만들었더니 스크롤 중 "조사·대명사" 칩과
+          겹치는 버그가 실사용 스크린샷(260830)에서 확인됨 — position:fixed로 교체해
+          문서 흐름 자체에서 분리, 겹침 원천 차단. */}
       <button onClick={onSkip || onNext}
-        style={{position:"sticky",top:12,alignSelf:"flex-end",zIndex:10,
-          background:"rgba(255,255,255,0.85)",border:"1px solid #E4D6FA",borderRadius:20,
+        style={{position:"fixed",top:16,right:16,zIndex:10,
+          background:"rgba(255,255,255,0.92)",border:"1px solid #E4D6FA",borderRadius:20,
           padding:"6px 14px",fontSize:12,fontWeight:700,color:"#9C8CB5",cursor:"pointer",
-          marginBottom:-36,WebkitTapHighlightColor:"transparent"}}>
+          boxShadow:"0 2px 8px rgba(156,111,222,.15)",WebkitTapHighlightColor:"transparent"}}>
         {txUI("건너뛰기", lang)} →
       </button>
 
@@ -2969,6 +2977,8 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
   const [showResetModal, setShowResetModal] = useState(false);
   const [showGoalWarning, setShowGoalWarning] = useState(false); // ✅ V262: daily/work 경고 팝업
   const [pendingGoal, setPendingGoal] = useState(null); // ✅ V262: 팝업 대기 중인 goal
+  const [showKiipNotice, setShowKiipNotice] = useState(false); // ✅ V495: KIIP 목표 선택 시 TOPIK Ⅱ 트랙 재사용 안내 팝업
+  const [dailyOptedStructured, setDailyOptedStructured] = useState(false); // ✅ V493: daily 선택자가 경고팝업에서 "80시간 기초 과정"을 택한 경우 — studyGoal 라벨은 "daily"로 유지하되 confirmPlan에서 구조화 커리큘럼(pronContents)으로 라우팅
   const [showMidLevelWarning, setShowMidLevelWarning] = useState(false); // ✅ V339: 중급 자기선언 권유 팝업
 
   // ✅ V487: 중급 자기선언 팝업을 공유 함수로 승격 — 기존엔 curriculum 단계 지역 IIFE였으나,
@@ -3290,7 +3300,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
   function confirmPlan() {
     setGoalDate(calcGoalDate(daysPerWeek, minPerDay, studyGoal));
     const groupA = ["topik2", "life", "family", "topik4", "work", "kiip"]; // ✅ V487: topik4·work·kiip 편입 — 라벨 정직성 원칙(선택한 목표 라벨을 그대로 유지한 채 구조화 트랙으로 연결)
-    if (groupA.includes(studyGoal)) {
+    if (groupA.includes(studyGoal) || (studyGoal==="daily" && dailyOptedStructured)) {
       setStep("pronContents"); // ✅ V268: 발음 목차 화면 먼저
     } else {
       onReady?.();
@@ -3925,6 +3935,8 @@ ${vocabList}
                 if (g.warn) {
                   setPendingGoal(g.id);
                   setShowGoalWarning(true);
+                } else if (g.id === "kiip") {
+                  setShowKiipNotice(true); // ✅ V495: KIIP 안내 팝업 경유 후 진행
                 } else {
                   setStudyGoal(g.id);
                 }
@@ -3977,7 +3989,7 @@ ${vocabList}
                 <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:10}}>{msg1}</div>
                 <div style={{fontSize:13,color:"#333",lineHeight:1.7,marginBottom:10,fontWeight:600}}>{msg2}</div>
                 <div style={{fontSize:12,color:"#888",lineHeight:1.6,marginBottom:20,borderTop:"1px solid #eee",paddingTop:12}}>{msg3}</div>
-                <button onClick={()=>{setStudyGoal("topik2");setShowGoalWarning(false);setPendingGoal(null);}}
+                <button onClick={()=>{setStudyGoal(pendingGoal);setDailyOptedStructured(true);setShowGoalWarning(false);setPendingGoal(null);}}
                   style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
                   {txUI("✅ 80시간 기초 과정 시작하기", lang)}
                 </button>
@@ -3993,6 +4005,24 @@ ${vocabList}
             </div>
           );
         })()}
+
+        {/* ✅ V495: KIIP 목표 선택 시 TOPIK Ⅱ 트랙 재사용 안내 팝업 */}
+        {showKiipNotice&&(
+          <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+            <div style={{background:"white",borderRadius:20,padding:"28px 24px",maxWidth:360,width:"100%",boxShadow:"0 8px 40px rgba(0,0,0,0.2)"}}>
+      {MyPageBtn}
+              <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>🏛️</div>
+              <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",textAlign:"center",marginBottom:16}}>{txUI("KIIP 준비, 이렇게 안내해드려요", lang)}</div>
+              <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:10}}>{txUI("KIIP 5단계(한국사회이해)는 TOPIK 4급 이상의 한국어 실력이 필요해요.", lang)}</div>
+              <div style={{fontSize:13,color:"#333",lineHeight:1.7,marginBottom:10,fontWeight:600}}>{txUI("한글친구는 이 경로를 TOPIK Ⅱ 과정으로 안내해드려요 — 완주하면 실제 KIIP 5단계 수준과 같아져요.", lang)}</div>
+              <div style={{fontSize:12,color:"#888",lineHeight:1.6,marginBottom:20,borderTop:"1px solid #eee",paddingTop:12}}>{txUI("단, 진짜 KIIP 프로그램 등록은 정부 사이트(사회통합정보망)에서 별도로 신청하셔야 해요.", lang)}</div>
+              <button onClick={()=>{setStudyGoal("kiip");setShowKiipNotice(false);}}
+                style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer"}}>
+                {txUI("확인했어요", lang)}
+              </button>
+            </div>
+          </div>
+        )}
 
         <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:20,padding:"22px 20px",boxShadow:"0 4px 20px rgba(156,111,222,.10)",marginBottom:16}}>
           {/* 주 몇 회 */}
@@ -21300,14 +21330,22 @@ function KiipTab({ user, onFocusChange }) {
   return null;
 }
 
-function TopikCertTab({ user }) {
+function TopikCertTab({ user, onGoToKiip }) {
   const [file,       setFile]    = useState(null);
   const [preview,    setPreview] = useState(null);
   const [loading,    setLoading] = useState(false);
   const [result,     setResult]  = useState(null);
   const [submitted,  setSubmitted] = useState(false);
   const [alreadyOk,  setAlreadyOk] = useState(false);
+  const [kiipEligible, setKiipEligible] = useState(false); // ✅ V495: aiGrade 4급 이상이면 KIIP 5단계 안내 노출
   const fileRef = useRef(null);
+
+  // ✅ V495: "4급"·"4"·"TOPIK 4급" 등 자유 형식 등급 문자열에서 숫자만 안전하게 추출
+  function parseGradeNum(gradeStr) {
+    if (!gradeStr) return 0;
+    const m = String(gradeStr).match(/(\d)/);
+    return m ? parseInt(m[1], 10) : 0;
+  }
 
   // 이미 승인된 사용자 확인
   useEffect(() => {
@@ -21315,6 +21353,17 @@ function TopikCertTab({ user }) {
     getDoc(doc(db, "users", user.uid)).then(d => {
       if (d.exists() && d.data().topikApproved) setAlreadyOk(true);
     });
+    // ✅ V495: 재방문 시에도 KIIP 자격(4급 이상) 여부를 알 수 있도록,
+    // 이 사용자의 topik_submissions 중 가장 높은 등급을 조회
+    const q = query(collection(db, "topik_submissions"), where("uid", "==", user.uid));
+    getDocs(q).then(snap => {
+      let maxGrade = 0;
+      snap.forEach(d => {
+        const g = parseGradeNum(d.data().aiGrade);
+        if (g > maxGrade) maxGrade = g;
+      });
+      if (maxGrade >= 4) setKiipEligible(true);
+    }).catch(()=>{});
   }, [user]);
 
   function handleFile(e) {
@@ -21361,6 +21410,8 @@ function TopikCertTab({ user }) {
 
       const parsed = result.data || { isTopik: false, passed: false, confidence: "낮음", reason: "판독 실패" };
       setResult(parsed);
+      // ✅ V495: 이번 제출의 등급이 4급 이상이면 KIIP 안내 노출
+      if (parseGradeNum(parsed.grade) >= 4) setKiipEligible(true);
 
       // Firestore에 제출 저장
       const subRef = doc(collection(db, "topik_submissions"));
@@ -21390,6 +21441,20 @@ function TopikCertTab({ user }) {
       <div style={{fontSize:60, marginBottom:16}}>🏆</div>
       <div style={{fontSize:18, fontWeight:900, color:"#00C896", marginBottom:8}}>TOPIK 합격 인증 완료!</div>
       <div style={{fontSize:14, color:"#888"}}>배지와 원어민 대화권이 부여됐어요.</div>
+      {kiipEligible && (
+        <div style={{background:"#FFF8E1", border:"1px solid #FFD54F", borderRadius:16, padding:"16px 18px", marginTop:20, textAlign:"left"}}>
+          <div style={{fontSize:13, fontWeight:800, color:"#B8860B", marginBottom:6}}>🏛️ KIIP 5단계</div>
+          <div style={{fontSize:12, color:"#5D4E1F", lineHeight:1.7}}>
+            KIIP 5단계(한국사회이해)는 TOPIK 4급 이상의 한국어 실력이 필요해요. 단, 진짜 KIIP 프로그램 등록은 정부 사이트(사회통합정보망)에서 별도로 신청하셔야 해요.
+          </div>
+          {onGoToKiip && (
+            <button onClick={onGoToKiip}
+              style={{marginTop:12, width:"100%", background:"linear-gradient(135deg,#FFD54F,#E0A800)", color:"white", border:"none", borderRadius:12, padding:"11px 0", fontSize:13, fontWeight:800, cursor:"pointer"}}>
+              KIIP 5단계 콘텐츠 미리 보기 →
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 
@@ -21448,6 +21513,20 @@ function TopikCertTab({ user }) {
           {submitted && (
             <div style={{background:"#E8F5EE", border:"1px solid #00C896", borderRadius:12, padding:"12px 16px", fontSize:13, color:"#1E6B3C", fontWeight:600}}>
               ✅ 제출 완료! 관리자 최종 확인 후 승인 안내드릴게요.
+            </div>
+          )}
+          {submitted && kiipEligible && (
+            <div style={{background:"#FFF8E1", border:"1px solid #FFD54F", borderRadius:12, padding:"12px 16px", marginTop:10, textAlign:"left"}}>
+              <div style={{fontSize:12, fontWeight:800, color:"#B8860B", marginBottom:6}}>🏛️ KIIP 5단계</div>
+              <div style={{fontSize:11, color:"#5D4E1F", lineHeight:1.6}}>
+                KIIP 5단계(한국사회이해)는 TOPIK 4급 이상의 한국어 실력이 필요해요. 단, 진짜 KIIP 프로그램 등록은 정부 사이트(사회통합정보망)에서 별도로 신청하셔야 해요.
+              </div>
+              {onGoToKiip && (
+                <button onClick={onGoToKiip}
+                  style={{marginTop:10, width:"100%", background:"linear-gradient(135deg,#FFD54F,#E0A800)", color:"white", border:"none", borderRadius:10, padding:"9px 0", fontSize:12, fontWeight:800, cursor:"pointer"}}>
+                  KIIP 5단계 콘텐츠 미리 보기 →
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -26410,7 +26489,7 @@ export default function App() {
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
         {tab==="game"&&<GameTab level={level} midLevel={midLevel} uid={user.uid} reviewModule={reviewModule} reviewNonce={reviewNonce} midModulesFirestore={midModulesFirestore}/>}
         {tab==="kiip"&&<KiipTab user={user} onFocusChange={setKiipFocus}/>}
-        {tab==="topik"&&<TopikCertTab user={user}/>}
+        {tab==="topik"&&<TopikCertTab user={user} onGoToKiip={()=>setTab("kiip")}/>}
 
         {/* ✅ V270: 둘러보기 모드 하단 고정 배너 */}
         {browseMode&&(
