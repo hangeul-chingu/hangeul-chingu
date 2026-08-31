@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "495";
+const APP_VERSION = "496";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -26144,7 +26144,8 @@ export default function App() {
                   아니라 "언제든 도전 가능"이라는 사실 자체를 안내하는 것이 핵심. */}
               <div style={{background:"#E8F8F0",borderRadius:12,padding:"12px 16px",marginBottom:12}}>
                 <div style={{fontSize:12,color:"#00A878",fontWeight:800,marginBottom:8}}>🇰🇷🔓 KIIP: 완주 안 해도 언제든 도전할 수 있어요!</div>
-                <button onClick={()=>{setShowMyPage(false);setTab("kiip");}}
+                {/* ✅ V496: level·begReady 세팅 누락 버그 수정 — 초급 계정에서 눌러도 반응 없던 원인 */}
+                <button onClick={()=>{setShowMyPage(false);setLevel("beg");setBegReady(true);setTab("kiip");}}
                   style={{width:"100%",background:"linear-gradient(135deg,#2E9E6B,#00A878)",color:"white",border:"none",borderRadius:50,padding:"9px 0",fontSize:12,fontWeight:900,cursor:"pointer"}}>
                   🇰🇷 KIIP 응시하러 가기 →
                 </button>
