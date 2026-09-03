@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "497";
+const APP_VERSION = "498";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2981,9 +2981,149 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
   const [dailyOptedStructured, setDailyOptedStructured] = useState(false); // ✅ V493: daily 선택자가 경고팝업에서 "80시간 기초 과정"을 택한 경우 — studyGoal 라벨은 "daily"로 유지하되 confirmPlan에서 구조화 커리큘럼(pronContents)으로 라우팅
   const [showMidLevelWarning, setShowMidLevelWarning] = useState(false); // ✅ V339: 중급 자기선언 권유 팝업
 
+  // ✅ V498: 성취기준 체크리스트(can-do checklist) — 자기신고(Y/N) 앞에 붙는 자기점검 단계.
+  // "몇 급이면 이런 걸 할 수 있어요"를 구체적 문장으로 보여주고, 학습자가 스스로 고른 개수로
+  // 초급/중급을 판단하도록 도움. CEFR/ACTFL의 can-do 자기평가 방식 참고 — 등급 판정 시험이
+  // 아니라 "판단 근거를 명확히 해주는 보조 장치"로만 사용(강제하지 않고 항상 다른 선택 가능).
+  const [showCanDoCheck, setShowCanDoCheck] = useState(false);
+  const [canDoAnswers, setCanDoAnswers] = useState({}); // { 0:true, 1:false, ... }
+  const [canDoResult, setCanDoResult] = useState(null); // null | "beginner" | "intermediate"
+
+  const CAN_DO_ITEMS = [
+    "저는 제 이름과 나라, 직업을 한국어로 소개할 수 있어요",
+    "저는 물건을 살 때 \"이거 얼마예요?\" 같은 질문을 할 수 있어요",
+    "저는 친구에게 오늘 있었던 일을 간단히 말할 수 있어요",
+    "저는 회사나 학교에서 상황을 설명하거나 의견을 말할 수 있어요",
+    "저는 뉴스나 신문 기사를 어느 정도 이해할 수 있어요",
+  ];
+
   // ✅ V487: 중급 자기선언 팝업을 공유 함수로 승격 — 기존엔 curriculum 단계 지역 IIFE였으나,
   // plan 단계 상단에도 발견 링크를 추가하면서 동일 팝업을 두 곳에서 재사용해야 하므로 끌어올림.
   // 내용·로직은 V339 원본과 100% 동일, 렌더 위치만 공유화.
+  // ✅ V498: handleMidLevelConfirm을 컴포넌트 최상단 공용 함수로 승격 — can-do 체크리스트
+  // 결과 화면에서도 동일 로직(중급 확정 저장 + onMidLevel 호출)을 재사용해야 하므로 분리.
+  const handleMidLevelConfirm = async (path = "self") => {
+    if (user?.uid) {
+      try {
+        await setDoc(doc(db, "users", user.uid), {
+          midLevel: true,
+          midLevelPath: path, // "self"(기존 자기선언) | "candoCheck"(체크리스트 경유)
+          midLevelEnteredAt: serverTimestamp(),
+        }, { merge: true });
+      } catch(e) { console.error("midLevel 저장 오류:", e); }
+    }
+    setShowMidLevelWarning(false);
+    setShowCanDoCheck(false);
+    onMidLevel?.();
+  };
+
+  // ✅ V498: can-do 체크리스트 팝업 — 체크 개수로 초급/중급 추천 후, 최종 선택은 항상 학습자에게.
+  const renderCanDoChecklist = () => {
+    if (!showCanDoCheck) return null;
+    const checkedCount = Object.values(canDoAnswers).filter(Boolean).length;
+
+    const submitCanDoResult = async () => {
+      const level = checkedCount >= 3 ? "intermediate" : "beginner";
+      setCanDoResult(level);
+      if (user?.uid) {
+        try {
+          await setDoc(doc(db, "users", user.uid), {
+            canDoCheckedCount: checkedCount,
+            canDoSuggestedLevel: level,
+            canDoCheckedAt: serverTimestamp(),
+          }, { merge: true });
+        } catch(e) { console.error("can-do 체크리스트 저장 오류:", e); }
+      }
+    };
+
+    const closeAndReset = () => {
+      setShowCanDoCheck(false);
+      setCanDoAnswers({});
+      setCanDoResult(null);
+    };
+
+    return (
+      <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+        <div style={{background:"white",borderRadius:20,padding:"28px 24px",maxWidth:380,width:"100%",boxShadow:"0 8px 40px rgba(0,0,0,0.2)",maxHeight:"85dvh",overflowY:"auto"}}>
+          {canDoResult === null ? (
+            <>
+              <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>✅</div>
+              <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",textAlign:"center",marginBottom:6}}>
+                {txUI("지금 한국어로 이런 걸 할 수 있나요?", lang)}
+              </div>
+              <div style={{fontSize:12,color:"#999",textAlign:"center",marginBottom:18}}>
+                {txUI("해당하는 걸 모두 골라주세요", lang)}
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:20}}>
+                {CAN_DO_ITEMS.map((item, i) => (
+                  <label key={i} onClick={()=>setCanDoAnswers(prev=>({...prev,[i]:!prev[i]}))}
+                    style={{display:"flex",alignItems:"flex-start",gap:10,background:canDoAnswers[i]?"#F3EEFF":"#FAFAFA",border:`1.5px solid ${canDoAnswers[i]?"#9C6FDE":"#eee"}`,borderRadius:12,padding:"12px 14px",cursor:"pointer",transition:"all .15s"}}>
+                    <div style={{width:20,height:20,minWidth:20,borderRadius:6,border:`2px solid ${canDoAnswers[i]?"#9C6FDE":"#ccc"}`,background:canDoAnswers[i]?"#9C6FDE":"white",display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontSize:13,fontWeight:900,marginTop:1}}>
+                      {canDoAnswers[i] ? "✓" : ""}
+                    </div>
+                    <div style={{fontSize:13,color:"#444",lineHeight:1.5}}>{txUI(item, lang)}</div>
+                  </label>
+                ))}
+              </div>
+              <button onClick={submitCanDoResult}
+                style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
+                {txUI("결과 보기", lang)}
+              </button>
+              <button onClick={closeAndReset}
+                style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
+                {txUI("← 뒤로 가기", lang)}
+              </button>
+            </>
+          ) : canDoResult === "beginner" ? (
+            <>
+              <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>🌱</div>
+              <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",textAlign:"center",marginBottom:12}}>
+                {txUI(`${checkedCount}개를 고르셨네요`, lang)}
+              </div>
+              <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:20,textAlign:"center"}}>
+                {txUI("지금은 80시간 기초 과정이 더 탄탄한 시작이 될 것 같아요. 기초가 단단하면 나중에 중급이 훨씬 쉬워져요! 💪", lang)}
+              </div>
+              <button onClick={()=>{closeAndReset();setStep("preview");}}
+                style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
+                {txUI("✅ 80시간 기초 과정 시작하기", lang)}
+              </button>
+              <button onClick={()=>handleMidLevelConfirm("candoCheck")}
+                style={{width:"100%",background:"white",color:"#FF8C42",border:"2px solid #FF8C42",borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:10}}>
+                {txUI("💬 그래도 중급으로 갈게요", lang)}
+              </button>
+              <button onClick={closeAndReset}
+                style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
+                {txUI("← 뒤로 가기", lang)}
+              </button>
+            </>
+          ) : (
+            <>
+              <div style={{fontSize:28,textAlign:"center",marginBottom:8}}>🚀</div>
+              <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",textAlign:"center",marginBottom:12}}>
+                {txUI(`${checkedCount}개를 고르셨네요`, lang)}
+              </div>
+              <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:20,textAlign:"center"}}>
+                {txUI("중급 과정이 잘 맞을 것 같아요! 기초에 빈틈이 있다면 언제든 80시간 과정으로 돌아올 수 있어요.", lang)}
+              </div>
+              <button onClick={()=>handleMidLevelConfirm("candoCheck")}
+                style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
+                {txUI("🚀 중급으로 시작하기", lang)}
+              </button>
+              <button onClick={()=>{closeAndReset();setStep("preview");}}
+                style={{width:"100%",background:"white",color:"#9C6FDE",border:"2px solid #9C6FDE",borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:10}}>
+                {txUI("💬 그래도 기초부터 탄탄히 할게요", lang)}
+              </button>
+              <button onClick={closeAndReset}
+                style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
+                {txUI("← 뒤로 가기", lang)}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderMidLevelWarningPopup = () => {
     if (!showMidLevelWarning) return null;
     const lc2 = lang?.code ?? "ko";
@@ -3004,19 +3144,6 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
       : isVi
       ? "Nếu bạn tự tin về nền tảng của mình, bạn có thể đi thẳng vào khóa trung cấp."
       : "기초에 자신이 있다면 바로 중급으로 가셔도 좋아요.";
-    const handleMidLevelConfirm = async () => {
-      if (user?.uid) {
-        try {
-          await setDoc(doc(db, "users", user.uid), {
-            midLevel: true,
-            midLevelPath: "self",
-            midLevelEnteredAt: serverTimestamp(),
-          }, { merge: true });
-        } catch(e) { console.error("midLevel 저장 오류:", e); }
-      }
-      setShowMidLevelWarning(false);
-      onMidLevel?.();
-    };
     return (
       <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
         <div style={{background:"white",borderRadius:20,padding:"28px 24px",maxWidth:360,width:"100%",boxShadow:"0 8px 40px rgba(0,0,0,0.2)"}}>
@@ -3029,7 +3156,7 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
             style={{width:"100%",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:900,cursor:"pointer",marginBottom:10}}>
             {txUI("✅ 80시간 기초 과정 시작하기", lang)}
           </button>
-          <button onClick={handleMidLevelConfirm}
+          <button onClick={()=>handleMidLevelConfirm("self")}
             style={{width:"100%",background:"white",color:"#FF8C42",border:"2px solid #FF8C42",borderRadius:50,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:10}}>
             {isEn?"💬 I'll go straight to intermediate":isVi?"💬 Tôi sẽ học trung cấp ngay":"💬 그래도 중급으로 갈게요"}
           </button>
@@ -3836,13 +3963,14 @@ ${vocabList}
           {txUI("학습 계획 세우기 →", lang)}
         </button>
 
-        {/* ✅ V339: 중급 자기선언 버튼 */}
-        <button onClick={()=>setShowMidLevelWarning(true)}
+        {/* ✅ V339→V498: 중급 자기선언 버튼 — 이제 바로 경고팝업이 아니라 can-do 체크리스트로 먼저 연결 */}
+        <button onClick={()=>setShowCanDoCheck(true)}
           style={{width:"100%",maxWidth:360,marginTop:12,background:"white",color:"#FF8C42",border:"2px solid #FF8C42",borderRadius:50,padding:"13px 0",fontSize:14,fontWeight:700,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
           🚀 {lc==="vi"?"Tôi đã biết tiếng Hàn trung cấp":lc==="en"?"I'm already intermediate level":lc==="zh"?"我已经是中级水平":lc==="ja"?"私はすでに中級レベルです":lc==="id"?"Saya sudah level menengah":lc==="ru"?"Я уже среднего уровня":lc==="th"?"ฉันอยู่ระดับกลางแล้ว":lc==="mn"?"Би дунд түвшинд байна":lc==="uz"?"Men allaqachon o'rta darajadaman":"나는 이미 중급이에요"}
         </button>
 
-        {/* ✅ V487: 중급 자기선언 팝업 — 공유 함수 호출로 교체(로직 동일) */}
+        {/* ✅ V498: can-do 체크리스트 우선 노출, 기존 경고팝업은 미사용 경로로 보존(로직 재사용 위해 렌더만 유지) */}
+        {renderCanDoChecklist()}
         {renderMidLevelWarningPopup()}
 
         <button onClick={()=>setStep("lang")} style={{marginTop:14,background:"none",border:"none",color:"#595959",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
@@ -3886,11 +4014,12 @@ ${vocabList}
           {txUI("한글 친구와 함께 목표일을 정해요!", lang)}
         </div>
 
-        {/* ✅ V487: 중급 자기선언 발견 링크 — 목표 선택보다 먼저, 별도 층위 질문으로 분리 */}
-        <button onClick={()=>setShowMidLevelWarning(true)}
+        {/* ✅ V487→V498: 중급 자기선언 발견 링크 — can-do 체크리스트로 먼저 연결 */}
+        <button onClick={()=>setShowCanDoCheck(true)}
           style={{background:"none",border:"none",color:"#FF8C42",fontSize:12,fontWeight:700,cursor:"pointer",marginBottom:20,textDecoration:"underline",WebkitTapHighlightColor:"transparent"}}>
           🚀 {txUI("혹시 이미 중급이신가요?", lang)}
         </button>
+        {renderCanDoChecklist()}
         {renderMidLevelWarningPopup()}
 
         {/* 목표 선택 */}
