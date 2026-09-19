@@ -64,7 +64,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "501";
+const APP_VERSION = "502";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -24462,7 +24462,8 @@ ${userBlanks}
 
   function buildEssayPrompt(item) {
     const studentText = answers[item.id] || "";
-    const wordCount = studentText.replace(/\s+/g, "").length;
+    // ✅ V502: TOPIK 공식 원고지 집계 방식(공백도 한 칸으로 계산)에 맞춰 공백 제외 로직 제거
+    const wordCount = studentText.length;
     let dataText = "";
     if (item.type === "essay_data" && item.data) {
       const nd = normalizeChartData(item.data);
@@ -24588,7 +24589,9 @@ ${studentText}
   );
 
   if (phase === "exam") {
-    const wordCount = curItem.type !== "fill_blank" ? (answers[curItem.id] || "").replace(/\s+/g,"").length : null;
+    // ✅ V502: TOPIK 공식 원고지 집계 방식(공백도 한 칸으로 계산)에 맞춰 공백 제외 로직 제거 —
+    // 이전 로직은 공백 제외라 정상 범위 답안도 "글자 수 부족"으로 잘못 경고할 수 있었음
+    const wordCount = curItem.type !== "fill_blank" ? (answers[curItem.id] || "").length : null;
     return (
       <div style={{position:"fixed",inset:0,background:"white",zIndex:10000,display:"flex",flexDirection:"column"}}>
         <div style={{padding:"14px 16px",borderBottom:"1px solid #eee",display:"flex",alignItems:"center",gap:10}}>
