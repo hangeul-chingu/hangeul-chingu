@@ -56,6 +56,20 @@ function markMidModuleDone(uid, moduleKey) {
   updateDoc(doc(db, "users", uid), { [`midModulesDone.${moduleKey}`]: true }).catch(()=>{});
 }
 
+// ✅ V503: 표현어휘 훈련 결과 이력 저장 — 급수별 정답/오답 누적 카운트만 기록(최소 범위).
+// 문항별 전체 이력(full attempt log)은 지금 시점에 실제 요청된 기능이 아니므로 보류
+// (아직 아무도 요청하지 않은 것을 미리 만들지 않는다 원칙).
+function recordExprVocabResult(uid, level, verdict) {
+  if (!uid) return;
+  const bucket = verdict === "correct" || verdict === "ambiguous_correct" ? "correct"
+    : verdict === "incorrect" || verdict === "ambiguous_incorrect" ? "incorrect" : null;
+  if (!bucket) return;
+  updateDoc(doc(db, "users", uid), {
+    [`exprVocabProgress.${level}.${bucket}`]: increment(1),
+    [`exprVocabProgress.${level}.lastPlayedAt`]: serverTimestamp(),
+  }).catch(()=>{});
+}
+
 // ✅ V150: 최고 관리자 이메일 (이 이메일로만 AdminDashboard 접근 가능)
 const ADMIN_EMAIL = "roh053068@gmail.com";
 // ✅ V153: 개발자 학습자 이메일 (이 이메일로만 단계 점프 버튼 표시)
@@ -64,7 +78,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "502";
+const APP_VERSION = "503";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -18313,6 +18327,28 @@ async function callClaudeGrade(messages, system, maxTokens = 1000) {
   }
 }
 
+// ✅ V503: 표현어휘 채점 — TOPIK 쓰기채점과 동일 철학(확인 가능한 사실만, 애매해도 임의로
+// 관대하게 넘기지 않음)을 적용. 확신도가 낮을 때도 "재확인 필요" 같은 빈 문구 대신, 왜
+// 애매한지 그 자리에서 설명해 유의어 뉘앙스 학습 기회로 전환함(반박타파 프로 v2 검증 결과 반영).
+async function gradeExprVocab(word, def, userAnswer) {
+  const sys = `당신은 한글친구 앱의 표현어휘 채점 AI입니다. 학습자가 뜻풀이 문장을 보고
+해당하는 한국어 단어나 표현을 직접 입력했습니다. 아래 규칙에 따라 채점하세요.
+
+1. 학습자의 답이 정답과 완전히 같거나, 의미상 동일하게 쓸 수 있는 유의어라면 "correct"로 판정하세요.
+2. 학습자의 답이 정답과 명백히 다른 뜻이라면 "incorrect"로 판정하고, 왜 다른지 한 문장으로 설명하세요.
+3. 학습자의 답이 정답과 뜻은 비슷하지만 격식·맥락·뉘앙스가 미묘하게 달라 애매한 경우,
+   "ambiguous_correct"(넓게 보면 맞다고 볼 수 있는 경우) 또는 "ambiguous_incorrect"(다르다고 보는
+   쪽이 더 맞는 경우)로 판정하고, 왜 애매한지 두 단어의 실제 차이를 구체적으로 설명하세요.
+   "재확인이 필요합니다"처럼 근거 없는 문구는 쓰지 마세요.
+4. 애매하다고 해서 무조건 정답으로 처리하지 마세요 — 확인 가능한 의미 차이가 있다면 명확히 지적하세요.
+5. 설명은 한국어 존댓말로, 3문장 이내로 간결하게 쓰세요.
+6. 반드시 아래 JSON 형식으로만 응답하세요.
+
+{"verdict":"correct|incorrect|ambiguous_correct|ambiguous_incorrect","explanation":"..."}`;
+  const userMsg = `정답 단어(표현): "${word}"\n뜻풀이: "${def}"\n학습자가 입력한 답: "${userAnswer}"`;
+  return callClaudeGrade([{ role: "user", content: userMsg }], sys, 400);
+}
+
 // ============================================================
 // ✅ V122 수정 1-b: evaluateFile — /api/chat 프록시로 변경
 // ============================================================
@@ -18840,6 +18876,41 @@ const ADV_QUIZ = [
   {q:"다음 중 '애지중지하다'를 쓰기에 더 자연스러운 문장은?", answer:"할아버지는 젊은 시절 산 손목시계를 애지중지하며 아직도 차고 다니신다", opts:["할아버지는 젊은 시절 산 손목시계를 애지중지하며 아직도 차고 다니신다","손자를 보는 할머니의 눈에 넣어도 아프지 않다는 표정이 가득했다","막내는 눈에 넣어도 아프지 않을 만큼 사랑스러운 존재다","부모님께 우리는 눈에 넣어도 아프지 않은 자식이다"]},
   {q:"'대담(大膽)하다'와 뜻이 통하는 관용구는?", answer:"간이 크다", opts:["간이 크다","손이 크다","발이 넓다","눈이 높다"]},
   {q:"신제품 평가 보고서에 쓰기에 더 어울리는 표현은?", answer:"이번 디자인은 기존 틀을 깬 대담한 시도로 평가된다", opts:["이번 디자인은 기존 틀을 깬 대담한 시도로 평가된다","이 디자이너, 간 진짜 크네요","완전 간 큰 디자인인데요","이 정도면 간이 배 밖으로 나온 디자인이다"]},
+];
+
+// ✅ V503: 표현어휘 훈련용 뜻풀이 데이터 — 조현용(2011) "사지선다는 이해어휘만 측정,
+// 표현어휘 측정엔 서답형이 필요"라는 지적을 근거로 신규 추가. 대상 단어는 위 BEG/MID/ADV_QUIZ의
+// 기존 단어 목록에서 재사용했으나, "비슷한 말은?" 형식 질문(q)은 뜻풀이 문장이 아니라서
+// 그대로 쓸 수 없었음 — 학습자가 직접 단어를 산출하도록 유도하는 뜻풀이 문장(def)을 새로 작성함.
+const WORDDEF_BEG = [
+  {word:"이름", def:"사람이나 사물을 다른 것과 구별하기 위해 부르는 말이에요."},
+  {word:"나이", def:"태어난 후부터 지금까지 살아온 햇수를 말해요."},
+  {word:"감사하다", def:"다른 사람이 도와줬을 때 고마운 마음을 표현하는 거예요."},
+  {word:"주문하다", def:"식당이나 가게에서 원하는 음식이나 물건을 달라고 요청하는 거예요."},
+  {word:"맛있다", def:"음식의 맛이 아주 좋다는 뜻이에요."},
+  {word:"사다", def:"돈을 내고 물건을 자기 것으로 만드는 거예요."},
+  {word:"싸다", def:"물건의 가격이 낮다는 뜻이에요."},
+  {word:"쉬다", def:"일이나 활동을 멈추고 편안하게 있는 거예요."},
+];
+const WORDDEF_MID = [
+  {word:"당황하다", def:"예상하지 못한 일이 생겨서 놀라고 어찌할 바를 모르는 거예요."},
+  {word:"섭섭하다", def:"기대했던 것과 달라서 서운하고 아쉬운 마음이 드는 거예요."},
+  {word:"답답하다", def:"일이 뜻대로 되지 않거나 숨이 막힐 것처럼 갑갑한 느낌이에요."},
+  {word:"후회하다", def:"지난 일을 돌아보며 잘못했다고 뉘우치는 거예요."},
+  {word:"추천하다", def:"다른 사람에게 좋다고 생각하는 것을 권하는 거예요."},
+  {word:"충고하다", def:"잘못을 고치라고 진심으로 말해 주는 거예요."},
+  {word:"응원하다", def:"힘을 내라고 격려하며 도와주는 거예요."},
+  {word:"배려하다", def:"다른 사람의 입장을 생각해서 마음을 써 주는 거예요."},
+];
+const WORDDEF_ADV = [
+  {word:"우여곡절", def:"일이 순조롭게 되지 않고 여러 가지 복잡한 사정을 겪는 것을 말해요."},
+  {word:"속수무책", def:"손을 쓸 방법이 없어서 어떻게 해 볼 수 없는 상태를 말해요."},
+  {word:"오리무중", def:"일이 어떻게 될지 전혀 알 수 없이 막막한 상태를 말해요."},
+  {word:"어깨가 무겁다", def:"맡은 일에 대한 책임감이 크게 느껴지는 것을 표현하는 말이에요."},
+  {word:"발 벗고 나서다", def:"어떤 일에 적극적으로 앞장서서 돕는 것을 표현하는 말이에요."},
+  {word:"파죽지세", def:"무엇도 막을 수 없을 만큼 거침없이 나아가는 기세를 말해요."},
+  {word:"각골난망", def:"다른 사람에게 받은 은혜를 뼈에 새길 만큼 잊지 않는다는 뜻이에요."},
+  {word:"애지중지", def:"무언가를 매우 아끼고 소중히 여기는 것을 말해요."},
 ];
 
 const SOCIAL_QUIZ = [
@@ -23635,6 +23706,94 @@ ${blanks.map((b,j)=>`${j+1}번 (idx=${b.idx}) — 참고 예시: "${b.example}" 
     );
   }
 
+  // ── 표현어휘 훈련 (V503 신규) ──
+  // 배치처는 GameTab이 아닌 "독립 화면"으로 확정됐으나(Firestore 이력 저장 필요, 기존
+  // GameTab 게임들은 이력 저장 로직이 전혀 없음), 실현가능성을 위해 GameTab과 동일한
+  // 컴포넌트 트리 안에 두되 별도 game 모드("expr")로 분리해 이력만 독립적으로 기록한다.
+  function ExprVocabGame() {
+    const pool = level === "adv" ? WORDDEF_ADV : level === "beg" ? WORDDEF_BEG : WORDDEF_MID;
+    const [order] = useState(() => [...pool].sort(() => Math.random() - 0.5));
+    const [idx, setIdx] = useState(0);
+    const [answer, setAnswer] = useState("");
+    const [grading, setGrading] = useState(false);
+    const [result, setResult] = useState(null); // {verdict, explanation}
+    const [scoreOk, setScoreOk] = useState(0);
+    const cur = order[idx];
+    const done = idx >= order.length;
+
+    async function handleSubmit() {
+      if (!answer.trim() || grading) return;
+      setGrading(true);
+      const r = await gradeExprVocab(cur.word, cur.def, answer.trim());
+      setGrading(false);
+      if (r.error) { setResult({ verdict: "incorrect", explanation: "채점 중 오류가 발생했어요. 다시 시도해 주세요." }); return; }
+      const verdict = r.data?.verdict || "incorrect";
+      setResult({ verdict, explanation: r.data?.explanation || "" });
+      if (verdict === "correct" || verdict === "ambiguous_correct") setScoreOk(s => s + 1);
+      recordExprVocabResult(uid, level, verdict);
+    }
+
+    function handleNext() {
+      setIdx(i => i + 1);
+      setAnswer("");
+      setResult(null);
+    }
+
+    if (done) return (
+      <div style={{textAlign:"center",padding:"30px 16px"}}>
+        <div style={{fontSize:48,marginBottom:12}}>📝</div>
+        <div style={{fontSize:20,fontWeight:900,color:"#2E75B6",marginBottom:8}}>표현어휘 훈련 완료!</div>
+        <div style={{fontSize:15,color:"#555",marginBottom:24}}>
+          {order.length}문제 중 <span style={{color:"#00C896",fontWeight:900}}>{scoreOk}개</span> 정답
+        </div>
+        <button onClick={()=>setGame(null)}
+          style={{background:"white",border:"2px solid #ddd",borderRadius:14,padding:"12px 24px",fontSize:14,color:"#888",cursor:"pointer"}}>
+          게임 선택으로 돌아가기
+        </button>
+      </div>
+    );
+
+    return (
+      <div style={{padding:"8px 0"}}>
+        <div style={{fontSize:12,color:"#2E75B6",fontWeight:700,marginBottom:8}}>문제 {idx+1} / {order.length}</div>
+        <div style={{background:"#F0F4FF",borderRadius:16,padding:"20px",marginBottom:16,border:"2px solid #2E75B633"}}>
+          <div style={{fontSize:12,color:"#888",marginBottom:6}}>이 뜻을 가진 표현은 무엇일까요?</div>
+          <div style={{fontSize:16,fontWeight:700,color:"#333",lineHeight:1.6}}>{cur.def}</div>
+        </div>
+        {!result && (
+          <>
+            <input value={answer} onChange={e=>setAnswer(e.target.value)}
+              onKeyDown={e=>{ if (e.key === "Enter") handleSubmit(); }}
+              placeholder="답을 입력해 보세요"
+              style={{width:"100%",boxSizing:"border-box",padding:"14px",borderRadius:12,border:"2px solid #ddd",fontSize:15,marginBottom:12}}/>
+            <button onClick={handleSubmit} disabled={!answer.trim()||grading}
+              style={{width:"100%",background:"linear-gradient(90deg,#2E75B6,#4E9AE0)",color:"white",border:"none",borderRadius:12,padding:"14px",fontSize:15,fontWeight:900,cursor:answer.trim()?"pointer":"default",opacity:answer.trim()?1:0.5}}>
+              {grading ? "채점 중..." : "제출하기"}
+            </button>
+          </>
+        )}
+        {result && (
+          <div style={{background: result.verdict==="correct" ? "#E8F8F0" : result.verdict==="incorrect" ? "#FFF0F0" : "#FFF8E1",
+              border: `2px solid ${result.verdict==="correct" ? "#00C896" : result.verdict==="incorrect" ? "#FF5C5C" : "#FFB347"}`,
+              borderRadius:14,padding:"16px",marginBottom:12}}>
+            <div style={{fontSize:14,fontWeight:900,marginBottom:6,
+                color: result.verdict==="correct" ? "#007A5E" : result.verdict==="incorrect" ? "#CC0000" : "#B8720A"}}>
+              {result.verdict==="correct" ? "✅ 정답이에요!" :
+               result.verdict==="incorrect" ? "❌ 아쉬워요" :
+               result.verdict==="ambiguous_correct" ? "🔶 비슷해요 (정답으로 인정)" : "🔶 비슷하지만 조금 달라요"}
+            </div>
+            <div style={{fontSize:13,color:"#555",lineHeight:1.6,marginBottom:4}}>{result.explanation}</div>
+            <div style={{fontSize:12,color:"#999",marginTop:8}}>정답: <strong>{cur.word}</strong></div>
+            <button onClick={handleNext}
+              style={{width:"100%",marginTop:12,background:"white",border:"2px solid #2E75B6",color:"#2E75B6",borderRadius:12,padding:"10px",fontSize:14,fontWeight:800,cursor:"pointer"}}>
+              {idx < order.length-1 ? "다음 문제 →" : "결과 보기 →"}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // ── 게임 선택 화면 ──
   if (!game) return (
     <div style={{padding:"16px 0"}}>
@@ -23662,6 +23821,15 @@ ${blanks.map((b,j)=>`${j+1}번 (idx=${b.idx}) — 참고 예시: "${b.example}" 
           <div style={{fontSize:28,marginBottom:6}}>🎯</div>
           <div style={{fontSize:16,fontWeight:900,color:"#FFB347",marginBottom:4}}>4지선다 퀴즈</div>
           <div style={{fontSize:13,color:"#666"}}>뜻을 보고 알맞은 한국어를 골라요!</div>
+        </button>
+        {/* ✅ V503: 표현어휘 훈련 — 초급 포함 전 급수 대상. 위 게임들은 전부 "고르는" 이해어휘
+            게임이고, 이건 "직접 쓰는" 표현어휘 게임이라 선택적 심화 단계로 명확히 구분해 표시 */}
+        <button onClick={()=>setGame("expr")}
+          style={{background:"#F0F4FF",border:"2px solid #2E75B6",borderRadius:18,padding:"20px",textAlign:"left",cursor:"pointer",WebkitTapHighlightColor:"transparent",position:"relative"}}>
+          <div style={{position:"absolute",top:12,right:12,background:"#2E75B6",color:"white",fontSize:10,fontWeight:900,borderRadius:20,padding:"2px 8px"}}>심화</div>
+          <div style={{fontSize:28,marginBottom:6}}>📝</div>
+          <div style={{fontSize:16,fontWeight:900,color:"#2E75B6",marginBottom:4}}>표현으로 도전해보기</div>
+          <div style={{fontSize:13,color:"#666"}}>뜻을 보고 표현을 직접 써 보세요! (한 단계 더 어려워요)</div>
         </button>
         {midLevel && (
           <div style={{fontSize:12,fontWeight:800,color:"#999",marginTop:10,marginBottom:-2,borderTop:"1px dashed #eee",paddingTop:14}}>🎓 {txUI("중급 전용 게임", {code:"ko"})}</div>
@@ -23699,6 +23867,7 @@ ${blanks.map((b,j)=>`${j+1}번 (idx=${b.idx}) — 참고 예시: "${b.example}" 
       {game === "flip" && <FlipGame />}
       {game === "match" && <MatchGame />}
       {game === "quiz" && <QuizGame />}
+      {game === "expr" && <ExprVocabGame />}
       {game === "polysemy" && <PolysemyGame />}
       {game === "drama" && <DramaGame />}
     </div>
