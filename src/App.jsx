@@ -78,7 +78,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "504";
+const APP_VERSION = "505";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -19006,6 +19006,92 @@ const SOCIAL_QUIZ = [
     ]},
 ];
 
+// ✅ V505: 프리토킹 의사소통전략 힌트 5종 — freetalk_hints_draft.md 설계 반영.
+// 3~4급용(examplesBeg)·5~6급용(examplesAdv) 각 4개씩. "○○"는 학습자가 직접
+// 채워야 하는 빈칸이므로 그대로 유지.
+const FREETALK_HINTS = [
+  {
+    key: "reask", emoji: "🔁", label: "재설명 요청",
+    definition: "상대방의 말을 알아듣지 못했을 때, 다시 말해달라고 정중하게 요청하는 전략이에요.",
+    examplesBeg: [
+      "네? 다시 한번 말씀해 주시겠어요?",
+      "죄송한데, 못 들었어요. 다시 말해 주세요.",
+      "천천히 말씀해 주시겠어요?",
+      "무슨 말인지 잘 모르겠어요.",
+    ],
+    examplesAdv: [
+      "죄송한데 방금 뭐라고 하셨는지 다시 한번 말씀해 주시겠어요?",
+      "제가 제대로 이해했는지 확인하고 싶은데, 다시 설명해 주실 수 있을까요?",
+      "잠깐만요, 그 부분을 좀 더 자세히 말씀해 주시겠어요?",
+      "혹시 다른 말로 좀 더 풀어서 설명해 주실 수 있나요?",
+    ],
+  },
+  {
+    key: "turnkeep", emoji: "⏳", label: "말차례 유지",
+    definition: "답이 바로 떠오르지 않을 때, 생각할 시간을 명시적으로 요청하며 대화가 끊기지 않게 이어가는 전략이에요.",
+    examplesBeg: [
+      "잠깐만요, 생각 좀 해볼게요.",
+      "그거 뭐였더라... 잠깐만요.",
+      "어떻게 말해야 하지, 잠시만요.",
+      "잠시만요, 정리해서 말할게요.",
+    ],
+    examplesAdv: [
+      "잠깐만요, 어떻게 표현해야 할지 정리해 볼게요.",
+      "그 부분은 조금 더 생각해 보고 말씀드릴게요.",
+      "막상 설명하려니 헷갈리네요, 잠시만 시간을 주시겠어요?",
+      "제 생각을 정리하는 동안 잠깐만 기다려 주시겠어요?",
+    ],
+  },
+  {
+    key: "simplify", emoji: "💬", label: "쉬운 표현으로 바꾸기",
+    definition: "정확한 단어가 생각나지 않을 때, 뜻이나 기능을 쉬운 말로 풀어서 설명하는 전략이에요.",
+    examplesBeg: [
+      "이름은 모르겠는데, 비 올 때 머리 위에 쓰는 거예요.",
+      "말은 모르겠는데, 이렇게 생긴 거예요.",
+      "단어가 생각 안 나는데, 차가운 음료 같은 거예요.",
+      "그거... 요리할 때 기름에 넣고 젓는 거요.",
+    ],
+    examplesAdv: [
+      "정확한 단어는 모르겠는데, 쉽게 말하면 이런 느낌이에요.",
+      "단어가 잘 생각이 안 나서 그런데, 비슷한 걸로 설명해 볼게요.",
+      "그 단어 대신 다르게 표현하자면, ○○와 비슷한 거예요.",
+      "정확한 명칭은 모르겠지만, 용도는 이런 거예요.",
+    ],
+  },
+  {
+    key: "askhelp", emoji: "🙋", label: "도움 요청",
+    definition: "모르는 단어나 표현이 있을 때, 상대방에게 직접 물어서 배우는 전략이에요.",
+    examplesBeg: [
+      "이거 한국어로 뭐라고 해요?",
+      "'○○'가 무슨 뜻이에요?",
+      "이 단어 몰라요. 알려 주세요.",
+      "이거 어떻게 말해요?",
+    ],
+    examplesAdv: [
+      "이 표현을 한국어로 어떻게 말하는지 여쭤봐도 될까요?",
+      "'○○'라는 단어의 정확한 뜻을 잘 모르겠는데, 설명해 주실 수 있나요?",
+      "이런 상황에서 자주 쓰는 표현이 있다면 알려 주시겠어요?",
+      "제가 지금 표현이 막혀서 그런데, 이럴 때 보통 뭐라고 하나요?",
+    ],
+  },
+  {
+    key: "formulaic", emoji: "👍", label: "정형화된 표현",
+    definition: "인사, 맞장구, 화제 전환 등 미리 익혀둔 정해진 패턴을 상황에 맞게 활용해 대화를 자연스럽게 이어가는 전략이에요.",
+    examplesBeg: [
+      "진짜요? / 정말요?",
+      "그렇군요.",
+      "맞아요, 저도 그렇게 생각해요.",
+      "아, 그래요? 신기하네요.",
+    ],
+    examplesAdv: [
+      "아, 그런 거였군요. 몰랐어요.",
+      "그러게 말이에요, 저도 비슷한 경험이 있어요.",
+      "듣고 보니 정말 그렇네요.",
+      "말씀하신 대로 그런 부분도 있는 것 같아요.",
+    ],
+  },
+];
+
 function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, midLevel, reviewModule, reviewNonce}) {
   const [character, setCharacter] = useState(null);
   const [chatUI,    setChatUI]    = useState([]);
@@ -19014,6 +19100,9 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, mi
   const [loading,   setLoading]   = useState(false);
   const [recorded,  setRecorded]  = useState(false);
   const [motivation, setMotivation] = useState(null);
+  // ✅ V505: 프리토킹 의사소통전략 힌트 5종 — 접이식 패널 상태
+  const [hintsOpen, setHintsOpen] = useState(false);
+  const [hintCat,   setHintCat]   = useState(null);
   // ✅ V122 수정7: 상황 맥락 선택 state (주제가 아닌 상황만 선택)
   const [context, setContext] = useState(null);
   // ✅ V130: 중·고급 퀴즈용 턴 카운트
@@ -19524,7 +19613,52 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, mi
           {myVoiceError}
         </div>
       )}
+      {/* ✅ V505: 프리토킹 의사소통전략 힌트 5종 — 접이식 패널 */}
+      {hintsOpen && (
+        <div style={{background:"#F3EEFF",border:"2px solid #9C6FDE33",borderRadius:16,padding:"10px 12px",marginBottom:8}}>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom: hintCat ? 10 : 0}}>
+            {FREETALK_HINTS.map(h => (
+              <button key={h.key} onClick={()=>setHintCat(hintCat===h.key ? null : h.key)}
+                style={{padding:"6px 10px",borderRadius:50,border:"none",fontSize:12,fontWeight:800,cursor:"pointer",
+                  background: hintCat===h.key ? "#9C6FDE" : "white",
+                  color: hintCat===h.key ? "white" : "#9C6FDE",
+                  WebkitTapHighlightColor:"transparent"}}>
+                {h.emoji} {h.label}
+              </button>
+            ))}
+          </div>
+          {hintCat && (() => {
+            const h = FREETALK_HINTS.find(x => x.key === hintCat);
+            const examples = level === "adv" ? h.examplesAdv : h.examplesBeg;
+            return (
+              <div>
+                <div style={{fontSize:11,color:"#8860C9",marginBottom:8,lineHeight:1.5}}>{h.definition}</div>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {examples.map((ex, i) => (
+                    <button key={i} onClick={()=>{ setInput(ex); setHintsOpen(false); setHintCat(null); }}
+                      style={{textAlign:"left",padding:"8px 12px",borderRadius:12,border:"1px solid #9C6FDE44",background:"white",color:"#555",fontSize:13,lineHeight:1.5,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>
+                      {ex}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
       <div style={{display:"flex",gap:8,alignItems:"center"}}>
+        {/* ✅ V505: 전략 힌트 토글 버튼 — 입력창 옆 */}
+        <button
+          onPointerDown={unlock}
+          onClick={()=>{ setHintsOpen(o=>!o); if (hintsOpen) setHintCat(null); }}
+          aria-label="전략 힌트"
+          style={{flexShrink:0,width:50,height:50,
+            background: hintsOpen ? "linear-gradient(135deg,#9C6FDE,#C3B1E1)" : "#F3EEFF",
+            border:"none",borderRadius:"50%",cursor:"pointer",fontSize:20,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            WebkitTapHighlightColor:"transparent",touchAction:"manipulation",padding:0}}>
+          💡
+        </button>
         {/* ✅ V144: 마이크 버튼 — STT 지원 환경에서만 표시 */}
         {sttSupported && (
           <button
