@@ -78,7 +78,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "507";
+const APP_VERSION = "508";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2000,6 +2000,65 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
         {/* ── 학습자 목록 탭 ── */}
         {tab === "students" && (
           <div>
+            {/* ✅ V508: 학급 전체 발음 취약점 집계 카드 — 개별 학생 카드(아래)의 stepMap
+                집계 로직을 학생 1명이 아닌 불러온 전체 학생에 대해 합산. 신규 Firestore
+                필드·쓰기 없음, 이미 구독 중인 students의 pronLog만 다르게 집계함. */}
+            {students.length > 0 && (() => {
+              const wordAgg = {}; // word -> {ok, total, attempted, struggling}
+              let anyPronLog = false;
+              students.forEach(st => {
+                const pronLog = st.pronLog || [];
+                if (pronLog.length === 0) return;
+                anyPronLog = true;
+                const perStudentMap = {};
+                pronLog.forEach(log => {
+                  (log.details || []).forEach(d => {
+                    const key = d.target || "?";
+                    if (!perStudentMap[key]) perStudentMap[key] = {ok:0, total:0};
+                    perStudentMap[key].total++;
+                    if (d.ok) perStudentMap[key].ok++;
+                  });
+                });
+                Object.entries(perStudentMap).forEach(([word, s]) => {
+                  if (!wordAgg[word]) wordAgg[word] = {ok:0, total:0, attempted:0, struggling:0};
+                  wordAgg[word].ok += s.ok;
+                  wordAgg[word].total += s.total;
+                  wordAgg[word].attempted += 1;
+                  if ((s.ok / s.total) * 100 < 80) wordAgg[word].struggling += 1;
+                });
+              });
+              const classWeak = Object.entries(wordAgg)
+                .map(([word, s]) => ({word, rate: Math.round((s.ok/s.total)*100), attempted: s.attempted, struggling: s.struggling}))
+                .filter(s => s.rate < 80)
+                .sort((a,b) => a.rate - b.rate)
+                .slice(0, 5);
+              return (
+                <div style={{background:"white", borderRadius:20, padding:18, marginBottom:16, boxShadow:"0 4px 16px rgba(0,0,0,0.06)"}}>
+                  <div style={{fontSize:15, fontWeight:800, color:"#1A3A5C", marginBottom:4}}>🎙️ 우리 반 자주 틀리는 발음 TOP 5</div>
+                  {!anyPronLog ? (
+                    <div style={{fontSize:12, color:"#bbb", textAlign:"center", padding:"10px 0"}}>🎙️ 발음 테스트 기록이 있는 학습자가 아직 없어요</div>
+                  ) : classWeak.length === 0 ? (
+                    <div style={{fontSize:12, color:"#00A876", fontWeight:700, textAlign:"center", padding:"10px 0"}}>✅ 학급 전체 취약 발음이 없어요</div>
+                  ) : (
+                    <>
+                      <div style={{fontSize:11, color:"#888", marginBottom:10}}>담당 학습자 전체의 발음 기록을 합산한 결과예요</div>
+                      {classWeak.map((s, i) => (
+                        <div key={s.word} style={{display:"flex", alignItems:"center", gap:8, marginBottom:8}}>
+                          <span style={{fontSize:12, fontWeight:900, color:"#2E75B6", width:14, flexShrink:0}}>{i+1}</span>
+                          <span style={{fontSize:13, fontWeight:700, color:"#333", minWidth:56}}>{s.word}</span>
+                          <div style={{flex:1, background:"#F0E0C8", borderRadius:20, height:8, overflow:"hidden"}}>
+                            <div style={{width:`${s.rate}%`, height:"100%", background: s.rate < 50 ? "#E53935" : "#FF8F00", borderRadius:20}} />
+                          </div>
+                          <span style={{fontSize:12, color: s.rate < 50 ? "#E53935" : "#FF8F00", fontWeight:800, minWidth:36, textAlign:"right"}}>{s.rate}%</span>
+                          <span style={{fontSize:10, color:"#aaa", whiteSpace:"nowrap", flexShrink:0}}>{s.attempted}명 중 {s.struggling}명 어려워함</span>
+                        </div>
+                      ))}
+                      <div style={{fontSize:10, color:"#999", marginTop:6}}>* STT 인식 기반 데이터 — 교수자 판단 참고용</div>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
             {students.length === 0 ? (
               <div style={{background:"white", borderRadius:20, padding:40, textAlign:"center", boxShadow:"0 4px 16px rgba(0,0,0,0.06)"}}>
                 <div style={{fontSize:40, marginBottom:12}}>👥</div>
