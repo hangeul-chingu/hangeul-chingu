@@ -78,7 +78,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "508";
+const APP_VERSION = "509";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -25493,6 +25493,10 @@ export default function App() {
   }
   const [showStats, setShowStats] = useState(false);
   const [showMyPage, setShowMyPage] = useState(false); // ✅ V263: 마이페이지
+  // ⚠️⚠️⚠️ V509: 마이페이지 렌더링 블록이 "레벨 미선택 화면용" / "BegScreen 축약형" /
+  // "탭 화면 최상단" 3벌 중복 구현돼 있음(showMyPage&& 검색으로 전부 찾을 것). 기능 추가·수정
+  // 시 반드시 3곳 모두 확인 — 한 곳에만 넣으면 다른 두 곳 사용자에겐 그 기능이 안 보임
+  // (V405/V406/V416/V445/V506 모두 이 실수의 반복이었음).
   const [examView, setExamView] = useState(null); // ✅ V412: 모의고사 응시 화면 전환용 ({examId} 또는 null)
   const isDev = user?.email === DEV_EMAIL; // ✅ V413: 개발자 계정은 모의고사 자격조건(25단원) 건너뛰고 바로 테스트 가능
   const [showTopikChoice, setShowTopikChoice] = useState(false); // ✅ V123: 레벨 2단계 선택
@@ -26387,6 +26391,33 @@ export default function App() {
                 </> : <div style={{fontSize:13,color:"#aaa",textAlign:"center",padding:"8px 0"}}>초급 학습을 시작하면 여기서 이어할 수 있어요</div>}
               </div>
 
+              {/* ✅ V509: 선생님 클래스 참여 — 다른 마이페이지 블록("탭 화면 최상단")에만
+                  있던 카드가 이 "레벨 미선택" 블록엔 없었던 것을 발견해 추가. */}
+              <div style={{background:"white",border:"2px solid #2E75B622",borderRadius:16,padding:"16px",marginBottom:16,boxShadow:"0 2px 12px rgba(46,117,182,.08)"}}>
+                <div style={{fontSize:13,fontWeight:900,color:"#2E75B6",marginBottom:10}}>🏫 선생님 클래스 참여</div>
+                <div style={{fontSize:12,color:"#888",marginBottom:10,lineHeight:1.6}}>선생님께 받은 6자리 코드를 입력하면 연결 요청을 보낼 수 있어요.</div>
+                <div style={{display:"flex",gap:8}}>
+                  <input
+                    value={manualCodeInput}
+                    onChange={e=>setManualCodeInput(e.target.value.toUpperCase().slice(0,6))}
+                    placeholder="예: DXC6QX"
+                    style={{flex:1,border:"1.5px solid #ddd",borderRadius:12,padding:"11px 12px",fontSize:15,fontWeight:800,letterSpacing:2,textAlign:"center",color:"#1A3A5C",outline:"none"}}
+                    maxLength={6}
+                  />
+                  <button
+                    onClick={()=>{
+                      const code = manualCodeInput.trim().toUpperCase();
+                      if(code.length < 4) { alert("올바른 코드를 입력해 주세요"); return; }
+                      setJoinCode(code);
+                      setManualCodeInput("");
+                      setShowMyPage(false);
+                    }}
+                    style={{background:"linear-gradient(135deg,#2E75B6,#1A3A5C)",color:"white",border:"none",borderRadius:12,padding:"0 18px",fontSize:13,fontWeight:900,cursor:"pointer",flexShrink:0}}>
+                    참여하기
+                  </button>
+                </div>
+              </div>
+
               {/* ✅ V435: KIIP 사회통합프로그램 진입 — TOPIK 인증 섹션과 동일한 패턴(독립 탭으로 이동) */}
               <div style={{background:"white",border:"2px solid #2E9E6B33",borderRadius:16,padding:"16px",marginBottom:16,boxShadow:"0 2px 12px rgba(46,158,107,.08)"}}>
                 <div style={{fontSize:13,fontWeight:900,color:"#2E9E6B",marginBottom:6}}>🇰🇷 KIIP 사회통합프로그램</div>
@@ -26818,6 +26849,32 @@ export default function App() {
                 buttons={TOPIK2_BUTTONS} compact={true}
                 setShowMyPage={setShowMyPage} setExamView={setExamView}
               />
+              {/* ✅ V509: 선생님 클래스 참여 — 다른 두 마이페이지엔 있던 카드가 이 축약
+                  팝업(BegScreen 내부)에만 없었던 것을 발견해 추가(V405/V406/V416/V445와
+                  동일한 누락 패턴 재발). 축약 팝업 톤에 맞춰 작은 사이즈로 구성. */}
+              <div style={{background:"#F0F4FF",borderRadius:12,padding:"12px 16px",marginBottom:12}}>
+                <div style={{fontSize:12,color:"#2E75B6",fontWeight:800,marginBottom:8}}>🏫 선생님 클래스 참여</div>
+                <div style={{display:"flex",gap:6}}>
+                  <input
+                    value={manualCodeInput}
+                    onChange={e=>setManualCodeInput(e.target.value.toUpperCase().slice(0,6))}
+                    placeholder="6자리 코드"
+                    style={{flex:1,border:"1.5px solid #ddd",borderRadius:10,padding:"9px 10px",fontSize:13,fontWeight:800,letterSpacing:1,textAlign:"center",color:"#1A3A5C",outline:"none"}}
+                    maxLength={6}
+                  />
+                  <button
+                    onClick={()=>{
+                      const code = manualCodeInput.trim().toUpperCase();
+                      if(code.length < 4) { alert("올바른 코드를 입력해 주세요"); return; }
+                      setJoinCode(code);
+                      setManualCodeInput("");
+                      setShowMyPage(false);
+                    }}
+                    style={{background:"linear-gradient(135deg,#2E75B6,#1A3A5C)",color:"white",border:"none",borderRadius:10,padding:"0 14px",fontSize:12,fontWeight:900,cursor:"pointer",flexShrink:0}}>
+                    참여
+                  </button>
+                </div>
+              </div>
               {/* ✅ V445: 1단계(KIIP 안내 배너) — 다른 두 마이페이지엔 있던 KIIP 카드가
                   이 축약 팝업(BegScreen 내부)에만 없었던 것을 발견해 추가(V405/V406과 동일한
                   누락 패턴 재발). KIIP은 완주 게이트가 없으므로 TOPIK처럼 "자격 획득" 감지가
