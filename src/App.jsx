@@ -78,7 +78,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "506";
+const APP_VERSION = "507";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -23081,7 +23081,7 @@ function TutorTab({level, uid}) {
 }
 
 // ✅ V130: 게임 탭
-function GameTab({level, midLevel, uid, reviewModule, reviewNonce, midModulesFirestore, gradeRevealMode}) {
+function GameTab({level, midLevel, uid, reviewModule, reviewNonce, midModulesFirestore, gradeRevealMode, onChangeGradeRevealMode}) {
   const [game, setGame] = useState(null); // null | "flip" | "match" | "quiz" | "polysemy" | "drama"
   // ✅ V455: 여정 지도에서 모듈3(다의어) "다시보기"를 탭하면 자동으로 이 게임을 열어줌.
   // 게임 자체는 원래도 메뉴에서 자유롭게 다시 고를 수 있어 완료 여부와 무관하게 재플레이
@@ -23932,6 +23932,22 @@ ${blanks.map((b,j)=>`${j+1}번 (idx=${b.idx}) — 참고 예시: "${b.example}" 
 
     return (
       <div style={{padding:"8px 0"}}>
+        {/* ✅ V507: 채점 결과 보기 방식 토글 — 마이페이지에만 있어 실제 훈련 화면에서
+            전혀 보이지 않던 문제(V506) 수정. 문제 화면에서 매번 바로 보이고 바꿀 수 있게
+            이 자리에도 노출. 마이페이지 설정과 동일한 gradeRevealMode를 공유. */}
+        <div style={{display:"flex",gap:6,marginBottom:10}}>
+          {[
+            {v:"full", label:"한번에 보기"},
+            {v:"hintFirst", label:"힌트 먼저"},
+          ].map(opt => (
+            <button key={opt.v} onClick={()=>onChangeGradeRevealMode?.(opt.v)}
+              style={{padding:"5px 10px",borderRadius:50,border:"none",fontSize:11,fontWeight:800,cursor:"pointer",
+                background: gradeRevealMode===opt.v ? "#2E75B6" : "#F0F4FF",
+                color: gradeRevealMode===opt.v ? "white" : "#2E75B6"}}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
         <div style={{fontSize:12,color:"#2E75B6",fontWeight:700,marginBottom:8}}>문제 {idx+1} / {order.length}</div>
         <div style={{background:"#F0F4FF",borderRadius:16,padding:"20px",marginBottom:16,border:"2px solid #2E75B633"}}>
           <div style={{fontSize:12,color:"#888",marginBottom:6}}>이 뜻을 가진 표현은 무엇일까요?</div>
@@ -27119,7 +27135,8 @@ export default function App() {
           : <WriteTab level={level} uid={user.uid} lang={{code: onboardingLang || "ko"}} reviewModule={reviewModule} reviewNonce={reviewNonce}/>
         )}
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
-        {tab==="game"&&<GameTab level={level} midLevel={midLevel} uid={user.uid} reviewModule={reviewModule} reviewNonce={reviewNonce} midModulesFirestore={midModulesFirestore} gradeRevealMode={gradeRevealMode}/>}
+        {tab==="game"&&<GameTab level={level} midLevel={midLevel} uid={user.uid} reviewModule={reviewModule} reviewNonce={reviewNonce} midModulesFirestore={midModulesFirestore} gradeRevealMode={gradeRevealMode}
+          onChangeGradeRevealMode={(v)=>{ setGradeRevealMode(v); updateDoc(doc(db,"users",user.uid), { gradeRevealMode: v }).catch(()=>{}); }}/>}
         {tab==="kiip"&&<KiipTab user={user} onFocusChange={setKiipFocus}/>}
         {tab==="topik"&&<TopikCertTab user={user} onGoToKiip={()=>setTab("kiip")}/>}
 
