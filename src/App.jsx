@@ -78,7 +78,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "510";
+const APP_VERSION = "511";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -6413,6 +6413,14 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
         const newResults = [{_summary:true, passed, total, score, fromStep: pronTestFromStep}, ...pronTestResults];
         setPronTestResults(newResults);
         // ✅ V355: pronLog Firestore 저장
+        // ✅ V511: InstructorDashboard에 pronLog가 안 뜨는 버그 조사 — 원인이 코드만으로
+        // 100% 확정되지 않아, 재현 가능성이 있는 잠재 결함을 함께 고치고 진단 로그를 추가함.
+        // (1) updateDoc은 문서가 이미 존재해야만 성공하는데, 이 코드는 snap.exists()가
+        //     false일 때도 방어 없이 그대로 updateDoc을 호출해 "No document to update" 예외를
+        //     던질 수 있었음(try/catch에 조용히 삼켜짐) — setDoc(merge:true)로 교체해 문서가
+        //     없어도 항상 성공하도록 함.
+        // (2) 저장 시작/성공/실패를 console.log·console.error로 남겨, 다음 재현 시 브라우저
+        //     콘솔에서 실제 uid·문서 경로·에러 코드를 바로 확인할 수 있게 함.
         if (user?.uid) {
           try {
             const logEntry = {
@@ -6429,10 +6437,16 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
               }))
             };
             const userRef = doc(db, "users", user.uid);
+            console.log("[pronLog] 저장 시작", { uid: user.uid, path: userRef.path, logEntry });
             const snap = await getDoc(userRef);
             const existing = snap.exists() ? (snap.data().pronLog || []) : [];
-            await updateDoc(userRef, { pronLog: [...existing, logEntry] });
-          } catch(e) { console.warn("pronLog 저장 실패", e); }
+            console.log("[pronLog] 기존 문서 존재:", snap.exists(), "기존 pronLog 개수:", existing.length);
+            await setDoc(userRef, { pronLog: [...existing, logEntry] }, { merge: true });
+            console.log("[pronLog] 저장 성공 — 총", existing.length + 1, "개");
+          } catch(e) {
+            console.warn("pronLog 저장 실패", e);
+            console.error("[pronLog] 저장 실패 상세:", { uid: user?.uid, code: e?.code, message: e?.message });
+          }
         }
       }
     }
