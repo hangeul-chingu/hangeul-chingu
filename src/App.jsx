@@ -78,7 +78,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "509";
+const APP_VERSION = "510";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -25497,6 +25497,12 @@ export default function App() {
   // "탭 화면 최상단" 3벌 중복 구현돼 있음(showMyPage&& 검색으로 전부 찾을 것). 기능 추가·수정
   // 시 반드시 3곳 모두 확인 — 한 곳에만 넣으면 다른 두 곳 사용자에겐 그 기능이 안 보임
   // (V405/V406/V416/V445/V506 모두 이 실수의 반복이었음).
+  // ⚠️⚠️⚠️ V510: 근본 원인 — 이 최상위 컴포넌트는 하나의 트리에서 조건부 렌더링하는
+  // 구조가 아니라 (관리자/교수자/온보딩 팝업/시험 응시/레벨 미선택/beg/일반 탭 UI 등)
+  // 상태별로 완전히 분리된 "if (...) return (...)" 얼리 리턴 체인임. JoinClassModal
+  // 같은 "전역"오버레이도 이 구조 때문에 각 return 분기마다 따로 렌더를 연결해야
+  // 했음(V510에서 레벨 미선택·beg 분기 누락 발견·수정). 새 전역 오버레이를 추가할
+  // 땐 이 얼리 리턴들을 전부 검색해서 필요한 곳마다 빠짐없이 넣을 것.
   const [examView, setExamView] = useState(null); // ✅ V412: 모의고사 응시 화면 전환용 ({examId} 또는 null)
   const isDev = user?.email === DEV_EMAIL; // ✅ V413: 개발자 계정은 모의고사 자격조건(25단원) 건너뛰고 바로 테스트 가능
   const [showTopikChoice, setShowTopikChoice] = useState(false); // ✅ V123: 레벨 2단계 선택
@@ -26554,6 +26560,20 @@ export default function App() {
         );
       })()}
 
+      {/* ✅ V510: 학습자 클래스 참여 팝업 — "탭 화면 최상단"(C 블록) return문에만
+          연결돼 있어 이 "레벨 미선택" 블록에선 코드를 입력해도 팝업이 전혀 뜨지 않던
+          버그 수정. joinCode/userRole은 최상위에서 공유되는 state라 조건은 그대로 재사용. */}
+      {joinCode && userRole === "learner" && (
+        <JoinClassModal
+          user={user}
+          code={joinCode}
+          onClose={(success)=>{
+            setJoinCode(null);
+            window.history.replaceState({}, "", window.location.pathname);
+          }}
+        />
+      )}
+
       <div style={{fontSize:52,marginBottom:12,marginTop:16}}>🇰🇷</div>
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
       <div style={{fontSize:14,color:"#888",marginBottom:24,textAlign:"center"}}>{ht("greeting")}, {user.displayName||user.email}님! 👋</div>
@@ -26892,6 +26912,19 @@ export default function App() {
               </button>
             </div>
           </div>
+        )}
+        {/* ✅ V510: 학습자 클래스 참여 팝업 — 이 BegScreen 축약형 블록에도
+            JoinClassModal 렌더가 연결돼 있지 않아 카드에서 코드를 입력해도 팝업이
+            뜨지 않던 동일 버그가 있어 함께 수정. */}
+        {joinCode && userRole === "learner" && (
+          <JoinClassModal
+            user={user}
+            code={joinCode}
+            onClose={(success)=>{
+              setJoinCode(null);
+              window.history.replaceState({}, "", window.location.pathname);
+            }}
+          />
         )}
       </>
     );
