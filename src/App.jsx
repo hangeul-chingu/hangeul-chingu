@@ -78,7 +78,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "505";
+const APP_VERSION = "506";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -23081,7 +23081,7 @@ function TutorTab({level, uid}) {
 }
 
 // ✅ V130: 게임 탭
-function GameTab({level, midLevel, uid, reviewModule, reviewNonce, midModulesFirestore}) {
+function GameTab({level, midLevel, uid, reviewModule, reviewNonce, midModulesFirestore, gradeRevealMode}) {
   const [game, setGame] = useState(null); // null | "flip" | "match" | "quiz" | "polysemy" | "drama"
   // ✅ V455: 여정 지도에서 모듈3(다의어) "다시보기"를 탭하면 자동으로 이 게임을 열어줌.
   // 게임 자체는 원래도 메뉴에서 자유롭게 다시 고를 수 있어 완료 여부와 무관하게 재플레이
@@ -23892,6 +23892,8 @@ ${blanks.map((b,j)=>`${j+1}번 (idx=${b.idx}) — 참고 예시: "${b.example}" 
     const [grading, setGrading] = useState(false);
     const [result, setResult] = useState(null); // {verdict, explanation}
     const [scoreOk, setScoreOk] = useState(0);
+    // ✅ V506: gradeRevealMode==="hintFirst"일 때 "정답 보기"를 눌러야 정답 단어를 드러냄
+    const [answerRevealed, setAnswerRevealed] = useState(false);
     const cur = order[idx];
     const done = idx >= order.length;
 
@@ -23911,6 +23913,7 @@ ${blanks.map((b,j)=>`${j+1}번 (idx=${b.idx}) — 참고 예시: "${b.example}" 
       setIdx(i => i + 1);
       setAnswer("");
       setResult(null);
+      setAnswerRevealed(false);
     }
 
     if (done) return (
@@ -23957,7 +23960,15 @@ ${blanks.map((b,j)=>`${j+1}번 (idx=${b.idx}) — 참고 예시: "${b.example}" 
                result.verdict==="ambiguous_correct" ? "🔶 비슷해요 (정답으로 인정)" : "🔶 비슷하지만 조금 달라요"}
             </div>
             <div style={{fontSize:13,color:"#555",lineHeight:1.6,marginBottom:4}}>{result.explanation}</div>
-            <div style={{fontSize:12,color:"#999",marginTop:8}}>정답: <strong>{cur.word}</strong></div>
+            {/* ✅ V506: 힌트 먼저 보기 모드 — "정답 보기"를 눌러야 정답 단어가 드러남 */}
+            {gradeRevealMode === "hintFirst" && !answerRevealed ? (
+              <button onClick={()=>setAnswerRevealed(true)}
+                style={{marginTop:8,background:"none",border:"1.5px solid #2E75B6",color:"#2E75B6",borderRadius:10,padding:"6px 12px",fontSize:12,fontWeight:800,cursor:"pointer"}}>
+                정답 보기 👀
+              </button>
+            ) : (
+              <div style={{fontSize:12,color:"#999",marginTop:8}}>정답: <strong>{cur.word}</strong></div>
+            )}
             <button onClick={handleNext}
               style={{width:"100%",marginTop:12,background:"white",border:"2px solid #2E75B6",color:"#2E75B6",borderRadius:12,padding:"10px",fontSize:14,fontWeight:800,cursor:"pointer"}}>
               {idx < order.length-1 ? "다음 문제 →" : "결과 보기 →"}
@@ -25429,6 +25440,9 @@ export default function App() {
   const [midModulesFirestore, setMidModulesFirestore] = useState(null); // null=확인 전, 이후 {m1,pq,dc,sl,m3:boolean}
   const [browseMode, setBrowseMode] = useState(false); // ✅ V270: daily/work 선택 후 탭 둘러보기 모드
   const [midLevel, setMidLevel] = useState(false); // ✅ V340: 중급 자기선언 여부
+  // ✅ V506: 서답형 채점 결과 공개 순서 설정 — "hintFirst"(힌트 먼저) | "full"(정답까지 한 번에, 기본값).
+  // 화면 이름을 필드명에 박지 않음 — 표현어휘 훈련 외 다른 서답형 채점 화면에서도 재사용 가능하도록.
+  const [gradeRevealMode, setGradeRevealMode] = useState("full");
   // ✅ V276: 비주얼 온보딩 — 매번 표시 (skip 버튼으로 개인 선택)
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [showFullMap, setShowFullMap] = useState(false); // ✅ V490: 온보딩 직후~로그인 전 전체지도 화면
@@ -25645,6 +25659,8 @@ export default function App() {
         setUserRole(d.data().role || "learner");
         // ✅ V340: 중급 자기선언 상태 복원
         if(d.data().midLevel === true) setMidLevel(true);
+        // ✅ V506: 서답형 채점 결과 공개 순서 설정 복원
+        if(d.data().gradeRevealMode === "hintFirst") setGradeRevealMode("hintFirst");
         // ✅ V452: level(초급/중급/고급) 자체가 그동안 어디에도 저장되지 않아,
         // 기기·세션이 바뀔 때마다 레벨을 매번 새로 선택해야 했던 문제 수정.
         // midLevel과 동일한 패턴으로 Firestore savedLevel 복원.
@@ -27017,6 +27033,32 @@ export default function App() {
                 <JourneyMapList stages={midJourneyStages(midModulesFirestore, {code:onboardingLang||"ko"})} lang={{code:onboardingLang||"ko"}} onStageClick={openModuleReview} />
               </div>
 
+              {/* ✅ V506: 서답형 채점 결과 공개 순서 설정 — 표현어휘 훈련 등에서 힌트를 먼저
+                  볼지, 정답까지 한 번에 볼지 선택. 기본값(정답까지 한 번에 보기)은 기존 동작 그대로. */}
+              <div style={{background:"white",border:"2px solid #2E75B622",borderRadius:16,padding:"16px",marginBottom:16,boxShadow:"0 2px 12px rgba(46,117,182,.08)"}}>
+                <div style={{fontSize:13,fontWeight:900,color:"#2E75B6",marginBottom:10}}>⚙️ 채점 결과 보기 방식</div>
+                <div style={{fontSize:11,color:"#999",marginBottom:10,lineHeight:1.5}}>표현어휘 훈련처럼 직접 답을 쓰는 훈련에서, 채점 결과를 어떻게 볼지 골라요.</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[
+                    {v:"full", label:"정답까지 한 번에 보기", desc:"판정·설명·정답을 한 번에 모두 보여줘요 (기본값)"},
+                    {v:"hintFirst", label:"힌트 먼저 보기", desc:"판정·설명만 먼저 보고, 버튼을 눌러야 정답이 나와요"},
+                  ].map(opt => (
+                    <button key={opt.v} onClick={()=>{
+                      setGradeRevealMode(opt.v);
+                      updateDoc(doc(db,"users",user.uid), { gradeRevealMode: opt.v }).catch(()=>{});
+                    }}
+                      style={{textAlign:"left",padding:"10px 12px",borderRadius:12,cursor:"pointer",
+                        border: gradeRevealMode===opt.v ? "2px solid #2E75B6" : "2px solid #eee",
+                        background: gradeRevealMode===opt.v ? "#F0F4FF" : "white"}}>
+                      <div style={{fontSize:13,fontWeight:800,color: gradeRevealMode===opt.v ? "#2E75B6" : "#555"}}>
+                        {gradeRevealMode===opt.v ? "● " : "○ "}{opt.label}
+                      </div>
+                      <div style={{fontSize:11,color:"#999",marginTop:2,marginLeft:16}}>{opt.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
                 {ht("logout")}
               </button>
@@ -27077,7 +27119,7 @@ export default function App() {
           : <WriteTab level={level} uid={user.uid} lang={{code: onboardingLang || "ko"}} reviewModule={reviewModule} reviewNonce={reviewNonce}/>
         )}
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
-        {tab==="game"&&<GameTab level={level} midLevel={midLevel} uid={user.uid} reviewModule={reviewModule} reviewNonce={reviewNonce} midModulesFirestore={midModulesFirestore}/>}
+        {tab==="game"&&<GameTab level={level} midLevel={midLevel} uid={user.uid} reviewModule={reviewModule} reviewNonce={reviewNonce} midModulesFirestore={midModulesFirestore} gradeRevealMode={gradeRevealMode}/>}
         {tab==="kiip"&&<KiipTab user={user} onFocusChange={setKiipFocus}/>}
         {tab==="topik"&&<TopikCertTab user={user} onGoToKiip={()=>setTab("kiip")}/>}
 
