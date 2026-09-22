@@ -78,7 +78,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "511";
+const APP_VERSION = "512";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1833,10 +1833,23 @@ function SubmissionCard({ sub, onApprove, onReject }) {
 // ════════════════════════════════════════════════════════
 // ✅ V148: 교수자 전용 관리 화면 (InstructorDashboard)
 // ════════════════════════════════════════════════════════
+// ✅ V512: 학습 영역별 필터 칩 목록 — curriculumJourneyStages()가 이미 쓰는 7단계
+// 문법 구조 구분을 그대로 재사용(신규 Firestore 필드 없음, 설계: instructor_shortterm_draft.md).
+// 배열 순서는 curriculumJourneyStages()가 반환하는 stages 배열 순서와 반드시 일치해야 함.
+const AREA_FILTER_CHIPS = [
+  { key: "pron", label: "발음" },
+  { key: "tense", label: "시제" },
+  { key: "josa", label: "조사·대명사" },
+  { key: "sentence", label: "문장구조" },
+  { key: "verb", label: "서술어" },
+  { key: "adv", label: "부사어·관형어" },
+  { key: "etc", label: "숫자·격식체 등" },
+];
 function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onViewAsLearner }) {
   const [teacherData, setTeacherData] = useState(null);
   const [classCode, setClassCode] = useState(null);
   const [students, setStudents] = useState([]);
+  const [areaFilter, setAreaFilter] = useState("all"); // ✅ V512: 학습 영역별 필터
   const [tab, setTab] = useState("class"); // "class" | "students" | "quote"
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -2000,6 +2013,36 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
         {/* ── 학습자 목록 탭 ── */}
         {tab === "students" && (
           <div>
+            {/* ✅ V512: 학습 영역별 필터 칩 바 — curriculumJourneyStages()의 7단계 문법
+                구조 구분을 필터 카테고리로 재사용. 학생 카드를 숨기지 않고, 선택한
+                영역의 상태 배지를 각 카드의 "커리큘럼 진도" 블록에 추가로 강조 표시하는
+                방식(설계: instructor_shortterm_draft.md 1-2). 신규 Firestore 필드 없음 —
+                이미 구독 중인 unitsPassed/hc_step만으로 계산. */}
+            {students.length > 0 && (() => {
+              const stagesByStudent = students.map(st => {
+                const up = st.unitsPassed || [];
+                const pct = Math.round((up.length / 25) * 100);
+                return curriculumJourneyStages(up.length, pct, {code:"ko"}, st.hc_step || "");
+              });
+              return (
+                <div style={{display:"flex", gap:8, overflowX:"auto", paddingBottom:8, marginBottom:16, WebkitOverflowScrolling:"touch"}}>
+                  <button onClick={()=>setAreaFilter("all")} style={{flexShrink:0, padding:"8px 14px", borderRadius:20, border:"none", background:areaFilter==="all"?"#2E75B6":"white", color:areaFilter==="all"?"white":"#2E75B6", fontSize:12, fontWeight:800, cursor:"pointer", boxShadow:"0 2px 6px rgba(0,0,0,0.08)", whiteSpace:"nowrap"}}>
+                    전체
+                  </button>
+                  {AREA_FILTER_CHIPS.map((chip, i) => {
+                    const doneCount = stagesByStudent.filter(s => s[i].done).length;
+                    const progressCount = stagesByStudent.filter(s => s[i].current).length;
+                    const active = areaFilter === chip.key;
+                    return (
+                      <button key={chip.key} onClick={()=>setAreaFilter(active ? "all" : chip.key)}
+                        style={{flexShrink:0, padding:"8px 14px", borderRadius:20, border:"none", background:active?"#2E75B6":"white", color:active?"white":"#2E75B6", fontSize:12, fontWeight:800, cursor:"pointer", boxShadow:"0 2px 6px rgba(0,0,0,0.08)", whiteSpace:"nowrap"}}>
+                        {chip.label} <span style={{fontWeight:600, opacity:0.85}}>(진행중 {progressCount}·완료 {doneCount})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
             {/* ✅ V508: 학급 전체 발음 취약점 집계 카드 — 개별 학생 카드(아래)의 stepMap
                 집계 로직을 학생 1명이 아닌 불러온 전체 학생에 대해 합산. 신규 Firestore
                 필드·쓰기 없음, 이미 구독 중인 students의 pronLog만 다르게 집계함. */}
@@ -2094,6 +2137,11 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
                     const total = 25;
                     const pct = Math.round((up.length / total) * 100);
                     const stepLabel = st.hc_step ? st.hc_step : null;
+                    // ✅ V512: 학습 영역별 필터가 선택돼 있으면 해당 영역의 상태 배지를
+                    // 추가로 표시(카드는 숨기지 않음). 순차 진행 가정에 기반한 근사치라
+                    // "추정" 문구를 함께 노출(설계: instructor_shortterm_draft.md 1-1).
+                    const areaIdx = AREA_FILTER_CHIPS.findIndex(c => c.key === areaFilter);
+                    const areaStage = areaIdx !== -1 ? curriculumJourneyStages(up.length, pct, {code:"ko"}, st.hc_step || "")[areaIdx] : null;
                     return (
                       <div style={{background:"#F0F7FF", borderRadius:10, padding:"10px 12px", marginBottom:8}}>
                         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
@@ -2105,6 +2153,15 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
                         </div>
                         {stepLabel && (
                           <div style={{fontSize:11, color:"#666", marginTop:4}}>📍 현재 위치: {stepLabel}</div>
+                        )}
+                        {areaStage && (
+                          <div style={{display:"flex", alignItems:"center", gap:6, marginTop:8, paddingTop:8, borderTop:"1px dashed #C9DDF5"}}>
+                            <span style={{fontSize:11, color:"#666"}}>{AREA_FILTER_CHIPS[areaIdx].label}</span>
+                            <span style={{fontSize:11, fontWeight:800, color: areaStage.done?"#00A876":areaStage.current?"#9C6FDE":"#bbb"}}>
+                              {areaStage.done ? "✅ 완료" : areaStage.current ? "🟣 진행중" : "⚪ 시작 전"}
+                            </span>
+                            <span style={{fontSize:10, color:"#aaa"}}>(추정 · 순차 진행 기준)</span>
+                          </div>
                         )}
                       </div>
                     );
@@ -25949,7 +26006,14 @@ export default function App() {
                   await Promise.all(regs.map(r => r.unregister()));
                 }
               } catch(e) {}
-              window.location.href = window.location.origin + "?v=" + APP_VERSION + "&t=" + Date.now();
+              // ✅ V512: join 파라미터 유실 버그 수정 — origin 뒤를 통째로 덮어쓰면
+              // ?join=CODE로 들어온 학습자의 참여 코드가 사라져 참여하기 버튼이
+              // 먹통이 되던 문제(실사용 확인). 재로드 전 join 값을 읽어 이어붙임.
+              const _params = new URLSearchParams(window.location.search);
+              const _joinCode = _params.get("join");
+              let _reloadUrl = window.location.origin + "?v=" + APP_VERSION + "&t=" + Date.now();
+              if (_joinCode) _reloadUrl += "&join=" + encodeURIComponent(_joinCode);
+              window.location.href = _reloadUrl;
             }} style={{width:"100%",background:"linear-gradient(135deg,#1565C0,#1976D2)",
               color:"white",border:"none",borderRadius:14,padding:"15px",
               fontSize:16,fontWeight:900,cursor:"pointer",marginBottom:10}}>
