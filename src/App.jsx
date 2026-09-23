@@ -97,16 +97,17 @@ async function saveGramLog(uid, quizType, results) {
 // ════════════════════════════════════════════════════════
 function isAssignmentDone(assignment, gramLog = [], pronLog = []) {
   const dl = assignment.deadline ? (assignment.deadline.toMillis ? assignment.deadline.toMillis() : new Date(assignment.deadline).getTime()) : null;
-  const beforeDl = (e) => !dl || (e.ts && e.ts < dl);
+  const ca = assignment.createdAt ? (assignment.createdAt.toMillis ? assignment.createdAt.toMillis() : new Date(assignment.createdAt).getTime()) : 0;
+  const inRange = (e) => (!dl || (e.ts && e.ts < dl)) && (e.ts && e.ts >= ca);
   switch (assignment.type) {
     case "MID_QUIZ":
-      return gramLog.some(e => e.quizType === "MID_QUIZ" && beforeDl(e));
+      return gramLog.some(e => e.quizType === "MID_QUIZ" && inRange(e));
     case "ADV_QUIZ":
-      return gramLog.some(e => e.quizType === "ADV_QUIZ" && beforeDl(e));
+      return gramLog.some(e => e.quizType === "ADV_QUIZ" && inRange(e));
     case "PRON_TEST":
-      return pronLog.some(e => beforeDl(e));
+      return pronLog.some(e => inRange(e));
     case "ESSAY":
-      return false; // V514: 논술은 수동 확인 — AI 채점 연동 후 자동화 예정
+      return false; // V515: 논술은 수동 확인 — AI 채점 연동 후 자동화 예정
     default:
       return false;
   }
@@ -120,7 +121,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "514";
+const APP_VERSION = "515";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2202,6 +2203,12 @@ function LearnerAssignmentModal({ assignments, onClose, onGoToTab, user }) {
                           {isOverdue ? "⏰ 마감됨" : "📅 마감"}: {deadlineDate.toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                         </div>
                       )}
+                      <div style={{ fontSize: 12, color: "#2E75B6", marginTop: 6, background: "#EBF3FB", borderRadius: 8, padding: "6px 10px" }}>
+                        {a.type === "MID_QUIZ" ? "📌 게임 탭 → 어휘·문법 퀴즈를 풀어주세요" :
+                         a.type === "ADV_QUIZ" ? "📌 게임 탭 → 고급 어휘·문법 퀴즈를 풀어주세요" :
+                         a.type === "PRON_TEST" ? "📌 프리토킹 탭 → 발음 테스트를 완료해주세요" :
+                         "📌 논술 탭 → 글쓰기 과제를 제출해주세요"}
+                      </div>
                       {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
                     </div>
                     <div style={{ fontSize: 22, marginLeft: 8 }}>{done ? "✅" : "⬜"}</div>
