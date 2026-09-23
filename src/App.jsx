@@ -91,6 +91,27 @@ async function saveGramLog(uid, quizType, results) {
   }
 }
 
+// ════════════════════════════════════════════════════════
+// ✅ V514: 과제 완료 여부 판정 헬퍼 — gramLog / pronLog로 클라이언트 사이드 계산
+// deadline이 null이면 제출 여부 불문 완료 인정 (상시 과제)
+// ════════════════════════════════════════════════════════
+function isAssignmentDone(assignment, gramLog = [], pronLog = []) {
+  const dl = assignment.deadline ? (assignment.deadline.toMillis ? assignment.deadline.toMillis() : new Date(assignment.deadline).getTime()) : null;
+  const beforeDl = (e) => !dl || (e.ts && e.ts < dl);
+  switch (assignment.type) {
+    case "MID_QUIZ":
+      return gramLog.some(e => e.quizType === "MID_QUIZ" && beforeDl(e));
+    case "ADV_QUIZ":
+      return gramLog.some(e => e.quizType === "ADV_QUIZ" && beforeDl(e));
+    case "PRON_TEST":
+      return pronLog.some(e => beforeDl(e));
+    case "ESSAY":
+      return false; // V514: 논술은 수동 확인 — AI 채점 연동 후 자동화 예정
+    default:
+      return false;
+  }
+}
+
 // ✅ V150: 최고 관리자 이메일 (이 이메일로만 AdminDashboard 접근 가능)
 const ADMIN_EMAIL = "roh053068@gmail.com";
 // ✅ V153: 개발자 학습자 이메일 (이 이메일로만 단계 점프 버튼 표시)
@@ -99,7 +120,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "513";
+const APP_VERSION = "514";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1866,12 +1887,350 @@ const AREA_FILTER_CHIPS = [
   { key: "adv", label: "부사어·관형어" },
   { key: "etc", label: "숫자·격식체 등" },
 ];
+
+// ════════════════════════════════════════════════════════
+// ✅ V514: 교수자 과제 관리 패널
+// Firestore subcollection: classes/{instructor_uid}/assignments/{assignmentId}
+// ════════════════════════════════════════════════════════
+function AssignmentPanel({ user, students }) {
+  const [assignments, setAssignments] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    title: "",
+    type: "MID_QUIZ",
+    isClassWide: true,
+    targetUids: [],
+    deadline: "",
+    note: "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  // 교수자 과제 실시간 구독
+  useEffect(() => {
+    if (!user) return;
+    const ref = collection(db, "classes", user.uid, "assignments");
+    const unsub = onSnapshot(ref, snap => {
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      setAssignments(docs);
+    });
+    return () => unsub();
+  }, [user]);
+
+  async function saveAssignment() {
+    if (!form.title.trim()) { alert("제목을 입력해주세요"); return; }
+    if (!form.isClassWide && form.targetUids.length === 0) {
+      alert("개별 지정 시 학습자를 최소 1명 선택해주세요"); return;
+    }
+    setSaving(true);
+    try {
+      const ref = collection(db, "classes", user.uid, "assignments");
+      await addDoc(ref, {
+        title: form.title.trim(),
+        type: form.type,
+        isClassWide: form.isClassWide,
+        targetUids: form.isClassWide ? [] : form.targetUids,
+        deadline: form.deadline ? new Date(form.deadline) : null,
+        note: form.note.trim(),
+        createdAt: serverTimestamp(),
+      });
+      setForm({ title: "", type: "MID_QUIZ", isClassWide: true, targetUids: [], deadline: "", note: "" });
+      setShowForm(false);
+    } catch (e) {
+      alert("과제 저장 중 오류: " + e.message);
+    }
+    setSaving(false);
+  }
+
+  async function deleteAssignment(id) {
+    if (!window.confirm("이 과제를 삭제할까요?")) return;
+    try {
+      const { deleteDoc: _deleteDoc } = await import("firebase/firestore");
+      await _deleteDoc(doc(db, "classes", user.uid, "assignments", id));
+    } catch (e) {
+      alert("삭제 실패: " + e.message);
+    }
+  }
+
+  const TYPE_LABELS = {
+    MID_QUIZ: "🧠 어휘·문법(중급)",
+    ADV_QUIZ: "🔥 어휘·문법(고급)",
+    PRON_TEST: "🎙️ 발음 테스트",
+    ESSAY: "✍️ 논술",
+  };
+
+  return (
+    <div>
+      {/* 과제 내기 버튼 */}
+      <div style={{ marginBottom: 16 }}>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          style={{ width: "100%", background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 16, padding: "14px 0", fontSize: 15, fontWeight: 800, cursor: "pointer" }}
+        >
+          {showForm ? "✕ 닫기" : "📋 새 과제 내기"}
+        </button>
+      </div>
+
+      {/* 과제 생성 폼 */}
+      {showForm && (
+        <div style={{ background: "white", borderRadius: 20, padding: 20, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", marginBottom: 16 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "#1A3A5C", marginBottom: 16 }}>📝 과제 설정</div>
+
+          {/* 제목 */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>과제 제목 *</div>
+            <input
+              value={form.title}
+              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              placeholder="예: 이번 주 어휘 퀴즈"
+              style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 14, boxSizing: "border-box", outline: "none" }}
+            />
+          </div>
+
+          {/* 유형 */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>과제 유형</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {Object.entries(TYPE_LABELS).map(([k, v]) => (
+                <button key={k} onClick={() => setForm(f => ({ ...f, type: k }))}
+                  style={{ padding: "10px 8px", border: form.type === k ? "2px solid #2E75B6" : "1.5px solid #e0e0e0", borderRadius: 10, background: form.type === k ? "#EBF3FB" : "white", fontSize: 12, fontWeight: form.type === k ? 800 : 600, color: form.type === k ? "#2E75B6" : "#555", cursor: "pointer" }}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 대상 */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>배포 대상</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[true, false].map(isAll => (
+                <button key={String(isAll)} onClick={() => setForm(f => ({ ...f, isClassWide: isAll, targetUids: [] }))}
+                  style={{ flex: 1, padding: "10px 0", border: form.isClassWide === isAll ? "2px solid #2E75B6" : "1.5px solid #e0e0e0", borderRadius: 10, background: form.isClassWide === isAll ? "#EBF3FB" : "white", fontSize: 12, fontWeight: form.isClassWide === isAll ? 800 : 600, color: form.isClassWide === isAll ? "#2E75B6" : "#555", cursor: "pointer" }}>
+                  {isAll ? "🏫 전체 학습자" : "👤 개별 지정"}
+                </button>
+              ))}
+            </div>
+            {/* 개별 지정 시 체크박스 */}
+            {!form.isClassWide && (
+              <div style={{ marginTop: 10, background: "#F5F8FF", borderRadius: 12, padding: "10px 14px" }}>
+                {students.length === 0
+                  ? <div style={{ fontSize: 12, color: "#aaa" }}>연결된 학습자가 없어요</div>
+                  : students.map(st => (
+                    <label key={st.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer" }}>
+                      <input type="checkbox" checked={form.targetUids.includes(st.id)}
+                        onChange={e => setForm(f => ({
+                          ...f,
+                          targetUids: e.target.checked ? [...f.targetUids, st.id] : f.targetUids.filter(id => id !== st.id)
+                        }))}
+                        style={{ width: 16, height: 16, cursor: "pointer" }}
+                      />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#333" }}>{st.name || st.email}</span>
+                    </label>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* 마감일 */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>마감일 (선택)</div>
+            <input type="datetime-local" value={form.deadline}
+              onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))}
+              style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 14, boxSizing: "border-box", outline: "none" }}
+            />
+          </div>
+
+          {/* 메모 */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>메모 (선택)</div>
+            <textarea value={form.note}
+              onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
+              placeholder="학습자에게 전달할 내용을 입력하세요"
+              rows={2}
+              style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 13, boxSizing: "border-box", resize: "none", outline: "none", fontFamily: "inherit" }}
+            />
+          </div>
+
+          <button onClick={saveAssignment} disabled={saving}
+            style={{ width: "100%", background: saving ? "#aaa" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 50, padding: "13px 0", fontSize: 14, fontWeight: 800, cursor: saving ? "not-allowed" : "pointer" }}>
+            {saving ? "저장 중..." : "📤 과제 배포하기"}
+          </button>
+        </div>
+      )}
+
+      {/* 과제 목록 */}
+      {assignments.length === 0 ? (
+        <div style={{ background: "white", borderRadius: 20, padding: 40, textAlign: "center", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "#1A3A5C", marginBottom: 8 }}>아직 배포한 과제가 없어요</div>
+          <div style={{ fontSize: 13, color: "#aaa" }}>위의 버튼으로 첫 과제를 내보세요</div>
+        </div>
+      ) : (
+        assignments.map(a => {
+          const targetStudents = a.isClassWide
+            ? students
+            : students.filter(s => (a.targetUids || []).includes(s.id));
+          const doneCount = targetStudents.filter(st =>
+            isAssignmentDone(a, st.gramLog || [], st.pronLog || [])
+          ).length;
+          const targetNames = !a.isClassWide
+            ? (a.targetUids || []).map(uid => students.find(s => s.id === uid)?.name || uid).join(", ")
+            : null;
+          const deadlineDate = a.deadline?.toDate ? a.deadline.toDate() : (a.deadline ? new Date(a.deadline) : null);
+          const isOverdue = deadlineDate && deadlineDate < new Date();
+
+          return (
+            <div key={a.id} style={{ background: "white", borderRadius: 16, padding: 18, marginBottom: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#1A3A5C" }}>{a.title}</div>
+                  <div style={{ fontSize: 12, color: "#888", marginTop: 3 }}>
+                    {TYPE_LABELS[a.type] || a.type} · {a.isClassWide ? "🏫 전체" : `👤 ${targetNames}`}
+                  </div>
+                  {deadlineDate && (
+                    <div style={{ fontSize: 11, color: isOverdue ? "#E53935" : "#888", marginTop: 3 }}>
+                      {isOverdue ? "⏰ 마감됨" : "📅 마감"}: {deadlineDate.toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                  )}
+                  {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 4, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
+                </div>
+                <button onClick={() => deleteAssignment(a.id)}
+                  style={{ background: "#FFF0F0", border: "1px solid #FFCCCC", color: "#E53935", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0, marginLeft: 8 }}>
+                  삭제
+                </button>
+              </div>
+              {/* 완료 현황 */}
+              {targetStudents.length > 0 && (
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#2E75B6" }}>완료 현황</span>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6" }}>{doneCount}/{targetStudents.length}명</span>
+                  </div>
+                  <div style={{ background: "#EBF3FB", borderRadius: 20, height: 8, overflow: "hidden" }}>
+                    <div style={{ width: `${(doneCount / targetStudents.length) * 100}%`, height: "100%", background: "linear-gradient(90deg,#2E75B6,#1A3A5C)", borderRadius: 20, transition: "width 0.4s" }} />
+                  </div>
+                  <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+                    {targetStudents.map(st => {
+                      const done = isAssignmentDone(a, st.gramLog || [], st.pronLog || []);
+                      return (
+                        <span key={st.id} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: done ? "#D6EAD6" : "#F5F5F5", color: done ? "#2D7A2D" : "#aaa", fontWeight: 700 }}>
+                          {done ? "✅" : "⬜"} {st.name || st.email?.split("@")[0]}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
+// ✅ V514: 학습자용 과제 확인 모달
+// 학습자의 gramLog/pronLog를 Firestore에서 직접 읽어 완료 여부 판정
+// ════════════════════════════════════════════════════════
+function LearnerAssignmentModal({ assignments, onClose, onGoToTab, user }) {
+  const [myGramLog, setMyGramLog] = useState([]);
+  const [myPronLog, setMyPronLog] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    getDoc(doc(db, "users", user.uid)).then(d => {
+      if (d.exists()) {
+        setMyGramLog(d.data().gramLog || []);
+        setMyPronLog(d.data().pronLog || []);
+      }
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [user]);
+
+  const TYPE_LABELS = {
+    MID_QUIZ: "🧠 어휘·문법(중급)",
+    ADV_QUIZ: "🔥 어휘·문법(고급)",
+    PRON_TEST: "🎙️ 발음 테스트",
+    ESSAY: "✍️ 논술",
+  };
+  const TYPE_TAB = {
+    MID_QUIZ: "game",
+    ADV_QUIZ: "game",
+    PRON_TEST: "speak",
+    ESSAY: "write",
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 3000, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
+      <div style={{ background: "white", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: 600, maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
+        {/* 헤더 */}
+        <div style={{ background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", padding: "20px 20px 16px", borderRadius: "24px 24px 0 0" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "white" }}>📋 내 과제 목록</div>
+            <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", borderRadius: 20, padding: "6px 14px", fontSize: 13, cursor: "pointer", fontWeight: 700 }}>닫기</button>
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 4 }}>교수자가 배포한 과제예요</div>
+        </div>
+
+        {/* 본문 */}
+        <div style={{ overflowY: "auto", padding: "16px 16px 24px", flex: 1 }}>
+          {loading ? (
+            <div style={{ textAlign: "center", padding: 40, color: "#aaa" }}>로딩 중...</div>
+          ) : assignments.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 40, color: "#aaa" }}>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#555" }}>배포된 과제가 없어요</div>
+            </div>
+          ) : (
+            assignments.map(a => {
+              const done = isAssignmentDone(a, myGramLog, myPronLog);
+              const deadlineDate = a.deadline?.toDate ? a.deadline.toDate() : (a.deadline ? new Date(a.deadline) : null);
+              const isOverdue = deadlineDate && deadlineDate < new Date();
+              const targetTab = TYPE_TAB[a.type];
+
+              return (
+                <div key={a.id} style={{ background: done ? "#F0FAF0" : "white", border: `2px solid ${done ? "#A8D5A8" : "#e0e0e0"}`, borderRadius: 16, padding: 16, marginBottom: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: "#1A3A5C", marginBottom: 4 }}>{a.title}</div>
+                      <div style={{ fontSize: 12, color: "#888" }}>{TYPE_LABELS[a.type] || a.type}</div>
+                      {deadlineDate && (
+                        <div style={{ fontSize: 11, color: isOverdue ? "#E53935" : "#666", marginTop: 3 }}>
+                          {isOverdue ? "⏰ 마감됨" : "📅 마감"}: {deadlineDate.toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </div>
+                      )}
+                      {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
+                    </div>
+                    <div style={{ fontSize: 22, marginLeft: 8 }}>{done ? "✅" : "⬜"}</div>
+                  </div>
+                  {!done && targetTab && (
+                    <button onClick={() => onGoToTab(targetTab)}
+                      style={{ marginTop: 10, width: "100%", background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                      {a.type === "MID_QUIZ" ? "🧠 게임탭에서 어휘·문법 풀기" :
+                       a.type === "ADV_QUIZ" ? "🔥 게임탭에서 고급 퀴즈 풀기" :
+                       a.type === "PRON_TEST" ? "🎙️ 프리토킹에서 발음 테스트" :
+                       "✍️ 논술탭에서 글쓰기"} →
+                    </button>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onViewAsLearner }) {
   const [teacherData, setTeacherData] = useState(null);
   const [classCode, setClassCode] = useState(null);
   const [students, setStudents] = useState([]);
   const [areaFilter, setAreaFilter] = useState("all"); // ✅ V512: 학습 영역별 필터
-  const [tab, setTab] = useState("class"); // "class" | "students" | "quote"
+  const [tab, setTab] = useState("class"); // "class" | "students" | "assign" | "quote"
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -1963,7 +2322,7 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
         </div>
         {/* 탭 */}
         <div style={{display:"flex", gap:8, marginTop:16}}>
-          {[["class","🏫 클래스 관리"],["students","👥 학습자 목록"],["quote","📄 견적서"]].map(([k,l]) => (
+          {[["class","🏫 클래스 관리"],["students","👥 학습자 목록"],["assign","📋 과제"],["quote","📄 견적서"]].map(([k,l]) => (
             <button key={k} onClick={()=>setTab(k)} style={{padding:"8px 18px", border:"none", borderRadius:20, background:tab===k?"white":"rgba(255,255,255,0.15)", color:tab===k?"#2E75B6":"white", fontWeight:tab===k?800:600, fontSize:13, cursor:"pointer", transition:"all .2s"}}>
               {l} {k==="students" && students.length > 0 && `(${students.length})`}
             </button>
@@ -2240,6 +2599,11 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
               ))
             )}
           </div>
+        )}
+
+        {/* ── 과제 탭 ── ✅ V514 */}
+        {tab === "assign" && (
+          <AssignmentPanel user={user} students={students} />
         )}
 
         {/* ── 견적서 탭 ── */}
@@ -25672,6 +26036,9 @@ export default function App() {
   // ✅ V333: 이어서 학습 팝업
   const [showResumePopup, setShowResumePopup] = useState(false);
   const [resumeStep, setResumeStep] = useState(null);
+  // ✅ V514: 학습자 과제 배너 모달 + 과제 목록
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [learnerAssignments, setLearnerAssignments] = useState([]);
   // ✅ V332: 홈 화면 다국어 번역 테이블
   const hlc = onboardingLang || "ko";
   const HOME_T = {
@@ -25764,6 +26131,36 @@ export default function App() {
       }
     }).catch(()=>{});
   },[user]);
+
+  // ✅ V514: 학습자 과제 2쿼리 구독 — currentTeacherId 없으면 구독 안 함
+  // Firestore array-contains 제약: isClassWide(boolean) + targetUids(array) 2필드 분리 → 2번 쿼리 병합
+  useEffect(() => {
+    if (!user || userRole !== "learner") { setLearnerAssignments([]); return; }
+    // 학습자 문서에서 currentTeacherId 먼저 읽기
+    let u1 = null, u2 = null;
+    getDoc(doc(db, "users", user.uid)).then(d => {
+      const tid = d.exists() ? d.data().currentTeacherId : null;
+      if (!tid) { setLearnerAssignments([]); return; }
+      const ref = collection(db, "classes", tid, "assignments");
+      let allWide = [], individual = [];
+      const merge = () => {
+        const map = {};
+        [...allWide, ...individual].forEach(item => { map[item.id] = item; });
+        const merged = Object.values(map);
+        merged.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        setLearnerAssignments(merged);
+      };
+      u1 = onSnapshot(query(ref, where("isClassWide", "==", true)), snap => {
+        allWide = snap.docs.map(d2 => ({ id: d2.id, ...d2.data() }));
+        merge();
+      });
+      u2 = onSnapshot(query(ref, where("targetUids", "array-contains", user.uid)), snap => {
+        individual = snap.docs.map(d2 => ({ id: d2.id, ...d2.data() }));
+        merge();
+      });
+    }).catch(() => setLearnerAssignments([]));
+    return () => { u1 && u1(); u2 && u2(); };
+  }, [user?.uid, userRole]);
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
@@ -27411,6 +27808,42 @@ export default function App() {
         </div>
       </div>
       </>}
+      {/* ✅ V514: 학습자 과제 배너 — 미완료 과제가 있을 때만 표시 */}
+      {(() => {
+        if (!learnerAssignments.length) return null;
+        // 학습자 본인의 gramLog/pronLog는 Firestore 원본을 직접 읽기 어려우므로
+        // 배너에서는 미완료 개수만 표시하고, 모달에서 상세 확인
+        // (완료 판정은 모달 열 때 최신 데이터로 처리)
+        return (
+          <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 12px 8px" }}>
+            <div
+              onClick={() => setShowAssignmentModal(true)}
+              style={{ background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", borderRadius: 16, padding: "14px 16px", boxShadow: "0 4px 12px rgba(46,117,182,0.3)", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+            >
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "white", marginBottom: 2 }}>
+                  📋 과제 {learnerAssignments.length}개
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>
+                  {learnerAssignments[0]?.title}{learnerAssignments.length > 1 ? ` 외 ${learnerAssignments.length - 1}개` : ""}
+                </div>
+              </div>
+              <div style={{ fontSize: 20, color: "white" }}>›</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ✅ V514: 학습자 과제 모달 */}
+      {showAssignmentModal && (
+        <LearnerAssignmentModal
+          assignments={learnerAssignments}
+          onClose={() => setShowAssignmentModal(false)}
+          onGoToTab={(t) => { setTab(t); setShowAssignmentModal(false); }}
+          user={user}
+        />
+      )}
+
       <div style={{maxWidth:600,margin:"0 auto",padding:`12px 12px ${browseMode?"150px":"80px"}`,boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
         {tab==="speak"&&<SpeakTab level={level} uid={user.uid} unlock={unlock} speaking={speaking} speak={speak} begReady={begReady} browseMode={browseMode} midLevel={midLevel} reviewModule={reviewModule} reviewNonce={reviewNonce}/>}
