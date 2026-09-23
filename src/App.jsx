@@ -70,6 +70,27 @@ function recordExprVocabResult(uid, level, verdict) {
   }).catch(()=>{});
 }
 
+// ✅ V513: 어휘·문법 퀴즈(MID_QUIZ/ADV_QUIZ/VOCAB_OUTPUT_QUIZ) 세션 로그 저장.
+// pronLog(V511)와 동일하게 setDoc(merge:true)를 써서 문서가 없어도 항상 성공하도록 함.
+async function saveGramLog(uid, quizType, results) {
+  if (!uid || !results?.length) return;
+  const logEntry = {
+    ts: Date.now(),
+    quizType,
+    results,
+    score: results.filter(r => r.correct).length,
+    total: results.length,
+  };
+  try {
+    const userRef = doc(db, "users", uid);
+    const snap = await getDoc(userRef);
+    const existing = snap.exists() ? (snap.data().gramLog || []) : [];
+    await setDoc(userRef, { gramLog: [...existing, logEntry] }, { merge: true });
+  } catch (e) {
+    console.warn("gramLog 저장 실패", e);
+  }
+}
+
 // ✅ V150: 최고 관리자 이메일 (이 이메일로만 AdminDashboard 접근 가능)
 const ADMIN_EMAIL = "roh053068@gmail.com";
 // ✅ V153: 개발자 학습자 이메일 (이 이메일로만 단계 점프 버튼 표시)
@@ -78,7 +99,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "512";
+const APP_VERSION = "513";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -19237,6 +19258,24 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, mi
   const [context, setContext] = useState(null);
   // ✅ V130: 중·고급 퀴즈용 턴 카운트
   const [turnCount, setTurnCount] = useState(0);
+  // ✅ V513: gramLog — 대화 중 삽입되는 중/고급 퀴즈 카드 결과를 세션(탭 이탈) 시점까지
+  // ref에 누적했다가 한 번에 저장(pronLog처럼 문항마다 write하지 않기 위함).
+  const midAdvQuizResultsRef = useRef([]);
+  // ✅ V513: 퀴즈 카드를 끝까지 완료(마지막 문항 답 클릭)했을 때만 true — 미완성 세션 저장 방지
+  const midAdvQuizFinished = useRef(false);
+  const levelRef = useRef(level);
+  const uidRef = useRef(uid);
+  levelRef.current = level;
+  uidRef.current = uid;
+  useEffect(() => {
+    return () => {
+      const results = midAdvQuizResultsRef.current;
+      if (results.length && midAdvQuizFinished.current) {
+        const quizType = levelRef.current === "adv" ? "ADV_QUIZ" : levelRef.current === "mid" ? "MID_QUIZ" : null;
+        if (quizType) saveGramLog(uidRef.current, quizType, results);
+      }
+    };
+  }, []);
   // ✅ V385: 한주연 교수 인사이트 — 내 발화 다시 듣기 (녹음→재생, 마중이 발음과 비교)
   const [myVoiceRecording, setMyVoiceRecording] = useState(false);
   const [myVoiceURL, setMyVoiceURL] = useState(null);
@@ -19654,6 +19693,18 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, mi
                         ? `정답이에요! 🎉 "${m.answer}" — 정말 잘했어요! 😊`
                         : `아쉽지만 괜찮아요! 😊 정답은 "${m.answer}"이에요. 다시 기억해봐요 💪`;
                       setChatUI(prev => [...prev, {role:"assistant", text:reaction}]);
+                      // ✅ V513: gramLog — 즉시 저장하지 않고 세션 종료(탭 이탈) 시 한 번에 저장하도록 누적만 함
+                      const quizType = level === "adv" ? "ADV_QUIZ" : level === "mid" ? "MID_QUIZ" : null;
+                      if (quizType) {
+                        midAdvQuizResultsRef.current.push({
+                          qid: `${midAdvQuizResultsRef.current.length}-${(m.question||"").slice(0,10)}`,
+                          correct,
+                          userAnswer: opt,
+                          correctAnswer: m.answer,
+                        });
+                        // ✅ V513: 카드 1개 = 문항 1개라 답을 클릭한 시점이 곧 마지막 문항 완료 시점
+                        midAdvQuizFinished.current = true;
+                      }
                     }}
                       style={{padding:"10px 8px",borderRadius:12,border:"2px solid",fontSize:13,fontWeight:700,cursor:answered?"default":"pointer",transition:"all .2s",textAlign:"center",
                         borderColor: !answered ? "#FFD93D" : isCorrect ? "#28a745" : isPicked ? "#e74c3c" : "#ddd",
@@ -22253,6 +22304,7 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
   const [m1Revealed,setM1Revealed]= useState(false);
   const [m1Score,   setM1Score]   = useState(0);
   const [m1Finished,setM1Finished]= useState(false);
+  const [m1Results, setM1Results] = useState([]); // ✅ V513: gramLog 세션 저장용 문항별 결과
 
   // ✅ V341: 화용 퀴즈 state
   const pqDoneKey = uid ? `hc_pq_done_${uid}` : null;
@@ -22295,7 +22347,7 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
   const [wReviewKey, setWReviewKey] = useState(null); // "m1"|"pq"|"dc"|null
   useEffect(()=>{
     if (reviewNonce > 0 && ["m1","pq","dc"].includes(reviewModule)) {
-      if (reviewModule === "m1") { setM1Idx(0); setM1Sel(null); setM1Revealed(false); setM1Score(0); setM1Finished(false); }
+      if (reviewModule === "m1") { setM1Idx(0); setM1Sel(null); setM1Revealed(false); setM1Score(0); setM1Finished(false); setM1Results([]); }
       if (reviewModule === "pq") { setPqIdx(0); setPqSel(null); setPqRevealed(false); setPqScore(0); setPqFinished(false); }
       if (reviewModule === "dc") { setDcIdx(0); setDcSel(null); setDcRevealed(false); setDcScore(0); setDcFinished(false); }
       setWReviewKey(reviewModule);
@@ -22395,6 +22447,7 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
         if (m1DoneKey) localStorage.setItem(m1DoneKey, "1");
         setM1Done(true);
         markMidModuleDone(uid, "m1"); // ✅ V411
+        saveGramLog(uid, "VOCAB_OUTPUT_QUIZ", m1Results); // ✅ V513
         // 화용 퀴즈도 초기화 트리거
         if (pqDoneKey) { localStorage.removeItem(pqDoneKey); setPqDone(false); }
       } else {
@@ -22469,7 +22522,15 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
           <button onClick={()=>{
             if(m1Sel===null) return;
             setM1Revealed(true);
-            if(m1Sel===q.ans) setM1Score(s=>s+1);
+            const correct = m1Sel===q.ans;
+            if (correct) setM1Score(s=>s+1);
+            // ✅ V513: gramLog 세션 저장용 문항별 결과 누적
+            setM1Results(r => [...r, {
+              qid: `${m1Idx}-${(q.q||"").slice(0,10)}`,
+              correct,
+              userAnswer: q.opts?.[m1Sel] ?? "",
+              correctAnswer: q.opts?.[q.ans] ?? "",
+            }]);
           }} disabled={m1Sel===null}
             style={{width:"100%",background:m1Sel===null?"#BDBDBD":"#1565C0",color:"white",
               border:"none",borderRadius:12,padding:"13px",fontSize:15,fontWeight:900,cursor:m1Sel===null?"default":"pointer"}}>
