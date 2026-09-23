@@ -121,7 +121,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "515";
+const APP_VERSION = "516";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1893,6 +1893,14 @@ const AREA_FILTER_CHIPS = [
 // ✅ V514: 교수자 과제 관리 패널
 // Firestore subcollection: classes/{instructor_uid}/assignments/{assignmentId}
 // ════════════════════════════════════════════════════════
+// ✅ V516: 학습자 표시 이름 — 이름이 같은 학습자(동명이인·같은 사람의 테스트 계정)를 구분하기 위해
+// 이름 뒤에 이메일 @ 앞부분을 함께 표시. 이름이 없으면 이메일 앞부분만.
+function studentLabel(st) {
+  const id = st.email ? st.email.split("@")[0] : "";
+  if (st.name && id) return `${st.name} (${id})`;
+  return st.name || id || "이름 없음";
+}
+
 function AssignmentPanel({ user, students }) {
   const [assignments, setAssignments] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -2026,7 +2034,7 @@ function AssignmentPanel({ user, students }) {
                         }))}
                         style={{ width: 16, height: 16, cursor: "pointer" }}
                       />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "#333" }}>{st.name || st.email}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#333" }}>{studentLabel(st)}</span>
                     </label>
                   ))}
               </div>
@@ -2076,7 +2084,7 @@ function AssignmentPanel({ user, students }) {
             isAssignmentDone(a, st.gramLog || [], st.pronLog || [])
           ).length;
           const targetNames = !a.isClassWide
-            ? (a.targetUids || []).map(uid => students.find(s => s.id === uid)?.name || uid).join(", ")
+            ? (a.targetUids || []).map(uid => { const s = students.find(x => x.id === uid); return s ? studentLabel(s) : uid; }).join(", ")
             : null;
           const deadlineDate = a.deadline?.toDate ? a.deadline.toDate() : (a.deadline ? new Date(a.deadline) : null);
           const isOverdue = deadlineDate && deadlineDate < new Date();
@@ -2116,7 +2124,7 @@ function AssignmentPanel({ user, students }) {
                       const done = isAssignmentDone(a, st.gramLog || [], st.pronLog || []);
                       return (
                         <span key={st.id} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: done ? "#D6EAD6" : "#F5F5F5", color: done ? "#2D7A2D" : "#aaa", fontWeight: 700 }}>
-                          {done ? "✅" : "⬜"} {st.name || st.email?.split("@")[0]}
+                          {done ? "✅" : "⬜"} {studentLabel(st)}
                         </span>
                       );
                     })}
@@ -2260,7 +2268,9 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
     if (!user) return;
     const q = query(collection(db, "users"), where("currentTeacherId", "==", user.uid));
     const unsub = onSnapshot(q, snap => {
-      setStudents(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      // ✅ V516: 교수자 본인 UID 방어 필터 — "학습자 화면 보기" 중 자기 클래스에 참여한 경우에도
+      //          학습자 목록·과제 완료 현황·발음 TOP5 집계에 교수자 본인이 섞이지 않도록 차단
+      setStudents(snap.docs.filter(d => d.id !== user.uid).map(d => ({ id: d.id, ...d.data() })));
     });
     return () => unsub();
   }, [user]);
@@ -3082,6 +3092,8 @@ function JoinClassModal({ user, code, onClose }) {
     const q = query(collection(db, "classes"), where("code", "==", code));
     getDocs(q).then(snap => {
       if (snap.empty) { setError("유효하지 않은 코드예요"); setLoading(false); return; }
+      // ✅ V516: 교수자가 자기 클래스 코드로 참여하는 것 차단("학습자 화면 보기" 테스트 중 발생 가능)
+      if (snap.docs[0].data().teacherId === user?.uid) { setError("내가 만든 클래스에는 학습자로 참여할 수 없어요"); setLoading(false); return; }
       setTeacherData(snap.docs[0].data());
       setLoading(false);
     }).catch(() => { setError("조회 중 오류가 발생했어요"); setLoading(false); });
