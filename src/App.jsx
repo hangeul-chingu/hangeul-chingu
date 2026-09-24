@@ -23,6 +23,7 @@ import {
   onSnapshot,
   deleteField,
   addDoc,
+  deleteDoc,
 } from "firebase/firestore";
 
 // ✅ V410: 회원번호(랜덤 코드) 생성 — 가입 순번 노출 방지 목적으로 순번이 아닌 랜덤 코드 채택
@@ -95,7 +96,7 @@ async function saveGramLog(uid, quizType, results) {
 // ✅ V514: 과제 완료 여부 판정 헬퍼 — gramLog / pronLog로 클라이언트 사이드 계산
 // deadline이 null이면 제출 여부 불문 완료 인정 (상시 과제)
 // ════════════════════════════════════════════════════════
-function isAssignmentDone(assignment, gramLog = [], pronLog = []) {
+function isAssignmentDone(assignment, gramLog = [], pronLog = [], essaySub = null) {
   const dl = assignment.deadline ? (assignment.deadline.toMillis ? assignment.deadline.toMillis() : new Date(assignment.deadline).getTime()) : null;
   const ca = assignment.createdAt ? (assignment.createdAt.toMillis ? assignment.createdAt.toMillis() : new Date(assignment.createdAt).getTime()) : 0;
   // ✅ V518: gramLog는 시간을 ts로, pronLog(V355~)는 timestamp로 저장함 → 둘 다 인정.
@@ -110,10 +111,45 @@ function isAssignmentDone(assignment, gramLog = [], pronLog = []) {
     case "PRON_TEST":
       return pronLog.some(e => inRange(e));
     case "ESSAY":
-      return false; // V515: 논술은 수동 확인 — AI 채점 연동 후 자동화 예정
+      // ✅ V519: 논술 과제는 "한 번이라도 제출했는가"로 완료 판정(과제설계 원칙 8 — 점수·AI 채점과 무관).
+      //          제출 기록은 classes/{교수자}/assignments/{과제}/submissions/{학습자} 문서의 versions 배열.
+      return !!(essaySub && Array.isArray(essaySub.versions) && essaySub.versions.length > 0);
     default:
       return false;
   }
+}
+
+// ✅ V519: 논술 과제 도우미 — 글자 수(띄어쓰기 포함, 줄바꿈 제외) / 구조별 칸 / 상태
+function essayCharCount(parts) {
+  return (parts || []).join("").replace(/[\r\n]/g, "").length;
+}
+function essaySections(assignment) {
+  // 예전(V514~V518)에 만든 논술 과제에는 structure 값이 없음 → 논술 탭과 같은 3단계로 간주
+  return assignment?.structure === "free"
+    ? [{ t: "내 글", emoji: "✍️", h: "주제에 대해 자유롭게 써 보세요." }]
+    : [
+        { t: "현상", emoji: "👀", h: "요즘 직접 보거나 느낀 사실을 써요." },
+        { t: "생각", emoji: "💭", h: "그것에 대한 내 생각을 써요." },
+        { t: "이유", emoji: "💡", h: "왜 그렇게 생각하는지 써요." },
+      ];
+}
+function toMs(v) {
+  if (!v) return null;
+  if (typeof v === "number") return v;
+  if (v.toMillis) return v.toMillis();
+  const t = new Date(v).getTime();
+  return isNaN(t) ? null : t;
+}
+// 상태: todo(아직 안 씀) / draft(쓰는 중) / submitted(제출함). late = 마감 후 첫 제출.
+function essayStatus(assignment, sub) {
+  const versions = sub && Array.isArray(sub.versions) ? sub.versions : [];
+  if (versions.length > 0) {
+    const dl = toMs(assignment?.deadline);
+    const first = versions[0]?.submittedAtMs;
+    return { key: "submitted", late: !!(dl && first && first > dl) };
+  }
+  if (sub && Array.isArray(sub.parts) && sub.parts.some(x => (x || "").trim())) return { key: "draft", late: false };
+  return { key: "todo", late: false };
 }
 
 // ✅ V150: 최고 관리자 이메일 (이 이메일로만 AdminDashboard 접근 가능)
@@ -124,7 +160,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "518";
+const APP_VERSION = "519";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1907,15 +1943,24 @@ function studentLabel(st) {
 function AssignmentPanel({ user, students }) {
   const [assignments, setAssignments] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
+  const EMPTY_FORM = {
     title: "",
     type: "MID_QUIZ",
     isClassWide: true,
     targetUids: [],
     deadline: "",
     note: "",
-  });
+    // ✅ V519: 논술 과제 전용 설정 (과제설계 원칙 6-2)
+    topic: "",
+    expressions: "",   // 한 줄에 하나씩
+    structure: "three",
+    minChars: "",
+    checklist: "",     // 한 줄에 하나씩
+  };
+  const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  // ✅ V519: 논술 과제별 학습자 제출 문서 실시간 구독 { [과제id]: { [학습자uid]: 문서 } }
+  const [essaySubs, setEssaySubs] = useState({});
 
   // 교수자 과제 실시간 구독
   useEffect(() => {
@@ -1929,8 +1974,22 @@ function AssignmentPanel({ user, students }) {
     return () => unsub();
   }, [user]);
 
+  const essayIdsKey = assignments.filter(a => a.type === "ESSAY").map(a => a.id).join(",");
+  useEffect(() => {
+    if (!user || !essayIdsKey) { setEssaySubs({}); return; }
+    const unsubs = essayIdsKey.split(",").map(aid =>
+      onSnapshot(collection(db, "classes", user.uid, "assignments", aid, "submissions"), snap => {
+        const m = {};
+        snap.docs.forEach(d => { m[d.id] = d.data(); });
+        setEssaySubs(prev => ({ ...prev, [aid]: m }));
+      }, () => {})
+    );
+    return () => unsubs.forEach(u => u());
+  }, [user?.uid, essayIdsKey]);
+
   async function saveAssignment() {
     if (!form.title.trim()) { alert("제목을 입력해주세요"); return; }
+    if (form.type === "ESSAY" && !form.topic.trim()) { alert("논술 과제는 주제·상황을 입력해주세요"); return; }
     if (!form.isClassWide && form.targetUids.length === 0) {
       alert("개별 지정 시 학습자를 최소 1명 선택해주세요"); return;
     }
@@ -1944,9 +2003,16 @@ function AssignmentPanel({ user, students }) {
         targetUids: form.isClassWide ? [] : form.targetUids,
         deadline: form.deadline ? new Date(form.deadline) : null,
         note: form.note.trim(),
+        ...(form.type === "ESSAY" ? {
+          topic: form.topic.trim(),
+          expressions: form.expressions.split("\n").map(x => x.trim()).filter(Boolean),
+          structure: form.structure === "free" ? "free" : "three",
+          minChars: parseInt(form.minChars, 10) > 0 ? parseInt(form.minChars, 10) : null,
+          checklist: form.checklist.split("\n").map(x => x.trim()).filter(Boolean),
+        } : {}),
         createdAt: serverTimestamp(),
       });
-      setForm({ title: "", type: "MID_QUIZ", isClassWide: true, targetUids: [], deadline: "", note: "" });
+      setForm(EMPTY_FORM);
       setShowForm(false);
     } catch (e) {
       alert("과제 저장 중 오류: " + e.message);
@@ -1955,10 +2021,18 @@ function AssignmentPanel({ user, students }) {
   }
 
   async function deleteAssignment(id) {
-    if (!window.confirm("이 과제를 삭제할까요?")) return;
+    const target = assignments.find(x => x.id === id);
+    const isEssay = target?.type === "ESSAY";
+    // ✅ V519: 논술 과제는 학습자가 쓴 글도 함께 지워짐을 분명히 알림
+    if (!window.confirm(isEssay
+      ? "이 과제를 삭제할까요?\n학습자들이 쓰고 제출한 글도 함께 지워지고, 되돌릴 수 없어요."
+      : "이 과제를 삭제할까요?")) return;
     try {
-      const { deleteDoc: _deleteDoc } = await import("firebase/firestore");
-      await _deleteDoc(doc(db, "classes", user.uid, "assignments", id));
+      if (isEssay) {
+        const subSnap = await getDocs(collection(db, "classes", user.uid, "assignments", id, "submissions"));
+        await Promise.all(subSnap.docs.map(d => deleteDoc(d.ref)));
+      }
+      await deleteDoc(doc(db, "classes", user.uid, "assignments", id));
     } catch (e) {
       alert("삭제 실패: " + e.message);
     }
@@ -2017,8 +2091,72 @@ function AssignmentPanel({ user, students }) {
               </div>
             )}
             {form.type === "ESSAY" && (
-              <div style={{ marginTop: 8, fontSize: 11, color: "#7A6000", background: "#FFF8DC", border: "1px solid #F0D060", borderRadius: 8, padding: "8px 10px", lineHeight: 1.6 }}>
-                💡 논술 과제는 아직 자동으로 완료 처리되지 않아요. 제출·글 읽기 기능은 다음 업데이트에서 추가될 예정이에요.
+              <div style={{ marginTop: 10, background: "#F5F8FF", border: "1px solid #D6E4F5", borderRadius: 12, padding: "12px 12px 4px" }}>
+                <div style={{ fontSize: 11, color: "#2E75B6", marginBottom: 10, lineHeight: 1.6 }}>
+                  ✍️ 학습자는 과제 카드에서 <b>과제 전용 글쓰기 화면</b>으로 바로 들어가 써요(논술 탭과 별개). <b>제출하면 완료</b>로 표시돼요.
+                </div>
+                {/* 주제 */}
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>주제·상황 *</div>
+                  <textarea value={form.topic} rows={2}
+                    onChange={e => setForm(f => ({ ...f, topic: e.target.value }))}
+                    placeholder="예: 고향과 한국의 명절 모습을 비교해서 써 보세요"
+                    style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 13, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit" }} />
+                  {typeof TOPICS !== "undefined" && Array.isArray(TOPICS) && TOPICS.length > 0 && (
+                    <details style={{ marginTop: 6 }}>
+                      <summary style={{ fontSize: 11, color: "#2E75B6", cursor: "pointer", fontWeight: 700 }}>💡 논술 탭 추천 주제에서 고르기</summary>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6, maxHeight: 160, overflowY: "auto" }}>
+                        {TOPICS.map((tp, i) => {
+                          const label = typeof tp === "string" ? tp : (tp.title || tp.topic || tp.label || "");
+                          if (!label) return null;
+                          return (
+                            <button key={i} type="button" onClick={() => setForm(f => ({ ...f, topic: label }))}
+                              style={{ fontSize: 11, padding: "5px 10px", borderRadius: 20, border: "1px solid #C8DAF0", background: "white", color: "#1A3A5C", cursor: "pointer" }}>
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </details>
+                  )}
+                </div>
+                {/* 꼭 써볼 표현 */}
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>꼭 써볼 표현·문법 (선택, 한 줄에 하나씩)</div>
+                  <textarea value={form.expressions} rows={2}
+                    onChange={e => setForm(f => ({ ...f, expressions: e.target.value }))}
+                    placeholder={"예: -았/었-\n-아서/어서"}
+                    style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 13, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit" }} />
+                </div>
+                {/* 글 구조 */}
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>글 구조</div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {[["three", "3단계 (현상→생각→이유)"], ["free", "자유"]].map(([k, v]) => (
+                      <button key={k} type="button" onClick={() => setForm(f => ({ ...f, structure: k }))}
+                        style={{ flex: 1, padding: "9px 4px", border: form.structure === k ? "2px solid #2E75B6" : "1.5px solid #e0e0e0", borderRadius: 10, background: form.structure === k ? "#EBF3FB" : "white", fontSize: 12, fontWeight: form.structure === k ? 800 : 600, color: form.structure === k ? "#2E75B6" : "#555", cursor: "pointer" }}>
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* 최소 분량 */}
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>최소 분량 (선택, 띄어쓰기 포함 글자 수)</div>
+                  <input type="number" min="0" inputMode="numeric" value={form.minChars}
+                    onChange={e => setForm(f => ({ ...f, minChars: e.target.value }))}
+                    placeholder="예: 300"
+                    style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 14, boxSizing: "border-box", outline: "none" }} />
+                  <div style={{ fontSize: 11, color: "#888", marginTop: 4 }}>분량이 모자라도 제출은 막지 않고, 학습자에게 한 번 더 물어봐요.</div>
+                </div>
+                {/* 확인할 것 */}
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>확인할 것 (선택, 한 줄에 하나씩)</div>
+                  <textarea value={form.checklist} rows={2}
+                    onChange={e => setForm(f => ({ ...f, checklist: e.target.value }))}
+                    placeholder={"예: 내 경험을 한 가지 이상 썼나요?\n문장 끝을 '-아요/어요'로 맞췄나요?"}
+                    style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 13, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit" }} />
+                </div>
               </div>
             )}
           </div>
@@ -2094,8 +2232,9 @@ function AssignmentPanel({ user, students }) {
           const targetStudents = a.isClassWide
             ? students
             : students.filter(s => (a.targetUids || []).includes(s.id));
+          const aSubs = essaySubs[a.id] || {};
           const doneCount = targetStudents.filter(st =>
-            isAssignmentDone(a, st.gramLog || [], st.pronLog || [])
+            isAssignmentDone(a, st.gramLog || [], st.pronLog || [], aSubs[st.id])
           ).length;
           const targetNames = !a.isClassWide
             ? (a.targetUids || []).map(uid => { const s = students.find(x => x.id === uid); return s ? studentLabel(s) : uid; }).join(", ")
@@ -2114,6 +2253,16 @@ function AssignmentPanel({ user, students }) {
                   {deadlineDate && (
                     <div style={{ fontSize: 11, color: isOverdue ? "#E53935" : "#888", marginTop: 3 }}>
                       {isOverdue ? "⏰ 마감됨" : "📅 마감"}: {deadlineDate.toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                  )}
+                  {a.type === "ESSAY" && (a.topic || a.title) && (
+                    <div style={{ fontSize: 12, color: "#1A3A5C", marginTop: 4, background: "#FFF8E1", borderRadius: 8, padding: "6px 10px" }}>
+                      📝 {a.topic || a.title}
+                      {(a.minChars || (a.expressions || []).length > 0) && (
+                        <div style={{ fontSize: 11, color: "#7A6000", marginTop: 2 }}>
+                          {a.structure === "free" ? "자유" : "3단계"}{a.minChars ? ` · 최소 ${a.minChars}자` : ""}{(a.expressions || []).length > 0 ? ` · 표현: ${a.expressions.join(", ")}` : ""}
+                        </div>
+                      )}
                     </div>
                   )}
                   {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 4, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
@@ -2135,6 +2284,18 @@ function AssignmentPanel({ user, students }) {
                   </div>
                   <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
                     {targetStudents.map(st => {
+                      // ✅ V519: 논술은 할 일 / 쓰는 중 / 제출함(+늦음) 상태로 표시
+                      if (a.type === "ESSAY") {
+                        const es = essayStatus(a, aSubs[st.id]);
+                        const look = es.key === "submitted" ? { bg: "#D6EAD6", c: "#2D7A2D", ic: "✅", tx: "제출함" }
+                          : es.key === "draft" ? { bg: "#FFF3CD", c: "#8A6D00", ic: "✏️", tx: "쓰는 중" }
+                          : { bg: "#F5F5F5", c: "#aaa", ic: "⬜", tx: "할 일" };
+                        return (
+                          <span key={st.id} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: look.bg, color: look.c, fontWeight: 700 }}>
+                            {look.ic} {studentLabel(st)} · {look.tx}{es.late ? " · ⏰ 늦음" : ""}
+                          </span>
+                        );
+                      }
                       const done = isAssignmentDone(a, st.gramLog || [], st.pronLog || []);
                       return (
                         <span key={st.id} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: done ? "#D6EAD6" : "#F5F5F5", color: done ? "#2D7A2D" : "#aaa", fontWeight: 700 }}>
@@ -2159,7 +2320,7 @@ function AssignmentPanel({ user, students }) {
 // ════════════════════════════════════════════════════════
 // ✅ V517: 열 때 1회 getDoc → 부모(App)의 실시간 구독 데이터(gramLog/pronLog props)를 그대로 사용.
 //          닫았다 다시 열지 않아도 ✅가 바로 반영됨.
-function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], onClose, onGoToTab, user }) {
+function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essaySubs = {}, onClose, onGoToTab, onOpenEssay, user }) {
   const myGramLog = gramLog;
   const myPronLog = pronLog;
   const loading = false;
@@ -2201,7 +2362,9 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], onClo
             </div>
           ) : (
             assignments.map(a => {
-              const done = isAssignmentDone(a, myGramLog, myPronLog);
+              const done = isAssignmentDone(a, myGramLog, myPronLog, essaySubs[a.id]);
+              const isEssay = a.type === "ESSAY";
+              const es = isEssay ? essayStatus(a, essaySubs[a.id]) : null;
               const deadlineDate = a.deadline?.toDate ? a.deadline.toDate() : (a.deadline ? new Date(a.deadline) : null);
               const isOverdue = deadlineDate && deadlineDate < new Date();
               const targetTab = TYPE_TAB[a.type];
@@ -2217,16 +2380,30 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], onClo
                           {isOverdue ? "⏰ 마감됨" : "📅 마감"}: {deadlineDate.toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                         </div>
                       )}
+                      {isEssay ? (
+                        <div style={{ fontSize: 12, color: "#1A3A5C", marginTop: 6, background: "#FFF8E1", borderRadius: 8, padding: "6px 10px" }}>
+                          📝 {a.topic || a.title}
+                          <div style={{ fontSize: 11, marginTop: 3, fontWeight: 700, color: es.key === "submitted" ? "#2D7A2D" : es.key === "draft" ? "#8A6D00" : "#888" }}>
+                            {es.key === "submitted" ? "✅ 제출했어요" : es.key === "draft" ? "✏️ 쓰는 중이에요 (자동 저장됨)" : "⬜ 아직 시작하지 않았어요"}{es.late ? " · ⏰ 마감 후 제출" : ""}
+                          </div>
+                        </div>
+                      ) : (
                       <div style={{ fontSize: 12, color: "#2E75B6", marginTop: 6, background: "#EBF3FB", borderRadius: 8, padding: "6px 10px" }}>
                         {a.type === "MID_QUIZ" || a.type === "ADV_QUIZ" ? "📌 프리토킹 탭 → 마중이와 5번 대화하면 퀴즈 카드가 나와요. 풀고 나서 다른 탭으로 이동해주세요" :
-                         a.type === "PRON_TEST" ? "📌 초급 80시간 과정의 '발음 8단계' → 발음 테스트를 끝까지 풀면 완료돼요" :
-                         "📌 논술 탭 → 글쓰기 과제를 제출해주세요"}
+                         "📌 초급 80시간 과정의 '발음 8단계' → 발음 테스트를 끝까지 풀면 완료돼요"}
                       </div>
+                      )}
                       {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
                     </div>
                     <div style={{ fontSize: 22, marginLeft: 8 }}>{done ? "✅" : "⬜"}</div>
                   </div>
-                  {!done && targetTab && (
+                  {isEssay && onOpenEssay && (
+                    <button onClick={() => onOpenEssay(a)}
+                      style={{ marginTop: 10, width: "100%", background: es.key === "submitted" ? "white" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: es.key === "submitted" ? "#2E75B6" : "white", border: es.key === "submitted" ? "1.5px solid #2E75B6" : "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                      {es.key === "submitted" ? "📄 제출한 글 보기" : es.key === "draft" ? "✍️ 이어 쓰기" : "✍️ 글쓰기 시작"} →
+                    </button>
+                  )}
+                  {!isEssay && !done && targetTab && (
                     <button onClick={() => onGoToTab(targetTab)}
                       style={{ marginTop: 10, width: "100%", background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
                       {a.type === "MID_QUIZ" || a.type === "ADV_QUIZ" ? "🗣️ 프리토킹에서 퀴즈 풀기" :
@@ -2240,6 +2417,231 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], onClo
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
+// ✅ V519: 논술 과제 전용 글쓰기 화면 (과제설계 원칙 6-3)
+// - 논술 탭(WriteTab)과 완전히 분리: 중급 학습자는 논술 탭에서 모듈1·2·4를 먼저 끝내야
+//   3단계 글쓰기가 나오므로, 과제를 논술 탭으로 보내면 과제에 도달하지 못함(V518 코드 확인).
+// - 저장 위치: classes/{교수자}/assignments/{과제}/submissions/{학습자uid}
+//   parts(지금 쓰는 글) · exprChecks/listChecks(학습자 스스로 체크) · status(draft/submitted)
+//   versions[](제출본 누적 — 이전 글은 지우지 않음, V520 다시 쓰기에서 사용)
+// - 자동 임시저장: 입력 1.5초 뒤 Firestore 저장 + 이 기기(localStorage)에 즉시 보관(인터넷 끊김 대비)
+// - 분량이 모자라도 제출은 막지 않고 한 번 더 확인(원칙: 쓰기가 어려운 학습자도 과제를 끝낼 수 있게)
+// ════════════════════════════════════════════════════════
+function EssayAssignmentScreen({ assignment, teacherId, user, sub, onClose }) {
+  const a = assignment;
+  const sections = essaySections(a);
+  const n = sections.length;
+  const expressions = Array.isArray(a.expressions) ? a.expressions : [];
+  const checklist = Array.isArray(a.checklist) ? a.checklist : [];
+  const minChars = Number(a.minChars) > 0 ? Number(a.minChars) : 0;
+  const lsKey = `hc_essay_${a.id}_${user.uid}`;
+  const subRef = doc(db, "classes", teacherId, "assignments", a.id, "submissions", user.uid);
+  const versions = sub && Array.isArray(sub.versions) ? sub.versions : [];
+  const submitted = sub?.status === "submitted" && versions.length > 0;
+  const lastVer = versions[versions.length - 1] || null;
+  const deadlineMs = toMs(a.deadline);
+
+  const [parts, setParts] = useState(null);
+  const [exprChecks, setExprChecks] = useState([]);
+  const [listChecks, setListChecks] = useState([]);
+  const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
+  const [submitting, setSubmitting] = useState(false);
+  const inited = useRef(false);
+  const timer = useRef(null);
+  const pending = useRef(null); // 아직 Firestore에 안 올라간 최신 내용
+
+  const fit = (arr, len, fill) => Array.from({ length: len }, (_, i) => (Array.isArray(arr) && arr[i] !== undefined ? arr[i] : fill));
+
+  // 처음 한 번만: Firestore 문서(sub)와 이 기기 보관본 중 더 최근 것으로 시작
+  useEffect(() => {
+    if (inited.current || sub === undefined) return; // undefined = 아직 불러오는 중
+    inited.current = true;
+    let p = sub && Array.isArray(sub.parts) ? sub.parts : null;
+    let ec = sub?.exprChecks, lc = sub?.listChecks;
+    if (sub?.status !== "submitted") {
+      try {
+        const raw = localStorage.getItem(lsKey);
+        if (raw) {
+          const loc = JSON.parse(raw);
+          if (loc && Array.isArray(loc.parts) && (loc.savedAt || 0) > (sub?.updatedAtMs || 0)) {
+            p = loc.parts; ec = loc.exprChecks; lc = loc.listChecks;
+          }
+        }
+      } catch (e) {}
+    }
+    if (p && p.length !== n) p = n === 1 ? [p.filter(Boolean).join("\n\n")] : fit(p, n, "");
+    setParts(fit(p, n, ""));
+    setExprChecks(fit(ec, expressions.length, false));
+    setListChecks(fit(lc, checklist.length, false));
+  }, [sub]);
+
+  async function flush(data) {
+    try {
+      await setDoc(subRef, { learnerUid: user.uid, ...data, status: "draft", updatedAt: serverTimestamp() }, { merge: true });
+      if (pending.current === data) pending.current = null;
+      setSaveState("saved");
+    } catch (e) {
+      setSaveState("error");
+    }
+  }
+  function scheduleSave(np, ec, lc) {
+    const data = { parts: np, exprChecks: ec, listChecks: lc, updatedAtMs: Date.now() };
+    try { localStorage.setItem(lsKey, JSON.stringify({ parts: np, exprChecks: ec, listChecks: lc, savedAt: data.updatedAtMs })); } catch (e) {}
+    pending.current = data;
+    setSaveState("saving");
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => flush(data), 1500);
+  }
+  // 화면을 닫을 때 아직 안 올라간 내용이 있으면 바로 저장
+  useEffect(() => () => {
+    clearTimeout(timer.current);
+    if (pending.current) {
+      setDoc(subRef, { learnerUid: user.uid, ...pending.current, status: "draft", updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
+    }
+  }, []);
+
+  function changePart(i, v) {
+    const np = [...parts]; np[i] = v; setParts(np);
+    scheduleSave(np, exprChecks, listChecks);
+  }
+  function toggleExpr(i) {
+    const ec = [...exprChecks]; ec[i] = !ec[i]; setExprChecks(ec);
+    scheduleSave(parts, ec, listChecks);
+  }
+  function toggleList(i) {
+    const lc = [...listChecks]; lc[i] = !lc[i]; setListChecks(lc);
+    scheduleSave(parts, exprChecks, lc);
+  }
+
+  async function submit() {
+    const count = essayCharCount(parts);
+    if (count === 0) { alert("글을 먼저 써 주세요 ✍️"); return; }
+    const msg = minChars && count < minChars
+      ? `선생님이 정한 분량(${minChars}자)보다 짧아요. (지금 ${count}자)\n그래도 제출할까요?`
+      : "제출하면 선생님이 글을 읽어요.\n제출할까요?";
+    if (!window.confirm(msg)) return;
+    clearTimeout(timer.current);
+    setSubmitting(true);
+    try {
+      const now = Date.now();
+      const text = n === 1 ? parts[0] : sections.map((sec, i) => `[${sec.t}]\n${parts[i]}`).join("\n\n");
+      const ver = { parts, text, charCount: count, exprChecks, listChecks, submittedAtMs: now };
+      await setDoc(subRef, {
+        learnerUid: user.uid, parts, exprChecks, listChecks,
+        status: "submitted", versions: [...versions, ver],
+        lastSubmittedAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedAtMs: now,
+      }, { merge: true });
+      pending.current = null;
+      try { localStorage.removeItem(lsKey); } catch (e) {}
+    } catch (e) {
+      alert("제출하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.\n(쓴 글은 이 기기에 보관돼 있어요)");
+    }
+    setSubmitting(false);
+  }
+
+  const shownParts = submitted ? fit(lastVer?.parts, n, "") : parts;
+  const shownExpr = submitted ? fit(lastVer?.exprChecks, expressions.length, false) : exprChecks;
+  const shownList = submitted ? fit(lastVer?.listChecks, checklist.length, false) : listChecks;
+  const count = shownParts ? essayCharCount(shownParts) : 0;
+  const fmt = (ms) => new Date(ms).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const box = { background: "white", borderRadius: 14, padding: "12px 14px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" };
+  const checkRow = (checked, label, onClick, key) => (
+    <label key={key} onClick={submitted ? undefined : onClick}
+      style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "5px 0", cursor: submitted ? "default" : "pointer", fontSize: 13, color: "#333", lineHeight: 1.5 }}>
+      <span style={{ fontSize: 16, lineHeight: 1.2 }}>{checked ? "☑️" : "⬜"}</span>
+      <span>{label}</span>
+    </label>
+  );
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "#F5F8FF", zIndex: 3100, overflowY: "auto", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
+      {/* 헤더 */}
+      <div style={{ position: "sticky", top: 0, zIndex: 2, background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", padding: "14px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", borderRadius: 20, padding: "6px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>← 닫기</button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>✍️ {a.title}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>
+            {submitted ? "제출한 글" : "논술 과제"}{deadlineMs ? ` · 📅 마감 ${fmt(deadlineMs)}` : ""}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 600, margin: "0 auto", padding: "14px 14px 120px", boxSizing: "border-box" }}>
+        {submitted && (
+          <div style={{ ...box, background: "#F0FAF0", border: "1.5px solid #A8D5A8" }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#2D7A2D" }}>✅ 제출했어요!</div>
+            <div style={{ fontSize: 12, color: "#555", marginTop: 4, lineHeight: 1.6 }}>
+              {lastVer?.submittedAtMs ? `${fmt(lastVer.submittedAtMs)}에 제출` : ""}{deadlineMs && versions[0]?.submittedAtMs > deadlineMs ? " · ⏰ 마감 후 제출" : ""}<br />
+              선생님이 글을 읽고 의견을 보내 주실 거예요.
+            </div>
+          </div>
+        )}
+
+        {/* 주제 */}
+        <div style={{ ...box, background: "#FFF8E1", borderLeft: "4px solid #FFC107" }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: "#F57F17", marginBottom: 4 }}>📝 주제·상황</div>
+          <div style={{ fontSize: 14, color: "#333", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{a.topic || a.title}</div>
+          {minChars > 0 && <div style={{ fontSize: 12, color: "#7A6000", marginTop: 6 }}>✏️ 최소 {minChars}자 (띄어쓰기 포함)</div>}
+          {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
+        </div>
+
+        {/* 꼭 써볼 표현 */}
+        {expressions.length > 0 && (
+          <div style={box}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 4 }}>🎯 꼭 써 볼 표현 <span style={{ fontWeight: 600, color: "#888" }}>— 썼으면 체크해요</span></div>
+            {expressions.map((ex, i) => checkRow(!!shownExpr[i], ex, () => toggleExpr(i), "e" + i))}
+          </div>
+        )}
+
+        {/* 확인할 것 */}
+        {checklist.length > 0 && (
+          <div style={box}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 4 }}>🔍 제출 전에 확인해요</div>
+            {checklist.map((c, i) => checkRow(!!shownList[i], c, () => toggleList(i), "l" + i))}
+          </div>
+        )}
+
+        {/* 글쓰기 칸 */}
+        {!shownParts ? (
+          <div style={{ textAlign: "center", padding: 40, color: "#aaa" }}>불러오는 중...</div>
+        ) : sections.map((sec, i) => (
+          <div key={i} style={box}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#1A3A5C" }}>{sec.emoji} {n > 1 ? `${i + 1}. ${sec.t}` : sec.t}</div>
+            <div style={{ fontSize: 11, color: "#888", margin: "2px 0 8px" }}>{sec.h}</div>
+            {submitted ? (
+              <div style={{ fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap", background: "#FAFAFA", borderRadius: 10, padding: "10px 12px", minHeight: 40 }}>{shownParts[i] || " "}</div>
+            ) : (
+              <textarea value={shownParts[i]} onChange={e => changePart(i, e.target.value)}
+                rows={n > 1 ? 4 : 10}
+                style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 15, lineHeight: 1.7, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit" }} />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* 아래 고정 막대: 글자 수 · 저장 상태 · 제출 */}
+      {!submitted && shownParts && (
+        <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 3, background: "white", borderTop: "1px solid #e8e8e8", padding: "10px 14px calc(10px + env(safe-area-inset-bottom))" }}>
+          <div style={{ maxWidth: 600, margin: "0 auto", display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: minChars && count < minChars ? "#E65100" : "#2D7A2D" }}>
+                {count}자{minChars ? ` / 최소 ${minChars}자` : ""}
+              </div>
+              <div style={{ fontSize: 11, color: saveState === "error" ? "#E53935" : "#999" }}>
+                {saveState === "saving" ? "저장 중..." : saveState === "saved" ? "✓ 자동 저장됨" : saveState === "error" ? "⚠️ 인터넷 저장 실패 — 이 기기에는 보관돼 있어요" : "쓰는 내용은 자동으로 저장돼요"}
+              </div>
+            </div>
+            <button onClick={submit} disabled={submitting}
+              style={{ background: submitting ? "#aaa" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 50, padding: "12px 22px", fontSize: 14, fontWeight: 800, cursor: submitting ? "not-allowed" : "pointer", flexShrink: 0 }}>
+              {submitting ? "제출 중..." : "📤 제출하기"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -26064,6 +26466,10 @@ export default function App() {
   const [learnerAssignments, setLearnerAssignments] = useState([]);
   // ✅ V517: 학습자 본인 gramLog/pronLog 실시간 구독 — 배너 완료 판정 + 과제 목록 ✅ 실시간 반영용
   const [myAssignLogs, setMyAssignLogs] = useState(null); // null = 아직 로딩 전(배너 깜빡임 방지)
+  // ✅ V519: 논술 과제 — 교수자 uid, 내 제출 문서 { [과제id]: 문서 | null }, 열려 있는 논술 과제 id
+  const [assignTeacherId, setAssignTeacherId] = useState(null);
+  const [myEssaySubs, setMyEssaySubs] = useState({});
+  const [openEssayId, setOpenEssayId] = useState(null);
   // ✅ V332: 홈 화면 다국어 번역 테이블
   const hlc = onboardingLang || "ko";
   const HOME_T = {
@@ -26167,6 +26573,18 @@ export default function App() {
     return () => unsub();
   }, [user?.uid, userRole, learnerAssignments.length]);
 
+  // ✅ V519: 내 논술 과제 제출 문서 실시간 구독 — 논술 과제가 있을 때만(문서 1개씩)
+  const myEssayIdsKey = learnerAssignments.filter(a => a.type === "ESSAY").map(a => a.id).join(",");
+  useEffect(() => {
+    if (!user || userRole !== "learner" || !assignTeacherId || !myEssayIdsKey) { setMyEssaySubs({}); return; }
+    const unsubs = myEssayIdsKey.split(",").map(aid =>
+      onSnapshot(doc(db, "classes", assignTeacherId, "assignments", aid, "submissions", user.uid),
+        d => setMyEssaySubs(prev => ({ ...prev, [aid]: d.exists() ? d.data() : null })),
+        () => setMyEssaySubs(prev => ({ ...prev, [aid]: null })))
+    );
+    return () => unsubs.forEach(u => u());
+  }, [user?.uid, userRole, assignTeacherId, myEssayIdsKey]);
+
   // ✅ V514: 학습자 과제 2쿼리 구독 — currentTeacherId 없으면 구독 안 함
   // Firestore array-contains 제약: isClassWide(boolean) + targetUids(array) 2필드 분리 → 2번 쿼리 병합
   useEffect(() => {
@@ -26175,6 +26593,7 @@ export default function App() {
     let u1 = null, u2 = null;
     getDoc(doc(db, "users", user.uid)).then(d => {
       const tid = d.exists() ? d.data().currentTeacherId : null;
+      setAssignTeacherId(tid || null);
       if (!tid) { setLearnerAssignments([]); return; }
       const ref = collection(db, "classes", tid, "assignments");
       let allWide = [], individual = [];
@@ -27339,7 +27758,7 @@ export default function App() {
               {/* ✅ V518: 초급 과정 학습자도 과제를 볼 수 있도록 — 이 블록엔 과제 배너가 없었음(V514~V517은 일반 화면에만 존재).
                   BegScreen 화면 위에 떠 있는 배너는 기존 버튼을 가릴 위험이 있어 마이페이지 최상단 카드로 배치. */}
               {learnerAssignments.length > 0 && myAssignLogs && (() => {
-                const begPending = learnerAssignments.filter(a => !isAssignmentDone(a, myAssignLogs.gramLog, myAssignLogs.pronLog));
+                const begPending = learnerAssignments.filter(a => !isAssignmentDone(a, myAssignLogs.gramLog, myAssignLogs.pronLog, myEssaySubs[a.id]));
                 const allDone = begPending.length === 0;
                 return (
                   <div onClick={() => { setShowMyPage(false); setShowAssignmentModal(true); }}
@@ -27506,11 +27925,19 @@ export default function App() {
             assignments={learnerAssignments}
             gramLog={myAssignLogs?.gramLog || []}
             pronLog={myAssignLogs?.pronLog || []}
+            essaySubs={myEssaySubs}
             onClose={() => setShowAssignmentModal(false)}
             onGoToTab={() => setShowAssignmentModal(false)}
+            onOpenEssay={(a) => { setShowAssignmentModal(false); setOpenEssayId(a.id); }}
             user={user}
           />
         )}
+        {/* ✅ V519: 논술 과제 전용 글쓰기 화면 */}
+        {openEssayId && assignTeacherId && (() => {
+          const ea = learnerAssignments.find(x => x.id === openEssayId);
+          if (!ea) return null;
+          return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />;
+        })()}
         {/* ✅ V510: 학습자 클래스 참여 팝업 — 이 BegScreen 축약형 블록에도
             JoinClassModal 렌더가 연결돼 있지 않아 카드에서 코드를 입력해도 팝업이
             뜨지 않던 동일 버그가 있어 함께 수정. */}
@@ -27875,7 +28302,7 @@ export default function App() {
           초록 "과제 모두 완료!" 배너(숨기지 않음: 성취감 표시, 구글 클래스룸 '완료' 칸과 같은 원칙) */}
       {(() => {
         if (!learnerAssignments.length || !myAssignLogs) return null;
-        const pendingAssignments = learnerAssignments.filter(a => !isAssignmentDone(a, myAssignLogs.gramLog, myAssignLogs.pronLog));
+        const pendingAssignments = learnerAssignments.filter(a => !isAssignmentDone(a, myAssignLogs.gramLog, myAssignLogs.pronLog, myEssaySubs[a.id]));
         if (pendingAssignments.length === 0) return (
           <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 12px 8px" }}>
             <div
@@ -27916,11 +28343,19 @@ export default function App() {
           assignments={learnerAssignments}
           gramLog={myAssignLogs?.gramLog || []}
           pronLog={myAssignLogs?.pronLog || []}
+          essaySubs={myEssaySubs}
           onClose={() => setShowAssignmentModal(false)}
           onGoToTab={(t) => { setTab(t); setShowAssignmentModal(false); }}
+          onOpenEssay={(a) => { setShowAssignmentModal(false); setOpenEssayId(a.id); }}
           user={user}
         />
       )}
+      {/* ✅ V519: 논술 과제 전용 글쓰기 화면 */}
+      {openEssayId && assignTeacherId && (() => {
+        const ea = learnerAssignments.find(x => x.id === openEssayId);
+        if (!ea) return null;
+        return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />;
+      })()}
 
       <div style={{maxWidth:600,margin:"0 auto",padding:`12px 12px ${browseMode?"150px":"80px"}`,boxSizing:"border-box"}}>
         {ttsHint&&<div style={{background:"#FFF8E1",border:"1px solid #FFD93D",borderRadius:12,padding:"10px 14px",marginBottom:8,fontSize:13,color:"#5D4037",textAlign:"center"}}>🔇 소리를 들으려면 화면을 터치한 뒤 스피커를 눌러주세요</div>}
