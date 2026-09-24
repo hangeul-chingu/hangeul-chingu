@@ -36,16 +36,23 @@ function generateMemberNoCandidate() {
   }
   return `HC-${code}`;
 }
-// Firestore에 이미 존재하는 회원번호와 중복되지 않도록 확인 후 부여(최대 5회 재시도)
-async function generateUniqueMemberNo() {
+// ✅ V520: 회원번호 중복 확인을 "전체 사용자 조회"에서 "회원번호 등록부(memberNos) 선등록"으로 교체.
+//   V519까지는 users 전체를 memberNo로 조회했는데, 보안 규칙(본인·관리자만 users 읽기)에 막혀
+//   회원가입이 permission-denied로 중단됐음(2026-09-25 에뮬레이터 테스트 A 거부 확인).
+//   memberNos/{번호} 문서를 새로 만드는 것만 허용하는 규칙이라, 이미 있는 번호면 거부됨 → 다른 번호로 재시도.
+//   5번 모두 실패하면 null — 가입은 계속 진행하고 다음 로그인 때 다시 만든다.
+async function generateUniqueMemberNo(uid) {
+  if (!uid) return null;
   for (let attempt = 0; attempt < 5; attempt++) {
     const candidate = generateMemberNoCandidate();
-    const q = query(collection(db, "users"), where("memberNo", "==", candidate));
-    const snap = await getDocs(q);
-    if (snap.empty) return candidate;
+    try {
+      await setDoc(doc(db, "memberNos", candidate), { uid, createdAt: serverTimestamp() });
+      return candidate;
+    } catch (e) {
+      // 이미 등록된 번호(덮어쓰기는 규칙상 거부) 또는 일시 오류 → 다른 번호로 재시도
+    }
   }
-  // 5회 연속 충돌(극히 희박)한 경우 타임스탬프 기반으로 강제 유일화
-  return `HC-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+  return null;
 }
 
 // ✅ V411: 중급 모듈(1~5) 완료를 Firestore에 기록 — TOPIK II 자격조건 판정용.
@@ -160,7 +167,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "519";
+const APP_VERSION = "520";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -183,16 +190,9 @@ const AUTH_ERRORS = {
   "auth/too-many-requests": "잠시 후 다시 시도해주세요",
 };
 
-// ✅ V263: 보안질문 목록
-const SECURITY_QUESTIONS = [
-  "나의 보물 제1호는?",
-  "아버지의 성함은?",
-  "어머니의 성함은?",
-  "본인이 태어난 고향은 어디인가?",
-  "유년시절 키웠던 반려동물의 이름은?",
-  "가장 기억에 남는 친구 이름은?",
-  "가장 감명깊게 읽은 책이나 영화 제목은?",
-];
+// ✅ V520: 보안질문 기능 제거(V263 도입) — 비밀번호 찾기는 이메일 재설정만 사용.
+//   이유: 답을 맞혀도 결국 가입 이메일로 재설정 메일을 보내므로 안전을 더하지 않고, 본인만 막힘.
+//   부모 이름·고향 같은 가족 정보를 평문으로 보관하게 됨. NIST SP 800-63B도 보안질문 사용 금지.
 
 
 // ════════════════════════════════════════════════════════
@@ -1180,20 +1180,6 @@ function AuthScreen({ onLogin, lang }) {
   };
   const lc = lang || "ko";
   const at = (key) => AUTH_T[key]?.[lc] ?? AUTH_T[key]?.en ?? AUTH_T[key]?.ko ?? "";
-  // ✅ V331: 보안질문 다국어 목록
-  const SEC_QUESTIONS = {
-    ko:["나의 보물 제1호는?","아버지의 성함은?","어머니의 성함은?","본인이 태어난 고향은 어디인가?","유년시절 키웠던 반려동물의 이름은?","가장 기억에 남는 친구 이름은?","가장 감명깊게 읽은 책이나 영화 제목은?"],
-    vi:["Kỷ vật quý giá nhất của bạn?","Tên của bố bạn?","Tên của mẹ bạn?","Bạn sinh ra ở đâu?","Tên thú cưng thời thơ ấu?","Tên người bạn đáng nhớ nhất?","Tên sách hoặc phim ấn tượng nhất?"],
-    en:["Your most treasured item?","Your father's name?","Your mother's name?","Your hometown?","Your childhood pet's name?","Your most memorable friend's name?","Your most impactful book or movie?"],
-    zh:["你最珍贵的东西是什么？","父亲的名字？","母亲的名字？","你出生的家乡？","童年时养的宠物名字？","最难忘的朋友名字？","印象最深的书或电影名？"],
-    ja:["あなたの一番の宝物は？","お父さんの名前は？","お母さんの名前は？","生まれた故郷はどこですか？","幼少期に飼ったペットの名前は？","最も印象に残る友達の名前は？","最も感銘を受けた本や映画のタイトルは？"],
-    id:["Barang paling berharga Anda?","Nama ayah Anda?","Nama ibu Anda?","Kota kelahiran Anda?","Nama hewan peliharaan masa kecil?","Nama teman paling berkesan?","Judul buku atau film paling berkesan?"],
-    ru:["Ваша самая ценная вещь?","Имя отца?","Имя матери?","Ваш родной город?","Кличка домашнего животного в детстве?","Имя самого запоминающегося друга?","Название самой впечатляющей книги или фильма?"],
-    th:["สิ่งของที่คุณหวงแหนที่สุด?","ชื่อพ่อของคุณ?","ชื่อแม่ของคุณ?","บ้านเกิดของคุณ?","ชื่อสัตว์เลี้ยงในวัยเด็ก?","ชื่อเพื่อนที่จำได้มากที่สุด?","ชื่อหนังสือหรือภาพยนตร์ที่ประทับใจที่สุด?"],
-    mn:["Хамгийн эрхэм зүйл чинь юу вэ?","Аавынхаа нэр?","Ээжийнхээ нэр?","Төрсөн нутаг чинь хаана?","Бага насдаа өсгөсөн тэжээвэр амьтны нэр?","Хамгийн санаанд үлдсэн найзын нэр?","Хамгийн гүн сэтгэгдэл төрүүлсэн ном эсвэл кино?"],
-    uz:["Eng qimmatli narsangiz?","Otangizning ismi?","Onangizning ismi?","Tug'ilgan joyingiz?","Bolaligingizda uy hayvonining ismi?","Eng esda qolgan do'stingizning ismi?","Eng ta'sirli kitob yoki film nomi?"],
-  };
-  const secQList = SEC_QUESTIONS[lc] || SEC_QUESTIONS.en;
   const [showVerify, setShowVerify] = useState(false);   // ✅ V284: 이메일 인증 대기 화면
   const [verifyUser, setVerifyUser] = useState(null);    // ✅ V284: 인증 대기 중인 user 객체
   const [verifyMsg, setVerifyMsg] = useState("");        // ✅ V284: 인증 안내 메시지
@@ -1213,15 +1199,9 @@ function AuthScreen({ onLogin, lang }) {
   const [guardianName, setGuardianName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  // ✅ V263: 보안질문
-  const [secQ, setSecQ] = useState(SECURITY_QUESTIONS[0]);
-  const [secA, setSecA] = useState("");
-  // ✅ V263: 비밀번호 찾기 3단계
+  // ✅ V520: 비밀번호 찾기 — 이메일 입력(1) → 발송 안내(3). 보안질문 단계(2) 제거
   const [forgotStep, setForgotStep] = useState(1);
   const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotQ, setForgotQ] = useState("");
-  const [forgotA, setForgotA] = useState("");
-  const [forgotUid, setForgotUid] = useState("");
   const [forgotMsg, setForgotMsg] = useState("");
 
   async function handleSubmit() {
@@ -1230,7 +1210,6 @@ function AuthScreen({ onLogin, lang }) {
     if (tab === "signup" && !dataOwnershipAgreed) { setError("학습 데이터 소유권 귀속 및 활용 동의는 필수예요"); return; }
     // ✅ V433: 만 14세 미만 가입 정책(반박타파 프로 v2 확정) — 자기신고로 성인이 아니면, 책임 있는 어른의 동의 확인이 필수
     if (tab === "signup" && !isAdult && !minorConsentConfirmed) { setError(at("minorConsentErr")); return; }
-    if (tab === "signup" && secA.trim().length < 2) { setError("보안질문 답변을 2자 이상 입력해주세요"); return; }
     setLoading(true); setError("");
     try {
       if (tab === "signup") {
@@ -1240,11 +1219,12 @@ function AuthScreen({ onLogin, lang }) {
         // (교원2급 졸업생 / 원우회 소속 대학원생만 ADMIN 승인 후 실제 instructor 전환)
         const savedRole = role === "instructor" ? "instructor_pending" : "learner";
         // ✅ V410: 회원번호(랜덤 코드, 예: HC-7F3K9M) 생성 — 성적표 등에 표기
-        const memberNo = await generateUniqueMemberNo();
+        // ✅ V520: 회원번호 생성이 실패해도 가입은 끝까지 진행(번호는 다음 로그인 때 재시도)
+        const memberNo = await generateUniqueMemberNo(cred.user.uid);
         await setDoc(doc(db, "users", cred.user.uid), {
           name, email, role: savedRole,
           requestedRole: role, // 본인이 가입 시 선택한 의도 보존(승인 화면에서 활용)
-          memberNo,
+          ...(memberNo ? { memberNo } : {}),
           // ✅ V432: 교수자가 소속 기관을 입력한 경우에만 저장(빈 값이면 필드 자체를 생략)
           ...(role === "instructor" && signupOrgName.trim() ? { orgName: signupOrgName.trim() } : {}),
           dataOwnershipAgreed: true,
@@ -1253,8 +1233,6 @@ function AuthScreen({ onLogin, lang }) {
           isAdult,
           ...(!isAdult ? { minorConsentConfirmed: true } : {}),
           ...(!isAdult && guardianName.trim() ? { guardianName: guardianName.trim() } : {}),
-          securityQuestion: secQ,
-          securityAnswer: secA.trim(),
           createdAt: serverTimestamp(),
           stats: { speak: 0, write: 0, tutor: 0 },
         });
@@ -1288,41 +1266,22 @@ function AuthScreen({ onLogin, lang }) {
     setLoading(false);
   }
 
-  // ✅ V263: 비밀번호 찾기 1단계 - 이메일로 사용자 조회
-  async function handleForgotStep1() {
-    if (!forgotEmail.trim()) { setForgotMsg("이메일을 입력해주세요"); return; }
+  // ✅ V520: 비밀번호 찾기 — 이메일만 넣으면 Firebase 표준 재설정 메일을 바로 발송.
+  //   V519까지는 로그인 전에 users를 email로 조회했는데, 보안 규칙상 로그인 전 조회는 전부 거부돼
+  //   누구도 비밀번호를 찾을 수 없었음(2026-09-25 실기기·에뮬레이터 테스트 B 확인).
+  //   가입 여부를 남이 알아낼 수 없도록, 없는 이메일이어도 같은 안내를 보여준다.
+  async function handleForgotSend() {
+    const em = forgotEmail.trim();
+    if (!em) { setForgotMsg("이메일을 입력해주세요"); return; }
     setLoading(true); setForgotMsg("");
     try {
-      const q = query(collection(db, "users"), where("email", "==", forgotEmail.trim()));
-      const snap = await getDocs(q);
-      if (snap.empty) { setForgotMsg("등록된 이메일이 없어요"); setLoading(false); return; }
-      const d = snap.docs[0];
-      setForgotUid(d.id);
-      setForgotQ(d.data().securityQuestion || "");
-      setForgotStep(2);
-    } catch(e) { setForgotMsg("오류가 발생했어요. 다시 시도해주세요"); }
-    setLoading(false);
-  }
-
-  // ✅ V263: 비밀번호 찾기 2단계 - 보안질문 답변 검증
-  // ✅ V409: 검증 통과 시 곧바로 Firebase 표준 이메일 재설정 메일을 발송하도록 수정.
-  //   (기존에는 검증 통과 후 "새 비밀번호 입력" 화면을 또 보여줬지만, 그 입력값은 실제로는
-  //    전혀 쓰이지 않고 뒤에서 몰래 sendPasswordResetEmail만 호출하던 버그가 있었음 —
-  //    사용자가 공들여 입력한 새 비밀번호가 조용히 버려지는 기만적인 흐름이었음)
-  async function handleForgotStep2() {
-    if (!forgotA.trim()) { setForgotMsg("답변을 입력해주세요"); return; }
-    setLoading(true); setForgotMsg("");
-    try {
-      const d = await getDoc(doc(db, "users", forgotUid));
-      const saved = (d.data().securityAnswer || "").trim();
-      if (saved === forgotA.trim()) {
-        await sendPasswordResetEmail(auth, forgotEmail.trim());
-        setForgotStep(3);
-        setForgotMsg("SUCCESS");
-      } else {
-        setForgotMsg("답변이 일치하지 않아요. 다시 확인해주세요");
-      }
-    } catch(e) { setForgotMsg("오류가 발생했어요. 다시 시도해주세요"); }
+      await sendPasswordResetEmail(auth, em);
+      setForgotStep(3);
+    } catch (e) {
+      if (e.code === "auth/user-not-found") setForgotStep(3);
+      else if (e.code === "auth/invalid-email" || e.code === "auth/missing-email") setForgotMsg("이메일 형식이 맞지 않아요");
+      else setForgotMsg(AUTH_ERRORS[e.code] || "오류가 발생했어요. 다시 시도해주세요");
+    }
     setLoading(false);
   }
 
@@ -1342,7 +1301,7 @@ function AuthScreen({ onLogin, lang }) {
       <div style={{minHeight:"100dvh",background:`linear-gradient(150deg,${C.bg},#FFF0F9 50%,#F0FFFE)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
         <div style={{fontSize:40,marginBottom:8}}>🔐</div>
         <div style={{fontSize:20,fontWeight:900,color:"#333",marginBottom:4}}>{at("forgotTitle")}</div>
-        <div style={{fontSize:12,color:"#bbb",marginBottom:24}}>{forgotStep}단계 / 3단계</div>
+        <div style={{marginBottom:24}}/>
         <div style={{width:"100%",maxWidth:360,background:"white",borderRadius:24,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.1)"}}>
 
           {/* 1단계: 이메일 입력 */}
@@ -1352,37 +1311,20 @@ function AuthScreen({ onLogin, lang }) {
               placeholder={at("email")} type="email"
               style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:14,boxSizing:"border-box"}}/>
             {forgotMsg&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{forgotMsg}</div>}
-            <button onClick={handleForgotStep1} disabled={loading}
+            <div style={{fontSize:12,color:"#888",lineHeight:1.6,marginBottom:12}}>가입하신 이메일로 비밀번호를 새로 만드는 링크를 보내드려요.</div>
+            <button onClick={handleForgotSend} disabled={loading}
               style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:loading?0.5:1}}>
               {loading?at("checking"):at("nextBtn")}
             </button>
           </>}
 
-          {/* 2단계: 보안질문 답변 */}
-          {forgotStep===2&&<>
-            <div style={{background:"#F3EEFF",borderRadius:12,padding:"14px",marginBottom:14}}>
-              <div style={{fontSize:11,color:"#9C6FDE",fontWeight:700,marginBottom:4}}>보안 질문</div>
-              <div style={{fontSize:14,fontWeight:700,color:"#333"}}>{forgotQ||at("noQuestion")}</div>
-            </div>
-            <input value={forgotA} onChange={e=>setForgotA(e.target.value.slice(0,20))}
-              placeholder="답변 입력 (최대 20자)" maxLength={20}
-              style={{width:"100%",padding:"13px 16px",borderRadius:12,border:`2px solid ${C.pink}44`,outline:"none",fontSize:15,marginBottom:14,boxSizing:"border-box"}}/>
-            {forgotMsg&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{forgotMsg}</div>}
-            <button onClick={handleForgotStep2} disabled={loading||!forgotQ}
-              style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:(loading||!forgotQ)?0.5:1}}>
-              {loading?at("checking"):at("answerCheck")}
-            </button>
-            <button onClick={()=>{setForgotStep(1);setForgotMsg("");}}
-              style={{width:"100%",marginTop:10,background:"none",border:"none",color:"#bbb",fontSize:13,cursor:"pointer"}}>← 뒤로</button>
-          </>}
-
-          {/* ✅ V409: 3단계 — 보안질문 통과 즉시 이메일이 발송되므로 안내만 표시(가짜 새비밀번호 입력 제거) */}
+          {/* ✅ V520: 발송 안내 — 가입 여부와 관계없이 같은 문구(가입 여부 노출 방지) */}
           {forgotStep===3&&
             <div style={{textAlign:"center",padding:"20px 0"}}>
               <div style={{fontSize:40,marginBottom:12}}>✅</div>
-              <div style={{fontSize:15,fontWeight:900,color:"#00C896",marginBottom:8}}>비밀번호 재설정 이메일을 보냈어요!</div>
-              <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:20}}>{forgotEmail}로 전송된<br/>이메일의 링크를 클릭해서<br/>새 비밀번호를 설정해주세요.</div>
-              <button onClick={()=>{setTab("login");setForgotStep(1);setForgotEmail("");setForgotA("");setForgotMsg("");}}
+              <div style={{fontSize:15,fontWeight:900,color:"#00C896",marginBottom:8}}>재설정 메일을 보냈어요!</div>
+              <div style={{fontSize:13,color:"#555",lineHeight:1.7,marginBottom:20}}>{forgotEmail}이(가) 가입된 이메일이라면<br/>곧 메일이 도착해요. 메일의 링크를 눌러<br/>새 비밀번호를 만들어 주세요.<br/><span style={{color:"#888"}}>메일이 안 보이면 스팸함도 확인해 주세요.</span></div>
+              <button onClick={()=>{setTab("login");setForgotStep(1);setForgotEmail("");setForgotMsg("");}}
                 style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer"}}>
                 로그인 화면으로 →
               </button>
@@ -1492,20 +1434,8 @@ function AuthScreen({ onLogin, lang }) {
           </div>
         )}
 
-        {/* ✅ V263: 보안질문 (회원가입 탭만) */}
+        {/* ✅ V520: 보안질문 입력 제거 — 필수 동의부터 */}
         {tab==="signup"&&(<>
-          <div style={{marginBottom:10}}>
-            <div style={{fontSize:12,color:"#888",marginBottom:6,fontWeight:600}}>{at("secQLabel")}</div>
-            <select value={secQ} onChange={e=>setSecQ(e.target.value)}
-              style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:13,marginBottom:8,boxSizing:"border-box",background:"white",color:"#333"}}>
-              {secQList.map((q,i)=><option key={i} value={q}>{q}</option>)}
-            </select>
-            <input value={secA} onChange={e=>setSecA(e.target.value.slice(0,20))}
-              placeholder={at("secAPlace")} maxLength={20}
-              style={{width:"100%",padding:"11px 14px",borderRadius:12,border:`2px solid ${C.teal}44`,outline:"none",fontSize:13,boxSizing:"border-box"}}/>
-            <div style={{fontSize:11,color:"#bbb",marginTop:4}}>{at("secAHint")}</div>
-          </div>
-
           {/* 필수 동의 */}
           <div onClick={()=>setDataOwnershipAgreed(p=>!p)} style={{display:"flex",alignItems:"flex-start",gap:10,background:dataOwnershipAgreed?"#F0FBF7":"#FAFAFA",border:`1.5px solid ${dataOwnershipAgreed?"#00C896":"#e0e0e0"}`,borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",transition:"all .2s"}}>
             <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${dataOwnershipAgreed?"#00C896":"#ccc"}`,background:dataOwnershipAgreed?"#00C896":"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1,transition:"all .2s"}}>
@@ -1580,6 +1510,10 @@ function AdminDashboard({ user, onLogout, onExitAdmin }) {
   const [loading, setLoading] = useState(true);
   // ✅ V394: 교수자 승인 대기 목록
   const [instructorReqs, setInstructorReqs] = useState([]);
+  // ✅ V520: 보안질문 답변이 남아 있는 사용자 uid 목록(일괄 삭제용). null = 아직 불러오기 전
+  const [secLeftUids, setSecLeftUids] = useState(null);
+  const [secCleaning, setSecCleaning] = useState(false);
+  const [secCleanMsg, setSecCleanMsg] = useState("");
 
   // ✅ V394: 교수자 승인 대기(instructor_pending) + 이미 승인/반려된 인원 실시간 구독
   useEffect(() => {
@@ -1610,6 +1544,8 @@ function AdminDashboard({ user, onLogout, onExitAdmin }) {
     const q = query(collection(db, "users"));
     const unsub = onSnapshot(q, snap => {
       const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // ✅ V520: 보안질문 답변이 남은 사용자(교수자·관리자 포함 전체) 집계
+      setSecLeftUids(all.filter(u => u.securityAnswer !== undefined || u.securityQuestion !== undefined).map(u => u.id));
       // instructor/admin 제외하고 나머지 전부 학습자로 표시
       setUsers(all.filter(u => u.role !== "instructor" && u.role !== "instructor_pending" && u.email !== ADMIN_EMAIL));
       setLoading(false);
@@ -1619,6 +1555,23 @@ function AdminDashboard({ user, onLogout, onExitAdmin }) {
     });
     return () => unsub();
   }, []);
+
+  // ✅ V520: 보안질문 답변 일괄 삭제 — 되돌릴 수 없으므로 인원 수를 보여주고 한 번 더 확인
+  async function cleanupSecurityAnswers() {
+    const uids = secLeftUids || [];
+    if (uids.length === 0) return;
+    if (!window.confirm(`${uids.length}명의 보안질문과 답변을 삭제할까요?\n삭제하면 되돌릴 수 없어요.`)) return;
+    setSecCleaning(true); setSecCleanMsg("");
+    let ok = 0, fail = 0;
+    for (const uid of uids) {
+      try {
+        await updateDoc(doc(db, "users", uid), { securityQuestion: deleteField(), securityAnswer: deleteField() });
+        ok++;
+      } catch (e) { fail++; }
+    }
+    setSecCleaning(false);
+    setSecCleanMsg(fail === 0 ? `✅ ${ok}명 삭제 완료` : `${ok}명 삭제, ${fail}명 실패 — 다시 눌러 주세요`);
+  }
 
   // 관리자 최종 승인
   async function approveSubmission(subId, uid) {
@@ -1701,6 +1654,24 @@ function AdminDashboard({ user, onLogout, onExitAdmin }) {
       </div>
 
       <div style={{padding:"20px 16px", maxWidth:800, margin:"0 auto"}}>
+
+        {/* ── ✅ V520: 보안질문 답변 정리(남은 인원이 0이 되면 새 보안 규칙 게시 가능) ── */}
+        {secLeftUids !== null && (
+          <div style={{background: secLeftUids.length > 0 ? "rgba(255,183,77,0.12)" : "rgba(0,200,150,0.10)", border:`1px solid ${secLeftUids.length > 0 ? "#FFB74D66" : "#00C89655"}`, borderRadius:14, padding:"12px 14px", marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, flexWrap:"wrap"}}>
+            <div style={{fontSize:13, color:"white", lineHeight:1.5}}>
+              {secLeftUids.length > 0
+                ? <>🔐 보안질문 답변이 남아 있는 사용자 <b>{secLeftUids.length}명</b><br/><span style={{fontSize:11, opacity:0.7}}>V520부터 쓰지 않는 정보예요. 삭제 후 새 보안 규칙을 게시하세요.</span></>
+                : <>✅ 남은 보안질문 답변 0명 — 새 보안 규칙을 게시해도 돼요</>}
+              {secCleanMsg && <div style={{fontSize:12, marginTop:4, color:"#FFD54F"}}>{secCleanMsg}</div>}
+            </div>
+            {secLeftUids.length > 0 && (
+              <button onClick={cleanupSecurityAnswers} disabled={secCleaning}
+                style={{background:"#FF8C42", color:"white", border:"none", borderRadius:20, padding:"8px 16px", fontSize:13, fontWeight:800, cursor: secCleaning ? "not-allowed" : "pointer", opacity: secCleaning ? 0.6 : 1}}>
+                {secCleaning ? "삭제 중..." : "일괄 삭제"}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* ── ✅ V394: 교수자 승인 탭 ── */}
         {tab === "instructor" && (
@@ -2655,6 +2626,8 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  // ✅ V520: 학습자 목록을 불러오지 못했을 때 빈 목록 대신 안내(V519까지는 조용히 빈 화면)
+  const [studentsError, setStudentsError] = useState(false);
 
   // 교수자 정보 및 클래스 코드 로드
   useEffect(() => {
@@ -2677,6 +2650,10 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
       // ✅ V516: 교수자 본인 UID 방어 필터 — "학습자 화면 보기" 중 자기 클래스에 참여한 경우에도
       //          학습자 목록·과제 완료 현황·발음 TOP5 집계에 교수자 본인이 섞이지 않도록 차단
       setStudents(snap.docs.filter(d => d.id !== user.uid).map(d => ({ id: d.id, ...d.data() })));
+      setStudentsError(false);
+    }, err => {
+      console.error("학습자 목록 로딩 오류:", err);
+      setStudentsError(true);
     });
     return () => unsub();
   }, [user]);
@@ -2754,6 +2731,13 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
       </div>
 
       <div style={{padding:"20px 16px", maxWidth:600, margin:"0 auto"}}>
+
+        {/* ── ✅ V520: 학습자 목록 로딩 실패 안내 ── */}
+        {studentsError && (
+          <div style={{background:"#FFF0F0", border:"1px solid #FFCCCC", borderRadius:14, padding:"12px 14px", marginBottom:14, fontSize:13, color:"#C62828", lineHeight:1.6}}>
+            ⚠️ 학습자 목록을 불러오지 못했어요. 새로고침해도 계속되면 관리자에게 알려 주세요.
+          </div>
+        )}
 
         {/* ── 클래스 관리 탭 ── */}
         {tab === "class" && (
@@ -26744,9 +26728,14 @@ export default function App() {
           setMemberNo(existingMemberNo);
         } else {
           try {
-            const newMemberNo = await generateUniqueMemberNo();
-            await updateDoc(doc(db, "users", user.uid), { memberNo: newMemberNo });
-            setMemberNo(newMemberNo);
+            // ✅ V520: 등록부 방식 — 실패하면 null이 오므로 저장하지 않고 다음 로그인에 재시도
+            const newMemberNo = await generateUniqueMemberNo(user.uid);
+            if (newMemberNo) {
+              await updateDoc(doc(db, "users", user.uid), { memberNo: newMemberNo });
+              setMemberNo(newMemberNo);
+            } else {
+              setMemberNo(null);
+            }
           } catch {
             setMemberNo(null); // 생성 실패 시 다음 로그인에 재시도(치명적이지 않음)
           }
