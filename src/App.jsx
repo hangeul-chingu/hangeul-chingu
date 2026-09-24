@@ -121,7 +121,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "516";
+const APP_VERSION = "517";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2143,21 +2143,12 @@ function AssignmentPanel({ user, students }) {
 // ✅ V514: 학습자용 과제 확인 모달
 // 학습자의 gramLog/pronLog를 Firestore에서 직접 읽어 완료 여부 판정
 // ════════════════════════════════════════════════════════
-function LearnerAssignmentModal({ assignments, onClose, onGoToTab, user }) {
-  const [myGramLog, setMyGramLog] = useState([]);
-  const [myPronLog, setMyPronLog] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) { setLoading(false); return; }
-    getDoc(doc(db, "users", user.uid)).then(d => {
-      if (d.exists()) {
-        setMyGramLog(d.data().gramLog || []);
-        setMyPronLog(d.data().pronLog || []);
-      }
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, [user]);
+// ✅ V517: 열 때 1회 getDoc → 부모(App)의 실시간 구독 데이터(gramLog/pronLog props)를 그대로 사용.
+//          닫았다 다시 열지 않아도 ✅가 바로 반영됨.
+function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], onClose, onGoToTab, user }) {
+  const myGramLog = gramLog;
+  const myPronLog = pronLog;
+  const loading = false;
 
   const TYPE_LABELS = {
     MID_QUIZ: "🧠 어휘·문법(중급)",
@@ -2165,9 +2156,10 @@ function LearnerAssignmentModal({ assignments, onClose, onGoToTab, user }) {
     PRON_TEST: "🎙️ 발음 테스트",
     ESSAY: "✍️ 논술",
   };
+  // ✅ V517: MID/ADV 퀴즈 기록(gramLog)은 프리토킹(SpeakTab) 5턴마다 나오는 퀴즈 카드에서만 저장됨 → speak로 수정
   const TYPE_TAB = {
-    MID_QUIZ: "game",
-    ADV_QUIZ: "game",
+    MID_QUIZ: "speak",
+    ADV_QUIZ: "speak",
     PRON_TEST: "speak",
     ESSAY: "write",
   };
@@ -2212,8 +2204,7 @@ function LearnerAssignmentModal({ assignments, onClose, onGoToTab, user }) {
                         </div>
                       )}
                       <div style={{ fontSize: 12, color: "#2E75B6", marginTop: 6, background: "#EBF3FB", borderRadius: 8, padding: "6px 10px" }}>
-                        {a.type === "MID_QUIZ" ? "📌 게임 탭 → 어휘·문법 퀴즈를 풀어주세요" :
-                         a.type === "ADV_QUIZ" ? "📌 게임 탭 → 고급 어휘·문법 퀴즈를 풀어주세요" :
+                        {a.type === "MID_QUIZ" || a.type === "ADV_QUIZ" ? "📌 프리토킹 탭 → 마중이와 5번 대화하면 퀴즈 카드가 나와요. 풀고 나서 다른 탭으로 이동해주세요" :
                          a.type === "PRON_TEST" ? "📌 프리토킹 탭 → 발음 테스트를 완료해주세요" :
                          "📌 논술 탭 → 글쓰기 과제를 제출해주세요"}
                       </div>
@@ -2224,8 +2215,7 @@ function LearnerAssignmentModal({ assignments, onClose, onGoToTab, user }) {
                   {!done && targetTab && (
                     <button onClick={() => onGoToTab(targetTab)}
                       style={{ marginTop: 10, width: "100%", background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
-                      {a.type === "MID_QUIZ" ? "🧠 게임탭에서 어휘·문법 풀기" :
-                       a.type === "ADV_QUIZ" ? "🔥 게임탭에서 고급 퀴즈 풀기" :
+                      {a.type === "MID_QUIZ" || a.type === "ADV_QUIZ" ? "🗣️ 프리토킹에서 퀴즈 풀기" :
                        a.type === "PRON_TEST" ? "🎙️ 프리토킹에서 발음 테스트" :
                        "✍️ 논술탭에서 글쓰기"} →
                     </button>
@@ -26058,6 +26048,8 @@ export default function App() {
   // ✅ V514: 학습자 과제 배너 모달 + 과제 목록
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [learnerAssignments, setLearnerAssignments] = useState([]);
+  // ✅ V517: 학습자 본인 gramLog/pronLog 실시간 구독 — 배너 완료 판정 + 과제 목록 ✅ 실시간 반영용
+  const [myAssignLogs, setMyAssignLogs] = useState(null); // null = 아직 로딩 전(배너 깜빡임 방지)
   // ✅ V332: 홈 화면 다국어 번역 테이블
   const hlc = onboardingLang || "ko";
   const HOME_T = {
@@ -26150,6 +26142,16 @@ export default function App() {
       }
     }).catch(()=>{});
   },[user]);
+
+  // ✅ V517: 학습자 본인 문서 실시간 구독 — 과제가 있을 때만 구독(불필요한 읽기 방지)
+  useEffect(() => {
+    if (!user || userRole !== "learner" || learnerAssignments.length === 0) return;
+    const unsub = onSnapshot(doc(db, "users", user.uid), d => {
+      const data = d.exists() ? d.data() : {};
+      setMyAssignLogs({ gramLog: data.gramLog || [], pronLog: data.pronLog || [] });
+    }, () => setMyAssignLogs({ gramLog: [], pronLog: [] })); // 읽기 실패 시에도 배너는 "할 과제"로 표시
+    return () => unsub();
+  }, [user?.uid, userRole, learnerAssignments.length]);
 
   // ✅ V514: 학습자 과제 2쿼리 구독 — currentTeacherId 없으면 구독 안 함
   // Firestore array-contains 제약: isClassWide(boolean) + targetUids(array) 2필드 분리 → 2번 쿼리 병합
@@ -27827,12 +27829,26 @@ export default function App() {
         </div>
       </div>
       </>}
-      {/* ✅ V514: 학습자 과제 배너 — 미완료 과제가 있을 때만 표시 */}
+      {/* ✅ V514: 학습자 과제 배너
+          ✅ V517: 완료 여부 반영 — 남은 과제가 있으면 파란 배너(남은 개수), 모두 끝냈으면
+          초록 "과제 모두 완료!" 배너(숨기지 않음: 성취감 표시, 구글 클래스룸 '완료' 칸과 같은 원칙) */}
       {(() => {
-        if (!learnerAssignments.length) return null;
-        // 학습자 본인의 gramLog/pronLog는 Firestore 원본을 직접 읽기 어려우므로
-        // 배너에서는 미완료 개수만 표시하고, 모달에서 상세 확인
-        // (완료 판정은 모달 열 때 최신 데이터로 처리)
+        if (!learnerAssignments.length || !myAssignLogs) return null;
+        const pendingAssignments = learnerAssignments.filter(a => !isAssignmentDone(a, myAssignLogs.gramLog, myAssignLogs.pronLog));
+        if (pendingAssignments.length === 0) return (
+          <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 12px 8px" }}>
+            <div
+              onClick={() => setShowAssignmentModal(true)}
+              style={{ background: "linear-gradient(135deg,#2D9D78,#1E7A5C)", borderRadius: 16, padding: "12px 16px", boxShadow: "0 4px 12px rgba(45,157,120,0.25)", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+            >
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "white", marginBottom: 2 }}>✅ 과제 모두 완료!</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>과제 {learnerAssignments.length}개를 모두 끝냈어요 👏</div>
+              </div>
+              <div style={{ fontSize: 20, color: "white" }}>›</div>
+            </div>
+          </div>
+        );
         return (
           <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 12px 8px" }}>
             <div
@@ -27841,10 +27857,10 @@ export default function App() {
             >
               <div>
                 <div style={{ fontSize: 13, fontWeight: 800, color: "white", marginBottom: 2 }}>
-                  📋 과제 {learnerAssignments.length}개
+                  📋 할 과제 {pendingAssignments.length}개
                 </div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>
-                  {learnerAssignments[0]?.title}{learnerAssignments.length > 1 ? ` 외 ${learnerAssignments.length - 1}개` : ""}
+                  {pendingAssignments[0]?.title}{pendingAssignments.length > 1 ? ` 외 ${pendingAssignments.length - 1}개` : ""}
                 </div>
               </div>
               <div style={{ fontSize: 20, color: "white" }}>›</div>
@@ -27857,6 +27873,8 @@ export default function App() {
       {showAssignmentModal && (
         <LearnerAssignmentModal
           assignments={learnerAssignments}
+          gramLog={myAssignLogs?.gramLog || []}
+          pronLog={myAssignLogs?.pronLog || []}
           onClose={() => setShowAssignmentModal(false)}
           onGoToTab={(t) => { setTab(t); setShowAssignmentModal(false); }}
           user={user}
