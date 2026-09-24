@@ -98,7 +98,10 @@ async function saveGramLog(uid, quizType, results) {
 function isAssignmentDone(assignment, gramLog = [], pronLog = []) {
   const dl = assignment.deadline ? (assignment.deadline.toMillis ? assignment.deadline.toMillis() : new Date(assignment.deadline).getTime()) : null;
   const ca = assignment.createdAt ? (assignment.createdAt.toMillis ? assignment.createdAt.toMillis() : new Date(assignment.createdAt).getTime()) : 0;
-  const inRange = (e) => (!dl || (e.ts && e.ts < dl)) && (e.ts && e.ts >= ca);
+  // ✅ V518: gramLog는 시간을 ts로, pronLog(V355~)는 timestamp로 저장함 → 둘 다 인정.
+  //          (V514~V517은 ts만 봐서 발음 테스트 과제가 학습자가 완료해도 영원히 미완료였음)
+  const tOf = (e) => e.ts ?? e.timestamp;
+  const inRange = (e) => { const t = tOf(e); return !!t && (!dl || t < dl) && t >= ca; };
   switch (assignment.type) {
     case "MID_QUIZ":
       return gramLog.some(e => e.quizType === "MID_QUIZ" && inRange(e));
@@ -121,7 +124,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "517";
+const APP_VERSION = "518";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2007,6 +2010,17 @@ function AssignmentPanel({ user, students }) {
                 </button>
               ))}
             </div>
+            {/* ✅ V518: 유형별 완료 기준 안내 — 교수자가 학습자가 완료할 수 없는 과제를 내지 않도록 */}
+            {form.type === "PRON_TEST" && (
+              <div style={{ marginTop: 8, fontSize: 11, color: "#7A6000", background: "#FFF8DC", border: "1px solid #F0D060", borderRadius: 8, padding: "8px 10px", lineHeight: 1.6 }}>
+                💡 학습자가 <b>초급 80시간 과정의 '발음 8단계' 발음 테스트</b>를 끝까지 마치면 완료로 인정돼요. 초급 과정 학습자에게 알맞은 과제예요.
+              </div>
+            )}
+            {form.type === "ESSAY" && (
+              <div style={{ marginTop: 8, fontSize: 11, color: "#7A6000", background: "#FFF8DC", border: "1px solid #F0D060", borderRadius: 8, padding: "8px 10px", lineHeight: 1.6 }}>
+                💡 논술 과제는 아직 자동으로 완료 처리되지 않아요. 제출·글 읽기 기능은 다음 업데이트에서 추가될 예정이에요.
+              </div>
+            )}
           </div>
 
           {/* 대상 */}
@@ -2160,7 +2174,7 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], onClo
   const TYPE_TAB = {
     MID_QUIZ: "speak",
     ADV_QUIZ: "speak",
-    PRON_TEST: "speak",
+    PRON_TEST: null, // ✅ V518: 발음 테스트는 초급 80시간 과정(발음 8단계) 안에만 있음 — 탭 이동 버튼 없음, 안내 문구로 대체
     ESSAY: "write",
   };
 
@@ -2205,7 +2219,7 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], onClo
                       )}
                       <div style={{ fontSize: 12, color: "#2E75B6", marginTop: 6, background: "#EBF3FB", borderRadius: 8, padding: "6px 10px" }}>
                         {a.type === "MID_QUIZ" || a.type === "ADV_QUIZ" ? "📌 프리토킹 탭 → 마중이와 5번 대화하면 퀴즈 카드가 나와요. 풀고 나서 다른 탭으로 이동해주세요" :
-                         a.type === "PRON_TEST" ? "📌 프리토킹 탭 → 발음 테스트를 완료해주세요" :
+                         a.type === "PRON_TEST" ? "📌 초급 80시간 과정의 '발음 8단계' → 발음 테스트를 끝까지 풀면 완료돼요" :
                          "📌 논술 탭 → 글쓰기 과제를 제출해주세요"}
                       </div>
                       {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
@@ -27322,6 +27336,22 @@ export default function App() {
                 <div style={{fontSize:16,fontWeight:900,color:"#333"}}>👤 마이페이지</div>
                 <button onClick={()=>setShowMyPage(false)} style={{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#bbb"}}>✕</button>
               </div>
+              {/* ✅ V518: 초급 과정 학습자도 과제를 볼 수 있도록 — 이 블록엔 과제 배너가 없었음(V514~V517은 일반 화면에만 존재).
+                  BegScreen 화면 위에 떠 있는 배너는 기존 버튼을 가릴 위험이 있어 마이페이지 최상단 카드로 배치. */}
+              {learnerAssignments.length > 0 && myAssignLogs && (() => {
+                const begPending = learnerAssignments.filter(a => !isAssignmentDone(a, myAssignLogs.gramLog, myAssignLogs.pronLog));
+                const allDone = begPending.length === 0;
+                return (
+                  <div onClick={() => { setShowMyPage(false); setShowAssignmentModal(true); }}
+                    style={{ background: allDone ? "linear-gradient(135deg,#2D9D78,#1E7A5C)" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", borderRadius: 12, padding: "12px 16px", marginBottom: 16, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: "white", marginBottom: 2 }}>{allDone ? "✅ 과제 모두 완료!" : `📋 할 과제 ${begPending.length}개`}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>{allDone ? `과제 ${learnerAssignments.length}개를 모두 끝냈어요 👏` : `${begPending[0]?.title}${begPending.length > 1 ? ` 외 ${begPending.length - 1}개` : ""}`}</div>
+                    </div>
+                    <div style={{ fontSize: 20, color: "white" }}>›</div>
+                  </div>
+                );
+              })()}
               <div style={{background:"#F3EEFF",borderRadius:12,padding:"14px 16px",marginBottom:16}}>
                 <div style={{fontSize:13,color:"#666",marginBottom:6}}>👤 {user.displayName||user.email}</div>
                 <div style={{fontSize:12,color:"#9C6FDE",fontWeight:700,marginBottom:8}}>📍 현재 위치: {beg_label}</div>
@@ -27469,6 +27499,17 @@ export default function App() {
               </button>
             </div>
           </div>
+        )}
+        {/* ✅ V518: 초급 블록 과제 목록 모달 (마이페이지 과제 카드에서 열림) */}
+        {showAssignmentModal && (
+          <LearnerAssignmentModal
+            assignments={learnerAssignments}
+            gramLog={myAssignLogs?.gramLog || []}
+            pronLog={myAssignLogs?.pronLog || []}
+            onClose={() => setShowAssignmentModal(false)}
+            onGoToTab={() => setShowAssignmentModal(false)}
+            user={user}
+          />
         )}
         {/* ✅ V510: 학습자 클래스 참여 팝업 — 이 BegScreen 축약형 블록에도
             JoinClassModal 렌더가 연결돼 있지 않아 카드에서 코드를 입력해도 팝업이
