@@ -167,7 +167,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "520";
+const APP_VERSION = "521";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -26547,15 +26547,20 @@ export default function App() {
     }).catch(()=>{});
   },[user]);
 
-  // ✅ V517: 학습자 본인 문서 실시간 구독 — 과제가 있을 때만 구독(불필요한 읽기 방지)
+  // ✅ V517: 학습자 본인 문서 실시간 구독(과제 완료 기록 gramLog/pronLog)
+  // ✅ V521: 선생님 연결(currentTeacherId)도 이 구독으로 함께 추적 — 과제가 없어도 항상 구독.
+  //   V520까지는 로그인 때 currentTeacherId를 한 번만 읽어서, 클래스에 참여한 직후(또는 교수자가
+  //   연결을 해제한 직후)에는 새로고침 전까지 과제 목록이 바뀌지 않았음(2026-09-24 실기기 발견).
+  //   참여 경로(링크·마이페이지 코드 입력, A·B·C 블록)와 무관하게 문서 변경만 보고 따라가므로 경로별 수정이 필요 없음.
   useEffect(() => {
-    if (!user || userRole !== "learner" || learnerAssignments.length === 0) return;
+    if (!user || userRole !== "learner") { setAssignTeacherId(null); return; }
     const unsub = onSnapshot(doc(db, "users", user.uid), d => {
       const data = d.exists() ? d.data() : {};
+      setAssignTeacherId(data.currentTeacherId || null);
       setMyAssignLogs({ gramLog: data.gramLog || [], pronLog: data.pronLog || [] });
     }, () => setMyAssignLogs({ gramLog: [], pronLog: [] })); // 읽기 실패 시에도 배너는 "할 과제"로 표시
     return () => unsub();
-  }, [user?.uid, userRole, learnerAssignments.length]);
+  }, [user?.uid, userRole]);
 
   // ✅ V519: 내 논술 과제 제출 문서 실시간 구독 — 논술 과제가 있을 때만(문서 1개씩)
   const myEssayIdsKey = learnerAssignments.filter(a => a.type === "ESSAY").map(a => a.id).join(",");
@@ -26571,34 +26576,29 @@ export default function App() {
 
   // ✅ V514: 학습자 과제 2쿼리 구독 — currentTeacherId 없으면 구독 안 함
   // Firestore array-contains 제약: isClassWide(boolean) + targetUids(array) 2필드 분리 → 2번 쿼리 병합
+  // ✅ V521: 선생님 uid를 위 본인 문서 구독(assignTeacherId)에서 받아 씀 → 참여·해제 즉시 재구독.
+  //   (V520까지는 이 안에서 getDoc으로 한 번만 읽었고, 읽기가 끝나기 전에 정리되면 구독이 남는 문제도 있었음)
   useEffect(() => {
-    if (!user || userRole !== "learner") { setLearnerAssignments([]); return; }
-    // 학습자 문서에서 currentTeacherId 먼저 읽기
-    let u1 = null, u2 = null;
-    getDoc(doc(db, "users", user.uid)).then(d => {
-      const tid = d.exists() ? d.data().currentTeacherId : null;
-      setAssignTeacherId(tid || null);
-      if (!tid) { setLearnerAssignments([]); return; }
-      const ref = collection(db, "classes", tid, "assignments");
-      let allWide = [], individual = [];
-      const merge = () => {
-        const map = {};
-        [...allWide, ...individual].forEach(item => { map[item.id] = item; });
-        const merged = Object.values(map);
-        merged.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-        setLearnerAssignments(merged);
-      };
-      u1 = onSnapshot(query(ref, where("isClassWide", "==", true)), snap => {
-        allWide = snap.docs.map(d2 => ({ id: d2.id, ...d2.data() }));
-        merge();
-      });
-      u2 = onSnapshot(query(ref, where("targetUids", "array-contains", user.uid)), snap => {
-        individual = snap.docs.map(d2 => ({ id: d2.id, ...d2.data() }));
-        merge();
-      });
-    }).catch(() => setLearnerAssignments([]));
-    return () => { u1 && u1(); u2 && u2(); };
-  }, [user?.uid, userRole]);
+    if (!user || userRole !== "learner" || !assignTeacherId) { setLearnerAssignments([]); return; }
+    const ref = collection(db, "classes", assignTeacherId, "assignments");
+    let allWide = [], individual = [];
+    const merge = () => {
+      const map = {};
+      [...allWide, ...individual].forEach(item => { map[item.id] = item; });
+      const merged = Object.values(map);
+      merged.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      setLearnerAssignments(merged);
+    };
+    const u1 = onSnapshot(query(ref, where("isClassWide", "==", true)), snap => {
+      allWide = snap.docs.map(d2 => ({ id: d2.id, ...d2.data() }));
+      merge();
+    }, () => { allWide = []; merge(); });
+    const u2 = onSnapshot(query(ref, where("targetUids", "array-contains", user.uid)), snap => {
+      individual = snap.docs.map(d2 => ({ id: d2.id, ...d2.data() }));
+      merge();
+    }, () => { individual = []; merge(); });
+    return () => { u1(); u2(); };
+  }, [user?.uid, userRole, assignTeacherId]);
 
   // ✅ V349: SW 캐시 버스팅 + 캐시 버스팅 팝업
   useEffect(()=>{
@@ -27019,6 +27019,45 @@ export default function App() {
   if (!user) return <AuthScreen onLogin={setUser} lang={onboardingLang}/>;
 
   // ✅ V148: 기존 가입자 마이그레이션 팝업
+  // ✅ V514/V517 학습자 과제 배너 → ✅ V521: 함수로 분리해 C 블록(탭 화면)과 A 블록(레벨 선택 전)에서 함께 사용.
+  //   논술 과제는 레벨과 무관하므로, 레벨을 고르기 전 첫 화면에서도 과제가 보여야 함(2026-09-24 실기기 발견).
+  const renderAssignmentBanner = () => {
+    if (!learnerAssignments.length || !myAssignLogs) return null;
+    const pendingAssignments = learnerAssignments.filter(a => !isAssignmentDone(a, myAssignLogs.gramLog, myAssignLogs.pronLog, myEssaySubs[a.id]));
+    if (pendingAssignments.length === 0) return (
+      <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 12px 8px" }}>
+        <div
+          onClick={() => setShowAssignmentModal(true)}
+          style={{ background: "linear-gradient(135deg,#2D9D78,#1E7A5C)", borderRadius: 16, padding: "12px 16px", boxShadow: "0 4px 12px rgba(45,157,120,0.25)", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+        >
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "white", marginBottom: 2 }}>✅ 과제 모두 완료!</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>과제 {learnerAssignments.length}개를 모두 끝냈어요 👏</div>
+          </div>
+          <div style={{ fontSize: 20, color: "white" }}>›</div>
+        </div>
+      </div>
+    );
+    return (
+      <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 12px 8px" }}>
+        <div
+          onClick={() => setShowAssignmentModal(true)}
+          style={{ background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", borderRadius: 16, padding: "14px 16px", boxShadow: "0 4px 12px rgba(46,117,182,0.3)", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+        >
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "white", marginBottom: 2 }}>
+              📋 할 과제 {pendingAssignments.length}개
+            </div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>
+              {pendingAssignments[0]?.title}{pendingAssignments.length > 1 ? ` 외 ${pendingAssignments.length - 1}개` : ""}
+            </div>
+          </div>
+          <div style={{ fontSize: 20, color: "white" }}>›</div>
+        </div>
+      </div>
+    );
+  };
+
   if (showMigration) return (
     <MigrationModal
       user={user}
@@ -27556,6 +27595,26 @@ export default function App() {
       <div style={{fontSize:52,marginBottom:12,marginTop:16}}>🇰🇷</div>
       <div style={{fontSize:26,fontWeight:900,color:"#333",marginBottom:4}}>한글 친구</div>
       <div style={{fontSize:14,color:"#888",marginBottom:24,textAlign:"center"}}>{ht("greeting")}, {user.displayName||user.email}님! 👋</div>
+
+      {/* ✅ V521: 레벨 선택 전 화면에도 과제 배너·목록·논술 화면 */}
+      {learnerAssignments.length > 0 && <div style={{width:"100%",maxWidth:600,marginBottom:12}}>{renderAssignmentBanner()}</div>}
+      {showAssignmentModal && (
+        <LearnerAssignmentModal
+          assignments={learnerAssignments}
+          gramLog={myAssignLogs?.gramLog || []}
+          pronLog={myAssignLogs?.pronLog || []}
+          essaySubs={myEssaySubs}
+          onClose={() => setShowAssignmentModal(false)}
+          onGoToTab={() => setShowAssignmentModal(false)}
+          onOpenEssay={(a) => { setShowAssignmentModal(false); setOpenEssayId(a.id); }}
+          user={user}
+        />
+      )}
+      {openEssayId && assignTeacherId && (() => {
+        const ea = learnerAssignments.find(x => x.id === openEssayId);
+        if (!ea) return null;
+        return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />;
+      })()}
 
       {/* ── ① 80시간 커리큘럼 미리보기 ── */}
       {showCurricPreview && (
@@ -28289,42 +28348,7 @@ export default function App() {
       {/* ✅ V514: 학습자 과제 배너
           ✅ V517: 완료 여부 반영 — 남은 과제가 있으면 파란 배너(남은 개수), 모두 끝냈으면
           초록 "과제 모두 완료!" 배너(숨기지 않음: 성취감 표시, 구글 클래스룸 '완료' 칸과 같은 원칙) */}
-      {(() => {
-        if (!learnerAssignments.length || !myAssignLogs) return null;
-        const pendingAssignments = learnerAssignments.filter(a => !isAssignmentDone(a, myAssignLogs.gramLog, myAssignLogs.pronLog, myEssaySubs[a.id]));
-        if (pendingAssignments.length === 0) return (
-          <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 12px 8px" }}>
-            <div
-              onClick={() => setShowAssignmentModal(true)}
-              style={{ background: "linear-gradient(135deg,#2D9D78,#1E7A5C)", borderRadius: 16, padding: "12px 16px", boxShadow: "0 4px 12px rgba(45,157,120,0.25)", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-            >
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "white", marginBottom: 2 }}>✅ 과제 모두 완료!</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>과제 {learnerAssignments.length}개를 모두 끝냈어요 👏</div>
-              </div>
-              <div style={{ fontSize: 20, color: "white" }}>›</div>
-            </div>
-          </div>
-        );
-        return (
-          <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 12px 8px" }}>
-            <div
-              onClick={() => setShowAssignmentModal(true)}
-              style={{ background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", borderRadius: 16, padding: "14px 16px", boxShadow: "0 4px 12px rgba(46,117,182,0.3)", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-            >
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "white", marginBottom: 2 }}>
-                  📋 할 과제 {pendingAssignments.length}개
-                </div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>
-                  {pendingAssignments[0]?.title}{pendingAssignments.length > 1 ? ` 외 ${pendingAssignments.length - 1}개` : ""}
-                </div>
-              </div>
-              <div style={{ fontSize: 20, color: "white" }}>›</div>
-            </div>
-          </div>
-        );
-      })()}
+      {renderAssignmentBanner()}
 
       {/* ✅ V514: 학습자 과제 모달 */}
       {showAssignmentModal && (
