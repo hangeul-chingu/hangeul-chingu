@@ -184,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "530";
+const APP_VERSION = "531";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1962,8 +1962,10 @@ function vocabBlankItems(fromDay, toDay) {
 const VOCAB_AI_SYSTEM = `당신은 한국어 교사를 돕는 조수입니다. 외국인·이주배경 학습자를 위한 어휘·문법 과제 문항의 "초안"을 만듭니다. 교사가 확인하고 고친 뒤 학습자에게 갑니다.
 
 [만들 것] 목표 표현 하나에 대해, 정해진 날마다 3문항씩 만듭니다.
-1. pick (알아보기): 실생활 상황의 한 문장에 빈칸(___)을 하나 두고, 알맞은 말을 고르게 합니다. 보기 4개 = 정답 1개 + 헷갈릴 만한 오답 3개. 보기는 빈칸에 그대로 들어갈 형태(활용형)로 씁니다.
-2. recall (떠올리기): 상황을 짧게 말하고 빈칸(___)이 있는 문장을 줍니다. 학습자가 목표 표현을 알맞게 활용해 직접 씁니다. answers에는 정답으로 인정할 형태를 모두 적습니다(띄어쓰기가 다른 형태 포함, 최대 5개). hint에는 정답을 그대로 쓰지 않는 짧은 도움말을 씁니다.
+1. pick (알아보기): 실생활 상황의 한 문장에 빈칸(___)을 하나 둡니다. **빈칸은 반드시 목표 표현이 들어갈 자리**입니다. 목표 표현은 빈칸 밖 문장에 쓰지 않습니다.
+   보기 4개: 정답 = 목표 표현의 알맞은 형태 1개, 오답 = 학습자가 헷갈리기 쉬운 **비슷한 표현**(예: 목표가 '-다 보니'라면 '-더니', '-아서', '-는 바람에') 3개. 보기는 빈칸에 그대로 들어갈 형태(앞말과 함께 활용한 형태)로 씁니다.
+   (나쁜 예: 목표 표현은 문장에 이미 있고, 빈칸에서 시제나 다른 말을 고르게 하는 것)
+2. recall (떠올리기): 상황을 짧게 말하고 빈칸(___)이 있는 문장을 줍니다. **빈칸은 목표 표현이 들어갈 자리**이고, 학습자가 목표 표현을 알맞게 활용해 직접 씁니다. 목표 표현은 빈칸 밖 문장에 쓰지 않습니다. answers에는 정답으로 인정할 형태를 모두 적습니다(띄어쓰기가 다른 형태 포함, 최대 5개). hint에는 정답을 그대로 쓰지 않는 짧은 도움말을 씁니다.
 3. speak (내 문장 말하기): 학습자가 자기 경험이나 생각을 목표 표현을 써서 1~2문장으로 말하게 하는 질문입니다. 정답은 없습니다.
 
 [원칙]
@@ -1984,16 +1986,44 @@ function vocabAiPrompt(target, level, fromDay, toDay, others) {
     others.length ? `같은 과제의 다른 표현(오답 보기로 써도 좋음): ${others.join(", ")}` : "",
   ].filter(Boolean).join("\n");
 }
+// ✅ V531: 목표 표현이 정답·인정할 답에 실제로 들어갔는지 확인용(9/25 실기기: ①의 빈칸이 목표 표현 자리가 아니었음)
+//   문법 표현: 핵심 글자가 그대로 있어야 함 — "-다 보니"→"다보니", "-(으)ㄴ 반면에"→"반면에", "-(으)ㄹ 수 있다"→"수있", "-기 마련이다"→"기마련이"
+//   낱말: 불규칙 활용(모르다→몰라요, 돕다→도와요)이 있어 첫 글자의 첫소리·가운뎃소리만 확인 — "섭섭하다"→"서"
+//   "-았/었-"처럼 형태가 갈리는 표현은 확인하지 않음(null)
+function vocabCore(expr) {
+  let c = String(expr || "").trim();
+  if (!c || c.includes("/")) return null;
+  const isGrammar = c.startsWith("-") || c.startsWith("~");
+  c = c.replace(/^[-~]+/, "").replace(/\([^)]*\)/g, "").replace(/^[ㄱ-ㅎ]+/, "").replace(/[-~\s]/g, "");
+  if (!c) return null;
+  if (isGrammar) {
+    if (c.length > 2 && c.endsWith("다")) c = c.slice(0, -1);
+    return { g: c };
+  }
+  const code = c.charCodeAt(0) - 0xAC00;
+  if (code < 0 || code > 11171) return { g: c.length > 1 && c.endsWith("다") ? c.slice(0, -1) : c };
+  return { cv: Math.floor(code / 28) }; // 첫 글자의 첫소리+가운뎃소리
+}
+function vocabHasCore(text, core) {
+  if (!core) return true;
+  const t = String(text || "").replace(/\s/g, "");
+  if (core.g) return t.includes(core.g);
+  return [...t].some(ch => { const k = ch.charCodeAt(0) - 0xAC00; return k >= 0 && k <= 11171 && Math.floor(k / 28) === core.cv; });
+}
 // AI 결과를 날·종류별로 하나씩 골라 편집용 형태로 바꿈. 빠진 것이 있으면 null(다시 만들기 안내)
-function vocabAiClean(data, fromDay, toDay) {
+function vocabAiClean(data, fromDay, toDay, expr) {
+  const core = vocabCore(expr);
   const list = Array.isArray(data?.items) ? data.items : [];
   const str = (v) => (typeof v === "string" ? v.trim() : "");
   const blank = (q) => str(q).replace(/_{2,}|＿+/g, "___");
   const out = [];
   for (let d = fromDay; d <= toDay; d++) {
     const ofDay = list.filter(it => Number(it?.day) === d);
-    const pk = ofDay.find(it => it.kind === "pick" && blank(it.q).includes("___") && Array.isArray(it.opts));
-    const rc = ofDay.find(it => it.kind === "recall" && str(it.q) && Array.isArray(it.answers) && it.answers.some(x => str(x)));
+    // ✅ V531: 정답(①)·인정할 답(②)에 목표 표현이 들어 있어야 하고, 빈칸 밖 문장에는 목표 표현이 없어야 함
+    const pk = ofDay.find(it => it.kind === "pick" && blank(it.q).includes("___") && Array.isArray(it.opts)
+      && vocabHasCore(it.answer, core) && !(core && core.g && vocabHasCore(blank(it.q).replace("___", ""), core)));
+    const rc = ofDay.find(it => it.kind === "recall" && str(it.q) && Array.isArray(it.answers) && it.answers.some(x => str(x))
+      && it.answers.every(x => vocabHasCore(x, core)));
     const sp = ofDay.find(it => it.kind === "speak" && str(it.q));
     if (!pk || !rc || !sp) return null;
     let opts = [...new Set(pk.opts.map(str).filter(Boolean))];
@@ -2067,11 +2097,14 @@ function VocabSetEditor({ form, setForm, essayExprs }) {
       setBusy(`AI가 '${tg.expr}' 문항을 만들고 있어요... (${i + 1}/${list.length})`);
       const others = targets.map(x => x.expr).filter(x => x !== tg.expr);
       let items = [];
-      // 한 번에 3일씩(응답 길이 제한 대비)
+      // 한 번에 3일씩(응답 길이 제한 대비). ✅ V531: 검사를 통과하지 못하면 자동으로 한 번 더 만듦
       for (let from = 0; from < days && items !== null; from += 3) {
         const to = Math.min(days - 1, from + 2);
-        const res = await callClaudeGrade([{ role: "user", content: vocabAiPrompt(tg, form.vLevel, from, to, others) }], VOCAB_AI_SYSTEM, 1500);
-        const c = res.data ? vocabAiClean(res.data, from, to) : null;
+        let c = null;
+        for (let attempt = 0; attempt < 2 && !c; attempt++) {
+          const res = await callClaudeGrade([{ role: "user", content: vocabAiPrompt(tg, form.vLevel, from, to, others) }], VOCAB_AI_SYSTEM, 1500);
+          c = res.data ? vocabAiClean(res.data, from, to, tg.expr) : null;
+        }
         items = c ? [...items, ...c] : null;
       }
       if (items) gen[tg.expr] = items; else failed.push(tg.expr);
