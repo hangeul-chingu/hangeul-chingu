@@ -184,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "525";
+const APP_VERSION = "526";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2393,6 +2393,36 @@ function EssayNotedText({ text, notes = [], activeIdx = null, onPick }) {
 // - [돌려주기] / [다시 써 보세요]를 누를 때만 feedback/{학습자}.rounds에 추가 → 이때 학습자에게 보임
 // - 학습자 제출 문서에는 의견을 넣지 않음(학습자가 의견을 위조할 수 없도록)
 // ════════════════════════════════════════════════════════
+// ✅ V526: 댓글 은행 — 교수자가 자주 쓰는 의견을 저장해 두고 한 번에 넣기(과제설계 원칙 6-2)
+//   저장 위치: users/{교수자uid}.commentBank (본인 문서라 보안 규칙 변경 없음, 학습자는 읽을 수 없음)
+//   한 번도 저장하지 않은 교수자에게는 아래 기본 의견을 보여 줌(지우거나 바꾸면 그때부터 교수자 목록 사용)
+const DEFAULT_COMMENT_BANK = [
+  "경험을 구체적으로 써서 잘 전해졌어요 👍",
+  "이유를 한 문장 더 써 보면 좋겠어요.",
+  "문장이 조금 길어요. 두 문장으로 나눠 보세요.",
+  "앞 문장과 이어지도록 연결 표현을 써 보세요.",
+  "문장 끝(-아요/어요, -습니다)을 하나로 맞춰 보세요.",
+  "맞춤법을 한 번 더 확인해 보세요.",
+  "좋은 표현이에요!",
+];
+function CommentBankChips({ bank, editing, onInsert, onRemove }) {
+  if (!bank || bank.length === 0) return <div style={{ fontSize: 11, color: "#999" }}>저장한 의견이 없어요. 아래 칸에 쓰고 [＋ 저장]을 눌러 보세요.</div>;
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+      {bank.map((c, k) => (
+        <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#F5F8FF", border: "1px solid #C8DAF0", borderRadius: 16, padding: "4px 10px", fontSize: 12, color: "#1A3A5C", maxWidth: "100%" }}>
+          <button type="button" onClick={() => onInsert(c)}
+            style={{ background: "none", border: "none", padding: 0, margin: 0, fontSize: 12, color: "#1A3A5C", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}>{c}</button>
+          {editing && (
+            <button type="button" aria-label="이 의견 지우기" onClick={() => onRemove(k)}
+              style={{ background: "none", border: "none", padding: "0 2px", fontSize: 13, color: "#E53935", cursor: "pointer", fontWeight: 900 }}>×</button>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose }) {
   const a = assignment;
   const sections = essaySections(a);
@@ -2413,6 +2443,34 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
   const [notes, setNotes] = useState([]);
   const [pick, setPick] = useState(null); // { sec, idx, quote }
   const [pickText, setPickText] = useState("");
+  // ✅ V526: 댓글 은행
+  const [bank, setBank] = useState(null); // null = 불러오는 중
+  const [bankEditing, setBankEditing] = useState(false);
+  const [bankMsg, setBankMsg] = useState("");
+  useEffect(() => {
+    let alive = true;
+    getDoc(doc(db, "users", teacherUid)).then(d => {
+      if (!alive) return;
+      const b = d.exists() ? d.data().commentBank : undefined;
+      setBank(Array.isArray(b) ? b : DEFAULT_COMMENT_BANK);
+    }).catch(() => { if (alive) setBank(DEFAULT_COMMENT_BANK); });
+    return () => { alive = false; };
+  }, []);
+  async function saveBank(nb, msg) {
+    setBank(nb);
+    try {
+      await setDoc(doc(db, "users", teacherUid), { commentBank: nb }, { merge: true });
+      setBankMsg(msg);
+    } catch (e) { setBankMsg("⚠️ 저장하지 못했어요"); }
+    setTimeout(() => setBankMsg(""), 2000);
+  }
+  function addToBank(t) {
+    const v = String(t || "").trim().slice(0, 200);
+    if (!v) return;
+    if ((bank || []).includes(v)) { setBankMsg("이미 저장된 의견이에요"); setTimeout(() => setBankMsg(""), 2000); return; }
+    saveBank([...(bank || []), v], "✓ 자주 쓰는 의견에 저장했어요");
+  }
+  const joinText = (a0, b0) => (a0 && a0.trim() ? a0.replace(/\s+$/, "") + " " : "") + b0;
   const cur = useRef({ text: "", notes: [] }); // 전체 의견 + 문장 의견 최신값(자동 저장용)
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
@@ -2549,6 +2607,12 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
                   <textarea value={pickText} onChange={e => setPickText(e.target.value)} rows={2} autoFocus
                     placeholder="이 문장에 대한 의견 (예: '-아서/어서'를 써서 이유를 이어 보세요)"
                     style={{ width: "100%", border: "1.5px solid #C8DAF0", borderRadius: 8, padding: "8px 10px", fontSize: 13, lineHeight: 1.6, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit" }} />
+                  {bank && bank.length > 0 && (
+                    <div style={{ marginTop: 6 }}>
+                      <div style={{ fontSize: 10, color: "#888", marginBottom: 4 }}>📚 자주 쓰는 의견 — 누르면 넣어져요</div>
+                      <CommentBankChips bank={bank} editing={false} onInsert={c => setPickText(joinText(pickText, c))} onRemove={() => {}} />
+                    </div>
+                  )}
                   <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                     <button onClick={() => saveNote(false)} disabled={!pickText.trim()}
                       style={{ flex: 1, background: pickText.trim() ? "#2E75B6" : "#bbb", color: "white", border: "none", borderRadius: 20, padding: "8px 0", fontSize: 12, fontWeight: 800, cursor: pickText.trim() ? "pointer" : "not-allowed" }}>📍 문장 의견 달기</button>
@@ -2623,6 +2687,24 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
             <div style={{ ...box, border: "1.5px solid #C8DAF0" }}>
               <div style={{ fontSize: 14, fontWeight: 900, color: "#1A3A5C" }}>💬 {versions.length}차 글에 대한 의견</div>
               <div style={{ fontSize: 11, color: "#888", margin: "2px 0 8px", lineHeight: 1.5 }}>쓰는 내용은 자동으로 저장되고, <b>보내기 전에는 학습자에게 보이지 않아요.</b>{notes.length > 0 ? <><br />📍 문장 의견 {notes.length}개도 함께 보내져요.</> : null}</div>
+              {/* ✅ V526: 자주 쓰는 의견 */}
+              <div style={{ background: "#FAFCFF", border: "1px dashed #C8DAF0", borderRadius: 10, padding: "8px 10px", marginBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6" }}>📚 자주 쓰는 의견 <span style={{ fontWeight: 600, color: "#888", fontSize: 11 }}>— 누르면 아래 칸에 넣어져요</span></span>
+                  <button type="button" onClick={() => setBankEditing(e => !e)}
+                    style={{ background: "none", border: "none", color: "#2E75B6", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>{bankEditing ? "완료" : "편집"}</button>
+                </div>
+                {bank === null ? <div style={{ fontSize: 11, color: "#999" }}>불러오는 중...</div> : (
+                  <CommentBankChips bank={bank} editing={bankEditing}
+                    onInsert={c => onChange(joinText(text, c))}
+                    onRemove={k => saveBank(bank.filter((_, i2) => i2 !== k), "✓ 지웠어요")} />
+                )}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+                  <button type="button" onClick={() => addToBank(text)} disabled={!text.trim() || bank === null}
+                    style={{ background: "white", border: "1px solid #C8DAF0", color: text.trim() ? "#2E75B6" : "#bbb", borderRadius: 16, padding: "4px 10px", fontSize: 11, fontWeight: 800, cursor: text.trim() ? "pointer" : "not-allowed" }}>＋ 아래 칸의 의견 저장</button>
+                  {bankMsg && <span style={{ fontSize: 11, color: "#2D7A2D" }}>{bankMsg}</span>}
+                </div>
+              </div>
               <textarea value={text} onChange={e => onChange(e.target.value)} disabled={!loaded || sending} rows={6}
                 placeholder={loaded ? "예: 명절 음식을 구체적으로 써서 잘 전해졌어요. 두 번째 문단에 이유를 한 문장 더 써 보면 좋겠어요." : "불러오는 중..."}
                 style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 14, lineHeight: 1.7, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit" }} />
