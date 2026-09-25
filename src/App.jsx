@@ -184,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "531";
+const APP_VERSION = "532";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1965,7 +1965,11 @@ const VOCAB_AI_SYSTEM = `당신은 한국어 교사를 돕는 조수입니다. �
 1. pick (알아보기): 실생활 상황의 한 문장에 빈칸(___)을 하나 둡니다. **빈칸은 반드시 목표 표현이 들어갈 자리**입니다. 목표 표현은 빈칸 밖 문장에 쓰지 않습니다.
    보기 4개: 정답 = 목표 표현의 알맞은 형태 1개, 오답 = 학습자가 헷갈리기 쉬운 **비슷한 표현**(예: 목표가 '-다 보니'라면 '-더니', '-아서', '-는 바람에') 3개. 보기는 빈칸에 그대로 들어갈 형태(앞말과 함께 활용한 형태)로 씁니다.
    (나쁜 예: 목표 표현은 문장에 이미 있고, 빈칸에서 시제나 다른 말을 고르게 하는 것)
-2. recall (떠올리기): 상황을 짧게 말하고 빈칸(___)이 있는 문장을 줍니다. **빈칸은 목표 표현이 들어갈 자리**이고, 학습자가 목표 표현을 알맞게 활용해 직접 씁니다. 목표 표현은 빈칸 밖 문장에 쓰지 않습니다. answers에는 정답으로 인정할 형태를 모두 적습니다(띄어쓰기가 다른 형태 포함, 최대 5개). hint에는 정답을 그대로 쓰지 않는 짧은 도움말을 씁니다.
+   **빈칸은 목표 표현이 붙는 동사·형용사·명사부터 목표 표현 끝까지 한 덩어리**를 가립니다. 빈칸 바로 앞에 그 동사의 활용형(예: '잘하는', '좋은')을 남기지 않습니다.
+   (좋은 예: "우리 오빠는 요리를 ___ 저는 요리를 못해요." → 보기: 잘하는 반면에 / 잘하다 보니 / 잘하더니 / 잘하는 바람에)
+   (나쁜 예: "요리를 잘하는 ___" → 보기: 는 반면에 — 넣으면 '잘하는는'이 됨)
+2. recall (떠올리기): 상황을 짧게 말하고 빈칸(___)이 있는 문장을 줍니다. **빈칸은 목표 표현이 들어갈 자리**이고, 학습자가 목표 표현을 알맞게 활용해 직접 씁니다. 목표 표현은 빈칸 밖 문장에 쓰지 않습니다.
+   pick과 같이 **빈칸은 동사·형용사·명사부터 목표 표현 끝까지 한 덩어리**입니다. hint에는 빈칸에 쓸 동사·형용사의 **기본형**을 알려 줍니다(예: "빠르다를 알맞게 바꿔 쓰세요"). answers에는 정답으로 인정할 형태를 모두 적습니다(띄어쓰기가 다른 형태 포함, 최대 5개). hint에는 정답을 그대로 쓰지 않는 짧은 도움말을 씁니다.
 3. speak (내 문장 말하기): 학습자가 자기 경험이나 생각을 목표 표현을 써서 1~2문장으로 말하게 하는 질문입니다. 정답은 없습니다.
 
 [원칙]
@@ -1992,8 +1996,22 @@ function vocabAiPrompt(target, level, fromDay, toDay, others) {
 //   "-았/었-"처럼 형태가 갈리는 표현은 확인하지 않음(null)
 function vocabCore(expr) {
   let c = String(expr || "").trim();
-  if (!c || c.includes("/")) return null;
+  if (!c) return null;
   const isGrammar = c.startsWith("-") || c.startsWith("~");
+  // ✅ V532: "-(으)ㄴ/는 반면에"처럼 "/"로 형태가 갈려도 띄어 쓴 뒷부분("반면에")이 있으면 그것으로 확인
+  if (c.includes("/")) {
+    const last = c.split(/\s+/).pop();
+    if (!isGrammar || last.includes("/") || last === c) return null;
+    // 앞부분의 갈래("(으)ㄴ/는" → 은·ㄴ·는)만 달랑 붙은 정답("는 반면에")도 활용 연습이 빠진 것이므로 걸러 냄
+    const pre = new Set();
+    c.slice(0, c.length - last.length).trim().replace(/^[-~]+/, "").split("/").forEach(v => {
+      pre.add(v.replace(/\([^)]*\)/g, ""));
+      if (/\(으\)ㄴ/.test(v)) pre.add("은");
+      if (/\(으\)ㄹ/.test(v)) pre.add("을");
+    });
+    const core = vocabCore("-" + last);
+    return core && core.g ? { ...core, pre: [...pre].filter(Boolean) } : null;
+  }
   c = c.replace(/^[-~]+/, "").replace(/\([^)]*\)/g, "").replace(/^[ㄱ-ㅎ]+/, "").replace(/[-~\s]/g, "");
   if (!c) return null;
   if (isGrammar) {
@@ -2010,6 +2028,13 @@ function vocabHasCore(text, core) {
   if (core.g) return t.includes(core.g);
   return [...t].some(ch => { const k = ch.charCodeAt(0) - 0xAC00; return k >= 0 && k <= 11171 && Math.floor(k / 28) === core.cv; });
 }
+// ✅ V532: 문법 표현은 정답 앞에 붙는 말(동사·형용사 등)까지 함께 있어야 함 — "반면에"만 달랑 있으면 활용 연습이 빠짐(9/25 실기기)
+function vocabHasStem(text, core) {
+  if (!core || !core.g) return true;
+  const t = String(text || "").replace(/\s/g, "");
+  const at = t.indexOf(core.g);
+  return at > 0 && !(core.pre || []).includes(t.slice(0, at));
+}
 // AI 결과를 날·종류별로 하나씩 골라 편집용 형태로 바꿈. 빠진 것이 있으면 null(다시 만들기 안내)
 function vocabAiClean(data, fromDay, toDay, expr) {
   const core = vocabCore(expr);
@@ -2021,9 +2046,10 @@ function vocabAiClean(data, fromDay, toDay, expr) {
     const ofDay = list.filter(it => Number(it?.day) === d);
     // ✅ V531: 정답(①)·인정할 답(②)에 목표 표현이 들어 있어야 하고, 빈칸 밖 문장에는 목표 표현이 없어야 함
     const pk = ofDay.find(it => it.kind === "pick" && blank(it.q).includes("___") && Array.isArray(it.opts)
-      && vocabHasCore(it.answer, core) && !(core && core.g && vocabHasCore(blank(it.q).replace("___", ""), core)));
+      && vocabHasCore(it.answer, core) && vocabHasStem(it.answer, core) && !(core && core.g && vocabHasCore(blank(it.q).replace("___", ""), core)));
     const rc = ofDay.find(it => it.kind === "recall" && str(it.q) && Array.isArray(it.answers) && it.answers.some(x => str(x))
-      && it.answers.every(x => vocabHasCore(x, core)));
+      && it.answers.some(x => vocabHasCore(x, core) && vocabHasStem(x, core))
+      && it.answers.every(x => !vocabHasCore(x, core) || vocabHasStem(x, core))); // "빠른 반면"처럼 줄여 쓴 답은 허용, "반면에"만 달랑 있는 답은 안 됨
     const sp = ofDay.find(it => it.kind === "speak" && str(it.q));
     if (!pk || !rc || !sp) return null;
     let opts = [...new Set(pk.opts.map(str).filter(Boolean))];
