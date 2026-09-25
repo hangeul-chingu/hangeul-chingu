@@ -184,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "528";
+const APP_VERSION = "529";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2559,9 +2559,14 @@ const ESSAY_AI_SYSTEM = `당신은 한국어 교사를 돕는 조수입니다. �
 3. 확인할 수 있는 사실만 말합니다. 글의 문장을 근거로 댈 수 없는 인상 평가("어색하다", "논리가 약하다")는 쓰지 않습니다.
 4. AI는 사람 교사보다 후하게 평가하는 경향이 있습니다. 칭찬을 부풀리지 말고, 고칠 점이 분명하면 분명히 말합니다.
 5. 고친 문장을 통째로 써 주지 말고, 학습자가 스스로 고칠 수 있게 방향(힌트)을 줍니다.
-6. 학습자가 읽을 말입니다. 쉬운 단어와 해요체 존댓말로 씁니다. 문장 의견은 한두 문장으로 짧게 씁니다.
+6. 학습자가 읽을 말입니다. TOPIK 3~4급 학습자가 아는 쉬운 단어와 짧은 문장, 해요체 존댓말로 씁니다.
+   - "1인칭", "주어", "연결 어미" 같은 문법 용어나 "탄탄하다", "눈에 띄다" 같은 어려운 표현은 쓰지 않습니다.
+   - 전체 의견은 4문장을 넘지 않습니다. 문장 의견은 1~2문장입니다.
 7. 과제에 "꼭 써 볼 표현"이나 "확인할 것"이 있으면 그것을 기준으로 삼습니다.
 8. 다시 쓴 글이면, 지난 의견을 반영해서 고친 부분을 먼저 알아봐 줍니다.
+9. 글 옆의 [칸 번호-문장 번호]는 당신이 위치를 알려 줄 때(JSON의 sec, idx)만 쓰는 표시입니다. 학습자는 이 번호를 모릅니다.
+   의견 글(overall, text) 안에는 [2-3], 2-3번, 3번 문장 같은 번호를 절대 쓰지 말고, "고향 이야기를 쓴 부분"처럼 말로 가리키거나 문장을 짧게 인용합니다.
+10. 문장 의견(notes)은 그 한 문장에 대해서만 씁니다. 여러 문장에 걸친 문제는 전체 의견(overall)에 씁니다.
 
 [출력] 아래 JSON 하나만 출력합니다. 다른 말은 쓰지 않습니다.
 {"overall":"전체 의견(3~4문장)","notes":[{"sec":칸 번호,"idx":문장 번호,"text":"그 문장에 대한 의견"}]}
@@ -2593,11 +2598,23 @@ function essayAiPrompt(a, sections, versions, rounds) {
   return L.join("\n");
 }
 // AI가 돌려준 문장 번호를 실제 글과 맞춰 봄 — 없는 문장·중복은 버리고, 인용문은 글의 실제 문장으로 채움(최대 3개)
+// ✅ V529: AI가 지시를 어기고 내부 문장 번호([2-3], [2-2]~[2-5], 2-3번 등)를 의견에 넣어도 코드에서 한 번 더 지움(9/25 실기기)
+const ESSAY_AI_REF = String.raw`\[\s*\d+\s*-\s*\d+\s*\](?:\s*[~∼〜\-–]\s*\[\s*\d+\s*-\s*\d+\s*\])?`;
+function essayAiStripRefs(t) {
+  return String(t || "")
+    .replace(new RegExp(ESSAY_AI_REF + String.raw`\s*(?:번\s*)?문장`, "g"), "그 문장")          // "[0-1] 문장도" → "그 문장도"
+    .replace(/(^|[^\d])\d+\s*-\s*\d+\s*번\s*문장/g, "$1그 문장")                           // "2-4번 문장" → "그 문장"
+    .replace(new RegExp(ESSAY_AI_REF + String.raw`\s*(?:번\s*)?(?:에서|에는|에|은|는|이|가|을|를|의|와|과|도|처럼|까지)?\s*`, "g"), "") // "[2-2]~[2-5]에서 " → 지움
+    .replace(/(^|[^\d])\d+\s*-\s*\d+\s*번\s*(?:에서|에는|에|은|는|이|가|을|를|의|도)?\s*/g, "$1") // "2-4번에서 " → 지움("3-4급"은 그대로)
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\s+([.,!?])/g, "$1")
+    .trim();
+}
 function essayAiClean(data, sections, parts) {
-  const overall = typeof data?.overall === "string" ? data.overall.trim() : "";
+  const overall = typeof data?.overall === "string" ? essayAiStripRefs(data.overall) : "";
   const seen = new Set(), notes = [];
   (Array.isArray(data?.notes) ? data.notes : []).forEach(nt => {
-    const sec = Number(nt?.sec), idx = Number(nt?.idx), t = typeof nt?.text === "string" ? nt.text.trim() : "";
+    const sec = Number(nt?.sec), idx = Number(nt?.idx), t = typeof nt?.text === "string" ? essayAiStripRefs(nt.text) : "";
     if (!t || !Number.isInteger(sec) || sec < 0 || sec >= sections.length || !Number.isInteger(idx)) return;
     const hit = essaySplitSentences((parts || [])[sec] || "").find(x => !x.br && x.idx === idx);
     if (!hit || !hit.s.trim() || seen.has(sec + "-" + idx) || notes.length >= 3) return;
