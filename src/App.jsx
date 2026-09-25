@@ -184,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "522";
+const APP_VERSION = "523";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2330,6 +2330,59 @@ function AssignmentPanel({ user, students }) {
 }
 
 // ════════════════════════════════════════════════════════
+// ✅ V523: 문장에 의견 달기 (과제설계 원칙 6-4의 2-2 첫 단계)
+// - 글을 줄 → 문장(. ! ? 。 기준)으로 나눠 번호(idx)를 매김. 줄바꿈은 {br:true}로 보존.
+// - 문장 의견 {sec(단계 칸 번호), idx(그 칸의 문장 번호), quote(문장 원문), text(의견)}은
+//   돌려준 의견 rounds[].notes에 함께 저장 → 보안 규칙(feedback은 rounds·updatedAt만) 변경 없음.
+// ════════════════════════════════════════════════════════
+function essaySplitSentences(text) {
+  const out = [];
+  let idx = 0;
+  const lines = String(text || "").split("\n");
+  lines.forEach((line, li) => {
+    const m = line.match(/[^.!?。]+(?:[.!?。]+|$)\s*|[.!?。]+\s*/g) || [];
+    m.forEach(seg => { out.push({ s: seg, idx: idx++ }); });
+    if (li < lines.length - 1) out.push({ br: true });
+  });
+  return out;
+}
+function EssayNotedText({ text, notes = [], activeIdx = null, onPick }) {
+  const sorted = [...notes].sort((x, y) => x.idx - y.idx);
+  const noteNo = {};
+  sorted.forEach((nt, k) => { noteNo[nt.idx] = k + 1; });
+  const items = essaySplitSentences(text);
+  const short = (q) => { const t = String(q || "").trim(); return t.length > 24 ? t.slice(0, 24) + "…" : t; };
+  return (
+    <>
+      <div style={{ fontSize: 14, color: "#333", lineHeight: 1.9, background: "#FAFAFA", borderRadius: 10, padding: "8px 12px", minHeight: 24 }}>
+        {items.length === 0 ? " " : items.map((it, k) => it.br ? <br key={k} /> : (
+          <span key={k}
+            onClick={onPick && it.s.trim() ? () => onPick(it.idx, it.s.trim()) : undefined}
+            style={{
+              background: activeIdx === it.idx ? "#CFE2FF" : noteNo[it.idx] ? "#FFF3B0" : "transparent",
+              borderRadius: 4,
+              cursor: onPick && it.s.trim() ? "pointer" : "default",
+              borderBottom: onPick && it.s.trim() && !noteNo[it.idx] && activeIdx !== it.idx ? "1px dashed #B8CFEA" : "none",
+            }}>
+            {it.s}{noteNo[it.idx] ? <sup style={{ color: "#E65100", fontWeight: 900, fontSize: 10, marginLeft: 1 }}>{noteNo[it.idx]}</sup> : null}
+          </span>
+        ))}
+      </div>
+      {sorted.length > 0 && (
+        <div style={{ marginTop: 4 }}>
+          {sorted.map((nt, k) => (
+            <div key={k} style={{ fontSize: 13, color: "#333", background: "#FFFBE6", border: "1px solid #F5E08C", borderRadius: 8, padding: "6px 10px", marginTop: 4, lineHeight: 1.6 }}>
+              <b style={{ color: "#E65100" }}>{k + 1}</b> <span style={{ color: "#888", fontSize: 12 }}>“{short(nt.quote)}”</span>
+              <div style={{ whiteSpace: "pre-wrap" }}>{nt.text}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ════════════════════════════════════════════════════════
 // ✅ V522: 교수자 — 학습자 논술 글 보기 + 전체 의견 (과제설계 원칙 6-2 "제출된 글을 볼 때")
 // - 제출본(versions)을 차수별로 보여 주고, 각 차수 아래에 그때 보낸 의견을 함께 표시
 // - 의견 초안: classes/{교수자}/assignments/{과제}/feedbackDrafts/{학습자} — 교수자만 읽기·쓰기(학습자에게 절대 안 보임)
@@ -2348,6 +2401,11 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
   const draftRef = doc(db, "classes", teacherUid, "assignments", a.id, "feedbackDrafts", student.id);
   const fbRef = doc(db, "classes", teacherUid, "assignments", a.id, "feedback", student.id);
   const [text, setText] = useState("");
+  // ✅ V523: 문장 의견 초안 [{sec, idx, quote, text}] / 지금 의견을 다는 문장
+  const [notes, setNotes] = useState([]);
+  const [pick, setPick] = useState(null); // { sec, idx, quote }
+  const [pickText, setPickText] = useState("");
+  const cur = useRef({ text: "", notes: [] }); // 전체 의견 + 문장 의견 최신값(자동 저장용)
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
   const [sending, setSending] = useState(false);
@@ -2359,33 +2417,58 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
     let alive = true;
     getDoc(draftRef).then(d => {
       if (!alive) return;
-      if (d.exists() && typeof d.data().text === "string") setText(d.data().text);
+      if (d.exists()) {
+        const t0 = typeof d.data().text === "string" ? d.data().text : "";
+        const n0 = Array.isArray(d.data().notes) ? d.data().notes : [];
+        setText(t0); setNotes(n0); cur.current = { text: t0, notes: n0 };
+      }
       setLoaded(true);
     }).catch(() => { if (alive) setLoaded(true); });
     return () => { alive = false; };
   }, []);
-  async function flushDraft(t) {
+  async function flushDraft(data) {
     try {
-      await setDoc(draftRef, { text: t, updatedAtMs: Date.now() });
-      if (pending.current === t) pending.current = null;
+      await setDoc(draftRef, { text: data.text, notes: data.notes, updatedAtMs: Date.now() });
+      if (pending.current === data) pending.current = null;
       setSaveState("saved");
     } catch (e) { setSaveState("error"); }
   }
-  function onChange(v) {
-    setText(v);
-    pending.current = v;
+  function scheduleDraft(next) {
+    cur.current = next;
+    pending.current = next;
     setSaveState("saving");
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => flushDraft(v), 1500);
+    timer.current = setTimeout(() => flushDraft(next), 1500);
+  }
+  function onChange(v) {
+    setText(v);
+    scheduleDraft({ ...cur.current, text: v });
+  }
+  // ✅ V523: 문장을 누르면 그 문장 의견 편집 / 저장 / 지우기
+  function pickSentence(sec, idx, quote) {
+    const ex = cur.current.notes.find(nt => nt.sec === sec && nt.idx === idx);
+    setPick({ sec, idx, quote });
+    setPickText(ex ? ex.text : "");
+  }
+  function saveNote(remove) {
+    if (!pick) return;
+    const t = remove ? "" : pickText.trim();
+    const ns = cur.current.notes.filter(nt => !(nt.sec === pick.sec && nt.idx === pick.idx));
+    if (t) ns.push({ sec: pick.sec, idx: pick.idx, quote: pick.quote, text: t });
+    ns.sort((x, y) => x.sec - y.sec || x.idx - y.idx);
+    setNotes(ns);
+    scheduleDraft({ ...cur.current, notes: ns });
+    setPick(null); setPickText("");
   }
   useEffect(() => () => {
     clearTimeout(timer.current);
-    if (pending.current !== null) setDoc(draftRef, { text: pending.current, updatedAtMs: Date.now() }).catch(() => {});
+    if (pending.current !== null) setDoc(draftRef, { text: pending.current.text, notes: pending.current.notes, updatedAtMs: Date.now() }).catch(() => {});
   }, []);
 
   async function send(action) {
     const t = text.trim();
-    if (!t) { alert("의견을 먼저 써 주세요 ✍️"); return; }
+    const ns = cur.current.notes;
+    if (!t && ns.length === 0) { alert("의견을 먼저 써 주세요 ✍️"); return; }
     if (versions.length === 0) return;
     const msg = action === "redo"
       ? "의견과 함께 '다시 써 보세요'를 보낼까요?\n학습자는 지금 글과 의견을 보면서 고쳐 쓸 수 있어요.\n(완료 표시는 그대로 유지돼요)"
@@ -2395,13 +2478,13 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
     pending.current = null;
     setSending(true);
     try {
-      const round = { text: t, action, forVersion: versions.length - 1, atMs: Date.now() };
+      const round = { text: t, action, forVersion: versions.length - 1, atMs: Date.now(), ...(ns.length ? { notes: ns } : {}) };
       await setDoc(fbRef, { rounds: [...info.rounds, round], updatedAt: serverTimestamp() });
       await deleteDoc(draftRef).catch(() => {});
-      setText("");
+      setText(""); setNotes([]); setPick(null); cur.current = { text: "", notes: [] };
       setSaveState("idle");
     } catch (e) {
-      flushDraft(text);
+      flushDraft(cur.current);
       alert("보내지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.\n(쓴 의견은 초안으로 보관돼요)");
     }
     setSending(false);
@@ -2415,7 +2498,10 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
       <div style={{ fontSize: 11, fontWeight: 800, color: r.action === "redo" ? "#8A4B00" : "#2D7A2D" }}>
         {r.action === "redo" ? "✏️ 보낸 의견 · 다시 써 보세요" : "💬 보낸 의견 · 돌려주기"} <span style={{ fontWeight: 600, color: "#888" }}>{fmt(r.atMs)}</span>
       </div>
-      <div style={{ fontSize: 13, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", marginTop: 4 }}>{r.text}</div>
+      {r.text ? <div style={{ fontSize: 13, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", marginTop: 4 }}>{r.text}</div> : null}
+      {Array.isArray(r.notes) && r.notes.length > 0 && (
+        <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>📍 문장 의견 {r.notes.length}개 (글 속 노란 문장)</div>
+      )}
     </div>
   );
   const versionCard = (v, i) => {
@@ -2428,12 +2514,40 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
         <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>
           {fmt(v.submittedAtMs)} 제출 · {v.charCount ?? essayCharCount(vParts)}자{a.minChars ? ` / 최소 ${a.minChars}자` : ""}{late ? " · ⏰ 마감 후 제출" : ""}
         </div>
-        {sections.map((sec, j) => (
-          <div key={j} style={{ marginBottom: 8 }}>
-            {sections.length > 1 && <div style={{ fontSize: 12, fontWeight: 800, color: "#1A3A5C", marginBottom: 2 }}>{sec.emoji} {j + 1}. {sec.t}</div>}
-            <div style={{ fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap", background: "#FAFAFA", borderRadius: 10, padding: "8px 12px" }}>{vParts[j] || " "}</div>
-          </div>
-        ))}
+        {i === versions.length - 1 && <div style={{ fontSize: 11, color: "#2E75B6", marginBottom: 6 }}>👆 문장을 누르면 그 문장에 의견을 달 수 있어요</div>}
+        {sections.map((sec, j) => {
+          // ✅ V523: 최신 글 = 지금 쓰는 문장 의견(편집 가능) / 이전 글 = 그때 보낸 문장 의견
+          const isLatest = i === versions.length - 1;
+          const secNotes = isLatest
+            ? notes.filter(nt => nt.sec === j)
+            : info.rounds.filter(r => r.forVersion === i).flatMap(r => r.notes || []).filter(nt => nt.sec === j);
+          return (
+            <div key={j} style={{ marginBottom: 8 }}>
+              {sections.length > 1 && <div style={{ fontSize: 12, fontWeight: 800, color: "#1A3A5C", marginBottom: 2 }}>{sec.emoji} {j + 1}. {sec.t}</div>}
+              <EssayNotedText text={vParts[j]} notes={secNotes}
+                activeIdx={isLatest && pick && pick.sec === j ? pick.idx : null}
+                onPick={isLatest && !sending ? (idx, quote) => pickSentence(j, idx, quote) : undefined} />
+              {isLatest && pick && pick.sec === j && (
+                <div style={{ background: "#EEF4FF", border: "1px solid #C8DAF0", borderRadius: 10, padding: "8px 10px", marginTop: 6 }}>
+                  <div style={{ fontSize: 11, color: "#2E75B6", fontWeight: 700, marginBottom: 4 }}>선택한 문장: “{pick.quote}”</div>
+                  <textarea value={pickText} onChange={e => setPickText(e.target.value)} rows={2} autoFocus
+                    placeholder="이 문장에 대한 의견 (예: '-아서/어서'를 써서 이유를 이어 보세요)"
+                    style={{ width: "100%", border: "1.5px solid #C8DAF0", borderRadius: 8, padding: "8px 10px", fontSize: 13, lineHeight: 1.6, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit" }} />
+                  <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                    <button onClick={() => saveNote(false)} disabled={!pickText.trim()}
+                      style={{ flex: 1, background: pickText.trim() ? "#2E75B6" : "#bbb", color: "white", border: "none", borderRadius: 20, padding: "8px 0", fontSize: 12, fontWeight: 800, cursor: pickText.trim() ? "pointer" : "not-allowed" }}>📍 문장 의견 달기</button>
+                    {notes.some(nt => nt.sec === pick.sec && nt.idx === pick.idx) && (
+                      <button onClick={() => saveNote(true)}
+                        style={{ background: "#FFF0F0", color: "#E53935", border: "1px solid #FFCCCC", borderRadius: 20, padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>지우기</button>
+                    )}
+                    <button onClick={() => { setPick(null); setPickText(""); }}
+                      style={{ background: "white", color: "#888", border: "1px solid #ddd", borderRadius: 20, padding: "8px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>취소</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
         {(expressions.length > 0 || checklist.length > 0) && (
           <div style={{ fontSize: 12, color: "#555", lineHeight: 1.7, marginTop: 4 }}>
             {expressions.map((ex, k) => <div key={"e" + k}>{vExpr[k] ? "☑️" : "⬜"} 표현: {ex}</div>)}
@@ -2492,7 +2606,7 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
 
             <div style={{ ...box, border: "1.5px solid #C8DAF0" }}>
               <div style={{ fontSize: 14, fontWeight: 900, color: "#1A3A5C" }}>💬 {versions.length}차 글에 대한 의견</div>
-              <div style={{ fontSize: 11, color: "#888", margin: "2px 0 8px", lineHeight: 1.5 }}>쓰는 내용은 자동으로 저장되고, <b>보내기 전에는 학습자에게 보이지 않아요.</b></div>
+              <div style={{ fontSize: 11, color: "#888", margin: "2px 0 8px", lineHeight: 1.5 }}>쓰는 내용은 자동으로 저장되고, <b>보내기 전에는 학습자에게 보이지 않아요.</b>{notes.length > 0 ? <><br />📍 문장 의견 {notes.length}개도 함께 보내져요.</> : null}</div>
               <textarea value={text} onChange={e => onChange(e.target.value)} disabled={!loaded || sending} rows={6}
                 placeholder={loaded ? "예: 명절 음식을 구체적으로 써서 잘 전해졌어요. 두 번째 문단에 이유를 한 문장 더 써 보면 좋겠어요." : "불러오는 중..."}
                 style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 14, lineHeight: 1.7, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit" }} />
@@ -2500,12 +2614,12 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
                 {saveState === "saving" ? "저장 중..." : saveState === "saved" ? "✓ 초안 저장됨 (학습자에게는 안 보여요)" : saveState === "error" ? "⚠️ 초안 저장 실패 — 인터넷 연결을 확인해 주세요" : " "}
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => send("return")} disabled={sending || !text.trim()}
-                  style={{ flex: 1, background: sending || !text.trim() ? "#bbb" : "linear-gradient(135deg,#2D9D78,#1E7A5C)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || !text.trim() ? "not-allowed" : "pointer" }}>
+                <button onClick={() => send("return")} disabled={sending || (!text.trim() && notes.length === 0)}
+                  style={{ flex: 1, background: sending || (!text.trim() && notes.length === 0) ? "#bbb" : "linear-gradient(135deg,#2D9D78,#1E7A5C)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || (!text.trim() && notes.length === 0) ? "not-allowed" : "pointer" }}>
                   💬 돌려주기
                 </button>
-                <button onClick={() => send("redo")} disabled={sending || !text.trim()}
-                  style={{ flex: 1, background: sending || !text.trim() ? "#bbb" : "linear-gradient(135deg,#FF8C42,#E65100)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || !text.trim() ? "not-allowed" : "pointer" }}>
+                <button onClick={() => send("redo")} disabled={sending || (!text.trim() && notes.length === 0)}
+                  style={{ flex: 1, background: sending || (!text.trim() && notes.length === 0) ? "#bbb" : "linear-gradient(135deg,#FF8C42,#E65100)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || (!text.trim() && notes.length === 0) ? "not-allowed" : "pointer" }}>
                   ✏️ 다시 써 보세요
                 </button>
               </div>
@@ -2656,6 +2770,8 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }
   const fbInfo = essayFbInfo(sub, fb);
   const isRedo = fbInfo.state === "redo";
   const readOnly = submitted && !isRedo;
+  // ✅ V523: 가장 최근 제출본에 달린 문장 의견
+  const lastNotes = fbInfo.state && fbInfo.last && Array.isArray(fbInfo.last.notes) ? fbInfo.last.notes : [];
 
   const [parts, setParts] = useState(null);
   const [exprChecks, setExprChecks] = useState([]);
@@ -2806,7 +2922,8 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }
             <div style={{ fontSize: 13, fontWeight: 900, color: isRedo ? "#8A4B00" : "#2D7A2D" }}>
               {isRedo ? "✏️ 선생님이 한 번 더 써 보자고 하셨어요" : "💬 선생님 의견"}
             </div>
-            <div style={{ fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap", marginTop: 6 }}>{fbInfo.last.text}</div>
+            {fbInfo.last.text ? <div style={{ fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap", marginTop: 6 }}>{fbInfo.last.text}</div> : null}
+            {lastNotes.length > 0 && <div style={{ fontSize: 12, color: "#8A6D00", marginTop: 6, fontWeight: 700 }}>📍 문장에 의견 {lastNotes.length}개 — 글 속 노란 문장을 확인해 보세요</div>}
             <div style={{ fontSize: 11, color: "#888", marginTop: 4 }}>{fbInfo.last.atMs ? fmt(fbInfo.last.atMs) : ""}</div>
           </div>
         )}
@@ -2814,7 +2931,12 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }
         {isRedo && lastVer && (
           <div style={{ ...box, background: "#FAFAFA" }}>
             <div style={{ fontSize: 13, fontWeight: 900, color: "#1A3A5C" }}>📄 {versions.length}차 글 (제출한 글)</div>
-            <div style={{ fontSize: 14, color: "#555", lineHeight: 1.8, whiteSpace: "pre-wrap", marginTop: 6 }}>{lastVer.text || (lastVer.parts || []).join("\n\n")}</div>
+            {sections.map((sec, j) => (
+              <div key={j} style={{ marginTop: 6 }}>
+                {n > 1 && <div style={{ fontSize: 12, fontWeight: 800, color: "#1A3A5C", marginBottom: 2 }}>{sec.emoji} {j + 1}. {sec.t}</div>}
+                <EssayNotedText text={fit(lastVer.parts, n, "")[j]} notes={lastNotes.filter(nt => nt.sec === j)} />
+              </div>
+            ))}
             <div style={{ fontSize: 12, color: "#2E75B6", marginTop: 8, lineHeight: 1.6, fontWeight: 700 }}>
               👇 선생님 의견을 보면서 아래 글을 고쳐 써 보세요. {versions.length}차 글은 그대로 보관돼요.
             </div>
@@ -2837,6 +2959,7 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }
                   {rs.map((r, k) => (
                     <div key={k} style={{ fontSize: 13, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", background: "#F5F8FF", borderRadius: 8, padding: "6px 10px", marginTop: 6 }}>
                       {r.action === "redo" ? "✏️" : "💬"} {r.text}
+                      {(r.notes || []).map((nt, q) => <div key={q} style={{ fontSize: 12, color: "#555", marginTop: 2 }}>📍 “{nt.quote}” → {nt.text}</div>)}
                     </div>
                   ))}
                 </div>
@@ -2878,7 +3001,7 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }
             <div style={{ fontSize: 13, fontWeight: 800, color: "#1A3A5C" }}>{sec.emoji} {n > 1 ? `${i + 1}. ${sec.t}` : sec.t}</div>
             <div style={{ fontSize: 11, color: "#888", margin: "2px 0 8px" }}>{sec.h}</div>
             {readOnly ? (
-              <div style={{ fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap", background: "#FAFAFA", borderRadius: 10, padding: "10px 12px", minHeight: 40 }}>{shownParts[i] || " "}</div>
+              <EssayNotedText text={shownParts[i]} notes={lastNotes.filter(nt => nt.sec === i)} />
             ) : (
               <textarea value={shownParts[i]} onChange={e => changePart(i, e.target.value)}
                 rows={n > 1 ? 4 : 10}
