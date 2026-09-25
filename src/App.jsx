@@ -184,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "526";
+const APP_VERSION = "527";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2029,7 +2029,7 @@ function AssignmentPanel({ user, students }) {
     try {
       if (isEssay) {
         // ✅ V522: 제출 글 + 돌려준 의견 + 의견 초안까지 함께 삭제
-        for (const sub of ["submissions", "feedback", "feedbackDrafts"]) {
+        for (const sub of ["submissions", "feedback", "feedbackDrafts", "feedbackAudio"]) { // ✅ V527: 음성도
           const snap = await getDocs(collection(db, "classes", user.uid, "assignments", id, sub));
           await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
         }
@@ -2423,6 +2423,127 @@ function CommentBankChips({ bank, editing, onInsert, onRemove }) {
   );
 }
 
+// ════════════════════════════════════════════════════════
+// ✅ V527: 음성 의견 (과제설계 원칙 6-1 — 선생님 목소리 = 듣기 자료 + 정서적 지지)
+// - 기존 V357 음성 피드백은 형식을 webm으로 고정·길이 제한 없음·한 번 들으면 사라짐 → 과제용은 따로 만듦
+// - 기기가 지원하는 형식으로 녹음(아이폰 사파리는 mp4), 말소리용 낮은 품질(16kbps 요청), 최대 3분 자동 멈춤
+// - 소리는 의견 문서와 분리해 feedbackAudio/{학습자uid}_{의견번호} 문서에 저장(Firestore 문서 1MB 한도 대비)
+// ════════════════════════════════════════════════════════
+const VOICE_MAX_SEC = 180;
+const VOICE_MAX_BYTES = 700 * 1024; // base64로 늘어나도 1MB 안에 들도록
+function pickAudioMime() {
+  try {
+    if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported) return "";
+    return ["audio/webm;codecs=opus", "audio/mp4", "audio/webm", "audio/ogg;codecs=opus"].find(t => MediaRecorder.isTypeSupported(t)) || "";
+  } catch (e) { return ""; }
+}
+const fmtSec = (sec) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
+function EssayVoiceRecorder({ voice, onChange, disabled }) {
+  const [state, setState] = useState("idle"); // idle | recording | processing
+  const [elapsed, setElapsed] = useState(0);
+  const [err, setErr] = useState("");
+  const mrRef = useRef(null), chunks = useRef([]), tick = useRef(null), startAt = useRef(0), streamRef = useRef(null);
+  useEffect(() => () => { clearInterval(tick.current); try { streamRef.current && streamRef.current.getTracks().forEach(t => t.stop()); } catch (e) {} }, []);
+  async function start() {
+    setErr("");
+    if (typeof navigator === "undefined" || !navigator.mediaDevices || typeof MediaRecorder === "undefined") { setErr("이 브라우저에서는 녹음할 수 없어요."); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const mime = pickAudioMime();
+      const mr = new MediaRecorder(stream, { ...(mime ? { mimeType: mime } : {}), audioBitsPerSecond: 16000 });
+      chunks.current = [];
+      mr.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.current.push(e.data); };
+      mr.onstop = () => {
+        clearInterval(tick.current);
+        try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+        const dur = Math.min(VOICE_MAX_SEC, Math.round((Date.now() - startAt.current) / 1000));
+        const type = (mr.mimeType || mime || "audio/webm").split(";")[0];
+        const blob = new Blob(chunks.current, { type });
+        if (blob.size === 0) { setState("idle"); setErr("녹음된 소리가 없어요. 다시 녹음해 주세요."); return; }
+        if (blob.size > VOICE_MAX_BYTES) { setState("idle"); setErr("녹음이 너무 커요. 조금 짧게 다시 녹음해 주세요."); return; }
+        setState("processing");
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const data = String(reader.result || "").split(",")[1] || "";
+          onChange(data ? { data, type, durSec: Math.max(1, dur) } : null);
+          setState("idle");
+        };
+        reader.readAsDataURL(blob);
+      };
+      mrRef.current = mr;
+      startAt.current = Date.now();
+      setElapsed(0);
+      mr.start();
+      setState("recording");
+      tick.current = setInterval(() => {
+        const sec = (Date.now() - startAt.current) / 1000;
+        setElapsed(sec);
+        if (sec >= VOICE_MAX_SEC && mrRef.current && mrRef.current.state !== "inactive") mrRef.current.stop();
+      }, 250);
+    } catch (e) {
+      setErr("마이크를 쓸 수 있게 허용해 주세요.");
+      setState("idle");
+    }
+  }
+  function stop() { if (mrRef.current && mrRef.current.state !== "inactive") mrRef.current.stop(); }
+  const btn = (bg) => ({ background: bg, color: "white", border: "none", borderRadius: 20, padding: "8px 14px", fontSize: 12, fontWeight: 800, cursor: disabled ? "not-allowed" : "pointer" });
+  return (
+    <div style={{ background: "#FFF8F0", border: "1px dashed #FFCC80", borderRadius: 10, padding: "8px 10px", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#E65100", marginBottom: 6 }}>🎤 음성 의견 <span style={{ fontWeight: 600, color: "#888", fontSize: 11 }}>— 최대 {VOICE_MAX_SEC / 60}분, 들어 보고 붙여요</span></div>
+      {state === "recording" ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 13, fontWeight: 800, color: "#E53935" }}>● 녹음 중 {fmtSec(elapsed)} / {fmtSec(VOICE_MAX_SEC)}</span>
+          <button type="button" onClick={stop} style={btn("#E53935")}>⏹ 멈추기</button>
+        </div>
+      ) : state === "processing" ? (
+        <div style={{ fontSize: 12, color: "#888" }}>준비 중...</div>
+      ) : voice ? (
+        <div>
+          <audio controls src={`data:${voice.type || "audio/webm"};base64,${voice.data}`} style={{ width: "100%", height: 36 }} />
+          <div style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center" }}>
+            <span style={{ fontSize: 11, color: "#2D7A2D", fontWeight: 700 }}>✓ 붙였어요 ({fmtSec(voice.durSec || 0)}) — 보낼 때 함께 가요</span>
+            <button type="button" disabled={disabled} onClick={start} style={{ ...btn("#FF8C42"), padding: "4px 10px", fontSize: 11 }}>다시 녹음</button>
+            <button type="button" disabled={disabled} onClick={() => onChange(null)} style={{ background: "white", color: "#E53935", border: "1px solid #FFCCCC", borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>지우기</button>
+          </div>
+        </div>
+      ) : (
+        <button type="button" disabled={disabled} onClick={start} style={btn("#FF8C42")}>🎤 녹음 시작</button>
+      )}
+      {err && <div style={{ fontSize: 11, color: "#E53935", marginTop: 4 }}>{err}</div>}
+    </div>
+  );
+}
+// 학습자·교수자 공용 재생 버튼 — 누를 때 소리 문서를 불러와 재생, 몇 번이든 다시 들을 수 있음
+function EssayVoicePlayer({ teacherId, assignId, voice }) {
+  const [src, setSrc] = useState(null);
+  const [status, setStatus] = useState("idle"); // idle | loading | ready | error
+  async function load() {
+    setStatus("loading");
+    try {
+      const d = await getDoc(doc(db, "classes", teacherId, "assignments", assignId, "feedbackAudio", voice.id));
+      if (!d.exists() || !d.data().data) throw new Error("no audio");
+      setSrc(`data:${d.data().type || "audio/webm"};base64,${d.data().data}`);
+      setStatus("ready");
+    } catch (e) { setStatus("error"); }
+  }
+  return (
+    <div style={{ background: "white", border: "1px solid #FFCC80", borderRadius: 10, padding: "6px 10px", marginTop: 6 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#E65100", marginBottom: 4 }}>🎧 선생님 음성 의견 ({fmtSec(voice.durSec || 0)})</div>
+      {status === "ready" ? (
+        <audio controls autoPlay src={src} style={{ width: "100%", height: 36 }} onError={() => setStatus("error")} />
+      ) : status === "error" ? (
+        <div style={{ fontSize: 12, color: "#E53935" }}>이 기기에서 음성을 재생하지 못했어요. 다른 기기(컴퓨터 등)에서 들어 보세요. <button type="button" onClick={load} style={{ background: "none", border: "none", color: "#2E75B6", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>다시 시도</button></div>
+      ) : (
+        <button type="button" onClick={load} disabled={status === "loading"}
+          style={{ background: "#FF8C42", color: "white", border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
+          {status === "loading" ? "불러오는 중..." : "▶ 듣기"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose }) {
   const a = assignment;
   const sections = essaySections(a);
@@ -2472,6 +2593,7 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
   }
   const joinText = (a0, b0) => (a0 && a0.trim() ? a0.replace(/\s+$/, "") + " " : "") + b0;
   const cur = useRef({ text: "", notes: [] }); // 전체 의견 + 문장 의견 최신값(자동 저장용)
+  const [voice, setVoice] = useState(null); // ✅ V527: 붙인 음성 {data, type, durSec} — 초안에도 보관
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
   const [sending, setSending] = useState(false);
@@ -2487,6 +2609,7 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
         const t0 = typeof d.data().text === "string" ? d.data().text : "";
         const n0 = Array.isArray(d.data().notes) ? d.data().notes : [];
         setText(t0); setNotes(n0); cur.current = { text: t0, notes: n0 };
+        if (d.data().voice && d.data().voice.data) setVoice(d.data().voice);
       }
       setLoaded(true);
     }).catch(() => { if (alive) setLoaded(true); });
@@ -2494,7 +2617,7 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
   }, []);
   async function flushDraft(data) {
     try {
-      await setDoc(draftRef, { text: data.text, notes: data.notes, updatedAtMs: Date.now() });
+      await setDoc(draftRef, { text: data.text, notes: data.notes, updatedAtMs: Date.now() }, { merge: true }); // ✅ V527: merge — 초안의 음성 보존
       if (pending.current === data) pending.current = null;
       setSaveState("saved");
     } catch (e) { setSaveState("error"); }
@@ -2528,13 +2651,18 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
   }
   useEffect(() => () => {
     clearTimeout(timer.current);
-    if (pending.current !== null) setDoc(draftRef, { text: pending.current.text, notes: pending.current.notes, updatedAtMs: Date.now() }).catch(() => {});
+    if (pending.current !== null) setDoc(draftRef, { text: pending.current.text, notes: pending.current.notes, updatedAtMs: Date.now() }, { merge: true }).catch(() => {});
   }, []);
 
+  // ✅ V527: 음성을 붙이거나 지우면 초안에도 바로 반영
+  function changeVoice(v) {
+    setVoice(v);
+    setDoc(draftRef, { voice: v ? v : deleteField(), updatedAtMs: Date.now() }, { merge: true }).catch(() => {});
+  }
   async function send(action) {
     const t = text.trim();
     const ns = cur.current.notes;
-    if (!t && ns.length === 0) { alert("의견을 먼저 써 주세요 ✍️"); return; }
+    if (!t && ns.length === 0 && !voice) { alert("의견을 먼저 써 주세요 ✍️"); return; }
     if (versions.length === 0) return;
     const msg = action === "redo"
       ? "의견과 함께 '다시 써 보세요'를 보낼까요?\n학습자는 지금 글과 의견을 보면서 고쳐 쓸 수 있어요.\n(완료 표시는 그대로 유지돼요)"
@@ -2544,10 +2672,18 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
     pending.current = null;
     setSending(true);
     try {
-      const round = { text: t, action, forVersion: versions.length - 1, atMs: Date.now(), ...(ns.length ? { notes: ns } : {}) };
+      // ✅ V527: 음성은 따로 저장한 뒤 의견에는 번호(id)와 길이만 담음
+      let voiceRef = null;
+      if (voice) {
+        const vid = `${student.id}_${info.rounds.length}`;
+        await setDoc(doc(db, "classes", teacherUid, "assignments", a.id, "feedbackAudio", vid),
+          { learnerUid: student.id, data: voice.data, type: voice.type || "audio/webm", durSec: voice.durSec || 0, createdAt: serverTimestamp() });
+        voiceRef = { id: vid, durSec: voice.durSec || 0 };
+      }
+      const round = { text: t, action, forVersion: versions.length - 1, atMs: Date.now(), ...(ns.length ? { notes: ns } : {}), ...(voiceRef ? { voice: voiceRef } : {}) };
       await setDoc(fbRef, { rounds: [...info.rounds, round], updatedAt: serverTimestamp(), seenReplies: replies.length });
       await deleteDoc(draftRef).catch(() => {});
-      setText(""); setNotes([]); setPick(null); cur.current = { text: "", notes: [] };
+      setText(""); setNotes([]); setPick(null); cur.current = { text: "", notes: [] }; setVoice(null);
       setSaveState("idle");
     } catch (e) {
       flushDraft(cur.current);
@@ -2565,6 +2701,7 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
         {r.action === "redo" ? "✏️ 보낸 의견 · 다시 써 보세요" : "💬 보낸 의견 · 돌려주기"} <span style={{ fontWeight: 600, color: "#888" }}>{fmt(r.atMs)}</span>
       </div>
       {r.text ? <div style={{ fontSize: 13, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", marginTop: 4 }}>{r.text}</div> : null}
+      {r.voice && r.voice.id && <EssayVoicePlayer teacherId={teacherUid} assignId={a.id} voice={r.voice} />}
       {Array.isArray(r.notes) && r.notes.length > 0 && (
         <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>📍 문장 의견 {r.notes.length}개 (글 속 노란 문장)</div>
       )}
@@ -2705,6 +2842,7 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
                   {bankMsg && <span style={{ fontSize: 11, color: "#2D7A2D" }}>{bankMsg}</span>}
                 </div>
               </div>
+              <EssayVoiceRecorder voice={voice} onChange={changeVoice} disabled={!loaded || sending} />
               <textarea value={text} onChange={e => onChange(e.target.value)} disabled={!loaded || sending} rows={6}
                 placeholder={loaded ? "예: 명절 음식을 구체적으로 써서 잘 전해졌어요. 두 번째 문단에 이유를 한 문장 더 써 보면 좋겠어요." : "불러오는 중..."}
                 style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 14, lineHeight: 1.7, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit" }} />
@@ -2712,12 +2850,12 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
                 {saveState === "saving" ? "저장 중..." : saveState === "saved" ? "✓ 초안 저장됨 (학습자에게는 안 보여요)" : saveState === "error" ? "⚠️ 초안 저장 실패 — 인터넷 연결을 확인해 주세요" : " "}
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => send("return")} disabled={sending || (!text.trim() && notes.length === 0)}
-                  style={{ flex: 1, background: sending || (!text.trim() && notes.length === 0) ? "#bbb" : "linear-gradient(135deg,#2D9D78,#1E7A5C)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || (!text.trim() && notes.length === 0) ? "not-allowed" : "pointer" }}>
+                <button onClick={() => send("return")} disabled={sending || (!text.trim() && notes.length === 0 && !voice)}
+                  style={{ flex: 1, background: sending || (!text.trim() && notes.length === 0 && !voice) ? "#bbb" : "linear-gradient(135deg,#2D9D78,#1E7A5C)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || (!text.trim() && notes.length === 0 && !voice) ? "not-allowed" : "pointer" }}>
                   💬 돌려주기
                 </button>
-                <button onClick={() => send("redo")} disabled={sending || (!text.trim() && notes.length === 0)}
-                  style={{ flex: 1, background: sending || (!text.trim() && notes.length === 0) ? "#bbb" : "linear-gradient(135deg,#FF8C42,#E65100)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || (!text.trim() && notes.length === 0) ? "not-allowed" : "pointer" }}>
+                <button onClick={() => send("redo")} disabled={sending || (!text.trim() && notes.length === 0 && !voice)}
+                  style={{ flex: 1, background: sending || (!text.trim() && notes.length === 0 && !voice) ? "#bbb" : "linear-gradient(135deg,#FF8C42,#E65100)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || (!text.trim() && notes.length === 0 && !voice) ? "not-allowed" : "pointer" }}>
                   ✏️ 다시 써 보세요
                 </button>
               </div>
@@ -3090,6 +3228,7 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }
               {isRedo ? "✏️ 선생님이 한 번 더 써 보자고 하셨어요" : "💬 선생님 의견"}
             </div>
             {fbInfo.last.text ? <div style={{ fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap", marginTop: 6 }}>{fbInfo.last.text}</div> : null}
+            {fbInfo.last.voice && fbInfo.last.voice.id && <EssayVoicePlayer teacherId={teacherId} assignId={a.id} voice={fbInfo.last.voice} />}
             {lastNotes.length > 0 && <div style={{ fontSize: 12, color: "#8A6D00", marginTop: 6, fontWeight: 700 }}>📍 문장에 의견 {lastNotes.length}개 — {essayFirst ? "아래" : "글 속"} 노란 문장을 확인해 보세요</div>}
             <div style={{ fontSize: 11, color: "#888", marginTop: 4 }}>{fbInfo.last.atMs ? fmt(fbInfo.last.atMs) : ""}</div>
             {/* ✅ V524: 선생님께 답하기(원칙 7 — 의견이 대화가 되도록) */}
@@ -3144,6 +3283,7 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }
                   {rs.map((r, k) => (
                     <div key={k} style={{ fontSize: 13, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", background: "#F5F8FF", borderRadius: 8, padding: "6px 10px", marginTop: 6 }}>
                       {r.action === "redo" ? "✏️" : "💬"} {r.text}
+                      {r.voice && r.voice.id && <EssayVoicePlayer teacherId={teacherId} assignId={a.id} voice={r.voice} />}
                       {(r.notes || []).map((nt, q) => <div key={q} style={{ fontSize: 12, color: "#555", marginTop: 2 }}>📍 “{nt.quote}” → {nt.text}</div>)}
                       {replies.filter(rp => rp.forRound === fbInfo.rounds.indexOf(r)).map((rp, q) => <div key={"rp" + q} style={{ fontSize: 12, color: "#2E75B6", marginTop: 2 }}>🙋 {rp.text}</div>)}
                     </div>
