@@ -184,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "532";
+const APP_VERSION = "533";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1976,11 +1976,20 @@ const VOCAB_AI_SYSTEM = `당신은 한국어 교사를 돕는 조수입니다. �
 - 날마다 다른 실생활 상황(집, 일터, 학교, 가게, 병원, 친구 등)을 씁니다. 같은 문장을 반복하지 않습니다.
 - 뜻이 통하는 자연스러운 문장만 씁니다. 빈칸 채우기를 위한 억지 문장은 쓰지 않습니다.
 - 학습자 수준에 맞는 쉬운 단어, 짧은 문장, 해요체로 씁니다. 문법 용어는 쓰지 않습니다.
-- 오답 보기는 형태는 그럴듯하지만 그 문장의 뜻에는 맞지 않는 것으로 고릅니다. 정답이 두 개가 되지 않게 합니다.
 - 문제 안에 정답을 드러내지 않습니다.
 
+[오답 만들기 — 정답은 반드시 하나]
+- 오답 3개는 각각 빈칸에 넣었을 때 **이 문장에서 분명히 틀려야** 합니다. 한국어 원어민이 "이것도 말이 된다"고 할 수 있는 보기는 오답으로 쓰지 않습니다.
+- 오답은 다음 두 가지 중에서 고릅니다.
+  ⓐ 학습자가 실제로 자주 틀리는 형태 (예: 내가 한 일에 '-더니'를 쓰기 — "내가 공부하더니", 주어·시제에 맞지 않는 형태)
+  ⓑ 뜻이 분명히 다른 표현 (예: 반대·대조, 원인, 목적 등 문장의 흐름과 맞지 않는 연결)
+- **바꿔 써도 말이 되는 비슷한 문법(유사 문법)은 오답으로 쓰지 않습니다.** 예: '-다 보니' 문장에서 내가 한 일의 결과를 말할 때는 '-았/었더니'도 맞으므로 오답이 될 수 없습니다.
+- 비슷한 문법을 오답으로 쓰려면, 문장 안에 그 문법이 틀리게 되는 **분명한 단서**(주어, 시제, 반복을 나타내는 말 등)가 있어야 합니다.
+- 보기 4개는 같은 동사·같은 모양(구조)으로 맞춥니다.
+- why에는 오답마다 "이 문장에서 왜 틀린지"를 한 문장으로 씁니다(보기 순서대로, 정답 자리는 빈 문자열 ""). 이유를 분명히 쓸 수 없는 오답은 쓰지 않습니다.
+
 [출력] 아래 JSON 하나만 출력합니다. 다른 말은 쓰지 않습니다.
-{"items":[{"day":0,"kind":"pick","q":"...___...","opts":["","","",""],"answer":""},{"day":0,"kind":"recall","q":"...___...","answers":[""],"hint":""},{"day":0,"kind":"speak","q":""}]}`;
+{"items":[{"day":0,"kind":"pick","q":"...___...","opts":["","","",""],"answer":"","why":["","","",""]},{"day":0,"kind":"recall","q":"...___...","answers":[""],"hint":""},{"day":0,"kind":"speak","q":""}]}`;
 function vocabAiPrompt(target, level, fromDay, toDay, others) {
   return [
     `목표 표현: ${target.expr}`,
@@ -2036,6 +2045,50 @@ function vocabHasStem(text, core) {
   return at > 0 && !(core.pre || []).includes(t.slice(0, at));
 }
 // AI 결과를 날·종류별로 하나씩 골라 편집용 형태로 바꿈. 빠진 것이 있으면 null(다시 만들기 안내)
+// ✅ V533: AI 2차 검증 — 보기 4개를 각각 빈칸에 넣은 문장이 자연스러운지 따로 판정(Sakaguchi 외 2013의 원어민 판정 단계를 AI로 1차 대신, 최종은 교수자)
+const VOCAB_VERIFY_SYSTEM = `당신은 한국어 원어민 검수자입니다. 각 문장이 문법과 뜻 모두에서 한국어 원어민이 실제로 쓸 수 있는 자연스러운 문장인지 판정합니다.
+- 조금이라도 자연스럽게 쓸 수 있으면 natural: true, 문법이나 뜻이 틀리거나 어색하면 false로 합니다.
+- 너그럽게 판정하지 마세요. 다만 원어민이 흔히 쓰는 문장이면 true입니다.
+[출력] JSON 하나만: {"results":[{"id":"","natural":true,"reason":"한 문장"}]}`;
+// ✅ V533: 2차 검증으로 AI 호출이 늘어 분당 호출 제한(SEC.RPM)에 걸릴 수 있음 → 걸리면 5초씩 기다렸다가 다시(최대 약 1분)
+async function vocabCall(msgs, sys, onWait) {
+  for (let k = 0; k < 13; k++) {
+    const r = await callClaudeGrade(msgs, sys, 1500);
+    if (r && r.error && String(r.error).includes("너무 빠르게")) {
+      if (onWait) onWait();
+      await new Promise(res => setTimeout(res, 5000));
+      continue;
+    }
+    return r;
+  }
+  return { error: "잠시 후 다시 시도해 주세요." };
+}
+function vocabVerifyPrompt(items) {
+  const lines = [];
+  items.filter(it => it.kind === "pick").forEach(it => {
+    it.opts.forEach((o, oi) => lines.push(`${it.day}-${oi}: ${it.q.replace("___", o)}`));
+  });
+  return "다음 문장들을 하나씩 판정해 주세요. id는 줄 앞의 번호입니다.\n" + lines.join("\n");
+}
+// 검증 결과를 문항에 붙임: 정답이 부자연스럽거나, 오답이 자연스러우면 flag
+function vocabApplyVerify(items, data) {
+  const res = new Map((Array.isArray(data?.results) ? data.results : []).map(r => [String(r.id).trim(), r]));
+  let bad = 0;
+  const out = items.map(it => {
+    if (it.kind !== "pick") return it;
+    const probs = [];
+    it.opts.forEach((o, oi) => {
+      const r = res.get(`${it.day}-${oi}`);
+      if (!r) return;
+      const nat = r.natural === true || r.natural === "true";
+      if (oi === it.ansIdx && !nat) probs.push(`정답 '${o}'이 어색할 수 있어요${r.reason ? ` — ${r.reason}` : ""}`);
+      if (oi !== it.ansIdx && nat) probs.push(`'${o}'도 정답이 될 수 있어요${r.reason ? ` — ${r.reason}` : ""}`);
+    });
+    if (probs.length) bad++;
+    return probs.length ? { ...it, flag: probs.join(" / ") } : it;
+  });
+  return { items: out, bad };
+}
 function vocabAiClean(data, fromDay, toDay, expr) {
   const core = vocabCore(expr);
   const list = Array.isArray(data?.items) ? data.items : [];
@@ -2048,6 +2101,7 @@ function vocabAiClean(data, fromDay, toDay, expr) {
     const pk = ofDay.find(it => it.kind === "pick" && blank(it.q).includes("___") && Array.isArray(it.opts)
       && vocabHasCore(it.answer, core) && vocabHasStem(it.answer, core) && !(core && core.g && vocabHasCore(blank(it.q).replace("___", ""), core)));
     const rc = ofDay.find(it => it.kind === "recall" && str(it.q) && Array.isArray(it.answers) && it.answers.some(x => str(x))
+      && !(core && core.g && vocabHasCore(blank(it.q).replace("___", ""), core)) // ✅ V533: ②도 목표 표현이 빈칸 밖(상황 설명 포함)에 있으면 안 됨
       && it.answers.some(x => vocabHasCore(x, core) && vocabHasStem(x, core))
       && it.answers.every(x => !vocabHasCore(x, core) || vocabHasStem(x, core))); // "빠른 반면"처럼 줄여 쓴 답은 허용, "반면에"만 달랑 있는 답은 안 됨
     const sp = ofDay.find(it => it.kind === "speak" && str(it.q));
@@ -2057,9 +2111,11 @@ function vocabAiClean(data, fromDay, toDay, expr) {
     if (!ans || !opts.includes(ans)) return null;
     opts = [ans, ...opts.filter(o => o !== ans)].slice(0, 4);
     if (opts.length < 4) return null;
+    // ✅ V533: 오답마다 "왜 틀린지"(보기 순서대로) — 섞은 뒤에도 보기와 짝이 맞게
+    const whyOf = new Map(pk.opts.map((o, k) => [str(o), Array.isArray(pk.why) ? str(pk.why[k]) : ""]));
     opts = opts.sort(() => Math.random() - 0.5); // 정답 위치 섞기
-    out.push({ day: d, kind: "pick", q: blank(pk.q), opts, ansIdx: opts.indexOf(ans) });
-    out.push({ day: d, kind: "recall", q: blank(rc.q), answers: rc.answers.map(str).filter(Boolean).slice(0, 5).join(", "), hint: str(rc.hint) });
+    out.push({ day: d, kind: "pick", q: blank(pk.q), opts, ansIdx: opts.indexOf(ans), whys: opts.map(o => (o === ans ? "" : whyOf.get(o) || "")) });
+    out.push({ day: d, kind: "recall", q: blank(rc.q), answers: [...new Set(rc.answers.map(str).filter(Boolean))].slice(0, 5).join(", "), hint: str(rc.hint) });
     out.push({ day: d, kind: "speak", q: str(sp.q) });
   }
   return out;
@@ -2078,6 +2134,7 @@ function vocabCheck(targets, gen, days) {
           || (k === "pick" && (!String(it.q).includes("___") || it.opts.some(o => !String(o).trim()) || new Set(it.opts.map(o => String(o).trim())).size < 4))
           || (k === "recall" && !String(it.answers || "").split(",").some(x => x.trim()));
         if (bad) problems.push(`'${tg.expr}' ${d + 1}일째 ${label} 문항을 채워 주세요.`);
+        else if (it.flag) problems.push(`'${tg.expr}' ${d + 1}일째 ${label}: 정답이 둘일 수 있어요 — 보기를 고치거나 [괜찮아요]를 눌러 주세요.`);
       });
     }
   });
@@ -2089,7 +2146,7 @@ function vocabBuildItems(targets, gen, days) {
     (gen[tg.expr] || []).filter(it => it.day < days).forEach(it => {
       if (it.kind === "pick") {
         const opts = it.opts.map(o => String(o).trim());
-        items.push({ t, day: it.day, kind: "pick", q: it.q.trim(), opts, answer: opts[it.ansIdx] ?? opts[0] });
+        items.push({ t, day: it.day, kind: "pick", q: it.q.trim(), opts, answer: opts[it.ansIdx] ?? opts[0], whys: (it.whys || opts.map(() => "")).map((w, k) => (k === it.ansIdx ? "" : String(w || "").trim())) });
       } else if (it.kind === "recall") {
         items.push({ t, day: it.day, kind: "recall", q: it.q.trim(), answers: String(it.answers).split(",").map(x => x.trim()).filter(Boolean), hint: String(it.hint || "").trim() });
       } else {
@@ -2126,11 +2183,21 @@ function VocabSetEditor({ form, setForm, essayExprs }) {
       // 한 번에 3일씩(응답 길이 제한 대비). ✅ V531: 검사를 통과하지 못하면 자동으로 한 번 더 만듦
       for (let from = 0; from < days && items !== null; from += 3) {
         const to = Math.min(days - 1, from + 2);
-        let c = null;
+        let c = null, best = null;
         for (let attempt = 0; attempt < 2 && !c; attempt++) {
-          const res = await callClaudeGrade([{ role: "user", content: vocabAiPrompt(tg, form.vLevel, from, to, others) }], VOCAB_AI_SYSTEM, 1500);
-          c = res.data ? vocabAiClean(res.data, from, to, tg.expr) : null;
+          if (attempt > 0) setBusy(`AI가 '${tg.expr}' 문항을 다시 만들고 있어요... (${i + 1}/${list.length})`);
+          const waitMsg = () => setBusy(`AI 요청이 많아 잠시 기다리는 중이에요... (${i + 1}/${list.length})`);
+          const res = await vocabCall([{ role: "user", content: vocabAiPrompt(tg, form.vLevel, from, to, others) }], VOCAB_AI_SYSTEM, waitMsg);
+          const cl = res.data ? vocabAiClean(res.data, from, to, tg.expr) : null;
+          if (!cl) continue;
+          // ✅ V533: 2차 검증 — 정답이 둘인 문항이 있으면 한 번 더 만들고, 그래도 있으면 표시해서 선생님이 판단
+          setBusy(`AI가 '${tg.expr}' 보기를 하나씩 검사하고 있어요... (${i + 1}/${list.length})`);
+          const vr = await vocabCall([{ role: "user", content: vocabVerifyPrompt(cl) }], VOCAB_VERIFY_SYSTEM, waitMsg);
+          if (!vr.data) { c = cl.map(it => (it.kind === "pick" ? { ...it, flag: "AI 2차 검사를 하지 못했어요 — 보기를 하나씩 넣어 읽어 봐 주세요." } : it)); break; }
+          const ap = vocabApplyVerify(cl, vr.data);
+          if (ap.bad === 0) c = ap.items; else best = ap.items;
         }
+        if (!c && best) c = best;
         items = c ? [...items, ...c] : null;
       }
       if (items) gen[tg.expr] = items; else failed.push(tg.expr);
@@ -2238,12 +2305,24 @@ function VocabSetEditor({ form, setForm, essayExprs }) {
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, marginTop: 4 }}>
                               {it.opts.map((o, oi) => (
                                 <label key={oi} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                  <input type="radio" name={`ans-${tg.expr}-${i}`} checked={it.ansIdx === oi} onChange={() => setItem(tg.expr, i, { ansIdx: oi })} title="정답" />
-                                  <input value={o} onChange={e => setItem(tg.expr, i, { opts: it.opts.map((x, xi) => (xi === oi ? e.target.value : x)) })}
-                                    style={{ ...inp, padding: "5px 7px", fontSize: 12, background: it.ansIdx === oi ? "#EEF7EE" : "white" }} aria-label={`보기 ${oi + 1}`} />
+                                  <input type="radio" name={`ans-${tg.expr}-${i}`} checked={it.ansIdx === oi} onChange={() => setItem(tg.expr, i, { ansIdx: oi, flag: undefined })} title="정답" />
+                                  <span style={{ flex: 1, minWidth: 0 }}>
+                                    <input value={o} onChange={e => setItem(tg.expr, i, { opts: it.opts.map((x, xi) => (xi === oi ? e.target.value : x)), flag: undefined })}
+                                      style={{ ...inp, padding: "5px 7px", fontSize: 12, background: it.ansIdx === oi ? "#EEF7EE" : "white" }} aria-label={`보기 ${oi + 1}`} />
+                                    {oi !== it.ansIdx && it.whys && it.whys[oi] ? <span style={{ display: "block", fontSize: 10, color: "#888", lineHeight: 1.4, marginTop: 2 }}>✗ {it.whys[oi]}</span> : null}
+                                  </span>
                                 </label>
                               ))}
-                              <div style={{ gridColumn: "1 / -1", fontSize: 10, color: "#888" }}>● 표시한 것이 정답이에요 (학습자에게는 섞여서 보여요)</div>
+                              <div style={{ gridColumn: "1 / -1", fontSize: 10, color: "#888" }}>● 표시한 것이 정답이에요 (학습자에게는 섞여서 보여요) · ✗ 오답인 이유</div>
+                              {it.flag && (
+                                <div style={{ gridColumn: "1 / -1", background: "#FFF0F0", border: "1px solid #FFCCCC", borderRadius: 8, padding: "6px 8px", fontSize: 11, color: "#C62828", lineHeight: 1.5 }}>
+                                  ⚠️ AI 2차 검사: {it.flag}
+                                  <div style={{ marginTop: 4, color: "#555" }}>보기를 고치면 이 경고는 사라져요. 선생님이 보시기에 문제없으면
+                                    <button type="button" onClick={() => setItem(tg.expr, i, { flag: undefined })}
+                                      style={{ marginLeft: 6, background: "white", color: "#2D7A2D", border: "1px solid #B7DDB7", borderRadius: 12, padding: "2px 8px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>✓ 괜찮아요</button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                           {it.kind === "recall" && (
