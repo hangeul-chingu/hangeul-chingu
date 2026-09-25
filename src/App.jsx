@@ -184,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "527";
+const APP_VERSION = "528";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2501,8 +2501,9 @@ function EssayVoiceRecorder({ voice, onChange, disabled }) {
       ) : voice ? (
         <div>
           <audio controls src={`data:${voice.type || "audio/webm"};base64,${voice.data}`} style={{ width: "100%", height: 36 }} />
+          {/* ✅ V528: "보낼 때 함께 가요"만으로는 아직 안 보냈다는 게 안 드러남(9/25 실기기) → 할 일이 남았다는 주황 안내 */}
+          <div style={{ fontSize: 11, color: "#E65100", fontWeight: 700, marginTop: 6, lineHeight: 1.5 }}>⏳ 붙였어요 ({fmtSec(voice.durSec || 0)}) — 아직 보내지 않았어요. 아래 [돌려주기]나 [다시 써 보세요]를 눌러야 학습자에게 전달돼요.</div>
           <div style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center" }}>
-            <span style={{ fontSize: 11, color: "#2D7A2D", fontWeight: 700 }}>✓ 붙였어요 ({fmtSec(voice.durSec || 0)}) — 보낼 때 함께 가요</span>
             <button type="button" disabled={disabled} onClick={start} style={{ ...btn("#FF8C42"), padding: "4px 10px", fontSize: 11 }}>다시 녹음</button>
             <button type="button" disabled={disabled} onClick={() => onChange(null)} style={{ background: "white", color: "#E53935", border: "1px solid #FFCCCC", borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>지우기</button>
           </div>
@@ -2542,6 +2543,68 @@ function EssayVoicePlayer({ teacherId, assignId, voice }) {
       )}
     </div>
   );
+}
+
+// ════════════════════════════════════════════════════════
+// ✅ V528: AI 의견 초안 (과제설계 원칙 6 — AI는 교수자 의견 "초안"만, 교수자가 넣고 고친 뒤에만 학습자에게)
+// - AI 결과는 따로 떨어진 초안 상자에만 보이고, 교수자가 [넣기]를 눌러야 교수자 의견 칸으로 옮겨짐
+// - 기준: TOPIK2 쓰기 채점 프롬프트 v3의 공통 원칙(잘한 점 먼저·원문 근거·AI 관대함 보정) + Swain(고칠 곳을 좁혀 스스로 알아차리게)
+// - 호출: 기존 callClaudeGrade(/api/chat 프록시, JSON 실패 시 1회 재시도) 재사용 → 새 서버·키·보안 규칙 없음
+// ════════════════════════════════════════════════════════
+const ESSAY_AI_SYSTEM = `당신은 한국어 교사를 돕는 조수입니다. 외국인·이주배경 학습자가 과제로 쓴 한국어 글을 읽고, 교사가 학습자에게 보낼 의견의 "초안"을 씁니다. 교사가 읽고 고친 뒤에 보냅니다.
+
+[원칙]
+1. 잘한 점 1가지를 먼저, 글에서 근거를 들어 구체적으로 말합니다.
+2. 고칠 점은 가장 중요한 1~2가지만 고릅니다. 모든 오류를 다 짚지 않습니다.
+3. 확인할 수 있는 사실만 말합니다. 글의 문장을 근거로 댈 수 없는 인상 평가("어색하다", "논리가 약하다")는 쓰지 않습니다.
+4. AI는 사람 교사보다 후하게 평가하는 경향이 있습니다. 칭찬을 부풀리지 말고, 고칠 점이 분명하면 분명히 말합니다.
+5. 고친 문장을 통째로 써 주지 말고, 학습자가 스스로 고칠 수 있게 방향(힌트)을 줍니다.
+6. 학습자가 읽을 말입니다. 쉬운 단어와 해요체 존댓말로 씁니다. 문장 의견은 한두 문장으로 짧게 씁니다.
+7. 과제에 "꼭 써 볼 표현"이나 "확인할 것"이 있으면 그것을 기준으로 삼습니다.
+8. 다시 쓴 글이면, 지난 의견을 반영해서 고친 부분을 먼저 알아봐 줍니다.
+
+[출력] 아래 JSON 하나만 출력합니다. 다른 말은 쓰지 않습니다.
+{"overall":"전체 의견(3~4문장)","notes":[{"sec":칸 번호,"idx":문장 번호,"text":"그 문장에 대한 의견"}]}
+notes는 0~3개입니다. sec와 idx는 글에 붙은 [칸 번호-문장 번호]를 그대로 씁니다.`;
+function essayAiPrompt(a, sections, versions, rounds) {
+  const latest = versions[versions.length - 1] || {};
+  const parts = Array.isArray(latest.parts) ? latest.parts : [];
+  const L = [];
+  L.push(`[과제] ${a.topic || a.title || ""}`);
+  L.push(`글 구조: ${a.structure === "free" ? "자유" : "현상 → 생각 → 이유 3단계"}${a.minChars ? ` / 최소 ${a.minChars}자` : ""}`);
+  if (Array.isArray(a.expressions) && a.expressions.length) L.push(`꼭 써 볼 표현: ${a.expressions.join(", ")}`);
+  if (Array.isArray(a.checklist) && a.checklist.length) L.push(`확인할 것: ${a.checklist.join(" / ")}`);
+  if (a.note) L.push(`교사 메모: ${a.note}`);
+  if (versions.length > 1) {
+    const prev = versions[versions.length - 2] || {};
+    L.push(`\n[지난 글 (${versions.length - 1}차)]`);
+    sections.forEach((sec, j) => L.push(`${sec.t}: ${(prev.parts || [])[j] || ""}`));
+    const lastR = [...rounds].reverse().find(r => r.forVersion === versions.length - 2);
+    if (lastR) {
+      L.push(`[지난 의견] ${lastR.text || "(글 의견 없음)"}`);
+      (lastR.notes || []).forEach(nt => L.push(`- “${nt.quote}” → ${nt.text}`));
+    }
+  }
+  L.push(`\n[이번 글 (${versions.length}차) — 문장마다 [칸 번호-문장 번호]]`);
+  sections.forEach((sec, j) => {
+    L.push(`(${j}) ${sec.t}`);
+    essaySplitSentences(parts[j] || "").filter(x => !x.br && x.s.trim()).forEach(x => L.push(`[${j}-${x.idx}] ${x.s.trim()}`));
+  });
+  return L.join("\n");
+}
+// AI가 돌려준 문장 번호를 실제 글과 맞춰 봄 — 없는 문장·중복은 버리고, 인용문은 글의 실제 문장으로 채움(최대 3개)
+function essayAiClean(data, sections, parts) {
+  const overall = typeof data?.overall === "string" ? data.overall.trim() : "";
+  const seen = new Set(), notes = [];
+  (Array.isArray(data?.notes) ? data.notes : []).forEach(nt => {
+    const sec = Number(nt?.sec), idx = Number(nt?.idx), t = typeof nt?.text === "string" ? nt.text.trim() : "";
+    if (!t || !Number.isInteger(sec) || sec < 0 || sec >= sections.length || !Number.isInteger(idx)) return;
+    const hit = essaySplitSentences((parts || [])[sec] || "").find(x => !x.br && x.idx === idx);
+    if (!hit || !hit.s.trim() || seen.has(sec + "-" + idx) || notes.length >= 3) return;
+    seen.add(sec + "-" + idx);
+    notes.push({ sec, idx, quote: hit.s.trim(), text: t });
+  });
+  return { overall, notes };
 }
 
 function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose }) {
@@ -2594,6 +2657,11 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
   const joinText = (a0, b0) => (a0 && a0.trim() ? a0.replace(/\s+$/, "") + " " : "") + b0;
   const cur = useRef({ text: "", notes: [] }); // 전체 의견 + 문장 의견 최신값(자동 저장용)
   const [voice, setVoice] = useState(null); // ✅ V527: 붙인 음성 {data, type, durSec} — 초안에도 보관
+  // ✅ V528: AI 의견 초안 {overall, notes, forVersion, atMs, used:{overall, notes:["sec-idx"]}} / 이번 의견에 AI 초안을 넣었는지(연구용 기록)
+  const [aiDraft, setAiDraft] = useState(null);
+  const [aiState, setAiState] = useState("idle"); // idle | loading | error
+  const [aiErr, setAiErr] = useState("");
+  const [aiUsed, setAiUsed] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
   const [sending, setSending] = useState(false);
@@ -2610,6 +2678,9 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
         const n0 = Array.isArray(d.data().notes) ? d.data().notes : [];
         setText(t0); setNotes(n0); cur.current = { text: t0, notes: n0 };
         if (d.data().voice && d.data().voice.data) setVoice(d.data().voice);
+        const ad = d.data().aiDraft;
+        if (ad && ad.forVersion === versions.length - 1) setAiDraft(ad); // 받아 둔 초안은 다시 부르지 않음(비용)
+        if (d.data().aiUsed) setAiUsed(true);
       }
       setLoaded(true);
     }).catch(() => { if (alive) setLoaded(true); });
@@ -2654,6 +2725,38 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
     if (pending.current !== null) setDoc(draftRef, { text: pending.current.text, notes: pending.current.notes, updatedAtMs: Date.now() }, { merge: true }).catch(() => {});
   }, []);
 
+  // ✅ V528: AI 의견 초안 받기 / 넣기
+  async function requestAi() {
+    if (versions.length === 0 || aiState === "loading") return;
+    if (aiDraft && !window.confirm("AI 의견 초안을 새로 받을까요?\n지금 초안 상자의 내용은 바뀌어요. (선생님 의견 칸은 그대로예요)")) return;
+    setAiState("loading"); setAiErr("");
+    const res = await callClaudeGrade([{ role: "user", content: essayAiPrompt(a, sections, versions, info.rounds) }], ESSAY_AI_SYSTEM, 1500);
+    if (res.error || !res.data) { setAiState("error"); setAiErr("AI 초안을 받지 못했어요. 잠시 뒤 다시 눌러 주세요."); return; }
+    const c = essayAiClean(res.data, sections, versions[versions.length - 1].parts);
+    if (!c.overall && c.notes.length === 0) { setAiState("error"); setAiErr("AI 초안이 비어 있어요. 다시 눌러 주세요."); return; }
+    const d = { ...c, forVersion: versions.length - 1, atMs: Date.now(), used: { overall: false, notes: [] } };
+    setAiDraft(d); setAiState("idle");
+    setDoc(draftRef, { aiDraft: d, updatedAtMs: Date.now() }, { merge: true }).catch(() => {});
+  }
+  function markAiUsed(nextDraft) {
+    setAiDraft(nextDraft); setAiUsed(true);
+    setDoc(draftRef, { aiDraft: nextDraft, aiUsed: true, updatedAtMs: Date.now() }, { merge: true }).catch(() => {});
+  }
+  function insertAiOverall() {
+    if (!aiDraft || !aiDraft.overall) return;
+    onChange(joinText(cur.current.text, aiDraft.overall));
+    markAiUsed({ ...aiDraft, used: { ...aiDraft.used, overall: true } });
+  }
+  function insertAiNote(nt) {
+    const ex = cur.current.notes.find(x => x.sec === nt.sec && x.idx === nt.idx);
+    const ns = cur.current.notes.filter(x => !(x.sec === nt.sec && x.idx === nt.idx));
+    ns.push({ sec: nt.sec, idx: nt.idx, quote: nt.quote, text: ex ? joinText(ex.text, nt.text) : nt.text });
+    ns.sort((x, y) => x.sec - y.sec || x.idx - y.idx);
+    setNotes(ns);
+    scheduleDraft({ ...cur.current, notes: ns });
+    const key = nt.sec + "-" + nt.idx;
+    markAiUsed({ ...aiDraft, used: { ...aiDraft.used, notes: [...(aiDraft.used?.notes || []), key] } });
+  }
   // ✅ V527: 음성을 붙이거나 지우면 초안에도 바로 반영
   function changeVoice(v) {
     setVoice(v);
@@ -2680,10 +2783,11 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
           { learnerUid: student.id, data: voice.data, type: voice.type || "audio/webm", durSec: voice.durSec || 0, createdAt: serverTimestamp() });
         voiceRef = { id: vid, durSec: voice.durSec || 0 };
       }
-      const round = { text: t, action, forVersion: versions.length - 1, atMs: Date.now(), ...(ns.length ? { notes: ns } : {}), ...(voiceRef ? { voice: voiceRef } : {}) };
+      const round = { text: t, action, forVersion: versions.length - 1, atMs: Date.now(), ...(ns.length ? { notes: ns } : {}), ...(voiceRef ? { voice: voiceRef } : {}), ...(aiUsed ? { aiAssisted: true } : {}) }; // ✅ V528: AI 초안 참고 여부(연구용, 학습자 화면엔 안 보임)
       await setDoc(fbRef, { rounds: [...info.rounds, round], updatedAt: serverTimestamp(), seenReplies: replies.length });
       await deleteDoc(draftRef).catch(() => {});
       setText(""); setNotes([]); setPick(null); cur.current = { text: "", notes: [] }; setVoice(null);
+      setAiDraft(null); setAiUsed(false); setAiState("idle");
       setSaveState("idle");
     } catch (e) {
       flushDraft(cur.current);
@@ -2824,6 +2928,50 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
             <div style={{ ...box, border: "1.5px solid #C8DAF0" }}>
               <div style={{ fontSize: 14, fontWeight: 900, color: "#1A3A5C" }}>💬 {versions.length}차 글에 대한 의견</div>
               <div style={{ fontSize: 11, color: "#888", margin: "2px 0 8px", lineHeight: 1.5 }}>쓰는 내용은 자동으로 저장되고, <b>보내기 전에는 학습자에게 보이지 않아요.</b>{notes.length > 0 ? <><br />📍 문장 의견 {notes.length}개도 함께 보내져요.</> : null}</div>
+              {/* ✅ V528: AI 의견 초안 — 따로 떨어진 상자, [넣기]를 눌러야 선생님 칸으로 옮겨짐 */}
+              <div style={{ background: "#F6F3FF", border: "1px dashed #C9B8F0", borderRadius: 10, padding: "8px 10px", marginBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: "#5E35B1" }}>🤖 AI 의견 초안 <span style={{ fontWeight: 600, color: "#888", fontSize: 11 }}>— 선생님이 넣고 고친 것만 학습자에게 가요</span></span>
+                  {aiDraft && aiState !== "loading" && (
+                    <button type="button" onClick={requestAi} disabled={sending}
+                      style={{ background: "none", border: "none", color: "#5E35B1", fontSize: 11, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap" }}>다시 받기</button>
+                  )}
+                </div>
+                {aiState === "loading" ? (
+                  <div style={{ fontSize: 12, color: "#5E35B1", marginTop: 6 }}>AI가 글을 읽고 있어요... (10~20초)</div>
+                ) : !aiDraft ? (
+                  <button type="button" onClick={requestAi} disabled={!loaded || sending}
+                    style={{ marginTop: 6, background: "#7E57C2", color: "white", border: "none", borderRadius: 20, padding: "8px 14px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>🤖 AI 의견 초안 받기</button>
+                ) : (
+                  <div style={{ marginTop: 6 }}>
+                    {aiDraft.overall && (
+                      <div style={{ background: "white", borderRadius: 8, padding: "8px 10px", marginBottom: 6 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "#5E35B1", marginBottom: 2 }}>전체 의견 초안</div>
+                        <div style={{ fontSize: 13, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{aiDraft.overall}</div>
+                        <button type="button" onClick={insertAiOverall} disabled={sending || !!aiDraft.used?.overall}
+                          style={{ marginTop: 6, background: aiDraft.used?.overall ? "#E8E0F8" : "#7E57C2", color: aiDraft.used?.overall ? "#5E35B1" : "white", border: "none", borderRadius: 16, padding: "4px 12px", fontSize: 11, fontWeight: 800, cursor: aiDraft.used?.overall ? "default" : "pointer" }}>
+                          {aiDraft.used?.overall ? "✓ 넣었어요 — 아래 칸에서 고쳐 주세요" : "↓ 전체 의견에 넣기"}
+                        </button>
+                      </div>
+                    )}
+                    {aiDraft.notes.map((nt, k) => {
+                      const done = (aiDraft.used?.notes || []).includes(nt.sec + "-" + nt.idx);
+                      return (
+                        <div key={k} style={{ background: "white", borderRadius: 8, padding: "8px 10px", marginBottom: 6 }}>
+                          <div style={{ fontSize: 11, color: "#888", marginBottom: 2 }}>📍 {sections.length > 1 ? `${nt.sec + 1}. ${sections[nt.sec].t} · ` : ""}“{nt.quote}”</div>
+                          <div style={{ fontSize: 13, color: "#333", lineHeight: 1.6 }}>{nt.text}</div>
+                          <button type="button" onClick={() => insertAiNote(nt)} disabled={sending || done}
+                            style={{ marginTop: 6, background: done ? "#E8E0F8" : "#7E57C2", color: done ? "#5E35B1" : "white", border: "none", borderRadius: 16, padding: "4px 12px", fontSize: 11, fontWeight: 800, cursor: done ? "default" : "pointer" }}>
+                            {done ? "✓ 넣었어요 — 글 속 문장을 눌러 고쳐 주세요" : "📍 이 문장에 넣기"}
+                          </button>
+                        </div>
+                      );
+                    })}
+                    <div style={{ fontSize: 10, color: "#888", lineHeight: 1.5 }}>⚠️ AI 초안은 틀릴 수 있어요. 넣은 뒤 꼭 읽고 선생님 말로 고쳐 주세요.</div>
+                  </div>
+                )}
+                {aiState === "error" && <div style={{ fontSize: 11, color: "#E53935", marginTop: 4 }}>{aiErr}</div>}
+              </div>
               {/* ✅ V526: 자주 쓰는 의견 */}
               <div style={{ background: "#FAFCFF", border: "1px dashed #C8DAF0", borderRadius: 10, padding: "8px 10px", marginBottom: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
