@@ -184,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "524";
+const APP_VERSION = "525";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2351,7 +2351,7 @@ function essaySplitSentences(text) {
 function EssayNotedText({ text, notes = [], activeIdx = null, onPick }) {
   const sorted = [...notes].sort((x, y) => x.idx - y.idx);
   const noteNo = {};
-  sorted.forEach((nt, k) => { noteNo[nt.idx] = k + 1; });
+  sorted.forEach((nt, k) => { if (!noteNo[nt.idx]) noteNo[nt.idx] = k + 1; });
   const items = essaySplitSentences(text);
   const short = (q) => { const t = String(q || "").trim(); return t.length > 24 ? t.slice(0, 24) + "…" : t; };
   return (
@@ -2375,6 +2375,7 @@ function EssayNotedText({ text, notes = [], activeIdx = null, onPick }) {
           {sorted.map((nt, k) => (
             <div key={k} style={{ fontSize: 13, color: "#333", background: "#FFFBE6", border: "1px solid #F5E08C", borderRadius: 8, padding: "6px 10px", marginTop: 4, lineHeight: 1.6 }}>
               <b style={{ color: "#E65100" }}>{k + 1}</b> <span style={{ color: "#888", fontSize: 12 }}>“{short(nt.quote)}”</span>
+              {nt.tag && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, borderRadius: 6, padding: "1px 6px", background: nt.tag === "보냄" ? "#E8F5E9" : "#E3F2FD", color: nt.tag === "보냄" ? "#2D7A2D" : "#1565C0" }}>{nt.tag}</span>}
               <div style={{ whiteSpace: "pre-wrap" }}>{nt.text}</div>
             </div>
           ))}
@@ -2531,9 +2532,11 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
         {sections.map((sec, j) => {
           // ✅ V523: 최신 글 = 지금 쓰는 문장 의견(편집 가능) / 이전 글 = 그때 보낸 문장 의견
           const isLatest = i === versions.length - 1;
+          // ✅ V525: 최신 글에도 이미 보낸 문장 의견을 표시(V523은 작성 중인 것만 보여서 "글 속 노란 문장" 안내와 어긋났음)
+          const sentNotes = info.rounds.filter(r => r.forVersion === i).flatMap(r => r.notes || []).filter(nt => nt.sec === j);
           const secNotes = isLatest
-            ? notes.filter(nt => nt.sec === j)
-            : info.rounds.filter(r => r.forVersion === i).flatMap(r => r.notes || []).filter(nt => nt.sec === j);
+            ? [...sentNotes.map(nt => ({ ...nt, tag: "보냄" })), ...notes.filter(nt => nt.sec === j).map(nt => ({ ...nt, tag: "작성 중" }))]
+            : sentNotes;
           return (
             <div key={j} style={{ marginBottom: 8 }}>
               {sections.length > 1 && <div style={{ fontSize: 12, fontWeight: 800, color: "#1A3A5C", marginBottom: 2 }}>{sec.emoji} {j + 1}. {sec.t}</div>}
