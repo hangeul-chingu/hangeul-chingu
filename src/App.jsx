@@ -147,16 +147,33 @@ function toMs(v) {
   const t = new Date(v).getTime();
   return isNaN(t) ? null : t;
 }
-// 상태: todo(아직 안 씀) / draft(쓰는 중) / submitted(제출함). late = 마감 후 첫 제출.
-function essayStatus(assignment, sub) {
+// ✅ V522: 교수자 의견 상태 — feedback/{학습자} 문서의 rounds[{text, action:"return"|"redo", forVersion, atMs}]
+//   가장 최근 의견이 "가장 최근 제출본"에 대한 것이면 returned(돌려받음) / redo(다시 쓰는 중).
+//   학습자가 다시 제출하면(새 제출본에는 아직 의견 없음) 다시 submitted(제출함·확인 필요).
+//   unseen = 학습자가 아직 열어 보지 않은 의견이 있음(제출 문서의 seenRound와 비교).
+function essayFbInfo(sub, fb) {
+  const versions = sub && Array.isArray(sub.versions) ? sub.versions : [];
+  const rounds = fb && Array.isArray(fb.rounds) ? fb.rounds : [];
+  const last = rounds[rounds.length - 1] || null;
+  const onLatest = !!(last && versions.length > 0 && last.forVersion === versions.length - 1);
+  return {
+    rounds, last,
+    state: onLatest ? (last.action === "redo" ? "redo" : "returned") : null,
+    unseen: rounds.length > (Number(sub?.seenRound) || 0),
+  };
+}
+// 상태: todo(아직 안 씀) / draft(쓰는 중) / submitted(제출함) / returned(돌려받음) / redo(다시 쓰는 중).
+// late = 마감 후 첫 제출. 다시 쓰는 중이어도 완료(isAssignmentDone)는 유지된다(과제설계 원칙, 9/24 결정).
+function essayStatus(assignment, sub, fb) {
   const versions = sub && Array.isArray(sub.versions) ? sub.versions : [];
   if (versions.length > 0) {
     const dl = toMs(assignment?.deadline);
     const first = versions[0]?.submittedAtMs;
-    return { key: "submitted", late: !!(dl && first && first > dl) };
+    const info = essayFbInfo(sub, fb);
+    return { key: info.state || "submitted", late: !!(dl && first && first > dl), unseen: info.unseen };
   }
-  if (sub && Array.isArray(sub.parts) && sub.parts.some(x => (x || "").trim())) return { key: "draft", late: false };
-  return { key: "todo", late: false };
+  if (sub && Array.isArray(sub.parts) && sub.parts.some(x => (x || "").trim())) return { key: "draft", late: false, unseen: false };
+  return { key: "todo", late: false, unseen: false };
 }
 
 // ✅ V150: 최고 관리자 이메일 (이 이메일로만 AdminDashboard 접근 가능)
@@ -167,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "521";
+const APP_VERSION = "522";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1932,6 +1949,9 @@ function AssignmentPanel({ user, students }) {
   const [saving, setSaving] = useState(false);
   // ✅ V519: 논술 과제별 학습자 제출 문서 실시간 구독 { [과제id]: { [학습자uid]: 문서 } }
   const [essaySubs, setEssaySubs] = useState({});
+  // ✅ V522: 논술 과제별 돌려준 의견 { [과제id]: { [학습자uid]: {rounds} } } / 지금 보고 있는 학습자 글
+  const [essayFb, setEssayFb] = useState({});
+  const [review, setReview] = useState(null); // { aid, uid }
 
   // 교수자 과제 실시간 구독
   useEffect(() => {
@@ -1955,7 +1975,15 @@ function AssignmentPanel({ user, students }) {
         setEssaySubs(prev => ({ ...prev, [aid]: m }));
       }, () => {})
     );
-    return () => unsubs.forEach(u => u());
+    // ✅ V522: 돌려준 의견도 함께 구독(상태 칩·글 보기 화면에 사용)
+    const fbUnsubs = essayIdsKey.split(",").map(aid =>
+      onSnapshot(collection(db, "classes", user.uid, "assignments", aid, "feedback"), snap => {
+        const m = {};
+        snap.docs.forEach(d => { m[d.id] = d.data(); });
+        setEssayFb(prev => ({ ...prev, [aid]: m }));
+      }, () => {})
+    );
+    return () => { unsubs.forEach(u => u()); fbUnsubs.forEach(u => u()); };
   }, [user?.uid, essayIdsKey]);
 
   async function saveAssignment() {
@@ -1996,12 +2024,15 @@ function AssignmentPanel({ user, students }) {
     const isEssay = target?.type === "ESSAY";
     // ✅ V519: 논술 과제는 학습자가 쓴 글도 함께 지워짐을 분명히 알림
     if (!window.confirm(isEssay
-      ? "이 과제를 삭제할까요?\n학습자들이 쓰고 제출한 글도 함께 지워지고, 되돌릴 수 없어요."
+      ? "이 과제를 삭제할까요?\n학습자들이 쓰고 제출한 글과 보낸 의견도 함께 지워지고, 되돌릴 수 없어요."
       : "이 과제를 삭제할까요?")) return;
     try {
       if (isEssay) {
-        const subSnap = await getDocs(collection(db, "classes", user.uid, "assignments", id, "submissions"));
-        await Promise.all(subSnap.docs.map(d => deleteDoc(d.ref)));
+        // ✅ V522: 제출 글 + 돌려준 의견 + 의견 초안까지 함께 삭제
+        for (const sub of ["submissions", "feedback", "feedbackDrafts"]) {
+          const snap = await getDocs(collection(db, "classes", user.uid, "assignments", id, sub));
+          await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+        }
       }
       await deleteDoc(doc(db, "classes", user.uid, "assignments", id));
     } catch (e) {
@@ -2256,15 +2287,19 @@ function AssignmentPanel({ user, students }) {
                   <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
                     {targetStudents.map(st => {
                       // ✅ V519: 논술은 할 일 / 쓰는 중 / 제출함(+늦음) 상태로 표시
+                      // ✅ V522: 제출함(확인 필요) / 돌려받음 / 다시 쓰는 중 추가, 누르면 글 보기·의견 쓰기
                       if (a.type === "ESSAY") {
-                        const es = essayStatus(a, aSubs[st.id]);
-                        const look = es.key === "submitted" ? { bg: "#D6EAD6", c: "#2D7A2D", ic: "✅", tx: "제출함" }
+                        const es = essayStatus(a, aSubs[st.id], (essayFb[a.id] || {})[st.id]);
+                        const look = es.key === "submitted" ? { bg: "#E3F2FD", c: "#1565C0", ic: "📥", tx: "제출함 · 확인 필요" }
+                          : es.key === "returned" ? { bg: "#D6EAD6", c: "#2D7A2D", ic: "💬", tx: "돌려받음" }
+                          : es.key === "redo" ? { bg: "#FFE0B2", c: "#8A4B00", ic: "✏️", tx: "다시 쓰는 중" }
                           : es.key === "draft" ? { bg: "#FFF3CD", c: "#8A6D00", ic: "✏️", tx: "쓰는 중" }
                           : { bg: "#F5F5F5", c: "#aaa", ic: "⬜", tx: "할 일" };
                         return (
-                          <span key={st.id} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: look.bg, color: look.c, fontWeight: 700 }}>
-                            {look.ic} {studentLabel(st)} · {look.tx}{es.late ? " · ⏰ 늦음" : ""}
-                          </span>
+                          <button key={st.id} type="button" onClick={() => setReview({ aid: a.id, uid: st.id })}
+                            style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: look.bg, color: look.c, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                            {look.ic} {studentLabel(st)} · {look.tx}{es.late ? " · ⏰ 늦음" : ""} ›
+                          </button>
                         );
                       }
                       const done = isAssignmentDone(a, st.gramLog || [], st.pronLog || []);
@@ -2275,12 +2310,210 @@ function AssignmentPanel({ user, students }) {
                       );
                     })}
                   </div>
+                  {a.type === "ESSAY" && <div style={{ fontSize: 10, color: "#999", marginTop: 6 }}>학습자 이름을 누르면 글을 보고 의견을 쓸 수 있어요</div>}
                 </div>
               )}
             </div>
           );
         })
       )}
+      {/* ✅ V522: 학습자 글 보기 + 의견 쓰기 */}
+      {review && (() => {
+        const ra = assignments.find(x => x.id === review.aid);
+        const st = students.find(x => x.id === review.uid);
+        if (!ra || !st) return null;
+        return <EssayReviewPanel key={ra.id + "_" + st.id} teacherUid={user.uid} assignment={ra} student={st}
+          sub={(essaySubs[ra.id] || {})[st.id]} fb={(essayFb[ra.id] || {})[st.id]} onClose={() => setReview(null)} />;
+      })()}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
+// ✅ V522: 교수자 — 학습자 논술 글 보기 + 전체 의견 (과제설계 원칙 6-2 "제출된 글을 볼 때")
+// - 제출본(versions)을 차수별로 보여 주고, 각 차수 아래에 그때 보낸 의견을 함께 표시
+// - 의견 초안: classes/{교수자}/assignments/{과제}/feedbackDrafts/{학습자} — 교수자만 읽기·쓰기(학습자에게 절대 안 보임)
+//   입력 1.5초 뒤 자동 저장, 화면을 닫을 때 남은 내용 즉시 저장
+// - [돌려주기] / [다시 써 보세요]를 누를 때만 feedback/{학습자}.rounds에 추가 → 이때 학습자에게 보임
+// - 학습자 제출 문서에는 의견을 넣지 않음(학습자가 의견을 위조할 수 없도록)
+// ════════════════════════════════════════════════════════
+function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose }) {
+  const a = assignment;
+  const sections = essaySections(a);
+  const expressions = Array.isArray(a.expressions) ? a.expressions : [];
+  const checklist = Array.isArray(a.checklist) ? a.checklist : [];
+  const versions = sub && Array.isArray(sub.versions) ? sub.versions : [];
+  const info = essayFbInfo(sub, fb);
+  const deadlineMs = toMs(a.deadline);
+  const draftRef = doc(db, "classes", teacherUid, "assignments", a.id, "feedbackDrafts", student.id);
+  const fbRef = doc(db, "classes", teacherUid, "assignments", a.id, "feedback", student.id);
+  const [text, setText] = useState("");
+  const [loaded, setLoaded] = useState(false);
+  const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
+  const [sending, setSending] = useState(false);
+  const timer = useRef(null);
+  const pending = useRef(null);
+
+  // 저장해 둔 의견 초안 불러오기
+  useEffect(() => {
+    let alive = true;
+    getDoc(draftRef).then(d => {
+      if (!alive) return;
+      if (d.exists() && typeof d.data().text === "string") setText(d.data().text);
+      setLoaded(true);
+    }).catch(() => { if (alive) setLoaded(true); });
+    return () => { alive = false; };
+  }, []);
+  async function flushDraft(t) {
+    try {
+      await setDoc(draftRef, { text: t, updatedAtMs: Date.now() });
+      if (pending.current === t) pending.current = null;
+      setSaveState("saved");
+    } catch (e) { setSaveState("error"); }
+  }
+  function onChange(v) {
+    setText(v);
+    pending.current = v;
+    setSaveState("saving");
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => flushDraft(v), 1500);
+  }
+  useEffect(() => () => {
+    clearTimeout(timer.current);
+    if (pending.current !== null) setDoc(draftRef, { text: pending.current, updatedAtMs: Date.now() }).catch(() => {});
+  }, []);
+
+  async function send(action) {
+    const t = text.trim();
+    if (!t) { alert("의견을 먼저 써 주세요 ✍️"); return; }
+    if (versions.length === 0) return;
+    const msg = action === "redo"
+      ? "의견과 함께 '다시 써 보세요'를 보낼까요?\n학습자는 지금 글과 의견을 보면서 고쳐 쓸 수 있어요.\n(완료 표시는 그대로 유지돼요)"
+      : "이 의견을 학습자에게 돌려줄까요?";
+    if (!window.confirm(msg)) return;
+    clearTimeout(timer.current);
+    pending.current = null;
+    setSending(true);
+    try {
+      const round = { text: t, action, forVersion: versions.length - 1, atMs: Date.now() };
+      await setDoc(fbRef, { rounds: [...info.rounds, round], updatedAt: serverTimestamp() });
+      await deleteDoc(draftRef).catch(() => {});
+      setText("");
+      setSaveState("idle");
+    } catch (e) {
+      flushDraft(text);
+      alert("보내지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.\n(쓴 의견은 초안으로 보관돼요)");
+    }
+    setSending(false);
+  }
+
+  const fmt = (ms) => ms ? new Date(ms).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+  const box = { background: "white", borderRadius: 14, padding: "12px 14px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" };
+  const fit = (arr, len, fill) => Array.from({ length: len }, (_, i) => (Array.isArray(arr) && arr[i] !== undefined ? arr[i] : fill));
+  const roundBox = (r, key) => (
+    <div key={key} style={{ background: r.action === "redo" ? "#FFF3E0" : "#EEF7EE", border: `1px solid ${r.action === "redo" ? "#FFCC80" : "#B7DDB7"}`, borderRadius: 10, padding: "8px 12px", marginTop: 8 }}>
+      <div style={{ fontSize: 11, fontWeight: 800, color: r.action === "redo" ? "#8A4B00" : "#2D7A2D" }}>
+        {r.action === "redo" ? "✏️ 보낸 의견 · 다시 써 보세요" : "💬 보낸 의견 · 돌려주기"} <span style={{ fontWeight: 600, color: "#888" }}>{fmt(r.atMs)}</span>
+      </div>
+      <div style={{ fontSize: 13, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", marginTop: 4 }}>{r.text}</div>
+    </div>
+  );
+  const versionCard = (v, i) => {
+    const vParts = fit(v.parts, sections.length, "");
+    const vExpr = fit(v.exprChecks, expressions.length, false);
+    const vList = fit(v.listChecks, checklist.length, false);
+    const late = i === 0 && deadlineMs && v.submittedAtMs > deadlineMs;
+    return (
+      <div>
+        <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>
+          {fmt(v.submittedAtMs)} 제출 · {v.charCount ?? essayCharCount(vParts)}자{a.minChars ? ` / 최소 ${a.minChars}자` : ""}{late ? " · ⏰ 마감 후 제출" : ""}
+        </div>
+        {sections.map((sec, j) => (
+          <div key={j} style={{ marginBottom: 8 }}>
+            {sections.length > 1 && <div style={{ fontSize: 12, fontWeight: 800, color: "#1A3A5C", marginBottom: 2 }}>{sec.emoji} {j + 1}. {sec.t}</div>}
+            <div style={{ fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap", background: "#FAFAFA", borderRadius: 10, padding: "8px 12px" }}>{vParts[j] || " "}</div>
+          </div>
+        ))}
+        {(expressions.length > 0 || checklist.length > 0) && (
+          <div style={{ fontSize: 12, color: "#555", lineHeight: 1.7, marginTop: 4 }}>
+            {expressions.map((ex, k) => <div key={"e" + k}>{vExpr[k] ? "☑️" : "⬜"} 표현: {ex}</div>)}
+            {checklist.map((c, k) => <div key={"l" + k}>{vList[k] ? "☑️" : "⬜"} {c}</div>)}
+            <div style={{ fontSize: 10, color: "#999" }}>(학습자가 스스로 체크한 것)</div>
+          </div>
+        )}
+        {info.rounds.filter(r => r.forVersion === i).map((r, k) => roundBox(r, "r" + k))}
+      </div>
+    );
+  };
+  const latestIdx = versions.length - 1;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "#F5F8FF", zIndex: 3200, overflowY: "auto", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 2, background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", padding: "14px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", borderRadius: 20, padding: "6px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>← 닫기</button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{studentLabel(student)}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>✍️ {a.title}</div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 600, margin: "0 auto", padding: "14px 14px 40px", boxSizing: "border-box" }}>
+        <div style={{ ...box, background: "#FFF8E1", borderLeft: "4px solid #FFC107" }}>
+          <div style={{ fontSize: 11, fontWeight: 800, color: "#F57F17", marginBottom: 4 }}>📝 주제·상황</div>
+          <div style={{ fontSize: 13, color: "#333", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{a.topic || a.title}</div>
+        </div>
+
+        {versions.length === 0 ? (
+          <div style={{ ...box, textAlign: "center", color: "#888", fontSize: 13, padding: 28 }}>
+            아직 제출하지 않았어요.<br />제출하면 여기에서 글을 보고 의견을 쓸 수 있어요.
+          </div>
+        ) : (
+          <>
+            {info.state === "redo" && (
+              <div style={{ ...box, background: "#FFF3E0", color: "#8A4B00", fontSize: 13, fontWeight: 700 }}>
+                ✏️ 학습자가 다시 쓰는 중이에요. 고쳐 쓴 글을 제출하면 아래에 {versions.length + 1}차 글로 나와요.
+              </div>
+            )}
+            <div style={box}>
+              <div style={{ fontSize: 14, fontWeight: 900, color: "#1A3A5C", marginBottom: 6 }}>📄 {versions.length}차 글{versions.length > 1 ? " (최신)" : ""}</div>
+              {versionCard(versions[latestIdx], latestIdx)}
+            </div>
+            {versions.length > 1 && (
+              <details style={{ ...box }}>
+                <summary style={{ fontSize: 13, fontWeight: 800, color: "#2E75B6", cursor: "pointer" }}>🗂️ 이전 글과 보낸 의견 ({versions.length - 1}개)</summary>
+                {versions.slice(0, -1).map((v, i) => (
+                  <div key={i} style={{ borderTop: "1px solid #eee", marginTop: 10, paddingTop: 10 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#1A3A5C", marginBottom: 6 }}>📄 {i + 1}차 글</div>
+                    {versionCard(v, i)}
+                  </div>
+                ))}
+              </details>
+            )}
+
+            <div style={{ ...box, border: "1.5px solid #C8DAF0" }}>
+              <div style={{ fontSize: 14, fontWeight: 900, color: "#1A3A5C" }}>💬 {versions.length}차 글에 대한 의견</div>
+              <div style={{ fontSize: 11, color: "#888", margin: "2px 0 8px", lineHeight: 1.5 }}>쓰는 내용은 자동으로 저장되고, <b>보내기 전에는 학습자에게 보이지 않아요.</b></div>
+              <textarea value={text} onChange={e => onChange(e.target.value)} disabled={!loaded || sending} rows={6}
+                placeholder={loaded ? "예: 명절 음식을 구체적으로 써서 잘 전해졌어요. 두 번째 문단에 이유를 한 문장 더 써 보면 좋겠어요." : "불러오는 중..."}
+                style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 14, lineHeight: 1.7, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit" }} />
+              <div style={{ fontSize: 11, color: saveState === "error" ? "#E53935" : "#999", margin: "4px 0 10px" }}>
+                {saveState === "saving" ? "저장 중..." : saveState === "saved" ? "✓ 초안 저장됨 (학습자에게는 안 보여요)" : saveState === "error" ? "⚠️ 초안 저장 실패 — 인터넷 연결을 확인해 주세요" : " "}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => send("return")} disabled={sending || !text.trim()}
+                  style={{ flex: 1, background: sending || !text.trim() ? "#bbb" : "linear-gradient(135deg,#2D9D78,#1E7A5C)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || !text.trim() ? "not-allowed" : "pointer" }}>
+                  💬 돌려주기
+                </button>
+                <button onClick={() => send("redo")} disabled={sending || !text.trim()}
+                  style={{ flex: 1, background: sending || !text.trim() ? "#bbb" : "linear-gradient(135deg,#FF8C42,#E65100)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || !text.trim() ? "not-allowed" : "pointer" }}>
+                  ✏️ 다시 써 보세요
+                </button>
+              </div>
+              <div style={{ fontSize: 10, color: "#999", marginTop: 6, lineHeight: 1.5 }}>돌려주기 = 이 글로 마무리 · 다시 써 보세요 = 학습자가 지금 글을 보면서 고쳐 쓰기(완료 표시는 유지)</div>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -2291,7 +2524,7 @@ function AssignmentPanel({ user, students }) {
 // ════════════════════════════════════════════════════════
 // ✅ V517: 열 때 1회 getDoc → 부모(App)의 실시간 구독 데이터(gramLog/pronLog props)를 그대로 사용.
 //          닫았다 다시 열지 않아도 ✅가 바로 반영됨.
-function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essaySubs = {}, onClose, onGoToTab, onOpenEssay, user }) {
+function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essaySubs = {}, essayFb = {}, onClose, onGoToTab, onOpenEssay, user }) {
   const myGramLog = gramLog;
   const myPronLog = pronLog;
   const loading = false;
@@ -2335,7 +2568,7 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
             assignments.map(a => {
               const done = isAssignmentDone(a, myGramLog, myPronLog, essaySubs[a.id]);
               const isEssay = a.type === "ESSAY";
-              const es = isEssay ? essayStatus(a, essaySubs[a.id]) : null;
+              const es = isEssay ? essayStatus(a, essaySubs[a.id], essayFb[a.id]) : null;
               const deadlineDate = a.deadline?.toDate ? a.deadline.toDate() : (a.deadline ? new Date(a.deadline) : null);
               const isOverdue = deadlineDate && deadlineDate < new Date();
               const targetTab = TYPE_TAB[a.type];
@@ -2354,8 +2587,12 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
                       {isEssay ? (
                         <div style={{ fontSize: 12, color: "#1A3A5C", marginTop: 6, background: "#FFF8E1", borderRadius: 8, padding: "6px 10px" }}>
                           📝 {a.topic || a.title}
-                          <div style={{ fontSize: 11, marginTop: 3, fontWeight: 700, color: es.key === "submitted" ? "#2D7A2D" : es.key === "draft" ? "#8A6D00" : "#888" }}>
-                            {es.key === "submitted" ? "✅ 제출했어요" : es.key === "draft" ? "✏️ 쓰는 중이에요 (자동 저장됨)" : "⬜ 아직 시작하지 않았어요"}{es.late ? " · ⏰ 마감 후 제출" : ""}
+                          <div style={{ fontSize: 11, marginTop: 3, fontWeight: 700, color: es.key === "redo" ? "#8A4B00" : (es.key === "submitted" || es.key === "returned") ? "#2D7A2D" : es.key === "draft" ? "#8A6D00" : "#888" }}>
+                            {es.key === "returned" ? "💬 선생님 의견이 왔어요"
+                              : es.key === "redo" ? "✏️ 선생님이 한 번 더 써 보자고 하셨어요"
+                              : es.key === "submitted" ? "✅ 제출했어요 · 선생님이 읽고 있어요"
+                              : es.key === "draft" ? "✏️ 쓰는 중이에요 (자동 저장됨)" : "⬜ 아직 시작하지 않았어요"}{es.late ? " · ⏰ 마감 후 제출" : ""}
+                            {es.unseen && <span style={{ marginLeft: 6, background: "#E53935", color: "white", borderRadius: 8, padding: "1px 6px", fontSize: 10 }}>NEW</span>}
                           </div>
                         </div>
                       ) : (
@@ -2370,8 +2607,8 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
                   </div>
                   {isEssay && onOpenEssay && (
                     <button onClick={() => onOpenEssay(a)}
-                      style={{ marginTop: 10, width: "100%", background: es.key === "submitted" ? "white" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: es.key === "submitted" ? "#2E75B6" : "white", border: es.key === "submitted" ? "1.5px solid #2E75B6" : "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
-                      {es.key === "submitted" ? "📄 제출한 글 보기" : es.key === "draft" ? "✍️ 이어 쓰기" : "✍️ 글쓰기 시작"} →
+                      style={{ marginTop: 10, width: "100%", background: (es.key === "submitted" || es.key === "returned") ? "white" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: (es.key === "submitted" || es.key === "returned") ? "#2E75B6" : "white", border: (es.key === "submitted" || es.key === "returned") ? "1.5px solid #2E75B6" : "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                      {es.key === "returned" ? "💬 선생님 의견 보기" : es.key === "redo" ? "✍️ 다시 쓰기" : es.key === "submitted" ? "📄 제출한 글 보기" : es.key === "draft" ? "✍️ 이어 쓰기" : "✍️ 글쓰기 시작"} →
                     </button>
                   )}
                   {!isEssay && !done && targetTab && (
@@ -2402,7 +2639,7 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
 // - 자동 임시저장: 입력 1.5초 뒤 Firestore 저장 + 이 기기(localStorage)에 즉시 보관(인터넷 끊김 대비)
 // - 분량이 모자라도 제출은 막지 않고 한 번 더 확인(원칙: 쓰기가 어려운 학습자도 과제를 끝낼 수 있게)
 // ════════════════════════════════════════════════════════
-function EssayAssignmentScreen({ assignment, teacherId, user, sub, onClose }) {
+function EssayAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }) {
   const a = assignment;
   const sections = essaySections(a);
   const n = sections.length;
@@ -2415,6 +2652,10 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, onClose }) {
   const submitted = sub?.status === "submitted" && versions.length > 0;
   const lastVer = versions[versions.length - 1] || null;
   const deadlineMs = toMs(a.deadline);
+  // ✅ V522: 선생님 의견 — 다시 쓰기(redo)를 받았으면 제출 후에도 다시 쓸 수 있음(글 칸은 가장 최근 제출본으로 채워짐)
+  const fbInfo = essayFbInfo(sub, fb);
+  const isRedo = fbInfo.state === "redo";
+  const readOnly = submitted && !isRedo;
 
   const [parts, setParts] = useState(null);
   const [exprChecks, setExprChecks] = useState([]);
@@ -2449,6 +2690,12 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, onClose }) {
     setExprChecks(fit(ec, expressions.length, false));
     setListChecks(fit(lc, checklist.length, false));
   }, [sub]);
+
+  // ✅ V522: 의견을 열어 봤음을 기록(배너·목록의 "의견 도착" 표시가 사라짐)
+  useEffect(() => {
+    if (!fbInfo.unseen || fbInfo.rounds.length === 0) return;
+    setDoc(subRef, { learnerUid: user.uid, seenRound: fbInfo.rounds.length }, { merge: true }).catch(() => {});
+  }, [fbInfo.rounds.length, fbInfo.unseen]);
 
   async function flush(data) {
     try {
@@ -2493,6 +2740,7 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, onClose }) {
     if (count === 0) { alert("글을 먼저 써 주세요 ✍️"); return; }
     const msg = minChars && count < minChars
       ? `선생님이 정한 분량(${minChars}자)보다 짧아요. (지금 ${count}자)\n그래도 제출할까요?`
+      : isRedo ? `고쳐 쓴 글을 제출할까요?\n${versions.length}차 글은 그대로 보관돼요.`
       : "제출하면 선생님이 글을 읽어요.\n제출할까요?";
     if (!window.confirm(msg)) return;
     clearTimeout(timer.current);
@@ -2514,15 +2762,15 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, onClose }) {
     setSubmitting(false);
   }
 
-  const shownParts = submitted ? fit(lastVer?.parts, n, "") : parts;
-  const shownExpr = submitted ? fit(lastVer?.exprChecks, expressions.length, false) : exprChecks;
-  const shownList = submitted ? fit(lastVer?.listChecks, checklist.length, false) : listChecks;
+  const shownParts = readOnly ? fit(lastVer?.parts, n, "") : parts;
+  const shownExpr = readOnly ? fit(lastVer?.exprChecks, expressions.length, false) : exprChecks;
+  const shownList = readOnly ? fit(lastVer?.listChecks, checklist.length, false) : listChecks;
   const count = shownParts ? essayCharCount(shownParts) : 0;
   const fmt = (ms) => new Date(ms).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   const box = { background: "white", borderRadius: 14, padding: "12px 14px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" };
   const checkRow = (checked, label, onClick, key) => (
-    <label key={key} onClick={submitted ? undefined : onClick}
-      style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "5px 0", cursor: submitted ? "default" : "pointer", fontSize: 13, color: "#333", lineHeight: 1.5 }}>
+    <label key={key} onClick={readOnly ? undefined : onClick}
+      style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "5px 0", cursor: readOnly ? "default" : "pointer", fontSize: 13, color: "#333", lineHeight: 1.5 }}>
       <span style={{ fontSize: 16, lineHeight: 1.2 }}>{checked ? "☑️" : "⬜"}</span>
       <span>{label}</span>
     </label>
@@ -2536,20 +2784,65 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, onClose }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 800, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>✍️ {a.title}</div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>
-            {submitted ? "제출한 글" : "논술 과제"}{deadlineMs ? ` · 📅 마감 ${fmt(deadlineMs)}` : ""}
+            {readOnly ? "제출한 글" : isRedo ? "다시 쓰기" : "논술 과제"}{deadlineMs ? ` · 📅 마감 ${fmt(deadlineMs)}` : ""}
           </div>
         </div>
       </div>
 
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "14px 14px 120px", boxSizing: "border-box" }}>
-        {submitted && (
+        {readOnly && (
           <div style={{ ...box, background: "#F0FAF0", border: "1.5px solid #A8D5A8" }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#2D7A2D" }}>✅ 제출했어요!</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#2D7A2D" }}>✅ 제출했어요!{versions.length > 1 ? ` (${versions.length}차 글)` : ""}</div>
             <div style={{ fontSize: 12, color: "#555", marginTop: 4, lineHeight: 1.6 }}>
-              {lastVer?.submittedAtMs ? `${fmt(lastVer.submittedAtMs)}에 제출` : ""}{deadlineMs && versions[0]?.submittedAtMs > deadlineMs ? " · ⏰ 마감 후 제출" : ""}<br />
-              선생님이 글을 읽고 의견을 보내 주실 거예요.
+              {lastVer?.submittedAtMs ? `${fmt(lastVer.submittedAtMs)}에 제출` : ""}{deadlineMs && versions[0]?.submittedAtMs > deadlineMs ? " · ⏰ 마감 후 제출" : ""}
+              {fbInfo.state !== "returned" && <><br />선생님이 글을 읽고 의견을 보내 주실 거예요.</>}
             </div>
           </div>
+        )}
+
+        {/* ✅ V522: 선생님 의견(가장 최근 제출본에 대한 것) */}
+        {fbInfo.state && fbInfo.last && (
+          <div style={{ ...box, background: isRedo ? "#FFF3E0" : "#EEF7EE", border: `1.5px solid ${isRedo ? "#FFCC80" : "#B7DDB7"}` }}>
+            <div style={{ fontSize: 13, fontWeight: 900, color: isRedo ? "#8A4B00" : "#2D7A2D" }}>
+              {isRedo ? "✏️ 선생님이 한 번 더 써 보자고 하셨어요" : "💬 선생님 의견"}
+            </div>
+            <div style={{ fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap", marginTop: 6 }}>{fbInfo.last.text}</div>
+            <div style={{ fontSize: 11, color: "#888", marginTop: 4 }}>{fbInfo.last.atMs ? fmt(fbInfo.last.atMs) : ""}</div>
+          </div>
+        )}
+        {/* ✅ V522: 다시 쓰기 — 지난 글을 위에 두고 아래에서 고쳐 쓰기 */}
+        {isRedo && lastVer && (
+          <div style={{ ...box, background: "#FAFAFA" }}>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#1A3A5C" }}>📄 {versions.length}차 글 (제출한 글)</div>
+            <div style={{ fontSize: 14, color: "#555", lineHeight: 1.8, whiteSpace: "pre-wrap", marginTop: 6 }}>{lastVer.text || (lastVer.parts || []).join("\n\n")}</div>
+            <div style={{ fontSize: 12, color: "#2E75B6", marginTop: 8, lineHeight: 1.6, fontWeight: 700 }}>
+              👇 선생님 의견을 보면서 아래 글을 고쳐 써 보세요. {versions.length}차 글은 그대로 보관돼요.
+            </div>
+          </div>
+        )}
+        {/* ✅ V522: 지난 글과 의견(최근 것 제외) */}
+        {(versions.length > 1 || fbInfo.rounds.length > (fbInfo.state ? 1 : 0)) && (
+          <details style={box}>
+            <summary style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", cursor: "pointer" }}>🗂️ 지난 글과 의견 보기</summary>
+            {versions.map((v, i) => {
+              const rs = fbInfo.rounds.filter(r => r.forVersion === i && r !== fbInfo.last);
+              const isLatestShown = i === versions.length - 1;
+              if (isLatestShown && rs.length === 0) return null;
+              return (
+                <div key={i} style={{ borderTop: "1px solid #eee", marginTop: 8, paddingTop: 8 }}>
+                  {!isLatestShown && <>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#1A3A5C" }}>📄 {i + 1}차 글 · {fmt(v.submittedAtMs)}</div>
+                    <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7, whiteSpace: "pre-wrap", marginTop: 4 }}>{v.text || (v.parts || []).join("\n\n")}</div>
+                  </>}
+                  {rs.map((r, k) => (
+                    <div key={k} style={{ fontSize: 13, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", background: "#F5F8FF", borderRadius: 8, padding: "6px 10px", marginTop: 6 }}>
+                      {r.action === "redo" ? "✏️" : "💬"} {r.text}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </details>
         )}
 
         {/* 주제 */}
@@ -2577,13 +2870,14 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, onClose }) {
         )}
 
         {/* 글쓰기 칸 */}
+        {isRedo && shownParts && <div style={{ fontSize: 13, fontWeight: 900, color: "#E65100", margin: "4px 2px 8px" }}>✍️ {versions.length + 1}차 글 — 고쳐 쓰기</div>}
         {!shownParts ? (
           <div style={{ textAlign: "center", padding: 40, color: "#aaa" }}>불러오는 중...</div>
         ) : sections.map((sec, i) => (
           <div key={i} style={box}>
             <div style={{ fontSize: 13, fontWeight: 800, color: "#1A3A5C" }}>{sec.emoji} {n > 1 ? `${i + 1}. ${sec.t}` : sec.t}</div>
             <div style={{ fontSize: 11, color: "#888", margin: "2px 0 8px" }}>{sec.h}</div>
-            {submitted ? (
+            {readOnly ? (
               <div style={{ fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap", background: "#FAFAFA", borderRadius: 10, padding: "10px 12px", minHeight: 40 }}>{shownParts[i] || " "}</div>
             ) : (
               <textarea value={shownParts[i]} onChange={e => changePart(i, e.target.value)}
@@ -2595,7 +2889,7 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, onClose }) {
       </div>
 
       {/* 아래 고정 막대: 글자 수 · 저장 상태 · 제출 */}
-      {!submitted && shownParts && (
+      {!readOnly && shownParts && (
         <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 3, background: "white", borderTop: "1px solid #e8e8e8", padding: "10px 14px calc(10px + env(safe-area-inset-bottom))" }}>
           <div style={{ maxWidth: 600, margin: "0 auto", display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -26453,6 +26747,7 @@ export default function App() {
   // ✅ V519: 논술 과제 — 교수자 uid, 내 제출 문서 { [과제id]: 문서 | null }, 열려 있는 논술 과제 id
   const [assignTeacherId, setAssignTeacherId] = useState(null);
   const [myEssaySubs, setMyEssaySubs] = useState({});
+  const [myEssayFb, setMyEssayFb] = useState({}); // ✅ V522: 내 논술 과제에 대한 선생님 의견 { [과제id]: {rounds} }
   const [openEssayId, setOpenEssayId] = useState(null);
   // ✅ V332: 홈 화면 다국어 번역 테이블
   const hlc = onboardingLang || "ko";
@@ -26565,12 +26860,16 @@ export default function App() {
   // ✅ V519: 내 논술 과제 제출 문서 실시간 구독 — 논술 과제가 있을 때만(문서 1개씩)
   const myEssayIdsKey = learnerAssignments.filter(a => a.type === "ESSAY").map(a => a.id).join(",");
   useEffect(() => {
-    if (!user || userRole !== "learner" || !assignTeacherId || !myEssayIdsKey) { setMyEssaySubs({}); return; }
-    const unsubs = myEssayIdsKey.split(",").map(aid =>
+    if (!user || userRole !== "learner" || !assignTeacherId || !myEssayIdsKey) { setMyEssaySubs({}); setMyEssayFb({}); return; }
+    const unsubs = myEssayIdsKey.split(",").flatMap(aid => [
       onSnapshot(doc(db, "classes", assignTeacherId, "assignments", aid, "submissions", user.uid),
         d => setMyEssaySubs(prev => ({ ...prev, [aid]: d.exists() ? d.data() : null })),
-        () => setMyEssaySubs(prev => ({ ...prev, [aid]: null })))
-    );
+        () => setMyEssaySubs(prev => ({ ...prev, [aid]: null }))),
+      // ✅ V522: 선생님이 돌려준 의견(교수자가 [돌려주기]/[다시 써 보세요]를 누른 것만 보임)
+      onSnapshot(doc(db, "classes", assignTeacherId, "assignments", aid, "feedback", user.uid),
+        d => setMyEssayFb(prev => ({ ...prev, [aid]: d.exists() ? d.data() : null })),
+        () => setMyEssayFb(prev => ({ ...prev, [aid]: null }))),
+    ]);
     return () => unsubs.forEach(u => u());
   }, [user?.uid, userRole, assignTeacherId, myEssayIdsKey]);
 
@@ -27021,8 +27320,16 @@ export default function App() {
   // ✅ V148: 기존 가입자 마이그레이션 팝업
   // ✅ V514/V517 학습자 과제 배너 → ✅ V521: 함수로 분리해 C 블록(탭 화면)과 A 블록(레벨 선택 전)에서 함께 사용.
   //   논술 과제는 레벨과 무관하므로, 레벨을 고르기 전 첫 화면에서도 과제가 보여야 함(2026-09-24 실기기 발견).
+  // ✅ V522: 선생님 의견 알림 한 줄 — 안 읽은 의견 > 다시 써 볼 글 순서
+  const essayFbLine = () => {
+    const ess = learnerAssignments.filter(a => a.type === "ESSAY").map(a => essayStatus(a, myEssaySubs[a.id], myEssayFb[a.id]));
+    if (ess.some(e => e.unseen)) return "💬 선생님 의견이 도착했어요";
+    const redo = ess.filter(e => e.key === "redo").length;
+    return redo > 0 ? `✏️ 다시 써 볼 글 ${redo}개` : null;
+  };
   const renderAssignmentBanner = () => {
     if (!learnerAssignments.length || !myAssignLogs) return null;
+    const fbLine = essayFbLine();
     const pendingAssignments = learnerAssignments.filter(a => !isAssignmentDone(a, myAssignLogs.gramLog, myAssignLogs.pronLog, myEssaySubs[a.id]));
     if (pendingAssignments.length === 0) return (
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 12px 8px" }}>
@@ -27032,7 +27339,7 @@ export default function App() {
         >
           <div>
             <div style={{ fontSize: 13, fontWeight: 800, color: "white", marginBottom: 2 }}>✅ 과제 모두 완료!</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>과제 {learnerAssignments.length}개를 모두 끝냈어요 👏</div>
+            <div style={{ fontSize: 11, color: fbLine ? "#FFE082" : "rgba(255,255,255,0.85)", fontWeight: fbLine ? 800 : 400 }}>{fbLine || `과제 ${learnerAssignments.length}개를 모두 끝냈어요 👏`}</div>
           </div>
           <div style={{ fontSize: 20, color: "white" }}>›</div>
         </div>
@@ -27051,6 +27358,7 @@ export default function App() {
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>
               {pendingAssignments[0]?.title}{pendingAssignments.length > 1 ? ` 외 ${pendingAssignments.length - 1}개` : ""}
             </div>
+            {fbLine && <div style={{ fontSize: 11, color: "#FFE082", fontWeight: 800, marginTop: 2 }}>{fbLine}</div>}
           </div>
           <div style={{ fontSize: 20, color: "white" }}>›</div>
         </div>
@@ -27604,6 +27912,7 @@ export default function App() {
           gramLog={myAssignLogs?.gramLog || []}
           pronLog={myAssignLogs?.pronLog || []}
           essaySubs={myEssaySubs}
+          essayFb={myEssayFb}
           onClose={() => setShowAssignmentModal(false)}
           onGoToTab={() => setShowAssignmentModal(false)}
           onOpenEssay={(a) => { setShowAssignmentModal(false); setOpenEssayId(a.id); }}
@@ -27613,7 +27922,7 @@ export default function App() {
       {openEssayId && assignTeacherId && (() => {
         const ea = learnerAssignments.find(x => x.id === openEssayId);
         if (!ea) return null;
-        return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />;
+        return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
       })()}
 
       {/* ── ① 80시간 커리큘럼 미리보기 ── */}
@@ -27813,6 +28122,7 @@ export default function App() {
                     style={{ background: allDone ? "linear-gradient(135deg,#2D9D78,#1E7A5C)" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", borderRadius: 12, padding: "12px 16px", marginBottom: 16, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 800, color: "white", marginBottom: 2 }}>{allDone ? "✅ 과제 모두 완료!" : `📋 할 과제 ${begPending.length}개`}</div>
+                      {essayFbLine() && <div style={{ fontSize: 11, color: "#FFE082", fontWeight: 800 }}>{essayFbLine()}</div>}
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.85)" }}>{allDone ? `과제 ${learnerAssignments.length}개를 모두 끝냈어요 👏` : `${begPending[0]?.title}${begPending.length > 1 ? ` 외 ${begPending.length - 1}개` : ""}`}</div>
                     </div>
                     <div style={{ fontSize: 20, color: "white" }}>›</div>
@@ -27974,6 +28284,7 @@ export default function App() {
             gramLog={myAssignLogs?.gramLog || []}
             pronLog={myAssignLogs?.pronLog || []}
             essaySubs={myEssaySubs}
+            essayFb={myEssayFb}
             onClose={() => setShowAssignmentModal(false)}
             onGoToTab={() => setShowAssignmentModal(false)}
             onOpenEssay={(a) => { setShowAssignmentModal(false); setOpenEssayId(a.id); }}
@@ -27984,7 +28295,7 @@ export default function App() {
         {openEssayId && assignTeacherId && (() => {
           const ea = learnerAssignments.find(x => x.id === openEssayId);
           if (!ea) return null;
-          return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />;
+          return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
         })()}
         {/* ✅ V510: 학습자 클래스 참여 팝업 — 이 BegScreen 축약형 블록에도
             JoinClassModal 렌더가 연결돼 있지 않아 카드에서 코드를 입력해도 팝업이
@@ -28357,6 +28668,7 @@ export default function App() {
           gramLog={myAssignLogs?.gramLog || []}
           pronLog={myAssignLogs?.pronLog || []}
           essaySubs={myEssaySubs}
+          essayFb={myEssayFb}
           onClose={() => setShowAssignmentModal(false)}
           onGoToTab={(t) => { setTab(t); setShowAssignmentModal(false); }}
           onOpenEssay={(a) => { setShowAssignmentModal(false); setOpenEssayId(a.id); }}
@@ -28367,7 +28679,7 @@ export default function App() {
       {openEssayId && assignTeacherId && (() => {
         const ea = learnerAssignments.find(x => x.id === openEssayId);
         if (!ea) return null;
-        return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />;
+        return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
       })()}
 
       <div style={{maxWidth:600,margin:"0 auto",padding:`12px 12px ${browseMode?"150px":"80px"}`,boxSizing:"border-box"}}>
