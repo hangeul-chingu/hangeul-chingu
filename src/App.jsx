@@ -184,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "529";
+const APP_VERSION = "530";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1928,6 +1928,294 @@ function studentLabel(st) {
   return st.name || id || "이름 없음";
 }
 
+// ════════════════════════════════════════════════════════
+// ✅ V530: 어휘·문법 세트 과제 (로드맵 3-1, 과제설계 원칙 7장)
+// - 교수자가 고른 표현 3~5개를 여러 날(기본 3일) 동안 ① 알아보기(pick) ② 떠올리기(recall, 직접 쓰기) ③ 내 문장 말하기(speak)
+// - AI는 표현마다 문항 "초안"만 만들고, 교수자가 확인·수정한 뒤("모두 확인했어요") 배포(원칙 6)
+// - 과제 문서 하나에 targets·items를 담음 → 기존 과제 보안 규칙 그대로(교수자만 쓰기)
+// ════════════════════════════════════════════════════════
+const VOCAB_KINDS = [
+  { k: "pick", label: "① 알아보기", desc: "빈칸에 알맞은 표현 고르기" },
+  { k: "recall", label: "② 떠올리기", desc: "표현을 직접 쓰기" },
+  { k: "speak", label: "③ 내 문장 말하기", desc: "그 표현으로 내 이야기 말하기" },
+];
+function vocabParseTargets(text) {
+  const seen = new Set(), out = [];
+  String(text || "").split("\n").forEach(line => {
+    const [e, ...h] = line.split("|");
+    const expr = (e || "").trim();
+    if (!expr || seen.has(expr) || out.length >= 5) return;
+    seen.add(expr);
+    out.push({ expr, hint: h.join("|").trim() });
+  });
+  return out;
+}
+function vocabBlankItems(fromDay, toDay) {
+  const out = [];
+  for (let d = fromDay; d <= toDay; d++) {
+    out.push({ day: d, kind: "pick", q: "", opts: ["", "", "", ""], ansIdx: 0 });
+    out.push({ day: d, kind: "recall", q: "", answers: "", hint: "" });
+    out.push({ day: d, kind: "speak", q: "" });
+  }
+  return out;
+}
+const VOCAB_AI_SYSTEM = `당신은 한국어 교사를 돕는 조수입니다. 외국인·이주배경 학습자를 위한 어휘·문법 과제 문항의 "초안"을 만듭니다. 교사가 확인하고 고친 뒤 학습자에게 갑니다.
+
+[만들 것] 목표 표현 하나에 대해, 정해진 날마다 3문항씩 만듭니다.
+1. pick (알아보기): 실생활 상황의 한 문장에 빈칸(___)을 하나 두고, 알맞은 말을 고르게 합니다. 보기 4개 = 정답 1개 + 헷갈릴 만한 오답 3개. 보기는 빈칸에 그대로 들어갈 형태(활용형)로 씁니다.
+2. recall (떠올리기): 상황을 짧게 말하고 빈칸(___)이 있는 문장을 줍니다. 학습자가 목표 표현을 알맞게 활용해 직접 씁니다. answers에는 정답으로 인정할 형태를 모두 적습니다(띄어쓰기가 다른 형태 포함, 최대 5개). hint에는 정답을 그대로 쓰지 않는 짧은 도움말을 씁니다.
+3. speak (내 문장 말하기): 학습자가 자기 경험이나 생각을 목표 표현을 써서 1~2문장으로 말하게 하는 질문입니다. 정답은 없습니다.
+
+[원칙]
+- 날마다 다른 실생활 상황(집, 일터, 학교, 가게, 병원, 친구 등)을 씁니다. 같은 문장을 반복하지 않습니다.
+- 뜻이 통하는 자연스러운 문장만 씁니다. 빈칸 채우기를 위한 억지 문장은 쓰지 않습니다.
+- 학습자 수준에 맞는 쉬운 단어, 짧은 문장, 해요체로 씁니다. 문법 용어는 쓰지 않습니다.
+- 오답 보기는 형태는 그럴듯하지만 그 문장의 뜻에는 맞지 않는 것으로 고릅니다. 정답이 두 개가 되지 않게 합니다.
+- 문제 안에 정답을 드러내지 않습니다.
+
+[출력] 아래 JSON 하나만 출력합니다. 다른 말은 쓰지 않습니다.
+{"items":[{"day":0,"kind":"pick","q":"...___...","opts":["","","",""],"answer":""},{"day":0,"kind":"recall","q":"...___...","answers":[""],"hint":""},{"day":0,"kind":"speak","q":""}]}`;
+function vocabAiPrompt(target, level, fromDay, toDay, others) {
+  return [
+    `목표 표현: ${target.expr}`,
+    target.hint ? `교사 메모(쓰임): ${target.hint}` : "",
+    `학습자 수준: ${level === "adv" ? "고급(TOPIK 5~6급)" : "중급(TOPIK 3~4급)"}`,
+    `만들 날: day ${fromDay}부터 day ${toDay}까지 (날마다 pick·recall·speak 한 문항씩, 모두 ${(toDay - fromDay + 1) * 3}문항)`,
+    others.length ? `같은 과제의 다른 표현(오답 보기로 써도 좋음): ${others.join(", ")}` : "",
+  ].filter(Boolean).join("\n");
+}
+// AI 결과를 날·종류별로 하나씩 골라 편집용 형태로 바꿈. 빠진 것이 있으면 null(다시 만들기 안내)
+function vocabAiClean(data, fromDay, toDay) {
+  const list = Array.isArray(data?.items) ? data.items : [];
+  const str = (v) => (typeof v === "string" ? v.trim() : "");
+  const blank = (q) => str(q).replace(/_{2,}|＿+/g, "___");
+  const out = [];
+  for (let d = fromDay; d <= toDay; d++) {
+    const ofDay = list.filter(it => Number(it?.day) === d);
+    const pk = ofDay.find(it => it.kind === "pick" && blank(it.q).includes("___") && Array.isArray(it.opts));
+    const rc = ofDay.find(it => it.kind === "recall" && str(it.q) && Array.isArray(it.answers) && it.answers.some(x => str(x)));
+    const sp = ofDay.find(it => it.kind === "speak" && str(it.q));
+    if (!pk || !rc || !sp) return null;
+    let opts = [...new Set(pk.opts.map(str).filter(Boolean))];
+    const ans = str(pk.answer);
+    if (!ans || !opts.includes(ans)) return null;
+    opts = [ans, ...opts.filter(o => o !== ans)].slice(0, 4);
+    if (opts.length < 4) return null;
+    opts = opts.sort(() => Math.random() - 0.5); // 정답 위치 섞기
+    out.push({ day: d, kind: "pick", q: blank(pk.q), opts, ansIdx: opts.indexOf(ans) });
+    out.push({ day: d, kind: "recall", q: blank(rc.q), answers: rc.answers.map(str).filter(Boolean).slice(0, 5).join(", "), hint: str(rc.hint) });
+    out.push({ day: d, kind: "speak", q: str(sp.q) });
+  }
+  return out;
+}
+// 배포 전 점검 — 표현마다 모든 날·종류의 문항이 다 채워졌는지
+function vocabCheck(targets, gen, days) {
+  const problems = [];
+  if (targets.length === 0) problems.push("목표 표현을 1개 이상 써 주세요.");
+  targets.forEach(tg => {
+    const its = (gen[tg.expr] || []).filter(it => it.day < days);
+    if (its.length === 0) { problems.push(`'${tg.expr}' 문항이 아직 없어요.`); return; }
+    for (let d = 0; d < days; d++) {
+      VOCAB_KINDS.forEach(({ k, label }) => {
+        const it = its.find(x => x.day === d && x.kind === k);
+        const bad = !it || !String(it.q || "").trim()
+          || (k === "pick" && (!String(it.q).includes("___") || it.opts.some(o => !String(o).trim()) || new Set(it.opts.map(o => String(o).trim())).size < 4))
+          || (k === "recall" && !String(it.answers || "").split(",").some(x => x.trim()));
+        if (bad) problems.push(`'${tg.expr}' ${d + 1}일째 ${label} 문항을 채워 주세요.`);
+      });
+    }
+  });
+  return problems;
+}
+function vocabBuildItems(targets, gen, days) {
+  const items = [];
+  targets.forEach((tg, t) => {
+    (gen[tg.expr] || []).filter(it => it.day < days).forEach(it => {
+      if (it.kind === "pick") {
+        const opts = it.opts.map(o => String(o).trim());
+        items.push({ t, day: it.day, kind: "pick", q: it.q.trim(), opts, answer: opts[it.ansIdx] ?? opts[0] });
+      } else if (it.kind === "recall") {
+        items.push({ t, day: it.day, kind: "recall", q: it.q.trim(), answers: String(it.answers).split(",").map(x => x.trim()).filter(Boolean), hint: String(it.hint || "").trim() });
+      } else {
+        items.push({ t, day: it.day, kind: "speak", q: it.q.trim() });
+      }
+    });
+  });
+  items.sort((a, b) => a.day - b.day || a.t - b.t || VOCAB_KINDS.findIndex(x => x.k === a.kind) - VOCAB_KINDS.findIndex(x => x.k === b.kind));
+  return items;
+}
+function VocabSetEditor({ form, setForm, essayExprs }) {
+  const targets = vocabParseTargets(form.vTargets);
+  const days = form.vDays;
+  const [busy, setBusy] = useState(""); // 진행 안내
+  const [err, setErr] = useState("");
+  const inp = { width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 8, padding: "7px 9px", fontSize: 13, boxSizing: "border-box", outline: "none", fontFamily: "inherit" };
+  const chip = (on) => ({ flex: 1, padding: "8px 4px", border: on ? "2px solid #2E75B6" : "1.5px solid #e0e0e0", borderRadius: 10, background: on ? "#EBF3FB" : "white", fontSize: 12, fontWeight: on ? 800 : 600, color: on ? "#2E75B6" : "#555", cursor: "pointer" });
+  function addExpr(ex) {
+    const cur = vocabParseTargets(form.vTargets);
+    if (cur.some(t => t.expr === ex) || cur.length >= 5) return;
+    setForm(f => ({ ...f, vTargets: (f.vTargets.trim() ? f.vTargets.replace(/\s+$/, "") + "\n" : "") + ex }));
+  }
+  async function generate(onlyExpr) {
+    const list = onlyExpr ? targets.filter(t => t.expr === onlyExpr) : targets.filter(t => !(form.vGen[t.expr] || []).length);
+    if (list.length === 0) return;
+    setErr("");
+    const failed = [];
+    const gen = {};
+    for (let i = 0; i < list.length; i++) {
+      const tg = list[i];
+      setBusy(`AI가 '${tg.expr}' 문항을 만들고 있어요... (${i + 1}/${list.length})`);
+      const others = targets.map(x => x.expr).filter(x => x !== tg.expr);
+      let items = [];
+      // 한 번에 3일씩(응답 길이 제한 대비)
+      for (let from = 0; from < days && items !== null; from += 3) {
+        const to = Math.min(days - 1, from + 2);
+        const res = await callClaudeGrade([{ role: "user", content: vocabAiPrompt(tg, form.vLevel, from, to, others) }], VOCAB_AI_SYSTEM, 1500);
+        const c = res.data ? vocabAiClean(res.data, from, to) : null;
+        items = c ? [...items, ...c] : null;
+      }
+      if (items) gen[tg.expr] = items; else failed.push(tg.expr);
+    }
+    setForm(f => ({ ...f, vGen: { ...f.vGen, ...gen }, vReviewed: false, vAiUsed: f.vAiUsed || Object.keys(gen).length > 0 }));
+    setBusy("");
+    if (failed.length) setErr(`'${failed.join("', '")}' 문항을 만들지 못했어요. [다시 만들기]를 누르거나 [직접 쓰기]로 채워 주세요.`);
+  }
+  function setItem(expr, i, patch) {
+    setForm(f => ({ ...f, vGen: { ...f.vGen, [expr]: f.vGen[expr].map((it, k) => (k === i ? { ...it, ...patch } : it)) } }));
+  }
+  function manual(expr) {
+    const have = (form.vGen[expr] || []).filter(it => it.day < days);
+    const need = [];
+    for (let d = 0; d < days; d++) VOCAB_KINDS.forEach(({ k }) => { if (!have.some(x => x.day === d && x.kind === k)) need.push(...vocabBlankItems(d, d).filter(x => x.kind === k)); });
+    setForm(f => ({ ...f, vGen: { ...f.vGen, [expr]: [...have, ...need].sort((a, b) => a.day - b.day || VOCAB_KINDS.findIndex(x => x.k === a.kind) - VOCAB_KINDS.findIndex(x => x.k === b.kind)) } }));
+  }
+  const problems = vocabCheck(targets, form.vGen, days);
+  const missingGen = targets.filter(t => !(form.vGen[t.expr] || []).length);
+  return (
+    <div style={{ marginTop: 10, background: "#F5F8FF", border: "1px solid #D6E4F5", borderRadius: 12, padding: "12px 12px 8px" }}>
+      <div style={{ fontSize: 11, color: "#2E75B6", marginBottom: 10, lineHeight: 1.6 }}>
+        🧩 고른 표현을 <b>하루 5~10분씩 {days}일 동안</b> ① 알아보기 → ② 떠올리기(직접 쓰기) → ③ 내 문장 말하기로 익혀요. 날마다 다른 상황에서 다시 만나요.
+        <br /><b style={{ color: "#8A4B00" }}>(시범) 학습자 풀이 화면은 다음 업데이트에서 열려요.</b>
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>수준</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {[["mid", "중급 (TOPIK 3~4급)"], ["adv", "고급 (TOPIK 5~6급)"]].map(([k, v]) => (
+            <button key={k} type="button" onClick={() => setForm(f => ({ ...f, vLevel: k }))} style={chip(form.vLevel === k)}>{v}</button>
+          ))}
+        </div>
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>기간</div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {[2, 3, 4, 5].map(d => (
+            <button key={d} type="button" onClick={() => setForm(f => ({ ...f, vDays: d }))} style={chip(days === d)}>{d}일</button>
+          ))}
+        </div>
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>목표 표현 * <span style={{ fontWeight: 600, color: "#888" }}>(3~5개 권장, 한 줄에 하나씩 · 쓰임 메모는 | 뒤에)</span></div>
+        <textarea value={form.vTargets} rows={4}
+          onChange={e => setForm(f => ({ ...f, vTargets: e.target.value }))}
+          placeholder={"예: -다 보니 | 어떤 일을 계속하다가 알게 된 결과\n-(으)ㄴ 반면에\n섭섭하다"}
+          style={{ ...inp, fontSize: 13, padding: "10px 12px", resize: "vertical" }} />
+        {essayExprs.length > 0 && (
+          <div style={{ marginTop: 6 }}>
+            <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>✍️ 논술 과제의 "꼭 써 볼 표현"에서 가져오기</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {essayExprs.map(ex => {
+                const on = targets.some(t => t.expr === ex);
+                return (
+                  <button key={ex} type="button" onClick={() => addExpr(ex)} disabled={on || targets.length >= 5}
+                    style={{ fontSize: 11, padding: "4px 10px", borderRadius: 16, border: "1px solid #C8DAF0", background: on ? "#EBF3FB" : "white", color: on ? "#999" : "#1A3A5C", cursor: on ? "default" : "pointer" }}>
+                    {on ? "✓ " : "+ "}{ex}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+      {targets.length > 0 && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>문항 <span style={{ fontWeight: 600, color: "#888" }}>(표현마다 {days}일 × 3문항)</span></div>
+          {busy ? (
+            <div style={{ fontSize: 12, color: "#5E35B1", background: "#F6F3FF", borderRadius: 10, padding: "10px 12px" }}>🤖 {busy}</div>
+          ) : missingGen.length > 0 && (
+            <button type="button" onClick={() => generate()}
+              style={{ width: "100%", background: "#7E57C2", color: "white", border: "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer", marginBottom: 6 }}>
+              🤖 AI 문항 초안 만들기 ({missingGen.length}개 표현)
+            </button>
+          )}
+          {err && <div style={{ fontSize: 11, color: "#E53935", margin: "4px 0 6px" }}>{err}</div>}
+          {targets.map((tg, ti) => {
+            const its = (form.vGen[tg.expr] || []);
+            const shown = its.map((it, i) => ({ it, i })).filter(x => x.it.day < days);
+            const mine = vocabCheck([tg], form.vGen, days);
+            return (
+              <details key={tg.expr} style={{ background: "white", border: "1px solid #D6E4F5", borderRadius: 10, padding: "8px 10px", marginBottom: 6 }}>
+                <summary style={{ fontSize: 13, fontWeight: 800, color: "#1A3A5C", cursor: "pointer" }}>
+                  {ti + 1}. {tg.expr} <span style={{ fontSize: 11, fontWeight: 700, color: its.length === 0 ? "#999" : mine.length ? "#E65100" : "#2D7A2D" }}>
+                    {its.length === 0 ? "— 문항 없음" : mine.length ? `— 채울 곳 ${mine.length}개` : `— ${shown.length}문항 ✓`}
+                  </span>
+                </summary>
+                <div style={{ display: "flex", gap: 6, margin: "8px 0" }}>
+                  <button type="button" disabled={!!busy} onClick={() => { if (!its.length || window.confirm(`'${tg.expr}' 문항을 AI로 새로 만들까요?\n지금 문항은 바뀌어요.`)) generate(tg.expr); }}
+                    style={{ background: "#F6F3FF", color: "#5E35B1", border: "1px solid #C9B8F0", borderRadius: 16, padding: "4px 10px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>🤖 {its.length ? "다시 만들기" : "AI로 만들기"}</button>
+                  <button type="button" disabled={!!busy} onClick={() => manual(tg.expr)}
+                    style={{ background: "white", color: "#2E75B6", border: "1px solid #C8DAF0", borderRadius: 16, padding: "4px 10px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>✏️ 직접 쓰기(빈 칸 채우기)</button>
+                </div>
+                {Array.from({ length: days }, (_, d) => shown.filter(x => x.it.day === d)).map((dayItems, d) => dayItems.length > 0 && (
+                  <div key={d} style={{ borderTop: "1px dashed #D6E4F5", paddingTop: 6, marginTop: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "#2E75B6", marginBottom: 4 }}>📅 {d + 1}일째</div>
+                    {dayItems.map(({ it, i }) => {
+                      const kd = VOCAB_KINDS.find(x => x.k === it.kind);
+                      return (
+                        <div key={i} style={{ marginBottom: 8 }}>
+                          <div style={{ fontSize: 11, fontWeight: 800, color: "#555", marginBottom: 3 }}>{kd.label} <span style={{ fontWeight: 600, color: "#999" }}>{kd.desc}</span></div>
+                          <input value={it.q} onChange={e => setItem(tg.expr, i, { q: e.target.value })} style={inp} aria-label={`${tg.expr} ${d + 1}일 ${kd.label} 문제`}
+                            placeholder={it.kind === "speak" ? "예: 한국에 살다 보니 달라진 점을 말해 보세요." : "문장 속 빈칸은 ___ 로 표시해요"} />
+                          {it.kind === "pick" && (
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, marginTop: 4 }}>
+                              {it.opts.map((o, oi) => (
+                                <label key={oi} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                  <input type="radio" name={`ans-${tg.expr}-${i}`} checked={it.ansIdx === oi} onChange={() => setItem(tg.expr, i, { ansIdx: oi })} title="정답" />
+                                  <input value={o} onChange={e => setItem(tg.expr, i, { opts: it.opts.map((x, xi) => (xi === oi ? e.target.value : x)) })}
+                                    style={{ ...inp, padding: "5px 7px", fontSize: 12, background: it.ansIdx === oi ? "#EEF7EE" : "white" }} aria-label={`보기 ${oi + 1}`} />
+                                </label>
+                              ))}
+                              <div style={{ gridColumn: "1 / -1", fontSize: 10, color: "#888" }}>● 표시한 것이 정답이에요 (학습자에게는 섞여서 보여요)</div>
+                            </div>
+                          )}
+                          {it.kind === "recall" && (
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, marginTop: 4 }}>
+                              <input value={it.answers} onChange={e => setItem(tg.expr, i, { answers: e.target.value })} style={{ ...inp, padding: "5px 7px", fontSize: 12 }} placeholder="인정할 답 (쉼표로 구분)" aria-label="인정할 답" />
+                              <input value={it.hint} onChange={e => setItem(tg.expr, i, { hint: e.target.value })} style={{ ...inp, padding: "5px 7px", fontSize: 12 }} placeholder="도움말 (선택)" aria-label="도움말" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </details>
+            );
+          })}
+          {problems.length === 0 && (
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 8, background: form.vReviewed ? "#EEF7EE" : "#FFF8E1", border: `1px solid ${form.vReviewed ? "#B7DDB7" : "#FFE08A"}`, borderRadius: 10, padding: "8px 10px", marginTop: 8, cursor: "pointer" }}>
+              <input type="checkbox" checked={!!form.vReviewed} onChange={e => setForm(f => ({ ...f, vReviewed: e.target.checked }))} style={{ width: 16, height: 16, marginTop: 1 }} />
+              <span style={{ fontSize: 12, color: "#333", lineHeight: 1.5 }}><b>문항을 모두 읽고 확인했어요.</b>{form.vAiUsed ? " AI 초안은 틀릴 수 있어요 — 정답·보기·문장을 꼭 확인해 주세요." : ""}</span>
+            </label>
+          )}
+          {problems.length > 0 && !busy && (
+            <div style={{ fontSize: 11, color: "#8A4B00", marginTop: 4, lineHeight: 1.6 }}>⚠️ {problems[0]}{problems.length > 1 ? ` (외 ${problems.length - 1}곳)` : ""}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AssignmentPanel({ user, students }) {
   const [assignments, setAssignments] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -1944,6 +2232,13 @@ function AssignmentPanel({ user, students }) {
     structure: "three",
     minChars: "",
     checklist: "",     // 한 줄에 하나씩
+    // ✅ V530: 어휘·문법 세트 설정 (과제설계 원칙 7장)
+    vLevel: "mid",
+    vDays: 3,
+    vTargets: "",      // 한 줄에 하나씩 "표현 | 쓰임 메모"
+    vGen: {},          // { [표현]: 편집 중인 문항[] }
+    vReviewed: false,  // 교수자 확인 체크
+    vAiUsed: false,
   };
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -1989,6 +2284,13 @@ function AssignmentPanel({ user, students }) {
   async function saveAssignment() {
     if (!form.title.trim()) { alert("제목을 입력해주세요"); return; }
     if (form.type === "ESSAY" && !form.topic.trim()) { alert("논술 과제는 주제·상황을 입력해주세요"); return; }
+    // ✅ V530: 어휘·문법 세트 — 문항이 다 채워지고 교수자가 확인해야 배포(원칙 6)
+    const vTargets = vocabParseTargets(form.vTargets);
+    if (form.type === "VOCAB_SET") {
+      const pr = vocabCheck(vTargets, form.vGen, form.vDays);
+      if (pr.length) { alert(pr[0]); return; }
+      if (!form.vReviewed) { alert("문항을 모두 읽고 '확인했어요'에 체크해 주세요."); return; }
+    }
     if (!form.isClassWide && form.targetUids.length === 0) {
       alert("개별 지정 시 학습자를 최소 1명 선택해주세요"); return;
     }
@@ -2008,6 +2310,14 @@ function AssignmentPanel({ user, students }) {
           structure: form.structure === "free" ? "free" : "three",
           minChars: parseInt(form.minChars, 10) > 0 ? parseInt(form.minChars, 10) : null,
           checklist: form.checklist.split("\n").map(x => x.trim()).filter(Boolean),
+        } : {}),
+        ...(form.type === "VOCAB_SET" ? {
+          level: form.vLevel === "adv" ? "adv" : "mid",
+          days: form.vDays,
+          targets: vTargets,
+          items: vocabBuildItems(vTargets, form.vGen, form.vDays),
+          reviewed: true,
+          aiAssisted: !!form.vAiUsed,
         } : {}),
         createdAt: serverTimestamp(),
       });
@@ -2045,14 +2355,21 @@ function AssignmentPanel({ user, students }) {
     ADV_QUIZ: "🔥 어휘·문법(고급)",
     PRON_TEST: "🎙️ 발음 테스트",
     ESSAY: "✍️ 논술",
+    VOCAB_SET: "🧩 어휘·문법 세트", // ✅ V530
   };
+  // ✅ V530: 논술 과제의 "꼭 써 볼 표현" 모음(어휘·문법 세트에서 가져오기)
+  const essayExprs = [...new Set(assignments.filter(x => x.type === "ESSAY").flatMap(x => x.expressions || []).map(x => String(x).trim()).filter(Boolean))];
+  function closeForm() {
+    if (showForm && form.type === "VOCAB_SET" && Object.keys(form.vGen).length > 0 && !window.confirm("만든 문항이 저장되지 않았어요. 닫을까요?")) return;
+    setShowForm(!showForm);
+  }
 
   return (
     <div>
       {/* 과제 내기 버튼 */}
       <div style={{ marginBottom: 16 }}>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={closeForm}
           style={{ width: "100%", background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 16, padding: "14px 0", fontSize: 15, fontWeight: 800, cursor: "pointer" }}
         >
           {showForm ? "✕ 닫기" : "📋 새 과제 내기"}
@@ -2161,6 +2478,7 @@ function AssignmentPanel({ user, students }) {
                 </div>
               </div>
             )}
+            {form.type === "VOCAB_SET" && <VocabSetEditor form={form} setForm={setForm} essayExprs={essayExprs} />}
           </div>
 
           {/* 대상 */}
@@ -2265,6 +2583,12 @@ function AssignmentPanel({ user, students }) {
                           {a.structure === "free" ? "자유" : "3단계"}{a.minChars ? ` · 최소 ${a.minChars}자` : ""}{(a.expressions || []).length > 0 ? ` · 표현: ${a.expressions.join(", ")}` : ""}
                         </div>
                       )}
+                    </div>
+                  )}
+                  {a.type === "VOCAB_SET" && (
+                    <div style={{ fontSize: 12, color: "#1A3A5C", marginTop: 4, background: "#EEF4FF", borderRadius: 8, padding: "6px 10px" }}>
+                      🧩 {(a.targets || []).map(t => t.expr).join(" · ")}
+                      <div style={{ fontSize: 11, color: "#2E75B6", marginTop: 2 }}>{a.level === "adv" ? "고급" : "중급"} · {a.days}일 · {(a.items || []).length}문항{a.aiAssisted ? " · AI 초안 확인함" : ""}</div>
                     </div>
                   )}
                   {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 4, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
@@ -2979,7 +3303,7 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
                           <div style={{ fontSize: 13, color: "#333", lineHeight: 1.6 }}>{nt.text}</div>
                           <button type="button" onClick={() => insertAiNote(nt)} disabled={sending || done}
                             style={{ marginTop: 6, background: done ? "#E8E0F8" : "#7E57C2", color: done ? "#5E35B1" : "white", border: "none", borderRadius: 16, padding: "4px 12px", fontSize: 11, fontWeight: 800, cursor: done ? "default" : "pointer" }}>
-                            {done ? "✓ 넣었어요 — 글 속 문장을 눌러 고쳐 주세요" : "📍 이 문장에 넣기"}
+                            {done ? "✓ 넣었어요 — 보내기 전에 글 속 노란 문장을 눌러 한 번 읽어 주세요" : "📍 이 문장에 넣기"}
                           </button>
                         </div>
                       );
@@ -3049,6 +3373,7 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
     ADV_QUIZ: "🔥 어휘·문법(고급)",
     PRON_TEST: "🎙️ 발음 테스트",
     ESSAY: "✍️ 논술",
+    VOCAB_SET: "🧩 어휘·문법 세트", // ✅ V530
   };
   // ✅ V517: MID/ADV 퀴즈 기록(gramLog)은 프리토킹(SpeakTab) 5턴마다 나오는 퀴즈 카드에서만 저장됨 → speak로 수정
   const TYPE_TAB = {
@@ -3109,6 +3434,11 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
                               : es.key === "draft" ? "✏️ 쓰는 중이에요 (자동 저장됨)" : "⬜ 아직 시작하지 않았어요"}{es.late ? " · ⏰ 마감 후 제출" : ""}
                             {es.unseen && <span style={{ marginLeft: 6, background: "#E53935", color: "white", borderRadius: 8, padding: "1px 6px", fontSize: 10 }}>NEW</span>}
                           </div>
+                        </div>
+                      ) : a.type === "VOCAB_SET" ? (
+                        <div style={{ fontSize: 12, color: "#1A3A5C", marginTop: 6, background: "#EEF4FF", borderRadius: 8, padding: "6px 10px" }}>
+                          🧩 {a.days}일 동안 하루 5~10분 · {(a.targets || []).map(t => t.expr).join(", ")}
+                          <div style={{ fontSize: 11, marginTop: 3, fontWeight: 700, color: "#8A4B00" }}>🔒 풀이 화면은 다음 업데이트에서 열려요</div>
                         </div>
                       ) : (
                       <div style={{ fontSize: 12, color: "#2E75B6", marginTop: 6, background: "#EBF3FB", borderRadius: 8, padding: "6px 10px" }}>
