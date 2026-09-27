@@ -121,6 +121,10 @@ function isAssignmentDone(assignment, gramLog = [], pronLog = [], essaySub = nul
       // ✅ V519: 논술 과제는 "한 번이라도 제출했는가"로 완료 판정(과제설계 원칙 8 — 점수·AI 채점과 무관).
       //          제출 기록은 classes/{교수자}/assignments/{과제}/submissions/{학습자} 문서의 versions 배열.
       return !!(essaySub && Array.isArray(essaySub.versions) && essaySub.versions.length > 0);
+    case "VOCAB_SET":
+      // ✅ V536: 어휘·문법 세트는 "정해진 날수를 모두 끝까지 했는가"(원칙 8). essaySub 자리에 vocabProgress 문서가 들어옴
+      //   doneDays 숫자가 아니라 실제로 끝낸 날(days[].doneAtMs)로 계산(검토 반영 — 숫자만 바꿔 완료로 보이는 것 방지)
+      return !!(essaySub && Number(assignment.days) > 0 && vocabDayState(assignment, essaySub).done);
     default:
       return false;
   }
@@ -184,7 +188,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "535";
+const APP_VERSION = "536";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2553,8 +2557,21 @@ function AssignmentPanel({ user, students }) {
   }, [user]);
 
   const essayIdsKey = assignments.filter(a => a.type === "ESSAY").map(a => a.id).join(",");
+  // ✅ V536: 어휘·문법 세트 학습 기록(vocabProgress) — essaySubs[과제id]에 함께 넣어 완료 현황 계산에 그대로 씀
+  const vocabIdsKey = assignments.filter(a => a.type === "VOCAB_SET").map(a => a.id).join(",");
   useEffect(() => {
-    if (!user || !essayIdsKey) { setEssaySubs({}); return; }
+    if (!user || !vocabIdsKey) return;
+    const unsubs = vocabIdsKey.split(",").map(aid =>
+      onSnapshot(collection(db, "classes", user.uid, "assignments", aid, "vocabProgress"), snap => {
+        const m = {};
+        snap.docs.forEach(d => { m[d.id] = d.data(); });
+        setEssaySubs(prev => ({ ...prev, [aid]: m }));
+      }, () => {})
+    );
+    return () => unsubs.forEach(u => u());
+  }, [user?.uid, vocabIdsKey]);
+  useEffect(() => {
+    if (!user || !essayIdsKey) { setEssaySubs(prev => { const keep = {}; assignments.filter(a => a.type === "VOCAB_SET").forEach(a => { if (prev[a.id]) keep[a.id] = prev[a.id]; }); return keep; }); return; }
     const unsubs = essayIdsKey.split(",").map(aid =>
       onSnapshot(collection(db, "classes", user.uid, "assignments", aid, "submissions"), snap => {
         const m = {};
@@ -2621,26 +2638,32 @@ function AssignmentPanel({ user, students }) {
     setSaving(false);
   }
 
-  async function deleteAssignment(id) {
-    const target = assignments.find(x => x.id === id);
-    const isEssay = target?.type === "ESSAY";
-    // ✅ V519: 논술 과제는 학습자가 쓴 글도 함께 지워짐을 분명히 알림
-    if (!window.confirm(isEssay
-      ? "이 과제를 삭제할까요?\n학습자들이 쓰고 제출한 글과 보낸 의견도 함께 지워지고, 되돌릴 수 없어요."
-      : "이 과제를 삭제할까요?")) return;
+  // ✅ V536: [삭제] → [보관하기]. 학습 기록은 교수자가 학습자를 이해하는 자료라 과제를 정리해도 남김(9/27 교수자 결정).
+  //   보관 = 학습자 화면에서만 사라짐(글·의견·학습 기록은 그대로, 교수자는 "보관한 과제"에서 계속 봄, [다시 꺼내기] 가능)
+  async function archiveAssignment(id, on) {
+    if (on && !window.confirm("이 과제를 보관할까요?\n학습자 화면에서는 사라지고, 학습자의 글·의견·학습 기록은 그대로 남아요.\n아래 '보관한 과제'에서 언제든 다시 꺼낼 수 있어요.")) return;
     try {
-      if (isEssay) {
-        // ✅ V522: 제출 글 + 돌려준 의견 + 의견 초안까지 함께 삭제
-        for (const sub of ["submissions", "feedback", "feedbackDrafts", "feedbackAudio"]) { // ✅ V527: 음성도
-          const snap = await getDocs(collection(db, "classes", user.uid, "assignments", id, sub));
-          await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
-        }
+      await updateDoc(doc(db, "classes", user.uid, "assignments", id), on ? { archived: true, archivedAt: serverTimestamp() } : { archived: false });
+    } catch (e) {
+      alert((on ? "보관" : "다시 꺼내기") + " 실패: " + e.message);
+    }
+  }
+  // 영구 삭제는 보관함 안에서만 — 시험용 과제 정리 등(교수자는 학습자를 위해 무엇이든 할 수 있어야 함, 원칙 0장)
+  async function deleteAssignment(id) {
+    if (!window.confirm("이 과제를 영구 삭제할까요?\n학습자들의 글·선생님 의견·학습 기록이 모두 지워지고, 되돌릴 수 없어요.")) return;
+    try {
+      // ✅ V522·V527·V536: 제출 글 + 돌려준 의견 + 의견 초안 + 음성 의견 + 어휘·문법 세트 학습 기록
+      for (const sub of ["submissions", "feedback", "feedbackDrafts", "feedbackAudio", "vocabProgress"]) {
+        const snap = await getDocs(collection(db, "classes", user.uid, "assignments", id, sub));
+        await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
       }
       await deleteDoc(doc(db, "classes", user.uid, "assignments", id));
     } catch (e) {
       alert("삭제 실패: " + e.message);
     }
   }
+  const [showArchived, setShowArchived] = useState(false);
+  const archivedCount = assignments.filter(a => a.archived).length;
 
   const TYPE_LABELS = {
     MID_QUIZ: "🧠 어휘·문법(중급)",
@@ -2833,14 +2856,14 @@ function AssignmentPanel({ user, students }) {
       )}
 
       {/* 과제 목록 */}
-      {assignments.length === 0 ? (
+      {(assignments.length === 0 || (!showArchived && assignments.every(a => a.archived))) ? (
         <div style={{ background: "white", borderRadius: 20, padding: 40, textAlign: "center", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
           <div style={{ fontSize: 15, fontWeight: 800, color: "#1A3A5C", marginBottom: 8 }}>아직 배포한 과제가 없어요</div>
           <div style={{ fontSize: 13, color: "#aaa" }}>위의 버튼으로 첫 과제를 내보세요</div>
         </div>
       ) : (
-        assignments.map(a => {
+        [...assignments.filter(a => !a.archived), ...(showArchived ? assignments.filter(a => a.archived) : [])].map(a => {
           const targetStudents = a.isClassWide
             ? students
             : students.filter(s => (a.targetUids || []).includes(s.id));
@@ -2855,10 +2878,11 @@ function AssignmentPanel({ user, students }) {
           const isOverdue = deadlineDate && deadlineDate < new Date();
 
           return (
-            <div key={a.id} style={{ background: "white", borderRadius: 16, padding: 18, marginBottom: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}>
+            <div key={a.id} style={{ background: a.archived ? "#F7F7F7" : "white", border: a.archived ? "1px dashed #ccc" : "none", borderRadius: 16, padding: 18, marginBottom: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#1A3A5C" }}>{a.title}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#1A3A5C" }}>{a.archived ? "📦 " : ""}{a.title}</div>
+                  {a.archived && <div style={{ fontSize: 11, color: "#777", marginTop: 2 }}>보관한 과제 · 학습자에게는 보이지 않아요</div>}
                   <div style={{ fontSize: 12, color: "#888", marginTop: 3 }}>
                     {TYPE_LABELS[a.type] || a.type} · {a.isClassWide ? "🏫 전체" : `👤 ${targetNames}`}
                   </div>
@@ -2885,10 +2909,23 @@ function AssignmentPanel({ user, students }) {
                   )}
                   {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 4, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
                 </div>
-                <button onClick={() => deleteAssignment(a.id)}
-                  style={{ background: "#FFF0F0", border: "1px solid #FFCCCC", color: "#E53935", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0, marginLeft: 8 }}>
-                  삭제
-                </button>
+                {a.archived ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0, marginLeft: 8 }}>
+                    <button onClick={() => archiveAssignment(a.id, false)}
+                      style={{ background: "#EBF3FB", border: "1px solid #C8DAF0", color: "#2E75B6", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                      다시 꺼내기
+                    </button>
+                    <button onClick={() => deleteAssignment(a.id)}
+                      style={{ background: "#FFF0F0", border: "1px solid #FFCCCC", color: "#E53935", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                      영구 삭제
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => archiveAssignment(a.id, true)}
+                    style={{ background: "#F5F5F5", border: "1px solid #ddd", color: "#555", borderRadius: 20, padding: "5px 12px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0, marginLeft: 8 }}>
+                    📦 보관하기
+                  </button>
+                )}
               </div>
               {/* 완료 현황 */}
               {targetStudents.length > 0 && (
@@ -2920,10 +2957,11 @@ function AssignmentPanel({ user, students }) {
                           </button>
                         );
                       }
-                      const done = isAssignmentDone(a, st.gramLog || [], st.pronLog || []);
+                      const done = isAssignmentDone(a, st.gramLog || [], st.pronLog || [], aSubs[st.id]);
+                      const vDays = a.type === "VOCAB_SET" ? vocabDayState(a, aSubs[st.id]).doneDays : null; // ✅ V536
                       return (
-                        <span key={st.id} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: done ? "#D6EAD6" : "#F5F5F5", color: done ? "#2D7A2D" : "#aaa", fontWeight: 700 }}>
-                          {done ? "✅" : "⬜"} {studentLabel(st)}
+                        <span key={st.id} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: done ? "#D6EAD6" : vDays ? "#E3F2FD" : "#F5F5F5", color: done ? "#2D7A2D" : vDays ? "#1565C0" : "#aaa", fontWeight: 700 }}>
+                          {done ? "✅" : "⬜"} {studentLabel(st)}{vDays !== null ? ` · ${vDays}/${a.days}일` : ""}
                         </span>
                       );
                     })}
@@ -2934,6 +2972,12 @@ function AssignmentPanel({ user, students }) {
             </div>
           );
         })
+      )}
+      {archivedCount > 0 && (
+        <button type="button" onClick={() => setShowArchived(v => !v)}
+          style={{ width: "100%", background: "white", border: "1px dashed #bbb", color: "#555", borderRadius: 14, padding: "10px 0", fontSize: 13, fontWeight: 700, cursor: "pointer", marginBottom: 12 }}>
+          📦 보관한 과제 {archivedCount}개 {showArchived ? "접기 ▴" : "보기 ▾"}
+        </button>
       )}
       {/* ✅ V522: 학습자 글 보기 + 의견 쓰기 */}
       {review && (() => {
@@ -3730,7 +3774,10 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
                       ) : a.type === "VOCAB_SET" ? (
                         <div style={{ fontSize: 12, color: "#1A3A5C", marginTop: 6, background: "#EEF4FF", borderRadius: 8, padding: "6px 10px" }}>
                           🧩 {a.days}일 동안 하루 5~10분 · {(a.targets || []).map(t => t.expr).join(", ")}
-                          <div style={{ fontSize: 11, marginTop: 3, fontWeight: 700, color: "#8A4B00" }}>🔒 풀이 화면은 다음 업데이트에서 열려요</div>
+                          {(() => { const vs = vocabDayState(a, essaySubs[a.id]); return (
+                            <div style={{ fontSize: 11, marginTop: 3, fontWeight: 700, color: vs.done ? "#2D7A2D" : "#2E75B6" }}>
+                              📅 {vs.doneDays}/{vs.total}일 끝냄{vs.done ? " · 모두 끝냈어요 👏" : vs.locked ? ` · 🌙 내일 ${vs.next + 1}일째가 열려요` : ""}
+                            </div>); })()}
                         </div>
                       ) : (
                       <div style={{ fontSize: 12, color: "#2E75B6", marginTop: 6, background: "#EBF3FB", borderRadius: 8, padding: "6px 10px" }}>
@@ -3748,6 +3795,11 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
                       {es.key === "returned" ? "💬 선생님 의견 보기" : es.key === "redo" ? "✍️ 다시 쓰기" : es.key === "submitted" ? "📄 제출한 글 보기" : es.key === "draft" ? "✍️ 이어 쓰기" : "✍️ 글쓰기 시작"} →
                     </button>
                   )}
+                  {a.type === "VOCAB_SET" && onOpenEssay && (() => { const vs = vocabDayState(a, essaySubs[a.id]); return !vs.done && (
+                    <button onClick={() => onOpenEssay(a)} disabled={vs.locked}
+                      style={{ marginTop: 10, width: "100%", background: vs.locked ? "#E0E0E0" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: vs.locked ? "#777" : "white", border: "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: vs.locked ? "default" : "pointer" }}>
+                      {vs.locked ? `🌙 오늘 공부 끝! 내일 ${vs.next + 1}일째가 열려요` : vs.started ? `▶️ 이어서 하기 (${vs.next + 1}일째)` : `🧩 오늘 공부 시작 (${vs.next + 1}일째) →`}
+                    </button>); })()}
                   {!isEssay && !done && targetTab && (
                     <button onClick={() => onGoToTab(targetTab)}
                       style={{ marginTop: 10, width: "100%", background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
@@ -3764,6 +3816,269 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
       </div>
     </div>
   );
+}
+
+// ════════════════════════════════════════════════════════
+// ✅ V536: 어휘·문법 세트 — 학습자 하루 세션 (과제설계 원칙 7-3, 로드맵 3-2)
+// - 저장 위치: classes/{교수자}/assignments/{과제}/vocabProgress/{학습자uid}
+//   { learnerUid, days:[{ order[], startedAtMs, answers:[{k,ok,a}], said:[{k,text,how}], sec, doneAtMs, date }], doneDays, updatedAt, updatedAtMs }
+// - 하루에 한 날: 앞날을 끝낸 날짜(date)가 오늘이면 다음 날은 내일 열림(분산 학습, 원칙 5). 빠진 날은 벌 없이 이어서.
+// - 순서: ① 알아보기(표현 전부) → ② 떠올리기 → ③ 내 문장 말하기. 둘째 날부터는 전날 막힌 표현 먼저.
+// - ②는 교수자가 정한 인정할 답과 비교(띄어쓰기·문장부호 무시) — AI 채점 없음(결과가 늘 같음).
+// - ③은 주제를 정해 주지 않음(프로젝트 원칙): "내 이야기"가 기본, AI 질문은 "생각이 안 나면" 예시로만.
+// - 학습자 화면에 점수는 보이지 않음(원칙 8·9). 한 문제를 풀 때마다 자동 저장 → 중간에 나가도 이어서.
+// - 걸린 시간(sec)은 문제 사이 간격을 더하되 한 번에 최대 3분까지만(자리를 비운 시간은 빼기 위해).
+// ════════════════════════════════════════════════════════
+function vocabToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function vocabNorm(s) {
+  return String(s || "").replace(/[\s.,!?~。…'"“”‘’]/g, "");
+}
+// 다음에 할 날과 잠김 여부
+function vocabDayState(a, prog) {
+  const total = Number(a?.days) || 0;
+  const days = Array.isArray(prog?.days) ? prog.days : [];
+  let d = 0;
+  while (d < total && days[d] && days[d].doneAtMs) d++;
+  if (d >= total) return { next: null, done: true, doneDays: d, total };
+  const prev = d > 0 ? days[d - 1] : null;
+  const started = !!(days[d] && days[d].startedAtMs);
+  return { next: d, done: false, doneDays: d, total, started, locked: !!(prev && prev.date === vocabToday() && !started) };
+}
+// 두 기록을 날별로 합침: 끝낸 날 > 더 많이 푼 날(휴대폰·PC에서 동시에 열어도 앞선 기록을 덮어쓰지 않게)
+function vocabMergeDays(mine, theirs) {
+  const a = Array.isArray(mine) ? mine : [], b = Array.isArray(theirs) ? theirs : [];
+  const n = Math.max(a.length, b.length), out = [];
+  const prog = (x) => (x ? (Array.isArray(x.answers) ? x.answers.length : 0) + (Array.isArray(x.said) ? x.said.length : 0) : -1);
+  for (let i = 0; i < n; i++) {
+    const x = a[i], y = b[i];
+    if (!x || !y) { out.push(x || y || null); continue; }
+    if (!!x.doneAtMs !== !!y.doneAtMs) { out.push(x.doneAtMs ? x : y); continue; }
+    out.push(prog(y) > prog(x) ? y : x);
+  }
+  return out;
+}
+// 그날 풀 문항 순서(문항 번호 목록). 전날 ①②에서 틀린 표현을 먼저.
+function vocabDayOrder(a, d, prog) {
+  const items = Array.isArray(a?.items) ? a.items : [];
+  const prev = d > 0 && Array.isArray(prog?.days) ? prog.days[d - 1] : null;
+  const blocked = new Set((prev && Array.isArray(prev.answers) ? prev.answers : []).filter(x => x && x.ok === false).map(x => items[x.k] && items[x.k].t));
+  const ts = [...new Set(items.filter(it => it.day === d).map(it => it.t))].sort((x, y) => x - y);
+  const tOrder = [...ts.filter(t => blocked.has(t)), ...ts.filter(t => !blocked.has(t))];
+  return ["pick", "recall", "speak"].flatMap(kind => tOrder.flatMap(t => items.map((it, i) => ({ it, i })).filter(x => x.it.day === d && x.it.t === t && x.it.kind === kind).map(x => x.i)));
+}
+function VocabSessionScreen({ assignment, teacherId, user, prog, onClose }) {
+  const a = assignment;
+  const items = Array.isArray(a.items) ? a.items : [];
+  const targets = Array.isArray(a.targets) ? a.targets : [];
+  const ref = doc(db, "classes", teacherId, "assignments", a.id, "vocabProgress", user.uid);
+  const [days, setDays] = useState(null);      // 내 기록(화면에서 고치는 사본)
+  const [view, setView] = useState(null);      // { mode: "play"|"locked"|"alldone"|"daydone", day }
+  const [fb, setFb] = useState(null);          // 방금 푼 문제의 결과 { k, ok, a }
+  const [text, setText] = useState("");        // ② 답 / ③ 내 문장
+  const [usedVoice, setUsedVoice] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [saveErr, setSaveErr] = useState("");
+  const tick = useRef(Date.now());
+  const srRef = useRef(null);
+  const progRef = useRef(prog); progRef.current = prog; // 저장 직전에 합칠 최신 기록
+  const fbAt = useRef(0); // 결과를 보여 준 시각(빠른 두 번 누르기로 결과를 건너뛰지 않게)
+  const canVoice = typeof window !== "undefined" && ("webkitSpeechRecognition" in window || "SpeechRecognition" in window);
+
+  // 기록을 다 불러온 뒤(prog가 undefined가 아닐 때) 한 번만 시작 — 불러오기 전에 시작하면 기존 기록을 덮어쓸 수 있음
+  useEffect(() => {
+    if (days !== null || prog === undefined) return;
+    const cur = Array.isArray(prog?.days) ? prog.days.map(x => ({ ...x })) : [];
+    const st = vocabDayState(a, prog);
+    if (st.done) { setDays(cur); setView({ mode: "alldone" }); return; }
+    if (st.locked) { setDays(cur); setView({ mode: "locked", day: st.next }); return; }
+    const d = st.next;
+    if (!cur[d] || !Array.isArray(cur[d].order)) {
+      cur[d] = { order: vocabDayOrder(a, d, prog), startedAtMs: Date.now(), answers: [], said: [], sec: 0 };
+      setDays(cur);
+      save(cur);
+    } else setDays(cur);
+    tick.current = Date.now();
+    setView({ mode: "play", day: d });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prog]);
+  useEffect(() => () => { try { srRef.current && srRef.current.stop(); } catch {} }, []);
+
+  async function save(next) {
+    const clean = vocabMergeDays(next, progRef.current && progRef.current.days).map(x => x || null);
+    try {
+      await setDoc(ref, { learnerUid: user.uid, days: clean, doneDays: clean.filter(x => x && x.doneAtMs).length, updatedAt: serverTimestamp(), updatedAtMs: Date.now() });
+      setSaveErr("");
+    } catch (e) {
+      setSaveErr("저장하지 못했어요. 인터넷 연결을 확인해 주세요. (다음 문제를 풀 때 다시 저장해요)");
+    }
+  }
+  function record(d, patch) {
+    const now = Date.now();
+    const add = Math.min(Math.max(0, now - tick.current), 180000);
+    tick.current = now;
+    const cur = vocabMergeDays(days, progRef.current && progRef.current.days).map(x => (x ? { ...x } : x));
+    if (cur[d] && cur[d].doneAtMs) { setDays(cur); return cur[d]; } // 다른 기기에서 이미 끝낸 날
+    const r = { ...cur[d], ...patch(cur[d]) };
+    r.sec = Math.round((Number(r.sec) || 0) + add / 1000);
+    const pos = r.answers.length + r.said.length;
+    if (pos >= r.order.length && !r.doneAtMs) { r.doneAtMs = now; r.date = vocabToday(); }
+    cur[d] = r;
+    setDays(cur);
+    save(cur);
+    return r;
+  }
+
+  const header = (sub) => (
+    <div style={{ background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", padding: "16px 18px", color: "white" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ fontSize: 15, fontWeight: 800 }}>🧩 {a.title}</div>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", borderRadius: 20, padding: "6px 14px", fontSize: 13, cursor: "pointer", fontWeight: 700 }}>닫기</button>
+      </div>
+      {sub && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginTop: 4 }}>{sub}</div>}
+    </div>
+  );
+  const shell = (sub, body) => (
+    <div style={{ position: "fixed", inset: 0, background: "#F5F8FF", zIndex: 3100, display: "flex", flexDirection: "column", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
+      <div style={{ maxWidth: 600, width: "100%", margin: "0 auto", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+        {header(sub)}
+        <div style={{ overflowY: "auto", padding: 18, flex: 1 }}>
+          {saveErr && <div style={{ background: "#FFF0F0", color: "#C62828", borderRadius: 10, padding: "8px 12px", fontSize: 12, marginBottom: 10 }}>{saveErr}</div>}
+          {body}
+        </div>
+      </div>
+    </div>
+  );
+  const bigBtn = (label, onClick, disabled) => (
+    <button onClick={onClick} disabled={disabled}
+      style={{ width: "100%", marginTop: 14, background: disabled ? "#ccc" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 24, padding: "13px 0", fontSize: 15, fontWeight: 800, cursor: disabled ? "default" : "pointer" }}>{label}</button>
+  );
+  const card = (children) => <div style={{ background: "white", borderRadius: 16, padding: 18, boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}>{children}</div>;
+  const showQ = (q) => String(q || "").split("___").map((part, i, arr) => (
+    <span key={i}>{part}{i < arr.length - 1 && <span style={{ display: "inline-block", minWidth: 60, borderBottom: "2px solid #2E75B6", margin: "0 4px" }}>&nbsp;</span>}</span>
+  ));
+
+  if (!view || !days) return shell("", <div style={{ textAlign: "center", color: "#888", padding: 40 }}>불러오는 중...</div>);
+  if (view.mode === "alldone") return shell(`${a.days}일을 모두 끝냈어요`, card(
+    <div style={{ textAlign: "center", padding: "10px 0" }}>
+      <div style={{ fontSize: 44 }}>🎉</div>
+      <div style={{ fontSize: 17, fontWeight: 800, color: "#1A3A5C", marginTop: 8 }}>모든 날을 끝냈어요!</div>
+      <div style={{ fontSize: 13, color: "#555", marginTop: 6, lineHeight: 1.6 }}>{targets.map(t => t.expr).join(", ")}<br />이제 이 표현들을 대화에서 써 보세요.</div>
+      {bigBtn("닫기", onClose)}
+    </div>
+  ));
+  if (view.mode === "locked") return shell(`${view.day}일째까지 끝났어요`, card(
+    <div style={{ textAlign: "center", padding: "10px 0" }}>
+      <div style={{ fontSize: 44 }}>🌙</div>
+      <div style={{ fontSize: 17, fontWeight: 800, color: "#1A3A5C", marginTop: 8 }}>오늘 공부는 끝났어요</div>
+      <div style={{ fontSize: 13, color: "#555", marginTop: 6, lineHeight: 1.6 }}>하루 쉬고 다시 만나야 더 오래 기억해요.<br />내일 {view.day + 1}일째가 열려요 🌱</div>
+      {bigBtn("닫기", onClose)}
+    </div>
+  ));
+  const d = view.day;
+  const rec = days[d];
+  if (view.mode === "daydone" || (rec && rec.doneAtMs && !fb)) {
+    const last = d + 1 >= Number(a.days);
+    return shell(`${d + 1}일째 끝`, card(
+      <div style={{ textAlign: "center", padding: "10px 0" }}>
+        <div style={{ fontSize: 44 }}>{last ? "🎉" : "🌱"}</div>
+        <div style={{ fontSize: 17, fontWeight: 800, color: "#1A3A5C", marginTop: 8 }}>{d + 1}일째 공부를 끝냈어요!</div>
+        <div style={{ fontSize: 13, color: "#555", marginTop: 6, lineHeight: 1.6 }}>{last ? "모든 날을 끝냈어요. 정말 잘했어요!" : `내일 ${d + 2}일째에서 또 만나요.`}</div>
+        {bigBtn("닫기", onClose)}
+      </div>
+    ));
+  }
+  const pos = rec.answers.length + rec.said.length;
+  const k = fb ? fb.k : rec.order[pos];
+  const it = items[k];
+  if (!it) return shell("", card(<div>문항을 찾지 못했어요. 선생님께 알려 주세요.</div>));
+  const tg = targets[it.t] || { expr: "" };
+  const step = fb ? pos : pos + 1;
+  const sub = `${d + 1}일째 · ${step}/${rec.order.length}`;
+  const next = () => { if (Date.now() - fbAt.current < 500) return; setFb(null); setText(""); setUsedVoice(false); if (rec.doneAtMs) setView({ mode: "daydone", day: d }); };
+  const showFb = (x) => { fbAt.current = Date.now(); setFb(x); };
+  const stageTitle = it.kind === "pick" ? "① 알아보기 — 알맞은 표현을 고르세요" : it.kind === "recall" ? "② 떠올리기 — 알맞게 바꿔 써 보세요" : "③ 내 문장 말하기";
+  const fbBox = fb && it.kind !== "speak" && (
+    <div style={{ marginTop: 14, background: fb.ok ? "#EEF7EE" : "#FFF6E5", borderRadius: 12, padding: "10px 12px", fontSize: 13, lineHeight: 1.6, color: "#333" }}>
+      {fb.ok ? <b style={{ color: "#2D7A2D" }}>👏 맞았어요!</b> : <b style={{ color: "#8A4B00" }}>괜찮아요, 다시 만나면 돼요 💪</b>}
+      {!fb.ok && it.kind === "pick" && (() => { const wi = (it.opts || []).indexOf(fb.a); const why = Array.isArray(it.whys) && wi >= 0 ? it.whys[wi] : ""; return why ? <div>✗ {why}</div> : null; })()}
+      {!fb.ok && <div>정답: <b>{it.kind === "pick" ? it.answer : (it.answers || [])[0]}</b></div>}
+    </div>
+  );
+  let body;
+  if (it.kind === "pick") {
+    body = card(<>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 10 }}>{stageTitle}</div>
+      <div style={{ fontSize: 16, color: "#1A3A5C", lineHeight: 1.8, marginBottom: 14 }}>{showQ(it.q)}</div>
+      <div style={{ display: "grid", gap: 8 }}>
+        {(it.opts || []).map((o, oi) => {
+          const chosen = fb && fb.a === o, right = fb && o === it.answer;
+          return (
+            <button key={oi} disabled={!!fb} aria-label={`보기 ${oi + 1}`}
+              onClick={() => { const ok = o === it.answer; record(d, r => ({ answers: [...r.answers, { k, ok, a: o }] })); showFb({ k, ok, a: o }); }}
+              style={{ textAlign: "left", padding: "12px 14px", borderRadius: 12, fontSize: 15, fontFamily: "inherit", cursor: fb ? "default" : "pointer",
+                border: `2px solid ${right ? "#4CAF50" : chosen ? "#FF9800" : "#e0e0e0"}`, background: right ? "#EEF7EE" : chosen ? "#FFF6E5" : "white", color: "#1A3A5C" }}>
+              {o}
+            </button>
+          );
+        })}
+      </div>
+      {fbBox}
+      {fb && bigBtn("다음 →", next)}
+    </>);
+  } else if (it.kind === "recall") {
+    body = card(<>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 10 }}>{stageTitle}</div>
+      <div style={{ fontSize: 16, color: "#1A3A5C", lineHeight: 1.8, marginBottom: 8 }}>{showQ(it.q)}</div>
+      {it.hint && <div style={{ fontSize: 12, color: "#666", marginBottom: 10 }}>💡 {it.hint}</div>}
+      <input value={fb ? fb.a : text} onChange={e => setText(e.target.value)} disabled={!!fb} aria-label="빈칸에 쓸 말"
+        placeholder="빈칸에 들어갈 말을 써 보세요"
+        style={{ width: "100%", boxSizing: "border-box", border: "1.5px solid #C8DAF0", borderRadius: 12, padding: "12px 14px", fontSize: 16, fontFamily: "inherit", outline: "none" }} />
+      {fbBox}
+      {fb ? bigBtn("다음 →", next) : bigBtn("확인", () => {
+        const t = text.trim();
+        const ok = (it.answers || []).some(x => vocabNorm(x) === vocabNorm(t));
+        record(d, r => ({ answers: [...r.answers, { k, ok, a: t }] }));
+        showFb({ k, ok, a: t });
+      }, !text.trim())}
+    </>);
+  } else {
+    const startVoice = () => {
+      if (!canVoice || listening) return;
+      try {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const r = new SR(); srRef.current = r;
+        r.lang = "ko-KR"; r.interimResults = false;
+        r.onresult = (e) => { const said = e.results[0][0].transcript; setText(prev => (prev.trim() ? prev.trim() + " " : "") + said); setUsedVoice(true); };
+        r.onend = () => setListening(false);
+        r.onerror = () => setListening(false);
+        setListening(true); r.start();
+      } catch { setListening(false); }
+    };
+    body = card(<>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 10 }}>{stageTitle}</div>
+      <div style={{ fontSize: 16, color: "#1A3A5C", lineHeight: 1.7, fontWeight: 700 }}>'{tg.expr}'을/를 써서 <br />내 이야기를 말해 보세요.</div>
+      {it.q && <div style={{ fontSize: 12, color: "#666", marginTop: 8, background: "#F5F8FF", borderRadius: 10, padding: "8px 10px" }}>💭 생각이 안 나면: {it.q}</div>}
+      {canVoice && (
+        <button onClick={startVoice} disabled={listening}
+          style={{ width: "100%", marginTop: 14, background: listening ? "#FFE0E0" : "white", color: "#C62828", border: "2px solid #FFCDD2", borderRadius: 24, padding: "12px 0", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
+          {listening ? "🎙️ 듣고 있어요... 말해 보세요" : "🎙️ 눌러서 말하기"}
+        </button>
+      )}
+      <textarea value={text} onChange={e => setText(e.target.value)} rows={3} aria-label="내 문장"
+        placeholder={canVoice ? "말한 문장이 여기에 나와요. 글로 써도 돼요." : "이 기기에서는 음성 인식이 안 돼요. 글로 써 주세요."}
+        style={{ width: "100%", boxSizing: "border-box", marginTop: 10, border: "1.5px solid #C8DAF0", borderRadius: 12, padding: "10px 12px", fontSize: 15, fontFamily: "inherit", resize: "vertical", outline: "none" }} />
+      {bigBtn("다 했어요 →", () => {
+        const t = text.trim();
+        const r = record(d, r0 => ({ said: [...r0.said, { k, text: t, how: usedVoice ? "voice" : "text" }] }));
+        setText(""); setUsedVoice(false);
+        if (r.doneAtMs) setView({ mode: "daydone", day: d });
+      }, text.trim().length < 2)}
+    </>);
+  }
+  return shell(sub, body);
 }
 
 // ════════════════════════════════════════════════════════
@@ -27946,6 +28261,10 @@ export default function App() {
   const [myEssaySubs, setMyEssaySubs] = useState({});
   const [myEssayFb, setMyEssayFb] = useState({}); // ✅ V522: 내 논술 과제에 대한 선생님 의견 { [과제id]: {rounds} }
   const [openEssayId, setOpenEssayId] = useState(null);
+  // ✅ V536: 열어 둔 과제를 선생님이 보관하면 화면 표시도 지움(나중에 다시 꺼냈을 때 저절로 뜨지 않게)
+  useEffect(() => {
+    if (openEssayId && !learnerAssignments.some(x => x.id === openEssayId)) setOpenEssayId(null);
+  }, [openEssayId, learnerAssignments]);
   // ✅ V332: 홈 화면 다국어 번역 테이블
   const hlc = onboardingLang || "ko";
   const HOME_T = {
@@ -28055,10 +28374,15 @@ export default function App() {
   }, [user?.uid, userRole]);
 
   // ✅ V519: 내 논술 과제 제출 문서 실시간 구독 — 논술 과제가 있을 때만(문서 1개씩)
-  const myEssayIdsKey = learnerAssignments.filter(a => a.type === "ESSAY").map(a => a.id).join(",");
+  // ✅ V536: 어휘·문법 세트도 같은 방식으로 내 기록(vocabProgress/{나})을 구독 → myEssaySubs[과제id]에 넣음(완료 판정·배너가 그대로 동작)
+  const myEssayIdsKey = learnerAssignments.filter(a => a.type === "ESSAY" || a.type === "VOCAB_SET").map(a => `${a.id}:${a.type}`).join(",");
   useEffect(() => {
     if (!user || userRole !== "learner" || !assignTeacherId || !myEssayIdsKey) { setMyEssaySubs({}); setMyEssayFb({}); return; }
-    const unsubs = myEssayIdsKey.split(",").flatMap(aid => [
+    const unsubs = myEssayIdsKey.split(",").map(x => x.split(":")).flatMap(([aid, typ]) => typ === "VOCAB_SET" ? [
+      onSnapshot(doc(db, "classes", assignTeacherId, "assignments", aid, "vocabProgress", user.uid),
+        d => setMyEssaySubs(prev => ({ ...prev, [aid]: d.exists() ? d.data() : (d.metadata && d.metadata.fromCache ? undefined : null) })),
+        () => setMyEssaySubs(prev => ({ ...prev, [aid]: undefined }))),
+    ] : [
       onSnapshot(doc(db, "classes", assignTeacherId, "assignments", aid, "submissions", user.uid),
         d => setMyEssaySubs(prev => ({ ...prev, [aid]: d.exists() ? d.data() : null })),
         () => setMyEssaySubs(prev => ({ ...prev, [aid]: null }))),
@@ -28081,7 +28405,7 @@ export default function App() {
     const merge = () => {
       const map = {};
       [...allWide, ...individual].forEach(item => { map[item.id] = item; });
-      const merged = Object.values(map);
+      const merged = Object.values(map).filter(x => !x.archived); // ✅ V536: 보관한 과제는 학습자에게 보이지 않음
       merged.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       setLearnerAssignments(merged);
     };
@@ -29119,7 +29443,7 @@ export default function App() {
       {openEssayId && assignTeacherId && (() => {
         const ea = learnerAssignments.find(x => x.id === openEssayId);
         if (!ea) return null;
-        return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
+        if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
       })()}
 
       {/* ── ① 80시간 커리큘럼 미리보기 ── */}
@@ -29492,7 +29816,7 @@ export default function App() {
         {openEssayId && assignTeacherId && (() => {
           const ea = learnerAssignments.find(x => x.id === openEssayId);
           if (!ea) return null;
-          return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
+          if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
         })()}
         {/* ✅ V510: 학습자 클래스 참여 팝업 — 이 BegScreen 축약형 블록에도
             JoinClassModal 렌더가 연결돼 있지 않아 카드에서 코드를 입력해도 팝업이
@@ -29876,7 +30200,7 @@ export default function App() {
       {openEssayId && assignTeacherId && (() => {
         const ea = learnerAssignments.find(x => x.id === openEssayId);
         if (!ea) return null;
-        return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
+        if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
       })()}
 
       <div style={{maxWidth:600,margin:"0 auto",padding:`12px 12px ${browseMode?"150px":"80px"}`,boxSizing:"border-box"}}>
