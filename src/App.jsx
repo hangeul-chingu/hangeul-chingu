@@ -184,7 +184,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "534";
+const APP_VERSION = "535";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1963,10 +1963,10 @@ const VOCAB_AI_SYSTEM = `당신은 한국어 교사를 돕는 조수입니다. �
 
 [만들 것] 목표 표현 하나에 대해, 정해진 날마다 3문항씩 만듭니다.
 1. pick (알아보기): 실생활 상황의 한 문장에 빈칸(___)을 하나 둡니다. **빈칸은 반드시 목표 표현이 들어갈 자리**입니다. 목표 표현은 빈칸 밖 문장에 쓰지 않습니다.
-   보기 4개: 정답 = 목표 표현의 알맞은 형태 1개, 오답 = 학습자가 헷갈리기 쉬운 **비슷한 표현**(예: 목표가 '-다 보니'라면 '-더니', '-아서', '-는 바람에') 3개. 보기는 빈칸에 그대로 들어갈 형태(앞말과 함께 활용한 형태)로 씁니다.
+   보기 4개: 정답 = 목표 표현의 알맞은 형태 1개, 오답 = 학습자가 헷갈리기 쉽지만 **이 문장에서는 분명히 틀리는 표현**(예: 목표가 '-다 보니'라면 '-(으)려고', '-(으)면', '-기 전에'처럼 뜻이 분명히 다른 연결) 3개. 보기는 빈칸에 그대로 들어갈 형태(앞말과 함께 활용한 형태)로 씁니다.
    (나쁜 예: 목표 표현은 문장에 이미 있고, 빈칸에서 시제나 다른 말을 고르게 하는 것)
    **빈칸은 목표 표현이 붙는 동사·형용사·명사부터 목표 표현 끝까지 한 덩어리**를 가립니다. 빈칸 바로 앞에 그 동사의 활용형(예: '잘하는', '좋은')을 남기지 않습니다.
-   (좋은 예: "우리 오빠는 요리를 ___ 저는 요리를 못해요." → 보기: 잘하는 반면에 / 잘하다 보니 / 잘하더니 / 잘하는 바람에)
+   (좋은 예: "저는 요리를 ___ 청소는 잘 못해요." → 보기: 잘하는 반면에 / 잘해서 / 잘하려고 / 잘하면)
    (나쁜 예: "요리를 잘하는 ___" → 보기: 는 반면에 — 넣으면 '잘하는는'이 됨)
 2. recall (떠올리기): 상황을 짧게 말하고 빈칸(___)이 있는 문장을 줍니다. **빈칸은 목표 표현이 들어갈 자리**이고, 학습자가 목표 표현을 알맞게 활용해 직접 씁니다. 목표 표현은 빈칸 밖 문장에 쓰지 않습니다.
    pick과 같이 **빈칸은 동사·형용사·명사부터 목표 표현 끝까지 한 덩어리**입니다. hint에는 빈칸에 쓸 동사·형용사의 **기본형**을 알려 줍니다(예: "빠르다를 알맞게 바꿔 쓰세요"). answers에는 정답으로 인정할 형태를 모두 적습니다(띄어쓰기가 다른 형태 포함, 최대 5개). hint에는 정답을 그대로 쓰지 않는 짧은 도움말을 씁니다.
@@ -1985,21 +1985,31 @@ const VOCAB_AI_SYSTEM = `당신은 한국어 교사를 돕는 조수입니다. �
   ⓑ 뜻이 분명히 다른 표현 (예: 반대·대조, 원인, 목적 등 문장의 흐름과 맞지 않는 연결)
 - **바꿔 써도 말이 되는 비슷한 문법(유사 문법)은 오답으로 쓰지 않습니다.** 예: '-다 보니' 문장에서 내가 한 일의 결과를 말할 때는 '-았/었더니'도 맞으므로 오답이 될 수 없습니다.
 - 비슷한 문법을 오답으로 쓰려면, 문장 안에 그 문법이 틀리게 되는 **분명한 단서**(주어, 시제, 반복을 나타내는 말 등)가 있어야 합니다.
+- **목표가 '-(으)ㄴ/는 반면에'이면 '-더니'(…더니, …았/었더니 모두)는 오답으로 쓰지 않습니다.** '-더니'에도 대조 뜻이 있어(예: "형은 그렇게 똑똑하더니 동생은 그만 못하구나") 정답이 될 수 있습니다.
 - 보기 4개는 같은 동사·같은 모양(구조)으로 맞춥니다.
 - **pick 문장에는 주어를 반드시 씁니다**(예: "저는", "제 친구는", "우리 언니는"). 한국어는 주어가 '나'인지 '남'인지에 따라 맞고 틀림이 갈리는 문법이 많습니다(예: '-더니'와 '-았/었더니'). 주어가 없으면 오답이 정답이 될 수 있습니다.
-- why에는 오답마다 "이 문장에서 왜 틀린지"를 한 문장으로 씁니다(보기 순서대로, 정답 자리는 빈 문자열 ""). 이유를 분명히 쓸 수 없는 오답은 쓰지 않습니다.
+- why에는 오답마다 "이 문장에서 왜 틀린지"를 **20자 안팎의 짧은 한 문장**으로 씁니다(보기 순서대로, 정답 자리는 빈 문자열 ""). 이유를 분명히 쓸 수 없는 오답은 쓰지 않습니다.
 
 [출력] 아래 JSON 하나만 출력합니다. 다른 말은 쓰지 않습니다.
 {"items":[{"day":0,"kind":"pick","q":"...___...","opts":["","","",""],"answer":"","why":["","","",""]},{"day":0,"kind":"recall","q":"...___...","answers":[""],"hint":""},{"day":0,"kind":"speak","q":""}]}`;
-function vocabAiPrompt(target, level, fromDay, toDay, others) {
+// ✅ V535: 하루치씩 만듦(9/25 실기기: 3일치를 한 번에 받다가 두 표현 모두 만들기 실패 ×2 — 응답 길이 한도 추정) → 앞서 만든 날의 문장을 알려 줘 상황이 겹치지 않게
+function vocabAiPrompt(target, level, day, others, made) {
+  const prev = (made || []).filter(it => it.kind !== "speak").map(it => `- ${it.q}`);
+  const ban = vocabBannedFor(target.expr);
   return [
     `목표 표현: ${target.expr}`,
     target.hint ? `교사 메모(쓰임): ${target.hint}` : "",
     `학습자 수준: ${level === "adv" ? "고급(TOPIK 5~6급)" : "중급(TOPIK 3~4급)"}`,
-    `만들 날: day ${fromDay}부터 day ${toDay}까지 (날마다 pick·recall·speak 한 문항씩, 모두 ${(toDay - fromDay + 1) * 3}문항)`,
-    others.length ? `같은 과제의 다른 표현(오답 보기로 써도 좋음): ${others.join(", ")}` : "",
+    `만들 날: day ${day} 하루치 (pick·recall·speak 한 문항씩, 모두 3문항, "day": ${day})`,
+    others.length ? `같은 과제의 다른 표현(오답 보기로 써도 좋음): ${others.filter(o => !ban.some(b => b.opt.test(o.replace(/\s/g, "")))).join(", ")}` : "",
+    ban.length ? `이 표현의 오답으로 쓰지 않을 것: ${ban.map(b => b.label).join(", ")}` : "",
+    prev.length ? `이미 만든 다른 날의 문장(상황과 문장이 겹치지 않게):\n${prev.join("\n")}` : "",
   ].filter(Boolean).join("\n");
 }
+// ✅ V535: 목표 표현별 금지 오답(유사 문법 — 과제설계 원칙 7-6 ⑦). '-(으)ㄴ/는 반면에'의 '-더니'는 대조 쓰임(표준국어대사전 '-더니' [2])이 있어 정답이 될 수 있음(교수자 확정 9/27)
+const VOCAB_BANNED_OPTS = [{ target: /반면/, opt: /더니/, label: "'-더니'(…더니, …았/었더니)" }];
+function vocabBannedFor(expr) { return VOCAB_BANNED_OPTS.filter(b => b.target.test(String(expr || ""))); }
+function vocabIsBannedOpt(expr, opt) { const o = String(opt || "").replace(/\s/g, ""); return vocabBannedFor(expr).some(b => b.opt.test(o)); }
 // ✅ V531: 목표 표현이 정답·인정할 답에 실제로 들어갔는지 확인용(9/25 실기기: ①의 빈칸이 목표 표현 자리가 아니었음)
 //   문법 표현: 핵심 글자가 그대로 있어야 함 — "-다 보니"→"다보니", "-(으)ㄴ 반면에"→"반면에", "-(으)ㄹ 수 있다"→"수있", "-기 마련이다"→"기마련이"
 //   낱말: 불규칙 활용(모르다→몰라요, 돕다→도와요)이 있어 첫 글자의 첫소리·가운뎃소리만 확인 — "섭섭하다"→"서"
@@ -2052,17 +2062,41 @@ const VOCAB_VERIFY_SYSTEM = `당신은 한국어 원어민 검수자입니다. �
 - 너그럽게 판정하지 마세요. 다만 원어민이 흔히 쓰는 문장이면 true입니다.
 [출력] JSON 하나만: {"results":[{"id":"","natural":true,"reason":"한 문장"}]}`;
 // ✅ V533: 2차 검증으로 AI 호출이 늘어 분당 호출 제한(SEC.RPM)에 걸릴 수 있음 → 걸리면 5초씩 기다렸다가 다시(최대 약 1분)
+// ✅ V535: 어휘·문법 세트 전용 호출 — 실패하면 실제 이유(길이 제한·서버 오류·연결·형식)를 돌려줌(9/25 실기기: 실패 이유를 알 수 없었음)
+//   프록시가 model/max_tokens/system/messages 외 필드를 거부할 수 있어(V424) 이 네 가지만 보냄
+async function vocabCallOnce(msgs, sys, maxTokens) {
+  let r;
+  try {
+    r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: maxTokens, system: (sys || "") + POLITENESS_GUARD, messages: msgs }) });
+  } catch (e) {
+    return { error: `연결 오류${typeof navigator !== "undefined" && navigator.onLine === false ? "(인터넷 끊김)" : ""}`, retry: true };
+  }
+  if (!r.ok) return { error: `서버 오류(${r.status})`, retry: true };
+  let d;
+  try { d = await r.json(); } catch { return { error: "서버 응답을 읽지 못함", retry: true }; }
+  if (d && d.error) return { error: `서버 오류(${typeof d.error === "string" ? d.error : d.error.type || d.error.message || "알 수 없음"})`, retry: true };
+  const raw = (d && Array.isArray(d.content) ? d.content : []).map(b => b.text || "").join("");
+  if (!raw.trim()) return { error: "빈 응답", retry: true };
+  const parsed = extractJsonBlock(raw);
+  if (parsed) return { data: parsed };
+  if (d && d.stop_reason === "max_tokens") return { error: "길이 제한에 걸림(stop_reason=max_tokens)" };
+  if (!d || !("stop_reason" in d)) { if (!/\}\s*(```)?\s*$/.test(raw)) return { error: "응답이 중간에 끊김(추정)", retry: true }; }
+  return { error: "응답이 JSON 형식이 아님", retry: true };
+}
 async function vocabCall(msgs, sys, onWait) {
-  for (let k = 0; k < 13; k++) {
-    const r = await callClaudeGrade(msgs, sys, 1500);
-    if (r && r.error && String(r.error).includes("너무 빠르게")) {
+  let last = null;
+  for (let k = 0, tries = 0; k < 13 && tries < 2; k++) {
+    if (!rateLimiter.check()) { // 분당 호출 제한(SEC.RPM) — 5초씩 기다렸다가 다시(최대 약 1분)
       if (onWait) onWait();
       await new Promise(res => setTimeout(res, 5000));
       continue;
     }
-    return r;
+    tries++;
+    last = await vocabCallOnce(msgs, sys, 1500);
+    if (last.data || !last.retry) return last;
   }
-  return { error: "잠시 후 다시 시도해 주세요." };
+  return last || { error: "AI 요청이 많아 기다리다 멈춤(분당 제한)" };
 }
 function vocabVerifyPrompt(items) {
   const lines = [];
@@ -2113,10 +2147,12 @@ function vocabVerdicts(items, dataA, dataB) {
 const VOCAB_REPAIR_SYSTEM = `당신은 한국어 교사를 돕는 조수입니다. 검사에서 "정답이 둘일 수 있다"고 걸린 보기를 고칩니다.
 - replace: 문장과 정답은 그대로 두고, 표시된 자리의 오답만 새로 만듭니다. 새 오답은 이 문장에서 **분명히 틀려야** 하며, 목표 표현이나 그와 바꿔 쓸 수 있는 비슷한 문법이면 안 됩니다. 다른 보기와 같은 동사·같은 모양으로 맞춥니다. 오답은 ⓐ 학습자가 자주 틀리는 형태 또는 ⓑ 뜻이 분명히 다른 표현에서 고릅니다.
 - redo: 그 날의 ① 문항 전체(문장·보기 4개·정답·why)를 새로 만듭니다. 빈칸은 동사·형용사부터 목표 표현 끝까지 한 덩어리, 문장에 주어를 반드시 씁니다.
-- "이미 걸린 보기"는 다시 쓰지 않습니다. why에는 새 오답이 이 문장에서 왜 틀린지 한 문장으로 씁니다.
+- "이미 걸린 보기"는 다시 쓰지 않습니다. why에는 새 오답이 이 문장에서 왜 틀린지 20자 안팎의 짧은 한 문장으로 씁니다.
 [출력] JSON 하나만: {"replace":[{"day":0,"slot":1,"opt":"","why":""}],"redo":[{"day":0,"q":"...___...","opts":["","","",""],"answer":"","why":["","","",""]}]}`;
 function vocabRepairPrompt(expr, items, verdicts, banned) {
   const L = [`목표 표현: ${expr}`];
+  const ban = vocabBannedFor(expr);
+  if (ban.length) L.push(`이 표현의 오답으로 쓰지 않을 것: ${ban.map(b => b.label).join(", ")}`);
   Object.keys(verdicts).forEach(d => {
     const it = items.find(x => x.kind === "pick" && x.day === Number(d));
     if (!it) return;
@@ -2140,6 +2176,7 @@ function vocabApplyRepair(items, data, verdicts, expr) {
     if (!it || !verdicts[d] || !verdicts[d].badOpts.has(slot) || slot === it.ansIdx || !o) return;
     if (it.opts.some((x, k) => k !== slot && x === o)) return;
     if (core && core.g && vocabHasCore(o, core)) return; // 오답에 목표 표현이 들어가면 또 정답이 될 수 있음
+    if (vocabIsBannedOpt(expr, o)) return; // ✅ V535: 쓰지 않기로 한 오답(예: '반면에'의 '-더니')
     it.opts[slot] = o;
     it.whys = it.whys || it.opts.map(() => "");
     it.whys[slot] = str(r.why);
@@ -2172,8 +2209,9 @@ function vocabApplyVerify(items, data) {
   });
   return { items: out, bad };
 }
-function vocabAiClean(data, fromDay, toDay, expr) {
+function vocabAiClean(data, fromDay, toDay, expr, why) {
   const core = vocabCore(expr);
+  const no = (r) => { if (why) why.r = r; return null; }; // ✅ V535: 어떤 검사에서 떨어졌는지 교수자에게 보여 줌
   const list = Array.isArray(data?.items) ? data.items : [];
   const str = (v) => (typeof v === "string" ? v.trim() : "");
   const blank = (q) => str(q).replace(/_{2,}|＿+/g, "___");
@@ -2188,13 +2226,16 @@ function vocabAiClean(data, fromDay, toDay, expr) {
       && it.answers.some(x => vocabHasCore(x, core) && vocabHasStem(x, core))
       && it.answers.every(x => !vocabHasCore(x, core) || vocabHasStem(x, core))); // "빠른 반면"처럼 줄여 쓴 답은 허용, "반면에"만 달랑 있는 답은 안 됨
     const sp = ofDay.find(it => it.kind === "speak" && str(it.q));
-    if (!pk || !rc || !sp) return null;
+    if (!pk) return no(`${d + 1}일째 ① 알아보기: 빈칸이 목표 표현 자리가 아니거나 정답 형태가 맞지 않음`);
+    if (!rc) return no(`${d + 1}일째 ② 떠올리기: 빈칸·인정할 답이 목표 표현과 맞지 않음`);
+    if (!sp) return no(`${d + 1}일째 ③ 말하기 문항이 없음`);
     let opts = [...new Set(pk.opts.map(str).filter(Boolean))];
     const ans = str(pk.answer);
-    if (!ans || !opts.includes(ans)) return null;
-    if (core && core.g && opts.some(o => o !== ans && vocabHasCore(o, core))) return null; // ✅ V534: 오답에 목표 표현이 들어가면 정답이 둘
+    if (!ans || !opts.includes(ans)) return no(`${d + 1}일째 ①: 정답이 보기에 없음`);
+    if (core && core.g && opts.some(o => o !== ans && vocabHasCore(o, core))) return no(`${d + 1}일째 ①: 오답에 목표 표현이 섞임(정답 둘)`); // ✅ V534
     opts = [ans, ...opts.filter(o => o !== ans)].slice(0, 4);
-    if (opts.length < 4) return null;
+    if (opts.some(o => o !== ans && vocabIsBannedOpt(expr, o))) return no(`${d + 1}일째 ①: 쓰지 않기로 한 오답(${vocabBannedFor(expr).map(b => b.label).join(", ")})`); // ✅ V535
+    if (opts.length < 4) return no(`${d + 1}일째 ①: 서로 다른 보기가 4개가 안 됨`);
     // ✅ V533: 오답마다 "왜 틀린지"(보기 순서대로) — 섞은 뒤에도 보기와 짝이 맞게
     const whyOf = new Map(pk.opts.map((o, k) => [str(o), Array.isArray(pk.why) ? str(pk.why[k]) : ""]));
     opts = opts.sort(() => Math.random() - 0.5); // 정답 위치 섞기
@@ -2264,18 +2305,26 @@ function VocabSetEditor({ form, setForm, essayExprs }) {
       setBusy(`AI가 '${tg.expr}' 문항을 만들고 있어요... (${i + 1}/${list.length})`);
       const others = targets.map(x => x.expr).filter(x => x !== tg.expr);
       let items = [];
-      // 한 번에 3일씩(응답 길이 제한 대비). ✅ V531: 검사를 통과하지 못하면 자동으로 한 번 더 만듦
-      for (let from = 0; from < days && items !== null; from += 3) {
+      const dayFails = [], failDays = new Set();
+      // 검사는 3일씩 묶어서. ✅ V535: 만들기는 하루치씩(응답이 짧아 길이 제한에 걸리지 않게), 실패한 날만 최대 3번, 성공한 날은 버리지 않음
+      for (let from = 0; from < days; from += 3) {
         const to = Math.min(days - 1, from + 2);
         const waitMsg = () => setBusy(`AI 요청이 많아 잠시 기다리는 중이에요... (${i + 1}/${list.length})`);
-        // ① 만들기(형식 검사에서 떨어지면 한 번 더)
-        let cl = null;
-        for (let attempt = 0; attempt < 2 && !cl; attempt++) {
-          if (attempt > 0) setBusy(`AI가 '${tg.expr}' 문항을 다시 만들고 있어요... (${i + 1}/${list.length})`);
-          const res = await vocabCall([{ role: "user", content: vocabAiPrompt(tg, form.vLevel, from, to, others) }], VOCAB_AI_SYSTEM, waitMsg);
-          cl = res.data ? vocabAiClean(res.data, from, to, tg.expr) : null;
+        let cl = [];
+        for (let d = from; d <= to; d++) {
+          let one = null, why = "";
+          for (let attempt = 0; attempt < 3 && !one; attempt++) {
+            setBusy(`AI가 '${tg.expr}' ${d + 1}일째 문항을 ${attempt ? `다시 만들고 있어요 (${attempt + 1}/3)` : "만들고 있어요"}... (${i + 1}/${list.length})`);
+            const res = await vocabCall([{ role: "user", content: vocabAiPrompt(tg, form.vLevel, d, others, [...items, ...cl]) }], VOCAB_AI_SYSTEM, waitMsg);
+            if (!res.data) { why = res.error || "알 수 없는 오류"; continue; }
+            const w = {};
+            one = vocabAiClean(res.data, d, d, tg.expr, w);
+            if (!one) why = `형식 검사 불합격 — ${w.r || "알 수 없음"}`;
+          }
+          if (one) cl = [...cl, ...one];
+          else { dayFails.push(`${d + 1}일째(${why})`); failDays.add(d); }
         }
-        if (!cl) { items = null; break; }
+        if (cl.length === 0) continue;
         // ② 검증 ㉮㉯ → ③ 걸린 보기만 고치기(최대 3번, 걸린 보기·이유를 알려 줌) → 남으면 선생님께 표시
         const banned = {};
         let verdicts = null, verifyFailed = false;
@@ -2283,7 +2332,7 @@ function VocabSetEditor({ form, setForm, essayExprs }) {
           setBusy(`AI가 '${tg.expr}' 보기를 하나씩 검사하고 있어요${round ? ` (고친 뒤 ${round}번째 확인)` : ""}... (${i + 1}/${list.length})`);
           const va = await vocabCall([{ role: "user", content: vocabVerifyPrompt(cl) }], VOCAB_VERIFY_SYSTEM, waitMsg);
           const vb = await vocabCall([{ role: "user", content: vocabVerify2Prompt(cl) }], VOCAB_VERIFY2_SYSTEM, waitMsg);
-          if (!va.data || !vb.data) { verifyFailed = true; break; }
+          if (!va.data || !vb.data) { verifyFailed = va.error || vb.error || "알 수 없는 오류"; break; }
           verdicts = vocabVerdicts(cl, va.data, vb.data);
           if (Object.keys(verdicts).length === 0 || round === 3) break;
           Object.keys(verdicts).forEach(d => {
@@ -2296,17 +2345,20 @@ function VocabSetEditor({ form, setForm, essayExprs }) {
         }
         const c = cl.map(it => {
           if (it.kind !== "pick") return it;
-          if (verifyFailed) return { ...it, flag: "AI 검사를 하지 못했어요 — 보기를 하나씩 넣어 읽어 봐 주세요." };
+          if (verifyFailed) return { ...it, flag: `AI 검사를 하지 못했어요(${verifyFailed}) — 보기를 하나씩 넣어 읽어 봐 주세요.` };
           const v = verdicts && verdicts[it.day];
           return v ? { ...it, flag: v.reasons.join(" / ") } : it;
         });
         items = [...items, ...c];
       }
-      if (items) gen[tg.expr] = items; else failed.push(tg.expr);
+      // 다시 만들기에서 실패한 날은 원래 문항(교수자가 고친 것 포함)을 그대로 남김
+      const keep = (form.vGen[tg.expr] || []).filter(it => failDays.has(it.day));
+      if (items.length) gen[tg.expr] = [...items, ...keep].sort((a, b) => a.day - b.day || VOCAB_KINDS.findIndex(x => x.k === a.kind) - VOCAB_KINDS.findIndex(x => x.k === b.kind));
+      if (dayFails.length) failed.push(`'${tg.expr}' ${dayFails.join(", ")}`);
     }
     setForm(f => ({ ...f, vGen: { ...f.vGen, ...gen }, vReviewed: false, vAiUsed: f.vAiUsed || Object.keys(gen).length > 0 }));
     setBusy("");
-    if (failed.length) setErr(`'${failed.join("', '")}' 문항을 만들지 못했어요. [다시 만들기]를 누르거나 [직접 쓰기]로 채워 주세요.`);
+    if (failed.length) setErr(`문항을 만들지 못한 곳이 있어요 — ${failed.join(" · ")}. [다시 만들기]를 누르거나 [직접 쓰기]로 빈 곳을 채워 주세요.`);
   }
   function setItem(expr, i, patch) {
     setForm(f => ({ ...f, vGen: { ...f.vGen, [expr]: f.vGen[expr].map((it, k) => (k === i ? { ...it, ...patch } : it)) } }));
