@@ -188,7 +188,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "536";
+const APP_VERSION = "537";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2959,6 +2959,12 @@ function AssignmentPanel({ user, students }) {
                       }
                       const done = isAssignmentDone(a, st.gramLog || [], st.pronLog || [], aSubs[st.id]);
                       const vDays = a.type === "VOCAB_SET" ? vocabDayState(a, aSubs[st.id]).doneDays : null; // ✅ V536
+                      if (a.type === "VOCAB_SET") return ( // ✅ V537: 누르면 결과 보기
+                        <button key={st.id} type="button" onClick={() => setReview({ aid: a.id, uid: st.id })}
+                          style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: done ? "#D6EAD6" : vDays ? "#E3F2FD" : "#F5F5F5", color: done ? "#2D7A2D" : vDays ? "#1565C0" : "#aaa", fontWeight: 700, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                          {done ? "✅" : "⬜"} {studentLabel(st)} · {vDays}/{a.days}일 ›
+                        </button>
+                      );
                       return (
                         <span key={st.id} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: done ? "#D6EAD6" : vDays ? "#E3F2FD" : "#F5F5F5", color: done ? "#2D7A2D" : vDays ? "#1565C0" : "#aaa", fontWeight: 700 }}>
                           {done ? "✅" : "⬜"} {studentLabel(st)}{vDays !== null ? ` · ${vDays}/${a.days}일` : ""}
@@ -2967,6 +2973,12 @@ function AssignmentPanel({ user, students }) {
                     })}
                   </div>
                   {a.type === "ESSAY" && <div style={{ fontSize: 10, color: "#999", marginTop: 6 }}>학습자 이름을 누르면 글을 보고 의견을 쓸 수 있어요</div>}
+                  {a.type === "VOCAB_SET" && (() => { const sm = vocabClassSummary(a, Object.fromEntries(targetStudents.map(st => [st.id, aSubs[st.id]]))); return (
+                    <div style={{ fontSize: 11, color: "#555", marginTop: 8, lineHeight: 1.6 }}>
+                      {sm.started > 0 && <div>{sm.stuck.length ? `🟠 막힌 표현: ${sm.stuck.map(x => `${x.expr} (${x.n}명)`).join(", ")}` : "막힌 표현 없음"}</div>}
+                      {sm.avgSec !== null && <div>⏱️ 하루 평균 {vocabFmtSec(sm.avgSec)} (끝낸 날 {sm.doneCount}번 기준)</div>}
+                      <div style={{ fontSize: 10, color: "#999" }}>학습자 이름을 누르면 날짜별 결과와 학습자 문장을 볼 수 있어요</div>
+                    </div>); })()}
                 </div>
               )}
             </div>
@@ -2984,6 +2996,7 @@ function AssignmentPanel({ user, students }) {
         const ra = assignments.find(x => x.id === review.aid);
         const st = students.find(x => x.id === review.uid);
         if (!ra || !st) return null;
+        if (ra.type === "VOCAB_SET") return <VocabResultPanel key={ra.id + "_" + st.id} assignment={ra} student={st} prog={(essaySubs[ra.id] || {})[st.id]} onClose={() => setReview(null)} />; // ✅ V537
         return <EssayReviewPanel key={ra.id + "_" + st.id} teacherUid={user.uid} assignment={ra} student={st}
           sub={(essaySubs[ra.id] || {})[st.id]} fb={(essayFb[ra.id] || {})[st.id]} onClose={() => setReview(null)} />;
       })()}
@@ -3812,6 +3825,129 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
               );
             })
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════
+// ✅ V537: 어휘·문법 세트 — 교수자 결과 보기 (과제설계 원칙 7-2의 4번, 로드맵 3-3)
+// - 학습자 한 명: 날짜별 수행(끝낸 날·걸린 시간), 표현별 ①고른 답·②쓴 답(정답과 나란히), ③ 학습자 문장
+// - 표현 상태: 가장 최근에 푼 날 기준 — 막힘(그날도 틀림) / 나아짐(전에 틀렸다가 맞음) / 잘함(늘 맞음)
+// - 반 전체 요약(카드): 막힌 표현별 인원, 하루 평균 걸린 시간(원칙 7-3 분량 조정용)
+// - 교수자 화면에만 보임(학습자 화면에는 점수 없음, 원칙 8·9). 보안 규칙 변경 없음(교수자 읽기는 V536에서 허용)
+// ════════════════════════════════════════════════════════
+function vocabFmtSec(sec) {
+  const s = Math.max(0, Math.round(Number(sec) || 0));
+  return s >= 60 ? `${Math.floor(s / 60)}분 ${s % 60}초` : `${s}초`;
+}
+// 표현(t)별 상태: { state: "none"|"stuck"|"better"|"good", rows:[{day, kind, a, ok, right}] }
+//   판정은 그 표현의 ①②를 모두 푼 날(=끝낸 날 포함) 가운데 가장 최근 날 기준(하루를 다 풀기 전에 '나아짐'이 먼저 뜨지 않게)
+//   학습자가 쓰는 기록이라 이상한 값(null, 객체 등)은 건너뛰고 글자로만 다룸(검토 반영)
+const vocabStr = (v) => (v === null || v === undefined ? "" : typeof v === "object" ? "" : String(v));
+function vocabTargetStatus(a, prog, t) {
+  const items = Array.isArray(a?.items) ? a.items : [];
+  const days = Array.isArray(prog?.days) ? prog.days : [];
+  const rows = [];
+  days.forEach((d, di) => (d && Array.isArray(d.answers) ? d.answers : []).forEach(x => {
+    if (!x || typeof x !== "object") return;
+    const it = items[x.k];
+    if (!it || it.t !== t || (it.kind !== "pick" && it.kind !== "recall")) return;
+    rows.push({ day: di, kind: it.kind, a: vocabStr(x.a), ok: x.ok === true, right: vocabStr(it.kind === "pick" ? it.answer : (it.answers || [])[0]) });
+  }));
+  if (rows.length === 0) return { state: "none", rows };
+  const full = [...new Set(rows.map(r => r.day))].filter(di => rows.some(r => r.day === di && r.kind === "pick") && rows.some(r => r.day === di && r.kind === "recall"));
+  if (full.length === 0) return { state: rows.some(r => !r.ok) ? "stuck" : "none", rows };
+  const lastDay = Math.max(...full);
+  const upTo = rows.filter(r => r.day <= lastDay);
+  const lastBad = upTo.some(r => r.day === lastDay && !r.ok);
+  const everBad = upTo.some(r => !r.ok);
+  return { state: lastBad ? "stuck" : everBad ? "better" : "good", rows };
+}
+// 반 전체 요약: 막힌 표현별 인원, 하루 평균 시간(끝낸 날 기준)
+function vocabClassSummary(a, progs) {
+  const targets = Array.isArray(a?.targets) ? a.targets : [];
+  // 한 문제라도 푼 학습자만(열기만 한 학습자 때문에 '막힌 표현 없음'이 너무 일찍 뜨지 않게)
+  const list = Object.values(progs || {}).filter(p => p && Array.isArray(p.days) && p.days.some(d => d && Array.isArray(d.answers) && d.answers.length > 0));
+  const stuck = targets.map((tg, t) => ({ expr: tg.expr, n: list.filter(p => vocabTargetStatus(a, p, t).state === "stuck").length })).filter(x => x.n > 0);
+  const doneDays = list.flatMap(p => (Array.isArray(p.days) ? p.days : []).filter(d => d && d.doneAtMs));
+  const avg = doneDays.length ? doneDays.reduce((s, d) => s + (Number(d.sec) || 0), 0) / doneDays.length : null;
+  return { started: list.length, stuck, avgSec: avg, doneCount: doneDays.length };
+}
+const VOCAB_STATE_LOOK = {
+  none: { bg: "#F5F5F5", c: "#888", tx: "아직 안 풀었어요" },
+  stuck: { bg: "#FFE0B2", c: "#8A4B00", tx: "🟠 막힘" },
+  better: { bg: "#E3F2FD", c: "#1565C0", tx: "📈 나아짐" },
+  good: { bg: "#D6EAD6", c: "#2D7A2D", tx: "✅ 잘함" },
+};
+function VocabResultPanel({ assignment, student, prog, onClose }) {
+  const a = assignment;
+  const targets = Array.isArray(a.targets) ? a.targets : [];
+  const items = Array.isArray(a.items) ? a.items : [];
+  const days = Array.isArray(prog?.days) ? prog.days : [];
+  const total = Number(a.days) || 0;
+  const said = days.flatMap((d, di) => (d && Array.isArray(d.said) ? d.said : []).filter(x => x && typeof x === "object").map(x => ({ text: vocabStr(x.text), how: x.how, day: di, expr: vocabStr((targets[(items[x.k] || {}).t] || {}).expr) })));
+  const box = { background: "white", borderRadius: 14, padding: 14, marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" };
+  const h3 = { fontSize: 13, fontWeight: 800, color: "#1A3A5C", marginBottom: 8 };
+  const fmtDate = (d) => { const dt = d && d.doneAtMs ? new Date(Number(d.doneAtMs)) : null; return dt && !isNaN(dt.getTime()) ? dt.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }) : ""; };
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 3000, display: "flex", justifyContent: "center", alignItems: "flex-end" }}>
+      <div style={{ background: "#F5F8FF", width: "100%", maxWidth: 600, maxHeight: "92vh", borderRadius: "20px 20px 0 0", display: "flex", flexDirection: "column" }}>
+        <div style={{ background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", padding: "16px 18px", borderRadius: "20px 20px 0 0", color: "white" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 15, fontWeight: 800 }}>🧩 {a.title}</div>
+            <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", borderRadius: 20, padding: "6px 14px", fontSize: 13, cursor: "pointer", fontWeight: 700 }}>닫기</button>
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginTop: 4 }}>{studentLabel(student)}의 결과 · 선생님 화면에만 보여요</div>
+        </div>
+        <div style={{ overflowY: "auto", padding: 16 }}>
+          {!prog || days.length === 0 ? (
+            <div style={{ ...box, textAlign: "center", color: "#888", padding: 30 }}>아직 시작하지 않았어요</div>
+          ) : (<>
+            <div style={box}>
+              <div style={h3}>📅 날짜별</div>
+              {Array.from({ length: total }, (_, di) => {
+                const d = days[di];
+                const n = d && Array.isArray(d.order) ? d.order.length : 0;
+                const doneN = d ? (Array.isArray(d.answers) ? d.answers.length : 0) + (Array.isArray(d.said) ? d.said.length : 0) : 0;
+                return (
+                  <div key={di} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", borderBottom: di < total - 1 ? "1px dashed #E3EAF3" : "none" }}>
+                    <span style={{ fontWeight: 700, color: "#1A3A5C" }}>{d && d.doneAtMs ? "✅" : d ? "▶️" : "⬜"} {di + 1}일째</span>
+                    <span style={{ color: "#555" }}>{d && d.doneAtMs ? `${fmtDate(d)} · ${vocabFmtSec(d.sec)}` : d ? `하는 중 (${doneN}/${n})` : "아직"}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {targets.map((tg, t) => {
+              const st = vocabTargetStatus(a, prog, t);
+              const look = VOCAB_STATE_LOOK[st.state];
+              return (
+                <div key={t} style={box} aria-label={`표현 ${tg.expr}`}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <div style={{ ...h3, marginBottom: 0 }}>{tg.expr}</div>
+                    <span style={{ fontSize: 11, fontWeight: 800, background: look.bg, color: look.c, borderRadius: 12, padding: "3px 9px" }}>{look.tx}</span>
+                  </div>
+                  {st.rows.map((r, i) => (
+                    <div key={i} style={{ fontSize: 12, lineHeight: 1.6, padding: "4px 8px", marginTop: 4, borderRadius: 8, background: r.ok ? "#F3FAF3" : "#FFF6E5" }}>
+                      <b>{r.day + 1}일째 {r.kind === "pick" ? "① 고른 답" : "② 쓴 답"}</b>: {r.ok ? "✓" : "✗"} {r.a || "(빈칸)"}
+                      {!r.ok && <span style={{ color: "#555" }}> → 정답 {r.right}</span>}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+            <div style={box}>
+              <div style={h3}>🗣️ 학습자가 만든 문장</div>
+              {said.length === 0 ? <div style={{ fontSize: 12, color: "#888" }}>아직 없어요</div> : said.map((x, i) => (
+                <div key={i} style={{ fontSize: 13, lineHeight: 1.6, padding: "6px 0", borderBottom: i < said.length - 1 ? "1px dashed #E3EAF3" : "none" }}>
+                  <div style={{ fontSize: 11, color: "#888" }}>{x.day + 1}일째 · {x.expr} · {x.how === "voice" ? "🎙️ 음성" : "⌨️ 글"}</div>
+                  <div style={{ color: "#1A3A5C" }}>{x.text}</div>
+                </div>
+              ))}
+              {said.some(x => x.how === "voice") && <div style={{ fontSize: 10, color: "#999", marginTop: 6 }}>🎙️ 음성 인식으로 옮긴 글이라 실제 발음·표현과 다를 수 있어요.</div>}
+            </div>
+          </>)}
         </div>
       </div>
     </div>
