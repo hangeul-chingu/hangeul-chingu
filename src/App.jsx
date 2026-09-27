@@ -99,6 +99,10 @@ async function saveGramLog(uid, quizType, results) {
   }
 }
 
+// ✅ V538: 프리토킹 퀴즈 카드에 묶였던 옛 과제 유형 — 새로 낼 수 없고 학습자 화면에서 숨김(로드맵 3-4)
+//   (퀴즈 카드 자체는 프리토킹에 그대로 둠: 과제와 끊기면 "퀴즈 받으려고 5번 채우는" 문제는 사라짐, 9/27 교수자 결정)
+const OLD_QUIZ_TYPES = ["MID_QUIZ", "ADV_QUIZ"];
+
 // ════════════════════════════════════════════════════════
 // ✅ V514: 과제 완료 여부 판정 헬퍼 — gramLog / pronLog로 클라이언트 사이드 계산
 // deadline이 null이면 제출 여부 불문 완료 인정 (상시 과제)
@@ -188,7 +192,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "537";
+const APP_VERSION = "538";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2517,7 +2521,7 @@ function AssignmentPanel({ user, students }) {
   const [showForm, setShowForm] = useState(false);
   const EMPTY_FORM = {
     title: "",
-    type: "MID_QUIZ",
+    type: "VOCAB_SET", // ✅ V538: 옛 퀴즈 카드 과제(MID/ADV_QUIZ) 대신 어휘·문법 세트가 기본(로드맵 3-4)
     isClassWide: true,
     targetUids: [],
     deadline: "",
@@ -2672,6 +2676,9 @@ function AssignmentPanel({ user, students }) {
     ESSAY: "✍️ 논술",
     VOCAB_SET: "🧩 어휘·문법 세트", // ✅ V530
   };
+  // ✅ V538: 새로 낼 수 있는 유형. 어휘·문법(중급/고급)=프리토킹 퀴즈 카드 연동 과제는 새로 내지 않음(과제설계 원칙 1장·7-5의 3-4).
+  //   이미 낸 옛 과제는 교수자 화면에 기록과 함께 남고(원칙 10), 학습자 화면에서는 숨김.
+  const NEW_TYPES = ["VOCAB_SET", "ESSAY", "PRON_TEST"];
   // ✅ V530: 논술 과제의 "꼭 써 볼 표현" 모음(어휘·문법 세트에서 가져오기)
   const essayExprs = [...new Set(assignments.filter(x => x.type === "ESSAY").flatMap(x => x.expressions || []).map(x => String(x).trim()).filter(Boolean))];
   function closeForm() {
@@ -2711,7 +2718,7 @@ function AssignmentPanel({ user, students }) {
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>과제 유형</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              {Object.entries(TYPE_LABELS).map(([k, v]) => (
+              {NEW_TYPES.map(k => [k, TYPE_LABELS[k]]).map(([k, v]) => (
                 <button key={k} onClick={() => setForm(f => ({ ...f, type: k }))}
                   style={{ padding: "10px 8px", border: form.type === k ? "2px solid #2E75B6" : "1.5px solid #e0e0e0", borderRadius: 10, background: form.type === k ? "#EBF3FB" : "white", fontSize: 12, fontWeight: form.type === k ? 800 : 600, color: form.type === k ? "#2E75B6" : "#555", cursor: "pointer" }}>
                   {v}
@@ -2886,6 +2893,11 @@ function AssignmentPanel({ user, students }) {
                   <div style={{ fontSize: 12, color: "#888", marginTop: 3 }}>
                     {TYPE_LABELS[a.type] || a.type} · {a.isClassWide ? "🏫 전체" : `👤 ${targetNames}`}
                   </div>
+                  {OLD_QUIZ_TYPES.includes(a.type) && !a.archived && (
+                    <div style={{ fontSize: 11, color: "#8A4B00", background: "#FFF3E0", borderRadius: 8, padding: "5px 9px", marginTop: 4, lineHeight: 1.5 }}>
+                      옛 유형 — 학습자에게는 보이지 않아요. 기록은 그대로 남아 있으니 [📦 보관하기]로 정리해 주세요.
+                    </div>
+                  )}
                   {deadlineDate && (
                     <div style={{ fontSize: 11, color: isOverdue ? "#E53935" : "#888", marginTop: 3 }}>
                       {isOverdue ? "⏰ 마감됨" : "📅 마감"}: {deadlineDate.toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
@@ -28541,7 +28553,7 @@ export default function App() {
     const merge = () => {
       const map = {};
       [...allWide, ...individual].forEach(item => { map[item.id] = item; });
-      const merged = Object.values(map).filter(x => !x.archived); // ✅ V536: 보관한 과제는 학습자에게 보이지 않음
+      const merged = Object.values(map).filter(x => !x.archived && !OLD_QUIZ_TYPES.includes(x.type)); // ✅ V536: 보관한 과제 / ✅ V538: 옛 퀴즈 카드 과제는 학습자에게 보이지 않음
       merged.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       setLearnerAssignments(merged);
     };
