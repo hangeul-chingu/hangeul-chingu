@@ -129,6 +129,9 @@ function isAssignmentDone(assignment, gramLog = [], pronLog = [], essaySub = nul
       // ✅ V536: 어휘·문법 세트는 "정해진 날수를 모두 끝까지 했는가"(원칙 8). essaySub 자리에 vocabProgress 문서가 들어옴
       //   doneDays 숫자가 아니라 실제로 끝낸 날(days[].doneAtMs)로 계산(검토 반영 — 숫자만 바꿔 완료로 보이는 것 방지)
       return !!(essaySub && Number(assignment.days) > 0 && vocabDayState(assignment, essaySub).done);
+    case "PRON_SET":
+      // ✅ V539: 발음 세트도 "정해진 날수를 모두 끝까지 했는가". essaySub 자리에 pronProgress 문서가 들어옴
+      return !!(essaySub && Number(assignment.days) > 0 && vocabDayState(assignment, essaySub).done);
     default:
       return false;
   }
@@ -192,7 +195,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "538";
+const APP_VERSION = "539";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2539,6 +2542,10 @@ function AssignmentPanel({ user, students }) {
     vGen: {},          // { [표현]: 편집 중인 문항[] }
     vReviewed: false,  // 교수자 확인 체크
     vAiUsed: false,
+    // ✅ V539: 발음 세트 설정 (로드맵 4-1)
+    pStep: "",
+    pWords: [],
+    pDays: 3,
   };
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -2562,11 +2569,12 @@ function AssignmentPanel({ user, students }) {
 
   const essayIdsKey = assignments.filter(a => a.type === "ESSAY").map(a => a.id).join(",");
   // ✅ V536: 어휘·문법 세트 학습 기록(vocabProgress) — essaySubs[과제id]에 함께 넣어 완료 현황 계산에 그대로 씀
-  const vocabIdsKey = assignments.filter(a => a.type === "VOCAB_SET").map(a => a.id).join(",");
+  // ✅ V539: 발음 세트 학습 기록(pronProgress)도 같은 자리에
+  const vocabIdsKey = assignments.filter(a => a.type === "VOCAB_SET" || a.type === "PRON_SET").map(a => `${a.id}:${a.type}`).join(",");
   useEffect(() => {
     if (!user || !vocabIdsKey) return;
-    const unsubs = vocabIdsKey.split(",").map(aid =>
-      onSnapshot(collection(db, "classes", user.uid, "assignments", aid, "vocabProgress"), snap => {
+    const unsubs = vocabIdsKey.split(",").map(x => x.split(":")).map(([aid, typ]) =>
+      onSnapshot(collection(db, "classes", user.uid, "assignments", aid, typ === "PRON_SET" ? "pronProgress" : "vocabProgress"), snap => {
         const m = {};
         snap.docs.forEach(d => { m[d.id] = d.data(); });
         setEssaySubs(prev => ({ ...prev, [aid]: m }));
@@ -2575,7 +2583,7 @@ function AssignmentPanel({ user, students }) {
     return () => unsubs.forEach(u => u());
   }, [user?.uid, vocabIdsKey]);
   useEffect(() => {
-    if (!user || !essayIdsKey) { setEssaySubs(prev => { const keep = {}; assignments.filter(a => a.type === "VOCAB_SET").forEach(a => { if (prev[a.id]) keep[a.id] = prev[a.id]; }); return keep; }); return; }
+    if (!user || !essayIdsKey) { setEssaySubs(prev => { const keep = {}; assignments.filter(a => a.type === "VOCAB_SET" || a.type === "PRON_SET").forEach(a => { if (prev[a.id]) keep[a.id] = prev[a.id]; }); return keep; }); return; }
     const unsubs = essayIdsKey.split(",").map(aid =>
       onSnapshot(collection(db, "classes", user.uid, "assignments", aid, "submissions"), snap => {
         const m = {};
@@ -2604,6 +2612,7 @@ function AssignmentPanel({ user, students }) {
       if (pr.length) { alert(pr[0]); return; }
       if (!form.vReviewed) { alert("문항을 모두 읽고 '확인했어요'에 체크해 주세요."); return; }
     }
+    if (form.type === "PRON_SET") { const pp = pronSetCheck(form); if (pp) { alert(pp); return; } } // ✅ V539
     if (!form.isClassWide && form.targetUids.length === 0) {
       alert("개별 지정 시 학습자를 최소 1명 선택해주세요"); return;
     }
@@ -2631,6 +2640,12 @@ function AssignmentPanel({ user, students }) {
           items: vocabBuildItems(vTargets, form.vGen, form.vDays),
           reviewed: true,
           aiAssisted: !!form.vAiUsed,
+        } : {}),
+        ...(form.type === "PRON_SET" ? {
+          step: form.pStep,
+          stepTitle: ((pronSetSteps().find(s => s.id === form.pStep) || {}).title || {}).ko || form.pStep,
+          words: form.pWords.slice(0, 12),
+          days: form.pDays,
         } : {}),
         createdAt: serverTimestamp(),
       });
@@ -2661,6 +2676,19 @@ function AssignmentPanel({ user, students }) {
         const snap = await getDocs(collection(db, "classes", user.uid, "assignments", id, sub));
         await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
       }
+      // ✅ V539: 발음 세트 — 녹음은 내려받지 않고 문서 이름(학습자_날_단어번호_a|b)으로 바로 지운 뒤 학습 기록을 지움
+      //   (녹음은 학습 기록을 만든 뒤에만 생기므로 기록이 있는 학습자·날만 보면 됨. 없는 문서를 지워도 괜찮음)
+      const pa = assignments.find(x => x.id === id);
+      if (pa && pa.type === "PRON_SET") {
+        const ps = await getDocs(collection(db, "classes", user.uid, "assignments", id, "pronProgress"));
+        const W = Math.min(12, Array.isArray(pa.words) ? pa.words.length : 12);
+        const ids = ps.docs.flatMap(p => {
+          const D = Math.min(5, Array.isArray((p.data() || {}).days) ? p.data().days.length : 5);
+          return Array.from({ length: D * W * 2 }, (_, i) => `${p.id}_${Math.floor(i / (W * 2))}_${Math.floor(i / 2) % W}_${i % 2 ? "b" : "a"}`);
+        });
+        await Promise.all(ids.map(x => deleteDoc(doc(db, "classes", user.uid, "assignments", id, "pronAudio", x))));
+        await Promise.all(ps.docs.map(d => deleteDoc(d.ref)));
+      }
       await deleteDoc(doc(db, "classes", user.uid, "assignments", id));
     } catch (e) {
       alert("삭제 실패: " + e.message);
@@ -2675,10 +2703,11 @@ function AssignmentPanel({ user, students }) {
     PRON_TEST: "🎙️ 발음 테스트",
     ESSAY: "✍️ 논술",
     VOCAB_SET: "🧩 어휘·문법 세트", // ✅ V530
+    PRON_SET: "🎧 발음 세트", // ✅ V539
   };
   // ✅ V538: 새로 낼 수 있는 유형. 어휘·문법(중급/고급)=프리토킹 퀴즈 카드 연동 과제는 새로 내지 않음(과제설계 원칙 1장·7-5의 3-4).
   //   이미 낸 옛 과제는 교수자 화면에 기록과 함께 남고(원칙 10), 학습자 화면에서는 숨김.
-  const NEW_TYPES = ["VOCAB_SET", "ESSAY", "PRON_TEST"];
+  const NEW_TYPES = ["VOCAB_SET", "PRON_SET", "ESSAY", "PRON_TEST"]; // ✅ V539: 발음 세트 추가(옛 발음 테스트 정리는 V540, 로드맵 4-4)
   // ✅ V530: 논술 과제의 "꼭 써 볼 표현" 모음(어휘·문법 세트에서 가져오기)
   const essayExprs = [...new Set(assignments.filter(x => x.type === "ESSAY").flatMap(x => x.expressions || []).map(x => String(x).trim()).filter(Boolean))];
   function closeForm() {
@@ -2801,6 +2830,7 @@ function AssignmentPanel({ user, students }) {
               </div>
             )}
             {form.type === "VOCAB_SET" && <VocabSetEditor form={form} setForm={setForm} essayExprs={essayExprs} />}
+            {form.type === "PRON_SET" && <PronSetEditor form={form} setForm={setForm} />}
           </div>
 
           {/* 대상 */}
@@ -2919,6 +2949,12 @@ function AssignmentPanel({ user, students }) {
                       <div style={{ fontSize: 11, color: "#2E75B6", marginTop: 2 }}>{a.level === "adv" ? "고급" : "중급"} · {a.days}일 · {(a.items || []).length}문항{a.aiAssisted ? " · AI 초안 확인함" : ""}</div>
                     </div>
                   )}
+                  {a.type === "PRON_SET" && (
+                    <div style={{ fontSize: 12, color: "#1A3A5C", marginTop: 4, background: "#EEF4FF", borderRadius: 8, padding: "6px 10px" }}>
+                      🎧 {(a.words || []).join(" · ")}
+                      <div style={{ fontSize: 11, color: "#2E75B6", marginTop: 2 }}>{a.stepTitle || a.step} · {a.days}일 · 단어 {(a.words || []).length}개</div>
+                    </div>
+                  )}
                   {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 4, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
                 </div>
                 {a.archived ? (
@@ -2970,7 +3006,7 @@ function AssignmentPanel({ user, students }) {
                         );
                       }
                       const done = isAssignmentDone(a, st.gramLog || [], st.pronLog || [], aSubs[st.id]);
-                      const vDays = a.type === "VOCAB_SET" ? vocabDayState(a, aSubs[st.id]).doneDays : null; // ✅ V536
+                      const vDays = (a.type === "VOCAB_SET" || a.type === "PRON_SET") ? vocabDayState(a, aSubs[st.id]).doneDays : null; // ✅ V536 · V539 발음 세트
                       if (a.type === "VOCAB_SET") return ( // ✅ V537: 누르면 결과 보기
                         <button key={st.id} type="button" onClick={() => setReview({ aid: a.id, uid: st.id })}
                           style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, background: done ? "#D6EAD6" : vDays ? "#E3F2FD" : "#F5F5F5", color: done ? "#2D7A2D" : vDays ? "#1565C0" : "#aaa", fontWeight: 700, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
@@ -3735,6 +3771,7 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
     PRON_TEST: "🎙️ 발음 테스트",
     ESSAY: "✍️ 논술",
     VOCAB_SET: "🧩 어휘·문법 세트", // ✅ V530
+    PRON_SET: "🎧 발음 세트", // ✅ V539
   };
   // ✅ V517: MID/ADV 퀴즈 기록(gramLog)은 프리토킹(SpeakTab) 5턴마다 나오는 퀴즈 카드에서만 저장됨 → speak로 수정
   const TYPE_TAB = {
@@ -3804,6 +3841,14 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
                               📅 {vs.doneDays}/{vs.total}일 끝냄{vs.done ? " · 모두 끝냈어요 👏" : vs.locked ? ` · 🌙 내일 ${vs.next + 1}일째가 열려요` : ""}
                             </div>); })()}
                         </div>
+                      ) : a.type === "PRON_SET" ? (
+                        <div style={{ fontSize: 12, color: "#1A3A5C", marginTop: 6, background: "#EEF4FF", borderRadius: 8, padding: "6px 10px" }}>
+                          🎧 {a.days}일 동안 하루 5분쯤 · 단어 {(a.words || []).length}개 듣고 말하기
+                          {(() => { const vs = vocabDayState(a, essaySubs[a.id]); return (
+                            <div style={{ fontSize: 11, marginTop: 3, fontWeight: 700, color: vs.done ? "#2D7A2D" : "#2E75B6" }}>
+                              📅 {vs.doneDays}/{vs.total}일 끝냄{vs.done ? " · 모두 끝냈어요 👏" : vs.locked ? ` · 🌙 내일 ${vs.next + 1}일째가 열려요` : ""}
+                            </div>); })()}
+                        </div>
                       ) : (
                       <div style={{ fontSize: 12, color: "#2E75B6", marginTop: 6, background: "#EBF3FB", borderRadius: 8, padding: "6px 10px" }}>
                         {a.type === "MID_QUIZ" || a.type === "ADV_QUIZ" ? "📌 프리토킹 탭 → 마중이와 5번 대화하면 퀴즈 카드가 나와요. 풀고 나서 다른 탭으로 이동해주세요" :
@@ -3820,10 +3865,10 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
                       {es.key === "returned" ? "💬 선생님 의견 보기" : es.key === "redo" ? "✍️ 다시 쓰기" : es.key === "submitted" ? "📄 제출한 글 보기" : es.key === "draft" ? "✍️ 이어 쓰기" : "✍️ 글쓰기 시작"} →
                     </button>
                   )}
-                  {a.type === "VOCAB_SET" && onOpenEssay && (() => { const vs = vocabDayState(a, essaySubs[a.id]); return !vs.done && (
+                  {(a.type === "VOCAB_SET" || a.type === "PRON_SET") && onOpenEssay && (() => { const vs = vocabDayState(a, essaySubs[a.id]); const ic = a.type === "PRON_SET" ? "🎧" : "🧩"; return !vs.done && (
                     <button onClick={() => onOpenEssay(a)} disabled={vs.locked}
                       style={{ marginTop: 10, width: "100%", background: vs.locked ? "#E0E0E0" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: vs.locked ? "#777" : "white", border: "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: vs.locked ? "default" : "pointer" }}>
-                      {vs.locked ? `🌙 오늘 공부 끝! 내일 ${vs.next + 1}일째가 열려요` : vs.started ? `▶️ 이어서 하기 (${vs.next + 1}일째)` : `🧩 오늘 공부 시작 (${vs.next + 1}일째) →`}
+                      {vs.locked ? `🌙 오늘 공부 끝! 내일 ${vs.next + 1}일째가 열려요` : vs.started ? `▶️ 이어서 하기 (${vs.next + 1}일째)` : `${ic} 오늘 공부 시작 (${vs.next + 1}일째) →`}
                     </button>); })()}
                   {!isEssay && !done && targetTab && (
                     <button onClick={() => onGoToTab(targetTab)}
@@ -4004,6 +4049,7 @@ function vocabMergeDays(mine, theirs) {
     const x = a[i], y = b[i];
     if (!x || !y) { out.push(x || y || null); continue; }
     if (!!x.doneAtMs !== !!y.doneAtMs) { out.push(x.doneAtMs ? x : y); continue; }
+    if (x.doneAtMs && y.doneAtMs) { out.push(y); continue; } // ✅ V539: 끝낸 날은 저장된 쪽 그대로(보안 규칙: 끝낸 날은 바꿀 수 없음)
     out.push(prog(y) > prog(x) ? y : x);
   }
   return out;
@@ -4060,7 +4106,9 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose }) {
       await setDoc(ref, { learnerUid: user.uid, days: clean, doneDays: clean.filter(x => x && x.doneAtMs).length, updatedAt: serverTimestamp(), updatedAtMs: Date.now() });
       setSaveErr("");
     } catch (e) {
-      setSaveErr("저장하지 못했어요. 인터넷 연결을 확인해 주세요. (다음 문제를 풀 때 다시 저장해요)");
+      setSaveErr(e && e.code === "permission-denied" // ✅ V539: 끝낸 날은 바꿀 수 없게 된 규칙 — 두 기기에서 같은 날을 끝낸 경우 등
+        ? "다른 기기에서 먼저 저장된 기록이 있거나 과제가 정리됐어요. 닫고 다시 열어 주세요."
+        : "저장하지 못했어요. 인터넷 연결을 확인해 주세요. (다음 문제를 풀 때 다시 저장해요)");
     }
   }
   function record(d, patch) {
@@ -4227,6 +4275,2217 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose }) {
     </>);
   }
   return shell(sub, body);
+}
+
+// ════════════════════════════════════════════════════════
+// ✅ V539: 발음 세트 (과제설계 원칙 로드맵 4 — 4-1 교수자 설정, 4-2 학습자 하루 세션)
+// - 교수자: 발음 단계 하나 → 앱이 단어 8~10개 추천(짝 단어 먼저) → 교수자가 고침 → 2~5일(기본 3일)
+// - 학습자 하루: ① 듣고 고르기(짝 단어가 있으면 짝과, 없으면 같은 과제의 비슷한 단어와)
+//               → ② 듣고 따라 말하기(음성 인식 결과는 "알아들었어요/다시 들어 볼까요"로만, 점수 없음. 한 글자 단어는 인식이 안 돼 따라 말하기만)
+//               → ③ 내 목소리 비교(녹음 + 원어민 소리, "선생님이 들을 수 있어요" 미리 알림)
+// - 지각(듣기) 훈련을 꼭 넣은 이유: 발음 훈련 메타분석(JSLHR 2024)에서 지각 훈련 효과가 가장 큼,
+//   Saito & Chen(2025, SSLA): 지각 훈련을 여러 날에 나눠 하면 몰아서 할 때보다 효과가 약 2배 → 날을 나눠 같은 단어를 다시 만남
+// - 기록: pronProgress/{학습자} — 어휘·문법 세트(vocabProgress)와 같은 모양 { learnerUid, days:[{order, startedAtMs, answers:[{k,ok,a,n?,skip?}], sec, doneAtMs, date}], doneDays, updatedAt, updatedAtMs }
+//   k = 종류번호(0 고르기·1 말하기·2 녹음) × 단어 수 + 단어 번호. 전날 ①② 막힌 단어를 다음 날 먼저.
+// - 녹음: pronAudio/{학습자}_{날}_{단어번호}_{a|b} — 단어마다 하루 최대 2개(그날 첫 녹음 a, 마지막 녹음 b), 새로 만들기만 됨(고치기·지우기 불가).
+//   녹음 문서는 ▶ 듣기를 누를 때만 내려받음(교수자 결과 보기는 V540). 영구 삭제 때만 교수자가 지움.
+// - PRON_STEPS(초급 발음 8단계 단어 모음)를 모듈 수준으로 옮겨(PRON_STEPS_DATA) 과제 설정에서도 같은 단어·같은 음성을 씀
+// ════════════════════════════════════════════════════════
+const PRON_STEPS_DATA = [
+      // ── 단계 1: 모음1 학습 ──
+      { id:"vowel1", type:"learn", emoji:"🔤",
+        title:{ko:"01. 기본 모음",vi:"01. Nguyên âm cơ bản",en:"01. Basic Vowels",zh:"01. 基本元音",ja:"01. 基本母音",id:"01. Vokal Dasar",ru:"01. Основные гласные",th:"01. สระพื้นฐาน",mn:"01. Үндсэн эгшиг",uz:"01. Asosiy unlilar",es:"01. Vocales básicas",fr:"01. Voyelles de base",ne:"01. आधारभूत स्वर",de:"01. Grundvokale"},
+        desc:{ko:"한국어 기본 모음 10개의 소리와 형태를 익히고 소리 내어 말합니다.",vi:"Học hình dạng và âm thanh của 10 nguyên âm cơ bản tiếng Hàn.",en:"Learn the shapes and sounds of 10 basic Korean vowels.",zh:"学习韩语10个基本元音的发音和形态，并大声读出来。",ja:"韓国語の基本母音10個の音と形を学び、声に出して言います。",id:"Pelajari bunyi dan bentuk 10 vokal dasar bahasa Korea, lalu ucapkan dengan lantang.",ru:"Изучите звуки и форму 10 основных гласных корейского языка и произнесите их вслух.",th:"เรียนรู้เสียงและรูปร่างของสระพื้นฐาน 10 ตัวในภาษาเกาหลี แล้วออกเสียงดัง ๆ",mn:"Солонгос хэлний үндсэн 10 эгшгийн дуу авиа, хэлбэрийг мэдэж аваад дуу гарган хэлнэ.",uz:"Koreys tilining 10 ta asosiy unlisining tovushi va shaklini o'rganib, ovoz chiqarib ayting.",es:"Aprenda los sonidos y formas de las 10 vocales básicas del coreano y pronúncielas en voz alta.",fr:"Apprenez les sons et les formes des 10 voyelles de base du coréen, puis prononcez-les à voix haute.",ne:"कोरियाली आधारभूत १० स्वरको ध्वनि र आकार सिकेर ठूलो स्वरमा भन्नुहोस्।",de:"Lernen Sie die Klänge und Formen der 10 koreanischen Grundvokale und sprechen Sie sie laut aus."},
+        items:[
+          { char:"ㅏ", word:"아버지", meaning:{ko:"아버지",vi:"bố",zh:"父亲",en:"father",ja:"お父さん",id:"ayah",ru:"отец",th:"พ่อ",mn:"аав",uz:"ota",es:"father"} },
+          { char:"ㅑ", word:"야채",   meaning:{ko:"야채",  vi:"rau củ",zh:"蔬菜",en:"vegetable",ja:"野菜",id:"sayuran",ru:"овощи",th:"ผัก",mn:"ногоо",uz:"sabzavot",es:"vegetable"} },
+          { char:"ㅓ", word:"어머니", meaning:{ko:"어머니",vi:"mẹ",zh:"母亲",en:"mother",ja:"お母さん",id:"ibu",ru:"мать",th:"แม่",mn:"ээж",uz:"ona",es:"mother"} },
+          { char:"ㅕ", word:"여자",   meaning:{ko:"여자",  vi:"phụ nữ",zh:"女子",en:"woman",ja:"女性",id:"wanita",ru:"женщина",th:"ผู้หญิง",mn:"эмэгтэй",uz:"ayol",es:"woman"} },
+          { char:"ㅗ", word:"오빠",   meaning:{ko:"오빠",  vi:"anh trai",zh:"哥哥",en:"older brother",ja:"お兄さん",id:"kakak laki-laki",ru:"старший брат",th:"พี่ชาย",mn:"ах",uz:"aka",es:"older brother"} },
+          { char:"ㅛ", word:"요리",   meaning:{ko:"요리",  vi:"nấu ăn",zh:"料理",en:"cooking",ja:"料理",id:"memasak",ru:"приготовление пищи",th:"การทำอาหาร",mn:"хоол хийх",uz:"ovqat pishirish",es:"cooking"} },
+          { char:"ㅜ", word:"우리",   meaning:{ko:"우리",  vi:"chúng ta",zh:"我们",en:"we/us",ja:"私たち",id:"kita",ru:"мы",th:"เรา",mn:"бид",uz:"biz",es:"we/us"} },
+          { char:"ㅠ", word:"유리",   meaning:{ko:"유리",  vi:"thủy tinh",zh:"玻璃",en:"glass",ja:"ガラス",id:"kaca",ru:"стекло",th:"กระจก",mn:"шил",uz:"shisha",es:"glass"} },
+          { char:"ㅡ", word:"음식",   meaning:{ko:"음식",  vi:"thức ăn",zh:"食物",en:"food",ja:"食べ物",id:"makanan",ru:"еда",th:"อาหาร",mn:"хоол",uz:"ovqat",es:"food"} },
+          { char:"ㅣ", word:"이름",   meaning:{ko:"이름",  vi:"tên",zh:"名字",en:"name",ja:"名前",id:"nama",ru:"имя",th:"ชื่อ",mn:"нэр",uz:"ism",es:"name"} },
+        ],
+        tip:{ko:"입 모양과 소리의 패턴을 여러 번 듣고 소리 내어 암송하십시오.",vi:"Hãy nghe nhiều lần rồi đọc to để ghi nhớ hình dạng miệng và âm thanh.",en:"Listen repeatedly and read aloud to memorize the mouth shape and sound pattern.",zh:"请多次聆听嘴型与发音规律，并大声跟读记忆。",ja:"口の形と音のパターンを何度も聞いて、声に出して覚えてください。",id:"Dengarkan pola bentuk mulut dan bunyi berulang kali, lalu ucapkan dengan lantang untuk menghafalnya.",ru:"Слушайте форму рта и звуковую схему несколько раз и повторяйте вслух, чтобы запомнить.",th:"ฟังรูปปากและรูปแบบเสียงหลาย ๆ ครั้ง แล้วออกเสียงดัง ๆ เพื่อจดจำ",mn:"Амны хэлбэр, дууны хэв маягийг олон удаа сонсоод, дуу гарган давтаж цээжлээрэй.",uz:"Og'iz shakli va tovush naqshini bir necha marta tinglab, ovoz chiqarib takrorlab yodlang.",es:"Escuche varias veces la forma de la boca y el patrón del sonido, y repita en voz alta para memorizarlo.",fr:"Écoutez plusieurs fois la forme de la bouche et le schéma sonore, puis répétez à voix haute pour mémoriser.",ne:"मुखको आकार र ध्वनिको ढाँचा धेरैपटक सुनेर ठूलो स्वरमा दोहोर्याएर कण्ठ गर्नुहोस्।",de:"Hören Sie sich die Mundform und das Klangmuster mehrmals an und sprechen Sie laut nach, um es sich einzuprägen."},
+      },
+      // ── 단계 2: 모음 쓰기 ──
+      { id:"vowel1_write", type:"write", emoji:"✏️",
+        title:{ko:"02. 모음 쓰기",vi:"02. Viết nguyên âm",en:"02. Writing Vowels",zh:"02. 元音书写",ja:"02. 母音の書き方",id:"02. Menulis Vokal",ru:"02. Написание гласных",th:"02. การเขียนสระ",mn:"02. Эгшиг бичих",uz:"02. Unlilarni yozish",es:"02. Escritura de vocales",fr:"02. Écriture des voyelles",ne:"02. स्वर लेखन",de:"02. Vokale schreiben"},
+        desc:{ko:"기본 모음 10개를 순서에 맞게 써봅니다.",vi:"Viết 10 nguyên âm cơ bản theo đúng thứ tự nét.",en:"Write the 10 basic vowels in the correct stroke order.",zh:"按笔顺练习书写10个基本元音。",ja:"基本母音10個を書き順どおりに書いてみます。",id:"Tulis 10 vokal dasar sesuai urutan goresan.",ru:"Напишите 10 основных гласных в правильном порядке черт.",th:"ฝึกเขียนสระพื้นฐาน 10 ตัวตามลำดับขีด",mn:"Үндсэн 10 эгшгийг зөв дарааллаар нь бичиж үзнэ.",uz:"10 ta asosiy unlini to'g'ri chiziq tartibida yozib ko'ring.",es:"Escriba las 10 vocales básicas siguiendo el orden correcto de trazos.",fr:"Écrivez les 10 voyelles de base en respectant l'ordre des traits.",ne:"आधारभूत १० स्वर क्रमबद्ध रूपमा लेखेर हेर्नुहोस्।",de:"Schreiben Sie die 10 Grundvokale in der richtigen Strichfolge."},
+        writeTask:{ko:"아 야 어 여 오 요 우 유 으 이 를 각각 5번씩 써보세요.",vi:"Hãy viết mỗi chữ sau 5 lần: 아 야 어 여 오 요 우 유 으 이",en:"Write each of the following 5 times: 아 야 어 여 오 요 우 유 으 이",zh:"请把\"아 야 어 여 오 요 우 유 으 이\"各写5遍。",ja:"「아 야 어 여 오 요 우 유 으 이」をそれぞれ5回ずつ書いてみましょう。",id:"Tulis masing-masing \"아 야 어 여 오 요 우 유 으 이\" sebanyak 5 kali.",ru:"Напишите каждое из «아 야 어 여 오 요 우 유 으 이» по 5 раз.",th:"ลองเขียน \"아 야 어 여 오 요 우 유 으 이\" ตัวละ 5 ครั้ง",mn:"\"아 야 어 여 오 요 우 유 으 이\"-г тус бүрийг 5 удаа бичиж үзээрэй.",uz:"\"아 야 어 여 오 요 우 유 으 이\"ning har birini 5 martadan yozib ko'ring.",es:"Escriba \"아 야 어 여 오 요 우 유 으 이\" 5 veces cada una.",fr:"Écrivez chacun des caractères « 아 야 어 여 오 요 우 유 으 이 » 5 fois.",ne:"\"아 야 어 여 오 요 우 유 으 이\" प्रत्येकलाई ५ पटक लेख्नुहोस्।",de:"Schreiben Sie \"아 야 어 여 오 요 우 유 으 이\" jeweils 5-mal."},
+        items:[
+          { char:"ㅏ" }, { char:"ㅑ" }, { char:"ㅓ" }, { char:"ㅕ" },
+          { char:"ㅗ" }, { char:"ㅛ" }, { char:"ㅜ" }, { char:"ㅠ" },
+          { char:"ㅡ" }, { char:"ㅣ" },
+        ],
+        tip:{ko:"획순을 지켜서 천천히 써보세요. 80% 이상 정확하면 다음 단계로 넘어갑니다.",vi:"Viết chậm theo đúng thứ tự nét. Nếu đúng 80% trở lên, bạn sẽ qua bước tiếp theo.",en:"Write slowly following stroke order. 80% or more accuracy moves you to the next step.",zh:"请按照笔顺慢慢书写。正确率达到80%以上即可进入下一阶段。",ja:"書き順を守ってゆっくり書いてください。80%以上正確なら次の段階に進みます。",id:"Tulis perlahan sesuai urutan goresan. Jika akurasi 80% ke atas, Anda lanjut ke tahap berikutnya.",ru:"Пишите медленно, соблюдая порядок черт. При точности 80% и выше вы переходите к следующему этапу.",th:"เขียนช้า ๆ ตามลำดับขีด หากความแม่นยำถึง 80% ขึ้นไป จะผ่านไปขั้นตอนถัดไป",mn:"Зурлагын дарааллыг баримтлан аажуухан бичээрэй. 80%-иас дээш зөв бол дараагийн шатанд шилжинэ.",uz:"Chiziq tartibiga rioya qilib asta yozing. 80% yoki undan yuqori to'g'ri bo'lsa, keyingi bosqichga o'tasiz.",es:"Escriba despacio siguiendo el orden de los trazos. Con un 80% de precisión o más, pasará a la siguiente etapa.",fr:"Écrivez lentement en respectant l'ordre des traits. Avec 80 % de précision ou plus, vous passez à l'étape suivante.",ne:"कलमको क्रम पालना गर्दै बिस्तारै लेख्नुहोस्। ८०% वा सोभन्दा माथि सही भए अर्को चरणमा जानुहुनेछ।",de:"Schreiben Sie langsam in der richtigen Strichfolge. Bei 80 % Genauigkeit oder mehr geht es zum nächsten Schritt."},
+      },
+      // ── 단계 3: 모음1 단어 ──
+      { id:"vowel1_word", type:"learn", emoji:"📖",
+        title:{ko:"03. 모음1 단어",vi:"03. Từ vựng nguyên âm 1",en:"03. Vowel Words 1",zh:"03. 元音单词1",ja:"03. 母音単語1",id:"03. Kata Vokal 1",ru:"03. Слова с гласными 1",th:"03. คำศัพท์สระ 1",mn:"03. Эгшигтэй үг 1",uz:"03. Unli so'zlar 1",es:"03. Palabras con vocales 1",fr:"03. Mots avec voyelle 1",ne:"03. स्वर शब्द 1",de:"03. Vokalwörter 1"},
+        desc:{ko:"배운 모음이 들어간 실생활 단어를 읽고 뜻을 익힙니다.",vi:"Đọc và ghi nhớ ý nghĩa các từ thực tế có chứa nguyên âm đã học.",en:"Read and learn the meaning of everyday words containing the vowels you learned.",zh:"朗读并理解包含所学元音的生活常用词。",ja:"学んだ母音を含む実生活の単語を読んで意味を覚えます。",id:"Baca dan pelajari arti kata sehari-hari yang mengandung vokal yang telah dipelajari.",ru:"Прочитайте и выучите значения повседневных слов с изученными гласными.",th:"อ่านและเรียนรู้ความหมายของคำศัพท์ในชีวิตประจำวันที่มีสระที่เรียนไปแล้ว",mn:"Сурсан эгшиг орсон өдөр тутмын үгсийг уншиж, утгыг нь мэдэж авна.",uz:"O'rgangan unlilar bo'lgan kundalik so'zlarni o'qib, ma'nosini o'rganing.",es:"Lea y aprenda el significado de palabras cotidianas que contienen las vocales aprendidas.",fr:"Lisez et apprenez le sens de mots du quotidien contenant les voyelles apprises.",ne:"सिकेको स्वर भएका दैनिक जीवनका शब्दहरू पढेर अर्थ बुझ्नुहोस्।",de:"Lesen und lernen Sie die Bedeutung von Alltagswörtern mit den gelernten Vokalen."},
+        items:[
+          // ── 가족 (6개) ──
+          { char:"어머니", word:"어머니", meaning:{ko:"어머니",vi:"mẹ",zh:"母亲",en:"mother",ja:"お母さん",id:"ibu",ru:"мать",th:"แม่",mn:"ээж",uz:"ona",es:"mother"} },
+          { char:"아버지", word:"아버지", meaning:{ko:"아버지",vi:"bố",zh:"父亲",en:"father",ja:"お父さん",id:"ayah",ru:"отец",th:"พ่อ",mn:"аав",uz:"ota",es:"father"} },
+          { char:"누나",   word:"누나",   meaning:{ko:"누나",  vi:"chị gái",zh:"姐姐",en:"older sister",ja:"お姉さん",id:"kakak perempuan",ru:"старшая сестра",th:"พี่สาว",mn:"эгч",uz:"opa",es:"older sister"} },
+          { char:"아가",   word:"아가",   meaning:{ko:"아가",  vi:"em bé",zh:"婴儿",en:"baby",ja:"赤ちゃん",id:"bayi",ru:"малыш",th:"ทารก",mn:"нялх хүүхэд",uz:"chaqaloq",es:"baby"} },
+          { char:"아이",   word:"아이",   meaning:{ko:"아이",  vi:"trẻ em",zh:"孩子",en:"child",ja:"子供",id:"anak",ru:"ребёнок",th:"เด็ก",mn:"хүүхэд",uz:"bola",es:"child"} },
+          { char:"여자",   word:"여자",   meaning:{ko:"여자",  vi:"phụ nữ",zh:"女子",en:"woman",ja:"女性",id:"wanita",ru:"женщина",th:"ผู้หญิง",mn:"эмэгтэй",uz:"ayol",es:"woman"} },
+          // ── 직업 (4개) ──
+          { char:"의사",   word:"의사",   meaning:{ko:"의사",  vi:"bác sĩ",zh:"医生",en:"doctor",ja:"医者",id:"dokter",ru:"врач",th:"หมอ",mn:"эмч",uz:"shifokor",es:"doctor"} },
+          { char:"가수",   word:"가수",   meaning:{ko:"가수",  vi:"ca sĩ",zh:"歌手",en:"singer",ja:"歌手",id:"penyanyi",ru:"певец",th:"นักร้อง",mn:"дуучин",uz:"qo'shiqchi",es:"singer"} },
+          { char:"기자",   word:"기자",   meaning:{ko:"기자",  vi:"phóng viên",zh:"记者",en:"reporter",ja:"記者",id:"jurnalis",ru:"журналист",th:"นักข่าว",mn:"сэтгүүлч",uz:"jurnalist",es:"reporter"} },
+          { char:"교수",   word:"교수",   meaning:{ko:"교수",  vi:"giáo sư",zh:"教授",en:"professor",ja:"教授",id:"profesor",ru:"профессор",th:"ศาสตราจารย์",mn:"профессор",uz:"professor",es:"professor"} },
+          // ── 시간·일상 (4개) ──
+          { char:"오후",   word:"오후",   meaning:{ko:"오후",  vi:"buổi chiều",zh:"下午",en:"afternoon",ja:"午後",id:"sore",ru:"послеполудень",th:"บ่าย",mn:"үд хойно",uz:"tushdan keyin",es:"afternoon"} },
+          { char:"하루",   word:"하루",   meaning:{ko:"하루",  vi:"một ngày",zh:"一天",en:"one day",ja:"一日",id:"satu hari",ru:"один день",th:"หนึ่งวัน",mn:"нэг өдөр",uz:"bir kun",es:"one day"} },
+          { char:"휴가",   word:"휴가",   meaning:{ko:"휴가",  vi:"kỳ nghỉ",zh:"休假",en:"vacation",ja:"休暇",id:"liburan",ru:"отпуск",th:"วันหยุด",mn:"амралт",uz:"ta'til",es:"vacation"} },
+          { char:"자주",   word:"자주",   meaning:{ko:"자주",  vi:"thường xuyên",zh:"经常",en:"often",ja:"よく",id:"sering",ru:"часто",th:"บ่อยๆ",mn:"байнга",uz:"tez-tez",es:"often"} },
+          // ── 장소·주거 (5개) ──
+          { char:"도시",   word:"도시",   meaning:{ko:"도시",  vi:"thành phố",zh:"都市",en:"city",ja:"都市",id:"kota",ru:"город",th:"เมือง",mn:"хот",uz:"shahar",es:"city"} },
+          { char:"아파트", word:"아파트", meaning:{ko:"아파트",vi:"căn hộ",zh:"公寓",en:"apartment",ja:"アパート",id:"apartemen",ru:"квартира",th:"อพาร์ตเมนต์",mn:"орон сууц",uz:"kvartira",es:"apartment"} },
+          { char:"주소",   word:"주소",   meaning:{ko:"주소",  vi:"địa chỉ",zh:"地址",en:"address",ja:"住所",id:"alamat",ru:"адрес",th:"ที่อยู่",mn:"хаяг",uz:"manzil",es:"address"} },
+          { char:"가구",   word:"가구",   meaning:{ko:"가구",  vi:"đồ nội thất",zh:"家具",en:"furniture",ja:"家具",id:"furnitur",ru:"мебель",th:"เฟอร์นิเจอร์",mn:"тавилга",uz:"mebel",es:"furniture"} },
+          { char:"비누",   word:"비누",   meaning:{ko:"비누",  vi:"xà phòng",zh:"肥皂",en:"soap",ja:"石鹸",id:"sabun",ru:"мыло",th:"สบู่",mn:"саван",uz:"sovun",es:"soap"} },
+          // ── 의류 (5개) ──
+          { char:"치마",   word:"치마",   meaning:{ko:"치마",  vi:"váy",zh:"裙子",en:"skirt",ja:"スカート",id:"rok",ru:"юбка",th:"กระโปรง",mn:"банзал",uz:"yubka",es:"skirt"} },
+          { char:"바지",   word:"바지",   meaning:{ko:"바지",  vi:"quần",zh:"裤子",en:"pants",ja:"ズボン",id:"celana",ru:"брюки",th:"กางเกง",mn:"өмд",uz:"shim",es:"pants"} },
+          { char:"구두",   word:"구두",   meaning:{ko:"구두",  vi:"giày",zh:"皮鞋",en:"shoes",ja:"靴",id:"sepatu",ru:"туфли",th:"รองเท้า",mn:"гутал",uz:"tufli",es:"shoes"} },
+          { char:"모자",   word:"모자",   meaning:{ko:"모자",  vi:"mũ",zh:"帽子",en:"hat",ja:"帽子",id:"topi",ru:"шапка",th:"หมวก",mn:"малгай",uz:"shapka",es:"hat"} },
+          { char:"우표",   word:"우표",   meaning:{ko:"우표",  vi:"tem thư",zh:"邮票",en:"stamp",ja:"切手",id:"perangko",ru:"марка",th:"แสตมป์",mn:"марк",uz:"marka",es:"stamp"} },
+          // ── 신체 (8개) ──
+          { char:"머리",   word:"머리",   meaning:{ko:"머리",  vi:"đầu",zh:"头",en:"head",ja:"頭",id:"kepala",ru:"голова",th:"หัว",mn:"толгой",uz:"bosh",es:"head"} },
+          { char:"이마",   word:"이마",   meaning:{ko:"이마",  vi:"trán",zh:"额头",en:"forehead",ja:"額",id:"dahi",ru:"лоб",th:"หน้าผาก",mn:"дух",uz:"peshona",es:"forehead"} },
+          { char:"코",     word:"코",     meaning:{ko:"코",    vi:"mũi",zh:"鼻子",en:"nose",ja:"鼻",id:"hidung",ru:"нос",th:"จมูก",mn:"хамар",uz:"burun",es:"nose"} },
+          { char:"허리",   word:"허리",   meaning:{ko:"허리",  vi:"eo",zh:"腰",en:"waist",ja:"腰",id:"pinggang",ru:"талия",th:"เอว",mn:"бүсэлхий",uz:"bel",es:"waist"} },
+          { char:"다리",   word:"다리",   meaning:{ko:"다리",  vi:"chân",zh:"腿",en:"leg",ja:"足",id:"kaki",ru:"нога",th:"ขา",mn:"хөл",uz:"oyoq",es:"leg"} },
+          { char:"혀",     word:"혀",     meaning:{ko:"혀",    vi:"lưỡi",zh:"舌头",en:"tongue",ja:"舌",id:"lidah",ru:"язык",th:"ลิ้น",mn:"хэл",uz:"til",es:"tongue"} },
+          { char:"키",     word:"키",     meaning:{ko:"키",    vi:"chiều cao",zh:"身高",en:"height",ja:"身長",id:"tinggi",ru:"рост",th:"ส่วนสูง",mn:"өндөр",uz:"bo'y",es:"height"} },
+          { char:"이",     word:"이",     meaning:{ko:"이",    vi:"răng",zh:"牙齿",en:"tooth",ja:"歯",id:"gigi",ru:"зуб",th:"ฟัน",mn:"шүд",uz:"tish",es:"tooth"} },
+          // ── 음식·음료 (10개) ──
+          { char:"피자",   word:"피자",   meaning:{ko:"피자",  vi:"pizza",zh:"披萨",en:"pizza",ja:"ピザ",id:"pizza",ru:"пицца",th:"พิซซ่า",mn:"пицца",uz:"pitsa",es:"pizza"} },
+          { char:"소고기", word:"소고기", meaning:{ko:"소고기",vi:"thịt bò",zh:"牛肉",en:"beef",ja:"牛肉",id:"daging sapi",ru:"говядина",th:"เนื้อวัว",mn:"үхрийн мах",uz:"mol go'shti",es:"beef"} },
+          { char:"오이",   word:"오이",   meaning:{ko:"오이",  vi:"dưa chuột",zh:"黄瓜",en:"cucumber",ja:"きゅうり",id:"mentimun",ru:"огурец",th:"แตงกวา",mn:"өргөст хэмх",uz:"bodring",es:"cucumber"} },
+          { char:"고구마", word:"고구마", meaning:{ko:"고구마",vi:"khoai lang",zh:"地瓜",en:"sweet potato",ja:"サツマイモ",id:"ubi jalar",ru:"батат",th:"มันเทศ",mn:"батат",uz:"battat",es:"sweet potato"} },
+          { char:"두부",   word:"두부",   meaning:{ko:"두부",  vi:"đậu phụ",zh:"豆腐",en:"tofu",ja:"豆腐",id:"tahu",ru:"тофу",th:"เต้าหู้",mn:"тофу",uz:"tofu",es:"tofu"} },
+          { char:"포도",   word:"포도",   meaning:{ko:"포도",  vi:"nho",zh:"葡萄",en:"grape",ja:"ブドウ",id:"anggur",ru:"виноград",th:"องุ่น",mn:"усан үзэм",uz:"uzum",es:"grape"} },
+          { char:"바나나", word:"바나나", meaning:{ko:"바나나",vi:"chuối",zh:"香蕉",en:"banana",ja:"バナナ",id:"pisang",ru:"банан",th:"กล้วย",mn:"банан",uz:"banan",es:"banana"} },
+          { char:"우유",   word:"우유",   meaning:{ko:"우유",  vi:"sữa",zh:"牛奶",en:"milk",ja:"牛乳",id:"susu",ru:"молоко",th:"นม",mn:"сүү",uz:"sut",es:"milk"} },
+          { char:"주스",   word:"주스",   meaning:{ko:"주스",  vi:"nước trái cây",zh:"果汁",en:"juice",ja:"ジュース",id:"jus",ru:"сок",th:"น้ำผลไม้",mn:"шүүс",uz:"sharbat",es:"juice"} },
+          { char:"커피",   word:"커피",   meaning:{ko:"커피",  vi:"cà phê",zh:"咖啡",en:"coffee",ja:"コーヒー",id:"kopi",ru:"кофе",th:"กาแฟ",mn:"кофе",uz:"qahva",es:"coffee"} },
+          // ── 교통·기기 (5개) ──
+          { char:"버스",   word:"버스",   meaning:{ko:"버스",  vi:"xe buýt",zh:"巴士",en:"bus",ja:"バス",id:"bus",ru:"автобус",th:"รถบัส",mn:"автобус",uz:"avtobus",es:"bus"} },
+          { char:"오토바이",word:"오토바이",meaning:{ko:"오토바이",vi:"xe máy",zh:"摩托车",en:"motorcycle",ja:"バイク",id:"motor",ru:"мотоцикл",th:"มอเตอร์ไซค์",mn:"мотоцикл",uz:"mototsikl",es:"motorcycle"} },
+          { char:"라디오", word:"라디오", meaning:{ko:"라디오",vi:"đài phát thanh",zh:"收音机",en:"radio",ja:"ラジオ",id:"radio",ru:"радио",th:"วิทยุ",mn:"радио",uz:"radio",es:"radio"} },
+          { char:"키보드", word:"키보드", meaning:{ko:"키보드",vi:"bàn phím",zh:"键盘",en:"keyboard",ja:"キーボード",id:"keyboard",ru:"клавиатура",th:"คีย์บอร์ด",mn:"гар",uz:"klaviatura",es:"keyboard"} },
+          { char:"마우스", word:"마우스", meaning:{ko:"마우스",vi:"chuột máy tính",zh:"鼠标",en:"mouse",ja:"マウス",id:"mouse",ru:"мышка",th:"เมาส์",mn:"хулгана",uz:"sichqoncha",es:"mouse"} },
+          { char:"나이",   word:"나이",   meaning:{ko:"나이",   vi:"tuổi",zh:"年龄",en:"age",ja:"年齢",id:"usia",ru:"возраст",th:"อายุ",mn:"нас",uz:"yosh",es:"age"} },
+          { char:"부자",   word:"부자",   meaning:{ko:"부자",   vi:"người giàu",zh:"富人",en:"the rich",ja:"お金持ち",id:"orang kaya",ru:"богач",th:"คนรวย",mn:"баян хүн",uz:"boy",es:"the rich"} },
+          { char:"주유소", word:"주유소", meaning:{ko:"주유소", vi:"trạm xăng",zh:"加油站",en:"gas station",ja:"ガソリンスタンド",id:"SPBU",ru:"заправка",th:"ปั้มน้ำมัน",mn:"шатахуун",uz:"yoqilg'i stansiyasi",es:"gas station"} },
+          { char:"이사",   word:"이사",   meaning:{ko:"이사",   vi:"chuyển nhà",zh:"搬家",en:"moving house",ja:"引っ越し",id:"pindah rumah",ru:"переезд",th:"ย้ายบ้าน",mn:"нүүлгэн",uz:"ko'chish",es:"moving house"} },
+          { char:"소포",   word:"소포",   meaning:{ko:"소포",   vi:"bưu phẩm",zh:"包裹",en:"postal package",ja:"小包",id:"paket pos",ru:"посылка",th:"พัสดุ",mn:"илгээмж",uz:"pochta",es:"postal package"} },
+          { char:"후추",   word:"후추",   meaning:{ko:"후추",   vi:"tiêu đen",zh:"胡椒",en:"black pepper",ja:"コショウ",id:"lada hitam",ru:"чёрный перец",th:"พริกไทย",mn:"чинжүү",uz:"qalampir",es:"black pepper"} },
+          { char:"고추",   word:"고추",   meaning:{ko:"고추",   vi:"ớt",zh:"辣椒",en:"chili pepper",ja:"唐辛子",id:"cabai",ru:"перец чили",th:"พริก",mn:"халуун чинжүү",uz:"chili",es:"chili pepper"} },
+          { char:"보리",   word:"보리",   meaning:{ko:"보리",   vi:"lúa mạch",zh:"大麦",en:"barley",ja:"大麦",id:"jelai",ru:"ячмень",th:"ข้าวบาร์เลย์",mn:"арвай",uz:"arpa",es:"barley"} },
+        ],
+        tip:{ko:"단어의 뜻을 이해한 채로 소리 내어 읽으면 기억에 훨씬 오래 남습니다.",vi:"Đọc to khi đã hiểu nghĩa từ sẽ giúp ghi nhớ lâu hơn nhiều.",en:"Reading aloud while understanding the meaning helps you remember much longer.",zh:"理解词义的同时大声朗读，会记得更牢固。",ja:"意味を理解しながら声に出して読むと、ずっと記憶に残ります。",id:"Membaca dengan lantang sambil memahami artinya akan membuat Anda mengingat jauh lebih lama.",ru:"Чтение вслух с пониманием значения помогает запомнить намного дольше.",th:"การอ่านออกเสียงพร้อมเข้าใจความหมายจะช่วยให้จำได้นานขึ้นมาก",mn:"Утгыг ойлгосон байдалтайгаа дуу гарган уншвал маш удаан цээжинд үлдэнэ.",uz:"Ma'nosini tushunib turib ovoz chiqarib o'qish esda ancha uzoq qoladi.",es:"Leer en voz alta mientras comprende el significado ayuda a recordar mucho más tiempo.",fr:"Lire à voix haute tout en comprenant le sens aide à mémoriser beaucoup plus longtemps.",ne:"अर्थ बुझेर ठूलो स्वरमा पढ्दा धेरै लामो समयसम्म सम्झनामा रहन्छ।",de:"Lautes Lesen mit Verständnis der Bedeutung hilft, sich viel länger zu merken."},
+      },
+
+      // ── 단계 4: 모음2 학습 ──
+      { id:"vowel2", type:"learn", emoji:"🔤",
+        title:{ko:"04. 복합 모음",vi:"04. Nguyên âm phức hợp",en:"04. Compound Vowels",zh:"04. 复合元音",ja:"04. 複合母音",id:"04. Vokal Gabungan",ru:"04. Составные гласные",th:"04. สระประสม",mn:"04. Нийлмэл эгшиг",uz:"04. Qo'shma unlilar",es:"04. Vocales compuestas",fr:"04. Voyelles composées",ne:"04. संयुक्त स्वर",de:"04. Zusammengesetzte Vokale"},
+        desc:{ko:"두 모음이 합쳐진 복합 모음의 소리를 익힙니다.",vi:"Học âm thanh của các nguyên âm phức hợp ghép từ hai nguyên âm.",en:"Learn the sounds of compound vowels formed by combining two vowels.",zh:"学习由两个元音结合而成的复合元音的发音。",ja:"2つの母音が合わさった複合母音の音を学びます。",id:"Pelajari bunyi vokal gabungan yang terbentuk dari dua vokal.",ru:"Изучите звучание составных гласных, образованных из двух гласных.",th:"เรียนรู้เสียงของสระประสมที่เกิดจากการรวมสระสองตัว",mn:"Хоёр эгшиг нийлж үүссэн нийлмэл эгшгийн дууг мэдэж авна.",uz:"Ikki unlining birikishidan hosil bo'lgan qo'shma unlilarning tovushini o'rganing.",es:"Aprenda el sonido de las vocales compuestas formadas por la unión de dos vocales.",fr:"Apprenez le son des voyelles composées formées par l'union de deux voyelles.",ne:"दुई स्वर मिलेर बनेको संयुक्त स्वरको ध्वनि सिक्नुहोस्।",de:"Lernen Sie den Klang zusammengesetzter Vokale, die aus zwei Vokalen gebildet werden."},
+        items:[
+          { char:"ㅘ", word:"화요일", meaning:{ko:"화요일",vi:"thứ ba",zh:"星期二",en:"Tuesday",ja:"火曜日",id:"Selasa",ru:"вторник",th:"วันอังคาร",mn:"мягмар",uz:"seshanba",es:"Tuesday"} },
+          { char:"ㅙ", word:"왜",     meaning:{ko:"왜",    vi:"tại sao",zh:"为什么",en:"why",ja:"なぜ",id:"mengapa",ru:"почему",th:"ทำไม",mn:"яагаад",uz:"nima uchun",es:"why"} },
+          { char:"ㅚ", word:"최고",   meaning:{ko:"최고",  vi:"tốt nhất",zh:"最好",en:"the best",ja:"最高",id:"terbaik",ru:"лучший",th:"ดีที่สุด",mn:"хамгийн сайн",uz:"eng yaxshi",es:"the best"} },
+          { char:"ㅝ", word:"원하다", meaning:{ko:"원하다",vi:"muốn",zh:"想要",en:"to want",ja:"欲しい",id:"ingin",ru:"хотеть",th:"ต้องการ",mn:"хүсэх",uz:"xohlamoq",es:"to want"} },
+          { char:"ㅞ", word:"웨이터", meaning:{ko:"웨이터",vi:"bồi bàn",zh:"服务生",en:"waiter",ja:"ウェイター",id:"pelayan",ru:"официант",th:"บริกร",mn:"зөөгч",uz:"ofitsiant",es:"waiter"} },
+          { char:"ㅟ", word:"위험",   meaning:{ko:"위험",  vi:"nguy hiểm",zh:"危险",en:"danger",ja:"危険",id:"bahaya",ru:"опасность",th:"อันตราย",mn:"аюул",uz:"xavf",es:"danger"} },
+          { char:"ㅢ", word:"의사",   meaning:{ko:"의사",  vi:"bác sĩ",zh:"医生",en:"doctor",ja:"医者",id:"dokter",ru:"врач",th:"หมอ",mn:"эмч",uz:"shifokor",es:"doctor"} },
+          { char:"ㅐ", word:"냉장고", meaning:{ko:"냉장고",vi:"tủ lạnh",zh:"冰箱",en:"refrigerator",ja:"冷蔵庫",id:"kulkas",ru:"холодильник",th:"ตู้เย็น",mn:"хөргөгч",uz:"muzlatgich",es:"refrigerator"} },
+          { char:"ㅒ", word:"얘기",   meaning:{ko:"얘기",  vi:"câu chuyện",zh:"故事/话题",en:"talk/story",ja:"話",id:"cerita",ru:"разговор",th:"เรื่องราว",mn:"яриа",uz:"suhbat",es:"talk/story"} },
+          { char:"ㅔ", word:"세계",   meaning:{ko:"세계",  vi:"thế giới",zh:"世界",en:"world",ja:"世界",id:"dunia",ru:"мир",th:"โลก",mn:"дэлхий",uz:"dunyo",es:"world"} },
+          { char:"ㅖ", word:"예약",   meaning:{ko:"예약",  vi:"đặt chỗ",zh:"预约",en:"reservation",ja:"予約",id:"reservasi",ru:"бронирование",th:"การจอง",mn:"захиалга",uz:"bron",es:"reservation"} },
+        ],
+        tip:{ko:"복합 모음은 두 소리가 부드럽게 하나로 합쳐지는 소리입니다.",vi:"Nguyên âm phức hợp là âm ghép mượt mà từ hai âm riêng biệt.",en:"Compound vowels are sounds formed by smoothly blending two separate vowel sounds.",zh:"复合元音是两个音柔和地合为一体发出的声音。",ja:"複合母音は2つの音が滑らかに1つに合わさった音です。",id:"Vokal gabungan adalah bunyi dua suara yang menyatu dengan lembut menjadi satu.",ru:"Составные гласные — это звук, образованный плавным слиянием двух отдельных звуков.",th:"สระประสมคือเสียงที่เกิดจากการรวมเสียงสองเสียงเข้าด้วยกันอย่างนุ่มนวล",mn:"Нийлмэл эгшиг гэдэг нь хоёр дуу зөөлөн нийлж нэг болсон дуу юм.",uz:"Qo'shma unli — ikki tovushning yumshoq birlashib bitta bo'lib chiqishidir.",es:"Las vocales compuestas son un sonido formado por la fusión suave de dos sonidos en uno.",fr:"Une voyelle composée est un son formé par la fusion douce de deux sons en un seul.",ne:"संयुक्त स्वर भनेको दुई ध्वनि नरम रूपमा मिसिएर एक भएको ध्वनि हो।",de:"Ein zusammengesetzter Vokal ist ein Klang, der durch das sanfte Verschmelzen zweier Laute zu einem entsteht."},
+      },
+      // ── 단계 5: 모음2 쓰기 ──
+      { id:"vowel2_write", type:"write", emoji:"✏️",
+        title:{ko:"05. 복합 모음 쓰기",vi:"05. Viết nguyên âm phức hợp",en:"05. Writing Compound Vowels",zh:"05. 复合元音书写",ja:"05. 複合母音の書き方",id:"05. Menulis Vokal Gabungan",ru:"05. Написание составных гласных",th:"05. การเขียนสระประสม",mn:"05. Нийлмэл эгшиг бичих",uz:"05. Qo'shma unlilarni yozish",es:"05. Escritura de vocales compuestas",fr:"05. Écriture des voyelles composées",ne:"05. संयुक्त स्वर लेखन",de:"05. Zusammengesetzte Vokale schreiben"},
+        desc:{ko:"복합 모음 11개를 써봅니다.",vi:"Viết 11 nguyên âm phức hợp tiếng Hàn.",en:"Write the 11 compound Korean vowels.",zh:"练习书写11个复合元音。",ja:"複合母音11個を書いてみます。",id:"Tulis 11 vokal gabungan.",ru:"Напишите 11 составных гласных.",th:"ฝึกเขียนสระประสม 11 ตัว",mn:"Нийлмэл эгшиг 11-ийг бичиж үзнэ.",uz:"11 ta qo'shma unlini yozib ko'ring.",es:"Escriba las 11 vocales compuestas.",fr:"Écrivez les 11 voyelles composées.",ne:"११ संयुक्त स्वर लेखेर हेर्नुहोस्।",de:"Schreiben Sie die 11 zusammengesetzten Vokale."},
+        writeTask:{ko:"와 왜 외 워 웨 위 의 애 얘 에 예 를 각각 5번씩 써보세요.",vi:"Hãy viết mỗi chữ sau 5 lần: 와 왜 외 워 웨 위 의 애 얘 에 예",en:"Write each of the following 5 times: 와 왜 외 워 웨 위 의 애 얘 에 예",zh:"请把\"와 왜 외 워 웨 위 의 애 얘 에 예\"各写5遍。",ja:"「와 왜 외 워 웨 위 의 애 얘 에 예」をそれぞれ5回ずつ書いてみましょう。",id:"Tulis masing-masing \"와 왜 외 워 웨 위 의 애 얘 에 예\" sebanyak 5 kali.",ru:"Напишите каждое из «와 왜 외 워 웨 위 의 애 얘 에 예» по 5 раз.",th:"ลองเขียน \"와 왜 외 워 웨 위 의 애 얘 에 예\" ตัวละ 5 ครั้ง",mn:"\"와 왜 외 워 웨 위 의 애 얘 에 예\"-г тус бүрийг 5 удаа бичиж үзээрэй.",uz:"\"와 왜 외 워 웨 위 의 애 얘 에 예\"ning har birini 5 martadan yozib ko'ring.",es:"Escriba \"와 왜 외 워 웨 위 의 애 얘 에 예\" 5 veces cada una.",fr:"Écrivez chacun des caractères « 와 왜 외 워 웨 위 의 애 얘 에 예 » 5 fois.",ne:"\"와 왜 외 워 웨 위 의 애 얘 에 예\" प्रत्येकलाई ५ पटक लेख्नुहोस्।",de:"Schreiben Sie \"와 왜 외 워 웨 위 의 애 얘 에 예\" jeweils 5-mal."},
+        items:[
+          { char:"ㅘ" }, { char:"ㅙ" }, { char:"ㅚ" },
+          { char:"ㅝ" }, { char:"ㅞ" }, { char:"ㅟ" }, { char:"ㅢ" },
+          { char:"ㅐ" }, { char:"ㅒ" }, { char:"ㅔ" }, { char:"ㅖ" },
+        ],
+        tip:{ko:"두 모음이 합쳐진 모양을 천천히 따라 써보세요.",vi:"Hãy chép chậm theo hình dạng ghép của hai nguyên âm.",en:"Slowly trace the combined shape of the two vowels.",zh:"请慢慢临摹两个元音结合而成的形状。",ja:"2つの母音が合わさった形をゆっくりなぞって書いてみてください。",id:"Tirukan perlahan bentuk gabungan dari dua vokal.",ru:"Медленно обведите форму, образованную соединением двух гласных.",th:"ลองเขียนตามรูปร่างที่รวมกันของสระสองตัวอย่างช้า ๆ",mn:"Хоёр эгшиг нийлж үүссэн хэлбэрийг аажуухан дуурайж бичиж үзээрэй.",uz:"Ikki unlining birikkan shaklini asta chizib ko'ring.",es:"Trace despacio la forma combinada de las dos vocales.",fr:"Tracez lentement la forme combinée des deux voyelles.",ne:"दुई स्वर मिलेर बनेको आकार बिस्तारै हेरेर लेख्नुहोस्।",de:"Zeichnen Sie langsam die kombinierte Form der beiden Vokale nach."},
+      },
+      // ── 단계 6: 모음2 단어 ──
+      { id:"vowel2_word", type:"learn", emoji:"📖",
+        title:{ko:"06. 복합 모음 단어",vi:"06. Từ vựng nguyên âm phức hợp",en:"06. Compound Vowel Words",zh:"06. 复合元音单词",ja:"06. 複合母音単語",id:"06. Kata Vokal Gabungan",ru:"06. Слова с составными гласными",th:"06. คำศัพท์สระประสม",mn:"06. Нийлмэл эгшигтэй үг",uz:"06. Qo'shma unlili so'zlar",es:"06. Palabras con vocales compuestas",fr:"06. Mots avec voyelles composées",ne:"06. संयुक्त स्वर शब्द",de:"06. Wörter mit zusammengesetzten Vokalen"},
+        desc:{ko:"복합 모음이 들어간 실생활 단어를 익힙니다.",vi:"Học từ vựng thực tế có chứa nguyên âm phức hợp.",en:"Learn everyday words containing compound vowels.",zh:"学习包含复合元音的生活常用词。",ja:"複合母音を含む実生活の単語を覚えます。",id:"Pelajari kata sehari-hari yang mengandung vokal gabungan.",ru:"Выучите повседневные слова с составными гласными.",th:"เรียนรู้คำศัพท์ในชีวิตประจำวันที่มีสระประสม",mn:"Нийлмэл эгшиг орсон өдөр тутмын үгсийг мэдэж авна.",uz:"Qo'shma unlilar bo'lgan kundalik so'zlarni o'rganing.",es:"Aprenda palabras cotidianas que contienen vocales compuestas.",fr:"Apprenez des mots du quotidien contenant des voyelles composées.",ne:"संयुक्त स्वर भएका दैनिक जीवनका शब्दहरू सिक्नुहोस्।",de:"Lernen Sie Alltagswörter mit zusammengesetzten Vokalen."},
+        items:[
+          { char:"회사", word:"회사",  meaning:{ko:"회사",  vi:"công ty",zh:"公司",en:"company",ja:"会社",id:"perusahaan",ru:"компания",th:"บริษัท",mn:"компани",uz:"kompaniya",es:"company"} },
+          { char:"회의", word:"회의",  meaning:{ko:"회의",  vi:"cuộc họp",zh:"会议",en:"meeting",ja:"会議",id:"rapat",ru:"собрание",th:"การประชุม",mn:"хурал",uz:"yig'ilish",es:"meeting"} },
+          { char:"카페", word:"카페",  meaning:{ko:"카페",  vi:"quán cà phê",zh:"咖啡厅",en:"cafe",ja:"カフェ",id:"kafe",ru:"кафе",th:"คาเฟ่",mn:"кафе",uz:"kafe",es:"cafe"} },
+          { char:"의자", word:"의자",  meaning:{ko:"의자",  vi:"ghế",zh:"椅子",en:"chair",ja:"椅子",id:"kursi",ru:"стул",th:"เก้าอี้",mn:"сандал",uz:"stul",es:"chair"} },
+          { char:"시계", word:"시계",  meaning:{ko:"시계",  vi:"đồng hồ",zh:"手表",en:"watch/clock",ja:"時計",id:"jam",ru:"часы",th:"นาฬิกา",mn:"цаг",uz:"soat",es:"watch/clock"} },
+          { char:"카메라",word:"카메라",meaning:{ko:"카메라",vi:"máy ảnh",zh:"相机",en:"camera",ja:"カメラ",id:"kamera",ru:"камера",th:"กล้อง",mn:"камер",uz:"kamera",es:"camera"} },
+          { char:"샤워", word:"샤워",  meaning:{ko:"샤워",  vi:"tắm vòi sen",zh:"淋浴",en:"shower",ja:"シャワー",id:"mandi",ru:"душ",th:"อาบน้ำฝักบัว",mn:"шүршүүр",uz:"dush",es:"shower"} },
+          { char:"사과", word:"사과",  meaning:{ko:"사과",  vi:"táo",zh:"苹果",en:"apple",ja:"りんご",id:"apel",ru:"яблоко",th:"แอปเปิ้ล",mn:"алим",uz:"olma",es:"apple"} },
+          { char:"야채", word:"야채",  meaning:{ko:"야채",  vi:"rau",zh:"蔬菜",en:"vegetable",ja:"野菜",en:"vegetable",id:"sayuran",ru:"овощи",th:"ผัก",mn:"ногоо",uz:"sabzavot",es:"vegetable"} },
+          { char:"배추", word:"배추",  meaning:{ko:"배추",  vi:"cải thảo",zh:"白菜",en:"cabbage",ja:"白菜",id:"sawi putih",ru:"пекинская капуста",th:"กะหล่ำปลีจีน",mn:"Хятад байцаа",uz:"xitoy karam",es:"cabbage"} },
+          { char:"귀",   word:"귀",    meaning:{ko:"귀",    vi:"tai",zh:"耳朵",en:"ear",ja:"耳",id:"telinga",ru:"ухо",th:"หู",mn:"чих",uz:"quloq",es:"ear"} },
+          { char:"어제", word:"어제",  meaning:{ko:"어제",  vi:"hôm qua",zh:"昨天",en:"yesterday",ja:"昨日",id:"kemarin",ru:"вчера",th:"เมื่อวาน",mn:"өчигдөр",uz:"kecha",es:"yesterday"} },
+          { char:"자매",    word:"자매",    meaning:{ko:"자매",    vi:"chị em gái",zh:"姐妹",en:"sisters",ja:"姉妹",id:"saudari",ru:"сёстры",th:"พี่น้องผู้หญิง",mn:"эгч дүүс",uz:"singillar",es:"sisters"} },
+          { char:"아내",    word:"아내",    meaning:{ko:"아내",    vi:"vợ",zh:"妻子",en:"wife",ja:"妻",id:"istri",ru:"жена",th:"ภรรยา",mn:"эхнэр",uz:"xotin",es:"wife"} },
+          { char:"사위",    word:"사위",    meaning:{ko:"사위",    vi:"con rể",zh:"女婿",en:"son-in-law",ja:"婿",id:"menantu laki-laki",ru:"зять",th:"ลูกเขย",mn:"хүргэн",uz:"kuyov",es:"son-in-law"} },
+          { char:"후배",    word:"후배",    meaning:{ko:"후배",    vi:"hậu bối",zh:"后辈",en:"junior",ja:"後輩",id:"junior",ru:"младший",th:"รุ่นน้อง",mn:"дүү",uz:"kenja",es:"junior"} },
+          { char:"배우",    word:"배우",    meaning:{ko:"배우",    vi:"diễn viên",zh:"演员",en:"actor",ja:"俳優",id:"aktor",ru:"актёр",th:"นักแสดง",mn:"жүжигчин",uz:"aktyor",es:"actor"} },
+          { char:"웨이터",  word:"웨이터",  meaning:{ko:"웨이터",  vi:"nam bồi bàn",zh:"服务员",en:"waiter",ja:"ウェーター",id:"pelayan",ru:"официант",th:"พนักงานเสิร์ฟ",mn:"зөөгч",uz:"ofitsiant",es:"waiter"} },
+          { char:"모레",    word:"모레",    meaning:{ko:"모레",    vi:"ngày kia",zh:"后天",en:"day after tomorrow",ja:"明後日",id:"lusa",ru:"послезавтра",th:"มะรืนนี้",mn:"нөгөөдөр",uz:"indinga",es:"day after tomorrow"} },
+          { char:"매주",    word:"매주",    meaning:{ko:"매주",    vi:"hàng tuần",zh:"每周",en:"every week",ja:"毎週",id:"setiap minggu",ru:"каждую неделю",th:"ทุกสัปดาห์",mn:"долоо хоног бүр",uz:"har hafta",es:"every week"} },
+          { char:"미래",    word:"미래",    meaning:{ko:"미래",    vi:"tương lai",zh:"未来",en:"future",ja:"未来",id:"masa depan",ru:"будущее",th:"อนาคต",mn:"ирээдүй",uz:"kelajak",es:"future"} },
+          { char:"새해",    word:"새해",    meaning:{ko:"새해",    vi:"năm mới",zh:"新年",en:"new year",ja:"新年",id:"tahun baru",ru:"новый год",th:"ปีใหม่",mn:"шинэ жил",uz:"yangi yil",es:"new year"} },
+          { char:"교회",    word:"교회",    meaning:{ko:"교회",    vi:"nhà thờ",zh:"教会",en:"church",ja:"教会",id:"gereja",ru:"церковь",th:"โบสถ์",mn:"сүм",uz:"cherkov",es:"church"} },
+          { char:"휴게소",  word:"휴게소",  meaning:{ko:"휴게소",  vi:"trạm nghỉ",zh:"休息站",en:"rest area",ja:"休憩所",id:"area istirahat",ru:"место отдыха",th:"จุดพักรถ",mn:"амрах газар",uz:"dam olish joyi",es:"rest area"} },
+          { char:"메모",    word:"메모",    meaning:{ko:"메모",    vi:"ghi chú",zh:"备忘录",en:"memo",ja:"メモ",id:"memo",ru:"заметка",th:"บันทึก",mn:"тэмдэглэл",uz:"eslatma",es:"memo"} },
+          { char:"교과서",  word:"교과서",  meaning:{ko:"교과서",  vi:"sách giáo khoa",zh:"教科书",en:"textbook",ja:"教科書",id:"buku teks",ru:"учебник",th:"หนังสือเรียน",mn:"сурах бичиг",uz:"darslik",es:"textbook"} },
+          { char:"사회",    word:"사회",    meaning:{ko:"사회",    vi:"xã hội",zh:"社会",en:"society",ja:"社会",id:"masyarakat",ru:"общество",th:"สังคม",mn:"нийгэм",uz:"jamiyat",es:"society"} },
+          { char:"세수",    word:"세수",    meaning:{ko:"세수",    vi:"rửa mặt",zh:"洗脸",en:"washing face",ja:"洗顔",id:"cuci muka",ru:"умывание",th:"ล้างหน้า",mn:"нүүр угаах",uz:"yuz yuvish",es:"washing face"} },
+          { char:"무늬",    word:"무늬",    meaning:{ko:"무늬",    vi:"hoa văn",zh:"纹理",en:"pattern",ja:"模様",id:"motif",ru:"узор",th:"ลาย",mn:"хээ",uz:"naqsh",es:"pattern"} },
+          { char:"휴지",    word:"휴지",    meaning:{ko:"휴지",    vi:"giấy vệ sinh",zh:"手纸",en:"tissue",ja:"ティッシュ",id:"tisu",ru:"салфетка",th:"กระดาษทิชชู",mn:"цаас",uz:"salfetkа",es:"tissue"} },
+          { char:"세포",    word:"세포",    meaning:{ko:"세포",    vi:"tế bào",zh:"细胞",en:"cell",ja:"細胞",id:"sel",ru:"клетка",th:"เซลล์",mn:"эс",uz:"hujayra",es:"cell"} },
+          { char:"메뉴",    word:"메뉴",    meaning:{ko:"메뉴",    vi:"thực đơn",zh:"菜单",en:"menu",ja:"メニュー",id:"menu",ru:"меню",th:"เมนู",mn:"цэс",uz:"menyu",es:"menu"} },
+          { char:"채소",    word:"채소",    meaning:{ko:"채소",    vi:"rau củ",zh:"蔬菜",en:"vegetables",ja:"野菜",id:"sayuran",ru:"овощи",th:"ผัก",mn:"ногоо",uz:"sabzavot",es:"vegetables"} },
+          { char:"돼지고기",word:"돼지고기",meaning:{ko:"돼지고기",vi:"thịt lợn",zh:"猪肉",en:"pork",ja:"豚肉",id:"daging babi",ru:"свинина",th:"หมู",mn:"гахайн мах",uz:"cho'chqa go'shti",es:"pork"} },
+          { char:"해외",    word:"해외",    meaning:{ko:"해외",    vi:"nước ngoài",zh:"海外",en:"abroad",ja:"海外",id:"luar negeri",ru:"за рубежом",th:"ต่างประเทศ",mn:"гадаад",uz:"xorij",es:"abroad"} },
+          { char:"내과",    word:"내과",    meaning:{ko:"내과",    vi:"khoa nội",zh:"内科",en:"internal medicine",ja:"内科",id:"penyakit dalam",ru:"терапевт",th:"อายุรกรรม",mn:"дотрын эмч",uz:"terapevt",es:"internal medicine"} },
+          { char:"외과",    word:"외과",    meaning:{ko:"외과",    vi:"khoa ngoại",zh:"外科",en:"surgery",ja:"外科",id:"bedah",ru:"хирургия",th:"ศัลยกรรม",mn:"мэс ажилбар",uz:"jarrohlik",es:"surgery"} },
+          { char:"피부과",  word:"피부과",  meaning:{ko:"피부과",  vi:"khoa da liễu",zh:"皮肤科",en:"dermatology",ja:"皮膚科",id:"dermatologi",ru:"дерматология",th:"ผิวหนัง",mn:"арьс судлал",uz:"dermatologiya",es:"dermatology"} },
+          { char:"소아과",  word:"소아과",  meaning:{ko:"소아과",  vi:"khoa nhi",zh:"小儿科",en:"pediatrics",ja:"小児科",id:"pediatri",ru:"педиатрия",th:"กุมารเวชกรรม",mn:"хүүхдийн эмч",uz:"pediatriya",es:"pediatrics"} },
+          { char:"마취",    word:"마취",    meaning:{ko:"마취",    vi:"gây mê",zh:"麻醉",en:"anesthesia",ja:"麻酔",id:"anestesi",ru:"анестезия",th:"การระงับความรู้สึก",mn:"мэдээгүй болгох",uz:"narkoz",es:"anesthesia"} },
+          { char:"가래",    word:"가래",    meaning:{ko:"가래",    vi:"đờm",zh:"痰",en:"phlegm",ja:"痰",id:"dahak",ru:"мокрота",th:"เสมหะ",mn:"цэр",uz:"balg'am",es:"phlegm"} },
+          { char:"재채기",  word:"재채기",  meaning:{ko:"재채기",  vi:"hắt hơi",zh:"打喷嚏",en:"sneeze",ja:"くしゃみ",id:"bersin",ru:"чихание",th:"การจาม",mn:"ханиах",uz:"aksa urish",es:"sneeze"} },
+          { char:"소화제",  word:"소화제",  meaning:{ko:"소화제",  vi:"thuốc tiêu hóa",zh:"消化剂",en:"digestive medicine",ja:"消化剤",id:"obat pencernaan",ru:"средство от диспепсии",th:"ยาช่วยย่อย",mn:"хоол шингээх эм",uz:"hazm dori",es:"digestive medicine"} },
+          { char:"배구",    word:"배구",    meaning:{ko:"배구",    vi:"bóng chuyền",zh:"排球",en:"volleyball",ja:"バレーボール",id:"bola voli",ru:"волейбол",th:"วอลเลย์บอล",mn:"волейбол",uz:"voleybol",es:"volleyball"} },
+          { char:"취미",    word:"취미",    meaning:{ko:"취미",    vi:"sở thích",zh:"爱好",en:"hobby",ja:"趣味",id:"hobi",ru:"хобби",th:"งานอดิเรก",mn:"хобби",uz:"hobbi",es:"hobby"} },
+          { char:"예매",    word:"예매",    meaning:{ko:"예매",    vi:"đặt vé trước",zh:"预购",en:"advance ticketing",ja:"前売り",id:"beli tiket awal",ru:"предварительная покупка",th:"จองตั๋วล่วงหน้า",mn:"урьдчилсан тийз",uz:"oldindan chipta",es:"advance ticketing"} },
+          { char:"노래",    word:"노래",    meaning:{ko:"노래",    vi:"bài hát",zh:"歌曲",en:"song",ja:"歌",id:"lagu",ru:"песня",th:"เพลง",mn:"дуу",uz:"qo'shiq",es:"song"} },
+          { char:"세배",    word:"세배",    meaning:{ko:"세배",    vi:"cúi chào năm mới",zh:"新年拜年",en:"New Year's bow",ja:"お辞儀",id:"salam tahun baru",ru:"новогодний поклон",th:"ไหว้ปีใหม่",mn:"шинэ жилийн мэнд",uz:"yangi yil salomi",es:"New Year's bow"} },
+          { char:"부채",    word:"부채",    meaning:{ko:"부채",    vi:"nợ",zh:"债务",en:"debt",ja:"借金",id:"hutang",ru:"долг",th:"หนี้",mn:"өр",uz:"qarz",es:"debt"} },
+          { char:"계좌번호",word:"계좌번호",meaning:{ko:"계좌번호",vi:"số tài khoản",zh:"账号",en:"account number",ja:"口座番号",id:"nomor rekening",ru:"номер счёта",th:"หมายเลขบัญชี",mn:"дансны дугаар",uz:"hisob raqami",es:"account number"} },
+          { char:"쥐",      word:"쥐",      meaning:{ko:"쥐",      vi:"con chuột",zh:"老鼠",en:"mouse/rat",ja:"ネズミ",id:"tikus",ru:"мышь",th:"หนู",mn:"хулгана",uz:"sichqon",es:"mouse/rat"} },
+          { char:"돼지",    word:"돼지",    meaning:{ko:"돼지",    vi:"con lợn",zh:"猪",en:"pig",ja:"豚",id:"babi",ru:"свинья",th:"หมู",mn:"гахай",uz:"cho'chqa",es:"pig"} },
+          { char:"개구리",  word:"개구리",  meaning:{ko:"개구리",  vi:"con ếch",zh:"青蛙",en:"frog",ja:"カエル",id:"katak",ru:"лягушка",th:"กบ",mn:"мэлхий",uz:"qurbaqa",es:"frog"} },
+          { char:"새",      word:"새",      meaning:{ko:"새",      vi:"con chim",zh:"鸟",en:"bird",ja:"鳥",id:"burung",ru:"птица",th:"นก",mn:"шувуу",uz:"qush",es:"bird"} },
+          { char:"개미",    word:"개미",    meaning:{ko:"개미",    vi:"con kiến",zh:"蚂蚁",en:"ant",ja:"アリ",id:"semut",ru:"муравей",th:"มด",mn:"шоргоолж",uz:"chumoli",es:"ant"} },
+          { char:"새우",    word:"새우",    meaning:{ko:"새우",    vi:"con tôm",zh:"虾",en:"shrimp",ja:"エビ",id:"udang",ru:"креветка",th:"กุ้ง",mn:"сам хорхой",uz:"krevetka",es:"shrimp"} },
+          { char:"개",      word:"개",      meaning:{ko:"개",      vi:"con chó",zh:"狗",en:"dog",ja:"犬",id:"anjing",ru:"собака",th:"หมา",mn:"нохой",uz:"it",es:"dog"} },
+          { char:"파래",    word:"파래",    meaning:{ko:"파래",    vi:"tảo biển",zh:"海青菜",en:"green laver",ja:"アオノリ",id:"rumput laut hijau",ru:"морская водоросль",th:"สาหร่าย",mn:"далайн замаг",uz:"suv o'ti",es:"green laver"} },
+          { char:"조개",    word:"조개",    meaning:{ko:"조개",    vi:"con sò",zh:"贝壳",en:"shellfish",ja:"貝",id:"kerang",ru:"моллюск",th:"หอย",mn:"нялцгай биет",uz:"chig'anoq",es:"shellfish"} },
+          { char:"고래",    word:"고래",    meaning:{ko:"고래",    vi:"cá voi",zh:"鲸鱼",en:"whale",ja:"クジラ",id:"paus",ru:"кит",th:"วาฬ",mn:"халим",uz:"kit",es:"whale"} },
+          { char:"대나무",  word:"대나무",  meaning:{ko:"대나무",  vi:"cây tre",zh:"竹子",en:"bamboo",ja:"竹",id:"bambu",ru:"бамбук",th:"ไม้ไผ่",mn:"хулс",uz:"bambuk",es:"bamboo"} },
+          { char:"무지개",  word:"무지개",  meaning:{ko:"무지개",  vi:"cầu vồng",zh:"彩虹",en:"rainbow",ja:"虹",id:"pelangi",ru:"радуга",th:"รุ้ง",mn:"солонго",uz:"kamalak",es:"rainbow"} },
+          { char:"예보",    word:"예보",    meaning:{ko:"예보",    vi:"dự báo",zh:"预报",en:"forecast",ja:"予報",id:"prakiraan",ru:"прогноз",th:"การพยากรณ์",mn:"таамаглал",uz:"bashorat",es:"forecast"} },
+          { char:"위도",    word:"위도",    meaning:{ko:"위도",    vi:"vĩ độ",zh:"纬度",en:"latitude",ja:"緯度",id:"lintang",ru:"широта",th:"ละติจูด",mn:"өргөрөг",uz:"kenglik",es:"latitude"} },
+          { char:"세계",    word:"세계",    meaning:{ko:"세계",    vi:"thế giới",zh:"世界",en:"world",ja:"世界",id:"dunia",ru:"мир",th:"โลก",mn:"дэлхий",uz:"dunyo",es:"world"} },
+          { char:"캐나다",  word:"캐나다",  meaning:{ko:"캐나다",  vi:"Canada",zh:"加拿大",en:"Canada",ja:"カナダ",id:"Kanada",ru:"Канада",th:"แคนาดา",mn:"Канад",uz:"Kanada",es:"Canada"} },
+          { char:"고체",    word:"고체",    meaning:{ko:"고체",    vi:"thể rắn",zh:"固体",en:"solid",ja:"固体",id:"padat",ru:"твёрдое тело",th:"ของแข็ง",mn:"хатуу бие",uz:"qattiq jism",es:"solid"} },
+          { char:"무게",    word:"무게",    meaning:{ko:"무게",    vi:"cân nặng",zh:"重量",en:"weight",ja:"重さ",id:"berat",ru:"вес",th:"น้ำหนัก",mn:"жин",uz:"og'irlik",es:"weight"} },
+          { char:"위기",    word:"위기",    meaning:{ko:"위기",    vi:"khủng hoảng",zh:"危机",en:"crisis",ja:"危機",id:"krisis",ru:"кризис",th:"วิกฤต",mn:"хямрал",uz:"inqiroz",es:"crisis"} },
+          { char:"위로",    word:"위로",    meaning:{ko:"위로",    vi:"sự an ủi",zh:"安慰",en:"comfort",ja:"慰め",id:"hiburan",ru:"утешение",th:"การปลอบใจ",mn:"тайтгарал",uz:"tasalli",es:"comfort"} },
+          { char:"기회",    word:"기회",    meaning:{ko:"기회",    vi:"cơ hội",zh:"机会",en:"chance",ja:"機会",id:"kesempatan",ru:"шанс",th:"โอกาส",mn:"боломж",uz:"imkoniyat",es:"chance"} },
+          { char:"최고",    word:"최고",    meaning:{ko:"최고",    vi:"tốt nhất",zh:"最高",en:"best",ja:"最高",id:"terbaik",ru:"лучший",th:"ดีที่สุด",mn:"хамгийн дээд",uz:"eng yaxshi",es:"best"} },
+          { char:"태도",    word:"태도",    meaning:{ko:"태도",    vi:"thái độ",zh:"态度",en:"attitude",ja:"態度",id:"sikap",ru:"отношение",th:"ทัศนคติ",mn:"хандлага",uz:"munosabat",es:"attitude"} },
+          { char:"취소",    word:"취소",    meaning:{ko:"취소",    vi:"hủy bỏ",zh:"取消",en:"cancel",ja:"キャンセル",id:"pembatalan",ru:"отмена",th:"การยกเลิก",mn:"цуцлах",uz:"bekor qilish",es:"cancel"} },
+          { char:"가위",    word:"가위",    meaning:{ko:"가위",    vi:"cái kéo",zh:"剪刀",en:"scissors",ja:"はさみ",id:"gunting",ru:"ножницы",th:"กรรไกร",mn:"хайч",uz:"qaychi",es:"scissors"} },
+          { char:"제주도",  word:"제주도",  meaning:{ko:"제주도",  vi:"đảo Jeju",zh:"济州岛",en:"Jeju Island",ja:"チェジュ島",id:"Pulau Jeju",ru:"остров Чеджу",th:"เกาะเจจู",mn:"Жежү арал",uz:"Jeju oroli",es:"Jeju Island"} },
+          { char:"대구",    word:"대구",    meaning:{ko:"대구",    vi:"Daegu",zh:"大邱",en:"Daegu",ja:"テグ",id:"Daegu",ru:"Тэгу",th:"แทกู",mn:"Тэгу",uz:"Daegu",es:"Daegu"} },
+          { char:"대화",    word:"대화",    meaning:{ko:"대화",    vi:"cuộc hội thoại",zh:"对话",en:"conversation",ja:"対話",id:"percakapan",ru:"беседа",th:"การสนทนา",mn:"яриа",uz:"suhbat",es:"conversation"} },
+          { char:"뇌",      word:"뇌",      meaning:{ko:"뇌",      vi:"não",zh:"大脑",en:"brain",ja:"脳",id:"otak",ru:"мозг",th:"สมอง",mn:"тархи",uz:"miya",es:"brain"} },
+          { char:"화요일",  word:"화요일",  meaning:{ko:"화요일",  vi:"thứ ba",zh:"星期二",en:"Tuesday",ja:"火曜日",id:"Selasa",ru:"вторник",th:"วันอังคาร",mn:"мягмар",uz:"seshanba",es:"Tuesday"} },
+          { char:"왜",      word:"왜",      meaning:{ko:"왜",      vi:"tại sao",zh:"为什么",en:"why",ja:"なぜ",id:"kenapa",ru:"почему",th:"ทำไม",mn:"яагаад",uz:"nega",es:"why"} },
+          { char:"매일",    word:"매일",    meaning:{ko:"매일",    vi:"mỗi ngày",zh:"每天",en:"every day",ja:"毎日",id:"setiap hari",ru:"каждый день",th:"ทุกวัน",mn:"өдөр бүр",uz:"har kuni",es:"every day"} },
+          { char:"배우다",  word:"배우다",  meaning:{ko:"배우다",  vi:"học",zh:"学习",en:"to learn",ja:"学ぶ",id:"belajar",ru:"учиться",th:"เรียน",mn:"сурах",uz:"o'rganmoq",es:"to learn"} },
+          { char:"노래하다",word:"노래하다",meaning:{ko:"노래하다",vi:"hát",zh:"唱歌",en:"to sing",ja:"歌う",id:"bernyanyi",ru:"петь",th:"ร้องเพลง",mn:"дуулах",uz:"qo'shiq aytmoq",es:"to sing"} },
+          { char:"소개하다",word:"소개하다",meaning:{ko:"소개하다",vi:"giới thiệu",zh:"介绍",en:"to introduce",ja:"紹介する",id:"memperkenalkan",ru:"знакомить",th:"แนะนำ",mn:"танилцуулах",uz:"tanishtirmoq",es:"to introduce"} },
+          { char:"이해하다",word:"이해하다",meaning:{ko:"이해하다",vi:"hiểu",zh:"理解",en:"to understand",ja:"理解する",id:"memahami",ru:"понимать",th:"เข้าใจ",mn:"ойлгох",uz:"tushunmoq",es:"to understand"} },
+          { char:"사귀다",  word:"사귀다",  meaning:{ko:"사귀다",  vi:"kết bạn/hẹn hò",zh:"交朋友",en:"to make friends",ja:"付き合う",id:"berteman",ru:"дружить",th:"คบหา",mn:"найзлах",uz:"do'st bo'lmoq",es:"to make friends"} },
+          { char:"쉬다",    word:"쉬다",    meaning:{ko:"쉬다",    vi:"nghỉ ngơi",zh:"休息",en:"to rest",ja:"休む",id:"beristirahat",ru:"отдыхать",th:"พักผ่อน",mn:"амрах",uz:"dam olmoq",es:"to rest"} },
+          { char:"지내다",  word:"지내다",  meaning:{ko:"지내다",  vi:"trải qua/sống",zh:"度过",en:"to spend time",ja:"暮らす",id:"menjalani",ru:"проживать",th:"ใช้ชีวิต",mn:"амьдрах",uz:"yashash",es:"to spend time"} },
+          { char:"태어나다",word:"태어나다",meaning:{ko:"태어나다",vi:"được sinh ra",zh:"出生",en:"to be born",ja:"生まれる",id:"dilahirkan",ru:"родиться",th:"เกิด",mn:"төрөх",uz:"tug'ilmoq",es:"to be born"} },
+          { char:"초대하다",word:"초대하다",meaning:{ko:"초대하다",vi:"mời",zh:"邀请",en:"to invite",ja:"招待する",id:"mengundang",ru:"приглашать",th:"เชิญ",mn:"урих",uz:"taklif qilmoq",es:"to invite"} },
+        ],
+        tip:{ko:"단어를 보면서 뜻을 확인하고, 소리 내어 3번씩 말해보세요.",vi:"Xem từ, kiểm tra nghĩa rồi đọc to mỗi từ 3 lần.",en:"Check the meaning of each word and read it aloud 3 times.",zh:"边看单词边确认词义，并大声读3遍。",ja:"単語を見ながら意味を確認し、声に出して3回ずつ言ってみてください。",id:"Lihat kata, periksa artinya, lalu ucapkan dengan lantang sebanyak 3 kali.",ru:"Смотрите на слово, проверяйте значение и произносите вслух по 3 раза.",th:"ดูคำศัพท์และตรวจสอบความหมาย แล้วออกเสียงดัง ๆ 3 ครั้ง",mn:"Үгийг харж утгыг нь шалгаад, дуу гарган 3 удаа хэлж үзээрэй.",uz:"So'zga qarab ma'nosini tekshiring, so'ng ovoz chiqarib 3 marta ayting.",es:"Mire la palabra, verifique su significado y dígala en voz alta 3 veces.",fr:"Regardez le mot, vérifiez son sens, puis dites-le à voix haute 3 fois.",ne:"शब्द हेर्दै अर्थ जाँचेर ठूलो स्वरमा ३ पटक भन्नुहोस्।",de:"Schauen Sie sich das Wort an, prüfen Sie die Bedeutung und sagen Sie es 3-mal laut."},
+      },
+      // ── 단계 7: 쌍자음 학습 ──
+      { id:"ssang", type:"learn", emoji:"💪",
+        title:{ko:"07. 쌍자음",vi:"07. Phụ âm đôi",en:"07. Double Consonants",zh:"07. 双辅音",ja:"07. 濃音（二重子音）",id:"07. Konsonan Ganda",ru:"07. Двойные согласные",th:"07. พยัญชนะคู่",mn:"07. Давхар гийгүүлэгч",uz:"07. Qo'sh undoshlar",es:"07. Consonantes dobles",fr:"07. Consonnes doubles",ne:"07. दोहोरो व्यञ्जन",de:"07. Doppelkonsonanten"},
+        desc:{ko:"된소리(긴장음) 쌍자음 5개의 발음을 연습합니다.",vi:"Luyện phát âm 5 phụ âm đôi (âm căng) tiếng Hàn.",en:"Practice the pronunciation of 5 tense double consonants.",zh:"练习5个紧音（双辅音）的发音。",ja:"濃音（二重子音）5個の発音を練習します。",id:"Latih pengucapan 5 konsonan ganda (bunyi tegang).",ru:"Потренируйте произношение 5 двойных (напряжённых) согласных.",th:"ฝึกออกเสียงพยัญชนะคู่ (เสียงตึง) 5 ตัว",mn:"Хурц авиат (давхар гийгүүлэгч) 5 үсгийн дуудлагыг дадлагажина.",uz:"5 ta qo'sh undosh (keskin tovush)ning talaffuzini mashq qiling.",es:"Practique la pronunciación de las 5 consonantes dobles (sonido tenso).",fr:"Entraînez-vous à prononcer les 5 consonnes doubles (son tendu).",ne:"कडा ध्वनि (दोहोरो व्यञ्जन) ५ को उच्चारण अभ्यास गर्नुहोस्।",de:"Üben Sie die Aussprache der 5 Doppelkonsonanten (angespannter Laut)."},
+        items:[
+          { char:"ㄲ", word:"까치",   meaning:{ko:"까치",  vi:"chim ác là",zh:"喜鹊",en:"magpie",ja:"カチ",id:"burung murai",ru:"сорока",th:"นกสาลิกา",mn:"шаазгай",uz:"urriq",es:"magpie"} },
+          { char:"ㄸ", word:"딸기",   meaning:{ko:"딸기",  vi:"dâu tây",zh:"草莓",en:"strawberry",ja:"いちご",id:"stroberi",ru:"клубника",th:"สตรอเบอร์รี่",mn:"гүзээлзгэнэ",uz:"qulupnay",es:"strawberry"} },
+          { char:"ㅃ", word:"빠르다", meaning:{ko:"빠르다",vi:"nhanh",zh:"快速",en:"fast",ja:"速い",id:"cepat",ru:"быстрый",th:"เร็ว",mn:"хурдан",uz:"tez",es:"fast"} },
+          { char:"ㅆ", word:"씩씩하다",meaning:{ko:"씩씩하다",vi:"dũng cảm",zh:"勇敢",en:"brave",ja:"勇ましい",id:"berani",ru:"смелый",th:"กล้าหาญ",mn:"зоригтой",uz:"jasur",es:"brave"} },
+          { char:"ㅉ", word:"짜다",   meaning:{ko:"짜다",  vi:"mặn",zh:"咸",en:"salty",ja:"塩辛い",id:"asin",ru:"солёный",th:"เค็ม",mn:"давслаг",uz:"sho'r",es:"salty"} },
+        ],
+        tip:{ko:"목에 살짝 힘을 주어 소리를 강하게 밀어내며 말해보세요.",vi:"Căng nhẹ cổ họng và đẩy âm ra mạnh mẽ.",en:"Tighten your throat slightly and push the sound out forcefully.",zh:"请稍微收紧喉咙，用力将声音推出来说。",ja:"喉に少し力を入れて、音を強く押し出すように言ってみてください。",id:"Kencangkan sedikit tenggorokan Anda dan dorong bunyi keluar dengan kuat.",ru:"Слегка напрягите горло и произнесите звук с силой.",th:"เกร็งคอเล็กน้อยแล้วดันเสียงออกมาให้แรง",mn:"Хоолойгоо бага зэрэг чангалж, дууг хүчтэй түлхэн гаргаж хэлж үзээрэй.",uz:"Tomog'ingizni sal taranglashtirib, tovushni kuchli itarib chiqaring.",es:"Tense ligeramente la garganta y empuje el sonido con fuerza al hablar.",fr:"Serrez légèrement la gorge et poussez le son fortement en parlant.",ne:"घाँटीलाई अलिक कस्दै ध्वनि बलियोसँग धकेलेर बोल्नुहोस्।",de:"Spannen Sie den Hals leicht an und drücken Sie den Laut beim Sprechen kräftig heraus."},
+      },
+      // ── 단계 8: 쌍자음 쓰기 ──
+      { id:"ssang_write", type:"write", emoji:"✏️",
+        title:{ko:"08. 쌍자음 쓰기",vi:"08. Viết phụ âm đôi",en:"08. Writing Double Consonants",zh:"08. 双辅音书写",ja:"08. 濃音の書き方",id:"08. Menulis Konsonan Ganda",ru:"08. Написание двойных согласных",th:"08. การเขียนพยัญชนะคู่",mn:"08. Давхар гийгүүлэгч бичих",uz:"08. Qo'sh undoshlarni yozish",es:"08. Escritura de consonantes dobles",fr:"08. Écriture des consonnes doubles",ne:"08. दोहोरो व्यञ्जन लेखन",de:"08. Doppelkonsonanten schreiben"},
+        desc:{ko:"쌍자음 5개를 써봅니다.",vi:"Viết 5 phụ âm đôi tiếng Hàn.",en:"Write the 5 double consonants in Korean.",zh:"练习书写5个双辅音。",ja:"濃音5個を書いてみます。",id:"Tulis 5 konsonan ganda.",ru:"Напишите 5 двойных согласных.",th:"ฝึกเขียนพยัญชนะคู่ 5 ตัว",mn:"Давхар гийгүүлэгч 5-ыг бичиж үзнэ.",uz:"5 ta qo'sh undoshni yozib ko'ring.",es:"Escriba las 5 consonantes dobles.",fr:"Écrivez les 5 consonnes doubles.",ne:"दोहोरो व्यञ्जन ५ लेखेर हेर्नुहोस्।",de:"Schreiben Sie die 5 Doppelkonsonanten."},
+        writeTask:{ko:"까 따 빠 싸 짜 를 각각 5번씩 써보세요.",vi:"Hãy viết mỗi chữ sau 5 lần: 까 따 빠 싸 짜",en:"Write each of the following 5 times: 까 따 빠 싸 짜",zh:"请把\"까 따 빠 싸 짜\"各写5遍。",ja:"「까 따 빠 싸 짜」をそれぞれ5回ずつ書いてみましょう。",id:"Tulis masing-masing \"까 따 빠 싸 짜\" sebanyak 5 kali.",ru:"Напишите каждое из «까 따 빠 싸 짜» по 5 раз.",th:"ลองเขียน \"까 따 빠 싸 짜\" ตัวละ 5 ครั้ง",mn:"\"까 따 빠 싸 짜\"-г тус бүрийг 5 удаа бичиж үзээрэй.",uz:"\"까 따 빠 싸 짜\"ning har birini 5 martadan yozib ko'ring.",es:"Escriba \"까 따 빠 싸 짜\" 5 veces cada una.",fr:"Écrivez chacun des caractères « 까 따 빠 싸 짜 » 5 fois.",ne:"\"까 따 빠 싸 짜\" प्रत्येकलाई ५ पटक लेख्नुहोस्।",de:"Schreiben Sie \"까 따 빠 싸 짜\" jeweils 5-mal."},
+        items:[
+          { char:"ㄲ" }, { char:"ㄸ" }, { char:"ㅃ" }, { char:"ㅆ" }, { char:"ㅉ" },
+        ],
+        tip:{ko:"같은 자음을 두 번 겹쳐 쓰는 모양입니다. 획순에 맞게 써보세요.",vi:"Đây là hình dạng viết phụ âm giống nhau hai lần. Hãy viết đúng thứ tự nét.",en:"These are consonants written by doubling the same character. Follow the stroke order.",zh:"这是把同一辅音重叠书写两次的形态，请按笔顺书写。",ja:"同じ子音を2つ重ねて書く形です。書き順どおりに書いてください。",id:"Ini adalah bentuk menulis konsonan yang sama dua kali. Tulis sesuai urutan goresan.",ru:"Это форма написания одной и той же согласной дважды подряд. Пишите в правильном порядке черт.",th:"นี่คือรูปแบบการเขียนพยัญชนะตัวเดียวกันซ้อนกันสองครั้ง เขียนตามลำดับขีด",mn:"Энэ бол ижил гийгүүлэгчийг хоёр удаа давхарлан бичсэн хэлбэр юм. Зурлагын дарааллыг баримтлан бичээрэй.",uz:"Bu bir xil undoshni ikki marta ustma-ust yozish shaklidir. Chiziq tartibiga rioya qilib yozing.",es:"Esta es la forma de escribir la misma consonante dos veces seguidas. Escriba siguiendo el orden de los trazos.",fr:"C'est la forme d'écriture d'une même consonne doublée. Écrivez en respectant l'ordre des traits.",ne:"यो एउटै व्यञ्जनलाई दुई पटक दोहोर्याएर लेख्ने आकार हो। कलमको क्रम अनुसार लेख्नुहोस्।",de:"Dies ist die Schreibweise desselben Konsonanten, zweimal übereinander. Schreiben Sie in der richtigen Strichfolge."},
+      },
+      // ── 단계 9: 쌍자음 단어 ──
+      { id:"ssang_word", type:"learn", emoji:"📖",
+        title:{ko:"09. 쌍자음 단어",vi:"09. Từ vựng phụ âm đôi",en:"09. Double Consonant Words",zh:"09. 双辅音单词",ja:"09. 濃音単語",id:"09. Kata Konsonan Ganda",ru:"09. Слова с двойными согласными",th:"09. คำศัพท์พยัญชนะคู่",mn:"09. Давхар гийгүүлэгчтэй үг",uz:"09. Qo'sh undoshli so'zlar",es:"09. Palabras con consonantes dobles",fr:"09. Mots avec consonnes doubles",ne:"09. दोहोरो व्यञ्जन शब्द",de:"09. Wörter mit Doppelkonsonanten"},
+        desc:{ko:"쌍자음이 들어간 실생활 단어를 익힙니다.",vi:"Học từ vựng thực tế có phụ âm đôi. Hãy phát âm thật dứt khoát!",en:"Learn everyday words with double consonants. Pronounce them boldly!",zh:"学习包含双辅音的生活常用词。",ja:"濃音を含む実生活の単語を覚えます。",id:"Pelajari kata sehari-hari yang mengandung konsonan ganda.",ru:"Выучите повседневные слова с двойными согласными.",th:"เรียนรู้คำศัพท์ในชีวิตประจำวันที่มีพยัญชนะคู่",mn:"Давхар гийгүүлэгч орсон өдөр тутмын үгсийг мэдэж авна.",uz:"Qo'sh undoshlar bo'lgan kundalik so'zlarni o'rganing.",es:"Aprenda palabras cotidianas que contienen consonantes dobles.",fr:"Apprenez des mots du quotidien contenant des consonnes doubles.",ne:"दोहोरो व्यञ्जन भएका दैनिक जीवनका शब्दहरू सिक्नुहोस्।",de:"Lernen Sie Alltagswörter mit Doppelkonsonanten."},
+        items:[
+          { char:"오빠", word:"오빠",  meaning:{ko:"오빠",  vi:"anh trai (em gái gọi)",zh:"哥哥",en:"older brother",ja:"お兄さん",id:"kakak laki-laki",ru:"старший брат",th:"พี่ชาย",mn:"ах",uz:"aka",es:"older brother"} },
+          { char:"아빠", word:"아빠",  meaning:{ko:"아빠",  vi:"bố",zh:"爸爸",en:"dad",ja:"パパ",id:"ayah",ru:"папа",th:"พ่อ",mn:"аав",uz:"dada",es:"dad"} },
+          { char:"토끼", word:"토끼",  meaning:{ko:"토끼",  vi:"con thỏ",zh:"兔子",en:"rabbit",ja:"ウサギ",id:"kelinci",ru:"кролик",th:"กระต่าย",mn:"туулай",uz:"quyon",es:"rabbit"} },
+          { char:"코끼리",word:"코끼리",meaning:{ko:"코끼리",vi:"con voi",zh:"大象",en:"elephant",ja:"ゾウ",id:"gajah",ru:"слон",th:"ช้าง",mn:"заан",uz:"fil",es:"elephant"} },
+          { char:"찌개", word:"찌개",  meaning:{ko:"찌개",  vi:"canh hầm",zh:"炖菜",en:"stew",ja:"チゲ",id:"sup rebus",ru:"чигэ",th:"ซุปเกาหลี",mn:"шөл",uz:"qozon osh",es:"stew"} },
+          { char:"예쁘다",word:"예쁘다",meaning:{ko:"예쁘다",vi:"xinh đẹp",zh:"漂亮",en:"pretty",ja:"きれいだ",id:"cantik",ru:"красивый",th:"สวยงาม",mn:"үзэсгэлэнтэй",uz:"chiroyli",es:"pretty"} },
+          { char:"바쁘다",word:"바쁘다",meaning:{ko:"바쁘다",vi:"bận rộn",zh:"忙",en:"busy",ja:"忙しい",id:"sibuk",ru:"занятый",th:"ยุ่ง",mn:"завгүй",uz:"band",es:"busy"} },
+          { char:"싸다", word:"싸다",  meaning:{ko:"싸다",  vi:"rẻ",zh:"便宜",en:"cheap",ja:"安い",id:"murah",ru:"дешёвый",th:"ถูก",mn:"хямд",uz:"arzon",es:"cheap"} },
+          { char:"비싸다",word:"비싸다",meaning:{ko:"비싸다",vi:"đắt",zh:"贵",en:"expensive",ja:"高い",id:"mahal",ru:"дорогой",th:"แพง",mn:"үнэтэй",uz:"qimmat",es:"expensive"} },
+          { char:"기쁘다",word:"기쁘다",meaning:{ko:"기쁘다",vi:"vui vẻ",zh:"高兴",en:"glad/happy",ja:"嬉しい",id:"gembira",ru:"радостный",th:"ดีใจ",mn:"баяртай",uz:"xursand",es:"glad/happy"} },
+          { char:"쓰레기",word:"쓰레기",meaning:{ko:"쓰레기",vi:"rác",zh:"垃圾",en:"garbage",ja:"ゴミ",id:"sampah",ru:"мусор",th:"ขยะ",mn:"хог",uz:"axlat",es:"garbage"} },
+          { char:"어깨", word:"어깨",  meaning:{ko:"어깨",  vi:"vai",zh:"肩膀",en:"shoulder",ja:"肩",id:"bahu",ru:"плечо",th:"ไหล่",mn:"мөр",uz:"yelka",es:"shoulder"} },
+          { char:"뼈",   word:"뼈",    meaning:{ko:"뼈",    vi:"xương",zh:"骨头",en:"bone",ja:"骨",id:"tulang",ru:"кость",th:"กระดูก",mn:"яс",uz:"suyak",es:"bone"} },
+          { char:"빠르다",word:"빠르다",meaning:{ko:"빠르다",vi:"nhanh",zh:"快",en:"fast",ja:"速い",id:"cepat",ru:"быстрый",th:"เร็ว",mn:"хурдан",uz:"tez",es:"fast"} },
+          { char:"짜다", word:"짜다",  meaning:{ko:"짜다",  vi:"mặn",zh:"咸",en:"salty",ja:"塩辛い",id:"asin",ru:"солёный",th:"เค็ม",mn:"давслаг",uz:"sho'r",es:"salty"} },
+          { char:"뛰다", word:"뛰다",  meaning:{ko:"뛰다",  vi:"chạy/nhảy",zh:"跑/跳",en:"run/jump",ja:"走る/跳ぶ",id:"berlari/melompat",ru:"бежать/прыгать",th:"วิ่ง/กระโดด",mn:"гүйх/үсрэх",uz:"yugurmoq/sakramoq",es:"run/jump"} },
+          { char:"바꾸다",word:"바꾸다",meaning:{ko:"바꾸다",vi:"thay đổi",zh:"换/改变",en:"exchange/change",ja:"変える",id:"mengganti",ru:"менять",th:"เปลี่ยน",mn:"солих",uz:"almashtirmoq",es:"exchange/change"} },
+          { char:"떠나다",word:"떠나다",meaning:{ko:"떠나다",vi:"rời đi",zh:"离开",en:"leave",ja:"去る",id:"pergi",ru:"уходить",th:"จากไป",mn:"явах",uz:"ketmoq",es:"leave"} },
+          { char:"싸우다",word:"싸우다",meaning:{ko:"싸우다",vi:"cãi vã/đánh nhau",zh:"吵架",en:"fight",ja:"喧嘩する",id:"bertengkar",ru:"драться",th:"ทะเลาะ",mn:"тэмцэх",uz:"janjal qilmoq",es:"fight"} },
+          { char:"느끼다",word:"느끼다",meaning:{ko:"느끼다",vi:"cảm nhận",zh:"感觉",en:"feel",ja:"感じる",id:"merasakan",ru:"чувствовать",th:"รู้สึก",mn:"мэдрэх",uz:"his qilmoq",es:"feel"} },
+          { char:"빠지다",word:"빠지다",meaning:{ko:"빠지다",vi:"rơi/ngã",zh:"掉落",en:"fall/slip",ja:"落ちる",id:"jatuh",ru:"падать",th:"ตก/หล่น",mn:"унах",uz:"tushmoq",es:"fall/slip"} },
+          { char:"꼬마", word:"꼬마",  meaning:{ko:"꼬마",  vi:"cậu bé",zh:"小孩",en:"little kid",ja:"ちび",id:"anak kecil",ru:"малыш",th:"เด็กน้อย",mn:"хүүхэд",uz:"bola",es:"little kid"} },
+          { char:"도끼", word:"도끼",  meaning:{ko:"도끼",  vi:"cái rìu",zh:"斧头",en:"axe",ja:"斧",id:"kapak",ru:"топор",th:"ขวาน",mn:"сүх",uz:"bolta",es:"axe"} },
+          { char:"뿌리", word:"뿌리",  meaning:{ko:"뿌리",  vi:"rễ cây",zh:"根",en:"root",ja:"根",id:"akar",ru:"корень",th:"ราก",mn:"үндэс",uz:"ildiz",es:"root"} },
+          { char:"때때로",word:"때때로",meaning:{ko:"때때로",vi:"thỉnh thoảng",zh:"有时候",en:"sometimes",ja:"時々",id:"kadang-kadang",ru:"иногда",th:"บางครั้ง",mn:"заримдаа",uz:"ba'zan",es:"sometimes"} },
+          { char:"쓰다", word:"쓰다",  meaning:{ko:"쓰다(맛)",vi:"đắng",zh:"苦",en:"bitter",ja:"苦い",id:"pahit",ru:"горький",th:"ขม",mn:"гашуун",uz:"achchiq",es:"bitter"} },
+          { char:"끄다", word:"끄다",  meaning:{ko:"끄다",  vi:"tắt",zh:"关掉",en:"turn off",ja:"消す",id:"mematikan",ru:"выключать",th:"ปิด",mn:"унтраах",uz:"o'chirmoq",es:"turn off"} },
+          { char:"꾸다", word:"꾸다",  meaning:{ko:"꾸다",  vi:"vay mượn",zh:"借",en:"borrow",ja:"借りる",id:"meminjam",ru:"занимать",th:"ยืม",mn:"зээлэх",uz:"qarz olmoq",es:"borrow"} },
+          { char:"깨다", word:"깨다",  meaning:{ko:"깨다",  vi:"đập vỡ",zh:"打破",en:"break",ja:"割る",id:"memecahkan",ru:"разбивать",th:"แตก",mn:"хагалах",uz:"sindirmoq",es:"break"} },
+          { char:"뜨다", word:"뜨다",  meaning:{ko:"뜨다",  vi:"nổi lềnh bềnh",zh:"漂浮",en:"float",ja:"浮かぶ",id:"mengapung",ru:"плавать",th:"ลอย",mn:"хөвөх",uz:"suzmoq",es:"float"} },
+          { char:"미끄러지다",word:"미끄러지다",meaning:{ko:"미끄러지다",vi:"trượt ngã",zh:"滑倒",en:"slip",ja:"滑る",id:"terpeleset",ru:"поскользнуться",th:"ลื่น",mn:"гулсах",uz:"sirpanmoq",es:"slip"} },
+          { char:"따다", word:"따다",  meaning:{ko:"따다",  vi:"hái/lấy",zh:"摘",en:"pick",ja:"摘む",id:"memetik",ru:"срывать",th:"เก็บ",mn:"түүх",uz:"uzmoq",es:"pick"} },
+          { char:"찌다", word:"찌다",  meaning:{ko:"찌다",  vi:"hấp",zh:"蒸",en:"steam",ja:"蒸す",id:"mengukus",ru:"готовить на пару",th:"นึ่ง",mn:"жигнэх",uz:"bug'da pishirmoq",es:"steam"} },
+          { char:"빼다", word:"빼다",  meaning:{ko:"빼다",  vi:"lấy ra/trừ",zh:"取出/减",en:"take out/subtract",ja:"取り出す/引く",id:"mengeluarkan",ru:"вынимать/вычитать",th:"เอาออก",mn:"авах/хасах",uz:"olib chiqmoq",es:"take out/subtract"} },
+          { char:"때리다",word:"때리다",meaning:{ko:"때리다",vi:"đánh",zh:"打",en:"hit",ja:"叩く",id:"memukul",ru:"ударять",th:"ตี",mn:"цохих",uz:"urmoq",es:"hit"} },
+          { char:"씨",   word:"씨",    meaning:{ko:"씨",    vi:"hạt giống",zh:"种子",en:"seed",ja:"種",id:"biji",ru:"семена",th:"เมล็ด",mn:"үр",uz:"urug'",es:"seed"} },
+          { char:"쓰다", word:"쓰다(쓰기)", meaning:{ko:"쓰다(글)",vi:"viết",zh:"写",en:"write",ja:"書く",id:"menulis",ru:"писать",th:"เขียน",mn:"бичих",uz:"yozmoq",es:"write"} },
+          { char:"(짐을)싸다",word:"짐을 싸다",meaning:{ko:"짐을 싸다",vi:"thu xếp hành lý",zh:"收拾行李",en:"pack (bags)",ja:"荷造りする",id:"mengemas",ru:"паковать вещи",th:"จัดกระเป๋า",mn:"чемодан баглах",uz:"yuk yig'moq",es:"pack (bags)"} },
+          { char:"꺼내다",word:"꺼내다", meaning:{ko:"꺼내다",vi:"lấy ra",zh:"取出",en:"take out",ja:"取り出す",id:"mengeluarkan",ru:"вынимать",th:"เอาออกมา",mn:"гаргах",uz:"chiqarmoq",es:"take out"} },
+          { char:"꽃",   word:"꽃",    meaning:{ko:"꽃",    vi:"hoa",zh:"花",en:"flower",ja:"花",id:"bunga",ru:"цветок",th:"ดอกไม้",mn:"цэцэг",uz:"gul",es:"flower"} },
+          { char:"껍질", word:"껍질",  meaning:{ko:"껍질",  vi:"vỏ",zh:"皮/壳",en:"peel/shell",ja:"皮",id:"kulit",ru:"кожура",th:"เปลือก",mn:"хальс",uz:"po'choq",es:"peel/shell"} },
+          { char:"뚜껑", word:"뚜껑",  meaning:{ko:"뚜껑",  vi:"nắp",zh:"盖子",en:"lid/cap",ja:"ふた",id:"tutup",ru:"крышка",th:"ฝา",mn:"таг",uz:"qopqoq",es:"lid/cap"} },
+          { char:"씻다", word:"씻다",  meaning:{ko:"씻다",  vi:"rửa",zh:"洗",en:"wash",ja:"洗う",id:"mencuci",ru:"мыть",th:"ล้าง",mn:"угаах",uz:"yuvmoq",es:"wash"} },
+          { char:"쪽",   word:"쪽",    meaning:{ko:"쪽",    vi:"phía/trang",zh:"方向/页",en:"direction/page",ja:"方/ページ",id:"arah/halaman",ru:"сторона/страница",th:"ด้าน/หน้า",mn:"тал/хуудас",uz:"tomon/sahifa",es:"direction/page"} },
+          { char:"짝",   word:"짝",    meaning:{ko:"짝",    vi:"đôi/bạn cặp",zh:"一双/搭档",en:"pair/partner",ja:"ペア",id:"pasangan",ru:"пара",th:"คู่",mn:"хос",uz:"juft",es:"pair/partner"} },
+        ],
+        tip:{ko:"쌍자음이 들어간 단어는 강하고 힘찬 소리가 납니다. 과감하게 발음해보세요.",vi:"Từ có phụ âm đôi phát ra âm mạnh và dứt khoát. Hãy phát âm thật tự tin!",en:"Words with double consonants have a strong, forceful sound. Pronounce them boldly!",zh:"含双辅音的单词发音强劲有力，请大胆地发音。",ja:"濃音を含む単語は強く力強い音がします。思い切って発音してみてください。",id:"Kata yang mengandung konsonan ganda menghasilkan bunyi yang kuat dan tegas. Ucapkan dengan berani.",ru:"Слова с двойными согласными звучат сильно и энергично. Произносите их смело.",th:"คำที่มีพยัญชนะคู่จะออกเสียงหนักแน่นและเข้มแข็ง ลองออกเสียงอย่างกล้าหาญ",mn:"Давхар гийгүүлэгч орсон үгс хүчтэй, эрч хүчтэй дуу авиатай байдаг. Зоригтойгоор дуудаж үзээрэй.",uz:"Qo'sh undosh bo'lgan so'zlar kuchli va jasur tovush chiqaradi. Jasorat bilan talaffuz qiling.",es:"Las palabras con consonantes dobles tienen un sonido fuerte y enérgico. Pronúncielas con valentía.",fr:"Les mots avec des consonnes doubles ont un son fort et énergique. Prononcez-les avec audace.",ne:"दोहोरो व्यञ्जन भएका शब्दहरूमा बलियो र शक्तिशाली ध्वनि आउँछ। साहसका साथ उच्चारण गर्नुहोस्।",de:"Wörter mit Doppelkonsonanten klingen stark und kraftvoll. Sprechen Sie sie mutig aus."},
+      },
+      // ── 단계 10: 받침 ㄱ·ㄲ·ㅋ ──
+      { id:"batchim_gk", type:"learn", emoji:"🧱",
+        title:{ko:"10. 받침 [ㄱ·ㄲ·ㅋ]",vi:"10. Phụ âm cuối [ㄱ·ㄲ·ㅋ]",en:"10. Final Consonant [ㄱ·ㄲ·ㅋ]",zh:"10. 收音 [ㄱ·ㄲ·ㅋ]",ja:"10. パッチム [ㄱ·ㄲ·ㅋ]",id:"10. Konsonan Akhir [ㄱ·ㄲ·ㅋ]",ru:"10. Конечная согласная [ㄱ·ㄲ·ㅋ]",th:"10. ตัวสะกด [ㄱ·ㄲ·ㅋ]",mn:"10. Төгсгөлийн гийгүүлэгч [ㄱ·ㄲ·ㅋ]",uz:"10. Oxirgi undosh [ㄱ·ㄲ·ㅋ]",es:"10. Consonante final [ㄱ·ㄲ·ㅋ]",fr:"10. Consonne finale [ㄱ·ㄲ·ㅋ]",ne:"10. अन्त्य व्यञ्जन [ㄱ·ㄲ·ㅋ]",de:"10. Endkonsonant [ㄱ·ㄲ·ㅋ]"},
+        desc:{ko:"교육·장소·음식 관련 어휘로 ㄱ계열 받침을 익힙니다.",vi:"Học phụ âm cuối nhóm ㄱ qua từ vựng giáo dục, địa điểm và thức ăn.",en:"Learn the ㄱ-group final consonant through education, place, and food vocabulary.",zh:"通过教育、场所、食物相关词汇学习ㄱ系列收音。",ja:"教育・場所・食べ物に関する語彙でㄱ系パッチムを学びます。",id:"Pelajari konsonan akhir kelompok ㄱ melalui kosakata pendidikan, tempat, dan makanan.",ru:"Изучите конечную согласную группы ㄱ через лексику об образовании, местах и еде.",th:"เรียนรู้ตัวสะกดกลุ่ม ㄱ ผ่านคำศัพท์เกี่ยวกับการศึกษา สถานที่ และอาหาร",mn:"Боловсрол, газар, хоолтой холбоотой үгсээр ㄱ бүлгийн төгсгөлийн гийгүүлэгчийг мэдэж авна.",uz:"Ta'lim, joy, ovqat bilan bog'liq lug'at orqali ㄱ guruhi oxirgi undoshini o'rganing.",es:"Aprenda la consonante final del grupo ㄱ mediante vocabulario de educación, lugares y comida.",fr:"Apprenez la consonne finale du groupe ㄱ à travers un vocabulaire lié à l'éducation, aux lieux et à la nourriture.",ne:"शिक्षा, स्थान, खानासँग सम्बन्धित शब्दहरूबाट ㄱ समूहको अन्त्य व्यञ्जन सिक्नुहोस्।",de:"Lernen Sie den Endkonsonanten der ㄱ-Gruppe anhand von Vokabeln zu Bildung, Orten und Essen."},
+        items:[
+          { char:"국",    word:"국",    meaning:{ko:"국",    vi:"canh",zh:"汤",en:"soup",ja:"スープ",id:"sup",ru:"суп",th:"ซุป",mn:"шөл",uz:"sho'rva",es:"soup"} },
+          { char:"학교",  word:"학교",  meaning:{ko:"학교",  vi:"trường học",zh:"学校",en:"school",ja:"学校",id:"sekolah",ru:"школа",th:"โรงเรียน",mn:"сургууль",uz:"maktab",es:"school"} },
+          { char:"약국",  word:"약국",  meaning:{ko:"약국",  vi:"hiệu thuốc",zh:"药店",en:"pharmacy",ja:"薬局",id:"apotek",ru:"аптека",th:"ร้านขายยา",mn:"эмийн сан",uz:"dorixona",es:"pharmacy"} },
+          { char:"역",    word:"역",    meaning:{ko:"역",    vi:"ga",zh:"车站",en:"station",ja:"駅",id:"stasiun",ru:"станция",th:"สถานี",mn:"буудал",uz:"stansiya",es:"station"} },
+          { char:"수박",  word:"수박",  meaning:{ko:"수박",  vi:"dưa hấu",zh:"西瓜",en:"watermelon",ja:"スイカ",id:"semangka",ru:"арбуз",th:"แตงโม",mn:"тарвас",uz:"tarvuz",es:"watermelon"} },
+          { char:"책",    word:"책",    meaning:{ko:"책",    vi:"sách",zh:"书",en:"book",ja:"本",id:"buku",ru:"книга",th:"หนังสือ",mn:"ном",uz:"kitob",es:"book"} },
+          { char:"국수",  word:"국수",  meaning:{ko:"국수",  vi:"mì",zh:"面条",en:"noodle",ja:"そば",id:"mie",ru:"лапша",th:"เส้นก๋วยเตี๋ยว",mn:"гоймон",uz:"erishtа",es:"noodle"} },
+          { char:"음악",  word:"음악",  meaning:{ko:"음악",  vi:"âm nhạc",zh:"音乐",en:"music",ja:"音楽",id:"musik",ru:"музыка",th:"ดนตรี",mn:"хөгжим",uz:"musiqa",es:"music"} },
+          { char:"박수",  word:"박수",  meaning:{ko:"박수",  vi:"tiếng vỗ tay",zh:"鼓掌",en:"applause",ja:"拍手",id:"tepuk tangan",ru:"аплодисменты",th:"การปรบมือ",mn:"алга ташилт",uz:"qarsak",es:"applause"} },
+          { char:"특별",  word:"특별",  meaning:{ko:"특별",  vi:"đặc biệt",zh:"特别",en:"special",ja:"特別",id:"istimewa",ru:"особый",th:"พิเศษ",mn:"онцгой",uz:"maxsus",es:"special"} },
+          { char:"직업",  word:"직업",  meaning:{ko:"직업",  vi:"nghề nghiệp",zh:"职业",en:"job/occupation",ja:"職業",id:"pekerjaan",ru:"профессия",th:"อาชีพ",mn:"мэргэжил",uz:"kasb",es:"job/occupation"} },
+          { char:"복잡",  word:"복잡",  meaning:{ko:"복잡",  vi:"phức tạp",zh:"复杂",en:"complicated/crowded",ja:"複雑",id:"rumit",ru:"сложный",th:"ซับซ้อน",mn:"төвөгтэй",uz:"murakkab",es:"complicated/crowded"} },
+          { char:"가족",  word:"가족",  meaning:{ko:"가족",  vi:"gia đình",zh:"家族",en:"family",ja:"家族",id:"keluarga",ru:"семья",th:"ครอบครัว",mn:"гэр бүл",uz:"oila",es:"family"} },
+          { char:"약사",  word:"약사",  meaning:{ko:"약사",  vi:"dược sĩ",zh:"药剂师",en:"pharmacist",ja:"薬剤師",id:"apoteker",ru:"фармацевт",th:"เภสัชกร",mn:"эмийн сангийн ажилтан",uz:"dorixonachi",es:"pharmacist"} },
+          { char:"음악가",word:"음악가",meaning:{ko:"음악가",vi:"nhạc sĩ",zh:"音乐家",en:"musician",ja:"音楽家",id:"musisi",ru:"музыкант",th:"นักดนตรี",mn:"хөгжимчин",uz:"musiqachi",es:"musician"} },
+          { char:"저녁",  word:"저녁",  meaning:{ko:"저녁",  vi:"buổi tối",zh:"晚上",en:"evening",ja:"夕方",id:"malam",ru:"вечер",th:"ตอนเย็น",mn:"орой",uz:"kechqurun",es:"evening"} },
+          { char:"새벽",  word:"새벽",  meaning:{ko:"새벽",  vi:"sáng sớm",zh:"黎明",en:"dawn",ja:"夜明け",id:"fajar",ru:"рассвет",th:"รุ่งเช้า",mn:"үүр цайх",uz:"tong",es:"dawn"} },
+          { char:"추석",  word:"추석",  meaning:{ko:"추석",  vi:"Trung thu",zh:"中秋",en:"Korean Thanksgiving",ja:"チュソク",id:"Chuseok",ru:"Чусок",th:"ชูซอก",mn:"Чусок",uz:"Chuseok",es:"Korean Thanksgiving"} },
+          { char:"주택",  word:"주택",  meaning:{ko:"주택",  vi:"nhà ở",zh:"住宅",en:"house",ja:"住宅",id:"rumah",ru:"жилой дом",th:"บ้าน",mn:"орон сууц",uz:"uy-joy",es:"house"} },
+          { char:"기숙사",word:"기숙사",meaning:{ko:"기숙사",vi:"ký túc xá",zh:"宿舍",en:"dormitory",ja:"寮",id:"asrama",ru:"общежитие",th:"หอพัก",mn:"дотуур байр",uz:"yotoqxona",es:"dormitory"} },
+          { char:"우체국",word:"우체국",meaning:{ko:"우체국",vi:"bưu điện",zh:"邮局",en:"post office",ja:"郵便局",id:"kantor pos",ru:"почта",th:"ที่ทำการไปรษณีย์",mn:"шуудан",uz:"pochta",es:"post office"} },
+          { char:"대학교",word:"대학교",meaning:{ko:"대학교",vi:"trường đại học",zh:"大学",en:"university",ja:"大学",id:"universitas",ru:"университет",th:"มหาวิทยาลัย",mn:"их сургууль",uz:"universitet",es:"university"} },
+          { char:"개학",  word:"개학",  meaning:{ko:"개학",  vi:"khai giảng",zh:"开学",en:"beginning of school",ja:"始業式",id:"awal sekolah",ru:"начало учёбы",th:"เปิดเทอม",mn:"сургууль эхлэх",uz:"maktab boshlanishi",es:"beginning of school"} },
+          { char:"과목",  word:"과목",  meaning:{ko:"과목",  vi:"môn học",zh:"科目",en:"subject",ja:"科目",id:"mata pelajaran",ru:"предмет",th:"วิชา",mn:"хичээл",uz:"fan",es:"subject"} },
+          { char:"역사",  word:"역사",  meaning:{ko:"역사",  vi:"lịch sử",zh:"历史",en:"history",ja:"歴史",id:"sejarah",ru:"история",th:"ประวัติศาสตร์",mn:"түүх",uz:"tarix",es:"history"} },
+          { char:"화학",  word:"화학",  meaning:{ko:"화학",  vi:"hóa học",zh:"化学",en:"chemistry",ja:"化学",id:"kimia",ru:"химия",th:"เคมี",mn:"хими",uz:"kimyo",es:"chemistry"} },
+          { char:"수학",  word:"수학",  meaning:{ko:"수학",  vi:"toán học",zh:"数学",en:"mathematics",ja:"数学",id:"matematika",ru:"математика",th:"คณิตศาสตร์",mn:"математик",uz:"matematika",es:"mathematics"} },
+          { char:"숙제",  word:"숙제",  meaning:{ko:"숙제",  vi:"bài tập về nhà",zh:"作业",en:"homework",ja:"宿題",id:"pekerjaan rumah",ru:"домашнее задание",th:"การบ้าน",mn:"гэрийн даалгавар",uz:"uy vazifasi",es:"homework"} },
+          { char:"지각",  word:"지각",  meaning:{ko:"지각",  vi:"đi muộn",zh:"迟到",en:"late/tardy",ja:"遅刻",id:"terlambat",ru:"опоздание",th:"มาสาย",mn:"хожимдох",uz:"kechikish",es:"late/tardy"} },
+          { char:"규칙",  word:"규칙",  meaning:{ko:"규칙",  vi:"quy tắc",zh:"规则",en:"rule",ja:"規則",id:"aturan",ru:"правило",th:"กฎ",mn:"дүрэм",uz:"qoida",es:"rule"} },
+          { char:"교육",  word:"교육",  meaning:{ko:"교육",  vi:"giáo dục",zh:"教育",en:"education",ja:"教育",id:"pendidikan",ru:"образование",th:"การศึกษา",mn:"боловсрол",uz:"ta'lim",es:"education"} },
+          { char:"학사",  word:"학사",  meaning:{ko:"학사",  vi:"cử nhân",zh:"学士",en:"bachelor",ja:"学士",id:"sarjana",ru:"бакалавр",th:"ปริญญาตรี",mn:"бакалавр",uz:"bakalavr",es:"bachelor"} },
+          { char:"석사",  word:"석사",  meaning:{ko:"석사",  vi:"thạc sĩ",zh:"硕士",en:"master",ja:"修士",id:"magister",ru:"магистр",th:"ปริญญาโท",mn:"магистр",uz:"magistr",es:"master"} },
+          { char:"박사",  word:"박사",  meaning:{ko:"박사",  vi:"tiến sĩ",zh:"博士",en:"doctor/PhD",ja:"博士",id:"doktor",ru:"доктор",th:"ดอกเตอร์",mn:"доктор",uz:"doktor",es:"doctor/PhD"} },
+          { char:"유학",  word:"유학",  meaning:{ko:"유학",  vi:"du học",zh:"留学",en:"study abroad",ja:"留学",id:"belajar di luar negeri",ru:"учёба за рубежом",th:"เรียนต่างประเทศ",mn:"гадаадад суралцах",uz:"chet elda o'qish",es:"study abroad"} },
+          { char:"학기",  word:"학기",  meaning:{ko:"학기",  vi:"học kì",zh:"学期",en:"semester",ja:"学期",id:"semester",ru:"семестр",th:"ภาคเรียน",mn:"улирал",uz:"semestr",es:"semester"} },
+          { char:"부엌",  word:"부엌",  meaning:{ko:"부엌",  vi:"nhà bếp",zh:"厨房",en:"kitchen",ja:"台所",id:"dapur",ru:"кухня",th:"ครัว",mn:"гал тогоо",uz:"oshxona",es:"kitchen"} },
+          { char:"식탁",  word:"식탁",  meaning:{ko:"식탁",  vi:"bàn ăn",zh:"餐桌",en:"dining table",ja:"食卓",id:"meja makan",ru:"обеденный стол",th:"โต๊ะอาหาร",mn:"хоолны ширээ",uz:"ovqat stoli",es:"dining table"} },
+          { char:"외식",  word:"외식",  meaning:{ko:"외식",  vi:"ăn ngoài",zh:"外出就餐",en:"eat out",ja:"外食",id:"makan di luar",ru:"есть в ресторане",th:"ทานข้าวนอกบ้าน",mn:"гадуур хоол идэх",uz:"tashqarida ovqatlanish",es:"eat out"} },
+          { char:"목욕",  word:"목욕",  meaning:{ko:"목욕",  vi:"tắm",zh:"洗澡",en:"bath",ja:"入浴",id:"mandi",ru:"купание",th:"อาบน้ำ",mn:"усанд орох",uz:"cho'milish",es:"bath"} },
+          { char:"약속",  word:"약속",  meaning:{ko:"약속",  vi:"lời hứa/hẹn",zh:"约定",en:"promise/appointment",ja:"約束",id:"janji",ru:"обещание",th:"นัดหมาย",mn:"амлалт",uz:"va'da",es:"promise/appointment"} },
+          { char:"바닥",  word:"바닥",  meaning:{ko:"바닥",  vi:"sàn",zh:"地面",en:"floor",ja:"床",id:"lantai",ru:"пол",th:"พื้น",mn:"шал",uz:"pol",es:"floor"} },
+          { char:"치약",  word:"치약",  meaning:{ko:"치약",  vi:"kem đánh răng",zh:"牙膏",en:"toothpaste",ja:"歯磨き粉",id:"pasta gigi",ru:"зубная паста",th:"ยาสีฟัน",mn:"шүдний оо",uz:"tish pastasi",es:"toothpaste"} },
+          { char:"택배",  word:"택배",  meaning:{ko:"택배",  vi:"chuyển phát",zh:"快递",en:"delivery",ja:"宅配",id:"pengiriman",ru:"служба доставки",th:"พัสดุ",mn:"хүргэлт",uz:"yetkazib berish",es:"delivery"} },
+          { char:"내복",  word:"내복",  meaning:{ko:"내복",  vi:"quần áo lót",zh:"内衣",en:"underwear",ja:"下着",id:"pakaian dalam",ru:"нижнее бельё",th:"ชุดชั้นใน",mn:"доторхи хувцас",uz:"ichki kiyim",es:"underwear"} },
+          { char:"축구화",word:"축구화",meaning:{ko:"축구화",vi:"giày bóng đá",zh:"足球鞋",en:"soccer shoes",ja:"サッカーシューズ",id:"sepatu bola",ru:"бутсы",th:"รองเท้าฟุตบอล",mn:"хөлбөмбөгийн гутал",uz:"futbol poyabzali",es:"soccer shoes"} },
+          { char:"넥타이",word:"넥타이",meaning:{ko:"넥타이",vi:"cà vạt",zh:"领带",en:"neck tie",ja:"ネクタイ",id:"dasi",ru:"галстук",th:"เนคไท",mn:"зангиа",uz:"galstuk",es:"neck tie"} },
+          { char:"목도리",word:"목도리",meaning:{ko:"목도리",vi:"khăn quàng cổ",zh:"围巾",en:"scarf/muffler",ja:"マフラー",id:"syal",ru:"шарф",th:"ผ้าพันคอ",mn:"хүзүүвч",uz:"sharf",es:"scarf/muffler"} },
+          { char:"턱",    word:"턱",    meaning:{ko:"턱",    vi:"cằm",zh:"下巴",en:"chin",ja:"あご",id:"dagu",ru:"подбородок",th:"คาง",mn:"эрүү",uz:"iyak",es:"chin"} },
+          { char:"목",    word:"목",    meaning:{ko:"목",    vi:"cổ",zh:"脖子",en:"neck",ja:"首",id:"leher",ru:"шея",th:"คอ",mn:"хүзүү",uz:"bo'yin",es:"neck"} },
+          { char:"식도",  word:"식도",  meaning:{ko:"식도",  vi:"thực quản",zh:"食道",en:"throat",ja:"食道",id:"kerongkongan",ru:"пищевод",th:"หลอดอาหาร",mn:"улаан хоолой",uz:"qizilo'ngach",es:"throat"} },
+          { char:"시력",  word:"시력",  meaning:{ko:"시력",  vi:"thị lực",zh:"视力",en:"vision",ja:"視力",id:"penglihatan",ru:"зрение",th:"สายตา",mn:"харааны чадвар",uz:"ko'rish qobiliyati",es:"vision"} },
+          { char:"깍두기",word:"깍두기",meaning:{ko:"깍두기",vi:"kim chi củ cải",zh:"萝卜泡菜",en:"diced radish kimchi",ja:"カクトゥギ",id:"kimchi lobak",ru:"кактуги",th:"กิมจิหัวไชเท้า",mn:"хаздуги",uz:"kaktughi",es:"diced radish kimchi"} },
+          { char:"떡",    word:"떡",    meaning:{ko:"떡",    vi:"bánh gạo",zh:"年糕",en:"rice cake",ja:"餅",id:"kue beras",ru:"рисовый хлеб",th:"ขนมข้าวเกาหลี",mn:"тогтмол",uz:"guruch keki",es:"rice cake"} },
+          { char:"떡볶이",word:"떡볶이",meaning:{ko:"떡볶이",vi:"bánh gạo cay",zh:"炒年糕",en:"spicy rice cake",ja:"トッポッキ",id:"tteokbokki",ru:"токпокки",th:"ต็อกบกกี",mn:"тогтмол болгосон",uz:"tteokbokki",es:"spicy rice cake"} },
+          { char:"도시락",word:"도시락",meaning:{ko:"도시락",vi:"cơm hộp",zh:"便当",en:"packed lunch",ja:"お弁当",id:"bekal makan siang",ru:"еда в дороге",th:"กล่องข้าว",mn:"хоолны хайрцаг",uz:"tushlik quticha",es:"packed lunch"} },
+          { char:"낙지",  word:"낙지",  meaning:{ko:"낙지",  vi:"bạch tuộc",zh:"八爪鱼",en:"octopus",ja:"タコ",id:"gurita",ru:"осьминог",th:"ปลาหมึก",mn:"наймалж",uz:"ahtapot",es:"octopus"} },
+          { char:"맥주",  word:"맥주",  meaning:{ko:"맥주",  vi:"bia",zh:"啤酒",en:"beer",ja:"ビール",id:"bir",ru:"пиво",th:"เบียร์",mn:"шар айраг",uz:"pivo",es:"beer"} },
+          { char:"녹차",  word:"녹차",  meaning:{ko:"녹차",  vi:"trà xanh",zh:"绿茶",en:"green tea",ja:"緑茶",id:"teh hijau",ru:"зелёный чай",th:"ชาเขียว",mn:"ногоон цай",uz:"yashil choy",es:"green tea"} },
+          { char:"세탁기",word:"세탁기",meaning:{ko:"세탁기",vi:"máy giặt",zh:"洗衣机",en:"washer",ja:"洗濯機",id:"mesin cuci",ru:"стиральная машина",th:"เครื่องซักผ้า",mn:"угаалгын машин",uz:"kir yuvish mashinasi",es:"washer"} },
+          { char:"복사기",word:"복사기",meaning:{ko:"복사기",vi:"máy photo",zh:"复印机",en:"copier",ja:"コピー機",id:"mesin fotokopi",ru:"копировальный аппарат",th:"เครื่องถ่ายเอกสาร",mn:"хувилагч",uz:"ko'chirma mashinasi",es:"copier"} },
+          { char:"고속도로",word:"고속도로",meaning:{ko:"고속도로",vi:"đường cao tốc",zh:"高速公路",en:"highway",ja:"高速道路",id:"jalan tol",ru:"автострада",th:"ทางด่วน",mn:"хурдны зам",uz:"avtomagistral",es:"highway"} },
+          { char:"택시",  word:"택시",  meaning:{ko:"택시",  vi:"taxi",zh:"出租车",en:"taxi",ja:"タクシー",id:"taksi",ru:"такси",th:"แท็กซี่",mn:"такси",uz:"taksi",es:"taxi"} },
+          { char:"트럭",  word:"트럭",  meaning:{ko:"트럭",  vi:"xe tải",zh:"卡车",en:"truck",ja:"トラック",id:"truk",ru:"грузовик",th:"รถบรรทุก",mn:"ачааны машин",uz:"yuk mashinasi",es:"truck"} },
+          { char:"과속",  word:"과속",  meaning:{ko:"과속",  vi:"vượt tốc độ",zh:"超速",en:"speeding",ja:"スピード違反",id:"ngebut",ru:"превышение скорости",th:"ขับเร็วเกิน",mn:"хурд хэтрүүлэх",uz:"tezlikni oshirish",es:"speeding"} },
+          { char:"육교",  word:"육교",  meaning:{ko:"육교",  vi:"cầu vượt",zh:"天桥",en:"overhead bridge",ja:"陸橋",id:"jembatan penyeberangan",ru:"путепровод",th:"สะพานลอย",mn:"гүүр",uz:"ko'prik",es:"overhead bridge"} },
+          { char:"목표",  word:"목표",  meaning:{ko:"목표",  vi:"mục tiêu",zh:"目标",en:"goal/target",ja:"目標",id:"tujuan",ru:"цель",th:"เป้าหมาย",mn:"зорилго",uz:"maqsad",es:"goal/target"} },
+          { char:"이륙",  word:"이륙",  meaning:{ko:"이륙",  vi:"cất cánh",zh:"起飞",en:"take-off",ja:"離陸",id:"lepas landas",ru:"взлёт",th:"การบินขึ้น",mn:"нислэг",uz:"uchish",es:"take-off"} },
+          { char:"착륙",  word:"착륙",  meaning:{ko:"착륙",  vi:"hạ cánh",zh:"着陆",en:"landing",ja:"着陸",id:"mendarat",ru:"приземление",th:"การลงจอด",mn:"буух",uz:"qo'nish",es:"landing"} },
+          { char:"기내식",word:"기내식",meaning:{ko:"기내식",vi:"thức ăn trong máy bay",zh:"机内餐",en:"in-flight meal",ja:"機内食",id:"makanan pesawat",ru:"питание на борту",th:"อาหารบนเครื่องบิน",mn:"онгоцны хоол",uz:"samolyotdagi ovqat",es:"in-flight meal"} },
+          { char:"주식",  word:"주식",  meaning:{ko:"주식",  vi:"cổ phiếu",zh:"股票",en:"stock",ja:"株式",id:"saham",ru:"акция",th:"หุ้น",mn:"хувьцаа",uz:"aksiya",es:"stock"} },
+          { char:"계획",  word:"계획",  meaning:{ko:"계획",  vi:"kế hoạch",zh:"计划",en:"plan",ja:"計画",id:"rencana",ru:"план",th:"แผน",mn:"төлөвлөгөө",uz:"reja",es:"plan"} },
+          { char:"약",    word:"약",    meaning:{ko:"약",    vi:"thuốc",zh:"药",en:"medicine/drug",ja:"薬",id:"obat",ru:"лекарство",th:"ยา",mn:"эм",uz:"dori",es:"medicine/drug"} },
+          { char:"속",    word:"속",    meaning:{ko:"속",    vi:"trong",zh:"里面",en:"inside",ja:"中",id:"dalam",ru:"внутри",th:"ข้างใน",mn:"дотор",uz:"ichida",es:"inside"} },
+          { char:"밖",    word:"밖",    meaning:{ko:"밖",    vi:"ngoài",zh:"外面",en:"outside",ja:"外",id:"luar",ru:"снаружи",th:"ข้างนอก",mn:"гадна",uz:"tashqarida",es:"outside"} },
+          { char:"북(北)",word:"북",   meaning:{ko:"북(北)",vi:"phía bắc",zh:"北",en:"north",ja:"北",id:"utara",ru:"север",th:"เหนือ",mn:"хойд",uz:"shimol",es:"north"} },
+          { char:"독서",  word:"독서",  meaning:{ko:"독서",  vi:"đọc sách",zh:"读书",en:"reading",ja:"読書",id:"membaca buku",ru:"чтение книг",th:"การอ่านหนังสือ",mn:"ном унших",uz:"kitob o'qish",es:"reading"} },
+          { char:"탁구",  word:"탁구",  meaning:{ko:"탁구",  vi:"bóng bàn",zh:"乒乓球",en:"ping-pong",ja:"卓球",id:"tenis meja",ru:"настольный теннис",th:"ปิงปอง",mn:"ширээний теннис",uz:"stol tennisi",es:"ping-pong"} },
+          { char:"역도",  word:"역도",  meaning:{ko:"역도",  vi:"cử tạ",zh:"举重",en:"weight lifting",ja:"重量挙げ",id:"angkat besi",ru:"тяжёлая атлетика",th:"ยกน้ำหนัก",mn:"сурьяа өргөх",uz:"og'irlik ko'tarish",es:"weight lifting"} },
+          { char:"바둑",  word:"바둑",  meaning:{ko:"바둑",  vi:"cờ vây",zh:"围棋",en:"Go game",ja:"囲碁",id:"Go",ru:"Го",th:"หมากล้อม",mn:"Го тоглоом",uz:"Go o'yini",es:"Go game"} },
+          { char:"낚시",  word:"낚시",  meaning:{ko:"낚시",  vi:"câu cá",zh:"钓鱼",en:"fishing",ja:"釣り",id:"memancing",ru:"рыбалка",th:"การตกปลา",mn:"загас агнах",uz:"baliq ovlash",es:"fishing"} },
+          { char:"예약",  word:"예약",  meaning:{ko:"예약",  vi:"đặt chỗ",zh:"预约",en:"reservation",ja:"予約",id:"reservasi",ru:"бронирование",th:"การจอง",mn:"захиалга",uz:"bron",es:"reservation"} },
+          { char:"저축",  word:"저축",  meaning:{ko:"저축",  vi:"tiết kiệm",zh:"储蓄",en:"saving",ja:"貯蓄",id:"tabungan",ru:"накопление",th:"การออม",mn:"хадгаламж",uz:"jamg'arma",es:"saving"} },
+          { char:"악어",  word:"악어",  meaning:{ko:"악어",  vi:"cá sấu",zh:"鳄鱼",en:"alligator",ja:"ワニ",id:"buaya",ru:"крокодил",th:"จระเข้",mn:"матар",uz:"timsoh",es:"alligator"} },
+          { char:"박쥐",  word:"박쥐",  meaning:{ko:"박쥐",  vi:"con dơi",zh:"蝙蝠",en:"bat",ja:"コウモリ",id:"kelelawar",ru:"летучая мышь",th:"ค้างคาว",mn:"сарьсан багваахай",uz:"ko'rshapalak",es:"bat"} },
+          { char:"미역",  word:"미역",  meaning:{ko:"미역",  vi:"rong biển",zh:"海带",en:"seaweed",ja:"ワカメ",id:"rumput laut",ru:"морская капуста",th:"สาหร่าย",mn:"далайн замаг",uz:"dengiz o'ti",es:"seaweed"} },
+          { char:"사막",  word:"사막",  meaning:{ko:"사막",  vi:"sa mạc",zh:"沙漠",en:"desert",ja:"砂漠",id:"gurun",ru:"пустыня",th:"ทะเลทราย",mn:"цөл",uz:"cho'l",es:"desert"} },
+          { char:"북극",  word:"북극",  meaning:{ko:"북극",  vi:"Bắc Cực",zh:"北极",en:"North Pole",ja:"北極",id:"Kutub Utara",ru:"Северный полюс",th:"ขั้วโลกเหนือ",mn:"Хойд туйл",uz:"Shimoliy qutb",es:"North Pole"} },
+          { char:"적도",  word:"적도",  meaning:{ko:"적도",  vi:"xích đạo",zh:"赤道",en:"equator",ja:"赤道",id:"khatulistiwa",ru:"экватор",th:"เส้นศูนย์สูตร",mn:"экватор",uz:"ekvator",es:"equator"} },
+          { char:"대륙",  word:"대륙",  meaning:{ko:"대륙",  vi:"đại lục",zh:"大陆",en:"continent",ja:"大陸",id:"benua",ru:"континент",th:"ทวีป",mn:"тив",uz:"qit'a",es:"continent"} },
+          { char:"미국",  word:"미국",  meaning:{ko:"미국",  vi:"Mỹ",zh:"美国",en:"United States",ja:"アメリカ",id:"Amerika Serikat",ru:"США",th:"สหรัฐอเมริกา",mn:"АНУ",uz:"AQSH",es:"United States"} },
+          { char:"태국",  word:"태국",  meaning:{ko:"태국",  vi:"Thái Lan",zh:"泰国",en:"Thailand",ja:"タイ",id:"Thailand",ru:"Таиланд",th:"ไทย",mn:"Тайланд",uz:"Tailand",es:"Thailand"} },
+          { char:"멕시코",word:"멕시코",meaning:{ko:"멕시코",vi:"Mexico",zh:"墨西哥",en:"Mexico",ja:"メキシコ",id:"Meksiko",ru:"Мексика",th:"เม็กซิโก",mn:"Мексик",uz:"Meksika",es:"Mexico"} },
+          { char:"국가",  word:"국가",  meaning:{ko:"국가",  vi:"quốc gia",zh:"国家",en:"nation",ja:"国家",id:"negara",ru:"государство",th:"ประเทศ",mn:"улс",uz:"davlat",es:"nation"} },
+          { char:"외국",  word:"외국",  meaning:{ko:"외국",  vi:"nước ngoài",zh:"外国",en:"foreign country",ja:"外国",id:"negara asing",ru:"иностранное государство",th:"ต่างประเทศ",mn:"гадаад улс",uz:"xorijiy davlat",es:"foreign country"} },
+          { char:"국적",  word:"국적",  meaning:{ko:"국적",  vi:"quốc tịch",zh:"国籍",en:"nationality",ja:"国籍",id:"kewarganegaraan",ru:"гражданство",th:"สัญชาติ",mn:"харьяалал",uz:"fuqarolik",es:"nationality"} },
+          { char:"뉴욕",  word:"뉴욕",  meaning:{ko:"뉴욕",  vi:"New York",zh:"纽约",en:"New York",ja:"ニューヨーク",id:"New York",ru:"Нью-Йорк",th:"นิวยอร์ก",mn:"Нью-Йорк",uz:"Nyu-York",es:"New York"} },
+          { char:"액체",  word:"액체",  meaning:{ko:"액체",  vi:"chất lỏng",zh:"液体",en:"liquid",ja:"液体",id:"cairan",ru:"жидкость",th:"ของเหลว",mn:"шингэн",uz:"suyuqlik",es:"liquid"} },
+          { char:"과학",  word:"과학",  meaning:{ko:"과학",  vi:"khoa học",zh:"科学",en:"science",ja:"科学",id:"sains",ru:"наука",th:"วิทยาศาสตร์",mn:"шинжлэх ухаан",uz:"fan",es:"science"} },
+          { char:"속도",  word:"속도",  meaning:{ko:"속도",  vi:"tốc độ",zh:"速度",en:"speed",ja:"速度",id:"kecepatan",ru:"скорость",th:"ความเร็ว",mn:"хурд",uz:"tezlik",es:"speed"} },
+          { char:"보라색",word:"보라색",meaning:{ko:"보라색",vi:"màu tím",zh:"紫色",en:"violet/purple",ja:"紫色",id:"ungu",ru:"фиолетовый",th:"สีม่วง",mn:"нил ягаан",uz:"binafsha rang",es:"violet/purple"} },
+          { char:"초록색",word:"초록색",meaning:{ko:"초록색",vi:"màu xanh lá cây",zh:"绿色",en:"green",ja:"緑色",id:"hijau",ru:"зелёный",th:"สีเขียว",mn:"ногоон",uz:"yashil rang",es:"green"} },
+          { char:"억",    word:"억",    meaning:{ko:"억",    vi:"trăm triệu",zh:"亿",en:"hundred million",ja:"億",id:"seratus juta",ru:"сто миллионов",th:"ร้อยล้าน",mn:"зуун сая",uz:"yuz million",es:"hundred million"} },
+          { char:"격려",  word:"격려",  meaning:{ko:"격려",  vi:"khích lệ",zh:"鼓励",en:"encourage",ja:"激励",id:"dorongan",ru:"поощрение",th:"การให้กำลังใจ",mn:"дэмжих",uz:"rag'batlantirish",es:"encourage"} },
+          { char:"추억",  word:"추억",  meaning:{ko:"추억",  vi:"kỉ niệm",zh:"回忆",en:"remembrance",ja:"思い出",id:"kenangan",ru:"воспоминание",th:"ความทรงจำ",mn:"дурсамж",uz:"xotira",es:"remembrance"} },
+          { char:"기억",  word:"기억",  meaning:{ko:"기억",  vi:"trí nhớ",zh:"记忆",en:"memory",ja:"記憶",id:"ingatan",ru:"память",th:"ความจำ",mn:"ой санамж",uz:"xotira",es:"memory"} },
+          { char:"노력",  word:"노력",  meaning:{ko:"노력",  vi:"nỗ lực",zh:"努力",en:"effort",ja:"努力",id:"usaha",ru:"старание",th:"ความพยายาม",mn:"хичээл зүтгэл",uz:"harakat",es:"effort"} },
+          { char:"목적",  word:"목적",  meaning:{ko:"목적",  vi:"mục đích",zh:"目的",en:"purpose",ja:"目的",id:"tujuan",ru:"цель",th:"วัตถุประสงค์",mn:"зорилго",uz:"maqsad",es:"purpose"} },
+          { char:"부탁",  word:"부탁",  meaning:{ko:"부탁",  vi:"nhờ vả",zh:"拜托",en:"asking favor",ja:"お願い",id:"permintaan tolong",ru:"просьба",th:"การขอร้อง",mn:"хүсэлт",uz:"iltimos",es:"asking favor"} },
+          { char:"목소리",word:"목소리",meaning:{ko:"목소리",vi:"giọng nói",zh:"声音",en:"voice",ja:"声",id:"suara",ru:"голос",th:"เสียง",mn:"дуу хоолой",uz:"ovoz",es:"voice"} },
+          { char:"작다",  word:"작다",  meaning:{ko:"작다",  vi:"nhỏ bé",zh:"小",en:"small",ja:"小さい",id:"kecil",ru:"маленький",th:"เล็ก",mn:"жижиг",uz:"kichik",es:"small"} },
+          { char:"적다",  word:"적다",  meaning:{ko:"적다",  vi:"ít",zh:"少",en:"few/little",ja:"少ない",id:"sedikit",ru:"мало",th:"น้อย",mn:"цөөн",uz:"kam",es:"few/little"} },
+          { char:"착하다",word:"착하다",meaning:{ko:"착하다",vi:"착하다",zh:"善良",en:"kind",ja:"優しい",id:"baik hati",ru:"добрый",th:"ใจดี",mn:"сайхан сэтгэлтэй",uz:"mehribon",es:"kind"} },
+          { char:"똑똑하다",word:"똑똑하다",meaning:{ko:"똑똑하다",vi:"thông minh",zh:"聪明",en:"smart",ja:"賢い",id:"pintar",ru:"умный",th:"ฉลาด",mn:"ухаалаг",uz:"aqlli",es:"smart"} },
+          { char:"익숙하다",word:"익숙하다",meaning:{ko:"익숙하다",vi:"quen thuộc",zh:"熟悉",en:"familiar",ja:"慣れている",id:"terbiasa",ru:"привычный",th:"คุ้นเคย",mn:"дасаж зуршсан",uz:"ko'nikma",es:"familiar"} },
+          { char:"깎다",  word:"깎다",  meaning:{ko:"깎다",  vi:"cắt/gọt",zh:"削",en:"cut/peel",ja:"削る",id:"mengupas",ru:"срезать",th:"ปอก/ตัด",mn:"хуулах",uz:"tozalamoq",es:"cut/peel"} },
+          { char:"볶다",  word:"볶다",  meaning:{ko:"볶다",  vi:"xào rang",zh:"炒",en:"roast/stir-fry",ja:"炒める",id:"menumis",ru:"жарить",th:"ผัด",mn:"шарах",uz:"qovurmoq",es:"roast/stir-fry"} },
+          { char:"식다",  word:"식다",  meaning:{ko:"식다",  vi:"nguội",zh:"变凉",en:"cool down",ja:"冷める",id:"mendingin",ru:"остывать",th:"เย็นลง",mn:"хөрөх",uz:"sovumoq",es:"cool down"} },
+          { char:"섞다",  word:"섞다",  meaning:{ko:"섞다",  vi:"trộn",zh:"混合",en:"mix",ja:"混ぜる",id:"mencampur",ru:"смешивать",th:"ผสม",mn:"холих",uz:"aralashtimoq",es:"mix"} },
+          { char:"찍다",  word:"찍다",  meaning:{ko:"찍다",  vi:"chụp/chấm",zh:"拍照/蘸",en:"take (photo)",ja:"撮る",id:"mengambil foto",ru:"фотографировать",th:"ถ่ายรูป",mn:"зураг дарах",uz:"rasm olmoq",es:"take (photo)"} },
+          { char:"먹다",  word:"먹다",  meaning:{ko:"먹다",  vi:"ăn",zh:"吃",en:"eat",ja:"食べる",id:"makan",ru:"есть",th:"กิน",mn:"идэх",uz:"yemoq",es:"eat"} },
+          { char:"식사하다",word:"식사하다",meaning:{ko:"식사하다",vi:"dùng bữa",zh:"用餐",en:"have a meal",ja:"食事する",id:"makan makanan",ru:"принимать пищу",th:"ทานอาหาร",mn:"хоол идэх",uz:"ovqatlanmoq",es:"have a meal"} },
+          { char:"닦다",  word:"닦다",  meaning:{ko:"닦다",  vi:"lau dọn",zh:"擦",en:"clean/wipe",ja:"磨く",id:"membersihkan",ru:"вытирать",th:"เช็ด",mn:"арчих",uz:"artmoq",es:"clean/wipe"} },
+          { char:"숙제하다",word:"숙제하다",meaning:{ko:"숙제하다",vi:"làm bài tập",zh:"做作业",en:"do homework",ja:"宿題をする",id:"mengerjakan PR",ru:"делать домашнее задание",th:"ทำการบ้าน",mn:"гэрийн даалгавар хийх",uz:"uy vazifasini bajarmoq",es:"do homework"} },
+          { char:"축하하다",word:"축하하다",meaning:{ko:"축하하다",vi:"chúc mừng",zh:"祝贺",en:"congratulate",ja:"祝う",id:"mengucapkan selamat",ru:"поздравлять",th:"แสดงความยินดี",mn:"баяр хүргэх",uz:"tabriklаmoq",es:"congratulate"} },
+          { char:"약속하다",word:"약속하다",meaning:{ko:"약속하다",vi:"hứa hẹn",zh:"约定",en:"promise",ja:"約束する",id:"berjanji",ru:"обещать",th:"สัญญา",mn:"амлах",uz:"va'da bermoq",es:"promise"} },
+          { char:"예약하다",word:"예약하다",meaning:{ko:"예약하다",vi:"đặt chỗ trước",zh:"预约",en:"reserve",ja:"予約する",id:"mereservasi",ru:"бронировать",th:"จอง",mn:"захиалах",uz:"bron qilmoq",es:"reserve"} },
+          { char:"기억하다",word:"기억하다",meaning:{ko:"기억하다",vi:"ghi nhớ",zh:"记住",en:"memorize/remember",ja:"覚える",id:"mengingat",ru:"помнить",th:"จำ",mn:"санах",uz:"eslab qolmoq",es:"memorize/remember"} },
+          { char:"시작하다",word:"시작하다",meaning:{ko:"시작하다",vi:"bắt đầu",zh:"开始",en:"start",ja:"始める",id:"memulai",ru:"начинать",th:"เริ่มต้น",mn:"эхлэх",uz:"boshlаmoq",es:"start"} },
+          { char:"막히다",word:"막히다", meaning:{ko:"막히다",vi:"bị tắc nghẽn",zh:"堵塞",en:"be blocked",ja:"支える",id:"tersumbat",ru:"быть заблокированным",th:"ติดขัด",mn:"түгжрэх",uz:"tiqilib qolmoq",es:"be blocked"} },
+          { char:"도착하다",word:"도착하다",meaning:{ko:"도착하다",vi:"đến nơi",zh:"到达",en:"arrive",ja:"到着する",id:"tiba",ru:"прибывать",th:"มาถึง",mn:"ирэх",uz:"yetib kelmoq",es:"arrive"} },
+          { char:"익다",  word:"익다",  meaning:{ko:"익다",  vi:"chín",zh:"成熟/熟透",en:"ripen/be cooked",ja:"熟す",id:"matang",ru:"созревать",th:"สุก",mn:"боловсрох",uz:"pismoq",es:"ripen/be cooked"} },
+          { char:"녹다",  word:"녹다",  meaning:{ko:"녹다",  vi:"tan ra",zh:"融化",en:"melt/dissolve",ja:"溶ける",id:"mencair",ru:"таять",th:"ละลาย",mn:"хайлах",uz:"ermoq",es:"melt/dissolve"} },
+          { char:"노약자석",word:"노약자석",meaning:{ko:"노약자석",vi:"chỗ ngồi ưu tiên",zh:"老弱残疾人座位",en:"priority seat",ja:"優先席",id:"tempat duduk prioritas",ru:"места для пожилых",th:"ที่นั่งผู้สูงอายุ",mn:"ахмадын суудал",uz:"imtiyozli o'rindiq",es:"priority seat"} },
+          { char:"페이스북",word:"페이스북",meaning:{ko:"페이스북",vi:"Facebook",zh:"脸书",en:"Facebook",ja:"フェイスブック",id:"Facebook",ru:"Facebook",th:"เฟซบุ๊ก",mn:"Фэйсбүүк",uz:"Facebook",es:"Facebook"} },
+          { char:"부족하다",word:"부족하다",meaning:{ko:"부족하다",vi:"không đủ",zh:"不足",en:"insufficient",ja:"足りない",id:"tidak cukup",ru:"недостаточный",th:"ไม่เพียงพอ",mn:"хүрэлцэхгүй",uz:"yetarli emas",es:"insufficient"} },
+          { char:"합격",  word:"합격",  meaning:{ko:"합격",vi:"đậu/trúng tuyển",zh:"合格",en:"pass (exam)",ja:"合格",id:"lulus",ru:"поступление",th:"ผ่าน",mn:"тэнцэх",uz:"o'tmoq",es:"pass (exam)"} },
+          { char:"불합격",word:"불합격",meaning:{ko:"불합격",vi:"trượt",zh:"不合格",en:"fail (exam)",ja:"不合格",id:"gagal",ru:"провал",th:"ไม่ผ่าน",mn:"тэнцэхгүй",uz:"o'tolmaslik",es:"fail (exam)"} },
+          { char:"출국",  word:"출국",  meaning:{ko:"출국",vi:"xuất cảnh",zh:"出国",en:"departure",ja:"出国",id:"keberangkatan",ru:"выезд из страны",th:"ออกนอกประเทศ",mn:"гарах",uz:"chiqish",es:"departure"} },
+          { char:"입국",  word:"입국",  meaning:{ko:"입국",vi:"nhập cảnh",zh:"入国",en:"entry",ja:"入国",id:"kedatangan",ru:"въезд в страну",th:"เข้าประเทศ",mn:"орох",uz:"kirish",es:"entry"} },
+          { char:"목격",  word:"목격",  meaning:{ko:"목격",vi:"chứng kiến",zh:"目击",en:"witness",ja:"目撃",id:"menyaksikan",ru:"стать свидетелем",th:"เป็นพยาน",mn:"гэрч болох",uz:"guvoh bo'lmoq",es:"witness"} },
+          { char:"연락",  word:"연락",  meaning:{ko:"연락",vi:"liên lạc",zh:"联络",en:"contact",ja:"連絡",id:"kontak",ru:"связь",th:"ติดต่อ",mn:"холбоо барих",uz:"aloqa",es:"contact"} },
+                ],
+        tip:{ko:"💡 [대표음화] ㄱ·ㄲ·ㅋ은 받침에서 모두 [ㄱ]으로 발음해요. 표기는 달라도 소리는 같아요! 예) 국[국] 부엌[부억] 볶다[볶따]",vi:"💡 [Âm đại diện] ㄱ·ㄲ·ㅋ đều phát âm là [ㄱ] ở vị trí cuối. Chữ viết khác nhau nhưng âm thanh giống nhau! Ví dụ: 국[국] 부엌[부억]",en:"💡 [Representative sound] ㄱ·ㄲ·ㅋ are all pronounced as [ㄱ] at the end. Different spelling, same sound! e.g. 국[국] 부엌[부억]",zh:"💡【代表音化】ㄱ·ㄲ·ㅋ作收音时都发[ㄱ]音。写法不同，发音相同！例：국[국] 부엌[부억] 볶다[볶따]",ja:"💡【代表音化】ㄱ·ㄲ·ㅋはパッチムでは全て[ㄱ]と発音します。表記は違っても音は同じです！例）국[국] 부엌[부억] 볶다[볶따]",id:"💡[Bunyi representatif] ㄱ·ㄲ·ㅋ semuanya diucapkan sebagai [ㄱ] saat menjadi konsonan akhir. Ejaan berbeda tapi bunyinya sama! Contoh) 국[국] 부엌[부억] 볶다[볶따]",ru:"💡[Репрезентативный звук] ㄱ·ㄲ·ㅋ в конце слова всегда произносятся как [ㄱ]. Написание разное, а звук одинаковый! Напр.) 국[국] 부엌[부억] 볶다[볶따]",th:"💡[เสียงตัวแทน] ㄱ·ㄲ·ㅋ เมื่อเป็นตัวสะกดจะออกเสียงเป็น [ㄱ] ทั้งหมด การเขียนต่างกันแต่เสียงเหมือนกัน! ตัวอย่าง) 국[국] 부엌[부억] 볶다[볶따]",mn:"💡[Төлөөлөх авиа] ㄱ·ㄲ·ㅋ нь төгсгөлийн байрлалд бүгд [ㄱ] гэж дуудагдана. Бичлэг өөр ч дуу авиа адилхан! Жишээ) 국[국] 부엌[부억] 볶다[볶따]",uz:"💡[Vakillik tovushi] ㄱ·ㄲ·ㅋ oxirgi undosh bo'lganda hammasi [ㄱ] deb aytiladi. Yozilishi har xil, lekin tovushi bir xil! Masalan) 국[국] 부엌[부억] 볶다[볶따]",es:"💡[Sonido representativo] ㄱ·ㄲ·ㅋ se pronuncian todas como [ㄱ] al final de sílaba. ¡La escritura es diferente, pero el sonido es el mismo! Ej.) 국[국] 부엌[부억] 볶다[볶따]",fr:"💡[Son représentatif] ㄱ·ㄲ·ㅋ se prononcent tous [ㄱ] en position finale. L'orthographe diffère mais le son est le même ! Ex. : 국[국] 부엌[부억] 볶다[볶따]",ne:"💡[प्रतिनिधि ध्वनि] ㄱ·ㄲ·ㅋ अन्त्य व्यञ्जनमा सबै [ㄱ] उच्चारण हुन्छ। लेखाइ फरक भए पनि ध्वनि उस्तै हो! उदाहरण) 국[국] 부엌[부억] 볶다[볶따]",de:"💡[Repräsentativer Laut] ㄱ·ㄲ·ㅋ werden am Ende alle als [ㄱ] ausgesprochen. Die Schreibweise ist unterschiedlich, aber der Klang ist gleich! Bsp.: 국[국] 부엌[부억] 볶다[볶따]"},
+      },
+      // ── 단계 11: 받침 ㅇ ──
+      { id:"batchim_ng", type:"learn", emoji:"🧱",
+        title:{ko:"11. 받침 [ㅇ]",vi:"11. Phụ âm cuối [ㅇ]",en:"11. Final Consonant [ㅇ]",zh:"11. 收音 [ㅇ]",ja:"11. パッチム [ㅇ]",id:"11. Konsonan Akhir [ㅇ]",ru:"11. Конечная согласная [ㅇ]",th:"11. ตัวสะกด [ㅇ]",mn:"11. Төгсгөлийн гийгүүлэгч [ㅇ]",uz:"11. Oxirgi undosh [ㅇ]",es:"11. Consonante final [ㅇ]",fr:"11. Consonne finale [ㅇ]",ne:"11. अन्त्य व्यञ्जन [ㅇ]",de:"11. Endkonsonant [ㅇ]"},
+        desc:{ko:"사회생활 관련 어휘로 ㅇ받침을 익힙니다.",vi:"Học phụ âm cuối ㅇ qua từ vựng về đời sống xã hội.",en:"Learn the final consonant ㅇ through social life vocabulary.",zh:"通过社交生活相关词汇学习ㅇ收音。",ja:"社会生活に関する語彙でㅇパッチムを学びます。",id:"Pelajari konsonan akhir ㅇ melalui kosakata kehidupan sosial.",ru:"Изучите конечную согласную ㅇ через лексику о социальной жизни.",th:"เรียนรู้ตัวสะกด ㅇ ผ่านคำศัพท์เกี่ยวกับสังคม",mn:"Нийгмийн амьдралтай холбоотой үгсээр ㅇ төгсгөлийн гийгүүлэгчийг мэдэж авна.",uz:"Ijtimoiy hayot bilan bog'liq lug'at orqali ㅇ oxirgi undoshini o'rganing.",es:"Aprenda la consonante final ㅇ mediante vocabulario de vida social.",fr:"Apprenez la consonne finale ㅇ à travers un vocabulaire lié à la vie sociale.",ne:"सामाजिक जीवनसँग सम्बन्धित शब्दहरूबाट ㅇ अन्त्य व्यञ्जन सिक्नुहोस्।",de:"Lernen Sie den Endkonsonanten ㅇ anhand von Vokabeln zum sozialen Leben."},
+        items:[
+          { char:"형",    word:"형",    meaning:{ko:"형",    vi:"anh trai (em trai gọi)",zh:"兄",en:"older brother",ja:"お兄さん",id:"kakak laki-laki",ru:"старший брат",th:"พี่ชาย",mn:"ах",uz:"aka",es:"older brother"} },
+          { char:"형제",  word:"형제",  meaning:{ko:"형제",  vi:"anh em",zh:"兄弟",en:"siblings",ja:"兄弟",id:"saudara laki-laki",ru:"братья",th:"พี่น้อง",mn:"ах дүү",uz:"aka-uka",es:"siblings"} },
+          { char:"동생",  word:"동생",  meaning:{ko:"동생",  vi:"em (trai/gái)",zh:"弟弟/妹妹",en:"younger sibling",ja:"弟/妹",id:"adik",ru:"младший брат/сестра",th:"น้อง",mn:"дүү",uz:"uka/singil",es:"younger sibling"} },
+          { char:"왕",    word:"왕",    meaning:{ko:"왕",    vi:"vua",zh:"王",en:"king",ja:"王",id:"raja",ru:"король",th:"กษัตริย์",mn:"хаан",uz:"qirol",es:"king"} },
+          { char:"항상",  word:"항상",  meaning:{ko:"항상",  vi:"luôn luôn",zh:"经常",en:"always",ja:"いつも",id:"selalu",ru:"всегда",th:"เสมอ",mn:"үргэлж",uz:"doimo",es:"always"} },
+          { char:"방",    word:"방",    meaning:{ko:"방",    vi:"phòng",zh:"房间",en:"room",ja:"部屋",id:"kamar",ru:"комната",th:"ห้อง",mn:"өрөө",uz:"xona",es:"room"} },
+          { char:"강",    word:"강",    meaning:{ko:"강",    vi:"sông",zh:"河流",en:"river",ja:"川",id:"sungai",ru:"река",th:"แม่น้ำ",mn:"гол",uz:"daryo",es:"river"} },
+          { char:"영어",  word:"영어",  meaning:{ko:"영어",  vi:"tiếng Anh",zh:"英语",en:"English",ja:"英語",id:"bahasa Inggris",ru:"английский",th:"ภาษาอังกฤษ",mn:"англи хэл",uz:"ingliz tili",es:"English"} },
+          { char:"병원",  word:"병원",  meaning:{ko:"병원",  vi:"bệnh viện",zh:"医院",en:"hospital",ja:"病院",id:"rumah sakit",ru:"больница",th:"โรงพยาบาล",mn:"эмнэлэг",uz:"kasalxona",es:"hospital"} },
+          { char:"공항",  word:"공항",  meaning:{ko:"공항",  vi:"sân bay",zh:"机场",en:"airport",ja:"空港",id:"bandara",ru:"аэропорт",th:"สนามบิน",mn:"нисэх онгоцны буудал",uz:"aeroport",es:"airport"} },
+          { char:"학생",  word:"학생",  meaning:{ko:"학생",  vi:"học sinh",zh:"学生",en:"student",ja:"学生",id:"siswa",ru:"студент",th:"นักเรียน",mn:"сурагч",uz:"talaba",es:"student"} },
+          { char:"경찰",  word:"경찰",  meaning:{ko:"경찰",  vi:"cảnh sát",zh:"警察",en:"police",ja:"警察",id:"polisi",ru:"полиция",th:"ตำรวจ",mn:"цагдаа",uz:"politsiya",es:"police"} },
+          { char:"성함",  word:"성함",  meaning:{ko:"성함",  vi:"tên (kính ngữ)",zh:"尊姓大名",en:"name (honorific)",ja:"お名前",id:"nama (hormat)",ru:"имя (уважит.)",th:"ชื่อ (สุภาพ)",mn:"нэр (хүндлэл)",uz:"ism (hurmat)",es:"name (honorific)"} },
+          { char:"상자",  word:"상자",  meaning:{ko:"상자",  vi:"hộp",zh:"箱子",en:"box",ja:"箱",id:"kotak",ru:"коробка",th:"กล่อง",mn:"хайрцаг",uz:"quti",es:"box"} },
+          { char:"소방서",word:"소방서",meaning:{ko:"소방서",vi:"sở cứu hỏa",zh:"消防局",en:"fire station",ja:"消防署",id:"pemadam kebakaran",ru:"пожарная часть",th:"สถานีดับเพลิง",mn:"гал унтраах алба",uz:"o't o'chirish",es:"fire station"} },
+          { char:"고향",  word:"고향",  meaning:{ko:"고향",  vi:"quê hương",zh:"故乡",en:"hometown",ja:"故郷",id:"kampung halaman",ru:"родина",th:"บ้านเกิด",mn:"нутаг",uz:"vatan",es:"hometown"} },
+          { char:"식당",  word:"식당",  meaning:{ko:"식당",  vi:"nhà hàng",zh:"餐厅",en:"restaurant",ja:"食堂",id:"restoran",ru:"ресторан",th:"ร้านอาหาร",mn:"гуанз",uz:"restoran",es:"restaurant"} },
+          { char:"노래방",word:"노래방",meaning:{ko:"노래방",vi:"phòng karaoke",zh:"卡拉OK",en:"karaoke room",ja:"カラオケ",id:"karaoke",ru:"караоке",th:"คาราโอเกะ",mn:"хаяоке",uz:"karaoke",es:"karaoke room"} },
+          { char:"목욕",  word:"목욕",  meaning:{ko:"목욕",  vi:"tắm rửa",zh:"沐浴",en:"bathing",ja:"入浴",id:"mandi",ru:"купание",th:"การอาบน้ำ",mn:"усанд орох",uz:"cho'milish",es:"bathing"} },
+          { char:"극장",  word:"극장",  meaning:{ko:"극장",  vi:"rạp chiếu phim",zh:"剧场",en:"theater",ja:"劇場",id:"bioskop",ru:"театр",th:"โรงละคร",mn:"театр",uz:"teatr",es:"theater"} },
+          { char:"초등학교",word:"초등학교",meaning:{ko:"초등학교",vi:"trường tiểu học",zh:"小学",en:"elementary school",ja:"小学校",id:"sekolah dasar",ru:"начальная школа",th:"โรงเรียนประถม",mn:"бага сургууль",uz:"boshlang'ich maktab",es:"elementary school"} },
+          { char:"중학교",word:"중학교",meaning:{ko:"중학교",vi:"trường trung học",zh:"中学",en:"middle school",ja:"中学校",id:"SMP",ru:"средняя школа",th:"โรงเรียนมัธยมต้น",mn:"дунд сургууль",uz:"o'rta maktab",es:"middle school"} },
+          { char:"대학생",word:"대학생",meaning:{ko:"대학생",vi:"sinh viên đại học",zh:"大学生",en:"college student",ja:"大学生",id:"mahasiswa",ru:"студент вуза",th:"นักศึกษา",mn:"их сургуулийн оюутан",uz:"talaba",es:"college student"} },
+          { char:"수영",  word:"수영",  meaning:{ko:"수영",  vi:"bơi lội",zh:"游泳",en:"swimming",ja:"水泳",id:"berenang",ru:"плавание",th:"ว่ายน้ำ",mn:"усанд сэлэх",uz:"suzish",es:"swimming"} },
+          { char:"농구",  word:"농구",  meaning:{ko:"농구",  vi:"bóng rổ",zh:"篮球",en:"basketball",ja:"バスケットボール",id:"bola basket",ru:"баскетбол",th:"บาสเกตบอล",mn:"сагсан бөмбөг",uz:"basketbol",es:"basketball"} },
+          { char:"방향",  word:"방향",  meaning:{ko:"방향",  vi:"hướng",zh:"方向",en:"direction",ja:"方向",id:"arah",ru:"направление",th:"ทิศทาง",mn:"чиглэл",uz:"yo'nalish",es:"direction"} },
+          { char:"여행",  word:"여행",  meaning:{ko:"여행",  vi:"du lịch",zh:"旅行",en:"travel",ja:"旅行",id:"perjalanan",ru:"путешествие",th:"การเดินทาง",mn:"аялал",uz:"sayohat",es:"travel"} },
+          { char:"조상",   word:"조상",   meaning:{ko:"조상",   vi:"tổ tiên",zh:"祖先",en:"ancestor",ja:"祖先",id:"leluhur",ru:"предок",th:"บรรพบุรุษ",mn:"өвөг дээдэс",uz:"ajdod",es:"ancestor"} },
+          { char:"장소",   word:"장소",   meaning:{ko:"장소",   vi:"địa điểm",zh:"场所",en:"place",ja:"場所",id:"tempat",ru:"место",th:"สถานที่",mn:"газар",uz:"joy",es:"place"} },
+          { char:"동네",   word:"동네",   meaning:{ko:"동네",   vi:"khu phố",zh:"街坊",en:"neighborhood",ja:"近所",id:"lingkungan",ru:"район",th:"ละแวกบ้าน",mn:"хороо",uz:"mahalla",es:"neighborhood"} },
+          { char:"방학",   word:"방학",   meaning:{ko:"방학",   vi:"kỳ nghỉ",zh:"放假",en:"school vacation",ja:"夏休み",id:"liburan sekolah",ru:"каникулы",th:"ปิดเทอม",mn:"амралт",uz:"ta'til",es:"school vacation"} },
+          { char:"향수",   word:"향수",   meaning:{ko:"향수",   vi:"nước hoa",zh:"香水",en:"perfume",ja:"香水",id:"parfum",ru:"духи",th:"น้ำหอม",mn:"үнэртэй ус",uz:"atir",es:"perfume"} },
+          { char:"가방",   word:"가방",   meaning:{ko:"가방",   vi:"túi xách",zh:"包",en:"bag",ja:"かばん",id:"tas",ru:"сумка",th:"กระเป๋า",mn:"цүнх",uz:"sumka",es:"bag"} },
+          { char:"지붕",   word:"지붕",   meaning:{ko:"지붕",   vi:"mái nhà",zh:"屋顶",en:"roof",ja:"屋根",id:"atap",ru:"крыша",th:"หลังคา",mn:"дээвэр",uz:"tom",es:"roof"} },
+          { char:"수영복", word:"수영복", meaning:{ko:"수영복", vi:"đồ bơi",zh:"泳衣",en:"swimsuit",ja:"水着",id:"pakaian renang",ru:"купальник",th:"ชุดว่ายน้ำ",mn:"усны хувцас",uz:"suzish kiyimi",es:"swimsuit"} },
+          { char:"영화",   word:"영화",   meaning:{ko:"영화",   vi:"bộ phim",zh:"电影",en:"movie",ja:"映画",id:"film",ru:"фильм",th:"ภาพยนตร์",mn:"кино",uz:"film",es:"movie"} },
+          { char:"경제",   word:"경제",   meaning:{ko:"경제",   vi:"kinh tế",zh:"经济",en:"economy",ja:"経済",id:"ekonomi",ru:"экономика",th:"เศรษฐกิจ",mn:"эдийн засаг",uz:"iqtisodiyot",es:"economy"} },
+          { char:"시장",   word:"시장",   meaning:{ko:"시장",   vi:"chợ",zh:"市场",en:"market",ja:"市場",id:"pasar",ru:"рынок",th:"ตลาด",mn:"зах",uz:"bozor",es:"market"} },
+          { char:"광고",   word:"광고",   meaning:{ko:"광고",   vi:"quảng cáo",zh:"广告",en:"advertisement",ja:"広告",id:"iklan",ru:"реклама",th:"โฆษณา",mn:"зар сурталчилгаа",uz:"reklama",es:"advertisement"} },
+          { char:"공",     word:"공",     meaning:{ko:"공",     vi:"quả bóng",zh:"球",en:"ball",ja:"ボール",id:"bola",ru:"мяч",th:"ลูกบอล",mn:"бөмбөг",uz:"to'p",es:"ball"} },
+          { char:"당구",   word:"당구",   meaning:{ko:"당구",   vi:"bi-a",zh:"台球",en:"billiards",ja:"ビリヤード",id:"biliar",ru:"бильярд",th:"บิลเลียด",mn:"биллиард",uz:"bilyard",es:"billiards"} },
+          { char:"동쪽",   word:"동쪽",   meaning:{ko:"동쪽",   vi:"phía đông",zh:"东方",en:"east",ja:"東",id:"timur",ru:"восток",th:"ทิศตะวันออก",mn:"зүүн",uz:"sharq",es:"east"} },
+          { char:"장모",  word:"장모",  meaning:{ko:"장모",vi:"mẹ vợ",zh:"丈母娘",en:"mother-in-law",ja:"義母",id:"mertua perempuan",ru:"тёща",th:"แม่ยาย",mn:"хадам эх",uz:"qaynona",es:"mother-in-law"} },
+          { char:"남녀평등",word:"남녀평등",meaning:{ko:"남녀평등",vi:"bình đẳng nam nữ",zh:"男女平等",en:"gender equality",ja:"男女平等",id:"kesetaraan gender",ru:"равноправие",th:"ความเท่าเทียมทางเพศ",mn:"эрэгтэй эмэгтэй тэгш эрх",uz:"gender tengligi",es:"gender equality"} },
+          { char:"시청",  word:"시청",  meaning:{ko:"시청",vi:"tòa thị chính",zh:"市政府",en:"city hall",ja:"市役所",id:"balai kota",ru:"мэрия",th:"ศาลาว่าการ",mn:"хотын захиргаа",uz:"shahar hokimligi",es:"city hall"} },
+          { char:"고등학교",word:"고등학교",meaning:{ko:"고등학교",vi:"trường THPT",zh:"高中",en:"high school",ja:"高等学校",id:"SMA",ru:"старшая школа",th:"โรงเรียนมัธยมปลาย",mn:"ахлах сургууль",uz:"yuqori maktab",es:"high school"} },
+          { char:"목욕탕",word:"목욕탕",meaning:{ko:"목욕탕",vi:"phòng tắm công cộng",zh:"澡堂",en:"public bath",ja:"銭湯",id:"pemandian umum",ru:"общественная баня",th:"โรงอาบน้ำ",mn:"усан ванн",uz:"hammom",es:"public bath"} },
+          { char:"동아리",word:"동아리",meaning:{ko:"동아리",vi:"câu lạc bộ",zh:"社团",en:"club/circle",ja:"サークル",id:"klub",ru:"кружок",th:"ชมรม",mn:"дугуйлан",uz:"to'garak",es:"club/circle"} },
+          { char:"소풍",  word:"소풍",  meaning:{ko:"소풍",vi:"dã ngoại",zh:"郊游",en:"picnic/excursion",ja:"遠足",id:"piknik",ru:"пикник",th:"遠足",mn:"гоё аялал",uz:"piknik",es:"picnic/excursion"} },
+          { char:"수학여행",word:"수학여행",meaning:{ko:"수학여행",vi:"chuyến tham quan học tập",zh:"修学旅行",en:"school trip",ja:"修学旅行",id:"perjalanan sekolah",ru:"учебная экскурсия",th:"ทัศนศึกษา",mn:"сургуулийн аялал",uz:"maktab sayohati",es:"school trip"} },
+          { char:"성적",  word:"성적",  meaning:{ko:"성적",vi:"thành tích",zh:"成绩",en:"grade/mark",ja:"成績",id:"nilai",ru:"успеваемость",th:"ผลการเรียน",mn:"дүн",uz:"baho",es:"grade/mark"} },
+          { char:"학생증",word:"학생증",meaning:{ko:"학생증",vi:"thẻ học sinh",zh:"学生证",en:"student ID",ja:"学生証",id:"kartu pelajar",ru:"студенческий билет",th:"บัตรนักเรียน",mn:"сурагчийн үнэмлэх",uz:"talaba guvohnomasi",es:"student ID"} },
+          { char:"주방",  word:"주방",  meaning:{ko:"주방",vi:"khu bếp",zh:"厨房",en:"kitchen",ja:"キッチン",id:"dapur",ru:"кухня",th:"ห้องครัว",mn:"тогооны өрөө",uz:"oshxona",es:"kitchen"} },
+          { char:"책상",  word:"책상",  meaning:{ko:"책상",vi:"bàn học",zh:"书桌",en:"desk",ja:"机",id:"meja belajar",ru:"письменный стол",th:"โต๊ะเรียน",mn:"бичгийн ширээ",uz:"o'quv stoli",es:"desk"} },
+          { char:"마당",  word:"마당",  meaning:{ko:"마당",vi:"sân",zh:"院子",en:"yard",ja:"庭",id:"halaman",ru:"двор",th:"สนาม",mn:"хашаа",uz:"hovli",es:"yard"} },
+          { char:"청소",  word:"청소",  meaning:{ko:"청소",vi:"dọn dẹp",zh:"打扫",en:"cleaning",ja:"掃除",id:"kebersihan",ru:"уборка",th:"การทำความสะอาด",mn:"цэвэрлэгээ",uz:"tozalash",es:"cleaning"} },
+          { char:"병",    word:"병",    meaning:{ko:"병",vi:"chai/bệnh",zh:"瓶子/病",en:"bottle/illness",ja:"瓶/病気",id:"botol/sakit",ru:"бутылка/болезнь",th:"ขวด/โรค",mn:"лонх/өвчин",uz:"shisha/kasallik",es:"bottle/illness"} },
+          { char:"생활",  word:"생활",  meaning:{ko:"생활",vi:"cuộc sống",zh:"生活",en:"life",ja:"生活",id:"kehidupan",ru:"жизнь",th:"ชีวิต",mn:"амьдрал",uz:"hayot",es:"life"} },
+          { char:"고장",  word:"고장",  meaning:{ko:"고장",vi:"hỏng",zh:"故障",en:"breakdown",ja:"故障",id:"kerusakan",ru:"поломка",th:"เสีย",mn:"эвдрэл",uz:"nosozlik",es:"breakdown"} },
+          { char:"쓰레기통",word:"쓰레기통",meaning:{ko:"쓰레기통",vi:"thùng rác",zh:"垃圾桶",en:"garbage can",ja:"ゴミ箱",id:"tempat sampah",ru:"мусорное ведро",th:"ถังขยะ",mn:"хогийн сав",uz:"axlat quti",es:"garbage can"} },
+          { char:"포장",  word:"포장",  meaning:{ko:"포장",vi:"đóng gói",zh:"包装",en:"packing",ja:"包装",id:"pengemasan",ru:"упаковка",th:"บรรจุภัณฑ์",mn:"баглаа боодол",uz:"qadoqlash",es:"packing"} },
+          { char:"정장",  word:"정장",  meaning:{ko:"정장",vi:"áo vest",zh:"正装",en:"suit",ja:"スーツ",id:"pakaian formal",ru:"деловой костюм",th:"ชุดสูท",mn:"тогтмол хувцас",uz:"rasmiy kiyim",es:"suit"} },
+          { char:"양복",  word:"양복",  meaning:{ko:"양복",vi:"âu phục nam",zh:"西装",en:"western suit",ja:"洋服",id:"pakaian barat",ru:"мужской костюм",th:"สูทผู้ชาย",mn:"хүрэм",uz:"erkaklar kostyumi",es:"western suit"} },
+          { char:"양장",  word:"양장",  meaning:{ko:"양장",vi:"âu phục nữ",zh:"洋装",en:"western dress",ja:"洋装",id:"gaun barat",ru:"западное платье",th:"ชุดเดรส",mn:"барууны хувцас",uz:"g'arb libosi",es:"western dress"} },
+          { char:"장화",  word:"장화",  meaning:{ko:"장화",vi:"giày cao cổ",zh:"长靴",en:"boots",ja:"ブーツ",id:"sepatu bot",ru:"сапоги",th:"รองเท้าบูท",mn:"гутал",uz:"etik",es:"boots"} },
+          { char:"청바지",word:"청바지",meaning:{ko:"청바지",vi:"quần jeans",zh:"牛仔裤",en:"jeans",ja:"ジーンズ",id:"celana jeans",ru:"джинсы",th:"กางเกงยีนส์",mn:"жинс өмд",uz:"jinsi shim",es:"jeans"} },
+          { char:"장(시장)",word:"장",  meaning:{ko:"장(시장)",vi:"chợ",zh:"市场",en:"market",ja:"マーケット",id:"pasar",ru:"рынок",th:"ตลาด",mn:"зах",uz:"bozor",es:"market"} },
+          { char:"등",    word:"등",    meaning:{ko:"등(조명)",vi:"đèn",zh:"灯",en:"lamp",ja:"ランプ",id:"lampu",ru:"лампа",th:"โคมไฟ",mn:"чийдэн",uz:"chiroq",es:"lamp"} },
+          { char:"망고",  word:"망고",  meaning:{ko:"망고",vi:"quả xoài",zh:"芒果",en:"mango",ja:"マンゴー",id:"mangga",ru:"манго",th:"มะม่วง",mn:"манго",uz:"mango",es:"mango"} },
+          { char:"복숭아",word:"복숭아",meaning:{ko:"복숭아",vi:"quả đào",zh:"桃子",en:"peach",ja:"桃",id:"persik",ru:"персик",th:"ลูกพีช",mn:"тахиа жимс",uz:"shaftoli",es:"peach"} },
+          { char:"빵",    word:"빵",    meaning:{ko:"빵",vi:"bánh mì",zh:"面包",en:"bread",ja:"パン",id:"roti",ru:"хлеб",th:"ขนมปัง",mn:"талх",uz:"non",es:"bread"} },
+          { char:"사탕",  word:"사탕",  meaning:{ko:"사탕",vi:"kẹo",zh:"糖果",en:"candy",ja:"飴",id:"permen",ru:"конфета",th:"ลูกอม",mn:"чихэр",uz:"konfet",es:"candy"} },
+          { char:"중식",  word:"중식",  meaning:{ko:"중식",vi:"thức ăn Trung Quốc",zh:"中餐",en:"Chinese food",ja:"中華料理",id:"masakan Cina",ru:"китайская кухня",th:"อาหารจีน",mn:"Хятад хоол",uz:"Xitoy taomi",es:"Chinese food"} },
+          { char:"양식",  word:"양식",  meaning:{ko:"양식",vi:"thức ăn phương Tây",zh:"西餐",en:"western food",ja:"洋食",id:"masakan barat",ru:"европейская кухня",th:"อาหารตะวันตก",mn:"барууны хоол",uz:"G'arb taomi",es:"western food"} },
+          { char:"양파",  word:"양파",  meaning:{ko:"양파",vi:"hành tây",zh:"洋葱",en:"onion",ja:"玉ねぎ",id:"bawang bombai",ru:"лук",th:"หัวหอม",mn:"сонгино",uz:"piyoz",es:"onion"} },
+          { char:"홍차",  word:"홍차",  meaning:{ko:"홍차",vi:"hồng trà",zh:"红茶",en:"black tea",ja:"紅茶",id:"teh hitam",ru:"чёрный чай",th:"ชาดำ",mn:"улаан цай",uz:"qora choy",es:"black tea"} },
+          { char:"냉장고",word:"냉장고",meaning:{ko:"냉장고",vi:"tủ lạnh",zh:"冰箱",en:"refrigerator",ja:"冷蔵庫",id:"kulkas",ru:"холодильник",th:"ตู้เย็น",mn:"хөргөгч",uz:"muzlatgich",es:"refrigerator"} },
+          { char:"청소기",word:"청소기",meaning:{ko:"청소기",vi:"máy hút bụi",zh:"吸尘器",en:"vacuum cleaner",ja:"掃除機",id:"penyedot debu",ru:"пылесос",th:"เครื่องดูดฝุ่น",mn:"тоосгогч",uz:"chang yutgich",es:"vacuum cleaner"} },
+          { char:"교통",  word:"교통",  meaning:{ko:"교통",vi:"giao thông",zh:"交通",en:"traffic",ja:"交通",id:"lalu lintas",ru:"транспорт",th:"การจราจร",mn:"тээвэр",uz:"transport",es:"traffic"} },
+          { char:"교통사고",word:"교통사고",meaning:{ko:"교통사고",vi:"tai nạn giao thông",zh:"交通事故",en:"car accident",ja:"交通事故",id:"kecelakaan",ru:"ДТП",th:"อุบัติเหตุทางรถ",mn:"замын осол",uz:"yo'l halokati",es:"car accident"} },
+          { char:"승객",  word:"승객",  meaning:{ko:"승객",vi:"hành khách",zh:"乘客",en:"passenger",ja:"乗客",id:"penumpang",ru:"пассажир",th:"ผู้โดยสาร",mn:"зорчигч",uz:"yo'lovchi",es:"passenger"} },
+          { char:"정류장",word:"정류장",meaning:{ko:"정류장",vi:"trạm xe buýt",zh:"公交站",en:"bus stop",ja:"停留所",id:"halte bus",ru:"остановка",th:"ป้ายรถเมล์",mn:"буудал",uz:"avtobus bekati",es:"bus stop"} },
+          { char:"자동차",word:"자동차",meaning:{ko:"자동차",vi:"xe hơi",zh:"汽车",en:"automobile",ja:"自動車",id:"mobil",ru:"автомобиль",th:"รถยนต์",mn:"машин",uz:"avtomobil",es:"automobile"} },
+          { char:"자가용",word:"자가용",meaning:{ko:"자가용",vi:"xe cá nhân",zh:"私家车",en:"personal car",ja:"自家用車",id:"mobil pribadi",ru:"личный автомобиль",th:"รถส่วนตัว",mn:"хувийн машин",uz:"shaxsiy avtomobil",es:"personal car"} },
+          { char:"주차장",word:"주차장",meaning:{ko:"주차장",vi:"bãi đỗ xe",zh:"停车场",en:"parking lot",ja:"駐車場",id:"tempat parkir",ru:"автостоянка",th:"ที่จอดรถ",mn:"машины зогсоол",uz:"avtoturargoh",es:"parking lot"} },
+          { char:"비행기",word:"비행기",meaning:{ko:"비행기",vi:"máy bay",zh:"飞机",en:"airplane",ja:"飛行機",id:"pesawat",ru:"самолёт",th:"เครื่องบิน",mn:"нисэх онгоц",uz:"samolyot",es:"airplane"} },
+          { char:"항공사",word:"항공사",meaning:{ko:"항공사",vi:"hãng hàng không",zh:"航空公司",en:"airline",ja:"航空会社",id:"maskapai",ru:"авиакомпания",th:"สายการบิน",mn:"агаарын тээвэр",uz:"aviakompaniya",es:"airline"} },
+          { char:"왕복",  word:"왕복",  meaning:{ko:"왕복",vi:"hai chiều",zh:"往返",en:"round trip",ja:"往復",id:"pulang pergi",ru:"в оба конца",th:"ไปกลับ",mn:"буцах тийз",uz:"ikki tomonlama",es:"round trip"} },
+          { char:"항구",  word:"항구",  meaning:{ko:"항구",vi:"cảng",zh:"港口",en:"harbor",ja:"港",id:"pelabuhan",ru:"порт",th:"ท่าเรือ",mn:"боомт",uz:"port",es:"harbor"} },
+          { char:"사장",  word:"사장",  meaning:{ko:"사장",vi:"giám đốc",zh:"社长",en:"boss/president",ja:"社長",id:"direktur",ru:"директор",th:"ผู้จัดการ",mn:"захирал",uz:"direktor",es:"boss/president"} },
+          { char:"동료",  word:"동료",  meaning:{ko:"동료",vi:"đồng nghiệp",zh:"同事",en:"colleague",ja:"同僚",id:"rekan kerja",ru:"коллега",th:"เพื่อนร่วมงาน",mn:"хамт ажиллагч",uz:"hamkasb",es:"colleague"} },
+          { char:"공장",  word:"공장",  meaning:{ko:"공장",vi:"nhà máy",zh:"工厂",en:"factory",ja:"工場",id:"pabrik",ru:"завод",th:"โรงงาน",mn:"үйлдвэр",uz:"zavod",es:"factory"} },
+          { char:"마케팅",word:"마케팅",meaning:{ko:"마케팅",vi:"tiếp thị",zh:"市场营销",en:"marketing",ja:"マーケティング",id:"pemasaran",ru:"маркетинг",th:"การตลาด",mn:"маркетинг",uz:"marketing",es:"marketing"} },
+          { char:"도장",  word:"도장",  meaning:{ko:"도장",vi:"con dấu",zh:"印章",en:"stamp/seal",ja:"はんこ",id:"stempel",ru:"печать",th:"ตราประทับ",mn:"тамга",uz:"muhr",es:"stamp/seal"} },
+          { char:"두통",  word:"두통",  meaning:{ko:"두통",vi:"đau đầu",zh:"头痛",en:"headache",ja:"頭痛",id:"sakit kepala",ru:"головная боль",th:"ปวดหัว",mn:"толгой өвдөх",uz:"bosh og'rig'i",es:"headache"} },
+          { char:"치통",  word:"치통",  meaning:{ko:"치통",vi:"đau răng",zh:"牙痛",en:"toothache",ja:"歯痛",id:"sakit gigi",ru:"зубная боль",th:"ปวดฟัน",mn:"шүд өвдөх",uz:"tish og'rig'i",es:"toothache"} },
+          { char:"통증",  word:"통증",  meaning:{ko:"통증",vi:"chứng đau nhức",zh:"疼痛",en:"pain",ja:"痛み",id:"nyeri",ru:"боль",th:"ความเจ็บปวด",mn:"өвдөлт",uz:"og'riq",es:"pain"} },
+          { char:"화상",  word:"화상",  meaning:{ko:"화상",vi:"vết bỏng",zh:"烧伤",en:"burn/scald",ja:"やけど",id:"luka bakar",ru:"ожог",th:"แผลไฟไหม้",mn:"түлэгдэлт",uz:"kuydirish",es:"burn/scald"} },
+          { char:"당뇨병",word:"당뇨병",meaning:{ko:"당뇨병",vi:"bệnh tiểu đường",zh:"糖尿病",en:"diabetes",ja:"糖尿病",id:"diabetes",ru:"диабет",th:"โรคเบาหวาน",mn:"чихрийн шижин",uz:"diabet",es:"diabetes"} },
+          { char:"충치",  word:"충치",  meaning:{ko:"충치",vi:"răng sâu",zh:"蛀牙",en:"cavity",ja:"虫歯",id:"gigi berlubang",ru:"кариес",th:"ฟันผุ",mn:"хорхойтсон шүд",uz:"karies",es:"cavity"} },
+          { char:"항생제",word:"항생제",meaning:{ko:"항생제",vi:"thuốc kháng sinh",zh:"抗生素",en:"antibiotic",ja:"抗生剤",id:"antibiotik",ru:"антибиотик",th:"ยาปฏิชีวนะ",mn:"антибиотик",uz:"antibiotik",es:"antibiotic"} },
+          { char:"위장약",word:"위장약",meaning:{ko:"위장약",vi:"thuốc đau dạ dày",zh:"胃药",en:"digestive medicine",ja:"胃腸薬",id:"obat lambung",ru:"средство от диспепсии",th:"ยาแก้ท้อง",mn:"ходоодны эм",uz:"me'da dori",es:"digestive medicine"} },
+          { char:"동(東)",word:"동",    meaning:{ko:"동(東)",vi:"phía đông",zh:"东",en:"east direction",ja:"東",id:"timur",ru:"восток",th:"ตะวันออก",mn:"зүүн",uz:"sharq",es:"east direction"} },
+          { char:"승마",  word:"승마",  meaning:{ko:"승마",vi:"cưỡi ngựa",zh:"骑马",en:"horseback riding",ja:"乗馬",id:"berkuda",ru:"верховая езда",th:"ขี่ม้า",mn:"морь унах",uz:"otda yurish",es:"horseback riding"} },
+          { char:"방송",  word:"방송",  meaning:{ko:"방송",vi:"phát sóng",zh:"广播",en:"broadcast",ja:"放送",id:"siaran",ru:"трансляция",th:"การออกอากาศ",mn:"нэвтрүүлэг",uz:"translyatsiya",es:"broadcast"} },
+          { char:"무용",  word:"무용",  meaning:{ko:"무용",vi:"vũ điệu",zh:"舞蹈",en:"dancing",ja:"舞踊",id:"tarian",ru:"танец",th:"การเต้นรำ",mn:"бүжиг",uz:"raqs",es:"dancing"} },
+          { char:"대형마트",word:"대형마트",meaning:{ko:"대형마트",vi:"siêu thị lớn",zh:"大型超市",en:"department store",ja:"デパート",id:"supermarket besar",ru:"гипермаркет",th:"ห้างสรรพสินค้า",mn:"том дэлгүүр",uz:"katta supermarket",es:"department store"} },
+          { char:"쇼핑",  word:"쇼핑",  meaning:{ko:"쇼핑",vi:"mua sắm",zh:"购物",en:"shopping",ja:"ショッピング",id:"belanja",ru:"шопинг",th:"การช็อปปิ้ง",mn:"дэлгүүр хэсэх",uz:"xarid qilish",es:"shopping"} },
+          { char:"공짜",  word:"공짜",  meaning:{ko:"공짜",vi:"miễn phí",zh:"免费",en:"free",ja:"タダ",id:"gratis",ru:"бесплатно",th:"ฟรี",mn:"үнэгүй",uz:"bepul",es:"free"} },
+          { char:"영수증",word:"영수증",meaning:{ko:"영수증",vi:"hóa đơn",zh:"收据",en:"receipt",ja:"レシート",id:"kwitansi",ru:"квитанция",th:"ใบเสร็จ",mn:"баримт",uz:"chek",es:"receipt"} },
+          { char:"통장",  word:"통장",  meaning:{ko:"통장",vi:"sổ tiết kiệm",zh:"存折",en:"bankbook",ja:"通帳",id:"buku tabungan",ru:"сберкнижка",th:"สมุดบัญชี",mn:"дансны дэвтэр",uz:"jamg'arma daftari",es:"bankbook"} },
+          { char:"직장",  word:"직장",  meaning:{ko:"직장",vi:"nơi làm việc",zh:"职场",en:"workplace",ja:"職場",id:"tempat kerja",ru:"место работы",th:"ที่ทำงาน",mn:"ажлын газар",uz:"ish joyi",es:"workplace"} },
+          { char:"호랑이",word:"호랑이",meaning:{ko:"호랑이",vi:"con hổ",zh:"老虎",en:"tiger",ja:"トラ",id:"harimau",ru:"тигр",th:"เสือ",mn:"бар",uz:"yo'lbars",es:"tiger"} },
+          { char:"용",    word:"용",    meaning:{ko:"용",vi:"con rồng",zh:"龙",en:"dragon",ja:"ドラゴン",id:"naga",ru:"дракон",th:"มังกร",mn:"луу",uz:"ajdar",es:"dragon"} },
+          { char:"양",    word:"양",    meaning:{ko:"양",vi:"con cừu",zh:"羊",en:"sheep/lamb",ja:"羊",id:"domba",ru:"овца",th:"แกะ",mn:"хонь",uz:"qo'y",es:"sheep/lamb"} },
+          { char:"강아지",word:"강아지",meaning:{ko:"강아지",vi:"chó con",zh:"小狗",en:"puppy",ja:"子犬",id:"anak anjing",ru:"щенок",th:"ลูกหมา",mn:"гөлөг",uz:"kuchukcha",es:"puppy"} },
+          { char:"송아지",word:"송아지",meaning:{ko:"송아지",vi:"con bê",zh:"小牛",en:"calf",ja:"子牛",id:"anak sapi",ru:"телёнок",th:"ลูกวัว",mn:"тугал",uz:"buzoq",es:"calf"} },
+          { char:"병아리",word:"병아리",meaning:{ko:"병아리",vi:"gà con",zh:"小鸡",en:"chick",ja:"ひよこ",id:"anak ayam",ru:"цыплёнок",th:"ลูกไก่",mn:"тахианы дэгдэгдэй",uz:"jo'ja",es:"chick"} },
+          { char:"상어",  word:"상어",  meaning:{ko:"상어",vi:"cá mập",zh:"鲨鱼",en:"shark",ja:"サメ",id:"hiu",ru:"акула",th:"ปลาฉลาม",mn:"акул",uz:"акула",es:"shark"} },
+          { char:"장마",  word:"장마",  meaning:{ko:"장마",vi:"mùa mưa dầm",zh:"梅雨",en:"rainy season",ja:"梅雨",id:"musim hujan",ru:"сезон дождей",th:"ฤดูฝน",mn:"бороо орох улирал",uz:"yomg'ir mavsumi",es:"rainy season"} },
+          { char:"홍수",  word:"홍수",  meaning:{ko:"홍수",vi:"lũ lụt",zh:"洪水",en:"flood",ja:"洪水",id:"banjir",ru:"наводнение",th:"น้ำท่วม",mn:"үер",uz:"suv toshqini",es:"flood"} },
+          { char:"영상",  word:"영상",  meaning:{ko:"영상(기온)",vi:"dương (trên 0°)",zh:"零上",en:"above zero",ja:"プラス気温",id:"di atas nol",ru:"выше нуля",th:"อุณหภูมิเหนือศูนย์",mn:"тэгээс дээш",uz:"noldan yuqori",es:"above zero"} },
+          { char:"영하",  word:"영하",  meaning:{ko:"영하",vi:"âm (dưới 0°)",zh:"零下",en:"below zero",ja:"マイナス気温",id:"di bawah nol",ru:"ниже нуля",th:"อุณหภูมิต่ำกว่าศูนย์",mn:"тэгээс доош",uz:"noldan past",es:"below zero"} },
+          { char:"태평양",word:"태평양",meaning:{ko:"태평양",vi:"Thái Bình Dương",zh:"太平洋",en:"Pacific Ocean",ja:"太平洋",id:"Samudra Pasifik",ru:"Тихий океан",th:"มหาสมุทรแปซิฟิก",mn:"Номхон далай",uz:"Tinch okeani",es:"Pacific Ocean"} },
+          { char:"대서양",word:"대서양",meaning:{ko:"대서양",vi:"Đại Tây Dương",zh:"大西洋",en:"Atlantic Ocean",ja:"大西洋",id:"Samudra Atlantik",ru:"Атлантический океан",th:"มหาสมุทรแอตแลนติก",mn:"Атлантын далай",uz:"Atlantik okeani",es:"Atlantic Ocean"} },
+          { char:"인도양",word:"인도양",meaning:{ko:"인도양",vi:"Ấn Độ Dương",zh:"印度洋",en:"Indian Ocean",ja:"インド洋",id:"Samudra Hindia",ru:"Индийский океан",th:"มหาสมุทรอินเดีย",mn:"Энэтхэгийн далай",uz:"Hind okeani",es:"Indian Ocean"} },
+          { char:"지중해",word:"지중해",meaning:{ko:"지중해",vi:"Địa Trung Hải",zh:"地中海",en:"Mediterranean Sea",ja:"地中海",id:"Laut Mediterania",ru:"Средиземное море",th:"ทะเลเมดิเตอร์เรเนียน",mn:"Газрын дундад тэнгис",uz:"O'rta dengiz",es:"Mediterranean Sea"} },
+          { char:"경도",  word:"경도",  meaning:{ko:"경도",vi:"kinh độ",zh:"经度",en:"longitude",ja:"経度",id:"bujur",ru:"долгота",th:"ลองจิจูด",mn:"уртраг",uz:"longitude",es:"longitude"} },
+          { char:"해외여행",word:"해외여행",meaning:{ko:"해외여행",vi:"du lịch nước ngoài",zh:"海外旅行",en:"trip abroad",ja:"海外旅行",id:"perjalanan luar negeri",ru:"путешествие за рубеж",th:"ท่องเที่ยวต่างประเทศ",mn:"гадаадад аялах",uz:"xorijga sayohat",es:"trip abroad"} },
+          { char:"중국",  word:"중국",  meaning:{ko:"중국",vi:"Trung Quốc",zh:"中国",en:"China",ja:"中国",id:"Tiongkok",ru:"Китай",th:"จีน",mn:"Хятад",uz:"Xitoy",es:"China"} },
+          { char:"영국",  word:"영국",  meaning:{ko:"영국",vi:"Anh Quốc",zh:"英国",en:"England",ja:"イギリス",id:"Inggris",ru:"Англия",th:"อังกฤษ",mn:"Их Британи",uz:"Angliya",es:"England"} },
+          { char:"프랑스",word:"프랑스",meaning:{ko:"프랑스",vi:"Pháp",zh:"法国",en:"France",ja:"フランス",id:"Prancis",ru:"Франция",th:"ฝรั่งเศส",mn:"Франц",uz:"Frantsiya",es:"France"} },
+          { char:"싱가포르",word:"싱가포르",meaning:{ko:"싱가포르",vi:"Singapore",zh:"新加坡",en:"Singapore",ja:"シンガポール",id:"Singapura",ru:"Сингапур",th:"สิงคโปร์",mn:"Сингапур",uz:"Singapur",es:"Singapore"} },
+          { char:"방콕",  word:"방콕",  meaning:{ko:"방콕",vi:"Bangkok",zh:"曼谷",en:"Bangkok",ja:"バンコク",id:"Bangkok",ru:"Бангкок",th:"กรุงเทพฯ",mn:"Бангкок",uz:"Bangkok",es:"Bangkok"} },
+          { char:"북경",  word:"북경",  meaning:{ko:"북경",vi:"Bắc Kinh",zh:"北京",en:"Beijing",ja:"北京",id:"Beijing",ru:"Пекин",th:"ปักกิ่ง",mn:"Бээжин",uz:"Pekin",es:"Beijing"} },
+          { char:"상해",  word:"상해",  meaning:{ko:"상해",vi:"Thượng Hải",zh:"上海",en:"Shanghai",ja:"シャンハイ",id:"Shanghai",ru:"Шанхай",th:"เซี่ยงไฮ้",mn:"Шанхай",uz:"Shanxay",es:"Shanghai"} },
+          { char:"홍콩",  word:"홍콩",  meaning:{ko:"홍콩",vi:"Hồng Kông",zh:"香港",en:"Hongkong",ja:"ホンコン",id:"Hong Kong",ru:"Гонконг",th:"ฮ่องกง",mn:"Хонконг",uz:"Gonkong",es:"Hongkong"} },
+          { char:"다낭",  word:"다낭",  meaning:{ko:"다낭",vi:"Đà Nẵng",zh:"岘港",en:"Danang",ja:"ダナン",id:"Da Nang",ru:"Дананг",th:"ดานัง",mn:"Да Нанг",uz:"Da Nang",es:"Danang"} },
+          { char:"동경",  word:"동경",  meaning:{ko:"동경",vi:"Tokyo",zh:"东京",en:"Tokyo",ja:"東京",id:"Tokyo",ru:"Токио",th:"โตเกียว",mn:"Токио",uz:"Tokio",es:"Tokyo"} },
+          { char:"태양",  word:"태양",  meaning:{ko:"태양",vi:"mặt trời",zh:"太阳",en:"sun",ja:"太陽",id:"matahari",ru:"солнце",th:"ดวงอาทิตย์",mn:"нар",uz:"quyosh",es:"sun"} },
+          { char:"항성",  word:"항성",  meaning:{ko:"항성",vi:"định tinh",zh:"恒星",en:"fixed star",ja:"恒星",id:"bintang tetap",ru:"неподвижная звезда",th:"ดาวฤกษ์",mn:"тогтмол од",uz:"yulduz",es:"fixed star"} },
+          { char:"행성",  word:"행성",  meaning:{ko:"행성",vi:"hành tinh",zh:"行星",en:"planet",ja:"惑星",id:"planet",ru:"планета",th:"ดาวเคราะห์",mn:"гараг",uz:"sayyora",es:"planet"} },
+          { char:"위성",  word:"위성",  meaning:{ko:"위성",vi:"vệ tinh",zh:"卫星",en:"satellite",ja:"衛星",id:"satelit",ru:"спутник",th:"ดาวเทียม",mn:"хиймэл дагуул",uz:"sun'iy yo'ldosh",es:"satellite"} },
+          { char:"수증기",word:"수증기",meaning:{ko:"수증기",vi:"hơi nước",zh:"水蒸气",en:"vapor",ja:"水蒸気",id:"uap air",ru:"пар",th:"ไอน้ำ",mn:"усны уур",uz:"suv bug'i",es:"vapor"} },
+          { char:"중력",  word:"중력",  meaning:{ko:"중력",vi:"trọng lực",zh:"重力",en:"gravity",ja:"重力",id:"gravitasi",ru:"сила притяжения",th:"แรงโน้มถ่วง",mn:"таталцал",uz:"tortishish kuchi",es:"gravity"} },
+          { char:"무중력",word:"무중력",meaning:{ko:"무중력",vi:"không trọng lực",zh:"失重",en:"zero gravity",ja:"無重力",id:"tanpa gravitasi",ru:"невесомость",th:"ไร้แรงโน้มถ่วง",mn:"жингүй байдал",uz:"og'irsizlik",es:"zero gravity"} },
+          { char:"통계",  word:"통계",  meaning:{ko:"통계",vi:"thống kê",zh:"统计",en:"statistics",ja:"統計",id:"statistik",ru:"статистика",th:"สถิติ",mn:"статистик",uz:"statistika",es:"statistics"} },
+          { char:"주황색",word:"주황색",meaning:{ko:"주황색",vi:"màu cam",zh:"橙色",en:"orange",ja:"オレンジ色",id:"oranye",ru:"оранжевый",th:"สีส้ม",mn:"улбар шар",uz:"to'q sariq",es:"orange"} },
+          { char:"사랑",  word:"사랑",  meaning:{ko:"사랑",vi:"tình yêu",zh:"爱",en:"love",ja:"愛",id:"cinta",ru:"любовь",th:"ความรัก",mn:"хайр",uz:"sevgi",es:"love"} },
+          { char:"희망",  word:"희망",  meaning:{ko:"희망",vi:"hy vọng",zh:"希望",en:"hope",ja:"希望",id:"harapan",ru:"надежда",th:"ความหวัง",mn:"найдвар",uz:"umid",es:"hope"} },
+          { char:"평화",  word:"평화",  meaning:{ko:"평화",vi:"hòa bình",zh:"和平",en:"peace",ja:"平和",id:"perdamaian",ru:"мир",th:"สันติภาพ",mn:"энх тайван",uz:"tinchlik",es:"peace"} },
+          { char:"충성",  word:"충성",  meaning:{ko:"충성",vi:"lòng trung thành",zh:"忠诚",en:"loyalty",ja:"忠誠",id:"kesetiaan",ru:"преданность",th:"ความจงรักภักดี",mn:"үнэнч байдал",uz:"sadoqat",es:"loyalty"} },
+          { char:"생각",  word:"생각",  meaning:{ko:"생각",vi:"suy nghĩ",zh:"想法",en:"thought",ja:"考え",id:"pikiran",ru:"мысль",th:"ความคิด",mn:"бодол",uz:"fikr",es:"thought"} },
+          { char:"행복",  word:"행복",  meaning:{ko:"행복",vi:"hạnh phúc",zh:"幸福",en:"happiness",ja:"幸せ",id:"kebahagiaan",ru:"счастье",th:"ความสุข",mn:"аз жаргал",uz:"baxt",es:"happiness"} },
+          { char:"걱정",  word:"걱정",  meaning:{ko:"걱정",vi:"lo lắng",zh:"担心",en:"worry",ja:"心配",id:"khawatir",ru:"беспокойство",th:"ความกังวล",mn:"санаа зов",uz:"tashvish",es:"worry"} },
+          { char:"공경",  word:"공경",  meaning:{ko:"공경",vi:"kính trọng",zh:"恭敬",en:"respect",ja:"敬意",id:"menghormati",ru:"уважение",th:"ความเคารพ",mn:"хүндлэл",uz:"hurmat",es:"respect"} },
+          { char:"성격",  word:"성격",  meaning:{ko:"성격",vi:"tính cách",zh:"性格",en:"personality",ja:"性格",id:"kepribadian",ru:"характер",th:"บุคลิกภาพ",mn:"зан чанар",uz:"shaxsiyat",es:"personality"} },
+          { char:"성공",  word:"성공",  meaning:{ko:"성공",vi:"thành công",zh:"成功",en:"success",ja:"成功",id:"sukses",ru:"успех",th:"ความสำเร็จ",mn:"амжилт",uz:"muvaffaqiyat",es:"success"} },
+          { char:"망치",  word:"망치",  meaning:{ko:"망치",vi:"cái búa",zh:"锤子",en:"hammer",ja:"ハンマー",id:"palu",ru:"молоток",th:"ค้อน",mn:"алх",uz:"bolg'a",es:"hammer"} },
+          { char:"강의",  word:"강의",  meaning:{ko:"강의",vi:"bài giảng",zh:"讲义",en:"lecture",ja:"講義",id:"kuliah",ru:"лекция",th:"การบรรยาย",mn:"лекц",uz:"ma'ruza",es:"lecture"} },
+          { char:"광주",  word:"광주",  meaning:{ko:"광주",vi:"Gwangju",zh:"光州",en:"Gwangju",ja:"クァンジュ",id:"Gwangju",ru:"Кванджу",th:"กวางจู",mn:"Гуанжу",uz:"Kwangju",es:"Gwangju"} },
+          { char:"경치",  word:"경치",  meaning:{ko:"경치",vi:"cảnh trí",zh:"景色",en:"scenery",ja:"景色",id:"pemandangan",ru:"пейзаж",th:"ทิวทัศน์",mn:"байгаль",uz:"manzara",es:"scenery"} },
+          { char:"풍경",  word:"풍경",  meaning:{ko:"풍경",vi:"phong cảnh",zh:"风景",en:"landscape",ja:"風景",id:"pemandangan alam",ru:"пейзаж",th:"ทัศนียภาพ",mn:"байгаль дэлхий",uz:"tabiat manzarasi",es:"landscape"} },
+          { char:"마중",  word:"마중",  meaning:{ko:"마중",vi:"sự tiếp đón",zh:"迎接",en:"welcoming/meeting",ja:"出迎え",id:"penjemputan",ru:"встреча",th:"การต้อนรับ",mn:"угтах",uz:"kutib olish",es:"welcoming/meeting"} },
+          { char:"배웅",  word:"배웅",  meaning:{ko:"배웅",vi:"tiễn đưa",zh:"送行",en:"send-off",ja:"見送り",id:"pengantaran",ru:"проводы",th:"การส่ง",mn:"үдэх",uz:"kuzatish",es:"send-off"} },
+          { char:"모양",  word:"모양",  meaning:{ko:"모양",vi:"hình dáng",zh:"模样",en:"shape",ja:"形",id:"bentuk",ru:"форма",th:"รูปร่าง",mn:"хэлбэр",uz:"shakl",es:"shape"} },
+          { char:"다양하다",word:"다양하다",meaning:{ko:"다양하다",vi:"đa dạng",zh:"多样",en:"various",ja:"多様だ",id:"beragam",ru:"разнообразный",th:"หลากหลาย",mn:"олон янз",uz:"xilma-xil",es:"various"} },
+          { char:"증가하다",word:"증가하다",meaning:{ko:"증가하다",vi:"gia tăng",zh:"增加",en:"increase",ja:"増加する",id:"meningkat",ru:"повышаться",th:"เพิ่มขึ้น",mn:"нэмэгдэх",uz:"oshmoq",es:"increase"} },
+          { char:"유명하다",word:"유명하다",meaning:{ko:"유명하다",vi:"nổi tiếng",zh:"有名",en:"famous",ja:"有名だ",id:"terkenal",ru:"известный",th:"มีชื่อเสียง",mn:"алдартай",uz:"mashhur",es:"famous"} },
+          { char:"정확하다",word:"정확하다",meaning:{ko:"정확하다",vi:"chính xác",zh:"准确",en:"accurate",ja:"正確だ",id:"tepat",ru:"точный",th:"แม่นยำ",mn:"нарийн",uz:"aniq",es:"accurate"} },
+          { char:"소중하다",word:"소중하다",meaning:{ko:"소중하다",vi:"quý báu",zh:"珍贵",en:"precious",ja:"大切だ",id:"berharga",ru:"ценный",th:"มีค่า",mn:"үнэтэй",uz:"qimmatli",es:"precious"} },
+          { char:"조용하다",word:"조용하다",meaning:{ko:"조용하다",vi:"im lặng",zh:"安静",en:"quiet",ja:"静かだ",id:"tenang",ru:"тихий",th:"เงียบ",mn:"чимээгүй",uz:"jim",es:"quiet"} },
+          { char:"죄송하다",word:"죄송하다",meaning:{ko:"죄송하다",vi:"xin lỗi",zh:"抱歉",en:"sorry",ja:"申し訳ない",id:"minta maaf",ru:"извиниться",th:"ขอโทษ",mn:"уучлаарай",uz:"kechirasiz",es:"sorry"} },
+          { char:"뚱뚱하다",word:"뚱뚱하다",meaning:{ko:"뚱뚱하다",vi:"béo",zh:"胖",en:"fat",ja:"太っている",id:"gemuk",ru:"толстый",th:"อ้วน",mn:"тарган",uz:"semiz",es:"fat"} },
+          { char:"공부하다",word:"공부하다",meaning:{ko:"공부하다",vi:"học hành",zh:"学习",en:"study",ja:"勉強する",id:"belajar",ru:"учиться",th:"เรียนหนังสือ",mn:"суралцах",uz:"o'qimoq",es:"study"} },
+          { char:"용서하다",word:"용서하다",meaning:{ko:"용서하다",vi:"tha thứ",zh:"原谅",en:"forgive",ja:"許す",id:"memaafkan",ru:"прощать",th:"ให้อภัย",mn:"уучлах",uz:"kechirmoq",es:"forgive"} },
+          { char:"성공하다",word:"성공하다",meaning:{ko:"성공하다",vi:"thành công",zh:"成功",en:"succeed",ja:"成功する",id:"berhasil",ru:"добиться успеха",th:"ประสบความสำเร็จ",mn:"амжилт гаргах",uz:"muvaffaqiyat qozonmoq",es:"succeed"} },
+          { char:"청소하다",word:"청소하다",meaning:{ko:"청소하다",vi:"dọn dẹp",zh:"打扫",en:"clean",ja:"掃除する",id:"membersihkan",ru:"убираться",th:"ทำความสะอาด",mn:"цэвэрлэх",uz:"tozalamoq",es:"clean"} },
+          { char:"사용하다",word:"사용하다",meaning:{ko:"사용하다",vi:"sử dụng",zh:"使用",en:"use",ja:"使う",id:"menggunakan",ru:"использовать",th:"ใช้",mn:"ашиглах",uz:"ishlatmoq",es:"use"} },
+          { char:"걱정하다",word:"걱정하다",meaning:{ko:"걱정하다",vi:"lo lắng",zh:"担心",en:"worry",ja:"心配する",id:"khawatir",ru:"беспокоиться",th:"กังวล",mn:"санаа зовох",uz:"tashvishlаnmoq",es:"worry"} },
+          { char:"수영하다",word:"수영하다",meaning:{ko:"수영하다",vi:"bơi lội",zh:"游泳",en:"swim",ja:"泳ぐ",id:"berenang",ru:"плавать",th:"ว่ายน้ำ",mn:"сэлэх",uz:"suzmoq",es:"swim"} },
+          { char:"생각하다",word:"생각하다",meaning:{ko:"생각하다",vi:"suy nghĩ",zh:"思考",en:"think",ja:"考える",id:"berpikir",ru:"думать",th:"คิด",mn:"бодох",uz:"o'ylamoq",es:"think"} },
+          { char:"생기다",  word:"생기다",  meaning:{ko:"생기다",vi:"xuất hiện",zh:"产生",en:"appear",ja:"生まれる",id:"muncul",ru:"появляться",th:"เกิดขึ้น",mn:"үүсэх",uz:"paydo bo'lmoq",es:"appear"} },
+          { char:"정하다",  word:"정하다",  meaning:{ko:"정하다",vi:"quyết định",zh:"决定",en:"decide",ja:"決める",id:"menentukan",ru:"устанавливать",th:"ตัดสินใจ",mn:"тодорхойлох",uz:"belgilamoq",es:"decide"} },
+          { char:"자랑하다",word:"자랑하다",meaning:{ko:"자랑하다",vi:"khoe khoang",zh:"炫耀",en:"boast",ja:"自慢する",id:"membanggakan",ru:"хвастаться",th:"อวด",mn:"сайрхах",uz:"maqtanmoq",es:"boast"} },
+          { char:"정리하다",word:"정리하다",meaning:{ko:"정리하다",vi:"sắp xếp",zh:"整理",en:"arrange",ja:"整理する",id:"menata",ru:"приводить в порядок",th:"จัดระเบียบ",mn:"цэгцлэх",uz:"tartibga solmoq",es:"arrange"} },
+          { char:"여행하다",word:"여행하다",meaning:{ko:"여행하다",vi:"du lịch",zh:"旅行",en:"travel",ja:"旅行する",id:"berwisata",ru:"путешествовать",th:"ท่องเที่ยว",mn:"аялах",uz:"sayohat qilmoq",es:"travel"} },
+        ],
+        tip:{ko:"💡 [비음] 받침 ㅇ은 콧속에서 울리는 소리예요. 입을 살짝 열고 코로 소리를 내보세요. 예) 형[형] 항상[항상] 강[강]",vi:"💡 [Âm mũi] Phụ âm cuối ㅇ là âm vang trong mũi. Hé miệng nhẹ và phát âm qua mũi. Ví dụ: 형[형] 항상[항상]",en:"💡 [Nasal sound] ㅇ at the end resonates through the nose. Open your mouth slightly and let the sound come through your nose. e.g. 형[형] 항상[항상]",zh:"💡【鼻音】收音ㅇ是在鼻腔中共鸣的音。请稍微张开嘴，让声音从鼻子发出。例：형[형] 항상[항상] 강[강]",ja:"💡【鼻音】パッチムㅇは鼻の中で響く音です。口を少し開けて鼻から音を出してみてください。例）형[형] 항상[항상] 강[강]",id:"💡[Bunyi nasal] Konsonan akhir ㅇ adalah bunyi yang bergema di hidung. Buka mulut sedikit dan keluarkan bunyi lewat hidung. Contoh) 형[형] 항상[항상] 강[강]",ru:"💡[Носовой звук] Конечная согласная ㅇ — это звук, резонирующий в носу. Слегка приоткройте рот и произнесите звук через нос. Напр.) 형[형] 항상[항상] 강[강]",th:"💡[เสียงนาสิก] ตัวสะกด ㅇ คือเสียงที่สะท้อนในจมูก อ้าปากเล็กน้อยแล้วปล่อยเสียงออกทางจมูก ตัวอย่าง) 형[형] 항상[항상] 강[강]",mn:"💡[Хамрын авиа] Төгсгөлийн ㅇ бол хамарт цуурайтдаг дуу авиа юм. Амаа бага зэрэг нээгээд хамраар дуу гаргаж үзээрэй. Жишээ) 형[형] 항상[항상] 강[강]",uz:"💡[Burun tovushi] Oxirgi undosh ㅇ burunda jaranglaydigan tovushdir. Og'zingizni sal ochib, tovushni burundan chiqaring. Masalan) 형[형] 항상[항상] 강[강]",es:"💡[Sonido nasal] La consonante final ㅇ es un sonido que resuena en la nariz. Abra un poco la boca y emita el sonido por la nariz. Ej.) 형[형] 항상[항상] 강[강]",fr:"💡[Son nasal] La consonne finale ㅇ est un son qui résonne dans le nez. Ouvrez légèrement la bouche et laissez le son sortir par le nez. Ex. : 형[형] 항상[항상] 강[강]",ne:"💡[नाक ध्वनि] अन्त्य व्यञ्जन ㅇ नाकभित्र गुञ्जने ध्वनि हो। मुख अलिक खोलेर नाकबाट ध्वनि निकाल्नुहोस्। उदाहरण) 형[형] 항상[항상] 강[강]",de:"💡[Nasallaut] Der Endkonsonant ㅇ ist ein Klang, der in der Nase mitschwingt. Öffnen Sie den Mund leicht und lassen Sie den Klang durch die Nase kommen. Bsp.: 형[형] 항상[항상] 강[강]"},
+      },
+      // ── 단계 12: 받침 ㅁ ──
+      { id:"batchim_m", type:"learn", emoji:"🧱",
+        title:{ko:"12. 받침 [ㅁ]",vi:"12. Phụ âm cuối [ㅁ]",en:"12. Final Consonant [ㅁ]",zh:"12. 收音 [ㅁ]",ja:"12. パッチム [ㅁ]",id:"12. Konsonan Akhir [ㅁ]",ru:"12. Конечная согласная [ㅁ]",th:"12. ตัวสะกด [ㅁ]",mn:"12. Төгсгөлийн гийгүүлэгч [ㅁ]",uz:"12. Oxirgi undosh [ㅁ]",es:"12. Consonante final [ㅁ]",fr:"12. Consonne finale [ㅁ]",ne:"12. अन्त्य व्यञ्जन [ㅁ]",de:"12. Endkonsonant [ㅁ]"},
+        desc:{ko:"가족·음식·감정 관련 어휘로 ㅁ받침을 익힙니다.",vi:"Học phụ âm cuối ㅁ qua từ vựng về gia đình, thức ăn và cảm xúc.",en:"Learn the final consonant ㅁ through family, food, and emotion vocabulary.",zh:"通过家庭、食物、情感相关词汇学习ㅁ收音。",ja:"家族・食べ物・感情に関する語彙でㅁパッチムを学びます。",id:"Pelajari konsonan akhir ㅁ melalui kosakata keluarga, makanan, dan emosi.",ru:"Изучите конечную согласную ㅁ через лексику о семье, еде и эмоциях.",th:"เรียนรู้ตัวสะกด ㅁ ผ่านคำศัพท์เกี่ยวกับครอบครัว อาหาร และอารมณ์",mn:"Гэр бүл, хоол, сэтгэл хөдлөлтэй холбоотой үгсээр ㅁ төгсгөлийн гийгүүлэгчийг мэдэж авна.",uz:"Oila, ovqat, his-tuyg'u bilan bog'liq lug'at orqali ㅁ oxirgi undoshini o'rganing.",es:"Aprenda la consonante final ㅁ mediante vocabulario de familia, comida y emociones.",fr:"Apprenez la consonne finale ㅁ à travers un vocabulaire lié à la famille, la nourriture et les émotions.",ne:"परिवार, खाना, भावनासँग सम्बन्धित शब्दहरूबाट ㅁ अन्त्य व्यञ्जन सिक्नुहोस्।",de:"Lernen Sie den Endkonsonanten ㅁ anhand von Vokabeln zu Familie, Essen und Gefühlen."},
+        items:[
+          { char:"엄마",   word:"엄마",   meaning:{ko:"엄마",   vi:"mẹ",zh:"妈妈",en:"mom",ja:"ママ",id:"mama",ru:"мама",th:"แม่",mn:"ээж",uz:"oyi",es:"mom"} },
+          { char:"부모님", word:"부모님", meaning:{ko:"부모님", vi:"bố mẹ",zh:"父母",en:"parents",ja:"両親",id:"orang tua",ru:"родители",th:"พ่อแม่",mn:"эцэг эх",uz:"ota-ona",es:"parents"} },
+          { char:"이름",   word:"이름",   meaning:{ko:"이름",   vi:"tên",zh:"名字",en:"name",ja:"名前",id:"nama",ru:"имя",th:"ชื่อ",mn:"нэр",uz:"ism",es:"name"} },
+          { char:"사람",   word:"사람",   meaning:{ko:"사람",   vi:"người",zh:"人",en:"person",ja:"人",id:"orang",ru:"человек",th:"คน",mn:"хүн",uz:"odam",es:"person"} },
+          { char:"남자",   word:"남자",   meaning:{ko:"남자",   vi:"đàn ông",zh:"男人",en:"man",ja:"男性",id:"pria",ru:"мужчина",th:"ผู้ชาย",mn:"эрэгтэй",uz:"erkak",es:"man"} },
+          { char:"남편",   word:"남편",   meaning:{ko:"남편",   vi:"chồng",zh:"丈夫",en:"husband",ja:"夫",id:"suami",ru:"муж",th:"สามี",mn:"нөхөр",uz:"er",es:"husband"} },
+          { char:"삼촌",   word:"삼촌",   meaning:{ko:"삼촌",   vi:"chú",zh:"叔叔",en:"uncle",ja:"おじさん",id:"paman",ru:"дядя",th:"ลุง",mn:"авга",uz:"amaki",es:"uncle"} },
+          { char:"아침",   word:"아침",   meaning:{ko:"아침",   vi:"buổi sáng",zh:"早上",en:"morning",ja:"朝",id:"pagi",ru:"утро",th:"เช้า",mn:"өглөө",uz:"ertalab",es:"morning"} },
+          { char:"점심",   word:"점심",   meaning:{ko:"점심",   vi:"bữa trưa",zh:"午饭",en:"lunch",ja:"昼食",id:"makan siang",ru:"обед",th:"อาหารกลางวัน",mn:"өдрийн хоол",uz:"tushlik",es:"lunch"} },
+          { char:"밤",     word:"밤",     meaning:{ko:"밤",     vi:"đêm",zh:"夜晚",en:"night",ja:"夜",id:"malam",ru:"ночь",th:"กลางคืน",mn:"шөнө",uz:"tun",es:"night"} },
+          { char:"봄",     word:"봄",     meaning:{ko:"봄",     vi:"mùa xuân",zh:"春天",en:"spring",ja:"春",id:"musim semi",ru:"весна",th:"ฤดูใบไม้ผลิ",mn:"хавар",uz:"bahor",es:"spring"} },
+          { char:"여름",   word:"여름",   meaning:{ko:"여름",   vi:"mùa hè",zh:"夏天",en:"summer",ja:"夏",id:"musim panas",ru:"лето",th:"ฤดูร้อน",mn:"зун",uz:"yoz",es:"summer"} },
+          { char:"다음",   word:"다음",   meaning:{ko:"다음",   vi:"tiếp theo",zh:"下一个",en:"next",ja:"次",id:"berikutnya",ru:"следующий",th:"ถัดไป",mn:"дараагийн",uz:"keyingi",es:"next"} },
+          { char:"처음",   word:"처음",   meaning:{ko:"처음",   vi:"lần đầu",zh:"第一次",en:"first time",ja:"初めて",id:"pertama kali",ru:"первый раз",th:"ครั้งแรก",mn:"анх удаа",uz:"birinchi marta",es:"first time"} },
+          { char:"요즘",   word:"요즘",   meaning:{ko:"요즘",   vi:"dạo này",zh:"最近",en:"these days",ja:"最近",id:"belakangan ini",ru:"в наши дни",th:"ช่วงนี้",mn:"сүүлийн үед",uz:"hozirgi kunda",es:"these days"} },
+          { char:"가끔",   word:"가끔",   meaning:{ko:"가끔",   vi:"thỉnh thoảng",zh:"偶尔",en:"sometimes",ja:"たまに",id:"kadang-kadang",ru:"иногда",th:"บางครั้ง",mn:"заримдаа",uz:"ba'zan",es:"sometimes"} },
+          { char:"보름",   word:"보름",   meaning:{ko:"보름",   vi:"nửa tháng",zh:"半个月",en:"half a month",ja:"半月",id:"setengah bulan",ru:"полмесяца",th:"ครึ่งเดือน",mn:"хагас сар",uz:"yarim oy",es:"half a month"} },
+          { char:"시험",   word:"시험",   meaning:{ko:"시험",   vi:"bài thi",zh:"考试",en:"exam",ja:"試験",id:"ujian",ru:"экзамен",th:"การสอบ",mn:"шалгалт",uz:"imtihon",es:"exam"} },
+          { char:"점수",   word:"점수",   meaning:{ko:"점수",   vi:"điểm số",zh:"分数",en:"score",ja:"点数",id:"skor",ru:"оценка",th:"คะแนน",mn:"оноо",uz:"ball",es:"score"} },
+          { char:"침대",   word:"침대",   meaning:{ko:"침대",   vi:"giường",zh:"床",en:"bed",ja:"ベッド",id:"tempat tidur",ru:"кровать",th:"เตียง",mn:"ор",uz:"karavot",es:"bed"} },
+          { char:"잠",     word:"잠",     meaning:{ko:"잠",     vi:"giấc ngủ",zh:"睡觉",en:"sleep",ja:"眠り",id:"tidur",ru:"сон",th:"การนอน",mn:"нойр",uz:"uyqu",es:"sleep"} },
+          { char:"짐",     word:"짐",     meaning:{ko:"짐",     vi:"hành lý",zh:"行李",en:"luggage",ja:"荷物",id:"barang bawaan",ru:"багаж",th:"กระเป๋า",mn:"тээш",uz:"yuk",es:"luggage"} },
+          { char:"몸",     word:"몸",     meaning:{ko:"몸",     vi:"cơ thể",zh:"身体",en:"body",ja:"体",id:"tubuh",ru:"тело",th:"ร่างกาย",mn:"бие",uz:"tana",es:"body"} },
+          { char:"가슴",   word:"가슴",   meaning:{ko:"가슴",   vi:"ngực",zh:"胸部",en:"chest",ja:"胸",id:"dada",ru:"грудь",th:"หน้าอก",mn:"цээж",uz:"ko'krak",es:"chest"} },
+          { char:"심장",   word:"심장",   meaning:{ko:"심장",   vi:"tim",zh:"心脏",en:"heart(organ)",ja:"心臓",id:"jantung",ru:"сердце",th:"หัวใจ",mn:"зүрх",uz:"yurak",es:"heart(organ)"} },
+          { char:"임신",   word:"임신",   meaning:{ko:"임신",   vi:"mang thai",zh:"怀孕",en:"pregnant",ja:"妊娠",id:"hamil",ru:"беременность",th:"ตั้งครรภ์",mn:"жирэмсэн",uz:"homilador",es:"pregnant"} },
+          { char:"감기",   word:"감기",   meaning:{ko:"감기",   vi:"cảm lạnh",zh:"感冒",en:"cold(illness)",ja:"風邪",id:"flu",ru:"простуда",th:"ไข้หวัด",mn:"томуу",uz:"sovuq",es:"cold(illness)"} },
+          { char:"기침",   word:"기침",   meaning:{ko:"기침",   vi:"ho",zh:"咳嗽",en:"cough",ja:"咳",id:"batuk",ru:"кашель",th:"ไอ",mn:"ханиад",uz:"yo'tal",es:"cough"} },
+          { char:"암",     word:"암",     meaning:{ko:"암",     vi:"ung thư",zh:"癌症",en:"cancer",ja:"癌",id:"kanker",ru:"рак",th:"มะเร็ง",mn:"хорт хавдар",uz:"saraton",es:"cancer"} },
+          { char:"담배",   word:"담배",   meaning:{ko:"담배",   vi:"thuốc lá",zh:"香烟",en:"cigarette",ja:"タバコ",id:"rokok",ru:"сигарета",th:"บุหรี่",mn:"тамхи",uz:"sigaret",es:"cigarette"} },
+          { char:"음식",   word:"음식",   meaning:{ko:"음식",   vi:"thức ăn",zh:"食物",en:"food",ja:"食べ物",id:"makanan",ru:"еда",th:"อาหาร",mn:"хоол",uz:"ovqat",es:"food"} },
+          { char:"점심",   word:"점심",   meaning:{ko:"점심",   vi:"bữa trưa",zh:"午饭",en:"lunch",ja:"昼食",id:"makan siang",ru:"обед",th:"อาหารกลางวัน",mn:"өдрийн хоол",uz:"tushlik",es:"lunch"} },
+          { char:"소금",   word:"소금",   meaning:{ko:"소금",   vi:"muối",zh:"盐",en:"salt",ja:"塩",id:"garam",ru:"соль",th:"เกลือ",mn:"давс",uz:"tuz",es:"salt"} },
+          { char:"감자",   word:"감자",   meaning:{ko:"감자",   vi:"khoai tây",zh:"土豆",en:"potato",ja:"じゃがいも",id:"kentang",ru:"картофель",th:"มันฝรั่ง",mn:"төмс",uz:"kartoshka",es:"potato"} },
+          { char:"음료수", word:"음료수", meaning:{ko:"음료수", vi:"đồ uống",zh:"饮料",en:"beverage",ja:"飲み物",id:"minuman",ru:"напиток",th:"เครื่องดื่ม",mn:"ундаа",uz:"ichimlik",es:"beverage"} },
+          { char:"김치",   word:"김치",   meaning:{ko:"김치",   vi:"kim chi",zh:"泡菜",en:"kimchi",ja:"キムチ",id:"kimchi",ru:"кимчи",th:"กิมจิ",mn:"кимчи",uz:"kimchi",es:"kimchi"} },
+          { char:"삼계탕", word:"삼계탕", meaning:{ko:"삼계탕", vi:"gà hầm sâm",zh:"参鸡汤",en:"ginseng chicken soup",ja:"サムゲタン",id:"samgyetang",ru:"самгетанг",th:"ซัมเกแทง",mn:"самгетанг",uz:"samgetan",es:"ginseng chicken soup"} },
+          { char:"껌",     word:"껌",     meaning:{ko:"껌",     vi:"kẹo cao su",zh:"口香糖",en:"chewing gum",ja:"ガム",id:"permen karet",ru:"жвачка",th:"หมากฝรั่ง",mn:"бохир",uz:"saqich",es:"chewing gum"} },
+          { char:"냄새",   word:"냄새",   meaning:{ko:"냄새",   vi:"mùi",zh:"气味",en:"smell",ja:"臭い",id:"bau",ru:"запах",th:"กลิ่น",mn:"үнэр",uz:"hid",es:"smell"} },
+          { char:"구름",   word:"구름",   meaning:{ko:"구름",   vi:"đám mây",zh:"云",en:"cloud",ja:"雲",id:"awan",ru:"облако",th:"เมฆ",mn:"үүл",uz:"bulut",es:"cloud"} },
+          { char:"바람",   word:"바람",   meaning:{ko:"바람",   vi:"gió",zh:"风",en:"wind",ja:"風",id:"angin",ru:"ветер",th:"ลม",mn:"салхи",uz:"shamol",es:"wind"} },
+          { char:"섬",     word:"섬",     meaning:{ko:"섬",     vi:"đảo",zh:"岛",en:"island",ja:"島",id:"pulau",ru:"остров",th:"เกาะ",mn:"арал",uz:"orol",es:"island"} },
+          { char:"마음",   word:"마음",   meaning:{ko:"마음",   vi:"tâm hồn",zh:"心",en:"heart/mind",ja:"心",id:"hati",ru:"душа",th:"ใจ",mn:"сэтгэл",uz:"yurak",es:"heart/mind"} },
+          { char:"꿈",     word:"꿈",     meaning:{ko:"꿈",     vi:"giấc mơ",zh:"梦想",en:"dream",ja:"夢",id:"mimpi",ru:"мечта",th:"ความฝัน",mn:"мөрөөдөл",uz:"orzu",es:"dream"} },
+          { char:"기쁨",   word:"기쁨",   meaning:{ko:"기쁨",   vi:"niềm vui",zh:"喜悦",en:"joy",ja:"喜び",id:"kegembiraan",ru:"радость",th:"ความสุข",mn:"баяр хөөр",uz:"quvonch",es:"joy"} },
+          { char:"근심",   word:"근심",   meaning:{ko:"근심",   vi:"lo lắng",zh:"忧虑",en:"worry",ja:"心配",id:"kekhawatiran",ru:"тревога",th:"ความกังวล",mn:"санаа зовнил",uz:"tashvish",es:"worry"} },
+          { char:"경험",   word:"경험",   meaning:{ko:"경험",   vi:"kinh nghiệm",zh:"经验",en:"experience",ja:"経験",id:"pengalaman",ru:"опыт",th:"ประสบการณ์",mn:"туршлага",uz:"tajriba",es:"experience"} },
+          { char:"도움",   word:"도움",   meaning:{ko:"도움",   vi:"sự giúp đỡ",zh:"帮助",en:"help",ja:"助け",id:"bantuan",ru:"помощь",th:"ความช่วยเหลือ",mn:"тусламж",uz:"yordam",es:"help"} },
+          { char:"힘",     word:"힘",     meaning:{ko:"힘",     vi:"sức mạnh",zh:"力量",en:"strength",ja:"力",id:"kekuatan",ru:"сила",th:"กำลัง",mn:"хүч",uz:"kuch",es:"strength"} },
+          { char:"감사",   word:"감사",   meaning:{ko:"감사",   vi:"lòng biết ơn",zh:"感谢",en:"gratitude",ja:"感謝",id:"rasa syukur",ru:"благодарность",th:"ความกตัญญู",mn:"талархал",uz:"minnatdorchilik",es:"gratitude"} },
+          { char:"감동",   word:"감동",   meaning:{ko:"감동",   vi:"cảm động",zh:"感动",en:"moved/touched",ja:"感動",id:"terharu",ru:"трогательный",th:"ประทับใจ",mn:"сэтгэл хөдлөл",uz:"hayajson",es:"moved/touched"} },
+          { char:"모임",   word:"모임",   meaning:{ko:"모임",   vi:"buổi gặp mặt",zh:"聚会",en:"gathering",ja:"集まり",id:"pertemuan",ru:"встреча",th:"การรวมตัว",mn:"уулзалт",uz:"yig'ilish",es:"gathering"} },
+          { char:"함께",   word:"함께",   meaning:{ko:"함께",   vi:"cùng nhau",zh:"一起",en:"together",ja:"一緒に",id:"bersama",ru:"вместе",th:"ด้วยกัน",mn:"хамт",uz:"birga",es:"together"} },
+          { char:"음악",   word:"음악",   meaning:{ko:"음악",   vi:"âm nhạc",zh:"音乐",en:"music",ja:"音楽",id:"musik",ru:"музыка",th:"ดนตรี",mn:"хөгжим",uz:"musiqa",es:"music"} },
+          { char:"그림",   word:"그림",   meaning:{ko:"그림",   vi:"bức tranh",zh:"图画",en:"picture",ja:"絵",id:"gambar",ru:"рисунок",th:"รูปภาพ",mn:"зураг",uz:"rasm",es:"picture"} },
+          { char:"드럼",   word:"드럼",   meaning:{ko:"드럼",   vi:"trống",zh:"鼓",en:"drums",ja:"ドラム",id:"drum",ru:"барабан",th:"กลอง",mn:"бөмбөр",uz:"baraban",es:"drums"} },
+          { char:"명함",   word:"명함",   meaning:{ko:"명함",   vi:"danh thiếp",zh:"名片",en:"business card",ja:"名刺",id:"kartu nama",ru:"визитка",th:"นามบัตร",mn:"визит карт",uz:"vizit karta",es:"business card"} },
+          { char:"음성",   word:"음성",   meaning:{ko:"음성",   vi:"giọng nói",zh:"声音",en:"voice",ja:"音声",id:"suara",ru:"голос",th:"เสียง",mn:"дуу хоолой",uz:"ovoz",es:"voice"} },
+          { char:"자음",   word:"자음",   meaning:{ko:"자음",   vi:"phụ âm",zh:"辅音",en:"consonant",ja:"子音",id:"konsonan",ru:"согласная",th:"พยัญชนะ",mn:"гийгүүлэгч",uz:"undosh",es:"consonant"} },
+          { char:"모음",   word:"모음",   meaning:{ko:"모음",   vi:"nguyên âm",zh:"元音",en:"vowel",ja:"母音",id:"vokal",ru:"гласная",th:"สระ",mn:"эгшиг",uz:"unli",es:"vowel"} },
+          { char:"음절",   word:"음절",   meaning:{ko:"음절",   vi:"âm tiết",zh:"音节",en:"syllable",ja:"音節",id:"suku kata",ru:"слог",th:"พยางค์",mn:"үе",uz:"bo'g'in",es:"syllable"} },
+          { char:"임금",   word:"임금",   meaning:{ko:"임금",   vi:"tiền lương",zh:"工资",en:"wage",ja:"賃金",id:"upah",ru:"зарплата",th:"ค่าจ้าง",mn:"цалин",uz:"ish haqi",es:"wage"} },
+          { char:"요금",   word:"요금",   meaning:{ko:"요금",   vi:"phí",zh:"费用",en:"fee/fare",ja:"料金",id:"tarif",ru:"плата",th:"ค่าธรรมเนียม",mn:"хөлс",uz:"to'lov",es:"fee/fare"} },
+          { char:"저금",   word:"저금",   meaning:{ko:"저금",   vi:"tiết kiệm",zh:"储蓄",en:"savings",ja:"貯金",id:"tabungan",ru:"накопления",th:"การออมเงิน",mn:"хадгаламж",uz:"jamg'arma",es:"savings"} },
+          { char:"점",     word:"점",     meaning:{ko:"점",     vi:"điểm/chấm",zh:"点",en:"dot/point",ja:"点",id:"titik",ru:"точка",th:"จุด",mn:"цэг",uz:"nuqta",es:"dot/point"} },
+          { char:"아줌마",  word:"아줌마",  meaning:{ko:"아줌마",  vi:"dì/cô",zh:"大妈",en:"aunt/ma'am",ja:"おばさん",id:"tante",ru:"тётушка",th:"ป้า",mn:"эгч",uz:"xola",es:"aunt/ma'am"} },
+          { char:"학점",    word:"학점",    meaning:{ko:"학점",    vi:"tín chỉ",zh:"学分",en:"credit/grade",ja:"単位",id:"kredit",ru:"кредит",th:"หน่วยกิต",mn:"кредит",uz:"kredit",es:"credit/grade"} },
+          { char:"담",      word:"담",      meaning:{ko:"담",      vi:"hàng rào",zh:"墙",en:"wall/fence",ja:"塀",id:"pagar",ru:"стена",th:"รั้ว",mn:"хана",uz:"devor",es:"wall/fence"} },
+          { char:"금",      word:"금",      meaning:{ko:"금",      vi:"vàng",zh:"金",en:"gold",ja:"金",id:"emas",ru:"золото",th:"ทอง",mn:"алт",uz:"oltin",es:"gold"} },
+          { char:"화장품",  word:"화장품",  meaning:{ko:"화장품",  vi:"mỹ phẩm",zh:"化妆品",en:"cosmetics",ja:"化粧品",id:"kosmetik",ru:"косметика",th:"เครื่องสำอาง",mn:"гоо сайхны бүтээгдэхүүн",uz:"kosmetika",es:"cosmetics"} },
+          { char:"땀",      word:"땀",      meaning:{ko:"땀",      vi:"mồ hôi",zh:"汗水",en:"sweat",ja:"汗",id:"keringat",ru:"пот",th:"เหงื่อ",mn:"хөлс",uz:"ter",es:"sweat"} },
+          { char:"감",      word:"감",      meaning:{ko:"감",      vi:"quả hồng",zh:"柿子",en:"persimmon",ja:"柿",id:"kesemek",ru:"хурма",th:"ลูกพลับ",mn:"хилэн жимс",uz:"xurmo",es:"persimmon"} },
+          { char:"아이스크림",word:"아이스크림",meaning:{ko:"아이스크림",vi:"kem",zh:"冰淇淋",en:"ice cream",ja:"アイスクリーム",id:"es krim",ru:"мороженое",th:"ไอศกรีม",mn:"зайрмаг",uz:"muzqaymoq",es:"ice cream"} },
+          { char:"참외",    word:"참외",    meaning:{ko:"참외",    vi:"dưa lê",zh:"甜瓜",en:"oriental melon",ja:"マクワウリ",id:"melon Korea",ru:"дыня",th:"แตงเกาหลี",mn:"тарвас",uz:"qovun",es:"oriental melon"} },
+          { char:"식품",    word:"식품",    meaning:{ko:"식품",    vi:"thực phẩm",zh:"食品",en:"food product",ja:"食品",id:"bahan makanan",ru:"продукты",th:"ผลิตภัณฑ์อาหาร",mn:"хүнс",uz:"oziq-ovqat",es:"food product"} },
+          { char:"냉동식품",word:"냉동식품",meaning:{ko:"냉동식품",vi:"thực phẩm đông lạnh",zh:"冷冻食品",en:"frozen food",ja:"冷凍食品",id:"makanan beku",ru:"замороженные продукты",th:"อาหารแช่แข็ง",mn:"хөлдөөсөн хоол",uz:"muzlatilgan ovqat",es:"frozen food"} },
+          { char:"컴퓨터",  word:"컴퓨터",  meaning:{ko:"컴퓨터",  vi:"máy tính",zh:"电脑",en:"computer",ja:"コンピュータ",id:"komputer",ru:"компьютер",th:"คอมพิวเตอร์",mn:"компьютер",uz:"kompyuter",es:"computer"} },
+          { char:"금지",    word:"금지",    meaning:{ko:"금지",    vi:"cấm",zh:"禁止",en:"prohibition",ja:"禁止",id:"larangan",ru:"запрет",th:"ห้าม",mn:"хориг",uz:"taqiq",es:"prohibition"} },
+          { char:"제품",    word:"제품",    meaning:{ko:"제품",    vi:"sản phẩm",zh:"产品",en:"product",ja:"製品",id:"produk",ru:"продукция",th:"ผลิตภัณฑ์",mn:"бүтээгдэхүүн",uz:"mahsulot",es:"product"} },
+          { char:"반품",    word:"반품",    meaning:{ko:"반품",    vi:"trả hàng",zh:"退货",en:"return",ja:"返品",id:"retur",ru:"возврат",th:"การคืนสินค้า",mn:"буцаалт",uz:"qaytarish",es:"return"} },
+          { char:"상여금",  word:"상여금",  meaning:{ko:"상여금",  vi:"tiền thưởng",zh:"奖金",en:"bonus",ja:"ボーナス",id:"bonus",ru:"бонус",th:"โบนัส",mn:"урамшуулал",uz:"bonus",es:"bonus"} },
+          { char:"의료보험",word:"의료보험",meaning:{ko:"의료보험",vi:"bảo hiểm y tế",zh:"医疗保险",en:"medical insurance",ja:"医療保険",id:"asuransi kesehatan",ru:"медицинская страховка",th:"ประกันสุขภาพ",mn:"эрүүл мэндийн даатгал",uz:"tibbiy sug'urta",es:"medical insurance"} },
+          { char:"위염",    word:"위염",    meaning:{ko:"위염",    vi:"viêm dạ dày",zh:"胃炎",en:"gastritis",ja:"胃炎",id:"gastritis",ru:"гастрит",th:"กระเพาะอักเสบ",mn:"ходоодны үрэвсэл",uz:"gastrit",es:"gastritis"} },
+          { char:"항암제",  word:"항암제",  meaning:{ko:"항암제",  vi:"thuốc trị ung thư",zh:"抗癌剂",en:"anticancer drug",ja:"抗癌剤",id:"obat antikanker",ru:"противораковый препарат",th:"ยาต้านมะเร็ง",mn:"хорт хавдрын эм",uz:"saraton dori",es:"anticancer drug"} },
+          { char:"감기약",  word:"감기약",  meaning:{ko:"감기약",  vi:"thuốc cảm",zh:"感冒药",en:"cold medicine",ja:"風邪薬",id:"obat flu",ru:"лекарство от простуды",th:"ยาแก้หวัด",mn:"томуугийн эм",uz:"shamollash dori",es:"cold medicine"} },
+          { char:"중심",    word:"중심",    meaning:{ko:"중심",    vi:"trung tâm",zh:"中心",en:"center",ja:"中心",id:"pusat",ru:"центр",th:"ศูนย์กลาง",mn:"төв",uz:"markaz",es:"center"} },
+          { char:"게임",    word:"게임",    meaning:{ko:"게임",    vi:"trò chơi",zh:"游戏",en:"game",ja:"ゲーム",id:"permainan",ru:"игра",th:"เกม",mn:"тоглоом",uz:"o'yin",es:"game"} },
+          { char:"예금",    word:"예금",    meaning:{ko:"예금",    vi:"tiền gửi",zh:"存款",en:"deposit/savings",ja:"預金",id:"deposito",ru:"вклад",th:"เงินฝาก",mn:"хадгаламж",uz:"omonat",es:"deposit/savings"} },
+          { char:"담보",    word:"담보",    meaning:{ko:"담보",    vi:"thế chấp",zh:"担保",en:"collateral",ja:"担保",id:"agunan",ru:"залог",th:"หลักประกัน",mn:"барьцаа",uz:"garov",es:"collateral"} },
+          { char:"뱀",      word:"뱀",      meaning:{ko:"뱀",      vi:"con rắn",zh:"蛇",en:"snake",ja:"ヘビ",id:"ular",ru:"змея",th:"งู",mn:"могой",uz:"ilon",es:"snake"} },
+          { char:"남극",    word:"남극",    meaning:{ko:"남극",    vi:"Nam Cực",zh:"南极",en:"South Pole",ja:"南極",id:"Kutub Selatan",ru:"Антарктида",th:"ขั้วโลกใต้",mn:"Өмнөд туйл",uz:"Janubiy qutb",es:"South Pole"} },
+          { char:"삼",      word:"삼",      meaning:{ko:"삼",      vi:"ba",zh:"三",en:"three",ja:"三",id:"tiga",ru:"три",th:"สาม",mn:"гурав",uz:"uch",es:"three"} },
+          { char:"의심",    word:"의심",    meaning:{ko:"의심",    vi:"nghi ngờ",zh:"怀疑",en:"doubt",ja:"疑い",id:"keraguan",ru:"сомнение",th:"ความสงสัย",mn:"эргэлзэл",uz:"shubha",es:"doubt"} },
+          { char:"위험",    word:"위험",    meaning:{ko:"위험",    vi:"nguy hiểm",zh:"危险",en:"danger",ja:"危険",id:"bahaya",ru:"опасность",th:"อันตราย",mn:"аюул",uz:"xavf",es:"danger"} },
+          { char:"프로그램",word:"프로그램",meaning:{ko:"프로그램",vi:"chương trình",zh:"节目/程序",en:"program",ja:"プログラム",id:"program",ru:"программа",th:"โปรแกรม",mn:"хөтөлбөр",uz:"dastur",es:"program"} },
+          { char:"감사하다", word:"감사하다", meaning:{ko:"감사하다", vi:"cảm ơn",zh:"感谢",en:"to thank",ja:"感謝する",id:"berterima kasih",ru:"благодарить",th:"ขอบคุณ",mn:"талархах",uz:"minnatdor bo'lmoq",es:"to thank"} },
+          { char:"넘어지다", word:"넘어지다", meaning:{ko:"넘어지다", vi:"ngã",zh:"倒下",en:"to fall down",ja:"倒れる",id:"jatuh",ru:"упасть",th:"ล้ม",mn:"унах",uz:"yiqilmoq",es:"to fall down"} },
+          { char:"멈추다",   word:"멈추다",   meaning:{ko:"멈추다",   vi:"dừng lại",zh:"停止",en:"to stop",ja:"止まる",id:"berhenti",ru:"остановиться",th:"หยุด",mn:"зогсох",uz:"to'xtamoq",es:"to stop"} },
+          { char:"심다",     word:"심다",     meaning:{ko:"심다",     vi:"trồng cây",zh:"种植",en:"to plant",ja:"植える",id:"menanam",ru:"сажать",th:"ปลูก",mn:"тарих",uz:"ekamoq",es:"to plant"} },
+          { char:"참다",     word:"참다",     meaning:{ko:"참다",     vi:"chịu đựng",zh:"忍耐",en:"to endure",ja:"耐える",id:"menahan",ru:"терпеть",th:"อดทน",mn:"тэвчих",uz:"chidamoq",es:"to endure"} },
+          { char:"넘다",     word:"넘다",     meaning:{ko:"넘다",     vi:"vượt qua",zh:"超过",en:"to overcome",ja:"越える",id:"melampaui",ru:"преодолевать",th:"ข้าม",mn:"давах",uz:"oshmoq",es:"to overcome"} },
+        ],
+        tip:{ko:"💡 [비음+비음화] 받침 ㅁ은 입술을 다물고 코로 내는 소리예요. 뒤에 비음(ㄴ·ㅁ)이 오면 앞 받침도 비음으로 바뀌어요! 예) 엄마[엄마] 국물→[궁물] 입맛→[임맏]",vi:"💡 [Âm mũi + đồng hóa mũi] Phụ âm cuối ㅁ phát âm bằng cách khép môi và phát qua mũi. Khi có âm mũi (ㄴ·ㅁ) theo sau, phụ âm cuối trước cũng biến thành âm mũi! Ví dụ: 국물→[궁물]",en:"💡 [Nasal + nasalization] ㅁ is made by closing your lips and humming through the nose. When followed by a nasal (ㄴ·ㅁ), the preceding final consonant also becomes nasal! e.g. 국물→[궁물]",zh:"💡【鼻音化】收音ㅁ是闭上嘴唇从鼻子发出的音。后面如果紧跟鼻音（ㄴ·ㅁ），前面的收音也会变成鼻音！例：국물→[궁물] 입맛→[임맏]",ja:"💡【鼻音＋鼻音化】パッチムㅁは唇を閉じて鼻から出す音です。後ろに鼻音（ㄴ·ㅁ）が来ると前のパッチムも鼻音に変わります！例）국물→[궁물] 입맛→[임맏]",id:"💡[Nasal + nasalisasi] Konsonan akhir ㅁ dibuat dengan menutup bibir dan mengeluarkan bunyi lewat hidung. Jika diikuti bunyi nasal (ㄴ·ㅁ), konsonan akhir sebelumnya juga berubah menjadi nasal! Contoh) 국물→[궁물] 입맛→[임맏]",ru:"💡[Носовой звук + назализация] Конечная согласная ㅁ образуется смыканием губ и произнесением через нос. Если за ней следует носовой звук (ㄴ·ㅁ), предыдущая конечная согласная тоже становится носовой! Напр.) 국물→[궁물] 입맛→[임맏]",th:"💡[เสียงนาสิก+การกลายเป็นเสียงนาสิก] ตัวสะกด ㅁ เกิดจากการหุบปากแล้วปล่อยเสียงออกทางจมูก หากตามด้วยเสียงนาสิก (ㄴ·ㅁ) ตัวสะกดก่อนหน้าจะกลายเป็นเสียงนาสิกด้วย! ตัวอย่าง) 국물→[궁물] 입맛→[임맏]",mn:"💡[Хамрын авиа + хамаржилт] Төгсгөлийн ㅁ нь уруулаа аниад хамраар гаргадаг дуу авиа юм. Ард нь хамрын авиа (ㄴ·ㅁ) ирвэл өмнөх төгсгөлийн гийгүүлэгч ч хамрын авиа болж хувирна! Жишээ) 국물→[궁물] 입맛→[임맏]",uz:"💡[Burun tovushi + nazallashuv] Oxirgi undosh ㅁ lablarni yumib, burundan chiqariladigan tovushdir. Agar keyin burun tovushi (ㄴ·ㅁ) kelsa, oldingi oxirgi undosh ham burun tovushiga aylanadi! Masalan) 국물→[궁물] 입맛→[임맏]",es:"💡[Nasal + nasalización] La consonante final ㅁ se produce cerrando los labios y emitiendo el sonido por la nariz. Si le sigue un sonido nasal (ㄴ·ㅁ), ¡la consonante final anterior también se vuelve nasal! Ej.) 국물→[궁물] 입맛→[임맏]",fr:"💡[Nasal + nasalisation] La consonne finale ㅁ se produit en fermant les lèvres et en laissant sortir le son par le nez. Si un son nasal (ㄴ·ㅁ) suit, la consonne finale précédente devient aussi nasale ! Ex. : 국물→[궁물] 입맛→[임맏]",ne:"💡[नाक ध्वनि + नासिकीकरण] अन्त्य व्यञ्जन ㅁ ओठ बन्द गरेर नाकबाट निकालिने ध्वनि हो। पछाडि नाक ध्वनि (ㄴ·ㅁ) आएमा अगाडिको अन्त्य व्यञ्जन पनि नाक ध्वनिमा बदलिन्छ! उदाहरण) 국물→[궁물] 입맛→[임맏]",de:"💡[Nasal + Nasalisierung] Der Endkonsonant ㅁ entsteht, indem man die Lippen schließt und den Klang durch die Nase abgibt. Folgt ein Nasallaut (ㄴ·ㅁ), wird auch der vorherige Endkonsonant nasal! Bsp.: 국물→[궁물] 입맛→[임맏]"},
+      },
+      // ── 단계 13: 받침 ㅂ·ㅍ ──
+      { id:"batchim_bp", type:"learn", emoji:"🧱",
+        title:{ko:"13. 받침 [ㅂ·ㅍ]",vi:"13. Phụ âm cuối [ㅂ·ㅍ]",en:"13. Final Consonant [ㅂ·ㅍ]",zh:"13. 收音 [ㅂ·ㅍ]",ja:"13. パッチム [ㅂ·ㅍ]",id:"13. Konsonan Akhir [ㅂ·ㅍ]",ru:"13. Конечная согласная [ㅂ·ㅍ]",th:"13. ตัวสะกด [ㅂ·ㅍ]",mn:"13. Төгсгөлийн гийгүүлэгч [ㅂ·ㅍ]",uz:"13. Oxirgi undosh [ㅂ·ㅍ]",es:"13. Consonante final [ㅂ·ㅍ]",fr:"13. Consonne finale [ㅂ·ㅍ]",ne:"13. अन्त्य व्यञ्जन [ㅂ·ㅍ]",de:"13. Endkonsonant [ㅂ·ㅍ]"},
+        desc:{ko:"직업·장소·신체 관련 어휘로 ㅂ계열 받침을 익힙니다.",vi:"Học phụ âm cuối nhóm ㅂ qua từ vựng về nghề nghiệp, địa điểm và cơ thể.",en:"Learn the ㅂ-group final consonant through job, place, and body vocabulary.",zh:"通过职业、场所、身体相关词汇学习ㅂ系列收音。",ja:"職業・場所・身体に関する語彙でㅂ系パッチムを学びます。",id:"Pelajari konsonan akhir kelompok ㅂ melalui kosakata pekerjaan, tempat, dan tubuh.",ru:"Изучите конечную согласную группы ㅂ через лексику о профессиях, местах и теле.",th:"เรียนรู้ตัวสะกดกลุ่ม ㅂ ผ่านคำศัพท์เกี่ยวกับอาชีพ สถานที่ และร่างกาย",mn:"Мэргэжил, газар, бие махбодтой холбоотой үгсээр ㅂ бүлгийн төгсгөлийн гийгүүлэгчийг мэдэж авна.",uz:"Kasb, joy, tana bilan bog'liq lug'at orqali ㅂ guruhi oxirgi undoshini o'rganing.",es:"Aprenda la consonante final del grupo ㅂ mediante vocabulario de profesiones, lugares y cuerpo.",fr:"Apprenez la consonne finale du groupe ㅂ à travers un vocabulaire lié aux métiers, aux lieux et au corps.",ne:"पेशा, स्थान, शरीरसँग सम्बन्धित शब्दहरूबाट ㅂ समूहको अन्त्य व्यञ्जन सिक्नुहोस्।",de:"Lernen Sie den Endkonsonanten der ㅂ-Gruppe anhand von Vokabeln zu Beruf, Ort und Körper."},
+        items:[
+          { char:"직업",  word:"직업",  meaning:{ko:"직업",  vi:"nghề nghiệp",zh:"职业",en:"job",ja:"職業",id:"pekerjaan",ru:"профессия",th:"อาชีพ",mn:"мэргэжил",uz:"kasb",es:"job"} },
+          { char:"종업원",word:"종업원",meaning:{ko:"종업원",vi:"nhân viên",zh:"员工",en:"employee",ja:"従業員",id:"karyawan",ru:"сотрудник",th:"พนักงาน",mn:"ажилтан",uz:"xodim",es:"employee"} },
+          { char:"집",    word:"집",    meaning:{ko:"집",    vi:"nhà",zh:"家",en:"house/home",ja:"家",id:"rumah",ru:"дом",th:"บ้าน",mn:"гэр",uz:"uy",es:"house/home"} },
+          { char:"꽃집",  word:"꽃집",  meaning:{ko:"꽃집",  vi:"cửa hàng hoa",zh:"花店",en:"flower shop",ja:"花屋",id:"toko bunga",ru:"цветочный магазин",th:"ร้านดอกไม้",mn:"цэцгийн дэлгүүр",uz:"gul do'koni",es:"flower shop"} },
+          { char:"입학",  word:"입학",  meaning:{ko:"입학",  vi:"nhập học",zh:"入学",en:"school admission",ja:"入学",id:"masuk sekolah",ru:"поступление",th:"การเข้าศึกษา",mn:"элсэн орох",uz:"o'qishga kirish",es:"school admission"} },
+          { char:"수업",  word:"수업",  meaning:{ko:"수업",  vi:"buổi học",zh:"课",en:"class/lesson",ja:"授業",id:"pelajaran",ru:"урок",th:"ชั้นเรียน",mn:"хичээл",uz:"dars",es:"class/lesson"} },
+          { char:"답",    word:"답",    meaning:{ko:"답",    vi:"câu trả lời",zh:"答案",en:"answer",ja:"答え",id:"jawaban",ru:"ответ",th:"คำตอบ",mn:"хариулт",uz:"javob",es:"answer"} },
+          { char:"준비",  word:"준비",  meaning:{ko:"준비",  vi:"chuẩn bị",zh:"准备",en:"preparation",ja:"準備",id:"persiapan",ru:"подготовка",th:"การเตรียม",mn:"бэлтгэл",uz:"tayyorlik",es:"preparation"} },
+          { char:"복습",  word:"복습",  meaning:{ko:"복습",  vi:"ôn tập",zh:"复习",en:"review",ja:"復習",id:"mengulang",ru:"повторение",th:"การทบทวน",mn:"давтан үзэх",uz:"takrorlash",es:"review"} },
+          { char:"법",    word:"법",    meaning:{ko:"법",    vi:"luật",zh:"法律",en:"law",ja:"法律",id:"hukum",ru:"закон",th:"กฎหมาย",mn:"хууль",uz:"qonun",es:"law"} },
+          { char:"입구",  word:"입구",  meaning:{ko:"입구",  vi:"lối vào",zh:"入口",en:"entrance",ja:"入口",id:"pintu masuk",ru:"вход",th:"ทางเข้า",mn:"орох хаалга",uz:"kirish",es:"entrance"} },
+          { char:"밥",    word:"밥",    meaning:{ko:"밥",    vi:"cơm",zh:"米饭",en:"rice",ja:"ご飯",id:"nasi",ru:"рис",th:"ข้าว",mn:"цагаан будаа",uz:"guruch",es:"rice"} },
+          { char:"김밥",  word:"김밥",  meaning:{ko:"김밥",  vi:"cơm cuộn rong biển",zh:"紫菜包饭",en:"gimbap",ja:"のり巻き",id:"gimbap",ru:"кимпаб",th:"คิมบับ",mn:"кимбап",uz:"kimbap",es:"gimbap"} },
+          { char:"비빔밥",word:"비빔밥",meaning:{ko:"비빔밥",vi:"cơm trộn",zh:"拌饭",en:"bibimbap",ja:"ビビンバ",id:"bibimbap",ru:"пибимпаб",th:"บิบิมบับ",mn:"бибимбаб",uz:"bibimbap",es:"bibimbap"} },
+          { char:"볶음밥",word:"볶음밥",meaning:{ko:"볶음밥",vi:"cơm chiên",zh:"炒饭",en:"fried rice",ja:"チャーハン",id:"nasi goreng",ru:"жареный рис",th:"ข้าวผัด",mn:"шарсан будаа",uz:"qovurilgan guruch",es:"fried rice"} },
+          { char:"잡지",  word:"잡지",  meaning:{ko:"잡지",  vi:"tạp chí",zh:"杂志",en:"magazine",ja:"雑誌",id:"majalah",ru:"журнал",th:"นิตยสาร",mn:"сэтгүүл",uz:"jurnal",es:"magazine"} },
+          { char:"무릎",  word:"무릎",  meaning:{ko:"무릎",  vi:"đầu gối",zh:"膝盖",en:"knee",ja:"膝",id:"lutut",ru:"колено",th:"เข่า",mn:"өвдөг",uz:"tizza",es:"knee"} },
+          { char:"입",    word:"입",    meaning:{ko:"입",    vi:"miệng",zh:"嘴",en:"mouth",ja:"口",id:"mulut",ru:"рот",th:"ปาก",mn:"ам",uz:"og'iz",es:"mouth"} },
+          { char:"앞",    word:"앞",    meaning:{ko:"앞",    vi:"phía trước",zh:"前面",en:"front",ja:"前",id:"depan",ru:"перед",th:"ข้างหน้า",mn:"өмнө",uz:"oldi",es:"front"} },
+          { char:"숲",    word:"숲",    meaning:{ko:"숲",    vi:"rừng",zh:"森林",en:"forest",ja:"森",id:"hutan",ru:"лес",th:"ป่า",mn:"ой",uz:"o'rmon",es:"forest"} },
+          { char:"잎",    word:"잎",    meaning:{ko:"잎",    vi:"lá cây",zh:"叶子",en:"leaf",ja:"葉",id:"daun",ru:"лист",th:"ใบไม้",mn:"навч",uz:"barg",es:"leaf"} },
+          { char:"사업",  word:"사업",  meaning:{ko:"사업",  vi:"sự nghiệp",zh:"事业",en:"business",ja:"事業",id:"bisnis",ru:"бизнес",th:"ธุรกิจ",mn:"бизнес",uz:"biznes",es:"business"} },
+          { char:"광합성",word:"광합성",meaning:{ko:"광합성",vi:"quang hợp",zh:"光合作用",en:"photosynthesis",ja:"光合成",id:"fotosintesis",ru:"фотосинтез",th:"การสังเคราะห์แสง",mn:"фотосинтез",uz:"fotosintez",es:"photosynthesis"} },
+          { char:"유럽",  word:"유럽",  meaning:{ko:"유럽",  vi:"châu Âu",zh:"欧洲",en:"Europe",ja:"ヨーロッパ",id:"Eropa",ru:"Европа",th:"ยุโรป",mn:"Европ",uz:"Yevropa",es:"Europe"} },
+          { char:"방법",  word:"방법",  meaning:{ko:"방법",  vi:"phương pháp",zh:"方法",en:"method",ja:"方法",id:"metode",ru:"метод",th:"วิธีการ",mn:"арга",uz:"usul",es:"method"} },
+          { char:"값",    word:"값",    meaning:{ko:"값",    vi:"giá cả",zh:"价格",en:"price/value",ja:"値段",id:"harga",ru:"цена",th:"ราคา",mn:"үнэ",uz:"narx",es:"price/value"} },
+          { char:"업무",  word:"업무",  meaning:{ko:"업무",  vi:"공việc",zh:"业务",en:"work/duties",ja:"業務",id:"tugas",ru:"обязанности",th:"งาน",mn:"ажил үүрэг",uz:"vazifa",es:"work/duties"} },
+          { char:"하숙집", word:"하숙집", meaning:{ko:"하숙집", vi:"nhà trọ",zh:"寄宿家庭",en:"boarding house",ja:"下宿",id:"rumah kos",ru:"съёмная комната",th:"บ้านพักอาศัย",mn:"түрээсийн байр",uz:"ijara uy",es:"boarding house"} },
+          { char:"서랍",   word:"서랍",   meaning:{ko:"서랍",   vi:"ngăn kéo",zh:"抽屉",en:"drawer",ja:"引き出し",id:"laci",ru:"ящик стола",th:"ลิ้นชัก",mn:"шургуулга",uz:"tortma",es:"drawer"} },
+          { char:"출입",   word:"출입",   meaning:{ko:"출입",   vi:"ra vào",zh:"出入",en:"entrance/exit",ja:"出入り",id:"keluar masuk",ru:"вход и выход",th:"เข้าออก",mn:"орох гарах",uz:"kirish-chiqish",es:"entrance/exit"} },
+          { char:"합창",   word:"합창",   meaning:{ko:"합창",   vi:"hợp xướng",zh:"合唱",en:"choir",ja:"合唱",id:"paduan suara",ru:"хор",th:"การร้องประสานเสียง",mn:"найрал дуу",uz:"xor",es:"choir"} },
+          { char:"십",     word:"십",     meaning:{ko:"십",     vi:"mười",zh:"十",en:"ten",ja:"十",id:"sepuluh",ru:"десять",th:"สิบ",mn:"арав",uz:"o'n",es:"ten"} },
+          { char:"삽",     word:"삽",     meaning:{ko:"삽",     vi:"cái xẻng",zh:"铲子",en:"shovel",ja:"シャベル",id:"sekop",ru:"лопата",th:"พลั่ว",mn:"хүрз",uz:"kurak",es:"shovel"} },
+          { char:"커피숍",word:"커피숍",meaning:{ko:"커피숍",vi:"quán cà phê",zh:"咖啡厅",en:"coffee shop",ja:"カフェ",id:"kafe",ru:"кофейня",th:"ร้านกาแฟ",mn:"кофе дэлгүүр",uz:"kofe do'koni",es:"coffee shop"} },
+          { char:"대답",  word:"대답",  meaning:{ko:"대답",  vi:"trả lời",zh:"回答",en:"answer",ja:"答え",id:"jawaban",ru:"ответ",th:"คำตอบ",mn:"хариулт",uz:"javob",es:"answer"} },
+          { char:"예습",  word:"예습",  meaning:{ko:"예습",  vi:"chuẩn bị bài trước",zh:"预习",en:"preparation",ja:"予習",id:"persiapan belajar",ru:"подготовка к занятию",th:"การเตรียมบทเรียน",mn:"урьдчилан бэлтгэх",uz:"oldindan tayyorgarlik",es:"preparation"} },
+          { char:"엽서",  word:"엽서",  meaning:{ko:"엽서",  vi:"bưu thiếp",zh:"明信片",en:"postcard",ja:"はがき",id:"kartu pos",ru:"открытка",th:"ไปรษณียบัตร",mn:"захидал",uz:"pochta kartochkasi",es:"postcard"} },
+          { char:"접시",  word:"접시",  meaning:{ko:"접시",  vi:"cái đĩa",zh:"盘子",en:"plate",ja:"お皿",id:"piring",ru:"тарелка",th:"จาน",mn:"таваг",uz:"likopcha",es:"plate"} },
+          { char:"잡채",  word:"잡채",  meaning:{ko:"잡채",  vi:"miến trộn",zh:"杂菜",en:"japchae",ja:"チャプチェ",id:"japchae",ru:"чапче",th:"แจปแช",mn:"жапче",uz:"japche",es:"japchae"} },
+          { char:"높이",  word:"높이",  meaning:{ko:"높이",  vi:"độ cao",zh:"高度",en:"height",ja:"高さ",id:"tinggi",ru:"высота",th:"ความสูง",mn:"өндөр",uz:"balandlik",es:"height"} },
+          { char:"아홉",  word:"아홉",  meaning:{ko:"아홉",  vi:"chín (9)",zh:"九",en:"nine",ja:"九",id:"sembilan",ru:"девять",th:"เก้า",mn:"ес",uz:"to'qqiz",es:"nine"} },
+          { char:"톱",    word:"톱",    meaning:{ko:"톱",    vi:"cái cưa",zh:"锯子",en:"saw",ja:"のこぎり",id:"gergaji",ru:"пила",th:"เลื่อย",mn:"хөрөө",uz:"arra",es:"saw"} },
+          { char:"무겁다",word:"무겁다",meaning:{ko:"무겁다",vi:"nặng",zh:"重",en:"heavy",ja:"重い",id:"berat",ru:"тяжёлый",th:"หนัก",mn:"хүнд",uz:"og'ir",es:"heavy"} },
+          { char:"가볍다",word:"가볍다",meaning:{ko:"가볍다",vi:"nhẹ",zh:"轻",en:"light",ja:"軽い",id:"ringan",ru:"лёгкий",th:"เบา",mn:"хөнгөн",uz:"yengil",es:"light"} },
+          { char:"두껍다",word:"두껍다",meaning:{ko:"두껍다",vi:"dày",zh:"厚",en:"thick",ja:"厚い",id:"tebal",ru:"толстый",th:"หนา",mn:"зузаан",uz:"qalin",es:"thick"} },
+          { char:"높다",  word:"높다",  meaning:{ko:"높다",  vi:"cao",zh:"高",en:"high",ja:"高い",id:"tinggi",ru:"высокий",th:"สูง",mn:"өндөр",uz:"baland",es:"high"} },
+          { char:"좁다",  word:"좁다",  meaning:{ko:"좁다",  vi:"chật hẹp",zh:"狭窄",en:"narrow",ja:"狭い",id:"sempit",ru:"тесный",th:"แคบ",mn:"нарийн",uz:"tor",es:"narrow"} },
+          { char:"어둡다",word:"어둡다",meaning:{ko:"어둡다",vi:"tối",zh:"黑暗",en:"dark",ja:"暗い",id:"gelap",ru:"тёмный",th:"มืด",mn:"харанхуй",uz:"qorong'u",es:"dark"} },
+          { char:"귀엽다",word:"귀엽다",meaning:{ko:"귀엽다",vi:"dễ thương",zh:"可爱",en:"cute",ja:"可愛い",id:"imut",ru:"милый",th:"น่ารัก",mn:"хөөрхөн",uz:"chiroyli",es:"cute"} },
+          { char:"아름답다",word:"아름답다",meaning:{ko:"아름답다",vi:"đẹp",zh:"美丽",en:"beautiful",ja:"美しい",id:"indah",ru:"красивый",th:"สวยงาม",mn:"үзэсгэлэнтэй",uz:"go'zal",es:"beautiful"} },
+          { char:"부드럽다",word:"부드럽다",meaning:{ko:"부드럽다",vi:"mềm mại",zh:"柔软",en:"soft",ja:"柔らかい",id:"lembut",ru:"мягкий",th:"นุ่ม",mn:"зөөлөн",uz:"yumshoq",es:"soft"} },
+          { char:"부럽다",word:"부럽다", meaning:{ko:"부럽다",vi:"ghen tị",zh:"羡慕",en:"envious",ja:"羨ましい",id:"iri",ru:"завидовать",th:"อิจฉา",mn:"атаархах",uz:"hasad qilmoq",es:"envious"} },
+          { char:"그립다",word:"그립다", meaning:{ko:"그립다",vi:"thương nhớ",zh:"怀念",en:"miss",ja:"懐かしい",id:"merindukan",ru:"скучать",th:"คิดถึง",mn:"санах",uz:"sog'inmoq",es:"miss"} },
+          { char:"외롭다",word:"외롭다", meaning:{ko:"외롭다",vi:"cô đơn",zh:"孤独",en:"alone/lonely",ja:"孤独だ",id:"kesepian",ru:"одинокий",th:"เหงา",mn:"ганцаардах",uz:"yolg'iz",es:"alone/lonely"} },
+          { char:"무섭다",word:"무섭다", meaning:{ko:"무섭다",vi:"đáng sợ",zh:"可怕",en:"scary",ja:"怖い",id:"menakutkan",ru:"страшный",th:"น่ากลัว",mn:"айдастай",uz:"qo'rqinchli",es:"scary"} },
+          { char:"섭섭하다",word:"섭섭하다",meaning:{ko:"섭섭하다",vi:"buồn tiếc",zh:"遗憾",en:"sad/sorry",ja:"残念だ",id:"kecewa",ru:"расстроенный",th:"เสียใจ",mn:"гонсойх",uz:"xafa bo'lmoq",es:"sad/sorry"} },
+          { char:"답답하다",word:"답답하다",meaning:{ko:"답답하다",vi:"ngột ngạt",zh:"郁闷",en:"stuffy/frustrated",ja:"息苦しい",id:"sesak",ru:"душный",th:"อึดอัด",mn:"амьсгаадах",uz:"bo'g'ilmoq",es:"stuffy/frustrated"} },
+          { char:"부끄럽다",word:"부끄럽다",meaning:{ko:"부끄럽다",vi:"xấu hổ",zh:"害羞",en:"ashamed",ja:"恥ずかしい",id:"malu",ru:"стыдиться",th:"อายุ",mn:"ичих",uz:"uyalmoq",es:"ashamed"} },
+          { char:"춥다",  word:"춥다",  meaning:{ko:"춥다",  vi:"lạnh",zh:"冷",en:"cold",ja:"寒い",id:"dingin",ru:"холодно",th:"หนาว",mn:"хүйтэн",uz:"sovuq",es:"cold"} },
+          { char:"덥다",  word:"덥다",  meaning:{ko:"덥다",  vi:"nóng",zh:"热",en:"hot",ja:"暑い",id:"panas",ru:"жарко",th:"ร้อน",mn:"халуун",uz:"issiq",es:"hot"} },
+          { char:"차갑다",word:"차갑다", meaning:{ko:"차갑다",vi:"lạnh",zh:"冷淡",en:"cold/cool",ja:"冷たい",id:"dingin",ru:"холодный",th:"เย็น",mn:"хүйтэн",uz:"sovuq",es:"cold/cool"} },
+          { char:"뜨겁다",word:"뜨겁다", meaning:{ko:"뜨겁다",vi:"nóng",zh:"烫",en:"hot",ja:"熱い",id:"panas sekali",ru:"горячий",th:"ร้อนจัด",mn:"халуун",uz:"issiq",es:"hot"} },
+          { char:"맵다",  word:"맵다",  meaning:{ko:"맵다",  vi:"cay",zh:"辣",en:"spicy",ja:"辛い",id:"pedas",ru:"острый",th:"เผ็ด",mn:"халуун",uz:"achchiq",es:"spicy"} },
+          { char:"싱겁다",word:"싱겁다", meaning:{ko:"싱겁다",vi:"nhạt",zh:"淡",en:"not salty enough",ja:"薄い",id:"tawar",ru:"пресный",th:"จืด",mn:"давсгүй",uz:"tuzsiz",es:"not salty enough"} },
+          { char:"쉽다",  word:"쉽다",  meaning:{ko:"쉽다",  vi:"dễ dàng",zh:"简单",en:"easy",ja:"易しい",id:"mudah",ru:"лёгкий",th:"ง่าย",mn:"хялбар",uz:"oson",es:"easy"} },
+          { char:"어렵다",word:"어렵다", meaning:{ko:"어렵다",vi:"khó",zh:"难",en:"difficult",ja:"難しい",id:"sulit",ru:"трудный",th:"ยาก",mn:"хэцүү",uz:"qiyin",es:"difficult"} },
+          { char:"더럽다",word:"더럽다", meaning:{ko:"더럽다",vi:"bẩn",zh:"脏",en:"dirty",ja:"汚い",id:"kotor",ru:"грязный",th:"สกปรก",mn:"бохир",uz:"iflos",es:"dirty"} },
+          { char:"싶다",  word:"싶다",  meaning:{ko:"싶다",  vi:"muốn",zh:"想要",en:"would like to",ja:"〜たい",id:"ingin",ru:"хотеть",th:"อยาก",mn:"хүсэх",uz:"xohlаmoq",es:"would like to"} },
+          { char:"눕다",  word:"눕다",  meaning:{ko:"눕다",  vi:"nằm xuống",zh:"躺下",en:"lie down",ja:"横になる",id:"berbaring",ru:"ложиться",th:"นอน",mn:"хэвтэх",uz:"yotmoq",es:"lie down"} },
+          { char:"돕다",  word:"돕다",  meaning:{ko:"돕다",  vi:"giúp đỡ",zh:"帮助",en:"help",ja:"手伝う",id:"membantu",ru:"помогать",th:"ช่วย",mn:"туслах",uz:"yordam bermoq",es:"help"} },
+          { char:"잡다",  word:"잡다",  meaning:{ko:"잡다",  vi:"bắt/nắm",zh:"抓",en:"grab/catch",ja:"つかむ",id:"menangkap",ru:"схватить",th:"จับ",mn:"барих",uz:"ushlаmoq",es:"grab/catch"} },
+          { char:"입다",  word:"입다",  meaning:{ko:"입다",  vi:"mặc",zh:"穿",en:"put on (clothes)",ja:"着る",id:"memakai",ru:"одеваться",th:"ใส่เสื้อผ้า",mn:"өмсөх",uz:"kiymoq",es:"put on (clothes)"} },
+          { char:"굽다",  word:"굽다",  meaning:{ko:"굽다",  vi:"cúi/uốn cong",zh:"弯曲",en:"bend/bake",ja:"曲げる",id:"membungkuk",ru:"изогнутый",th:"งอ",mn:"гулзайлгах",uz:"egilmoq",es:"bend/bake"} },
+          { char:"줍다",  word:"줍다",  meaning:{ko:"줍다",  vi:"lượm",zh:"捡",en:"pick up",ja:"拾う",id:"memungut",ru:"подбирать",th:"เก็บ",mn:"цуглуулах",uz:"terib olmoq",es:"pick up"} },
+          { char:"씹다",  word:"씹다",  meaning:{ko:"씹다",  vi:"nhai",zh:"嚼",en:"chew",ja:"噛む",id:"mengunyah",ru:"жевать",th:"เคี้ยว",mn:"зажлах",uz:"chaynаmoq",es:"chew"} },
+          { char:"복잡하다",word:"복잡하다",meaning:{ko:"복잡하다",vi:"phức tạp",zh:"复杂",en:"complicated",ja:"複雑だ",id:"rumit",ru:"запутанный",th:"ซับซ้อน",mn:"нарийн төвөгтэй",uz:"murakkab",es:"complicated"} },
+          { char:"즐겁다",word:"즐겁다", meaning:{ko:"즐겁다",vi:"vui vẻ",zh:"快乐",en:"enjoyable",ja:"楽しい",id:"menyenangkan",ru:"радостный",th:"สนุก",mn:"таатай",uz:"quvnoq",es:"enjoyable"} },
+          { char:"슬프다",word:"슬프다", meaning:{ko:"슬프다",vi:"buồn",zh:"悲伤",en:"sad",ja:"悲しい",id:"sedih",ru:"грустный",th:"เศร้า",mn:"гунигтай",uz:"qayg'uli",es:"sad"} },
+                ],
+        tip:{ko:"💡 [대표음화] ㅂ·ㅍ은 받침에서 모두 [ㅂ]으로 발음해요. 입술을 다물고 소리를 막아요. 예) 집[집] 직업[지겁] 앞[압]",vi:"Đây là âm khép hai môi lại, dừng âm bên trong miệng.",en:"This sound is made by pressing both lips together and stopping the sound inside.",zh:"💡【代表音化】ㅂ·ㅍ作收音时都发[ㅂ]音。请闭上嘴唇阻断声音。例：집[집] 직업[지겁] 앞[압]",ja:"💡【代表音化】ㅂ·ㅍはパッチムでは全て[ㅂ]と発音します。唇を閉じて音を止めます。例）집[집] 직업[지겁] 앞[압]",id:"💡[Bunyi representatif] ㅂ·ㅍ semuanya diucapkan sebagai [ㅂ] saat menjadi konsonan akhir. Tutup bibir dan tahan bunyinya. Contoh) 집[집] 직업[지겁] 앞[압]",ru:"💡[Репрезентативный звук] ㅂ·ㅍ в конце слова всегда произносятся как [ㅂ]. Сомкните губы и остановите звук. Напр.) 집[집] 직업[지겁] 앞[압]",th:"💡[เสียงตัวแทน] ㅂ·ㅍ เมื่อเป็นตัวสะกดจะออกเสียงเป็น [ㅂ] ทั้งหมด หุบปากแล้วกักเสียงไว้ ตัวอย่าง) 집[집] 직업[지겁] 앞[압]",mn:"💡[Төлөөлөх авиа] ㅂ·ㅍ нь төгсгөлийн байрлалд бүгд [ㅂ] гэж дуудагдана. Уруулаа аниад дууг хааж бай. Жишээ) 집[집] 직업[지겁] 앞[압]",uz:"💡[Vakillik tovushi] ㅂ·ㅍ oxirgi undosh bo'lganda hammasi [ㅂ] deb aytiladi. Lablarni yumib tovushni to'xtating. Masalan) 집[집] 직업[지겁] 앞[압]",es:"💡[Sonido representativo] ㅂ·ㅍ se pronuncian todas como [ㅂ] al final de sílaba. Cierre los labios y detenga el sonido. Ej.) 집[집] 직업[지겁] 앞[압]",fr:"💡[Son représentatif] ㅂ·ㅍ se prononcent tous [ㅂ] en position finale. Fermez les lèvres et arrêtez le son. Ex. : 집[집] 직업[지겁] 앞[압]",ne:"💡[प्रतिनिधि ध्वनि] ㅂ·ㅍ अन्त्य व्यञ्जनमा सबै [ㅂ] उच्चारण हुन्छ। ओठ बन्द गरेर ध्वनि रोक्नुहोस्। उदाहरण) 집[집] 직업[지겁] 앞[압]",de:"💡[Repräsentativer Laut] ㅂ·ㅍ werden am Ende alle als [ㅂ] ausgesprochen. Schließen Sie die Lippen und stoppen Sie den Klang. Bsp.: 집[집] 직업[지겁] 앞[압]"},
+      },
+      // ── 단계 14: 받침 ㄹ ⭐ ──
+      { id:"batchim_r", type:"learn", emoji:"⭐",
+        title:{ko:"14. 받침 [ㄹ] — 일상 대화 분기점!",vi:"14. Phụ âm cuối [ㄹ] — Bước ngoặt giao tiếp hằng ngày!",en:"14. Final Consonant [ㄹ] — Everyday Conversation Milestone!",zh:"14. 收音 [ㄹ] — 日常会话分水岭！",ja:"14. パッチム [ㄹ] — 日常会話の分岐点！",id:"14. Konsonan Akhir [ㄹ] — Titik Balik Percakapan Sehari-hari!",ru:"14. Конечная согласная [ㄹ] — Рубеж повседневного общения!",th:"14. ตัวสะกด [ㄹ] — จุดเปลี่ยนสู่การสนทนาในชีวิตประจำวัน!",mn:"14. Төгсгөлийн гийгүүлэгч [ㄹ] — Өдөр тутмын ярианы эргэлтийн цэг!",uz:"14. Oxirgi undosh [ㄹ] — Kundalik suhbat burilish nuqtasi!",es:"14. Consonante final [ㄹ] — ¡Punto de inflexión para la conversación diaria!",fr:"14. Consonne finale [ㄹ] — Tournant vers la conversation quotidienne !",ne:"14. अन्त्य व्यञ्जन [ㄹ] — दैनिक कुराकानीको मोड़!",de:"14. Endkonsonant [ㄹ] — Wendepunkt zum Alltagsgespräch!"},
+        desc:{ko:"이 단계를 마치면 일상적인 한국어 대화가 가능합니다!",vi:"Hoàn thành bước này, bạn có thể giao tiếp tiếng Hàn hàng ngày!",en:"After this step, you can hold everyday Korean conversations!",zh:"完成这一阶段后，您就能进行日常韩语对话了！",ja:"この段階を終えると、日常的な韓国語会話ができるようになります！",id:"Setelah menyelesaikan tahap ini, Anda bisa melakukan percakapan Korea sehari-hari!",ru:"После этого этапа вы сможете вести повседневные разговоры на корейском!",th:"เมื่อจบขั้นตอนนี้ คุณจะสามารถสนทนาภาษาเกาหลีในชีวิตประจำวันได้!",mn:"Энэ үе шатыг дуусгасны дараа өдөр тутмын солонгос хэлээр ярилцах боломжтой болно!",uz:"Ushbu bosqichni tugatgach, kundalik koreyscha suhbatlashishingiz mumkin bo'ladi!",es:"¡Al completar esta etapa, podrá mantener conversaciones cotidianas en coreano!",fr:"Une fois cette étape terminée, vous pourrez tenir des conversations quotidiennes en coréen !",ne:"यो चरण पूरा गरेपछि दैनिक कोरियाली कुराकानी गर्न सक्नुहुन्छ!",de:"Nach diesem Schritt können Sie alltägliche Gespräche auf Koreanisch führen!"},
+        items:[
+          { char:"말",    word:"말",    meaning:{ko:"말",    vi:"lời nói",zh:"话语",en:"word/speech",ja:"言葉",id:"kata",ru:"слово",th:"คำพูด",mn:"үг",uz:"so'z",es:"word/speech"} },
+          { char:"글",    word:"글",    meaning:{ko:"글",    vi:"chữ viết",zh:"文字",en:"writing",ja:"文字",id:"tulisan",ru:"письмо",th:"การเขียน",mn:"бичиг",uz:"yozuv",es:"writing"} },
+          { char:"일",    word:"일",    meaning:{ko:"일",    vi:"công việc",zh:"工作",en:"work/job",ja:"仕事",id:"pekerjaan",ru:"работа",th:"งาน",mn:"ажил",uz:"ish",es:"work/job"} },
+          { char:"불",    word:"불",    meaning:{ko:"불",    vi:"lửa",zh:"火",en:"fire",ja:"火",id:"api",ru:"огонь",th:"ไฟ",mn:"гал",uz:"olov",es:"fire"} },
+          { char:"발",    word:"발",    meaning:{ko:"발",    vi:"bàn chân",zh:"脚",en:"foot",ja:"足",id:"kaki",ru:"нога/стопа",th:"เท้า",mn:"хөл",uz:"oyoq",es:"foot"} },
+          { char:"물",    word:"물",    meaning:{ko:"물",    vi:"nước",zh:"水",en:"water",ja:"水",id:"air",ru:"вода",th:"น้ำ",mn:"ус",uz:"suv",es:"water"} },
+          { char:"길",    word:"길",    meaning:{ko:"길",    vi:"đường",zh:"路",en:"road/way",ja:"道",id:"jalan",ru:"дорога",th:"ถนน",mn:"зам",uz:"yo'l",es:"road/way"} },
+          { char:"달",    word:"달",    meaning:{ko:"달",    vi:"mặt trăng",zh:"月亮",en:"moon",ja:"月",id:"bulan",ru:"луна",th:"พระจันทร์",mn:"сар",uz:"oy",es:"moon"} },
+          { char:"별",    word:"별",    meaning:{ko:"별",    vi:"ngôi sao",zh:"星星",en:"star",ja:"星",id:"bintang",ru:"звезда",th:"ดาว",mn:"од",uz:"yulduz",es:"star"} },
+          { char:"하늘",  word:"하늘",  meaning:{ko:"하늘",  vi:"bầu trời",zh:"天空",en:"sky",ja:"空",id:"langit",ru:"небо",th:"ท้องฟ้า",mn:"тэнгэр",uz:"osmon",es:"sky"} },
+          { char:"할아버지",word:"할아버지",meaning:{ko:"할아버지",vi:"ông",zh:"爷爷",en:"grandfather",ja:"おじいさん",id:"kakek",ru:"дедушка",th:"ปู่/ตา",mn:"өвөө",uz:"bobo",es:"grandfather"} },
+          { char:"할머니",word:"할머니",meaning:{ko:"할머니",vi:"bà",zh:"奶奶",en:"grandmother",ja:"おばあさん",id:"nenek",ru:"бабушка",th:"ย่า/ยาย",mn:"эмээ",uz:"buvi",es:"grandmother"} },
+          { char:"아들",  word:"아들",  meaning:{ko:"아들",  vi:"con trai",zh:"儿子",en:"son",ja:"息子",id:"anak laki-laki",ru:"сын",th:"ลูกชาย",mn:"хүү",uz:"o'g'il",es:"son"} },
+          { char:"딸",    word:"딸",    meaning:{ko:"딸",    vi:"con gái",zh:"女儿",en:"daughter",ja:"娘",id:"anak perempuan",ru:"дочь",th:"ลูกสาว",mn:"охин",uz:"qiz",es:"daughter"} },
+          { char:"경찰",  word:"경찰",  meaning:{ko:"경찰",  vi:"cảnh sát",zh:"警察",en:"policeman",ja:"警察",id:"polisi",ru:"полиция",th:"ตำรวจ",mn:"цагдаа",uz:"politsiya",es:"policeman"} },
+          { char:"계절",  word:"계절",  meaning:{ko:"계절",  vi:"mùa",zh:"季节",en:"season",ja:"季節",id:"musim",ru:"сезон",th:"ฤดูกาล",mn:"улирал",uz:"fasl",es:"season"} },
+          { char:"가을",  word:"가을",  meaning:{ko:"가을",  vi:"mùa thu",zh:"秋天",en:"fall/autumn",ja:"秋",id:"musim gugur",ru:"осень",th:"ฤดูใบไม้ร่วง",mn:"намар",uz:"kuz",es:"fall/autumn"} },
+          { char:"겨울",  word:"겨울",  meaning:{ko:"겨울",  vi:"mùa đông",zh:"冬天",en:"winter",ja:"冬",id:"musim dingin",ru:"зима",th:"ฤดูหนาว",mn:"өвөл",uz:"qish",es:"winter"} },
+          { char:"오늘",  word:"오늘",  meaning:{ko:"오늘",  vi:"hôm nay",zh:"今天",en:"today",ja:"今日",id:"hari ini",ru:"сегодня",th:"วันนี้",mn:"өнөөдөр",uz:"bugun",es:"today"} },
+          { char:"내일",  word:"내일",  meaning:{ko:"내일",  vi:"ngày mai",zh:"明天",en:"tomorrow",ja:"明日",id:"besok",ru:"завтра",th:"พรุ่งนี้",mn:"маргааш",uz:"ertaga",es:"tomorrow"} },
+          { char:"올해",  word:"올해",  meaning:{ko:"올해",  vi:"năm nay",zh:"今年",en:"this year",ja:"今年",id:"tahun ini",ru:"этот год",th:"ปีนี้",mn:"энэ жил",uz:"bu yil",es:"this year"} },
+          { char:"주말",  word:"주말",  meaning:{ko:"주말",  vi:"cuối tuần",zh:"周末",en:"weekend",ja:"週末",id:"akhir pekan",ru:"выходные",th:"สุดสัปดาห์",mn:"амралтын өдрүүд",uz:"dam olish kunlari",es:"weekend"} },
+          { char:"매일",  word:"매일",  meaning:{ko:"매일",  vi:"mỗi ngày",zh:"每天",en:"everyday",ja:"毎日",id:"setiap hari",ru:"каждый день",th:"ทุกวัน",mn:"өдөр бүр",uz:"har kuni",es:"everyday"} },
+          { char:"늘",    word:"늘",    meaning:{ko:"늘",    vi:"luôn luôn",zh:"一直",en:"always",ja:"いつも",id:"selalu",ru:"всегда",th:"เสมอ",mn:"үргэлж",uz:"doimo",es:"always"} },
+          { char:"월",    word:"월",    meaning:{ko:"월",    vi:"tháng",zh:"月",en:"month",ja:"月",id:"bulan",ru:"месяц",th:"เดือน",mn:"сар",uz:"oy",es:"month"} },
+          { char:"요일",  word:"요일",  meaning:{ko:"요일",  vi:"thứ",zh:"星期",en:"day of week",ja:"曜日",id:"hari",ru:"день недели",th:"วันในสัปดาห์",mn:"гаргийн өдөр",uz:"hafta kuni",es:"day of week"} },
+          { char:"월요일",word:"월요일",meaning:{ko:"월요일",vi:"thứ Hai",zh:"星期一",en:"Monday",ja:"月曜日",id:"Senin",ru:"понедельник",th:"วันจันทร์",mn:"Даваа",uz:"Dushanba",es:"Monday"} },
+          { char:"화요일",word:"화요일",meaning:{ko:"화요일",vi:"thứ Ba",zh:"星期二",en:"Tuesday",ja:"火曜日",id:"Selasa",ru:"вторник",th:"วันอังคาร",mn:"Мягмар",uz:"Seshanba",es:"Tuesday"} },
+          { char:"수요일",word:"수요일",meaning:{ko:"수요일",vi:"thứ Tư",zh:"星期三",en:"Wednesday",ja:"水曜日",id:"Rabu",ru:"среда",th:"วันพุธ",mn:"Лхагва",uz:"Chorshanba",es:"Wednesday"} },
+          { char:"목요일",word:"목요일",meaning:{ko:"목요일",vi:"thứ Năm",zh:"星期四",en:"Thursday",ja:"木曜日",id:"Kamis",ru:"четверг",th:"วันพฤหัสบดี",mn:"Пүрэв",uz:"Payshanba",es:"Thursday"} },
+          { char:"금요일",word:"금요일",meaning:{ko:"금요일",vi:"thứ Sáu",zh:"星期五",en:"Friday",ja:"金曜日",id:"Jumat",ru:"пятница",th:"วันศุกร์",mn:"Баасан",uz:"Juma",es:"Friday"} },
+          { char:"토요일",word:"토요일",meaning:{ko:"토요일",vi:"thứ Bảy",zh:"星期六",en:"Saturday",ja:"土曜日",id:"Sabtu",ru:"суббота",th:"วันเสาร์",mn:"Бямба",uz:"Shanba",es:"Saturday"} },
+          { char:"일요일",word:"일요일",meaning:{ko:"일요일",vi:"Chủ nhật",zh:"星期天",en:"Sunday",ja:"日曜日",id:"Minggu",ru:"воскресенье",th:"วันอาทิตย์",mn:"Ням",uz:"Yakshanba",es:"Sunday"} },
+          { char:"평일",  word:"평일",  meaning:{ko:"평일",  vi:"ngày thường",zh:"平日",en:"weekday",ja:"平日",id:"hari kerja",ru:"будни",th:"วันธรรมดา",mn:"ажлын өдөр",uz:"ish kuni",es:"weekday"} },
+          { char:"생일",  word:"생일",  meaning:{ko:"생일",  vi:"sinh nhật",zh:"生日",en:"birthday",ja:"誕生日",id:"ulang tahun",ru:"день рождения",th:"วันเกิด",mn:"төрсөн өдөр",uz:"tug'ilgan kun",es:"birthday"} },
+          { char:"명절",  word:"명절",  meaning:{ko:"명절",  vi:"ngày lễ",zh:"节日",en:"holiday",ja:"祝祭日",id:"hari raya",ru:"праздник",th:"วันหยุดเทศกาล",mn:"баяр ёслол",uz:"bayram",es:"holiday"} },
+          { char:"설(구정)",word:"설",  meaning:{ko:"설(구정)",vi:"Tết Âm lịch",zh:"春节",en:"New Year's Day",ja:"お正月",id:"Tahun Baru Imlek",ru:"Лунный Новый год",th:"ตรุษจีน",mn:"Цагаан сар",uz:"Lunar Yangi Yil",es:"New Year's Day"} },
+          { char:"공휴일",word:"공휴일",meaning:{ko:"공휴일",vi:"ngày nghỉ lễ",zh:"公休日",en:"public holiday",ja:"公休日",id:"hari libur nasional",ru:"выходной день",th:"วันหยุดราชการ",mn:"нийтийн амралт",uz:"rasmiy bayram",es:"public holiday"} },
+          { char:"휴일",  word:"휴일",  meaning:{ko:"휴일",  vi:"ngày nghỉ",zh:"休息日",en:"day off",ja:"休日",id:"hari libur",ru:"выходной",th:"วันหยุด",mn:"амралт",uz:"dam olish kuni",es:"day off"} },
+          { char:"이틀",  word:"이틀",  meaning:{ko:"이틀",  vi:"hai ngày",zh:"两天",en:"two days",ja:"二日",id:"dua hari",ru:"два дня",th:"สองวัน",mn:"хоёр өдөр",uz:"ikki kun",es:"two days"} },
+          { char:"사흘",  word:"사흘",  meaning:{ko:"사흘",  vi:"ba ngày",zh:"三天",en:"three days",ja:"三日",id:"tiga hari",ru:"три дня",th:"สามวัน",mn:"гурван өдөр",uz:"uch kun",es:"three days"} },
+          { char:"나흘",  word:"나흘",  meaning:{ko:"나흘",  vi:"bốn ngày",zh:"四天",en:"four days",ja:"四日",id:"empat hari",ru:"четыре дня",th:"สี่วัน",mn:"дөрвөн өдөр",uz:"to'rt kun",es:"four days"} },
+          { char:"열흘",  word:"열흘",  meaning:{ko:"열흘",  vi:"mười ngày",zh:"十天",en:"ten days",ja:"十日",id:"sepuluh hari",ru:"десять дней",th:"สิบวัน",mn:"арван өдөр",uz:"o'n kun",es:"ten days"} },
+          { char:"며칠",  word:"며칠",  meaning:{ko:"며칠",  vi:"mấy ngày",zh:"几天",en:"a few days",ja:"数日",id:"beberapa hari",ru:"несколько дней",th:"หลายวัน",mn:"хэдэн өдөр",uz:"bir necha kun",es:"a few days"} },
+          { char:"지하철",word:"지하철",meaning:{ko:"지하철",vi:"tàu điện ngầm",zh:"地铁",en:"subway",ja:"地下鉄",id:"kereta bawah tanah",ru:"метро",th:"รถไฟใต้ดิน",mn:"метро",uz:"metro",es:"subway"} },
+          { char:"호텔",  word:"호텔",  meaning:{ko:"호텔",  vi:"khách sạn",zh:"酒店",en:"hotel",ja:"ホテル",id:"hotel",ru:"гостиница",th:"โรงแรม",mn:"зочид буудал",uz:"mehmonxona",es:"hotel"} },
+          { char:"휴게실",word:"휴게실",meaning:{ko:"휴게실",vi:"phòng nghỉ",zh:"休息室",en:"resting room",ja:"休憩室",id:"ruang istirahat",ru:"комната отдыха",th:"ห้องพักผ่อน",mn:"амрах өрөө",uz:"dam olish xonasi",es:"resting room"} },
+          { char:"미용실",word:"미용실",meaning:{ko:"미용실",vi:"tiệm làm tóc",zh:"美容室",en:"beauty salon",ja:"ヘアサロン",id:"salon kecantikan",ru:"салон красоты",th:"ร้านทำผม",mn:"гоо засалгааны газар",uz:"go'zallik saloni",es:"beauty salon"} },
+          { char:"이발소",word:"이발소",meaning:{ko:"이발소",vi:"tiệm cắt tóc nam",zh:"理发所",en:"barber shop",ja:"床屋",id:"barbershop",ru:"мужская парикмахерская",th:"ร้านตัดผมชาย",mn:"үс засах газар",uz:"sartaroshxona",es:"barber shop"} },
+          { char:"절",    word:"절",    meaning:{ko:"절",    vi:"chùa",zh:"寺庙",en:"buddhist temple",ja:"お寺",id:"kuil Buddha",ru:"буддийский храм",th:"วัด",mn:"сүм",uz:"buddist ibodatxona",es:"buddhist temple"} },
+          { char:"시골",  word:"시골",  meaning:{ko:"시골",  vi:"nông thôn",zh:"乡村",en:"countryside",ja:"田舎",id:"pedesaan",ru:"деревня",th:"ชนบท",mn:"хөдөө",uz:"qishloq",es:"countryside"} },
+          { char:"마을",  word:"마을",  meaning:{ko:"마을",  vi:"làng",zh:"村庄",en:"town/village",ja:"村",id:"desa",ru:"посёлок",th:"หมู่บ้าน",mn:"тосгон",uz:"qishloq",es:"town/village"} },
+          { char:"교실",  word:"교실",  meaning:{ko:"교실",  vi:"phòng học",zh:"教室",en:"classroom",ja:"教室",id:"ruang kelas",ru:"аудитория",th:"ห้องเรียน",mn:"анги танхим",uz:"sinf xonasi",es:"classroom"} },
+          { char:"출석",  word:"출석",  meaning:{ko:"출석",  vi:"điểm danh",zh:"出席",en:"attendance",ja:"出席",id:"kehadiran",ru:"присутствие",th:"การเข้าเรียน",mn:"ирц",uz:"davomat",es:"attendance"} },
+          { char:"결석",  word:"결석",  meaning:{ko:"결석",  vi:"vắng mặt",zh:"缺席",en:"absence",ja:"欠席",id:"ketidakhadiran",ru:"отсутствие",th:"การขาดเรียน",mn:"тасалгаа",uz:"darsdan qolish",es:"absence"} },
+          { char:"생물",  word:"생물",  meaning:{ko:"생물",  vi:"sinh vật",zh:"生物",en:"biology",ja:"生物",id:"biologi",ru:"живое существо",th:"ชีววิทยา",mn:"амьд биет",uz:"biologiya",es:"biology"} },
+          { char:"글씨",  word:"글씨",  meaning:{ko:"글씨",  vi:"chữ viết",zh:"字体",en:"handwriting",ja:"字",id:"tulisan tangan",ru:"почерк",th:"ลายมือ",mn:"гар бичмэл",uz:"qo'l yozuvi",es:"handwriting"} },
+          { char:"졸업",  word:"졸업",  meaning:{ko:"졸업",  vi:"tốt nghiệp",zh:"毕业",en:"graduation",ja:"卒業",id:"kelulusan",ru:"окончание",th:"จบการศึกษา",mn:"төгсөлт",uz:"bitirish",es:"graduation"} },
+          { char:"졸업여행",word:"졸업여행",meaning:{ko:"졸업여행",vi:"du lịch tốt nghiệp",zh:"毕业旅行",en:"graduation trip",ja:"卒業旅行",id:"perjalanan kelulusan",ru:"выпускное путешествие",th:"ทริปจบการศึกษา",mn:"төгсөлтийн аялал",uz:"bitirish sayohati",es:"graduation trip"} },
+          { char:"거실",  word:"거실",  meaning:{ko:"거실",  vi:"phòng khách",zh:"客厅",en:"living room",ja:"リビング",id:"ruang tamu",ru:"гостиная",th:"ห้องนั่งเล่น",mn:"зочны өрөө",uz:"mehmonxona",es:"living room"} },
+          { char:"화장실",word:"화장실",meaning:{ko:"화장실",vi:"phòng vệ sinh",zh:"洗手间",en:"restroom",ja:"トイレ",id:"kamar mandi",ru:"туалет",th:"ห้องน้ำ",mn:"угаалгын өрөө",uz:"hojatxona",es:"restroom"} },
+          { char:"빨래",  word:"빨래",  meaning:{ko:"빨래",  vi:"giặt giũ",zh:"洗衣",en:"laundry/wash",ja:"洗濯",id:"mencuci pakaian",ru:"стирка",th:"ซักผ้า",mn:"хувцас угаах",uz:"kir yuvish",es:"laundry/wash"} },
+          { char:"설거지",word:"설거지",meaning:{ko:"설거지",vi:"rửa chén",zh:"洗碗",en:"dish-washing",ja:"食器洗い",id:"mencuci piring",ru:"мытьё посуды",th:"ล้างจาน",mn:"аяга таваг угаах",uz:"idish yuvish",es:"dish-washing"} },
+          { char:"다림질",word:"다림질",meaning:{ko:"다림질",vi:"là quần áo",zh:"熨烫",en:"ironing",ja:"アイロンがけ",id:"menyetrika",ru:"глажение",th:"รีดผ้า",mn:"хувцас тэгшлэх",uz:"dazmol bosish",es:"ironing"} },
+          { char:"양치질",word:"양치질",meaning:{ko:"양치질",vi:"đánh răng",zh:"刷牙",en:"tooth brushing",ja:"歯磨き",id:"menyikat gigi",ru:"чистка зубов",th:"แปรงฟัน",mn:"шүд угаах",uz:"tish yuvish",es:"tooth brushing"} },
+          { char:"거울",  word:"거울",  meaning:{ko:"거울",  vi:"gương",zh:"镜子",en:"mirror",ja:"鏡",id:"cermin",ru:"зеркало",th:"กระจก",mn:"толь",uz:"ko'zgu",es:"mirror"} },
+          { char:"열쇠",  word:"열쇠",  meaning:{ko:"열쇠",  vi:"chìa khóa",zh:"钥匙",en:"key",ja:"鍵",id:"kunci",ru:"ключ",th:"กุญแจ",mn:"түлхүүр",uz:"kalit",es:"key"} },
+          { char:"귀걸이",word:"귀걸이",meaning:{ko:"귀걸이",vi:"bông tai",zh:"耳环",en:"earring",ja:"イヤリング",id:"anting",ru:"серьги",th:"ต่างหู",mn:"чихний чимэг",uz:"isirg'a",es:"earring"} },
+          { char:"달력",  word:"달력",  meaning:{ko:"달력",  vi:"tờ lịch",zh:"日历",en:"calendar",ja:"カレンダー",id:"kalender",ru:"календарь",th:"ปฏิทิน",mn:"хуанли",uz:"taqvim",es:"calendar"} },
+          { char:"앨범",  word:"앨범",  meaning:{ko:"앨범",  vi:"album",zh:"相册",en:"album",ja:"アルバム",id:"album",ru:"альбом",th:"อัลบั้ม",mn:"цомог",uz:"albom",es:"album"} },
+          { char:"이불",  word:"이불",  meaning:{ko:"이불",  vi:"chăn",zh:"被子",en:"bedding/comforter",ja:"布団",id:"selimut",ru:"одеяло",th:"ผ้าห่ม",mn:"хөнжил",uz:"ko'rpa",es:"bedding/comforter"} },
+          { char:"줄",    word:"줄",    meaning:{ko:"줄",    vi:"sợi dây",zh:"绳子/线",en:"string/line",ja:"ロープ/線",id:"tali",ru:"верёвка",th:"เชือก",mn:"утас",uz:"ip",es:"string/line"} },
+          { char:"외출",  word:"외출",  meaning:{ko:"외출",  vi:"ra ngoài",zh:"外出",en:"going out",ja:"外出",id:"keluar",ru:"выход",th:"ออกนอกบ้าน",mn:"гадагш гарах",uz:"chiqish",es:"going out"} },
+          { char:"출구",  word:"출구",  meaning:{ko:"출구",  vi:"lối ra",zh:"出口",en:"exit",ja:"出口",id:"pintu keluar",ru:"выход",th:"ทางออก",mn:"гарц",uz:"chiqish",es:"exit"} },
+          { char:"출입구",word:"출입구",meaning:{ko:"출입구",vi:"lối ra vào",zh:"出入口",en:"entrance/exit",ja:"出入り口",id:"pintu masuk/keluar",ru:"вход и выход",th:"ทางเข้าออก",mn:"орц гарц",uz:"kirish-chiqish",es:"entrance/exit"} },
+          { char:"테이블",word:"테이블",meaning:{ko:"테이블",vi:"bàn",zh:"桌子",en:"table",ja:"テーブル",id:"meja",ru:"стол",th:"โต๊ะ",mn:"ширээ",uz:"stol",es:"table"} },
+          { char:"양말",  word:"양말",  meaning:{ko:"양말",  vi:"tất",zh:"袜子",en:"socks",ja:"靴下",id:"kaus kaki",ru:"носки",th:"ถุงเท้า",mn:"оймс",uz:"paypoq",es:"socks"} },
+          { char:"목걸이",word:"목걸이",meaning:{ko:"목걸이",vi:"dây chuyền",zh:"项链",en:"necklace",ja:"ネックレス",id:"kalung",ru:"цепочка",th:"สร้อยคอ",mn:"зүүлт",uz:"bo'yinbog'",es:"necklace"} },
+          { char:"블라우스",word:"블라우스",meaning:{ko:"블라우스",vi:"áo sơ mi nữ",zh:"女衬衫",en:"blouse",ja:"ブラウス",id:"blus",ru:"блуза",th:"เสื้อผู้หญิง",mn:"блуз",uz:"bluzka",es:"blouse"} },
+          { char:"얼굴",  word:"얼굴",  meaning:{ko:"얼굴",  vi:"khuôn mặt",zh:"脸",en:"face",ja:"顔",id:"wajah",ru:"лицо",th:"ใบหน้า",mn:"нүүр",uz:"yuz",es:"face"} },
+          { char:"입술",  word:"입술",  meaning:{ko:"입술",  vi:"môi",zh:"嘴唇",en:"lip",ja:"唇",id:"bibir",ru:"губы",th:"ริมฝีปาก",mn:"уруул",uz:"lab",es:"lip"} },
+          { char:"팔",    word:"팔",    meaning:{ko:"팔",    vi:"cánh tay",zh:"胳膊",en:"arm",ja:"腕",id:"lengan",ru:"рука",th:"แขน",mn:"гар",uz:"qo'l",es:"arm"} },
+          { char:"팔꿈치",word:"팔꿈치",meaning:{ko:"팔꿈치",vi:"khuỷu tay",zh:"肘部",en:"elbow",ja:"肘",id:"siku",ru:"локоть",th:"ข้อศอก",mn:"тохой",uz:"tirsak",es:"elbow"} },
+          { char:"발목",  word:"발목",  meaning:{ko:"발목",  vi:"cổ chân",zh:"脚踝",en:"ankle",ja:"足首",id:"pergelangan kaki",ru:"лодыжка",th:"ข้อเท้า",mn:"шагай",uz:"to'piq",es:"ankle"} },
+          { char:"발등",  word:"발등",  meaning:{ko:"발등",  vi:"mu bàn chân",zh:"脚背",en:"top of foot",ja:"足の甲",id:"punggung kaki",ru:"верхняя часть ступни",th:"หลังเท้า",mn:"хөлийн дээд хэсэг",uz:"oyoq usti",es:"top of foot"} },
+          { char:"발바닥",word:"발바닥",meaning:{ko:"발바닥",vi:"lòng bàn chân",zh:"脚底",en:"sole of foot",ja:"足の裏",id:"telapak kaki",ru:"ступня",th:"ฝ่าเท้า",mn:"хөлийн ул",uz:"oyoq kaftи",es:"sole of foot"} },
+          { char:"발가락",word:"발가락",meaning:{ko:"발가락",vi:"ngón chân",zh:"脚趾",en:"toe",ja:"足の指",id:"jari kaki",ru:"палец ноги",th:"นิ้วเท้า",mn:"хурууны",uz:"oyoq barmog'i",es:"toe"} },
+          { char:"발톱",  word:"발톱",  meaning:{ko:"발톱",  vi:"móng chân",zh:"脚趾甲",en:"toenail",ja:"足の爪",id:"kuku kaki",ru:"ноготь на пальце ноги",th:"เล็บเท้า",mn:"хөлийн хумс",uz:"oyoq tirnog'i",es:"toenail"} },
+          { char:"귤",    word:"귤",    meaning:{ko:"귤",    vi:"quít",zh:"橘子",en:"mandarin",ja:"みかん",id:"jeruk mandarin",ru:"мандарин",th:"ส้มแมนดาริน",mn:"хандгайн жимс",uz:"mandarin",es:"mandarin"} },
+          { char:"파인애플",word:"파인애플",meaning:{ko:"파인애플",vi:"quả thơm",zh:"菠萝",en:"pineapple",ja:"パイナップル",id:"nanas",ru:"ананас",th:"สับปะรด",mn:"ананас",uz:"ananas",es:"pineapple"} },
+          { char:"불고기",word:"불고기",meaning:{ko:"불고기",vi:"thịt bò xào",zh:"烤牛肉",en:"bulgogi/beef",ja:"プルゴギ",id:"bulgogi",ru:"пулькоги",th:"บุลโกกิ",mn:"булгоги",uz:"bulgogi",es:"bulgogi/beef"} },
+          { char:"갈비탕",word:"갈비탕",meaning:{ko:"갈비탕",vi:"canh sườn bò",zh:"排骨汤",en:"beef-rib soup",ja:"カルビタン",id:"sup iga sapi",ru:"суп из говяжьих рёбер",th:"ซุปซี่โครงวัว",mn:"хавиргатай шөл",uz:"qovurg'a sho'rvasi",es:"beef-rib soup"} },
+          { char:"칼국수",word:"칼국수",meaning:{ko:"칼국수",vi:"mì cắt",zh:"刀削面",en:"knife-cut noodles",ja:"カルグクス",id:"mie pisau",ru:"лапша домашняя",th:"ราเม็งมีดตัด",mn:"хутгаар тайрсан гоймон",uz:"qo'l bichim lapsha",es:"knife-cut noodles"} },
+          { char:"설렁탕",word:"설렁탕",meaning:{ko:"설렁탕",vi:"canh xương bò hầm",zh:"牛骨汤",en:"Korean beef soup",ja:"ソルロンタン",id:"sup tulang sapi",ru:"соллонтан",th:"ซุปกระดูกวัว",mn:"үхэрний ясан шөл",uz:"sollontan",es:"Korean beef soup"} },
+          { char:"일식",  word:"일식",  meaning:{ko:"일식",  vi:"món Nhật",zh:"日本料理",en:"Japanese food",ja:"和食",id:"masakan Jepang",ru:"японская кухня",th:"อาหารญี่ปุ่น",mn:"Японы хоол",uz:"Yapon taomi",es:"Japanese food"} },
+          { char:"쌀",    word:"쌀",    meaning:{ko:"쌀",    vi:"gạo",zh:"大米",en:"rice",ja:"米",id:"beras",ru:"рис",th:"ข้าวสาร",mn:"цагаан будаа",uz:"guruch",es:"rice"} },
+          { char:"밀가루",word:"밀가루",meaning:{ko:"밀가루",vi:"bột mì",zh:"面粉",en:"flour",ja:"小麦粉",id:"tepung terigu",ru:"мука",th:"แป้งสาลี",mn:"гурил",uz:"un",es:"flour"} },
+          { char:"꿀",    word:"꿀",    meaning:{ko:"꿀",    vi:"mật ong",zh:"蜂蜜",en:"honey",ja:"はちみつ",id:"madu",ru:"мёд",th:"น้ำผึ้ง",mn:"зөгийн бал",uz:"asal",es:"honey"} },
+          { char:"술",    word:"술",    meaning:{ko:"술",    vi:"rượu",zh:"酒",en:"liquor/alcohol",ja:"お酒",id:"minuman beralkohol",ru:"алкоголь",th:"แอลกอฮอล์",mn:"архи",uz:"alkogol",es:"liquor/alcohol"} },
+          { char:"콜라",  word:"콜라",  meaning:{ko:"콜라",  vi:"cola",zh:"可乐",en:"cola",ja:"コーラ",id:"cola",ru:"кола",th:"โคล่า",mn:"кола",uz:"kola",es:"cola"} },
+          { char:"텔레비전",word:"텔레비전",meaning:{ko:"텔레비전",vi:"tivi",zh:"电视",en:"television",ja:"テレビ",id:"televisi",ru:"телевизор",th:"โทรทัศน์",mn:"телевиз",uz:"televizor",es:"television"} },
+          { char:"터미널",word:"터미널",meaning:{ko:"터미널",vi:"bến xe",zh:"客运站",en:"terminal",ja:"ターミナル",id:"terminal",ru:"терминал",th:"สถานีขนส่ง",mn:"терминал",uz:"terminal",es:"terminal"} },
+          { char:"출발",  word:"출발",  meaning:{ko:"출발",  vi:"xuất phát",zh:"出发",en:"departure",ja:"出発",id:"keberangkatan",ru:"отправление",th:"ออกเดินทาง",mn:"гарах",uz:"jo'nab ketish",es:"departure"} },
+          { char:"고속전철",word:"고속전철",meaning:{ko:"고속전철",vi:"tàu điện ngầm cao tốc",zh:"高速电车",en:"rapid railway",ja:"高速電鉄",id:"kereta cepat",ru:"электричка",th:"รถไฟความเร็วสูง",mn:"хурдан цахилгаан галт тэрэг",uz:"tezkor elektr poyezd",es:"rapid railway"} },
+          { char:"일방통행",word:"일방통행",meaning:{ko:"일방통행",vi:"một chiều",zh:"单方通行",en:"one way",ja:"一方通行",id:"satu arah",ru:"одностороннее движение",th:"ทางเดียว",mn:"нэг чиглэлийн замнал",uz:"bir yo'nalishli harakat",es:"one way"} },
+          { char:"수출",  word:"수출",  meaning:{ko:"수출",  vi:"xuất khẩu",zh:"出口",en:"export",ja:"輸出",id:"ekspor",ru:"экспорт",th:"การส่งออก",mn:"экспорт",uz:"eksport",es:"export"} },
+          { char:"출장",  word:"출장",  meaning:{ko:"출장",  vi:"công tác",zh:"出差",en:"business trip",ja:"出張",id:"perjalanan bisnis",ru:"командировка",th:"เดินทางเพื่อธุรกิจ",mn:"томилолт",uz:"xizmat safari",es:"business trip"} },
+          { char:"월급",  word:"월급",  meaning:{ko:"월급",  vi:"lương tháng",zh:"月薪",en:"monthly salary",ja:"月給",id:"gaji bulanan",ru:"зарплата",th:"เงินเดือน",mn:"сарын цалин",uz:"oylik maosh",es:"monthly salary"} },
+          { char:"사무실",word:"사무실",meaning:{ko:"사무실",vi:"văn phòng",zh:"办公室",en:"office",ja:"事務所",id:"kantor",ru:"офис",th:"สำนักงาน",mn:"оффис",uz:"ofis",es:"office"} },
+          { char:"수술실",word:"수술실",meaning:{ko:"수술실",vi:"phòng phẫu thuật",zh:"手术室",en:"operating room",ja:"手術室",id:"ruang operasi",ru:"операционная",th:"ห้องผ่าตัด",mn:"мэс заслын өрөө",uz:"jarrohlik xonasi",es:"operating room"} },
+          { char:"회복실",word:"회복실",meaning:{ko:"회복실",vi:"phòng hồi sức",zh:"恢复室",en:"recovery room",ja:"回復室",id:"ruang pemulihan",ru:"реанимационная палата",th:"ห้องพักฟื้น",mn:"сэргэлтийн өрөө",uz:"tiklanish xonasi",es:"recovery room"} },
+          { char:"배탈",  word:"배탈",  meaning:{ko:"배탈",  vi:"rối loạn tiêu hóa",zh:"胃肠不适",en:"stomach disorder",ja:"腹痛",id:"sakit perut",ru:"расстройство желудка",th:"ท้องเสีย",mn:"гэдэс өвдөх",uz:"oshqozon buzilishi",es:"stomach disorder"} },
+          { char:"설사",  word:"설사",  meaning:{ko:"설사",  vi:"tiêu chảy",zh:"腹泻",en:"diarrhea",ja:"下痢",id:"diare",ru:"диарея",th:"ท้องเสีย",mn:"суулга",uz:"ich ketish",es:"diarrhea"} },
+          { char:"열",    word:"열",    meaning:{ko:"열",    vi:"sốt",zh:"发烧",en:"fever",ja:"熱",id:"demam",ru:"температура",th:"ไข้",mn:"халуун",uz:"isitma",es:"fever"} },
+          { char:"몸살",  word:"몸살",  meaning:{ko:"몸살",  vi:"mệt mỏi toàn thân",zh:"全身疲劳",en:"general fatigue",ja:"倦怠感",id:"pegal linu",ru:"ломота",th:"อ่อนเพลีย",mn:"биеийн өвдөлт",uz:"umumiy charchoq",es:"general fatigue"} },
+          { char:"이메일",word:"이메일",meaning:{ko:"이메일",vi:"email",zh:"邮件",en:"email",ja:"電子メール",id:"email",ru:"электронная почта",th:"อีเมล",mn:"и-мэйл",uz:"elektron pochta",es:"email"} },
+          { char:"일부",  word:"일부",  meaning:{ko:"일부",  vi:"một phần",zh:"一部分",en:"part",ja:"一部",id:"sebagian",ru:"часть",th:"ส่วนหนึ่ง",mn:"нэг хэсэг",uz:"bir qism",es:"part"} },
+          { char:"골프",  word:"골프",  meaning:{ko:"골프",  vi:"Golf",zh:"高尔夫",en:"golf",ja:"ゴルフ",id:"golf",ru:"гольф",th:"กอล์ฟ",mn:"гольф",uz:"golf",es:"golf"} },
+          { char:"달리기",word:"달리기",meaning:{ko:"달리기",vi:"chạy",zh:"跑步",en:"running",ja:"走り",id:"lari",ru:"бег",th:"การวิ่ง",mn:"гүйлт",uz:"yugurish",es:"running"} },
+          { char:"볼링",  word:"볼링",  meaning:{ko:"볼링",  vi:"bowling",zh:"保龄球",en:"bowling",ja:"ボーリング",id:"bowling",ru:"боулинг",th:"โบว์ลิ่ง",mn:"боулинг",uz:"bouling",es:"bowling"} },
+          { char:"예술",  word:"예술",  meaning:{ko:"예술",  vi:"nghệ thuật",zh:"艺术",en:"art",ja:"芸術",id:"seni",ru:"искусство",th:"ศิลปะ",mn:"урлаг",uz:"san'at",es:"art"} },
+          { char:"미술",  word:"미술",  meaning:{ko:"미술",  vi:"mỹ thuật",zh:"美术",en:"fine art",ja:"美術",id:"seni rupa",ru:"изобразительное искусство",th:"ศิลปกรรม",mn:"дүрслэх урлаг",uz:"tasviriy san'at",es:"fine art"} },
+          { char:"클래식",word:"클래식",meaning:{ko:"클래식",vi:"nhạc cổ điển",zh:"古典音乐",en:"classical music",ja:"クラシック",id:"musik klasik",ru:"классика",th:"ดนตรีคลาสสิก",mn:"сонгодог",uz:"klassik musiqa",es:"classical music"} },
+          { char:"뮤지컬",word:"뮤지컬",meaning:{ko:"뮤지컬",vi:"nhạc kịch",zh:"音乐剧",en:"musical",ja:"ミュージカル",id:"musikal",ru:"мюзикл",th:"ละครเพลง",mn:"мюзикл",uz:"musiqiy spektakl",es:"musical"} },
+          { char:"소설",  word:"소설",  meaning:{ko:"소설",  vi:"tiểu thuyết",zh:"小说",en:"novel",ja:"小説",id:"novel",ru:"роман",th:"นิยาย",mn:"роман",uz:"roman",es:"novel"} },
+          { char:"결제",  word:"결제",  meaning:{ko:"결제",  vi:"thanh toán",zh:"结账",en:"payment",ja:"決済",id:"pembayaran",ru:"оплата",th:"การชำระเงิน",mn:"төлбөр",uz:"to'lov",es:"payment"} },
+          { char:"대출",  word:"대출",  meaning:{ko:"대출",  vi:"cho vay",zh:"贷款",en:"loan",ja:"貸し出し",id:"pinjaman",ru:"ссуда",th:"เงินกู้",mn:"зээл",uz:"qarz",es:"loan"} },
+          { char:"달러",  word:"달러",  meaning:{ko:"달러",  vi:"đô la",zh:"美元",en:"dollar",ja:"ドル",id:"dolar",ru:"доллар",th:"ดอลลาร์",mn:"доллар",uz:"dollar",es:"dollar"} },
+          { char:"얼룩말",word:"얼룩말",meaning:{ko:"얼룩말",vi:"ngựa vằn",zh:"斑马",en:"zebra",ja:"シマウマ",id:"zebra",ru:"зебра",th:"ม้าลาย",mn:"тахь",uz:"zebra",es:"zebra"} },
+          { char:"올챙이",word:"올챙이",meaning:{ko:"올챙이",vi:"con nòng nọc",zh:"蝌蚪",en:"tadpole",ja:"オタマジャクシ",id:"kecebong",ru:"головастик",th:"ลูกอ๊อด",mn:"мэлхий бага",uz:"qurbaqa bolasi",es:"tadpole"} },
+          { char:"동물",  word:"동물",  meaning:{ko:"동물",  vi:"động vật",zh:"动物",en:"animal",ja:"動物",id:"hewan",ru:"животное",th:"สัตว์",mn:"амьтан",uz:"hayvon",es:"animal"} },
+          { char:"미생물",word:"미생물",meaning:{ko:"미생물",vi:"vi sinh vật",zh:"微生物",en:"microbe",ja:"微生物",id:"mikroba",ru:"микроб",th:"จุลินทรีย์",mn:"бичил биетэн",uz:"mikrob",es:"microbe"} },
+          { char:"벌레",  word:"벌레",  meaning:{ko:"벌레",  vi:"sâu bọ",zh:"虫子",en:"insect/bug",ja:"虫",id:"serangga",ru:"насекомое",th:"แมลง",mn:"хорхой",uz:"hasharot",es:"insect/bug"} },
+          { char:"물고기",word:"물고기",meaning:{ko:"물고기",vi:"con cá",zh:"鱼",en:"fish",ja:"魚",id:"ikan",ru:"рыба",th:"ปลา",mn:"загас",uz:"baliq",es:"fish"} },
+          { char:"굴",    word:"굴",    meaning:{ko:"굴",    vi:"con hàu",zh:"牡蛎",en:"oyster",ja:"カキ",id:"tiram",ru:"устрица",th:"หอยนางรม",mn:"хясаа",uz:"mollyuska",es:"oyster"} },
+          { char:"식물",  word:"식물",  meaning:{ko:"식물",  vi:"thực vật",zh:"植物",en:"plant",ja:"植物",id:"tanaman",ru:"растение",th:"พืช",mn:"ургамал",uz:"o'simlik",es:"plant"} },
+          { char:"풀",    word:"풀",    meaning:{ko:"풀",    vi:"cỏ",zh:"草",en:"grass",ja:"草",id:"rumput",ru:"трава",th:"หญ้า",mn:"өвс",uz:"o't",es:"grass"} },
+          { char:"줄기",  word:"줄기",  meaning:{ko:"줄기",  vi:"thân cây",zh:"茎",en:"stem",ja:"茎",id:"batang",ru:"стебель",th:"ก้านต้นไม้",mn:"иш",uz:"poya",es:"stem"} },
+          { char:"열매",  word:"열매",  meaning:{ko:"열매",  vi:"quả",zh:"果实",en:"fruit",ja:"実",id:"buah",ru:"плод",th:"ผลไม้",mn:"жимс",uz:"meva",es:"fruit"} },
+          { char:"날씨",  word:"날씨",  meaning:{ko:"날씨",  vi:"thời tiết",zh:"天气",en:"weather",ja:"天気",id:"cuaca",ru:"погода",th:"สภาพอากาศ",mn:"цаг агаар",uz:"ob-havo",es:"weather"} },
+          { char:"열대",  word:"열대",  meaning:{ko:"열대",  vi:"nhiệt đới",zh:"热带",en:"tropics",ja:"熱帯",id:"tropis",ru:"тропики",th:"เขตร้อน",mn:"халуун бүс",uz:"tropik",es:"tropics"} },
+          { char:"아열대",word:"아열대",meaning:{ko:"아열대",vi:"cận nhiệt đới",zh:"亚热带",en:"subtropical",ja:"亜熱帯",id:"subtropis",ru:"субтропический",th:"กึ่งเขตร้อน",mn:"дулаан бүс",uz:"subtropik",es:"subtropical"} },
+          { char:"해일",  word:"해일",  meaning:{ko:"해일",  vi:"sóng thần",zh:"海啸",en:"tsunami",ja:"津波",id:"tsunami",ru:"цунами",th:"สึนามิ",mn:"далайн давалгаа",uz:"tsunami",es:"tsunami"} },
+          { char:"돌",    word:"돌",    meaning:{ko:"돌",    vi:"hòn đá",zh:"石头",en:"stone",ja:"石",id:"batu",ru:"камень",th:"หิน",mn:"чулуу",uz:"tosh",es:"stone"} },
+          { char:"독일",  word:"독일",  meaning:{ko:"독일",  vi:"Đức",zh:"德国",en:"Germany",ja:"ドイツ",id:"Jerman",ru:"Германия",th:"เยอรมนี",mn:"Герман",uz:"Germaniya",es:"Germany"} },
+          { char:"이탈리아",word:"이탈리아",meaning:{ko:"이탈리아",vi:"Italy",zh:"意大利",en:"Italy",ja:"イタリア",id:"Italia",ru:"Италия",th:"อิตาลี",mn:"Итали",uz:"Italiya",es:"Italy"} },
+          { char:"몽골",  word:"몽골",  meaning:{ko:"몽골",  vi:"Mông Cổ",zh:"蒙古",en:"Mongolia",ja:"モンゴル",id:"Mongolia",ru:"Монголия",th:"มองโกเลีย",mn:"Монгол",uz:"Mo'g'uliston",es:"Mongolia"} },
+          { char:"네팔",  word:"네팔",  meaning:{ko:"네팔",  vi:"Nepal",zh:"尼泊尔",en:"Nepal",ja:"ネパール",id:"Nepal",ru:"Непал",th:"เนปาล",mn:"Непал",uz:"Nepal",es:"Nepal"} },
+          { char:"방글라데시",word:"방글라데시",meaning:{ko:"방글라데시",vi:"Bangladesh",zh:"孟加拉国",en:"Bangladesh",ja:"バングラデシュ",id:"Bangladesh",ru:"Бангладеш",th:"บังกลาเทศ",mn:"Бангладеш",uz:"Bangladesh",es:"Bangladesh"} },
+          { char:"말레이시아",word:"말레이시아",meaning:{ko:"말레이시아",vi:"Malaysia",zh:"马来西亚",en:"Malaysia",ja:"マレーシア",id:"Malaysia",ru:"Малайзия",th:"มาเลเซีย",mn:"Малайз",uz:"Malayziya",es:"Malaysia"} },
+          { char:"브라질",word:"브라질",meaning:{ko:"브라질",vi:"Brazil",zh:"巴西",en:"Brazil",ja:"ブラジル",id:"Brasil",ru:"Бразилия",th:"บราซิล",mn:"Бразил",uz:"Braziliya",es:"Brazil"} },
+          { char:"칠레",  word:"칠레",  meaning:{ko:"칠레",  vi:"Chile",zh:"智利",en:"Chile",ja:"チリ",id:"Chili",ru:"Чили",th:"ชิลี",mn:"Чили",uz:"Chili",es:"Chile"} },
+          { char:"서울",  word:"서울",  meaning:{ko:"서울",  vi:"Seoul",zh:"首尔",en:"Seoul",ja:"ソウル",id:"Seoul",ru:"Сеул",th:"โซล",mn:"Сеул",uz:"Seul",es:"Seoul"} },
+          { char:"마닐라",word:"마닐라",meaning:{ko:"마닐라",vi:"Manila",zh:"马尼拉",en:"Manila",ja:"マニラ",id:"Manila",ru:"Манила",th:"มะนิลา",mn:"Манила",uz:"Manila",es:"Manila"} },
+          { char:"색깔",  word:"색깔",  meaning:{ko:"색깔",  vi:"màu sắc",zh:"颜色",en:"color",ja:"色",id:"warna",ru:"цвет",th:"สี",mn:"өнгө",uz:"rang",es:"color"} },
+          { char:"갈색",  word:"갈색",  meaning:{ko:"갈색",  vi:"màu nâu",zh:"棕色",en:"brown",ja:"茶色",id:"coklat",ru:"коричневый",th:"สีน้ำตาล",mn:"хүрэн",uz:"jigarrang",es:"brown"} },
+          { char:"하늘색",word:"하늘색",meaning:{ko:"하늘색",vi:"màu xanh da trời",zh:"天蓝色",en:"sky blue",ja:"スカイブルー",id:"biru langit",ru:"голубой",th:"สีฟ้า",mn:"тэнгэрийн цэнхэр",uz:"osmon rangi",es:"sky blue"} },
+          { char:"그들",  word:"그들",  meaning:{ko:"그들",  vi:"họ",zh:"他们",en:"they",ja:"彼ら",id:"mereka",ru:"они",th:"พวกเขา",mn:"тэд",uz:"ular",es:"they"} },
+          { char:"둘",    word:"둘",    meaning:{ko:"둘",    vi:"hai",zh:"二",en:"two",ja:"二",id:"dua",ru:"два",th:"สอง",mn:"хоёр",uz:"ikki",es:"two"} },
+          { char:"일곱",  word:"일곱",  meaning:{ko:"일곱",  vi:"bảy",zh:"七",en:"seven",ja:"七",id:"tujuh",ru:"семь",th:"เจ็ด",mn:"долоо",uz:"yetti",es:"seven"} },
+          { char:"열",    word:"열",    meaning:{ko:"열",    vi:"mười",zh:"十",en:"ten",ja:"十",id:"sepuluh",ru:"десять",th:"สิบ",mn:"арав",uz:"o'n",es:"ten"} },
+          { char:"하나(일)",word:"일",  meaning:{ko:"일(하나)",vi:"một",zh:"一",en:"one",ja:"一",id:"satu",ru:"один",th:"หนึ่ง",mn:"нэг",uz:"bir",es:"one"} },
+          { char:"절제",  word:"절제",  meaning:{ko:"절제",  vi:"tiết chế",zh:"节制",en:"moderation",ja:"節制",id:"pengekangan diri",ru:"сдержанность",th:"ความพอดี",mn:"дэнчин",uz:"o'zini tuta bilish",es:"moderation"} },
+          { char:"결과",  word:"결과",  meaning:{ko:"결과",  vi:"kết quả",zh:"结果",en:"result",ja:"結果",id:"hasil",ru:"результат",th:"ผลลัพธ์",mn:"үр дүн",uz:"natija",es:"result"} },
+          { char:"필요",  word:"필요",  meaning:{ko:"필요",  vi:"cần thiết",zh:"必要",en:"necessity",ja:"必要",id:"keperluan",ru:"необходимость",th:"ความจำเป็น",mn:"хэрэгцээ",uz:"zaruratlilik",es:"necessity"} },
+          { char:"칼",    word:"칼",    meaning:{ko:"칼",    vi:"con dao",zh:"刀",en:"knife",ja:"ナイフ",id:"pisau",ru:"нож",th:"มีด",mn:"хутга",uz:"pichoq",es:"knife"} },
+          { char:"틀리다",word:"틀리다",meaning:{ko:"틀리다",vi:"sai",zh:"错误",en:"wrong",ja:"間違う",id:"salah",ru:"неверный",th:"ผิด",mn:"буруу",uz:"noto'g'ri",es:"wrong"} },
+          { char:"슬프다",word:"슬프다",meaning:{ko:"슬프다",vi:"buồn",zh:"悲伤",en:"sad",ja:"悲しい",id:"sedih",ru:"грустный",th:"เศร้า",mn:"гунигтай",uz:"qayg'uli",es:"sad"} },
+          { char:"불쌍하다",word:"불쌍하다",meaning:{ko:"불쌍하다",vi:"đáng thương",zh:"可怜",en:"pitiful",ja:"かわいそうだ",id:"menyedihkan",ru:"жалкий",th:"น่าสงสาร",mn:"гомдолтой",uz:"achinarli",es:"pitiful"} },
+          { char:"힘들다",word:"힘들다",meaning:{ko:"힘들다",vi:"vất vả",zh:"辛苦",en:"hard/tiring",ja:"大変だ",id:"melelahkan",ru:"тяжёлый",th:"ยากลำบาก",mn:"хэцүү",uz:"qiyin",es:"hard/tiring"} },
+          { char:"특별하다",word:"특별하다",meaning:{ko:"특별하다",vi:"đặc biệt",zh:"特别",en:"special",ja:"特別だ",id:"istimewa",ru:"особый",th:"พิเศษ",mn:"онцгой",uz:"maxsus",es:"special"} },
+          { char:"훌륭하다",word:"훌륭하다",meaning:{ko:"훌륭하다",vi:"xuất sắc",zh:"优秀",en:"excellent",ja:"立派だ",id:"luar biasa",ru:"превосходный",th:"ยอดเยี่ยม",mn:"гайхалтай",uz:"ajoyib",es:"excellent"} },
+          { char:"늘다",  word:"늘다",  meaning:{ko:"늘다",  vi:"gia tăng",zh:"增加",en:"increase",ja:"増える",id:"meningkat",ru:"возрастать",th:"เพิ่มขึ้น",mn:"нэмэгдэх",uz:"oshmoq",es:"increase"} },
+          { char:"가늘다",word:"가늘다",meaning:{ko:"가늘다",vi:"mảnh mai",zh:"纤细",en:"thin/slender",ja:"細い",id:"tipis",ru:"тонкий",th:"เรียว",mn:"нарийн",uz:"ingichka",es:"thin/slender"} },
+          { char:"달다",  word:"달다",  meaning:{ko:"달다",  vi:"ngọt",zh:"甜",en:"sweet",ja:"甘い",id:"manis",ru:"сладкий",th:"หวาน",mn:"чихэрлэг",uz:"shirin",es:"sweet"} },
+          { char:"졸다",  word:"졸다",  meaning:{ko:"졸다",  vi:"ngủ gật",zh:"打瞌睡",en:"doze",ja:"居眠りする",id:"mengantuk",ru:"дремать",th:"หาวนอน",mn:"нойрмоглох",uz:"mudrash",es:"doze"} },
+          { char:"일어나다",word:"일어나다",meaning:{ko:"일어나다",vi:"đứng dậy",zh:"起床/站起来",en:"stand up/rise",ja:"起き上がる",id:"bangun",ru:"вставать",th:"ลุกขึ้น",mn:"босох",uz:"turmoq",es:"stand up/rise"} },
+          { char:"들어가다",word:"들어가다",meaning:{ko:"들어가다",vi:"đi vào",zh:"进入",en:"enter",ja:"入る",id:"masuk",ru:"войти",th:"เข้าไป",mn:"орох",uz:"kirmoq",es:"enter"} },
+          { char:"올라가다",word:"올라가다",meaning:{ko:"올라가다",vi:"đi lên",zh:"上去",en:"go up/rise",ja:"上がる",id:"naik",ru:"подниматься",th:"ขึ้นไป",mn:"өгсөх",uz:"ko'tarilmoq",es:"go up/rise"} },
+          { char:"달리다",word:"달리다", meaning:{ko:"달리다",vi:"chạy",zh:"奔跑",en:"run",ja:"走る",id:"berlari",ru:"бежать",th:"วิ่ง",mn:"гүйх",uz:"yugurmoq",es:"run"} },
+          { char:"날다",  word:"날다",  meaning:{ko:"날다",  vi:"bay",zh:"飞",en:"fly",ja:"飛ぶ",id:"terbang",ru:"лететь",th:"บิน",mn:"нисэх",uz:"uchmoq",es:"fly"} },
+          { char:"열다",  word:"열다",  meaning:{ko:"열다",  vi:"mở",zh:"打开",en:"open",ja:"開ける",id:"membuka",ru:"открывать",th:"เปิด",mn:"нээх",uz:"ochmoq",es:"open"} },
+          { char:"들다",  word:"들다",  meaning:{ko:"들다",  vi:"nâng lên",zh:"举起",en:"raise/lift",ja:"持つ",id:"mengangkat",ru:"поднимать",th:"ยกขึ้น",mn:"өргөх",uz:"ko'tarmoq",es:"raise/lift"} },
+          { char:"걸리다",word:"걸리다",meaning:{ko:"걸리다",vi:"tiêu tốn (thời gian)",zh:"花费",en:"take (time)",ja:"かかる",id:"membutuhkan",ru:"занимать время",th:"ใช้เวลา",mn:"зарцуулах",uz:"sarflamoq",es:"take (time)"} },
+          { char:"필요하다",word:"필요하다",meaning:{ko:"필요하다",vi:"cần thiết",zh:"必要",en:"necessary",ja:"必要になる",id:"diperlukan",ru:"быть необходимым",th:"จำเป็น",mn:"хэрэгтэй",uz:"zarur",es:"necessary"} },
+          { char:"빌리다",word:"빌리다",meaning:{ko:"빌리다",vi:"mượn",zh:"借用",en:"borrow",ja:"借りる",id:"meminjam",ru:"одалживать",th:"ยืม",mn:"зээлэх",uz:"qarz olmoq",es:"borrow"} },
+          { char:"일하다",word:"일하다",meaning:{ko:"일하다",vi:"làm việc",zh:"工作",en:"work",ja:"働く",id:"bekerja",ru:"работать",th:"ทำงาน",mn:"ажиллах",uz:"ishlamoq",es:"work"} },
+          { char:"만들다",word:"만들다",meaning:{ko:"만들다",vi:"tạo ra",zh:"制作",en:"make/create",ja:"作る",id:"membuat",ru:"делать",th:"สร้าง",mn:"хийх",uz:"yaratmoq",es:"make/create"} },
+          { char:"잘하다",word:"잘하다",meaning:{ko:"잘하다",vi:"làm tốt",zh:"做好",en:"do well",ja:"よくする",id:"melakukan dengan baik",ru:"делать хорошо",th:"ทำได้ดี",mn:"сайн хийх",uz:"yaxshi bajarmoq",es:"do well"} },
+          { char:"팔다",  word:"팔다",  meaning:{ko:"팔다",  vi:"bán",zh:"卖",en:"sell",ja:"売る",id:"menjual",ru:"продавать",th:"ขาย",mn:"зарах",uz:"sotmoq",es:"sell"} },
+          { char:"출발하다",word:"출발하다",meaning:{ko:"출발하다",vi:"xuất phát",zh:"出发",en:"start/depart",ja:"出発する",id:"berangkat",ru:"отправляться",th:"ออกเดินทาง",mn:"гарах",uz:"jo'nab ketmoq",es:"start/depart"} },
+          { char:"들르다",word:"들르다",meaning:{ko:"들르다",vi:"ghé vào",zh:"顺路去",en:"stop by",ja:"寄る",id:"mampir",ru:"зайти по пути",th:"แวะ",mn:"зам дахь зогсолт",uz:"yo'lda to'xtamoq",es:"stop by"} },
+          { char:"배달하다",word:"배달하다",meaning:{ko:"배달하다",vi:"giao hàng",zh:"送货",en:"deliver",ja:"配達する",id:"mengantarkan",ru:"доставлять",th:"ส่งของ",mn:"хүргэх",uz:"yetkazib bermoq",es:"deliver"} },
+          { char:"벌다",  word:"벌다",  meaning:{ko:"벌다",  vi:"kiếm tiền",zh:"赚钱",en:"earn money",ja:"稼ぐ",id:"menghasilkan",ru:"зарабатывать",th:"หาเงิน",mn:"орлого олох",uz:"pul topmoq",es:"earn money"} },
+          { char:"살다",  word:"살다",  meaning:{ko:"살다",  vi:"sống",zh:"生活",en:"live",ja:"生きる",id:"hidup",ru:"жить",th:"อาศัยอยู่",mn:"амьдрах",uz:"yashаmoq",es:"live"} },
+          { char:"물다",  word:"물다",  meaning:{ko:"물다",  vi:"cắn",zh:"咬",en:"bite",ja:"噛む",id:"menggigit",ru:"кусать",th:"กัด",mn:"хазах",uz:"tishlamoq",es:"bite"} },
+          { char:"놀라다",word:"놀라다",meaning:{ko:"놀라다",vi:"ngạc nhiên",zh:"吃惊",en:"surprise",ja:"驚く",id:"terkejut",ru:"изумляться",th:"ตกใจ",mn:"гайхах",uz:"hayron bo'lmoq",es:"surprise"} },
+          { char:"불다",  word:"불다",  meaning:{ko:"불다",  vi:"thổi",zh:"吹",en:"blow",ja:"吹く",id:"meniup",ru:"дуть",th:"เป่า",mn:"үлээх",uz:"esmoq",es:"blow"} },
+          { char:"울다",  word:"울다",  meaning:{ko:"울다",  vi:"khóc",zh:"哭",en:"cry",ja:"泣く",id:"menangis",ru:"плакать",th:"ร้องไห้",mn:"уйлах",uz:"yig'lamoq",es:"cry"} },
+          { char:"어울리다",word:"어울리다",meaning:{ko:"어울리다",vi:"phù hợp",zh:"适合",en:"fit/match",ja:"似合う",id:"cocok",ru:"подходить",th:"เข้ากันได้",mn:"тохирох",uz:"mos kelmoq",es:"fit/match"} },
+          { char:"놀다",  word:"놀다",  meaning:{ko:"놀다",  vi:"chơi",zh:"玩耍",en:"play",ja:"遊ぶ",id:"bermain",ru:"играть",th:"เล่น",mn:"тоглох",uz:"o'ynamoq",es:"play"} },
+          { char:"떠들다",word:"떠들다",meaning:{ko:"떠들다",vi:"làm ồn",zh:"吵闹",en:"make noise",ja:"騒ぐ",id:"berisik",ru:"шуметь",th:"ส่งเสียงดัง",mn:"чимээ гаргах",uz:"shovqin qilmoq",es:"make noise"} },
+          { char:"즐기다",word:"즐기다",meaning:{ko:"즐기다",vi:"tận hưởng",zh:"享受",en:"enjoy",ja:"楽しむ",id:"menikmati",ru:"наслаждаться",th:"สนุก",mn:"таашаах",uz:"zavqlanmoq",es:"enjoy"} },
+          { char:"돌다",  word:"돌다",  meaning:{ko:"돌다",  vi:"xoay vòng",zh:"旋转",en:"rotate/turn",ja:"回る",id:"berputar",ru:"крутиться",th:"หมุน",mn:"эргэх",uz:"aylanmoq",es:"rotate/turn"} },
+          { char:"틀다",  word:"틀다",  meaning:{ko:"틀다",  vi:"bật",zh:"打开(电器)",en:"turn on",ja:"つける",id:"menyalakan",ru:"включать",th:"เปิด(เครื่องใช้)",mn:"асаах",uz:"yoqmoq",es:"turn on"} },
+          { char:"떨어지다",word:"떨어지다",meaning:{ko:"떨어지다",vi:"rơi",zh:"落下",en:"fall/drop",ja:"落ちる",id:"jatuh",ru:"падать",th:"ตกลงมา",mn:"унах",uz:"tushib ketmoq",es:"fall/drop"} },
+          { char:"설거지하다",word:"설거지하다",meaning:{ko:"설거지하다",vi:"rửa chén",zh:"洗碗",en:"wash dishes",ja:"食器を洗う",id:"mencuci piring",ru:"мыть посуду",th:"ล้างจาน",mn:"аяга угаах",uz:"idish yuvmoq",es:"wash dishes"} },
+          { char:"빨래하다",word:"빨래하다",meaning:{ko:"빨래하다",vi:"giặt quần áo",zh:"洗衣服",en:"wash clothes",ja:"洗濯する",id:"mencuci pakaian",ru:"стирать",th:"ซักผ้า",mn:"хувцас угаах",uz:"kir yuvmoq",es:"wash clothes"} },
+          { char:"얼다",  word:"얼다",  meaning:{ko:"얼다",  vi:"đông lạnh",zh:"冻结",en:"freeze",ja:"凍る",id:"membeku",ru:"замерзать",th:"แข็งตัว",mn:"хөлдөх",uz:"muzlash",es:"freeze"} },
+          { char:"거절하다",word:"거절하다",meaning:{ko:"거절하다",vi:"từ chối",zh:"拒绝",en:"deny/refuse",ja:"断る",id:"menolak",ru:"отказывать",th:"ปฏิเสธ",mn:"татгалзах",uz:"rad etmoq",es:"deny/refuse"} },
+          { char:"실패하다",word:"실패하다",meaning:{ko:"실패하다",vi:"thất bại",zh:"失败",en:"fail",ja:"失敗する",id:"gagal",ru:"потерпеть поражение",th:"ล้มเหลว",mn:"бүтэлгүйтэх",uz:"muvaffaqiyatsiz bo'lmoq",es:"fail"} },
+          { char:"설명하다",word:"설명하다",meaning:{ko:"설명하다",vi:"giải thích",zh:"说明",en:"explain",ja:"説明する",id:"menjelaskan",ru:"объяснять",th:"อธิบาย",mn:"тайлбарлах",uz:"tushuntirmoq",es:"explain"} },
+          { char:"졸업하다",word:"졸업하다",meaning:{ko:"졸업하다",vi:"tốt nghiệp",zh:"毕业",en:"graduate",ja:"卒業する",id:"lulus",ru:"оканчивать",th:"จบการศึกษา",mn:"төгсөх",uz:"bitirmoq",es:"graduate"} },
+          { char:"알다",  word:"알다",  meaning:{ko:"알다",  vi:"biết",zh:"知道",en:"know",ja:"知る",id:"mengetahui",ru:"знать",th:"รู้",mn:"мэдэх",uz:"bilmoq",es:"know"} },
+          { char:"울음",  word:"울음",  meaning:{ko:"울음",  vi:"sự khóc",zh:"哭泣",en:"crying",ja:"泣き",id:"tangisan",ru:"плач",th:"การร้องไห้",mn:"уйлалт",uz:"yig'lash",es:"crying"} },
+          { char:"슬픔",  word:"슬픔",  meaning:{ko:"슬픔",  vi:"nỗi buồn",zh:"悲伤",en:"grief/sadness",ja:"悲しみ",id:"kesedihan",ru:"грусть",th:"ความเศร้า",mn:"гуниг",uz:"qayg'u",es:"grief/sadness"} },
+          { char:"절망",  word:"절망",  meaning:{ko:"절망",  vi:"tuyệt vọng",zh:"绝望",en:"despair",ja:"絶望",id:"keputusasaan",ru:"отчаяние",th:"ความสิ้นหวัง",mn:"найдваргүй байдал",uz:"umidsizlik",es:"despair"} },
+                  { char:"생활",  word:"생활",  meaning:{ko:"생활",  vi:"cuộc sống",zh:"生活",en:"life/living",ja:"生活",id:"kehidupan",ru:"жизнь",th:"ชีวิต",mn:"амьдрал",uz:"hayot",es:"life/living"} },
+                  { char:"팔(8)", word:"팔(8)", meaning:{ko:"팔(8)", vi:"tám (8)",zh:"八",en:"eight",ja:"八",id:"delapan",ru:"восемь",th:"แปด",mn:"найм",uz:"sakkiz",es:"eight"} },
+                  { char:"울부짖다",word:"울부짖다",meaning:{ko:"울부짖다",vi:"gào khóc",zh:"嚎哭",en:"wail/cry out",ja:"わめく",id:"meraung",ru:"рыдать",th:"ร้องไห้",mn:"уйлах",uz:"yig'lamoq",es:"wail/cry out"} },
+                  { char:"흘리다",word:"흘리다", meaning:{ko:"흘리다",vi:"đổ/rơi",zh:"流/洒",en:"spill/shed",ja:"こぼす",id:"menumpahkan",ru:"проливать",th:"หกหล่น",mn:"асгах",uz:"to'kmoq",es:"spill/shed"} },
+                  { char:"갈다",  word:"갈다",  meaning:{ko:"갈다",  vi:"mài/thay",zh:"磨/换",en:"grind/replace",ja:"갈다",id:"menggiling",ru:"менять",th:"เปลี่ยน/บด",mn:"солих",uz:"almashmoq",es:"grind/replace"} },
+                  { char:"걸다",  word:"걸다",  meaning:{ko:"걸다",  vi:"treo/gọi",zh:"挂/打电话",en:"hang/call",ja:"掛ける",id:"menggantung",ru:"вешать",th:"แขวน/โทร",mn:"өлгөх",uz:"osmoq",es:"hang/call"} },
+                  { char:"풀다",  word:"풀다",  meaning:{ko:"풀다",  vi:"tháo/giải",zh:"解开",en:"untie/solve",ja:"解く",id:"membuka",ru:"развязывать",th:"แก้/คลาย",mn:"тайлах",uz:"yechmoq",es:"untie/solve"} },
+                  { char:"밀다",  word:"밀다",  meaning:{ko:"밀다",  vi:"đẩy",zh:"推",en:"push",ja:"押す",id:"mendorong",ru:"толкать",th:"ดัน",mn:"түлхэх",uz:"itarmoq",es:"push"} },
+                  { char:"끌다",  word:"끌다",  meaning:{ko:"끌다",  vi:"kéo",zh:"拉",en:"pull/drag",ja:"引く",id:"menarik",ru:"тянуть",th:"ลาก",mn:"чирэх",uz:"tortmoq",es:"pull/drag"} },
+                                ],
+        tip:{ko:"💡 [유음화] ㄹ은 혀를 입천장에 살짝 튕기는 소리예요. ㄹ+ㄴ 또는 ㄴ+ㄹ이 만나면 둘 다 [ㄹㄹ]로 발음해요! 예) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",vi:"⭐ Mốc quan trọng! Chạm nhẹ đầu lưỡi lên nướu trên, lăn âm mượt mà.",en:"⭐ Key milestone! Lightly touch your tongue tip to your upper gum and roll the sound smoothly.",zh:"💡【流音化】ㄹ是舌尖轻弹上颚发出的音。ㄹ+ㄴ或ㄴ+ㄹ相遇时都发[ㄹㄹ]音！例：설날→[설랄] 칼날→[칼랄] 일년→[일련]",ja:"💡【流音化】ㄹは舌先を上あごに軽くはじく音です。ㄹ+ㄴ、またはㄴ+ㄹが出会うと両方とも[ㄹㄹ]と発音します！例）설날→[설랄] 칼날→[칼랄] 일년→[일련]",id:"💡[Liuk/pelunakan ㄹ] ㄹ adalah bunyi lidah yang menyentil ringan langit-langit mulut. Jika ㄹ+ㄴ atau ㄴ+ㄹ bertemu, keduanya diucapkan sebagai [ㄹㄹ]! Contoh) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",ru:"💡[Латерализация] ㄹ — это звук, при котором кончик языка слегка касается нёба. Когда встречаются ㄹ+ㄴ или ㄴ+ㄹ, оба произносятся как [ㄹㄹ]! Напр.) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",th:"💡[การกลายเป็นเสียงข้าง] ㄹ คือเสียงที่ปลายลิ้นแตะเพดานปากเบา ๆ เมื่อ ㄹ+ㄴ หรือ ㄴ+ㄹ มาเจอกันจะออกเสียงเป็น [ㄹㄹ] ทั้งคู่! ตัวอย่าง) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",mn:"💡[Хажуугийн авиажилт] ㄹ бол хэлний үзүүрээр тагнайг хөнгөхөн цохих дуу авиа юм. ㄹ+ㄴ эсвэл ㄴ+ㄹ уулзвал хоёулаа [ㄹㄹ] гэж дуудагдана! Жишээ) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",uz:"💡[Yon tovushga aylanish] ㄹ — til uchini tanglayga yengil urib chiqariladigan tovush. ㄹ+ㄴ yoki ㄴ+ㄹ uchrashsa, ikkalasi ham [ㄹㄹ] deb aytiladi! Masalan) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",es:"💡[Lateralización] ㄹ es un sonido en el que la punta de la lengua roza ligeramente el paladar. ¡Cuando se encuentran ㄹ+ㄴ o ㄴ+ㄹ, ambos se pronuncian como [ㄹㄹ]! Ej.) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",fr:"💡[Latéralisation] ㄹ est un son où le bout de la langue touche légèrement le palais. Quand ㄹ+ㄴ ou ㄴ+ㄹ se rencontrent, les deux se prononcent [ㄹㄹ] ! Ex. : 설날→[설랄] 칼날→[칼랄] 일년→[일련]",ne:"💡[तरल ध्वनि परिवर्तन] ㄹ जिब्रोको टुप्पोले तालुलाई हल्का छुने ध्वनि हो। ㄹ+ㄴ वा ㄴ+ㄹ भेटिँदा दुवै [ㄹㄹ] उच्चारण हुन्छ! उदाहरण) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",de:"💡[Lateralisierung] ㄹ ist ein Klang, bei dem die Zungenspitze leicht den Gaumen berührt. Treffen ㄹ+ㄴ oder ㄴ+ㄹ aufeinander, werden beide als [ㄹㄹ] ausgesprochen! Bsp.: 설날→[설랄] 칼날→[칼랄] 일년→[일련]"},
+      },
+      // ── 단계 15: 받침 ㄴ ──
+      { id:"batchim_n", type:"learn", emoji:"🧱",
+        title:{ko:"15. 받침 [ㄴ]",vi:"15. Phụ âm cuối [ㄴ]",en:"15. Final Consonant [ㄴ]",zh:"15. 收音 [ㄴ]",ja:"15. パッチム [ㄴ]",id:"15. Konsonan Akhir [ㄴ]",ru:"15. Конечная согласная [ㄴ]",th:"15. ตัวสะกด [ㄴ]",mn:"15. Төгсгөлийн гийгүүлэгч [ㄴ]",uz:"15. Oxirgi undosh [ㄴ]",es:"15. Consonante final [ㄴ]",fr:"15. Consonne finale [ㄴ]",ne:"15. अन्त्य व्यञ्जन [ㄴ]",de:"15. Endkonsonant [ㄴ]"},
+        desc:{ko:"일상 어휘로 ㄴ받침을 익힙니다.",vi:"Học phụ âm cuối ㄴ qua từ vựng hàng ngày.",en:"Learn the final consonant ㄴ through everyday vocabulary.",zh:"通过日常词汇学习ㄴ收音。",ja:"日常語彙でㄴパッチムを学びます。",id:"Pelajari konsonan akhir ㄴ melalui kosakata sehari-hari.",ru:"Изучите конечную согласную ㄴ через повседневную лексику.",th:"เรียนรู้ตัวสะกด ㄴ ผ่านคำศัพท์ในชีวิตประจำวัน",mn:"Өдөр тутмын үгсээр ㄴ төгсгөлийн гийгүүлэгчийг мэдэж авна.",uz:"Kundalik lug'at orqali ㄴ oxirgi undoshini o'rganing.",es:"Aprenda la consonante final ㄴ mediante vocabulario cotidiano.",fr:"Apprenez la consonne finale ㄴ à travers un vocabulaire du quotidien.",ne:"दैनिक शब्दहरूबाट ㄴ अन्त्य व्यञ्जन सिक्नुहोस्।",de:"Lernen Sie den Endkonsonanten ㄴ anhand von Alltagsvokabeln."},
+        items:[
+          { char:"눈",    word:"눈",    meaning:{ko:"눈",    vi:"mắt / tuyết",zh:"眼睛 / 雪",en:"eye / snow",ja:"目 / 雪",id:"mata / salju",ru:"глаз / снег",th:"ตา / หิมะ",mn:"нүд / цас",uz:"ko'z / qor",es:"eye / snow"} },
+          { char:"손",    word:"손",    meaning:{ko:"손",    vi:"bàn tay",zh:"手",en:"hand",ja:"手",id:"tangan",ru:"рука",th:"มือ",mn:"гар",uz:"qo'l",es:"hand"} },
+          { char:"문",    word:"문",    meaning:{ko:"문",    vi:"cửa",zh:"门",en:"door",ja:"ドア",id:"pintu",ru:"дверь",th:"ประตู",mn:"хаалга",uz:"eshik",es:"door"} },
+          { char:"돈",    word:"돈",    meaning:{ko:"돈",    vi:"tiền",zh:"钱",en:"money",ja:"お金",id:"uang",ru:"деньги",th:"เงิน",mn:"мөнгө",uz:"pul",es:"money"} },
+          { char:"친구",  word:"친구",  meaning:{ko:"친구",  vi:"bạn bè",zh:"朋友",en:"friend",ja:"友達",id:"teman",ru:"друг",th:"เพื่อน",mn:"найз",uz:"do'st",es:"friend"} },
+          { char:"전화",  word:"전화",  meaning:{ko:"전화",  vi:"điện thoại",zh:"电话",en:"phone",ja:"電話",id:"telepon",ru:"телефон",th:"โทรศัพท์",mn:"утас",uz:"telefon",es:"phone"} },
+          { char:"인생",  word:"인생",  meaning:{ko:"인생",  vi:"cuộc đời",zh:"人生",en:"life",ja:"人生",id:"kehidupan",ru:"жизнь",th:"ชีวิต",mn:"амьдрал",uz:"hayot",es:"life"} },
+          { char:"한국",  word:"한국",  meaning:{ko:"한국",  vi:"Hàn Quốc",zh:"韩国",en:"Korea",ja:"韓国",id:"Korea",ru:"Корея",th:"เกาหลี",mn:"Солонгос",uz:"Koreya",es:"Korea"} },
+          { char:"신발",  word:"신발",  meaning:{ko:"신발",  vi:"giày dép",zh:"鞋子",en:"shoes",ja:"靴",id:"alas kaki",ru:"обувь",th:"รองเท้า",mn:"гутал",uz:"oyoq kiyim",es:"shoes"} },
+          { char:"인간",  word:"인간",  meaning:{ko:"인간",  vi:"con người",zh:"人类",en:"human being",ja:"人間",id:"manusia",ru:"человек",th:"มนุษย์",mn:"хүн",uz:"inson",es:"human being"} },
+          { char:"반",    word:"반",    meaning:{ko:"반",    vi:"lớp học / nửa",zh:"班 / 半",en:"class / half",ja:"クラス / 半",id:"kelas / setengah",ru:"класс / половина",th:"ห้องเรียน / ครึ่ง",mn:"анги / хагас",uz:"sinf / yarmi",es:"class / half"} },
+          { char:"운동",  word:"운동",  meaning:{ko:"운동",  vi:"thể dục",zh:"运动",en:"exercise",ja:"運動",id:"olahraga",ru:"упражнение",th:"การออกกำลังกาย",mn:"дасгал",uz:"jismoniy mashq",es:"exercise"} },
+          { char:"언니",  word:"언니",  meaning:{ko:"언니",  vi:"chị (em gái gọi)",zh:"姐姐",en:"older sister",ja:"お姉さん",id:"kakak perempuan",ru:"старшая сестра",th:"พี่สาว",mn:"эгч",uz:"opa",es:"older sister"} },
+          { char:"신랑",  word:"신랑",  meaning:{ko:"신랑",  vi:"chú rể",zh:"新郎",en:"bridegroom",ja:"新郎",id:"pengantin pria",ru:"жених",th:"เจ้าบ่าว",mn:"сүйт залуу",uz:"kuyov",es:"bridegroom"} },
+          { char:"신부",  word:"신부",  meaning:{ko:"신부",  vi:"cô dâu",zh:"新娘",en:"bride",ja:"新婦",id:"pengantin wanita",ru:"невеста",th:"เจ้าสาว",mn:"сүйт бүсгүй",uz:"kelin",es:"bride"} },
+          { char:"친척",  word:"친척",  meaning:{ko:"친척",  vi:"họ hàng",zh:"亲戚",en:"relative",ja:"親戚",id:"kerabat",ru:"родственник",th:"ญาติ",mn:"төрөл",uz:"qarindosh",es:"relative"} },
+          { char:"외삼촌",word:"외삼촌",meaning:{ko:"외삼촌",vi:"cậu",zh:"舅舅",en:"uncle (mother's side)",ja:"おじさん",id:"paman",ru:"дядя по матери",th:"ลุง",mn:"нагац ах",uz:"tog'a",es:"uncle (mother's side)"} },
+          { char:"장인",  word:"장인",  meaning:{ko:"장인",  vi:"bố vợ",zh:"岳父",en:"father-in-law",ja:"義父",id:"mertua laki-laki",ru:"тесть",th:"พ่อตา",mn:"хадам эцэг",uz:"qaynota",es:"father-in-law"} },
+          { char:"남편",  word:"남편",  meaning:{ko:"남편",  vi:"chồng",zh:"丈夫",en:"husband",ja:"夫",id:"suami",ru:"муж",th:"สามี",mn:"нөхөр",uz:"er",es:"husband"} },
+          { char:"어린이",word:"어린이",meaning:{ko:"어린이",vi:"trẻ nhỏ",zh:"儿童",en:"kid/child",ja:"子供",id:"anak",ru:"дитя",th:"เด็ก",mn:"хүүхэд",uz:"bola",es:"kid/child"} },
+          { char:"청소년",word:"청소년",meaning:{ko:"청소년",vi:"thanh thiếu niên",zh:"青少年",en:"youth",ja:"青少年",id:"remaja",ru:"подросток",th:"เยาวชน",mn:"залуучууд",uz:"yoshlar",es:"youth"} },
+          { char:"청년",  word:"청년",  meaning:{ko:"청년",  vi:"thanh niên",zh:"青年",en:"young adult",ja:"青年",id:"pemuda",ru:"юноша",th:"หนุ่มสาว",mn:"залуу хүн",uz:"yigit",es:"young adult"} },
+          { char:"어른",  word:"어른",  meaning:{ko:"어른",  vi:"người lớn",zh:"成人",en:"adult",ja:"大人",id:"orang dewasa",ru:"взрослый",th:"ผู้ใหญ่",mn:"насанд хүрсэн",uz:"katta kishi",es:"adult"} },
+          { char:"노인",  word:"노인",  meaning:{ko:"노인",  vi:"người già",zh:"老人",en:"old/senior",ja:"老人",id:"orang tua",ru:"пожилой человек",th:"ผู้สูงอายุ",mn:"өндөр настан",uz:"keksa",es:"old/senior"} },
+          { char:"선배",  word:"선배",  meaning:{ko:"선배",  vi:"tiền bối",zh:"前辈",en:"senior",ja:"先輩",id:"senior",ru:"старший по учёбе",th:"รุ่นพี่",mn:"ахмад",uz:"katta kurs",es:"senior"} },
+          { char:"연인",  word:"연인",  meaning:{ko:"연인",  vi:"người yêu",zh:"情人",en:"lover",ja:"恋人",id:"kekasih",ru:"любимый человек",th:"คนรัก",mn:"хайртай хүн",uz:"sevgilisi",es:"lover"} },
+          { char:"애인",  word:"애인",  meaning:{ko:"애인",  vi:"người yêu",zh:"爱人",en:"lover",ja:"愛人",id:"pacar",ru:"возлюбленная",th:"แฟน",mn:"нөхөр/найз",uz:"sevgilisi",es:"lover"} },
+          { char:"결혼",  word:"결혼",  meaning:{ko:"결혼",  vi:"kết hôn",zh:"结婚",en:"marriage",ja:"結婚",id:"pernikahan",ru:"женитьба",th:"การแต่งงาน",mn:"гэрлэлт",uz:"nikoh",es:"marriage"} },
+          { char:"국민",  word:"국민",  meaning:{ko:"국민",  vi:"nhân dân",zh:"国民",en:"people/citizens",ja:"国民",id:"warga negara",ru:"народ",th:"ประชาชน",mn:"иргэн",uz:"xalq",es:"people/citizens"} },
+          { char:"시민",  word:"시민",  meaning:{ko:"시민",  vi:"dân thành thị",zh:"市民",en:"citizen",ja:"市民",id:"warga kota",ru:"горожанин",th:"พลเมือง",mn:"хотын иргэн",uz:"shahar fuqarosi",es:"citizen"} },
+          { char:"주인",  word:"주인",  meaning:{ko:"주인",  vi:"chủ nhà",zh:"主人",en:"host/owner",ja:"主人",id:"pemilik",ru:"хозяин",th:"เจ้าของ",mn:"эзэн",uz:"ega",es:"host/owner"} },
+          { char:"집주인",word:"집주인",meaning:{ko:"집주인",vi:"chủ nhà",zh:"房主",en:"landlord",ja:"家主",id:"pemilik rumah",ru:"хозяин дома",th:"เจ้าของบ้าน",mn:"байрны эзэн",uz:"uy egasi",es:"landlord"} },
+          { char:"회원",  word:"회원",  meaning:{ko:"회원",  vi:"hội viên",zh:"会员",en:"member",ja:"会員",id:"anggota",ru:"член",th:"สมาชิก",mn:"гишүүн",uz:"a'zo",es:"member"} },
+          { char:"타인",  word:"타인",  meaning:{ko:"타인",  vi:"người khác",zh:"他人",en:"third person/others",ja:"他人",id:"orang lain",ru:"чужой человек",th:"คนอื่น",mn:"бусад хүн",uz:"boshqa odam",es:"third person/others"} },
+          { char:"은행원",word:"은행원",meaning:{ko:"은행원",vi:"nhân viên ngân hàng",zh:"银行员",en:"bank teller",ja:"銀行員",id:"pegawai bank",ru:"банковский служащий",th:"พนักงานธนาคาร",mn:"банкны ажилтан",uz:"bank xodimi",es:"bank teller"} },
+          { char:"회사원",word:"회사원",meaning:{ko:"회사원",vi:"nhân viên công ty",zh:"公司员",en:"clerk/employee",ja:"会社員",id:"karyawan",ru:"работник компании",th:"พนักงานบริษัท",mn:"компанийн ажилтан",uz:"kompaniya xodimi",es:"clerk/employee"} },
+          { char:"변호사",word:"변호사",meaning:{ko:"변호사",vi:"luật sư",zh:"律师",en:"lawyer",ja:"弁護士",id:"pengacara",ru:"юрист",th:"ทนายความ",mn:"өмгөөлөгч",uz:"advokat",es:"lawyer"} },
+          { char:"간호사",word:"간호사",meaning:{ko:"간호사",vi:"y tá",zh:"护士",en:"nurse",ja:"看護師",id:"perawat",ru:"медсестра",th:"พยาบาล",mn:"сувилагч",uz:"hamshira",es:"nurse"} },
+          { char:"운전기사",word:"운전기사",meaning:{ko:"운전기사",vi:"tài xế",zh:"司机",en:"driver",ja:"運転手",id:"pengemudi",ru:"водитель",th:"คนขับรถ",mn:"жолооч",uz:"haydovchi",es:"driver"} },
+          { char:"군인",  word:"군인",  meaning:{ko:"군인",  vi:"quân nhân",zh:"军人",en:"soldier",ja:"軍人",id:"tentara",ru:"солдат",th:"ทหาร",mn:"цэрэг",uz:"askar",es:"soldier"} },
+          { char:"운동선수",word:"운동선수",meaning:{ko:"운동선수",vi:"vận động viên",zh:"运动选手",en:"athlete",ja:"運動選手",id:"atlet",ru:"спортсмен",th:"นักกีฬา",mn:"тамирчин",uz:"sportchi",es:"athlete"} },
+          { char:"공무원",word:"공무원", meaning:{ko:"공무원",vi:"công chức",zh:"公务员",en:"government employee",ja:"公務員",id:"pegawai negeri",ru:"государственный служащий",th:"ข้าราชการ",mn:"төрийн ажилтан",uz:"davlat xodimi",es:"government employee"} },
+          { char:"아나운서",word:"아나운서",meaning:{ko:"아나운서",vi:"phát thanh viên",zh:"播音员",en:"announcer",ja:"アナウンサー",id:"penyiar",ru:"диктор",th:"ผู้ประกาศ",mn:"зарлагч",uz:"diktor",es:"announcer"} },
+          { char:"연예인",word:"연예인", meaning:{ko:"연예인",vi:"nghệ sĩ",zh:"演艺人",en:"performer/celebrity",ja:"エンタテイナー",id:"artis",ru:"артист",th:"ดารา",mn:"жүжигчин",uz:"artist",es:"performer/celebrity"} },
+          { char:"시간",  word:"시간",  meaning:{ko:"시간",  vi:"thời gian",zh:"时间",en:"time",ja:"時間",id:"waktu",ru:"время",th:"เวลา",mn:"цаг",uz:"vaqt",es:"time"} },
+          { char:"기간",  word:"기간",  meaning:{ko:"기간",  vi:"thời hạn",zh:"期间",en:"period",ja:"期間",id:"periode",ru:"период",th:"ช่วงเวลา",mn:"хугацаа",uz:"muddat",es:"period"} },
+          { char:"현재",  word:"현재",  meaning:{ko:"현재",  vi:"hiện tại",zh:"现在",en:"current",ja:"現在",id:"sekarang",ru:"настоящее время",th:"ปัจจุบัน",mn:"одоо",uz:"hozir",es:"current"} },
+          { char:"오전",  word:"오전",  meaning:{ko:"오전",  vi:"buổi sáng",zh:"上午",en:"morning (AM)",ja:"午前",id:"pagi",ru:"первая половина дня",th:"ช่วงเช้า",mn:"өглөө",uz:"ertalab",es:"morning (AM)"} },
+          { char:"년",    word:"년",    meaning:{ko:"년",    vi:"năm",zh:"年",en:"year",ja:"年",id:"tahun",ru:"год",th:"ปี",mn:"жил",uz:"yil",es:"year"} },
+          { char:"분",    word:"분",    meaning:{ko:"분",    vi:"phút",zh:"分钟",en:"minute",ja:"分",id:"menit",ru:"минута",th:"นาที",mn:"минут",uz:"daqiqa",es:"minute"} },
+          { char:"지난주",word:"지난주",meaning:{ko:"지난주",vi:"tuần trước",zh:"上周",en:"last week",ja:"先週",id:"minggu lalu",ru:"прошлая неделя",th:"สัปดาห์ที่แล้ว",mn:"өнгөрсөн долоо хоног",uz:"o'tgan hafta",es:"last week"} },
+          { char:"이번주",word:"이번주",meaning:{ko:"이번주",vi:"tuần này",zh:"这周",en:"this week",ja:"今週",id:"minggu ini",ru:"эта неделя",th:"สัปดาห์นี้",mn:"энэ долоо хоног",uz:"bu hafta",es:"this week"} },
+          { char:"작년",  word:"작년",  meaning:{ko:"작년",  vi:"năm ngoái",zh:"去年",en:"last year",ja:"去年",id:"tahun lalu",ru:"прошлый год",th:"ปีที่แล้ว",mn:"өнгөрсөн жил",uz:"o'tgan yil",es:"last year"} },
+          { char:"내년",  word:"내년",  meaning:{ko:"내년",  vi:"năm sau",zh:"明年",en:"next year",ja:"来年",id:"tahun depan",ru:"следующий год",th:"ปีหน้า",mn:"ирэх жил",uz:"kelgusi yil",es:"next year"} },
+          { char:"춘하추동",word:"춘하추동",meaning:{ko:"춘하추동",vi:"xuân hạ thu đông",zh:"春夏秋冬",en:"four seasons",ja:"春夏秋冬",id:"empat musim",ru:"четыре времени года",th:"ฤดูทั้งสี่",mn:"дөрвөн улирал",uz:"to'rt fasl",es:"four seasons"} },
+          { char:"언제나",word:"언제나",meaning:{ko:"언제나",vi:"luôn luôn",zh:"无论何时",en:"always",ja:"いつも",id:"selalu",ru:"всегда",th:"เสมอ",mn:"үргэлж",uz:"har doim",es:"always"} },
+          { char:"영원히",word:"영원히",meaning:{ko:"영원히",vi:"mãi mãi",zh:"永远",en:"forever",ja:"永遠に",id:"selamanya",ru:"вечно",th:"ตลอดกาล",mn:"мөнхөд",uz:"abadiy",es:"forever"} },
+          { char:"도서관",word:"도서관",meaning:{ko:"도서관",vi:"thư viện",zh:"图书馆",en:"library",ja:"図書館",id:"perpustakaan",ru:"библиотека",th:"ห้องสมุด",mn:"номын сан",uz:"kutubxona",es:"library"} },
+          { char:"대사관",word:"대사관",meaning:{ko:"대사관",vi:"đại sứ quán",zh:"大使馆",en:"embassy",ja:"大使館",id:"kedutaan besar",ru:"посольство",th:"สถานทูต",mn:"элчин сайдын яам",uz:"elchixona",es:"embassy"} },
+          { char:"체육관",word:"체육관",meaning:{ko:"체육관",vi:"nhà thi đấu",zh:"体育馆",en:"gym",ja:"体育館",id:"gedung olahraga",ru:"спортзал",th:"โรงยิม",mn:"спортын зал",uz:"sport zali",es:"gym"} },
+          { char:"미술관",word:"미술관",meaning:{ko:"미술관",vi:"bảo tàng mỹ thuật",zh:"美术馆",en:"art gallery",ja:"美術館",id:"galeri seni",ru:"музей изобразительного искусства",th:"หอศิลป์",mn:"урлагийн музей",uz:"san'at galereyasi",es:"art gallery"} },
+          { char:"기념관",word:"기념관",meaning:{ko:"기념관",vi:"nhà tưởng niệm",zh:"纪念馆",en:"memorial hall",ja:"記念館",id:"gedung peringatan",ru:"мемориальный комплекс",th:"หอรำลึก",mn:"дурсгалын байр",uz:"memorial",es:"memorial hall"} },
+          { char:"운동장",word:"운동장",meaning:{ko:"운동장",vi:"sân vận động",zh:"运动场",en:"playground/stadium",ja:"運動場",id:"lapangan",ru:"стадион",th:"สนามกีฬา",mn:"тамирын талбай",uz:"sport maydoni",es:"playground/stadium"} },
+          { char:"공원",  word:"공원",  meaning:{ko:"공원",  vi:"công viên",zh:"公园",en:"park",ja:"公園",id:"taman",ru:"парк",th:"สวนสาธารณะ",mn:"цэцэрлэгт хүрээлэн",uz:"park",es:"park"} },
+          { char:"식물원",word:"식물원",meaning:{ko:"식물원",vi:"vườn thực vật",zh:"植物园",en:"botanical garden",ja:"植物園",id:"kebun raya",ru:"ботанический сад",th:"สวนพฤกษศาสตร์",mn:"ургамлын цэцэрлэг",uz:"botanika bog'i",es:"botanical garden"} },
+          { char:"동물원",word:"동물원",meaning:{ko:"동물원",vi:"sở thú",zh:"动物园",en:"zoo",ja:"動物園",id:"kebun binatang",ru:"зоопарк",th:"สวนสัตว์",mn:"амьтны хүрээлэн",uz:"hayvonot bog'i",es:"zoo"} },
+          { char:"박물관",word:"박물관",meaning:{ko:"박물관",vi:"viện bảo tàng",zh:"博物馆",en:"museum",ja:"博物館",id:"museum",ru:"музей",th:"พิพิธภัณฑ์",mn:"музей",uz:"muzey",es:"museum"} },
+          { char:"유치원",word:"유치원",meaning:{ko:"유치원",vi:"trường mầm non",zh:"幼儿园",en:"kindergarten",ja:"幼稚園",id:"taman kanak-kanak",ru:"детский сад",th:"อนุบาล",mn:"цэцэрлэг",uz:"bog'cha",es:"kindergarten"} },
+          { char:"대학원",word:"대학원",meaning:{ko:"대학원",vi:"trường cao học",zh:"研究院",en:"graduate school",ja:"大学院",id:"pascasarjana",ru:"высшая школа",th:"บัณฑิตวิทยาลัย",mn:"дээд сургууль",uz:"magistratura",es:"graduate school"} },
+          { char:"선생님",word:"선생님",meaning:{ko:"선생님",vi:"giáo viên",zh:"老师",en:"teacher",ja:"先生",id:"guru",ru:"учитель",th:"ครู",mn:"багш",uz:"o'qituvchi",es:"teacher"} },
+          { char:"사전",  word:"사전",  meaning:{ko:"사전",  vi:"từ điển",zh:"词典",en:"dictionary",ja:"辞典",id:"kamus",ru:"словарь",th:"พจนานุกรม",mn:"толь бичиг",uz:"lug'at",es:"dictionary"} },
+          { char:"운동회",word:"운동회",meaning:{ko:"운동회",vi:"Đại hội thể thao",zh:"运动会",en:"sports day",ja:"運動会",id:"hari olahraga",ru:"день спортивных состязаний",th:"วันกีฬา",mn:"тамирын баяр",uz:"sport bayrami",es:"sports day"} },
+          { char:"순서",  word:"순서",  meaning:{ko:"순서",  vi:"thứ tự",zh:"顺序",en:"order",ja:"順番",id:"urutan",ru:"очередь",th:"ลำดับ",mn:"дараалал",uz:"tartib",es:"order"} },
+          { char:"질문",  word:"질문",  meaning:{ko:"질문",  vi:"câu hỏi",zh:"疑问",en:"question",ja:"質問",id:"pertanyaan",ru:"вопрос",th:"คำถาม",mn:"асуулт",uz:"savol",es:"question"} },
+          { char:"시간표",word:"시간표",meaning:{ko:"시간표",vi:"thời gian biểu",zh:"时间表",en:"timetable",ja:"時間割",id:"jadwal",ru:"расписание",th:"ตารางเวลา",mn:"хичээлийн хуваарь",uz:"jadval",es:"timetable"} },
+          { char:"전공",  word:"전공",  meaning:{ko:"전공",  vi:"chuyên ngành",zh:"专修",en:"major",ja:"専攻",id:"jurusan",ru:"специальность",th:"วิชาเอก",mn:"мэргэжил",uz:"ixtisoslik",es:"major"} },
+          { char:"개근",  word:"개근",  meaning:{ko:"개근",  vi:"sự chuyên cần",zh:"全勤",en:"perfect attendance",ja:"皆勤",id:"kehadiran penuh",ru:"абсолютная посещаемость",th:"เข้าเรียนครบ",mn:"бүрэн ирц",uz:"to'liq davomat",es:"perfect attendance"} },
+          { char:"학년",  word:"학년",  meaning:{ko:"학년",  vi:"năm học",zh:"学年",en:"grade/school year",ja:"学年",id:"tahun ajaran",ru:"учебный год",th:"ชั้นปี",mn:"хичээлийн жил",uz:"o'quv yili",es:"grade/school year"} },
+          { char:"1학년",word:"1학년", meaning:{ko:"1학년",vi:"năm nhất",zh:"一年级",en:"first year freshman",ja:"一年生",id:"kelas satu",ru:"первокурсник",th:"ปีหนึ่ง",mn:"1-р анги",uz:"birinchi kurs",es:"first year freshman"} },
+          { char:"대문",  word:"대문",  meaning:{ko:"대문",  vi:"cửa chính",zh:"大门",en:"main gate",ja:"正門",id:"pintu gerbang",ru:"главный вход",th:"ประตูหน้า",mn:"үүд хаалга",uz:"bosh darvoza",es:"main gate"} },
+          { char:"정원",  word:"정원",  meaning:{ko:"정원",  vi:"vườn",zh:"庭院",en:"garden",ja:"庭",id:"taman",ru:"сад",th:"สวน",mn:"цэцэрлэг",uz:"bog'",es:"garden"} },
+          { char:"계단",  word:"계단",  meaning:{ko:"계단",  vi:"cầu thang",zh:"楼梯",en:"stairs",ja:"階段",id:"tangga",ru:"лестница",th:"บันได",mn:"шат",uz:"zinа",es:"stairs"} },
+          { char:"현관",  word:"현관",  meaning:{ko:"현관",  vi:"lối vào nhà",zh:"玄关",en:"entrance/door",ja:"玄関",id:"pintu masuk",ru:"входные ворота",th:"ทางเข้า",mn:"орц",uz:"kirish",es:"entrance/door"} },
+          { char:"천장",  word:"천장",  meaning:{ko:"천장",  vi:"trần nhà",zh:"天棚",en:"ceiling",ja:"天井",id:"langit-langit",ru:"потолок",th:"เพดาน",mn:"тааз",uz:"shiftm",es:"ceiling"} },
+          { char:"창문",  word:"창문",  meaning:{ko:"창문",  vi:"cửa sổ",zh:"窗户",en:"window",ja:"窓",id:"jendela",ru:"окно",th:"หน้าต่าง",mn:"цонх",uz:"oyna",es:"window"} },
+          { char:"선물",  word:"선물",  meaning:{ko:"선물",  vi:"món quà",zh:"礼物",en:"gift",ja:"贈り物",id:"hadiah",ru:"подарок",th:"ของขวัญ",mn:"бэлэг",uz:"sovg'a",es:"gift"} },
+          { char:"반지",  word:"반지",  meaning:{ko:"반지",  vi:"nhẫn",zh:"戒指",en:"ring",ja:"指輪",id:"cincin",ru:"кольцо",th:"แหวน",mn:"бөгж",uz:"uzuk",es:"ring"} },
+          { char:"편지",  word:"편지",  meaning:{ko:"편지",  vi:"bức thư",zh:"信",en:"letter",ja:"手紙",id:"surat",ru:"письмо",th:"จดหมาย",mn:"захидал",uz:"xat",es:"letter"} },
+          { char:"사진",  word:"사진",  meaning:{ko:"사진",  vi:"bức ảnh",zh:"照片",en:"photo",ja:"写真",id:"foto",ru:"фотография",th:"รูปถ่าย",mn:"зураг",uz:"surat",es:"photo"} },
+          { char:"신분증",word:"신분증",meaning:{ko:"신분증",vi:"giấy tờ tùy thân",zh:"身份证",en:"ID card",ja:"身分証明書",id:"kartu identitas",ru:"идентификационная карта",th:"บัตรประชาชน",mn:"иргэний үнэмлэх",uz:"shaxsiy guvohnoma",es:"ID card"} },
+          { char:"연필",  word:"연필",  meaning:{ko:"연필",  vi:"bút chì",zh:"铅笔",en:"pencil",ja:"鉛筆",id:"pensil",ru:"карандаш",th:"ดินสอ",mn:"харандаа",uz:"qalam",es:"pencil"} },
+          { char:"볼펜",  word:"볼펜",  meaning:{ko:"볼펜",  vi:"bút bi",zh:"圆珠笔",en:"ballpoint pen",ja:"ボールペン",id:"bolpoin",ru:"шариковая ручка",th:"ปากกา",mn:"үзэг",uz:"ruchka",es:"ballpoint pen"} },
+          { char:"수건",  word:"수건",  meaning:{ko:"수건",  vi:"khăn",zh:"手巾",en:"towel",ja:"タオル",id:"handuk",ru:"полотенце",th:"ผ้าขนหนู",mn:"алчуур",uz:"sochiq",es:"towel"} },
+          { char:"프라이팬",word:"프라이팬",meaning:{ko:"프라이팬",vi:"chảo rán",zh:"煎锅",en:"fry pan",ja:"フライパン",id:"wajan",ru:"сковорода",th:"กระทะ",mn:"тогоо",uz:"tova",es:"fry pan"} },
+          { char:"만화",  word:"만화",  meaning:{ko:"만화",  vi:"truyện tranh",zh:"漫画",en:"cartoon/comic",ja:"漫画",id:"komik",ru:"комикс",th:"การ์ตูน",mn:"мультфильм",uz:"multfilm",es:"cartoon/comic"} },
+          { char:"자판기",word:"자판기",meaning:{ko:"자판기",vi:"máy bán hàng tự động",zh:"自动贩卖机",en:"vending machine",ja:"自動販売機",id:"mesin otomatis",ru:"автомат",th:"ตู้หยอดเหรียญ",mn:"дэлгүүрийн автомат",uz:"avtomat",es:"vending machine"} },
+          { char:"잔치",  word:"잔치",  meaning:{ko:"잔치",  vi:"bữa tiệc",zh:"宴会",en:"feast/party",ja:"宴会",id:"pesta",ru:"пир",th:"งานเลี้ยง",mn:"найр",uz:"ziyofat",es:"feast/party"} },
+          { char:"산책",  word:"산책",  meaning:{ko:"산책",  vi:"dạo đi bộ",zh:"散步",en:"walk",ja:"散歩",id:"jalan-jalan",ru:"прогулка",th:"เดินเล่น",mn:"зугаалах",uz:"sayr",es:"walk"} },
+          { char:"반바지",word:"반바지",meaning:{ko:"반바지",vi:"quần đùi",zh:"短裤",en:"shorts",ja:"半ズボン",id:"celana pendek",ru:"шорты",th:"กางเกงขาสั้น",mn:"богино өмд",uz:"shim",es:"shorts"} },
+          { char:"운동복",word:"운동복",meaning:{ko:"운동복",vi:"quần áo thể thao",zh:"运动服",en:"sportswear",ja:"トレーニングウェア",id:"pakaian olahraga",ru:"спортивный костюм",th:"ชุดกีฬา",mn:"спортын хувцас",uz:"sport kiyimi",es:"sportswear"} },
+          { char:"한복",  word:"한복",  meaning:{ko:"한복",  vi:"Hanbok",zh:"韩服",en:"Korean traditional clothes",ja:"ハンボク",id:"hanbok",ru:"ханбок",th:"ฮันบก",mn:"Ханбок",uz:"Xanbok",es:"Korean traditional clothes"} },
+          { char:"손수건",word:"손수건",meaning:{ko:"손수건",vi:"khăn tay",zh:"手帕",en:"handkerchief",ja:"ハンカチ",id:"sapu tangan",ru:"носовой платок",th:"ผ้าเช็ดหน้า",mn:"алчуур",uz:"ro'molcha",es:"handkerchief"} },
+          { char:"운동화",word:"운동화",meaning:{ko:"운동화",vi:"giày thể thao",zh:"运动鞋",en:"sneakers",ja:"運動靴",id:"sepatu olahraga",ru:"кроссовки",th:"รองเท้ากีฬา",mn:"спортын гутал",uz:"krossovka",es:"sneakers"} },
+          { char:"우산",  word:"우산",  meaning:{ko:"우산",  vi:"cái dù",zh:"雨伞",en:"umbrella",ja:"傘",id:"payung",ru:"зонт",th:"ร่ม",mn:"шүхэр",uz:"soyabon",es:"umbrella"} },
+          { char:"신체",  word:"신체",  meaning:{ko:"신체",  vi:"cơ thể",zh:"身体",en:"body",ja:"身体",id:"tubuh",ru:"тело",th:"ร่างกาย",mn:"бие",uz:"tana",es:"body"} },
+          { char:"눈물",  word:"눈물",  meaning:{ko:"눈물",  vi:"nước mắt",zh:"眼泪",en:"tears",ja:"涙",id:"air mata",ru:"слёзы",th:"น้ำตา",mn:"нулимс",uz:"ko'z yoshi",es:"tears"} },
+          { char:"눈썹",  word:"눈썹",  meaning:{ko:"눈썹",  vi:"lông mày",zh:"眉毛",en:"eyebrow",ja:"眉毛",id:"alis",ru:"бровь",th:"คิ้ว",mn:"хөмсөг",uz:"qosh",es:"eyebrow"} },
+          { char:"혈관",  word:"혈관",  meaning:{ko:"혈관",  vi:"mạch máu",zh:"血管",en:"blood vessel",ja:"血管",id:"pembuluh darah",ru:"кровеносный сосуд",th:"หลอดเลือด",mn:"судас",uz:"qon tomiri",es:"blood vessel"} },
+          { char:"호르몬",word:"호르몬",meaning:{ko:"호르몬",vi:"hormone",zh:"荷尔蒙",en:"hormone",ja:"ホルモン",id:"hormon",ru:"гормон",th:"ฮอร์โมน",mn:"дааврын",uz:"gormon",es:"hormone"} },
+          { char:"면역",  word:"면역",  meaning:{ko:"면역",  vi:"sự miễn dịch",zh:"免疫",en:"immunity",ja:"免疫",id:"imunitas",ru:"иммунитет",th:"ภูมิคุ้มกัน",mn:"дархлаа",uz:"immunitet",es:"immunity"} },
+          { char:"손목",  word:"손목",  meaning:{ko:"손목",  vi:"cổ tay",zh:"手腕",en:"wrist",ja:"手首",id:"pergelangan tangan",ru:"запястье",th:"ข้อมือ",mn:"бугуй",uz:"bilak",es:"wrist"} },
+          { char:"손바닥",word:"손바닥",meaning:{ko:"손바닥",vi:"lòng bàn tay",zh:"手掌",en:"palm",ja:"手のひら",id:"telapak tangan",ru:"ладонь",th:"ฝ่ามือ",mn:"алга",uz:"kaft",es:"palm"} },
+          { char:"손가락",word:"손가락",meaning:{ko:"손가락",vi:"ngón tay",zh:"手指",en:"finger",ja:"手指",id:"jari tangan",ru:"палец на руке",th:"นิ้วมือ",mn:"хуруу",uz:"barmoq",es:"finger"} },
+          { char:"손톱",  word:"손톱",  meaning:{ko:"손톱",  vi:"móng tay",zh:"指甲",en:"nail",ja:"つめ",id:"kuku",ru:"ноготь",th:"เล็บมือ",mn:"хумс",uz:"tirnoq",es:"nail"} },
+          { char:"지문",  word:"지문",  meaning:{ko:"지문",  vi:"vân tay",zh:"指纹",en:"fingerprint",ja:"指紋",id:"sidik jari",ru:"отпечаток пальца",th:"ลายนิ้วมือ",mn:"хурууны хээ",uz:"barmoq izi",es:"fingerprint"} },
+          { char:"오른손",word:"오른손",meaning:{ko:"오른손",vi:"bàn tay phải",zh:"右手",en:"right hand",ja:"右手",id:"tangan kanan",ru:"правая рука",th:"มือขวา",mn:"баруун гар",uz:"o'ng qo'l",es:"right hand"} },
+          { char:"왼손",  word:"왼손",  meaning:{ko:"왼손",  vi:"bàn tay trái",zh:"左手",en:"left hand",ja:"左手",id:"tangan kiri",ru:"левая рука",th:"มือซ้าย",mn:"зүүн гар",uz:"chap qo'l",es:"left hand"} },
+          { char:"오른발",word:"오른발",meaning:{ko:"오른발",vi:"bàn chân phải",zh:"右脚",en:"right foot",ja:"右足",id:"kaki kanan",ru:"правая нога",th:"เท้าขวา",mn:"баруун хөл",uz:"o'ng oyoq",es:"right foot"} },
+          { char:"왼발",  word:"왼발",  meaning:{ko:"왼발",  vi:"bàn chân trái",zh:"左脚",en:"left foot",ja:"左足",id:"kaki kiri",ru:"левая нога",th:"เท้าซ้าย",mn:"зүүн хөл",uz:"chap oyoq",es:"left foot"} },
+          { char:"오렌지",word:"오렌지",meaning:{ko:"오렌지",vi:"quả cam",zh:"橙子",en:"orange",ja:"オレンジ",id:"jeruk",ru:"апельсин",th:"ส้ม",mn:"жүрж",uz:"apelsin",es:"orange"} },
+          { char:"한식",  word:"한식",  meaning:{ko:"한식",  vi:"món ăn Hàn",zh:"韩食",en:"Korean food",ja:"韓国料理",id:"masakan Korea",ru:"корейская кухня",th:"อาหารเกาหลี",mn:"Солонгос хоол",uz:"Koreya taomi",es:"Korean food"} },
+          { char:"반찬",  word:"반찬",  meaning:{ko:"반찬",  vi:"món ăn kèm",zh:"小菜",en:"side dish",ja:"おかず",id:"lauk-pauk",ru:"салаты к рису",th:"กับข้าว",mn:"хоолны нэмэлт",uz:"qo'shimcha taom",es:"side dish"} },
+          { char:"냉면",  word:"냉면",  meaning:{ko:"냉면",  vi:"mì lạnh",zh:"冷面",en:"cold noodle",ja:"冷麺",id:"mie dingin",ru:"холодная лапша",th:"บะหมี่เย็น",mn:"хүйтэн гоймон",uz:"sovuq lagmon",es:"cold noodle"} },
+          { char:"라면",  word:"라면",  meaning:{ko:"라면",  vi:"mì gói",zh:"拉面",en:"ramen",ja:"ラーメン",id:"ramen",ru:"рамэн",th:"ราเมน",mn:"раамэн",uz:"ramen",es:"ramen"} },
+          { char:"만두",  word:"만두",  meaning:{ko:"만두",  vi:"bánh hấp",zh:"饺子",en:"dumpling",ja:"餃子",id:"pangsit",ru:"манты",th:"เกี๊ยว",mn:"манти",uz:"manti",es:"dumpling"} },
+          { char:"자장면",word:"자장면",meaning:{ko:"자장면",vi:"mì tương đen",zh:"炸酱面",en:"black bean noodle",ja:"ジャジャーメン",id:"jajangmyeon",ru:"чаджангмён",th:"จาจางมยอน",mn:"жажанмён",uz:"jajangmyeon",es:"black bean noodle"} },
+          { char:"샌드위치",word:"샌드위치",meaning:{ko:"샌드위치",vi:"bánh sandwich",zh:"三明治",en:"sandwich",ja:"サンドイッチ",id:"sandwich",ru:"сэндвич",th:"แซนด์วิช",mn:"сэндвич",uz:"sendvich",es:"sandwich"} },
+          { char:"치킨",  word:"치킨",  meaning:{ko:"치킨",  vi:"gà",zh:"炸鸡",en:"chicken",ja:"チキン",id:"ayam goreng",ru:"курица в кляре",th:"ไก่ทอด",mn:"тахиа",uz:"tovuq",es:"chicken"} },
+          { char:"간장",  word:"간장",  meaning:{ko:"간장",  vi:"xì dầu",zh:"酱油",en:"soy sauce",ja:"醤油",id:"kecap asin",ru:"соевый соус",th:"ซอสถั่วเหลือง",mn:"шар буурцаг",uz:"soya sousi",es:"soy sauce"} },
+          { char:"계란",  word:"계란",  meaning:{ko:"계란",  vi:"trứng gà",zh:"鸡蛋",en:"egg",ja:"卵",id:"telur",ru:"яйцо",th:"ไข่",mn:"өндөг",uz:"tuxum",es:"egg"} },
+          { char:"가전제품",word:"가전제품",meaning:{ko:"가전제품",vi:"thiết bị gia dụng",zh:"家电产品",en:"home appliance",ja:"家電製品",id:"peralatan rumah",ru:"бытовая техника",th:"เครื่องใช้ไฟฟ้า",mn:"гэрийн техник",uz:"maishiy texnika",es:"home appliance"} },
+          { char:"선풍기",word:"선풍기",meaning:{ko:"선풍기",vi:"quạt",zh:"电风扇",en:"fan",ja:"扇風機",id:"kipas angin",ru:"вентилятор",th:"พัดลม",mn:"сэнс",uz:"shamollatgich",es:"fan"} },
+          { char:"에어컨",word:"에어컨",meaning:{ko:"에어컨",vi:"máy lạnh",zh:"空调",en:"air conditioner",ja:"エアコン",id:"AC",ru:"кондиционер",th:"แอร์",mn:"агааржуулалт",uz:"konditsioner",es:"air conditioner"} },
+          { char:"휴대폰",word:"휴대폰",meaning:{ko:"휴대폰",vi:"điện thoại di động",zh:"手机",en:"cell phone",ja:"携帯",id:"ponsel",ru:"мобильный телефон",th:"มือถือ",mn:"гар утас",uz:"mobil telefon",es:"cell phone"} },
+          { char:"프린터",word:"프린터",meaning:{ko:"프린터",vi:"máy in",zh:"打印机",en:"printer",ja:"プリンター",id:"printer",ru:"принтер",th:"เครื่องพิมพ์",mn:"принтер",uz:"printer",es:"printer"} },
+          { char:"자전거",word:"자전거",meaning:{ko:"자전거",vi:"xe đạp",zh:"自行车",en:"bicycle",ja:"自転車",id:"sepeda",ru:"велосипед",th:"จักรยาน",mn:"унадаг дугуй",uz:"velosiped",es:"bicycle"} },
+          { char:"편도",  word:"편도",  meaning:{ko:"편도",  vi:"một chiều",zh:"单程",en:"one way",ja:"片道",id:"satu arah",ru:"в один конец",th:"เที่ยวเดียว",mn:"нэг тийш",uz:"bir tomonlama",es:"one way"} },
+          { char:"국제선",word:"국제선",meaning:{ko:"국제선",vi:"tuyến quốc tế",zh:"国际线",en:"international airline",ja:"国際線",id:"penerbangan internasional",ru:"международные авиалинии",th:"เส้นทางบินระหว่างประเทศ",mn:"олон улсын агаарын зам",uz:"xalqaro avia yo'nalish",es:"international airline"} },
+          { char:"국내선",word:"국내선",meaning:{ko:"국내선",vi:"tuyến quốc nội",zh:"国内线",en:"domestic airline",ja:"国内線",id:"penerbangan domestik",ru:"внутренние авиалинии",th:"เส้นทางบินภายในประเทศ",mn:"дотоодын агаарын зам",uz:"ichki avia yo'nalish",es:"domestic airline"} },
+          { char:"면세점",word:"면세점",meaning:{ko:"면세점",vi:"cửa hàng miễn thuế",zh:"免税店",en:"duty free shop",ja:"免税店",id:"toko bebas bea",ru:"магазин беспошлинной торговли",th:"ร้านปลอดภาษี",mn:"татваргүй дэлгүүр",uz:"bojxonasiz do'kon",es:"duty free shop"} },
+          { char:"승무원",word:"승무원",meaning:{ko:"승무원",vi:"tiếp viên hàng không",zh:"乘务员",en:"crew/flight attendant",ja:"乗務員",id:"pramugari",ru:"бортпроводница",th:"แอร์โฮสเตส",mn:"нисэхийн ажилтан",uz:"styuardessa",es:"crew/flight attendant"} },
+          { char:"운전면허증",word:"운전면허증",meaning:{ko:"운전면허증",vi:"bằng lái xe",zh:"驾照",en:"driver's license",ja:"運転免許証",id:"SIM",ru:"водительские права",th:"ใบขับขี่",mn:"жолооны үнэмлэх",uz:"haydovchilik guvohnomasi",es:"driver's license"} },
+          { char:"안전벨트",word:"안전벨트",meaning:{ko:"안전벨트",vi:"dây an toàn",zh:"安全带",en:"seat belt",ja:"シートベルト",id:"sabuk pengaman",ru:"ремень безопасности",th:"เข็มขัดนิรภัย",mn:"аюулгүйн бүс",uz:"xavfsizlik kamari",es:"seat belt"} },
+          { char:"좌회전",word:"좌회전",meaning:{ko:"좌회전",vi:"sẽ rẽ trái",zh:"左转",en:"left turn",ja:"左折",id:"belok kiri",ru:"поворот налево",th:"เลี้ยวซ้าย",mn:"зүүн эргэлт",uz:"chapga burilish",es:"left turn"} },
+          { char:"우회전",word:"우회전",meaning:{ko:"우회전",vi:"sẽ rẽ phải",zh:"右转",en:"right turn",ja:"右折",id:"belok kanan",ru:"поворот направо",th:"เลี้ยวขวา",mn:"баруун эргэлт",uz:"o'ngga burilish",es:"right turn"} },
+          { char:"유턴",  word:"유턴",  meaning:{ko:"유턴",  vi:"quay đầu xe",zh:"掉头",en:"U-turn",ja:"Uターン",id:"putar balik",ru:"разворот",th:"กลับรถ",mn:"эргэлт",uz:"qaytish",es:"U-turn"} },
+          { char:"신호등",word:"신호등",meaning:{ko:"신호등",vi:"đèn giao thông",zh:"信号灯",en:"traffic lights",ja:"信号",id:"lampu lalu lintas",ru:"светофор",th:"สัญญาณไฟ",mn:"гэрэлт дохио",uz:"svetofor",es:"traffic lights"} },
+          { char:"횡단보도",word:"횡단보도",meaning:{ko:"횡단보도",vi:"vạch sang đường",zh:"人行横道",en:"pedestrian crossing",ja:"横断歩道",id:"penyeberangan",ru:"пешеходный переход",th:"ทางม้าลาย",mn:"явган хүний гарц",uz:"piyodalar o'tish joyi",es:"pedestrian crossing"} },
+          { char:"초보운전",word:"초보운전",meaning:{ko:"초보운전",vi:"người mới lái xe",zh:"初学者驾车",en:"beginner driving",ja:"初心者運転",id:"pengemudi pemula",ru:"стажёр",th:"ผู้ขับรถมือใหม่",mn:"анхан шатны жолооч",uz:"yangi haydovchi",es:"beginner driving"} },
+          { char:"음주운전",word:"음주운전",meaning:{ko:"음주운전",vi:"lái xe khi say rượu",zh:"酒驾",en:"drunk driving",ja:"飲酒運転",id:"mengemudi mabuk",ru:"вождение в нетрезвом состоянии",th:"ขับรถขณะเมาสุรา",mn:"согтуу жолоодох",uz:"mast holda haydash",es:"drunk driving"} },
+          { char:"속도위반",word:"속도위반",meaning:{ko:"속도위반",vi:"vi phạm tốc độ",zh:"超速",en:"speeding violation",ja:"速度違反",id:"pelanggaran kecepatan",ru:"превышение скорости",th:"ขับรถเร็วเกิน",mn:"хурд хэтрүүлсэн",uz:"tezlikni buzish",es:"speeding violation"} },
+          { char:"신호위반",word:"신호위반",meaning:{ko:"신호위반",vi:"vi phạm tín hiệu",zh:"闯红灯",en:"signal violation",ja:"信号違反",id:"melanggar lampu",ru:"проезд на запрещающий сигнал",th:"ฝ่าไฟแดง",mn:"гэрэлт дохио зөрчих",uz:"signal buzish",es:"signal violation"} },
+          { char:"연구소",word:"연구소", meaning:{ko:"연구소",vi:"viện nghiên cứu",zh:"研究所",en:"research institute",ja:"研究所",id:"lembaga penelitian",ru:"научно-исследовательский институт",th:"สถาบันวิจัย",mn:"судалгааны байгууллага",uz:"tadqiqot instituti",es:"research institute"} },
+          { char:"생산부",word:"생산부", meaning:{ko:"생산부",vi:"bộ phận sản xuất",zh:"生产部",en:"production department",ja:"生産部",id:"bagian produksi",ru:"отдел производства",th:"ฝ่ายผลิต",mn:"үйлдвэрлэлийн хэлтэс",uz:"ishlab chiqarish bo'limi",es:"production department"} },
+          { char:"품질관리부",word:"품질관리부",meaning:{ko:"품질관리부",vi:"bộ phận quản lý chất lượng",zh:"品质管理部",en:"quality control",ja:"品質管理",id:"QC",ru:"отдел управления качеством",th:"ฝ่ายควบคุมคุณภาพ",mn:"чанарын хяналт",uz:"sifat nazorati",es:"quality control"} },
+          { char:"판매",  word:"판매",  meaning:{ko:"판매",  vi:"sự bán hàng",zh:"销售",en:"sale",ja:"販売",id:"penjualan",ru:"продажа",th:"การขาย",mn:"борлуулалт",uz:"sotuv",es:"sale"} },
+          { char:"출근",  word:"출근",  meaning:{ko:"출근",  vi:"đi làm",zh:"上班",en:"going to work",ja:"出勤",id:"berangkat kerja",ru:"идти на работу",th:"ไปทำงาน",mn:"ажилд гарах",uz:"ishga borish",es:"going to work"} },
+          { char:"퇴근",  word:"퇴근",  meaning:{ko:"퇴근",vi:"tan làm",zh:"下班",en:"leave the office",ja:"退勤",id:"pulang kerja",ru:"покидать работу",th:"เลิกงาน",mn:"ажлаас гарах",uz:"ishdan ketish",es:"leave the office"} },
+          { char:"직원",  word:"직원",  meaning:{ko:"직원",vi:"nhân viên",zh:"职员",en:"employee",ja:"職員",id:"pegawai",ru:"сотрудник",th:"พนักงาน",mn:"ажилтан",uz:"xodim",es:"employee"} },
+          { char:"연봉",  word:"연봉",  meaning:{ko:"연봉",vi:"lương hàng năm",zh:"年薪",en:"annual salary",ja:"年棒",id:"gaji tahunan",ru:"годовой оклад",th:"เงินเดือนต่อปี",mn:"жилийн цалин",uz:"yillik maosh",es:"annual salary"} },
+          { char:"이비인후과",word:"이비인후과",meaning:{ko:"이비인후과",vi:"khoa tai mũi họng",zh:"耳鼻喉科",en:"otorhinolaryngology",ja:"耳鼻咽喉科",id:"THT",ru:"отоларингология",th:"หู คอ จมูก",mn:"чих хамар хоолой",uz:"quloq burun tomoq",es:"otorhinolaryngology"} },
+          { char:"정신과",word:"정신과", meaning:{ko:"정신과",vi:"khoa thần kinh",zh:"精神科",en:"psychiatry",ja:"精神科",id:"psikiatri",ru:"психиатрия",th:"จิตเวช",mn:"сэтгэцийн эмнэлэг",uz:"psixiatriya",es:"psychiatry"} },
+          { char:"산부인과",word:"산부인과",meaning:{ko:"산부인과",vi:"khoa sản",zh:"妇产科",en:"obstetrics & gynecology",ja:"産婦人科",id:"kebidanan",ru:"акушерство и гинекология",th:"สูตินรีเวช",mn:"эх барих эмэгтэйчүүдийн",uz:"ginekologiya",es:"obstetrics & gynecology"} },
+          { char:"건강검진",word:"건강검진",meaning:{ko:"건강검진",vi:"kiểm tra sức khỏe",zh:"健康检查",en:"medical examination",ja:"健康診断",id:"pemeriksaan kesehatan",ru:"медицинский осмотр",th:"ตรวจสุขภาพ",mn:"эрүүл мэндийн үзлэг",uz:"tibbiy ko'rik",es:"medical examination"} },
+          { char:"진단",  word:"진단",  meaning:{ko:"진단",vi:"chẩn đoán",zh:"诊断",en:"diagnosis",ja:"診断",id:"diagnosis",ru:"диагноз",th:"การวินิจฉัย",mn:"оношлогоо",uz:"tashxis",es:"diagnosis"} },
+          { char:"입원",  word:"입원",  meaning:{ko:"입원",vi:"nhập viện",zh:"住院",en:"hospitalization",ja:"入院",id:"rawat inap",ru:"госпитализация",th:"รับตัวเข้าโรงพยาบาล",mn:"эмнэлэгт хэвтэх",uz:"kasalxonaga yotish",es:"hospitalization"} },
+          { char:"퇴원",  word:"퇴원",  meaning:{ko:"퇴원",vi:"xuất viện",zh:"出院",en:"leaving hospital",ja:"退院",id:"keluar dari rumah sakit",ru:"выписка из больницы",th:"ออกจากโรงพยาบาล",mn:"эмнэлгээс гарах",uz:"kasalxonadan chiqish",es:"leaving hospital"} },
+          { char:"병문안",word:"병문안", meaning:{ko:"병문안",vi:"thăm bệnh",zh:"探病",en:"patient visiting",ja:"お見舞い",id:"membesuk",ru:"посещение больного",th:"เยี่ยมผู้ป่วย",mn:"өвчтөнийг эргэх",uz:"bemorni ko'rish",es:"patient visiting"} },
+          { char:"건강",  word:"건강",  meaning:{ko:"건강",vi:"sức khỏe",zh:"健康",en:"health",ja:"健康",id:"kesehatan",ru:"здоровье",th:"สุขภาพ",mn:"эрүүл мэнд",uz:"salomatlik",es:"health"} },
+          { char:"관절염",word:"관절염", meaning:{ko:"관절염",vi:"viêm xương khớp",zh:"关节炎",en:"arthritis",ja:"関節炎",id:"radang sendi",ru:"артрит",th:"ข้ออักเสบ",mn:"үеийн үрэвсэл",uz:"artrit",es:"arthritis"} },
+          { char:"간염",  word:"간염",  meaning:{ko:"간염",vi:"viêm gan",zh:"肝炎",en:"hepatitis",ja:"肝炎",id:"hepatitis",ru:"гепатит",th:"ตับอักเสบ",mn:"элэгний хатуурал",uz:"gepatit",es:"hepatitis"} },
+          { char:"진통제",word:"진통제", meaning:{ko:"진통제",vi:"thuốc giảm đau",zh:"止痛剂",en:"pain-killer",ja:"止痛薬",id:"obat nyeri",ru:"обезболивающее",th:"ยาแก้ปวด",mn:"өвдөлт намдаагч",uz:"og'riq qoldiruvchi",es:"pain-killer"} },
+          { char:"번호",  word:"번호",  meaning:{ko:"번호",vi:"số",zh:"号码",en:"number",ja:"番号",id:"nomor",ru:"номер",th:"หมายเลข",mn:"дугаар",uz:"raqam",es:"number"} },
+          { char:"비밀번호",word:"비밀번호",meaning:{ko:"비밀번호",vi:"mật khẩu",zh:"密码",en:"password",ja:"パスワード",id:"kata sandi",ru:"пароль",th:"รหัสผ่าน",mn:"нууц үг",uz:"parol",es:"password"} },
+          { char:"왼쪽",  word:"왼쪽",  meaning:{ko:"왼쪽",vi:"bên trái",zh:"左边",en:"left side",ja:"左",id:"kiri",ru:"левая сторона",th:"ด้านซ้าย",mn:"зүүн тал",uz:"chap tomon",es:"left side"} },
+          { char:"오른쪽",word:"오른쪽", meaning:{ko:"오른쪽",vi:"bên phải",zh:"右边",en:"right side",ja:"右",id:"kanan",ru:"правая сторона",th:"ด้านขวา",mn:"баруун тал",uz:"o'ng tomon",es:"right side"} },
+          { char:"가운데",word:"가운데", meaning:{ko:"가운데",vi:"giữa",zh:"中间",en:"center/middle",ja:"真ん中",id:"tengah",ru:"середина",th:"ตรงกลาง",mn:"дунд",uz:"o'rta",es:"center/middle"} },
+          { char:"안",    word:"안",    meaning:{ko:"안",vi:"trong",zh:"里",en:"inside",ja:"内",id:"dalam",ru:"внутри",th:"ข้างใน",mn:"дотор",uz:"ichida",es:"inside"} },
+          { char:"전체",  word:"전체",  meaning:{ko:"전체",vi:"toàn thể",zh:"全体",en:"whole/all",ja:"全体",id:"keseluruhan",ru:"всё",th:"ทั้งหมด",mn:"бүхэлд",uz:"hammasi",es:"whole/all"} },
+          { char:"태권도",word:"태권도", meaning:{ko:"태권도",vi:"Taekwondo",zh:"跆拳道",en:"Taekwondo",ja:"テコンドー",id:"taekwondo",ru:"тхэквондо",th:"เทควันโด",mn:"Тэквондо",uz:"Taekwondo",es:"Taekwondo"} },
+          { char:"마라톤",word:"마라톤", meaning:{ko:"마라톤",vi:"marathon",zh:"马拉松",en:"marathon",ja:"マラソン",id:"maraton",ru:"марафон",th:"มาราธอน",mn:"марафон",uz:"marafon",es:"marathon"} },
+          { char:"배드민턴",word:"배드민턴",meaning:{ko:"배드민턴",vi:"cầu lông",zh:"羽毛球",en:"badminton",ja:"バドミントン",id:"bulu tangkis",ru:"бадминтон",th:"แบดมินตัน",mn:"бадминтон",uz:"badminton",es:"badminton"} },
+          { char:"등산",  word:"등산",  meaning:{ko:"등산",vi:"leo núi",zh:"登山",en:"mountain climbing",ja:"登山",id:"mendaki gunung",ru:"альпинизм",th:"ปีนเขา",mn:"уул авирах",uz:"tog'ga chiqish",es:"mountain climbing"} },
+          { char:"연습",  word:"연습",  meaning:{ko:"연습",vi:"luyện tập",zh:"练习",en:"practice",ja:"練習",id:"latihan",ru:"тренировка",th:"การฝึกซ้อม",mn:"дасгал",uz:"mashq",es:"practice"} },
+          { char:"인형",  word:"인형",  meaning:{ko:"인형",vi:"búp bê",zh:"玩偶",en:"doll",ja:"人形",id:"boneka",ru:"кукла",th:"ตุ๊กตา",mn:"хүүхэлдэй",uz:"qo'g'irchoq",es:"doll"} },
+          { char:"장난감",word:"장난감", meaning:{ko:"장난감",vi:"đồ chơi",zh:"玩具",en:"toy",ja:"おもちゃ",id:"mainan",ru:"игрушка",th:"ของเล่น",mn:"тоглоом",uz:"o'yinchoq",es:"toy"} },
+          { char:"문화",  word:"문화",  meaning:{ko:"문화",vi:"văn hóa",zh:"文化",en:"culture",ja:"文化",id:"budaya",ru:"культура",th:"วัฒนธรรม",mn:"соёл",uz:"madaniyat",es:"culture"} },
+          { char:"콘서트",word:"콘서트", meaning:{ko:"콘서트",vi:"buổi biểu diễn nhạc",zh:"演唱会",en:"concert",ja:"コンサート",id:"konser",ru:"концерт",th:"คอนเสิร์ต",mn:"тоглолт",uz:"konsert",es:"concert"} },
+          { char:"연극",  word:"연극",  meaning:{ko:"연극",vi:"vở kịch",zh:"演剧",en:"drama/play",ja:"演劇",id:"drama",ru:"пьеса",th:"ละคร",mn:"жүжиг",uz:"teatr",es:"drama/play"} },
+          { char:"공연",  word:"공연",  meaning:{ko:"공연",vi:"công diễn",zh:"公演",en:"performance",ja:"公演",id:"pertunjukan",ru:"выступление",th:"การแสดง",mn:"тоглолт",uz:"tomosho",es:"performance"} },
+          { char:"연주회",word:"연주회", meaning:{ko:"연주회",vi:"buổi hòa nhạc",zh:"演奏会",en:"concert/recital",ja:"演奏会",id:"resital",ru:"концерт",th:"การแสดงดนตรี",mn:"хөгжмийн тоглолт",uz:"konsert",es:"concert/recital"} },
+          { char:"전시회",word:"전시회", meaning:{ko:"전시회",vi:"buổi triển lãm",zh:"展示会",en:"exhibition",ja:"展示会",id:"pameran",ru:"выставка",th:"นิทรรศการ",mn:"үзэсгэлэн",uz:"ko'rgazma",es:"exhibition"} },
+          { char:"디자인",word:"디자인", meaning:{ko:"디자인",vi:"thiết kế",zh:"设计",en:"design",ja:"デザイン",id:"desain",ru:"дизайн",th:"การออกแบบ",mn:"дизайн",uz:"dizayn",es:"design"} },
+          { char:"건축",  word:"건축",  meaning:{ko:"건축",vi:"kiến trúc",zh:"建筑",en:"architecture",ja:"建築",id:"arsitektur",ru:"архитектура",th:"สถาปัตยกรรม",mn:"барилга байгууламж",uz:"arxitektura",es:"architecture"} },
+          { char:"문학",  word:"문학",  meaning:{ko:"문학",vi:"văn học",zh:"文学",en:"literature",ja:"文学",id:"sastra",ru:"литература",th:"วรรณกรรม",mn:"уран зохиол",uz:"adabiyot",es:"literature"} },
+          { char:"바이올린",word:"바이올린",meaning:{ko:"바이올린",vi:"vĩ cầm",zh:"小提琴",en:"violin",ja:"バイオリン",id:"biola",ru:"скрипка",th:"ไวโอลิน",mn:"хийл хөгжим",uz:"skripka",es:"violin"} },
+          { char:"은행",  word:"은행",  meaning:{ko:"은행",vi:"ngân hàng",zh:"银行",en:"bank",ja:"銀行",id:"bank",ru:"банк",th:"ธนาคาร",mn:"банк",uz:"bank",es:"bank"} },
+          { char:"동전",  word:"동전",  meaning:{ko:"동전",vi:"tiền xu",zh:"硬币",en:"coin",ja:"コイン",id:"koin",ru:"монета",th:"เหรียญ",mn:"зоос",uz:"tanga",es:"coin"} },
+          { char:"현금",  word:"현금",  meaning:{ko:"현금",vi:"tiền mặt",zh:"现金",en:"cash",ja:"現金",id:"uang tunai",ru:"наличные",th:"เงินสด",mn:"бэлэн мөнгө",uz:"naqd pul",es:"cash"} },
+          { char:"환전",  word:"환전",  meaning:{ko:"환전",vi:"đổi tiền",zh:"兑换",en:"money exchange",ja:"両替",id:"penukaran uang",ru:"обмен валюты",th:"แลกเงิน",mn:"мөнгө солих",uz:"valyuta almashtirish",es:"money exchange"} },
+          { char:"환율",  word:"환율",  meaning:{ko:"환율",vi:"tỷ giá hối đoái",zh:"汇率",en:"exchange rate",ja:"為替レート",id:"kurs",ru:"курс обмена валюты",th:"อัตราแลกเปลี่ยน",mn:"ханш",uz:"valyuta kursi",es:"exchange rate"} },
+          { char:"상환",  word:"상환",  meaning:{ko:"상환",vi:"sự trả nợ",zh:"偿还",en:"repayment",ja:"引き替え",id:"pelunasan",ru:"погашение",th:"การชำระหนี้",mn:"эргэн төлөлт",uz:"qaytarish",es:"repayment"} },
+          { char:"회원가입",word:"회원가입",meaning:{ko:"회원가입",vi:"đăng ký hội viên",zh:"加入会员",en:"membership sign up",ja:"会員加入",id:"pendaftaran anggota",ru:"регистрация аккаунта",th:"สมัครสมาชิก",mn:"гишүүнчлэлд нэгдэх",uz:"a'zolikka ro'yxatdan o'tish",es:"membership sign up"} },
+          { char:"주문",  word:"주문",  meaning:{ko:"주문",vi:"đặt hàng",zh:"订货",en:"order",ja:"注文",id:"pesanan",ru:"заказ",th:"การสั่งซื้อ",mn:"захиалга",uz:"buyurtma",es:"order"} },
+          { char:"신용카드",word:"신용카드",meaning:{ko:"신용카드",vi:"thẻ tín dụng",zh:"信用卡",en:"credit card",ja:"クレジットカード",id:"kartu kredit",ru:"кредитная карта",th:"บัตรเครดิต",mn:"зээлийн карт",uz:"kredit karta",es:"credit card"} },
+          { char:"반품",  word:"반품",  meaning:{ko:"반품",vi:"hàng trả lại",zh:"退货",en:"return",ja:"返品",id:"pengembalian barang",ru:"возврат",th:"การคืนสินค้า",mn:"буцаалт",uz:"qaytarish",es:"return"} },
+          { char:"환불",  word:"환불",  meaning:{ko:"환불",vi:"sự hoàn tiền",zh:"退款",en:"refund",ja:"払い戻し",id:"pengembalian uang",ru:"возврат денег",th:"การคืนเงิน",mn:"мөнгө буцаалт",uz:"pul qaytarish",es:"refund"} },
+          { char:"할인",  word:"할인",  meaning:{ko:"할인",vi:"giảm giá",zh:"打折",en:"bargain/discount",ja:"割引",id:"diskon",ru:"скидка",th:"ส่วนลด",mn:"хөнгөлөлт",uz:"chegirma",es:"bargain/discount"} },
+          { char:"편의점",word:"편의점", meaning:{ko:"편의점",vi:"cửa hàng tiện lợi",zh:"便利店",en:"convenience store",ja:"コンビニ",id:"minimarket",ru:"круглосуточный магазин",th:"ร้านสะดวกซื้อ",mn:"худалдааны газар",uz:"qulay do'kon",es:"convenience store"} },
+          { char:"기린",  word:"기린",  meaning:{ko:"기린",vi:"hươu cao cổ",zh:"长颈鹿",en:"giraffe",ja:"キリン",id:"jerapah",ru:"жираф",th:"ยีราฟ",mn:"анааш",uz:"jirafa",es:"giraffe"} },
+          { char:"원숭이",word:"원숭이", meaning:{ko:"원숭이",vi:"con khỉ",zh:"猴子",en:"monkey",ja:"猿",id:"monyet",ru:"обезьяна",th:"ลิง",mn:"сармагчин",uz:"maymun",es:"monkey"} },
+          { char:"세균",  word:"세균",  meaning:{ko:"세균",vi:"vi khuẩn",zh:"细菌",en:"bacteria/virus",ja:"細菌",id:"bakteri",ru:"бактерия",th:"แบคทีเรีย",mn:"бактери",uz:"bakteriya",es:"bacteria/virus"} },
+          { char:"진균",  word:"진균",  meaning:{ko:"진균",vi:"bệnh nấm da",zh:"真菌",en:"mycosis/fungus",ja:"真菌",id:"jamur",ru:"микоз",th:"เชื้อรา",mn:"мөөг",uz:"zamburug'",es:"mycosis/fungus"} },
+          { char:"자연",  word:"자연",  meaning:{ko:"자연",vi:"tự nhiên",zh:"自然",en:"nature",ja:"自然",id:"alam",ru:"природа",th:"ธรรมชาติ",mn:"байгаль",uz:"tabiat",es:"nature"} },
+          { char:"환경",  word:"환경",  meaning:{ko:"환경",vi:"môi trường",zh:"环境",en:"environment",ja:"環境",id:"lingkungan",ru:"окружающая среда",th:"สิ่งแวดล้อม",mn:"орчин тойрон",uz:"muhit",es:"environment"} },
+          { char:"환경보호",word:"환경보호",meaning:{ko:"환경보호",vi:"bảo vệ môi trường",zh:"环境保护",en:"environmental protection",ja:"環境保護",id:"perlindungan lingkungan",ru:"охрана окружающей среды",th:"การปกป้องสิ่งแวดล้อม",mn:"байгаль орчны хамгаалал",uz:"atrof-muhitni himoya qilish",es:"environmental protection"} },
+          { char:"지구온난화",word:"지구온난화",meaning:{ko:"지구온난화",vi:"hiện tượng trái đất nóng lên",zh:"地球温暖化",en:"global warming",ja:"地球温暖化",id:"pemanasan global",ru:"глобальное потепление",th:"ภาวะโลกร้อน",mn:"дэлхийн дулааралт",uz:"global isish",es:"global warming"} },
+          { char:"화산",  word:"화산",  meaning:{ko:"화산",vi:"núi lửa",zh:"火山",en:"volcano",ja:"火山",id:"gunung berapi",ru:"вулкан",th:"ภูเขาไฟ",mn:"галт уул",uz:"vulqon",es:"volcano"} },
+          { char:"온천",  word:"온천",  meaning:{ko:"온천",vi:"suối nước nóng",zh:"温泉",en:"hot springs",ja:"温泉",id:"sumber air panas",ru:"горячий источник",th:"น้ำพุร้อน",mn:"халуун булаг",uz:"issiq buloq",es:"hot springs"} },
+          { char:"지진",  word:"지진",  meaning:{ko:"지진",vi:"động đất",zh:"地震",en:"earthquake",ja:"地震",id:"gempa bumi",ru:"землетрясение",th:"แผ่นดินไหว",mn:"газар хөдлөлт",uz:"zilzila",es:"earthquake"} },
+          { char:"안개",  word:"안개",  meaning:{ko:"안개",vi:"sương mù",zh:"雾气",en:"fog",ja:"霧",id:"kabut",ru:"туман",th:"หมอก",mn:"манан",uz:"tuman",es:"fog"} },
+          { char:"번개",  word:"번개",  meaning:{ko:"번개",vi:"tia chớp",zh:"闪电",en:"lightning",ja:"稲光",id:"kilat",ru:"молния",th:"ฟ้าแลบ",mn:"аянга",uz:"chaqmoq",es:"lightning"} },
+          { char:"건기",  word:"건기",  meaning:{ko:"건기",vi:"mùa khô",zh:"旱季",en:"dry season",ja:"乾季",id:"musim kemarau",ru:"сезон засухи",th:"ฤดูแล้ง",mn:"хуурай улирал",uz:"quruq mavsum",es:"dry season"} },
+          { char:"한대",  word:"한대",  meaning:{ko:"한대",vi:"hàn đới",zh:"寒带",en:"arctic regions",ja:"寒帯",id:"daerah kutub",ru:"арктический (полярный) пояс",th:"เขตหนาว",mn:"хүйтэн бүс",uz:"arktika mintaqasi",es:"arctic regions"} },
+          { char:"온대",  word:"온대",  meaning:{ko:"온대",vi:"ôn đới",zh:"温带",en:"temperate zone",ja:"温帯",id:"daerah beriklim sedang",ru:"зона с умеренным климатом",th:"เขตอบอุ่น",mn:"дулаан бүс",uz:"mo'tadil mintaqa",es:"temperate zone"} },
+          { char:"해변",  word:"해변",  meaning:{ko:"해변",vi:"bãi biển",zh:"海边",en:"beach",ja:"海辺",id:"pantai",ru:"пляж",th:"ชายหาด",mn:"далайн эрэг",uz:"qirg'oq",es:"beach"} },
+          { char:"염전",  word:"염전",  meaning:{ko:"염전",vi:"ruộng muối",zh:"盐田",en:"salt field",ja:"塩田",id:"ladang garam",ru:"соляные прииски",th:"นาเกลือ",mn:"давсны талбай",uz:"tuz dalalari",es:"salt field"} },
+          { char:"일본",  word:"일본",  meaning:{ko:"일본",vi:"Nhật Bản",zh:"日本",en:"Japan",ja:"日本",id:"Jepang",ru:"Япония",th:"ญี่ปุ่น",mn:"Япон",uz:"Yaponiya",es:"Japan"} },
+          { char:"대만",  word:"대만",  meaning:{ko:"대만",vi:"Đài Loan",zh:"台湾",en:"Taiwan",ja:"台湾",id:"Taiwan",ru:"Тайвань",th:"ไต้หวัน",mn:"Тайван",uz:"Tayvan",es:"Taiwan"} },
+          { char:"필리핀",word:"필리핀", meaning:{ko:"필리핀",vi:"Philippines",zh:"菲律宾",en:"Philippines",ja:"フィリピン",id:"Filipina",ru:"Филиппины",th:"ฟิลิปปินส์",mn:"Филиппин",uz:"Filippin",es:"Philippines"} },
+          { char:"인도네시아",word:"인도네시아",meaning:{ko:"인도네시아",vi:"Indonesia",zh:"印度尼西亚",en:"Indonesia",ja:"インドネシア",id:"Indonesia",ru:"Индонезия",th:"อินโดนีเซีย",mn:"Индонез",uz:"Indoneziya",es:"Indonesia"} },
+          { char:"미얀마",word:"미얀마", meaning:{ko:"미얀마",vi:"Myanmar",zh:"缅甸",en:"Myanmar",ja:"ミャンマー",id:"Myanmar",ru:"Мьянма",th:"เมียนมาร์",mn:"Мьянмар",uz:"Myanma",es:"Myanmar"} },
+          { char:"인도",  word:"인도",  meaning:{ko:"인도",vi:"Ấn Độ",zh:"印度",en:"India",ja:"インド",id:"India",ru:"Индия",th:"อินเดีย",mn:"Энэтхэг",uz:"Hindiston",es:"India"} },
+          { char:"뉴질랜드",word:"뉴질랜드",meaning:{ko:"뉴질랜드",vi:"New Zealand",zh:"新西兰",en:"New Zealand",ja:"ニュージーランド",id:"Selandia Baru",ru:"Новая Зеландия",th:"นิวซีแลนด์",mn:"Шинэ Зеланд",uz:"Yangi Zelandiya",es:"New Zealand"} },
+          { char:"아르헨티나",word:"아르헨티나",meaning:{ko:"아르헨티나",vi:"Argentina",zh:"阿根廷",en:"Argentina",ja:"アルゼンチン",id:"Argentina",ru:"Аргентина",th:"อาร์เจนตินา",mn:"Аргентин",uz:"Argentina",es:"Argentina"} },
+          { char:"스페인",word:"스페인", meaning:{ko:"스페인",vi:"Tây Ban Nha",zh:"西班牙",en:"Spain",ja:"スペイン",id:"Spanyol",ru:"Испания",th:"สเปน",mn:"Испани",uz:"Ispaniya",es:"Spain"} },
+          { char:"호치민",word:"호치민", meaning:{ko:"호치민",vi:"Hồ Chí Minh",zh:"胡志明",en:"Ho Chi Minh",ja:"ホーチミン",id:"Ho Chi Minh",ru:"Хошимин",th:"โฮจิมินห์",mn:"Хошимин",uz:"Xo'shiMin",es:"Ho Chi Minh"} },
+          { char:"프놈펜",word:"프놈펜", meaning:{ko:"프놈펜",vi:"Phnom Penh",zh:"金边",en:"Phnompenh",ja:"プノンペン",id:"Phnom Penh",ru:"Пномпень",th:"พนมเปญ",mn:"Пномпень",uz:"Pnompen",es:"Phnompenh"} },
+          { char:"비엔티엔",word:"비엔티엔",meaning:{ko:"비엔티엔",vi:"Viêng Chăn",zh:"万象",en:"Vientiane",ja:"ビエンチャン",id:"Vientiane",ru:"Вьентьян",th:"เวียงจันทน์",mn:"Вьентьян",uz:"Vyentyan",es:"Vientiane"} },
+          { char:"양곤",  word:"양곤",  meaning:{ko:"양곤",vi:"Yangon",zh:"仰光",en:"Yangon",ja:"ヤンゴン",id:"Yangon",ru:"Янгон",th:"ย่างกุ้ง",mn:"Янгон",uz:"Yangon",es:"Yangon"} },
+          { char:"워싱턴",word:"워싱턴", meaning:{ko:"워싱턴",vi:"Washington",zh:"华盛顿",en:"Washington",ja:"ワシントン",id:"Washington",ru:"Вашингтон",th:"วอชิงตัน",mn:"Вашингтон",uz:"Vashington",es:"Washington"} },
+          { char:"런던",  word:"런던",  meaning:{ko:"런던",vi:"Luân Đôn",zh:"伦敦",en:"London",ja:"ロンドン",id:"London",ru:"Лондон",th:"ลอนดอน",mn:"Лондон",uz:"London",es:"London"} },
+          { char:"베를린",word:"베를린", meaning:{ko:"베를린",vi:"Berlin",zh:"柏林",en:"Berlin",ja:"ベルリン",id:"Berlin",ru:"Берлин",th:"เบอร์ลิน",mn:"Берлин",uz:"Berlin",es:"Berlin"} },
+          { char:"여권",  word:"여권",  meaning:{ko:"여권",vi:"hộ chiếu",zh:"护照",en:"passport",ja:"パスポート",id:"paspor",ru:"паспорт",th:"หนังสือเดินทาง",mn:"гадаад паспорт",uz:"pasport",es:"passport"} },
+          { char:"우주선",word:"우주선", meaning:{ko:"우주선",vi:"tàu vũ trụ",zh:"宇宙飞船",en:"spaceship",ja:"宇宙船",id:"pesawat luar angkasa",ru:"космический корабль",th:"ยานอวกาศ",mn:"сансрын хөлөг",uz:"kosmik kemа",es:"spaceship"} },
+          { char:"광년",  word:"광년",  meaning:{ko:"광년",vi:"năm ánh sáng",zh:"光年",en:"light year",ja:"光年",id:"tahun cahaya",ru:"световой год",th:"ปีแสง",mn:"гэрлийн жил",uz:"yorug'lik yili",es:"light year"} },
+          { char:"성운",  word:"성운",  meaning:{ko:"성운",vi:"tinh vân",zh:"星云",en:"nebula",ja:"星雲",id:"nebula",ru:"галактическая туманность",th:"เนบิวลา",mn:"мананцар",uz:"nebula",es:"nebula"} },
+          { char:"전기",  word:"전기",  meaning:{ko:"전기",vi:"điện",zh:"电气",en:"electricity",ja:"電気",id:"listrik",ru:"электричество",th:"ไฟฟ้า",mn:"цахилгаан",uz:"elektr",es:"electricity"} },
+          { char:"전자",  word:"전자",  meaning:{ko:"전자",vi:"điện tử",zh:"电子",en:"electron",ja:"電子",id:"elektron",ru:"электрон",th:"อิเล็กตรอน",mn:"электрон",uz:"elektron",es:"electron"} },
+          { char:"유전자",word:"유전자", meaning:{ko:"유전자",vi:"mã gen di truyền",zh:"遗传基因",en:"gene",ja:"遺伝子",id:"gen",ru:"гены",th:"ยีน",mn:"ген",uz:"gen",es:"gene"} },
+          { char:"온도",  word:"온도",  meaning:{ko:"온도",vi:"nhiệt độ",zh:"温度",en:"temperature",ja:"温度",id:"suhu",ru:"температура",th:"อุณหภูมิ",mn:"дулааны хэм",uz:"harorat",es:"temperature"} },
+          { char:"기온",  word:"기온",  meaning:{ko:"기온",vi:"nhiệt độ không khí",zh:"气温",en:"air temperature",ja:"気温",id:"suhu udara",ru:"температура воздуха",th:"อุณหภูมิอากาศ",mn:"агаарын температур",uz:"havo harorati",es:"air temperature"} },
+          { char:"수온",  word:"수온",  meaning:{ko:"수온",vi:"nhiệt độ nước",zh:"水温",en:"water temperature",ja:"水温",id:"suhu air",ru:"температура воды",th:"อุณหภูมิน้ำ",mn:"усны температур",uz:"suv harorati",es:"water temperature"} },
+          { char:"면적",  word:"면적",  meaning:{ko:"면적",vi:"diện tích",zh:"面积",en:"area",ja:"面積",id:"luas",ru:"площадь",th:"พื้นที่",mn:"талбай",uz:"maydon",es:"area"} },
+          { char:"빨간색",word:"빨간색", meaning:{ko:"빨간색",vi:"màu đỏ",zh:"红色",en:"red color",ja:"赤色",id:"merah",ru:"красный цвет",th:"สีแดง",mn:"улаан",uz:"qizil rang",es:"red color"} },
+          { char:"노란색",word:"노란색", meaning:{ko:"노란색",vi:"màu vàng",zh:"黄色",en:"yellow color",ja:"黄色",id:"kuning",ru:"жёлтый цвет",th:"สีเหลือง",mn:"шар",uz:"sariq rang",es:"yellow color"} },
+          { char:"파란색",word:"파란색", meaning:{ko:"파란색",vi:"màu xanh dương",zh:"蓝色",en:"blue color",ja:"青色",id:"biru",ru:"синий цвет",th:"สีฟ้า",mn:"хөх",uz:"ko'k rang",es:"blue color"} },
+          { char:"흰색",  word:"흰색",  meaning:{ko:"흰색",vi:"màu trắng",zh:"白色",en:"white color",ja:"白色",id:"putih",ru:"белый цвет",th:"สีขาว",mn:"цагаан",uz:"oq rang",es:"white color"} },
+          { char:"검은색",word:"검은색", meaning:{ko:"검은색",vi:"màu đen",zh:"黑色",en:"black color",ja:"黒色",id:"hitam",ru:"чёрный цвет",th:"สีดำ",mn:"хар",uz:"qora rang",es:"black color"} },
+          { char:"분홍색",word:"분홍색", meaning:{ko:"분홍색",vi:"màu hồng",zh:"粉红色",en:"pink color",ja:"ピンク色",id:"merah muda",ru:"розовый цвет",th:"สีชมพู",mn:"ягаан",uz:"pushti rang",es:"pink color"} },
+          { char:"천(1000)",word:"천",meaning:{ko:"천(1000)",vi:"nghìn",zh:"千",en:"thousand",ja:"千",id:"seribu",ru:"тысяча",th:"พัน",mn:"мянга",uz:"ming",es:"thousand"} },
+          { char:"만(10000)",word:"만",meaning:{ko:"만(10000)",vi:"mười nghìn",zh:"万",en:"ten thousand",ja:"万",id:"sepuluh ribu",ru:"десять тысяч",th:"หมื่น",mn:"арван мянга",uz:"o'n ming",es:"ten thousand"} },
+          { char:"백만",  word:"백만",  meaning:{ko:"백만",vi:"một triệu",zh:"百万",en:"million",ja:"百万",id:"satu juta",ru:"миллион",th:"ล้าน",mn:"сая",uz:"million",es:"million"} },
+          { char:"선",    word:"선",    meaning:{ko:"선",vi:"điều thiện",zh:"善",en:"goodness",ja:"善",id:"kebaikan",ru:"добро",th:"ความดี",mn:"сайн",uz:"yaxshilik",es:"goodness"} },
+          { char:"천사",  word:"천사",  meaning:{ko:"천사",vi:"thiên thần",zh:"天使",en:"angel",ja:"天使",id:"malaikat",ru:"ангел",th:"นางฟ้า",mn:"тэнгэр элч",uz:"farishta",es:"angel"} },
+          { char:"관계",  word:"관계",  meaning:{ko:"관계",vi:"mối quan hệ",zh:"关系",en:"relation",ja:"関係",id:"hubungan",ru:"отношения",th:"ความสัมพันธ์",mn:"харилцаа",uz:"munosabat",es:"relation"} },
+          { char:"환영",  word:"환영",  meaning:{ko:"환영",vi:"sự hoan nghênh",zh:"欢迎",en:"welcome",ja:"歓迎",id:"selamat datang",ru:"приветствие",th:"การต้อนรับ",mn:"угтан авах",uz:"xush kelibsiz",es:"welcome"} },
+          { char:"관심",  word:"관심",  meaning:{ko:"관심",vi:"sự quan tâm",zh:"关心",en:"interest",ja:"関心",id:"perhatian",ru:"интерес",th:"ความสนใจ",mn:"сонирхол",uz:"qiziqish",es:"interest"} },
+          { char:"칭찬",  word:"칭찬",  meaning:{ko:"칭찬",vi:"sự khen ngợi",zh:"称赞",en:"compliment",ja:"褒め言葉",id:"pujian",ru:"похвала",th:"คำชม",mn:"магтаал",uz:"maqtov",es:"compliment"} },
+          { char:"존경",  word:"존경",  meaning:{ko:"존경",vi:"sự tôn kính",zh:"尊敬",en:"respect",ja:"尊敬",id:"penghormatan",ru:"уважение",th:"ความเคารพ",mn:"хүндэтгэл",uz:"hurmat",es:"respect"} },
+          { char:"인기",  word:"인기",  meaning:{ko:"인기",vi:"độ yêu thích",zh:"人气",en:"popularity",ja:"人気",id:"popularitas",ru:"популярность",th:"ความนิยม",mn:"алдаршил",uz:"mashhurlik",es:"popularity"} },
+          { char:"기분",  word:"기분",  meaning:{ko:"기분",vi:"tâm trạng",zh:"心情",en:"mood/feeling",ja:"気分",id:"suasana hati",ru:"настроение",th:"อารมณ์",mn:"сэтгэл санаа",uz:"kayfiyat",es:"mood/feeling"} },
+          { char:"분위기",word:"분위기", meaning:{ko:"분위기",vi:"bầu không khí",zh:"氛围",en:"atmosphere",ja:"雰囲気",id:"suasana",ru:"атмосфера",th:"บรรยากาศ",mn:"уур амьсгал",uz:"atmosfera",es:"atmosphere"} },
+          { char:"편리",  word:"편리",  meaning:{ko:"편리",vi:"sự tiện lợi",zh:"便利",en:"convenience",ja:"便利",id:"kenyamanan",ru:"удобство",th:"ความสะดวก",mn:"тохиромжтой",uz:"qulaylik",es:"convenience"} },
+          { char:"불편",  word:"불편",  meaning:{ko:"불편",vi:"sự bất tiện",zh:"不便",en:"inconvenience",ja:"不便",id:"ketidaknyamanan",ru:"дискомфорт",th:"ความไม่สะดวก",mn:"тохиромжгүй",uz:"noqulaylik",es:"inconvenience"} },
+          { char:"불안",  word:"불안",  meaning:{ko:"불안",vi:"sự lo âu",zh:"不安",en:"anxiety/worry",ja:"不安",id:"kekhawatiran",ru:"тревога",th:"ความวิตก",mn:"сэтгэл тайвшрахгүй",uz:"tashvish",es:"anxiety/worry"} },
+          { char:"피곤",  word:"피곤",  meaning:{ko:"피곤",vi:"sự mệt mỏi",zh:"疲倦",en:"tired",ja:"疲労",id:"kelelahan",ru:"усталость",th:"ความเหนื่อยล้า",mn:"ядрал",uz:"charchoq",es:"tired"} },
+          { char:"연결",  word:"연결",  meaning:{ko:"연결",vi:"sự liên kết",zh:"连结",en:"connection",ja:"連結",id:"koneksi",ru:"соединение",th:"การเชื่อมต่อ",mn:"холболт",uz:"ulanish",es:"connection"} },
+          { char:"준비",  word:"준비",  meaning:{ko:"준비",vi:"sự chuẩn bị",zh:"准备",en:"preparation",ja:"準備",id:"persiapan",ru:"подготовка",th:"การเตรียมพร้อม",mn:"бэлтгэл",uz:"tayyorgarlik",es:"preparation"} },
+          { char:"언어",  word:"언어",  meaning:{ko:"언어",vi:"ngôn ngữ",zh:"语言",en:"language",ja:"言語",id:"bahasa",ru:"язык",th:"ภาษา",mn:"хэл",uz:"til",es:"language"} },
+          { char:"습관",  word:"습관",  meaning:{ko:"습관",vi:"thói quen",zh:"习惯",en:"custom/habit",ja:"習慣",id:"kebiasaan",ru:"привычка",th:"นิสัย",mn:"дадал",uz:"odat",es:"custom/habit"} },
+          { char:"자연보호",word:"자연보호",meaning:{ko:"자연보호",vi:"bảo vệ tự nhiên",zh:"自然保护",en:"nature conservation",ja:"自然保護",id:"pelestarian alam",ru:"охрана природы",th:"การอนุรักษ์ธรรมชาติ",mn:"байгалийг хамгаалах",uz:"tabiatni muhofaza qilish",es:"nature conservation"} },
+          { char:"주변",  word:"주변",  meaning:{ko:"주변",vi:"xung quanh",zh:"周边",en:"surroundings",ja:"周辺",id:"sekitar",ru:"окружение",th:"บริเวณ",mn:"орчин",uz:"atrofi",es:"surroundings"} },
+          { char:"처방전",word:"처방전", meaning:{ko:"처방전",vi:"đơn thuốc",zh:"处方笺",en:"prescription",ja:"処方箋",id:"resep dokter",ru:"рецепт врача",th:"ใบสั่งยา",mn:"жор",uz:"retsept",es:"prescription"} },
+          { char:"인공위성",word:"인공위성",meaning:{ko:"인공위성",vi:"vệ tinh nhân tạo",zh:"人造卫星",en:"artificial satellite",ja:"人工衛星",id:"satelit buatan",ru:"искусственный спутник",th:"ดาวเทียมเทียม",mn:"хиймэл дагуул",uz:"sun'iy yo'ldosh",es:"artificial satellite"} },
+          { char:"한과",  word:"한과",  meaning:{ko:"한과",vi:"bánh kẹo truyền thống Hàn Quốc",zh:"韩国糖果",en:"Korean sweets",ja:"韓国お菓子",id:"kue tradisional Korea",ru:"корейские сладости",th:"ขนมเกาหลีดั้งเดิม",mn:"Солонгосын чихэр",uz:"Koreya shirinliklari",es:"Korean sweets"} },
+          { char:"한옥",  word:"한옥",  meaning:{ko:"한옥",vi:"nhà truyền thống Hàn Quốc",zh:"韩式房子",en:"Korean-style house",ja:"ハノク",id:"rumah tradisional Korea",ru:"дом, построенный в корейском стиле",th:"บ้านเกาหลีดั้งเดิม",mn:"Солонгос гэр",uz:"Koreya uyi",es:"Korean-style house"} },
+          { char:"부산",  word:"부산",  meaning:{ko:"부산",vi:"Busan",zh:"釜山",en:"Busan",ja:"プサン",id:"Busan",ru:"Пусан",th:"ปูซาน",mn:"Пусан",uz:"Busan",es:"Busan"} },
+          { char:"대전",  word:"대전",  meaning:{ko:"대전",vi:"Daejeon",zh:"大田",en:"Daejon",ja:"テジョン",id:"Daejeon",ru:"Тэджон",th:"แทจอน",mn:"Тэжон",uz:"Daejeon",es:"Daejon"} },
+          { char:"인천",  word:"인천",  meaning:{ko:"인천",vi:"Incheon",zh:"仁川",en:"Incheon",ja:"インチョン",id:"Incheon",ru:"Инчхон",th:"อินชอน",mn:"Инчон",uz:"Incheon",es:"Incheon"} },
+          { char:"마닐라",word:"마닐라", meaning:{ko:"마닐라",vi:"Manila",zh:"马尼拉",en:"Manila",ja:"マニラ",id:"Manila",ru:"Манила",th:"มะนิลา",mn:"Манила",uz:"Manila",es:"Manila"} },
+          { char:"편하다",word:"편하다", meaning:{ko:"편하다",vi:"thoải mái",zh:"舒服",en:"comfortable",ja:"楽だ",id:"nyaman",ru:"удобный",th:"สบาย",mn:"тохиромжтой",uz:"qulay",es:"comfortable"} },
+          { char:"편리하다",word:"편리하다",meaning:{ko:"편리하다",vi:"tiện lợi",zh:"便利",en:"convenient",ja:"便利だ",id:"mudah",ru:"удобный",th:"สะดวก",mn:"тохиромжтой",uz:"qulay",es:"convenient"} },
+          { char:"불편하다",word:"불편하다",meaning:{ko:"불편하다",vi:"bất tiện",zh:"不便",en:"inconvenient",ja:"不便だ",id:"tidak nyaman",ru:"неудобный",th:"ไม่สะดวก",mn:"тохиромжгүй",uz:"noqulay",es:"inconvenient"} },
+          { char:"친절하다",word:"친절하다",meaning:{ko:"친절하다",vi:"thân thiện",zh:"亲切",en:"kind",ja:"親切だ",id:"ramah",ru:"вежливый",th:"อ่อนโยน",mn:"найрсаг",uz:"mehribon",es:"kind"} },
+          { char:"반갑다",word:"반갑다", meaning:{ko:"반갑다",vi:"hân hạnh",zh:"高兴",en:"glad to meet",ja:"嬉しい",id:"senang bertemu",ru:"радушный",th:"ดีใจที่ได้พบ",mn:"уулзаж баяртай",uz:"uchrashgandan xursand",es:"glad to meet"} },
+          { char:"미안하다",word:"미안하다",meaning:{ko:"미안하다",vi:"xin lỗi",zh:"对不起",en:"sorry",ja:"申し訳ない",id:"maaf",ru:"извиниться",th:"ขอโทษ",mn:"уучлаарай",uz:"kechirasiz",es:"sorry"} },
+          { char:"부지런하다",word:"부지런하다",meaning:{ko:"부지런하다",vi:"siêng năng",zh:"勤劳",en:"diligent",ja:"勤勉だ",id:"rajin",ru:"прилежный",th:"ขยัน",mn:"хичээнгүй",uz:"mehnatkash",es:"diligent"} },
+          { char:"한가하다",word:"한가하다",meaning:{ko:"한가하다",vi:"rảnh rỗi",zh:"闲暇",en:"free/leisurely",ja:"暇だ",id:"santai",ru:"иметь свободное время",th:"ว่าง",mn:"чөлөөтэй",uz:"bo'sh",es:"free/leisurely"} },
+          { char:"시원하다",word:"시원하다",meaning:{ko:"시원하다",vi:"mát mẻ",zh:"凉爽",en:"cool/refreshing",ja:"さわやかだ",id:"segar",ru:"прохладный",th:"เย็นสบาย",mn:"сэрүүн",uz:"salqin",es:"cool/refreshing"} },
+          { char:"선선하다",word:"선선하다",meaning:{ko:"선선하다",vi:"mát rượi",zh:"清凉",en:"cool/fresh",ja:"涼しい",id:"sejuk",ru:"свежий",th:"เย็นสบาย",mn:"сэрүүхэн",uz:"salqin",es:"cool/fresh"} },
+          { char:"신선하다",word:"신선하다",meaning:{ko:"신선하다",vi:"tươi mới",zh:"新鲜",en:"fresh",ja:"新鮮だ",id:"segar",ru:"свежий",th:"สดชื่น",mn:"шинэлэг",uz:"yangi",es:"fresh"} },
+          { char:"진하다",word:"진하다",  meaning:{ko:"진하다",vi:"đậm/dày",zh:"浓/深",en:"thick/deep",ja:"濃い",id:"kental",ru:"густой",th:"เข้ม",mn:"зузаан",uz:"qalin",es:"thick/deep"} },
+          { char:"충분하다",word:"충분하다",meaning:{ko:"충분하다",vi:"đầy đủ",zh:"充分",en:"sufficient",ja:"十分だ",id:"cukup",ru:"достаточный",th:"เพียงพอ",mn:"хангалттай",uz:"yetarli",es:"sufficient"} },
+          { char:"튼튼하다",word:"튼튼하다",meaning:{ko:"튼튼하다",vi:"chắc chắn",zh:"结实",en:"strong/sturdy",ja:"丈夫だ",id:"kuat",ru:"крепкий",th:"แข็งแรง",mn:"бат бөх",uz:"mustahkam",es:"strong/sturdy"} },
+          { char:"전화하다",word:"전화하다",meaning:{ko:"전화하다",vi:"gọi điện thoại",zh:"打电话",en:"call",ja:"電話する",id:"menelepon",ru:"звонить",th:"โทรศัพท์",mn:"утасдах",uz:"telefon qilmoq",es:"call"} },
+          { char:"준비하다",word:"준비하다",meaning:{ko:"준비하다",vi:"chuẩn bị",zh:"准备",en:"prepare",ja:"準備する",id:"mempersiapkan",ru:"приготовлять",th:"เตรียม",mn:"бэлтгэх",uz:"tayyorlamoq",es:"prepare"} },
+          { char:"신다",  word:"신다",  meaning:{ko:"신다",vi:"mang (giày dép)",zh:"穿（鞋袜）",en:"put on (shoes)",ja:"履く",id:"memakai sepatu",ru:"обуваться",th:"สวมรองเท้า",mn:"гутал өмсөх",uz:"kiymoq",es:"put on (shoes)"} },
+          { char:"만나다",word:"만나다", meaning:{ko:"만나다",vi:"gặp gỡ",zh:"见面",en:"meet",ja:"会う",id:"bertemu",ru:"встречаться",th:"พบ",mn:"уулзах",uz:"uchrashmoq",es:"meet"} },
+          { char:"인사하다",word:"인사하다",meaning:{ko:"인사하다",vi:"chào hỏi",zh:"打招呼",en:"greet",ja:"挨拶する",id:"menyapa",ru:"приветствовать",th:"ทักทาย",mn:"мэндлэх",uz:"salomlashmoq",es:"greet"} },
+          { char:"선택하다",word:"선택하다",meaning:{ko:"선택하다",vi:"lựa chọn",zh:"选择",en:"select/choose",ja:"選ぶ",id:"memilih",ru:"выбирать",th:"เลือก",mn:"сонгох",uz:"tanlаmoq",es:"select/choose"} },
+          { char:"결혼하다",word:"결혼하다",meaning:{ko:"결혼하다",vi:"kết hôn",zh:"结婚",en:"marry",ja:"結婚する",id:"menikah",ru:"жениться",th:"แต่งงาน",mn:"гэрлэх",uz:"uylаnmoq",es:"marry"} },
+          { char:"전하다",word:"전하다",  meaning:{ko:"전하다",vi:"truyền đạt",zh:"传达",en:"bring/tell",ja:"伝える",id:"menyampaikan",ru:"передавать",th:"บอก",mn:"дамжуулах",uz:"yetkazmoq",es:"bring/tell"} },
+          { char:"연주하다",word:"연주하다",meaning:{ko:"연주하다",vi:"biểu diễn",zh:"演奏",en:"play (instrument)",ja:"演奏する",id:"bermain musik",ru:"исполнять",th:"เล่นดนตรี",mn:"хөгжим тоглох",uz:"musiqa chalmoq",es:"play (instrument)"} },
+          { char:"인정받다",word:"인정받다",meaning:{ko:"인정받다",vi:"được công nhận",zh:"被认可",en:"be recognized",ja:"認定される",id:"diakui",ru:"получать признание",th:"ได้รับการยอมรับ",mn:"хүлээн зөвшөөрөгдөх",uz:"tan olinmoq",es:"be recognized"} },
+          { char:"만지다",word:"만지다",  meaning:{ko:"만지다",vi:"chạm sờ",zh:"触摸",en:"touch",ja:"触る",id:"menyentuh",ru:"трогать",th:"แตะ",mn:"хүрэх",uz:"teginmoq",es:"touch"} },
+          { char:"변하다",word:"변하다",  meaning:{ko:"변하다",vi:"biến đổi",zh:"改变",en:"change",ja:"変わる",id:"berubah",ru:"меняться",th:"เปลี่ยนแปลง",mn:"өөрчлөгдөх",uz:"o'zgarmoq",es:"change"} },
+          { char:"던지다",word:"던지다",  meaning:{ko:"던지다",vi:"ném",zh:"投",en:"throw",ja:"投げる",id:"melempar",ru:"бросать",th:"ขว้าง",mn:"шидэх",uz:"otmoq",es:"throw"} },
+          { char:"그만두다",word:"그만두다",meaning:{ko:"그만두다",vi:"dừng lại",zh:"停止",en:"stop/quit",ja:"やめる",id:"berhenti",ru:"останавливать",th:"หยุด",mn:"зогсоох",uz:"to'xtatmoq",es:"stop/quit"} },
+          { char:"건너다",word:"건너다", meaning:{ko:"건너다",vi:"băng qua",zh:"横渡",en:"cross",ja:"渡る",id:"menyeberang",ru:"переходить",th:"ข้าม",mn:"гарах",uz:"kesib o'tmoq",es:"cross"} },
+          { char:"연구하다",word:"연구하다",meaning:{ko:"연구하다",vi:"nghiên cứu",zh:"研究",en:"study/research",ja:"研究する",id:"meneliti",ru:"исследовать",th:"วิจัย",mn:"судлах",uz:"tadqiq qilmoq",es:"study/research"} },
+          { char:"건설하다",word:"건설하다",meaning:{ko:"건설하다",vi:"xây dựng",zh:"建设",en:"build/construct",ja:"建設する",id:"membangun",ru:"строить",th:"สร้าง",mn:"барих",uz:"qurmoq",es:"build/construct"} },
+          { char:"중국",  word:"중국",  meaning:{ko:"중국",  vi:"Trung Quốc",zh:"中国",en:"China",ja:"中国",id:"China",ru:"Китай",th:"จีน",mn:"Хятад",uz:"Xitoy",es:"China"} },
+          { char:"영국",  word:"영국",  meaning:{ko:"영국",  vi:"Anh Quốc",zh:"英国",en:"UK/England",ja:"イギリス",id:"Inggris",ru:"Великобритания",th:"อังกฤษ",mn:"Их Британи",uz:"Britaniya",es:"UK/England"} },
+          { char:"독일",  word:"독일",  meaning:{ko:"독일",  vi:"Đức",zh:"德国",en:"Germany",ja:"ドイツ",id:"Jerman",ru:"Германия",th:"เยอรมนี",mn:"Герман",uz:"Germaniya",es:"Germany"} },
+          { char:"프랑스",word:"프랑스",meaning:{ko:"프랑스",vi:"Pháp",zh:"法国",en:"France",ja:"フランス",id:"Prancis",ru:"Франция",th:"ฝรั่งเศส",mn:"Франц",uz:"Fransiya",es:"France"} },
+          { char:"러시아",word:"러시아",meaning:{ko:"러시아",vi:"Nga",zh:"俄罗斯",en:"Russia",ja:"ロシア",id:"Rusia",ru:"Россия",th:"รัสเซีย",mn:"Орос",uz:"Rossiya",es:"Russia"} },
+          { char:"태국",  word:"태국",  meaning:{ko:"태국",  vi:"Thái Lan",zh:"泰国",en:"Thailand",ja:"タイ",id:"Thailand",ru:"Таиланд",th:"ไทย",mn:"Тайланд",uz:"Tailand",es:"Thailand"} },
+          { char:"캐나다",word:"캐나다",meaning:{ko:"캐나다",vi:"Canada",zh:"加拿大",en:"Canada",ja:"カナダ",id:"Kanada",ru:"Канада",th:"แคนาดา",mn:"Канад",uz:"Kanada",es:"Canada"} },
+          { char:"베트남",word:"베트남",meaning:{ko:"베트남",vi:"Việt Nam",zh:"越南",en:"Vietnam",ja:"ベトナム",id:"Vietnam",ru:"Вьетнам",th:"เวียดนาม",mn:"Вьетнам",uz:"Vyetnam",es:"Vietnam"} },
+          { char:"안전",  word:"안전",  meaning:{ko:"안전",  vi:"an toàn",zh:"安全",en:"safety",ja:"安全",id:"keamanan",ru:"безопасность",th:"ความปลอดภัย",mn:"аюулгүй байдал",uz:"xavfsizlik",es:"safety"} },
+          { char:"건물",  word:"건물",  meaning:{ko:"건물",  vi:"tòa nhà",zh:"建筑物",en:"building",ja:"建物",id:"gedung",ru:"здание",th:"อาคาร",mn:"байшин",uz:"bino",es:"building"} },
+          { char:"전통",  word:"전통",  meaning:{ko:"전통",  vi:"truyền thống",zh:"传统",en:"tradition",ja:"伝統",id:"tradisi",ru:"традиция",th:"ประเพณี",mn:"уламжлал",uz:"an'ana",es:"tradition"} },
+          { char:"인터넷",word:"인터넷",meaning:{ko:"인터넷",vi:"internet",zh:"互联网",en:"internet",ja:"インターネット",id:"internet",ru:"интернет",th:"อินเทอร์เน็ต",mn:"интернет",uz:"internet",es:"internet"} },
+          { char:"신청",  word:"신청",  meaning:{ko:"신청",  vi:"đăng ký / xin",zh:"申请",en:"application/request",ja:"申請",id:"permohonan",ru:"заявление",th:"การสมัคร",mn:"өргөдөл",uz:"ariza",es:"application/request"} },
+                ],
+        tip:{ko:"💡 [비음+연음] 받침 ㄴ은 혀를 윗니 뒤에 붙이고 코로 내는 소리예요. 다음 음절이 모음으로 시작하면 받침 ㄴ이 그대로 넘어가요! 예) 친구[친구] 문이[무니] 돈이[도니]",vi:"Chạm lưỡi vào mặt trong răng cửa và thổi nhẹ không khí qua mũi.",en:"Touch your tongue behind your front teeth and gently release air through your nose.",zh:"💡【鼻音+连音】收音ㄴ是舌头抵住上齿背从鼻子发出的音。若下一音节以元音开头，收音ㄴ会直接连读过去！例：친구[친구] 문이[무니] 돈이[도니]",ja:"💡【鼻音＋連音】パッチムㄴは舌を上の歯の裏につけて鼻から出す音です。次の音節が母音で始まると、パッチムㄴはそのままつながります！例）친구[친구] 문이[무니] 돈이[도니]",id:"💡[Nasal + liaison] Konsonan akhir ㄴ dibuat dengan menempelkan lidah di belakang gigi atas dan mengeluarkan bunyi lewat hidung. Jika suku kata berikutnya dimulai dengan vokal, konsonan akhir ㄴ akan terhubung langsung! Contoh) 친구[친구] 문이[무니] 돈이[도니]",ru:"💡[Носовой звук + связывание] Конечная согласная ㄴ образуется прижатием языка за верхними зубами и произнесением через нос. Если следующий слог начинается с гласной, конечная ㄴ переходит прямо в него! Напр.) 친구[친구] 문이[무니] 돈이[도니]",th:"💡[เสียงนาสิก+การเชื่อมเสียง] ตัวสะกด ㄴ เกิดจากการแตะลิ้นด้านหลังฟันบนแล้วปล่อยเสียงออกทางจมูก หากพยางค์ถัดไปขึ้นต้นด้วยสระ ตัวสะกด ㄴ จะเชื่อมต่อไปเลย! ตัวอย่าง) 친구[친구] 문이[무니] 돈이[도니]",mn:"💡[Хамрын авиа + холбох дуудлага] Төгсгөлийн ㄴ нь хэлээ дээд шүдний ард наагаад хамраар гаргадаг дуу авиа юм. Дараагийн үе эгшгээр эхэлбэл төгсгөлийн ㄴ шууд холбогдоно! Жишээ) 친구[친구] 문이[무니] 돈이[도니]",uz:"💡[Burun tovushi + bog'lovchi talaffuz] Oxirgi undosh ㄴ tilni yuqori tishlar ortiga tekkizib, burundan chiqariladigan tovushdir. Keyingi bo'g'in unli bilan boshlansa, oxirgi ㄴ to'g'ridan-to'g'ri o'tadi! Masalan) 친구[친구] 문이[무니] 돈이[도니]",es:"💡[Nasal + enlace] La consonante final ㄴ se produce tocando la lengua detrás de los dientes superiores y emitiendo el sonido por la nariz. ¡Si la siguiente sílaba empieza con vocal, la ㄴ final se conecta directamente! Ej.) 친구[친구] 문이[무니] 돈이[도니]",fr:"💡[Nasal + liaison] La consonne finale ㄴ se produit en touchant la langue derrière les dents du haut et en laissant sortir le son par le nez. Si la syllabe suivante commence par une voyelle, la consonne finale ㄴ se lie directement ! Ex. : 친구[친구] 문이[무니] 돈이[도니]",ne:"💡[नाक ध्वनि + जोड्ने उच्चारण] अन्त्य व्यञ्जन ㄴ जिब्रो माथिल्लो दाँतको पछाडि टाँसेर नाकबाट निकालिने ध्वनि हो। अर्को अक्षर स्वरबाट सुरु भएमा अन्त्य ㄴ सिधै जोडिन्छ! उदाहरण) 친구[친구] 문이[무니] 돈이[도니]",de:"💡[Nasal + Verbindung] Der Endkonsonant ㄴ entsteht, indem die Zunge hinter die oberen Zähne gelegt und der Klang durch die Nase abgegeben wird. Beginnt die nächste Silbe mit einem Vokal, geht das End-ㄴ direkt über! Bsp.: 친구[친구] 문이[무니] 돈이[도니]"},
+      },
+      // ── 단계 16: 받침 ㄷ계열 ──
+      { id:"batchim_d", type:"learn", emoji:"🧱",
+        title:{ko:"16. 받침 [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",vi:"16. Phụ âm cuối [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",en:"16. Final Consonant [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",zh:"16. 收音 [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",ja:"16. パッチム [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",id:"16. Konsonan Akhir [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",ru:"16. Конечная согласная [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",th:"16. ตัวสะกด [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",mn:"16. Төгсгөлийн гийгүүлэгч [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",uz:"16. Oxirgi undosh [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",es:"16. Consonante final [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",fr:"16. Consonne finale [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",ne:"16. अन्त्य व्यञ्जन [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",de:"16. Endkonsonant [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]"},
+        desc:{ko:"모양은 달라도 받침에서는 모두 같은 [ㄷ] 소리가 납니다.",vi:"Dù hình dạng khác nhau, tất cả đều phát âm [ㄷ] ở vị trí phụ âm cuối.",en:"Though the shapes differ, all are pronounced as [ㄷ] in the final position.",zh:"虽然字形不同，但作为收音时都发[ㄷ]的音。",ja:"形は違っても、パッチムではすべて同じ[ㄷ]の音になります。",id:"Meskipun bentuknya berbeda, semuanya diucapkan sebagai bunyi [ㄷ] saat menjadi konsonan akhir.",ru:"Хотя написание разное, в конце слова все они произносятся как звук [ㄷ].",th:"แม้รูปร่างจะต่างกัน แต่เมื่อเป็นตัวสะกดจะออกเสียงเป็น [ㄷ] เหมือนกันหมด",mn:"Бичлэг өөр ч төгсгөлийн байрлалд бүгд адилхан [ㄷ] дуу гардаг.",uz:"Shakli har xil bo'lsa-da, oxirgi undosh bo'lganda hammasi [ㄷ] tovushi bilan aytiladi.",es:"Aunque la forma sea diferente, como consonante final todas se pronuncian igual, como [ㄷ].",fr:"Bien que la forme diffère, toutes se prononcent [ㄷ] en position finale.",ne:"आकार फरक भए पनि अन्त्य व्यञ्जनमा सबै [ㄷ] जस्तै उच्चारण हुन्छ।",de:"Auch wenn die Form unterschiedlich ist, werden sie als Endkonsonant alle wie [ㄷ] ausgesprochen."},
+        items:[
+          { char:"옷",    word:"옷",    meaning:{ko:"옷",    vi:"quần áo",zh:"衣服",en:"clothes",ja:"服",id:"pakaian",ru:"одежда",th:"เสื้อผ้า",mn:"хувцас",uz:"kiyim",es:"clothes"} },
+          { char:"꽃",    word:"꽃",    meaning:{ko:"꽃",    vi:"hoa",zh:"花",en:"flower",ja:"花",id:"bunga",ru:"цветок",th:"ดอกไม้",mn:"цэцэг",uz:"gul",es:"flower"} },
+          { char:"빛",    word:"빛",    meaning:{ko:"빛",    vi:"ánh sáng",zh:"光",en:"light",ja:"光",id:"cahaya",ru:"свет",th:"แสง",mn:"гэрэл",uz:"nur",es:"light"} },
+          { char:"낮",    word:"낮",    meaning:{ko:"낮",    vi:"ban ngày",zh:"白天",en:"daytime",ja:"昼",id:"siang hari",ru:"день",th:"กลางวัน",mn:"өдөр",uz:"kunduz",es:"daytime"} },
+          { char:"밖",    word:"밖",    meaning:{ko:"밖",    vi:"bên ngoài",zh:"外面",en:"outside",ja:"外",id:"luar",ru:"снаружи",th:"ข้างนอก",mn:"гадаа",uz:"tashqari",es:"outside"} },
+          { char:"듣다",  word:"듣다",  meaning:{ko:"듣다",  vi:"nghe",zh:"听",en:"to listen",ja:"聞く",id:"mendengar",ru:"слушать",th:"ฟัง",mn:"сонсох",uz:"eshitmoq",es:"to listen"} },
+          { char:"믿다",  word:"믿다",  meaning:{ko:"믿다",  vi:"tin tưởng",zh:"相信",en:"to trust",ja:"信じる",id:"percaya",ru:"верить",th:"เชื่อ",mn:"итгэх",uz:"ishonmoq",es:"to trust"} },
+          { char:"걷다",  word:"걷다",  meaning:{ko:"걷다",  vi:"đi bộ",zh:"走路",en:"to walk",ja:"歩く",id:"berjalan",ru:"ходить",th:"เดิน",mn:"явах",uz:"yurmoq",es:"to walk"} },
+          { char:"낫다",  word:"낫다",  meaning:{ko:"낫다",  vi:"tốt hơn / khỏi bệnh",zh:"好转",en:"to get better",ja:"治る",id:"lebih baik",ru:"поправиться",th:"ดีขึ้น",mn:"сайжрах",uz:"yaxshilanmoq",es:"to get better"} },
+          { char:"부엌",  word:"부엌",  meaning:{ko:"부엌",  vi:"nhà bếp",zh:"厨房",en:"kitchen",ja:"台所",id:"dapur",ru:"кухня",th:"ห้องครัว",mn:"гал тогоо",uz:"oshxona",es:"kitchen"} },
+          { char:"이웃",  word:"이웃",  meaning:{ko:"이웃",  vi:"hàng xóm",zh:"邻居",en:"neighbor",ja:"隣人",id:"tetangga",ru:"сосед",th:"เพื่อนบ้าน",mn:"хөрш",uz:"qo'shni",es:"neighbor"} },
+          { char:"끝",    word:"끝",    meaning:{ko:"끝",    vi:"kết thúc",zh:"结束",en:"end/finish",ja:"終わり",id:"akhir",ru:"конец",th:"จุดสิ้นสุด",mn:"төгсгөл",uz:"tugash",es:"end/finish"} },
+          { char:"이웃",  word:"이웃",  meaning:{ko:"이웃",  vi:"hàng xóm",zh:"邻居",en:"neighbor",ja:"隣人",id:"tetangga",ru:"сосед",th:"เพื่อนบ้าน",mn:"хөрш",uz:"qo'shni",es:"neighbor"} },
+          { char:"닷새",  word:"닷새",  meaning:{ko:"닷새",  vi:"năm ngày",zh:"五天",en:"five days",ja:"五日",id:"lima hari",ru:"пять дней",th:"ห้าวัน",mn:"таван өдөр",uz:"besh kun",es:"five days"} },
+          { char:"낮",    word:"낮",    meaning:{ko:"낮(낮)",vi:"ban ngày",zh:"白天",en:"the day/daytime",ja:"昼",id:"siang hari",ru:"день",th:"กลางวัน",mn:"өдөр",uz:"kunduz",es:"the day/daytime"} },
+          { char:"낫",    word:"낫",    meaning:{ko:"낫",    vi:"cái liềm",zh:"镰刀",en:"sickle",ja:"鎌",id:"sabit",ru:"серп",th:"เคียว",mn:"хадуур",uz:"o'roq",es:"sickle"} },
+          { char:"낯",    word:"낯",    meaning:{ko:"낯",    vi:"diện mạo",zh:"脸",en:"face",ja:"顔",id:"wajah",ru:"лицо",th:"หน้า",mn:"нүүр",uz:"yuz",es:"face"} },
+          { char:"못",    word:"못",    meaning:{ko:"못",    vi:"cái đinh",zh:"钉子",en:"nail",ja:"釘",id:"paku",ru:"гвоздь",th:"ตะปู",mn:"хадаас",uz:"mix",es:"nail"} },
+          { char:"젓가락",word:"젓가락",meaning:{ko:"젓가락",vi:"đũa",zh:"筷子",en:"chopsticks",ja:"箸",id:"sumpit",ru:"палочки",th:"ตะเกียบ",mn:"савх",uz:"tayoqchalar",es:"chopsticks"} },
+          { char:"숟가락",word:"숟가락",meaning:{ko:"숟가락",vi:"muỗng",zh:"汤匙",en:"spoon",ja:"スプーン",id:"sendok",ru:"ложка",th:"ช้อน",mn:"халбага",uz:"qoshiq",es:"spoon"} },
+          { char:"빗",    word:"빗",    meaning:{ko:"빗",    vi:"cái lược",zh:"梳子",en:"comb",ja:"くし",id:"sisir",ru:"расчёска",th:"หวี",mn:"самуур",uz:"taroq",es:"comb"} },
+          { char:"빚",    word:"빚",    meaning:{ko:"빚",    vi:"món nợ",zh:"债务",en:"debt",ja:"借金",id:"hutang",ru:"долг",th:"หนี้สิน",mn:"өр",uz:"qarz",es:"debt"} },
+          { char:"그릇",  word:"그릇",  meaning:{ko:"그릇",  vi:"cái bát",zh:"碗",en:"bowl",ja:"器",id:"mangkuk",ru:"миска",th:"ถ้วยชาม",mn:"аяга",uz:"idish",es:"bowl"} },
+          { char:"옷걸이",word:"옷걸이",meaning:{ko:"옷걸이",vi:"móc treo quần áo",zh:"衣架",en:"hanger",ja:"ハンガー",id:"hanger",ru:"вешалка",th:"ไม้แขวนเสื้อ",mn:"цүнх өлгөгч",uz:"kiyim ilgich",es:"hanger"} },
+          { char:"옷장",  word:"옷장",  meaning:{ko:"옷장",  vi:"tủ quần áo",zh:"衣橱",en:"closet",ja:"タンス",id:"lemari pakaian",ru:"шкафонер",th:"ตู้เสื้อผ้า",mn:"хувцасны шүүгээ",uz:"kiyim shkafi",es:"closet"} },
+          { char:"칫솔",  word:"칫솔",  meaning:{ko:"칫솔",  vi:"bàn chải đánh răng",zh:"牙刷",en:"toothbrush",ja:"歯ブラシ",id:"sikat gigi",ru:"зубная щётка",th:"แปรงสีฟัน",mn:"шүдний сойз",uz:"tish cho'tkasi",es:"toothbrush"} },
+          { char:"잇몸",  word:"잇몸",  meaning:{ko:"잇몸",  vi:"chân răng (lợi)",zh:"牙龈",en:"gum",ja:"歯茎",id:"gusi",ru:"десна",th:"เหงือก",mn:"буй луу",uz:"milk",es:"gum"} },
+          { char:"맛",    word:"맛",    meaning:{ko:"맛",    vi:"vị",zh:"味道",en:"taste",ja:"味",id:"rasa",ru:"вкус",th:"รสชาติ",mn:"амт",uz:"ta'm",es:"taste"} },
+          { char:"삼겹살",word:"삼겹살",meaning:{ko:"삼겹살",vi:"thịt ba chỉ",zh:"五花肉",en:"pork belly",ja:"サムギョプサル",id:"perut babi",ru:"самгёпсал",th:"หมูสามชั้น",mn:"гурван давхар мах",uz:"qorin mazi",es:"pork belly"} },
+          { char:"초콜릿",word:"초콜릿",meaning:{ko:"초콜릿",vi:"sô cô la",zh:"巧克力",en:"chocolate",ja:"チョコレート",id:"cokelat",ru:"шоколад",th:"ช็อกโกแลต",mn:"шоколад",uz:"shokolad",es:"chocolate"} },
+          { char:"콧물",  word:"콧물",  meaning:{ko:"콧물",  vi:"nước mũi",zh:"鼻涕",en:"runny nose",ja:"鼻水",id:"ingus",ru:"сопли",th:"น้ำมูก",mn:"хамрын нус",uz:"burun suyi",es:"runny nose"} },
+          { char:"댓글",  word:"댓글",  meaning:{ko:"댓글",  vi:"bình luận",zh:"留言",en:"reply/comment",ja:"リプライ",id:"komentar",ru:"комментарий",th:"ความคิดเห็น",mn:"сэтгэгдэл",uz:"izoh",es:"reply/comment"} },
+          { char:"인터넷",word:"인터넷",meaning:{ko:"인터넷",vi:"internet",zh:"网络",en:"internet",ja:"インターネット",id:"internet",ru:"интернет",th:"อินเทอร์เน็ต",mn:"интернет",uz:"internet",es:"internet"} },
+          { char:"트럼펫",word:"트럼펫",meaning:{ko:"트럼펫",vi:"kèn trumpet",zh:"小号",en:"trumpet",ja:"トランペット",id:"terompet",ru:"труба",th:"ทรัมเป็ต",mn:"бүрээ",uz:"truba",es:"trumpet"} },
+          { char:"인터넷뱅킹",word:"인터넷뱅킹",meaning:{ko:"인터넷뱅킹",vi:"ngân hàng điện tử",zh:"网上金融",en:"internet banking",ja:"インターネットバンキング",id:"internet banking",ru:"интернет-банкинг",th:"ธนาคารออนไลน์",mn:"интернет банк",uz:"internet banking",es:"internet banking"} },
+          { char:"슈퍼마켓",word:"슈퍼마켓",meaning:{ko:"슈퍼마켓",vi:"siêu thị",zh:"超市",en:"supermarket",ja:"スーパーマーケット",id:"supermarket",ru:"супермаркет",th:"ซูเปอร์มาร์เก็ต",mn:"супермаркет",uz:"supermarket",es:"supermarket"} },
+          { char:"꽃다발",word:"꽃다발",meaning:{ko:"꽃다발",vi:"bó hoa",zh:"花束",en:"a bunch of flowers",ja:"花束",id:"buket bunga",ru:"букет цветов",th:"ช่อดอกไม้",mn:"цэцэгийн баглаа",uz:"guldasta",es:"a bunch of flowers"} },
+          { char:"밭",    word:"밭",    meaning:{ko:"밭",    vi:"cánh đồng",zh:"田地",en:"field",ja:"畑",id:"ladang",ru:"поле",th:"ทุ่งนา",mn:"тариалан",uz:"dala",es:"field"} },
+          { char:"햇빛",  word:"햇빛",  meaning:{ko:"햇빛",  vi:"ánh sáng mặt trời",zh:"阳光",en:"sunlight",ja:"日の光",id:"sinar matahari",ru:"солнечные лучи",th:"แสงแดด",mn:"нарны гэрэл",uz:"quyosh nuri",es:"sunlight"} },
+          { char:"숫자",  word:"숫자",  meaning:{ko:"숫자",  vi:"chữ số",zh:"数字",en:"number/digit",ja:"数字",id:"angka",ru:"цифра",th:"ตัวเลข",mn:"тоо",uz:"raqam",es:"number/digit"} },
+          { char:"노랗다",word:"노랗다",meaning:{ko:"노랗다",vi:"vàng",zh:"黄色",en:"yellow",ja:"黄色い",id:"kuning",ru:"жёлтый",th:"สีเหลือง",mn:"шар",uz:"sariq",es:"yellow"} },
+          { char:"파랗다",word:"파랗다",meaning:{ko:"파랗다",vi:"xanh dương",zh:"蓝色",en:"blue",ja:"青い",id:"biru",ru:"синий",th:"สีน้ำเงิน",mn:"хөх",uz:"ko'k",es:"blue"} },
+          { char:"하얗다",word:"하얗다",meaning:{ko:"하얗다",vi:"trắng",zh:"雪白",en:"white",ja:"白い",id:"putih",ru:"белый",th:"สีขาว",mn:"цагаан",uz:"oq",es:"white"} },
+          { char:"까맣다",word:"까맣다",meaning:{ko:"까맣다",vi:"đen",zh:"漆黑",en:"black",ja:"黒い",id:"hitam",ru:"чёрный",th:"สีดำ",mn:"хар",uz:"qora",es:"black"} },
+          { char:"셋",    word:"셋",    meaning:{ko:"셋",    vi:"ba (3)",zh:"三",en:"three",ja:"三",id:"tiga",ru:"три",th:"สาม",mn:"гурав",uz:"uch",es:"three"} },
+          { char:"넷",    word:"넷",    meaning:{ko:"넷",    vi:"bốn (4)",zh:"四",en:"four",ja:"四",id:"empat",ru:"четыре",th:"สี่",mn:"дөрөв",uz:"to'rt",es:"four"} },
+          { char:"다섯",  word:"다섯",  meaning:{ko:"다섯",  vi:"năm (5)",zh:"五",en:"five",ja:"五",id:"lima",ru:"пять",th:"ห้า",mn:"тав",uz:"besh",es:"five"} },
+          { char:"여섯",  word:"여섯",  meaning:{ko:"여섯",  vi:"sáu (6)",zh:"六",en:"six",ja:"六",id:"enam",ru:"шесть",th:"หก",mn:"зургаа",uz:"olti",es:"six"} },
+          { char:"뜻",    word:"뜻",    meaning:{ko:"뜻",    vi:"ý nghĩa",zh:"意思",en:"meaning",ja:"意味",id:"arti",ru:"значение",th:"ความหมาย",mn:"утга",uz:"ma'no",es:"meaning"} },
+          { char:"멋",    word:"멋",    meaning:{ko:"멋",    vi:"vẻ hấp dẫn",zh:"风度",en:"stylish/cool",ja:"しゃれ",id:"gaya",ru:"элегантность",th:"สไตล์",mn:"загвар",uz:"uslub",es:"stylish/cool"} },
+          { char:"웃음",  word:"웃음",  meaning:{ko:"웃음",  vi:"nụ cười",zh:"笑容",en:"smile",ja:"笑い",id:"senyum",ru:"смех",th:"รอยยิ้ม",mn:"инээмсэглэл",uz:"tabassum",es:"smile"} },
+          { char:"윷놀이",word:"윷놀이",meaning:{ko:"윷놀이",vi:"trò chơi Yut",zh:"掷棍游戏",en:"game of yut",ja:"ユンノリ",id:"permainan yut",ru:"игра «Ют»",th:"เกมยุต",mn:"юут тоглоом",uz:"yut o'yini",es:"game of yut"} },
+          { char:"거짓말",word:"거짓말",meaning:{ko:"거짓말",vi:"lời nói dối",zh:"谎言",en:"lie",ja:"嘘",id:"kebohongan",ru:"ложь",th:"การโกหก",mn:"худал",uz:"yolg'on",es:"lie"} },
+          { char:"얕다",  word:"얕다",  meaning:{ko:"얕다",  vi:"cạn",zh:"浅",en:"shallow",ja:"浅い",id:"dangkal",ru:"неглубокий",th:"ตื้น",mn:"гүехэн",uz:"sayoz",es:"shallow"} },
+          { char:"굳다",  word:"굳다",  meaning:{ko:"굳다",  vi:"cứng",zh:"坚硬",en:"harden",ja:"固い",id:"mengeras",ru:"затвердевать",th:"แข็ง",mn:"хатуурах",uz:"qotmoq",es:"harden"} },
+          { char:"못하다",word:"못하다",meaning:{ko:"못하다",vi:"không giỏi",zh:"不能",en:"be bad at",ja:"できない",id:"tidak bisa",ru:"не мочь",th:"ไม่เก่ง",mn:"чадахгүй",uz:"qila olmaslik",es:"be bad at"} },
+          { char:"따뜻하다",word:"따뜻하다",meaning:{ko:"따뜻하다",vi:"ấm áp",zh:"温暖",en:"warm",ja:"暖かい",id:"hangat",ru:"тёплый",th:"อบอุ่น",mn:"дулаахан",uz:"iliq",es:"warm"} },
+          { char:"깨끗하다",word:"깨끗하다",meaning:{ko:"깨끗하다",vi:"sạch sẽ",zh:"干净",en:"clean",ja:"きれいだ",id:"bersih",ru:"чистый",th:"สะอาด",mn:"цэвэр",uz:"toza",es:"clean"} },
+          { char:"못생기다",word:"못생기다",meaning:{ko:"못생기다",vi:"xấu xí",zh:"丑陋",en:"ugly",ja:"醜い",id:"jelek",ru:"некрасивый",th:"น่าเกลียด",mn:"муухай",uz:"xunuk",es:"ugly"} },
+          { char:"알맞다",word:"알맞다", meaning:{ko:"알맞다",vi:"phù hợp",zh:"合适",en:"fit/suitable",ja:"通当だ",id:"sesuai",ru:"подходящий",th:"เหมาะสม",mn:"тохирсон",uz:"mos",es:"fit/suitable"} },
+          { char:"걷다",  word:"걷다",  meaning:{ko:"걷다",vi:"đi bộ",zh:"走",en:"walk",ja:"歩く",id:"berjalan",ru:"идти пешком",th:"เดิน",mn:"алхах",uz:"yurmoq",es:"walk"} },
+          { char:"닫다",  word:"닫다",  meaning:{ko:"닫다",vi:"đóng",zh:"关闭",en:"close",ja:"閉める",id:"menutup",ru:"закрывать",th:"ปิด",mn:"хаах",uz:"yopmoq",es:"close"} },
+          { char:"벗다",  word:"벗다",  meaning:{ko:"벗다",vi:"cởi",zh:"脱",en:"take off",ja:"脱ぐ",id:"melepas",ru:"снимать",th:"ถอด",mn:"тайлах",uz:"yechmoq",es:"take off"} },
+          { char:"씻다",  word:"씻다",  meaning:{ko:"씻다",vi:"rửa",zh:"洗",en:"wash/clean",ja:"洗う",id:"mencuci",ru:"мыть",th:"ล้าง",mn:"угаах",uz:"yuvmoq",es:"wash/clean"} },
+          { char:"젖다",  word:"젖다",  meaning:{ko:"젖다",vi:"ướt",zh:"湿",en:"wet",ja:"濡れる",id:"basah",ru:"мокнуть",th:"เปียก",mn:"норох",uz:"ho'llanmoq",es:"wet"} },
+          { char:"끝나다",word:"끝나다",meaning:{ko:"끝나다",vi:"kết thúc",zh:"结束",en:"finish/end",ja:"終わる",id:"selesai",ru:"завершаться",th:"เสร็จสิ้น",mn:"дуусах",uz:"tugamoq",es:"finish/end"} },
+          { char:"받다",  word:"받다",  meaning:{ko:"받다",vi:"nhận",zh:"接受",en:"accept/receive",ja:"受ける",id:"menerima",ru:"принимать",th:"รับ",mn:"хүлээн авах",uz:"qabul qilmoq",es:"accept/receive"} },
+          { char:"넣다",  word:"넣다",  meaning:{ko:"넣다",vi:"bỏ vào",zh:"放入",en:"put in",ja:"入れる",id:"memasukkan",ru:"вложить",th:"ใส่",mn:"хийх",uz:"solishtirmoq",es:"put in"} },
+          { char:"놓다",  word:"놓다",  meaning:{ko:"놓다",vi:"đặt/để",zh:"放下",en:"put/place",ja:"置く",id:"meletakkan",ru:"класть",th:"วาง",mn:"тавих",uz:"qo'ymoq",es:"put/place"} },
+          { char:"쌓다",  word:"쌓다",  meaning:{ko:"쌓다",vi:"chồng chất",zh:"堆积",en:"accumulate/pile up",ja:"積む",id:"menumpuk",ru:"складывать",th:"กองสะสม",mn:"нийлүүлэх",uz:"to'plamoq",es:"accumulate/pile up"} },
+          { char:"맞추다",word:"맞추다",meaning:{ko:"맞추다",vi:"làm cho khớp",zh:"配合",en:"fit/match",ja:"合わせる",id:"menyesuaikan",ru:"подстраивать",th:"ให้พอดี",mn:"тохируулах",uz:"moslashtirmoq",es:"fit/match"} },
+          { char:"잊다",  word:"잊다",  meaning:{ko:"잊다",vi:"quên",zh:"忘记",en:"forget",ja:"忘れる",id:"melupakan",ru:"забывать",th:"ลืม",mn:"мартах",uz:"unutmoq",es:"forget"} },
+          { char:"찾다",  word:"찾다",  meaning:{ko:"찾다",vi:"tìm kiếm",zh:"寻找",en:"find/seek",ja:"探す",id:"mencari",ru:"искать",th:"หา",mn:"хайх",uz:"qidirmoq",es:"find/seek"} },
+          { char:"웃다",  word:"웃다",  meaning:{ko:"웃다",vi:"cười",zh:"笑",en:"laugh",ja:"笑う",id:"tertawa",ru:"смеяться",th:"หัวเราะ",mn:"инээх",uz:"kulmoq",es:"laugh"} },
+          { char:"싣다",  word:"싣다",  meaning:{ko:"싣다",vi:"chất lên",zh:"装载",en:"load",ja:"のせる",id:"memuat",ru:"грузить",th:"บรรทุก",mn:"ачих",uz:"yuklаmoq",es:"load"} },
+          { char:"듣다",  word:"듣다",  meaning:{ko:"듣다",vi:"nghe",zh:"听",en:"hear/listen",ja:"聞く",id:"mendengar",ru:"слышать",th:"ฟัง",mn:"сонсох",uz:"eshitmoq",es:"hear/listen"} },
+          { char:"묻다",  word:"묻다",  meaning:{ko:"묻다",vi:"hỏi",zh:"问",en:"ask",ja:"問う",id:"bertanya",ru:"спрашивать",th:"ถาม",mn:"асуух",uz:"so'ramoq",es:"ask"} },
+          { char:"맺다",  word:"맺다",  meaning:{ko:"맺다",vi:"kết trái/thiết lập",zh:"结",en:"bear fruit/form",ja:"結ぶ",id:"membentuk",ru:"образовываться",th:"ผูก",mn:"жимслэх",uz:"hosil bermoq",es:"bear fruit/form"} },
+          { char:"낳다",  word:"낳다",  meaning:{ko:"낳다",vi:"sinh",zh:"生",en:"give birth",ja:"生む",id:"melahirkan",ru:"рожать",th:"คลอด",mn:"төрүүлэх",uz:"tug'moq",es:"give birth"} },
+          { char:"낫다",  word:"낫다(회복)",meaning:{ko:"낫다(회복)",vi:"tốt hơn",zh:"康复",en:"recover/get better",ja:"良くなる",id:"sembuh",ru:"поправляться",th:"หายดีขึ้น",mn:"сайжрах",uz:"yaxshilanmoq",es:"recover/get better"} },
+          { char:"붙다",  word:"붙다",  meaning:{ko:"붙다",vi:"dính lại",zh:"粘",en:"glue/attach",ja:"付く",id:"menempel",ru:"прикреплять",th:"ติด",mn:"наалдах",uz:"yopishmoq",es:"glue/attach"} },
+          { char:"재미있다",word:"재미있다",meaning:{ko:"재미있다",vi:"thú vị",zh:"有趣",en:"funny/interesting",ja:"面白い",id:"menarik",ru:"интересный",th:"สนุก",mn:"сонирхолтой",uz:"qiziqarli",es:"funny/interesting"} },
+          { char:"낮다",  word:"낮다",  meaning:{ko:"낮다",vi:"thấp",zh:"低矮",en:"low",ja:"低い",id:"rendah",ru:"низкий",th:"ต่ำ",mn:"нам",uz:"past",es:"low"} },
+          { char:"같다",  word:"같다",  meaning:{ko:"같다",vi:"giống nhau",zh:"一样",en:"same/equal",ja:"同じ",id:"sama",ru:"одинаковый",th:"เหมือนกัน",mn:"ижил",uz:"bir xil",es:"same/equal"} },
+          { char:"빨갛다",word:"빨갛다",meaning:{ko:"빨갛다",vi:"đỏ",zh:"红",en:"red",ja:"赤い",id:"merah",ru:"красный",th:"สีแดง",mn:"улаан",uz:"qizil",es:"red"} },
+          { char:"수줍다",word:"수줍다", meaning:{ko:"수줍다",vi:"e dè",zh:"害羞",en:"shy",ja:"恥ずかしがり",id:"pemalu",ru:"застенчивый",th:"ขี้อาย",mn:"ичимхий",uz:"uyatchan",es:"shy"} },
+          { char:"긋다",  word:"긋다",  meaning:{ko:"긋다",vi:"vạch/kẻ",zh:"划线",en:"draw a line",ja:"線を引く",id:"menggaris",ru:"проводить линию",th:"ขีดเส้น",mn:"зурах",uz:"chizmoq",es:"draw a line"} },
+          { char:"돋다",  word:"돋다",  meaning:{ko:"돋다",vi:"mọc/nổi lên",zh:"升起",en:"rise/sprout",ja:"生える",id:"tumbuh",ru:"восходить",th:"งอก",mn:"ургах",uz:"unmoq",es:"rise/sprout"} },
+                ],
+        tip:{ko:"💡 [대표음화] 7가지 자음(ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ)이 받침에서 모두 [ㄷ]으로 발음돼요. 혀를 윗니 뒤에 살짝 대고 소리를 막아요. 예) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",vi:"Dù hình dạng chữ khác nhau, tất cả đều phát âm [ㄷ] ở vị trí phụ âm cuối.",en:"Though the shapes differ, all of these are pronounced as [ㄷ] in the final consonant position.",zh:"💡【代表音化】7个辅音（ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ）作收音时都发[ㄷ]音。舌尖轻抵上齿背阻断声音。例：옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",ja:"💡【代表音化】7つの子音（ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ）はパッチムでは全て[ㄷ]と発音されます。舌先を上の歯の裏に軽く当てて音を止めます。例）옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",id:"💡[Bunyi representatif] 7 konsonan (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) semuanya diucapkan sebagai [ㄷ] saat menjadi konsonan akhir. Tempelkan lidah ringan di belakang gigi atas dan tahan bunyinya. Contoh) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",ru:"💡[Репрезентативный звук] 7 согласных (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) в конце слова все произносятся как [ㄷ]. Слегка коснитесь языком верхних зубов и остановите звук. Напр.) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",th:"💡[เสียงตัวแทน] พยัญชนะ 7 ตัว (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) เมื่อเป็นตัวสะกดจะออกเสียงเป็น [ㄷ] ทั้งหมด แตะปลายลิ้นที่ฟันบนเบา ๆ แล้วกักเสียงไว้ ตัวอย่าง) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",mn:"💡[Төлөөлөх авиа] 7 гийгүүлэгч (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) нь төгсгөлийн байрлалд бүгд [ㄷ] гэж дуудагдана. Хэлний үзүүрээ дээд шүдэнд бага зэрэг хүргээд дууг хааж бай. Жишээ) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",uz:"💡[Vakillik tovushi] 7 ta undosh (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) oxirgi undosh bo'lganda hammasi [ㄷ] deb aytiladi. Til uchini yuqori tishlar ortiga yengil tekkizib tovushni to'xtating. Masalan) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",es:"💡[Sonido representativo] Las 7 consonantes (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) se pronuncian todas como [ㄷ] al final de sílaba. Toque ligeramente la lengua detrás de los dientes superiores y detenga el sonido. Ej.) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",fr:"💡[Son représentatif] Les 7 consonnes (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) se prononcent toutes [ㄷ] en position finale. Touchez légèrement la langue derrière les dents du haut et arrêtez le son. Ex. : 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",ne:"💡[प्रतिनिधि ध्वनि] ७ व्यञ्जन (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) अन्त्य व्यञ्जनमा सबै [ㄷ] उच्चारण हुन्छ। जिब्रोको टुप्पो माथिल्लो दाँतमा हल्का छोई ध्वनि रोक्नुहोस्। उदाहरण) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",de:"💡[Repräsentativer Laut] Die 7 Konsonanten (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) werden am Ende alle als [ㄷ] ausgesprochen. Berühren Sie mit der Zungenspitze leicht die oberen Zähne und stoppen Sie den Klang. Bsp.: 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]"},
+      },
+      // ── 단계 17: 겹받침 + 연음 ──
+      { id:"double_liaison", type:"learn", emoji:"🔗",
+        title:{ko:"17. 겹받침 + 연음법칙 — 최종 관문!",vi:"17. Phụ âm cuối kép + Quy tắc liên âm — Cửa ải cuối cùng!",en:"17. Double Final Consonants + Liaison Rule — Final Gate!",zh:"17. 复合收音 + 连音规则 — 最终关卡！",ja:"17. 二重パッチム＋連音規則 — 最終関門！",id:"17. Konsonan Akhir Ganda + Aturan Liaison — Gerbang Terakhir!",ru:"17. Двойная конечная согласная + правило связывания — финальные врата!",th:"17. ตัวสะกดซ้อน + กฎการเชื่อมเสียง — ด่านสุดท้าย!",mn:"17. Давхар төгсгөлийн гийгүүлэгч + Холбох дуудлагын дүрэм — Сүүлчийн хаалга!",uz:"17. Qo'sh oxirgi undosh + Bog'lovchi talaffuz qoidasi — Yakuniy darvoza!",es:"17. Consonante final doble + regla de enlace — ¡Puerta final!",fr:"17. Consonne finale double + règle de liaison — Dernière étape !",ne:"17. दोहोरो अन्त्य व्यञ्जन + जोड्ने ध्वनि नियम — अन्तिम ढोका!",de:"17. Doppelter Endkonsonant + Verbindungsregel — Das letzte Tor!"},
+        desc:{ko:"겹받침과 조사 결합 시 소리 변화(연음)를 익힙니다.",vi:"Học sự thay đổi âm (liên âm) khi phụ âm cuối kép kết hợp với trợ từ.",en:"Learn sound changes (liaison) when double final consonants combine with particles.",zh:"学习复合收音与助词结合时的音变（连音）规则。",ja:"二重パッチムと助詞が結合するときの音変化（連音）を学びます。",id:"Pelajari perubahan bunyi (liaison) saat konsonan akhir ganda bertemu partikel.",ru:"Изучите изменение звука (связывание) при соединении двойных конечных согласных с частицами.",th:"เรียนรู้การเปลี่ยนเสียง (การเชื่อมเสียง) เมื่อตัวสะกดซ้อนรวมกับคำช่วย",mn:"Давхар төгсгөлийн гийгүүлэгч нөхцөлтэй нийлэх үеийн дууны өөрчлөлт (холбох дуудлага)-ыг мэдэж авна.",uz:"Qo'sh oxirgi undosh yuklama bilan birikkanda yuzaga keladigan tovush o'zgarishi (bog'lovchi talaffuz)ni o'rganing.",es:"Aprenda el cambio de sonido (enlace) al combinar consonantes finales dobles con partículas.",fr:"Apprenez le changement de son (liaison) lorsque des consonnes finales doubles se combinent avec des particules.",ne:"दोहोरो अन्त्य व्यञ्जन र कारक जोडिँदा हुने ध्वनि परिवर्तन (जोड्ने उच्चारण) सिक्नुहोस्।",de:"Lernen Sie die Lautveränderung (Verbindung), wenn doppelte Endkonsonanten mit Partikeln kombiniert werden."},
+        items:[
+          { char:"닭",    word:"닭",    meaning:{ko:"닭",    vi:"con gà",zh:"鸡",en:"chicken",ja:"鶏",id:"ayam",ru:"курица",th:"ไก่",mn:"тахиа",uz:"tovuq",es:"chicken"} },
+          { char:"앉다",  word:"앉다",  meaning:{ko:"앉다",  vi:"ngồi",zh:"坐",en:"to sit",ja:"座る",id:"duduk",ru:"сидеть",th:"นั่ง",mn:"суух",uz:"o'tirmoq",es:"to sit"} },
+          { char:"읽다",  word:"읽다",  meaning:{ko:"읽다",  vi:"đọc",zh:"读",en:"to read",ja:"読む",id:"membaca",ru:"читать",th:"อ่าน",mn:"унших",uz:"o'qimoq",es:"to read"} },
+          { char:"없다",  word:"없다",  meaning:{ko:"없다",  vi:"không có",zh:"没有",en:"to not exist",ja:"ない",id:"tidak ada",ru:"нет",th:"ไม่มี",mn:"байхгүй",uz:"yo'q",es:"to not exist"} },
+          { char:"가족이",word:"가족이", meaning:{ko:"가족이",vi:"gia đình (chủ ngữ)",zh:"家庭(主语)",en:"family (subject)",ja:"家族が",id:"keluarga (subjek)",ru:"семья (субъект)",th:"ครอบครัว (ประธาน)",mn:"гэр бүл (эзэн)",uz:"oila (ega)",es:"family (subject)"} },
+          { char:"옷이",  word:"옷이",  meaning:{ko:"옷이",  vi:"quần áo (chủ ngữ)",zh:"衣服(主语)",en:"clothes (subject)",ja:"服が",id:"pakaian (subjek)",ru:"одежда (субъект)",th:"เสื้อผ้า (ประธาน)",mn:"хувцас (эзэн)",uz:"kiyim (ega)",es:"clothes (subject)"} },
+          { char:"꽃이",  word:"꽃이",  meaning:{ko:"꽃이",  vi:"hoa (chủ ngữ)",zh:"花(主语)",en:"flower (subject)",ja:"花が",id:"bunga (subjek)",ru:"цветок (субъект)",th:"ดอกไม้ (ประธาน)",mn:"цэцэг (эзэн)",uz:"gul (ega)",es:"flower (subject)"} },
+          { char:"밥을",  word:"밥을",  meaning:{ko:"밥을",  vi:"cơm (tân ngữ)",zh:"米饭(宾语)",en:"rice (object)",ja:"ご飯を",id:"nasi (objek)",ru:"рис (объект)",th:"ข้าว (กรรม)",mn:"будаа (тэсвэрлэгч)",uz:"guruch (to'ldiruvchi)",es:"rice (object)"} },
+          { char:"읽어요",word:"읽어요", meaning:{ko:"읽어요",vi:"đọc (thể hiện nay)",zh:"读",en:"(I) read",ja:"読みます",id:"membaca",ru:"читаю",th:"อ่าน",mn:"уншдаг",uz:"o'qiyman",es:"(I) read"} },
+          { char:"앉아요",word:"앉아요", meaning:{ko:"앉아요",vi:"ngồi",zh:"坐下",en:"(I) sit",ja:"座ります",id:"duduk",ru:"сижу",th:"นั่ง",mn:"суудаг",uz:"o'tiraman",es:"(I) sit"} },
+          { char:"값",    word:"값",    meaning:{ko:"값",    vi:"giá cả",zh:"价值",en:"cost/price",ja:"値段",id:"harga",ru:"цена",th:"ราคา",mn:"үнэ",uz:"narx",es:"cost/price"} },
+          { char:"몫",    word:"몫",    meaning:{ko:"몫",    vi:"phần chia",zh:"份额",en:"share/portion",ja:"分け前",id:"bagian",ru:"доля",th:"ส่วนแบ่ง",mn:"хувь",uz:"ulush",es:"share/portion"} },
+          { char:"여덟",  word:"여덟",  meaning:{ko:"여덟",  vi:"tám (8)",zh:"八",en:"eight",ja:"八",id:"delapan",ru:"восемь",th:"แปด",mn:"найм",uz:"sakkiz",es:"eight"} },
+          { char:"늙다",  word:"늙다",  meaning:{ko:"늙다",  vi:"già",zh:"老",en:"be old",ja:"老いる",id:"tua",ru:"стареть",th:"แก่",mn:"өтөлх",uz:"qarimoq",es:"be old"} },
+          { char:"많다",  word:"많다",  meaning:{ko:"많다",  vi:"nhiều",zh:"多",en:"many",ja:"多い",id:"banyak",ru:"много",th:"มาก",mn:"олон",uz:"ko'p",es:"many"} },
+          { char:"없다",  word:"없다",  meaning:{ko:"없다",  vi:"không có",zh:"没有",en:"there is none",ja:"ない",id:"tidak ada",ru:"нет",th:"ไม่มี",mn:"байхгүй",uz:"yo'q",es:"there is none"} },
+          { char:"재미없다",word:"재미없다",meaning:{ko:"재미없다",vi:"không thú vị",zh:"无趣",en:"boring",ja:"面白くない",id:"membosankan",ru:"неинтересный",th:"น่าเบื่อ",mn:"хөгжилгүй",uz:"zerikarli",es:"boring"} },
+          { char:"넓다",  word:"넓다",  meaning:{ko:"넓다",  vi:"rộng",zh:"广阔",en:"broad/wide",ja:"広い",id:"luas",ru:"широкий",th:"กว้าง",mn:"өргөн",uz:"keng",es:"broad/wide"} },
+          { char:"밝다",  word:"밝다",  meaning:{ko:"밝다",  vi:"sáng",zh:"明亮",en:"bright",ja:"明るい",id:"terang",ru:"светлый",th:"สว่าง",mn:"гэрэлтэй",uz:"yorqin",es:"bright"} },
+          { char:"굵다",  word:"굵다",  meaning:{ko:"굵다",  vi:"thô dày dặn",zh:"粗",en:"thick",ja:"太い",id:"tebal",ru:"толстый",th:"หนา",mn:"зузаан",uz:"yo'g'on",es:"thick"} },
+          { char:"얇다",  word:"얇다",  meaning:{ko:"얇다",  vi:"mỏng",zh:"薄",en:"thin",ja:"薄い",id:"tipis",ru:"тонкий",th:"บาง",mn:"нимгэн",uz:"yupqa",es:"thin"} },
+          { char:"귀찮다",word:"귀찮다",meaning:{ko:"귀찮다",vi:"phiền phức",zh:"麻烦",en:"bothering/annoying",ja:"面倒だ",id:"menyebalkan",ru:"надоедливый",th:"น่ารำคาญ",mn:"залхуу",uz:"bezovta",es:"bothering/annoying"} },
+          { char:"맑다",  word:"맑다",  meaning:{ko:"맑다",  vi:"trong trẻo",zh:"清澈",en:"clear",ja:"清い",id:"jernih",ru:"прозрачный",th:"ใส",mn:"тунгалаг",uz:"tiniq",es:"clear"} },
+          { char:"짧다",  word:"짧다",  meaning:{ko:"짧다",  vi:"ngắn",zh:"短",en:"short",ja:"短い",id:"pendek",ru:"короткий",th:"สั้น",mn:"богино",uz:"qisqa",es:"short"} },
+          { char:"편찮다",word:"편찮다",meaning:{ko:"편찮다",vi:"ốm",zh:"不舒服",en:"sick/ill",ja:"来て体調不良",id:"sakit",ru:"болеть",th:"ไม่สบาย",mn:"өвчтэй",uz:"kasal",es:"sick/ill"} },
+          { char:"앉다",  word:"앉다",  meaning:{ko:"앉다",  vi:"ngồi xuống",zh:"坐下",en:"sit down",ja:"座る",id:"duduk",ru:"садиться",th:"นั่ง",mn:"суух",uz:"o'tirmoq",es:"sit down"} },
+          { char:"잃다",  word:"잃다",  meaning:{ko:"잃다",  vi:"mất",zh:"丢失",en:"lose",ja:"失う",id:"kehilangan",ru:"терять",th:"สูญเสีย",mn:"алдах",uz:"yo'qotmoq",es:"lose"} },
+          { char:"끊다",  word:"끊다",  meaning:{ko:"끊다",  vi:"cắt đứt",zh:"切断",en:"cut/stop",ja:"切る",id:"memotong",ru:"резать",th:"ตัด",mn:"тасдах",uz:"kesmoq",es:"cut/stop"} },
+          { char:"젊다",  word:"젊다",  meaning:{ko:"젊다",  vi:"trẻ",zh:"年轻",en:"young",ja:"若い",id:"muda",ru:"молодой",th:"หนุ่มสาว",mn:"залуу",uz:"yosh",es:"young"} },
+          { char:"닮다",  word:"닮다",  meaning:{ko:"닮다",  vi:"giống",zh:"相似",en:"resemble/look like",ja:"似合う",id:"mirip",ru:"быть похожим",th:"คล้าย",mn:"төстэй",uz:"o'xshash",es:"resemble/look like"} },
+          { char:"밟다",  word:"밟다",  meaning:{ko:"밟다",  vi:"dẫm đạp",zh:"踩",en:"step on",ja:"踏む",id:"menginjak",ru:"наступать",th:"เหยียบ",mn:"гишгэх",uz:"bosmoq",es:"step on"} },
+          { char:"흙",    word:"흙",    meaning:{ko:"흙",    vi:"đất",zh:"泥土",en:"soil/earth",ja:"土",id:"tanah",ru:"почва",th:"ดิน",mn:"шороо",uz:"tuproq",es:"soil/earth"} },
+          { char:"붉다",  word:"붉다",  meaning:{ko:"붉다",  vi:"đỏ thẫm",zh:"红的",en:"red",ja:"赤い",id:"merah",ru:"красный",th:"สีแดง",mn:"улаан",uz:"qizil",es:"red"} },
+          { char:"삶",    word:"삶",    meaning:{ko:"삶",    vi:"cuộc đời",zh:"生活/人生",en:"life",ja:"人生",id:"kehidupan",ru:"жизнь",th:"ชีวิต",mn:"амьдрал",uz:"hayot",es:"life"} },
+          { char:"가족이",word:"가족이",meaning:{ko:"가족이",vi:"gia đình (chủ ngữ)",zh:"家人(主语)",en:"family (subject)",ja:"家族が",id:"keluarga",ru:"семья",th:"ครอบครัว",mn:"гэр бүл",uz:"oila",es:"family (subject)"} },
+          { char:"책이",  word:"책이",  meaning:{ko:"책이 → [채기]",vi:"quyển sách → [채기]",zh:"书→[채기]",en:"book → [chaegi]",ja:"本→[채기]",id:"buku",ru:"книга",th:"หนังสือ",mn:"ном",uz:"kitob",es:"book → [chaegi]"} },
+          { char:"밥을",  word:"밥을",  meaning:{ko:"밥을 → [바블]",vi:"cơm (tân ngữ) → [바블]",zh:"饭(宾语)→[바블]",en:"rice → [babeul]",ja:"ご飯を→[바블]",id:"nasi",ru:"рис",th:"ข้าว",mn:"будаа",uz:"guruch",es:"rice → [babeul]"} },
+          { char:"집에",  word:"집에",  meaning:{ko:"집에 → [지베]",vi:"ở nhà → [지베]",zh:"在家→[지베]",en:"at home → [jibe]",ja:"家に→[지베]",id:"di rumah",ru:"дома",th:"ที่บ้าน",mn:"гэртээ",uz:"uyda",es:"at home → [jibe]"} },
+          { char:"학교에",word:"학교에",meaning:{ko:"학교에 → [학꾜에]",vi:"ở trường → [학꾜에]",zh:"在学校→[학꾜에]",en:"at school → [hakkyoe]",ja:"学校に",id:"di sekolah",ru:"в школе",th:"ที่โรงเรียน",mn:"сургуульд",uz:"maktabda",es:"at school → [hakkyoe]"} },
+          { char:"음악을",word:"음악을",meaning:{ko:"음악을 → [으마글]",vi:"âm nhạc → [으마글]",zh:"音乐→[으마글]",en:"music → [eumageul]",ja:"音楽を",id:"musik",ru:"музыку",th:"เพลง",mn:"хөгжим",uz:"musiqa",es:"music → [eumageul]"} },
+          { char:"한국에서",word:"한국에서",meaning:{ko:"한국에서 → [한구게서]",vi:"ở Hàn Quốc → [한구게서]",zh:"在韩国→[한구게서]",en:"in Korea → [hangugeseo]",ja:"韓国で",id:"di Korea",ru:"в Корее",th:"ในเกาหลี",mn:"Солонгост",uz:"Koreyada",es:"in Korea → [hangugeseo]"} },
+          { char:"베트남에서",word:"베트남에서",meaning:{ko:"베트남에서 → [베트나메서]",vi:"ở Việt Nam → [베트나메서]",zh:"在越南",en:"in Vietnam",ja:"ベトナムで",id:"di Vietnam",ru:"во Вьетнаме",th:"ในเวียดนาม",mn:"Вьетнамд",uz:"Vetnamda",es:"in Vietnam"} },
+          { char:"서울에서",word:"서울에서",meaning:{ko:"서울에서 → [서우레서]",vi:"ở Seoul → [서우레서]",zh:"在首尔",en:"in Seoul",ja:"ソウルで",id:"di Seoul",ru:"в Сеуле",th:"ในโซล",mn:"Сөүлд",uz:"Seulda",es:"in Seoul"} },
+          { char:"별이",  word:"별이",  meaning:{ko:"별이 → [벼리]",vi:"ngôi sao → [벼리]",zh:"星星→[벼리]",en:"star → [byeori]",ja:"星が",id:"bintang",ru:"звезда",th:"ดาว",mn:"од",uz:"yulduz",es:"star → [byeori]"} },
+          { char:"면적이",word:"면적이",meaning:{ko:"면적이 → [면저기]",vi:"diện tích → [면저기]",zh:"面积→[면저기]",en:"area → [myeonjegi]",ja:"面積が",id:"luas wilayah",ru:"площадь",th:"พื้นที่",mn:"талбай",uz:"maydon",es:"area → [myeonjegi]"} },
+          { char:"검은색을",word:"검은색을",meaning:{ko:"검은색을 → [거믄새글]",vi:"màu đen → [거믄새글]",zh:"黑色→[거믄새글]",en:"black → [geomeunsaegeul]",ja:"黒色を",id:"warna hitam",ru:"чёрный",th:"สีดำ",mn:"хар",uz:"qora rang",es:"black → [geomeunsaegeul]"} },
+          { char:"그들은",word:"그들은", meaning:{ko:"그들은 → [그드른]",vi:"họ → [그드른]",zh:"他们→[그드른]",en:"they → [geudeureun]",ja:"彼らは",id:"mereka",ru:"они",th:"พวกเขา",mn:"тэд",uz:"ular",es:"they → [geudeureun]"} },
+          { char:"믿음이",word:"믿음이", meaning:{ko:"믿음이 → [미드미]",vi:"niềm tin → [미드미]",zh:"信念→[미드미]",en:"faith → [mideum-i]",ja:"信頼が",id:"kepercayaan",ru:"вера",th:"ความเชื่อ",mn:"итгэл",uz:"ishonch",es:"faith → [mideum-i]"} },
+          { char:"재미없어요",word:"재미없어요",meaning:{ko:"재미없어요 → [재미업써요]",vi:"không thú vị → [재미업써요]",zh:"无聊→[재미업써요]",en:"boring → [jaemi-eobsseoyo]",ja:"つまらないです",id:"membosankan",ru:"скучно",th:"น่าเบื่อ",mn:"уйтгартай",uz:"zerikarli",es:"boring → [jaemi-eobsseoyo]"} },
+          { char:"높아요",word:"높아요",  meaning:{ko:"높아요 → [노파요]",vi:"cao → [노파요]",zh:"高→[노파요]",en:"high → [nopayo]",ja:"高いです",id:"tinggi",ru:"высоко",th:"สูง",mn:"өндөр",uz:"baland",es:"high → [nopayo]"} },
+          { char:"낮아요",word:"낮아요",  meaning:{ko:"낮아요 → [나자요]",vi:"thấp → [나자요]",zh:"低→[나자요]",en:"low → [najayo]",ja:"低いです",id:"rendah",ru:"низко",th:"ต่ำ",mn:"нам",uz:"past",es:"low → [najayo]"} },
+          { char:"읽어요",word:"읽어요",  meaning:{ko:"읽어요 → [일거요]",vi:"đọc → [일거요]",zh:"读→[일거요]",en:"read → [ilgeoyo]",ja:"読みます",id:"membaca",ru:"читаю",th:"อ่าน",mn:"уншина",uz:"o'qiyapman",es:"read → [ilgeoyo]"} },
+          { char:"앉아요",word:"앉아요",  meaning:{ko:"앉아요 → [안자요]",vi:"ngồi → [안자요]",zh:"坐→[안자요]",en:"sit → [anjayo]",ja:"座ります",id:"duduk",ru:"сажусь",th:"นั่ง",mn:"сууна",uz:"o'tiraman",es:"sit → [anjayo]"} },
+          { char:"없어요",word:"없어요",  meaning:{ko:"없어요 → [업써요]",vi:"không có → [업써요]",zh:"没有→[업써요]",en:"there isn't → [eobsseoyo]",ja:"ありません",id:"tidak ada",ru:"нет",th:"ไม่มี",mn:"байхгүй",uz:"yo'q",es:"there isn't → [eobsseoyo]"} },
+          { char:"꽃이",  word:"꽃이",    meaning:{ko:"꽃이 → [꼬치]",vi:"hoa → [꼬치]",zh:"花→[꼬치]",en:"flower → [kkochi]",ja:"花が",id:"bunga",ru:"цветок",th:"ดอกไม้",mn:"цэцэг",uz:"gul",es:"flower → [kkochi]"} },
+          { char:"옷이",  word:"옷이",    meaning:{ko:"옷이 → [오시]",vi:"quần áo → [오시]",zh:"衣服→[오시]",en:"clothes → [osi]",ja:"服が",id:"baju",ru:"одежда",th:"เสื้อผ้า",mn:"хувцас",uz:"kiyim",es:"clothes → [osi]"} },
+          { char:"교수님이",word:"교수님이",meaning:{ko:"교수님이 → [교수니미]",vi:"giáo sư → [교수니미]",zh:"教授→[교수니미]",en:"professor → [gyosunimi]",ja:"教授が",id:"profesor",ru:"профессор",th:"อาจารย์",mn:"профессор",uz:"professor",es:"professor → [gyosunimi]"} },
+          { char:"잠을",  word:"잠을",    meaning:{ko:"잠을 → [자믈]",vi:"giấc ngủ → [자믈]",zh:"睡眠→[자믈]",en:"sleep → [jameul]",ja:"睡眠を",id:"tidur",ru:"сон",th:"การนอน",mn:"унтлага",uz:"uxlash",es:"sleep → [jameul]"} },
+          { char:"신발을",word:"신발을",  meaning:{ko:"신발을 → [신바를]",vi:"giày → [신바를]",zh:"鞋→[신바를]",en:"shoes → [sinbareul]",ja:"靴を",id:"sepatu",ru:"обувь",th:"รองเท้า",mn:"гутал",uz:"poyabzal",es:"shoes → [sinbareul]"} },
+          { char:"눈이",  word:"눈이",    meaning:{ko:"눈이 → [누니]",vi:"mắt/tuyết → [누니]",zh:"眼睛/雪→[누니]",en:"eye/snow → [nuni]",ja:"目/雪が",id:"mata/salju",ru:"глаза/снег",th:"ตา/หิมะ",mn:"нүд/цас",uz:"ko'z/qor",es:"eye/snow → [nuni]"} },
+          { char:"수박을",word:"수박을",  meaning:{ko:"수박을 → [수바글]",vi:"dưa hấu → [수바글]",zh:"西瓜→[수바글]",en:"watermelon → [subageul]",ja:"スイカを",id:"semangka",ru:"арбуз",th:"แตงโม",mn:"тарвас",uz:"tarvuz",es:"watermelon → [subageul]"} },
+          { char:"음식은",word:"음식은",  meaning:{ko:"음식은 → [음시근]",vi:"thức ăn → [음시근]",zh:"食物→[음시근]",en:"food → [eumssigeun]",ja:"食べ物は",id:"makanan",ru:"еда",th:"อาหาร",mn:"хоол",uz:"ovqat",es:"food → [eumssigeun]"} },
+          { char:"쌀을",  word:"쌀을",    meaning:{ko:"쌀을 → [싸를]",vi:"gạo → [싸를]",zh:"大米→[싸를]",en:"rice → [ssareul]",ja:"米を",id:"beras",ru:"рис",th:"ข้าวสาร",mn:"будаа",uz:"guruch",es:"rice → [ssareul]"} },
+          { char:"술을",  word:"술을",    meaning:{ko:"술을 → [수를]",vi:"rượu → [수를]",zh:"酒→[수를]",en:"liquor → [sureul]",ja:"お酒を",id:"alkohol",ru:"водку",th:"เหล้า",mn:"архи",uz:"spirt",es:"liquor → [sureul]"} },
+          { char:"부작용을",word:"부작용을",meaning:{ko:"부작용을 → [부자굥을]",vi:"tác dụng phụ → [부자굥을]",zh:"副作用→[부자굥을]",en:"side effect",ja:"副作用を",id:"efek samping",ru:"побочный эффект",th:"ผลข้างเคียง",mn:"гаж нөлөө",uz:"yon ta'sir",es:"side effect"} },
+          { char:"댓글을",word:"댓글을",  meaning:{ko:"댓글을 → [대글을]",vi:"bình luận → [대글을]",zh:"评论→[대글을]",en:"reply → [daeggeureul]",ja:"コメントを",id:"komentar",ru:"комментарий",th:"ความคิดเห็น",mn:"сэтгэгдэл",uz:"izoh",es:"reply → [daeggeureul]"} },
+          { char:"밖으로",word:"밖으로",  meaning:{ko:"밖으로 → [바끄로]",vi:"ra ngoài → [바끄로]",zh:"向外→[바끄로]",en:"outside → [bakkeuro]",ja:"外へ",id:"keluar",ru:"наружу",th:"ออกข้างนอก",mn:"гадагш",uz:"tashqariga",es:"outside → [bakkeuro]"} },
+          { char:"트럼펫을",word:"트럼펫을",meaning:{ko:"트럼펫을 → [트럼페들]",vi:"kèn trumpet → [트럼페들]",zh:"小号→[트럼페들]",en:"trumpet → [teurempeteul]",ja:"トランペットを",id:"terompet",ru:"трубу",th:"ทรัมเป็ต",mn:"бүрээ",uz:"truba",es:"trumpet → [teurempeteul]"} },
+                ],
+        tip:{ko:"⭐ 핵심 규칙 ① 겹받침: 하나만 발음 — 읽다[익따] 닭[닥] 삶[삼] ② 연음: 받침+모음 → 받침이 다음 음절로 — 밥을[바블] 책이[채기] 집에[지베] 💡 지금까지 배운 음운 규칙(대표음화·비음화·유음화)이 연음과 결합하면 더 자연스러운 한국어가 됩니다!",vi:"⭐ Quy tắc cốt lõi ① Phụ âm đôi: chỉ phát âm một — 읽다[익따] 닭[닥] ② Liên âm: phụ âm cuối+nguyên âm → chuyển sang âm tiết sau — 밥을[바블] 책이[채기]",en:"⭐ Key rules ① Double consonant: pronounce only one — 읽다[익따] 닭[닥] 삶[삼] ② Liaison: final+vowel → moves to next syllable — 밥을[바블] 책이[채기] 집에[지베]",zh:"⭐核心规则 ①复合收音：只发一个音——읽다[익따] 닭[닥] 삶[삼] ②连音：收音+元音→收音移到下一音节——밥을[바블] 책이[채기] 집에[지베] 💡目前学过的音变规则（代表音化·鼻音化·流音化）与连音结合，会让韩语听起来更自然！",ja:"⭐重要ルール①二重パッチム：1つだけ発音 — 읽다[익따] 닭[닥] 삶[삼] ②連音：パッチム＋母音→パッチムが次の音節へ — 밥을[바블] 책이[채기] 집에[지베] 💡これまで学んだ音韻ルール（代表音化・鼻音化・流音化）が連音と結びつくと、より自然な韓国語になります！",id:"⭐Aturan inti ① Konsonan akhir ganda: hanya ucapkan satu — 읽다[익따] 닭[닥] 삶[삼] ② Liaison: konsonan akhir+vokal → konsonan akhir pindah ke suku kata berikutnya — 밥을[바블] 책이[채기] 집에[지베] 💡Aturan fonologi yang telah dipelajari (bunyi representatif, nasalisasi, pelunakan ㄹ) yang digabungkan dengan liaison akan membuat bahasa Korea Anda terdengar lebih alami!",ru:"⭐Основные правила ① Двойная конечная согласная: произносится только одна — 읽다[익따] 닭[닥] 삶[삼] ② Связывание: конечная согласная+гласная → конечная согласная переходит в следующий слог — 밥을[바블] 책이[채기] 집에[지베] 💡Изученные ранее фонетические правила (репрезентативный звук, назализация, латерализация) в сочетании со связыванием делают корейскую речь более естественной!",th:"⭐กฎหลัก ① ตัวสะกดซ้อน: ออกเสียงเพียงตัวเดียว — 읽다[익따] 닭[닥] 삶[삼] ② การเชื่อมเสียง: ตัวสะกด+สระ → ตัวสะกดเลื่อนไปพยางค์ถัดไป — 밥을[바블] 책이[채기] 집에[지베] 💡เมื่อกฎการออกเสียงที่เรียนมา (เสียงตัวแทน เสียงนาสิก การกลายเป็นเสียงข้าง) รวมกับการเชื่อมเสียง ภาษาเกาหลีของคุณจะฟังดูเป็นธรรมชาติมากขึ้น!",mn:"⭐Гол дүрэм ① Давхар төгсгөлийн гийгүүлэгч: зөвхөн нэгийг нь дуудна — 읽다[익따] 닭[닥] 삶[삼] ② Холбох дуудлага: төгсгөл+эгшиг → төгсгөл дараагийн үед шилжинэ — 밥을[바블] 책이[채기] 집에[지베] 💡Одоог хүртэл сурсан авианы дүрмүүд (төлөөлөх авиа, хамаржилт, хажуугийн авиажилт) холбох дуудлагатай хосолвол илүү байгалийн жам ёсны солонгос хэл болно!",uz:"⭐Asosiy qoidalar ① Qo'sh oxirgi undosh: faqat bittasi aytiladi — 읽다[익따] 닭[닥] 삶[삼] ② Bog'lovchi talaffuz: oxirgi undosh+unli → oxirgi undosh keyingi bo'g'inga o'tadi — 밥을[바블] 책이[채기] 집에[지베] 💡Hozirgacha o'rgangan tovush qoidalari (vakillik tovushi, nazallashuv, yon tovushga aylanish) bog'lovchi talaffuz bilan birikkanda koreys tilingiz yanada tabiiy bo'ladi!",es:"⭐Reglas clave ① Consonante final doble: se pronuncia solo una — 읽다[익따] 닭[닥] 삶[삼] ② Enlace: consonante final+vocal → la consonante final pasa a la siguiente sílaba — 밥을[바블] 책이[채기] 집에[지베] 💡Cuando las reglas fonéticas aprendidas hasta ahora (sonido representativo, nasalización, lateralización) se combinan con el enlace, ¡el coreano suena mucho más natural!",fr:"⭐Règles clés ① Consonne finale double : une seule se prononce — 읽다[익따] 닭[닥] 삶[삼] ② Liaison : consonne finale+voyelle → la consonne finale passe à la syllabe suivante — 밥을[바블] 책이[채기] 집에[지베] 💡Lorsque les règles phonétiques apprises jusqu'ici (son représentatif, nasalisation, latéralisation) se combinent avec la liaison, votre coréen sonne encore plus naturel !",ne:"⭐मुख्य नियम ① दोहोरो अन्त्य व्यञ्जन: एउटा मात्र उच्चारण हुन्छ — 읽다[익따] 닭[닥] 삶[삼] ② जोड्ने उच्चारण: अन्त्य व्यञ्जन+स्वर → अन्त्य व्यञ्जन अर्को अक्षरमा सर्छ — 밥을[바블] 책이[채기] 집에[지베] 💡अहिलेसम्म सिकेका ध्वनि नियम (प्रतिनिधि ध्वनि·नासिकीकरण·तरल ध्वनि परिवर्तन) जोड्ने उच्चारणसँग मिल्दा कोरियाली भाषा अझ स्वाभाविक हुन्छ!",de:"⭐Kernregeln ① Doppelter Endkonsonant: nur einer wird ausgesprochen — 읽다[익따] 닭[닥] 삶[삼] ② Verbindung: Endkonsonant+Vokal → Endkonsonant wandert zur nächsten Silbe — 밥을[바블] 책이[채기] 집에[지베] 💡Wenn die bisher gelernten Lautregeln (repräsentativer Laut, Nasalisierung, Lateralisierung) mit der Verbindung kombiniert werden, klingt Ihr Koreanisch noch natürlicher!"},
+      },
+    ];
+
+// 최소대립쌍(소리 하나만 다른 두 단어) — 지금 있는 발음 단어 모음에서 찾은 26쌍으로 시작(보강은 장기 과제, 9/27 교수자 결정)
+const PRON_MIN_PAIRS = [
+  // 평음·격음·경음
+  ["불", "풀"], ["불다", "풀다"], ["발", "팔"], ["변하다", "편하다"], ["방", "빵"], ["굴", "꿀"], ["들다", "틀다"], ["담", "땀"], ["떡", "턱"], ["도끼", "토끼"], ["달", "딸"], ["줍다", "춥다"],
+  // 받침 ㄴ/ㅇ
+  ["화산", "화상"], ["전하다", "정하다"], ["돈", "동"], ["반", "방"],
+  // 받침 ㄴ/ㅁ
+  ["선", "섬"], ["신다", "심다"], ["안", "암"], ["반", "밤"],
+  // 받침 ㅁ/ㅇ
+  ["잠", "장"], ["밤", "방"], ["감", "강"], ["사람", "사랑"],
+  // 받침 ㄱ/ㅂ
+  ["익다", "입다"], ["작다", "잡다"],
+];
+function pronPartners(word) {
+  return PRON_MIN_PAIRS.filter(p => p.includes(word)).map(p => (p[0] === word ? p[1] : p[0]));
+}
+// 과제로 낼 수 있는 단계 = 쓰기 단계를 뺀, 단어가 있는 단계
+function pronSetSteps() {
+  return PRON_STEPS_DATA.filter(s => s.type !== "write" && Array.isArray(s.items) && s.items.length > 0);
+}
+function pronStepWords(stepId) {
+  const s = PRON_STEPS_DATA.find(x => x.id === stepId);
+  // 괄호·숫자가 든 단어(쓰다(쓰기)·팔(8)·1학년 등)는 음성 인식·짝 찾기가 안 돼 과제 단어에서 뺌
+  return s ? [...new Set((s.items || []).map(i => String(i.word || "").trim()).filter(w => w && /^[가-힣 ]+$/.test(w)))] : [];
+}
+const pronSyll = (w) => [...String(w || "")].length;
+// 한글 음절 → 자모(초성·중성·종성) — 비슷한 단어 찾기·음성 인식 비교용
+function pronJamo(w) {
+  const out = [];
+  for (const ch of String(w || "")) {
+    const c = ch.charCodeAt(0) - 0xAC00;
+    if (c >= 0 && c < 11172) { out.push("c" + Math.floor(c / 588), "v" + Math.floor((c % 588) / 28)); if (c % 28) out.push("j" + (c % 28)); }
+    else out.push(ch);
+  }
+  return out;
+}
+function pronEdit(a, b) {
+  const m = a.length, n = b.length;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+// 추천 단어: 같은 단계 안에 짝이 있는 단어를 짝끼리 먼저 → 두 글자 이상(음성 인식이 되는 단어) → 나머지
+//   한 글자 단어는 음성 인식이 안 돼 ② 따라 말하기를 건너뛰므로 추천의 절반까지만(검토 반영)
+function pronSuggestWords(stepId, n = 10) {
+  const all = pronStepWords(stepId);
+  const out = [];
+  const ones = () => out.filter(w => pronSyll(w) < 2).length;
+  const add = (w) => { if (out.length < n && !out.includes(w)) out.push(w); };
+  const addPairs = (multi) => all.forEach(w => {
+    if ((pronSyll(w) >= 2) !== multi || out.includes(w)) return;
+    const p = pronPartners(w).find(x => all.includes(x) && !out.includes(x));
+    if (!p || out.length > n - 2) return;
+    if (!multi && ones() + 2 > Math.floor(n / 2)) return;
+    add(w); add(p);
+  });
+  addPairs(true);
+  addPairs(false);
+  all.filter(w => pronSyll(w) >= 2).forEach(add);
+  all.forEach(add);
+  return out;
+}
+// ① 듣고 고르기의 두 보기: 짝 단어(여럿이면 날마다 바꿈) → 없으면 같은 과제에서 글자 수가 같고 소리가 가장 비슷한 단어
+function pronChoices(a, wi, d) {
+  const words = Array.isArray(a?.words) ? a.words.map(String) : [];
+  const w = words[wi];
+  const ps = pronPartners(w);
+  let other = ps.length ? ps[d % ps.length] : null;
+  if (!other) {
+    const jw = pronJamo(w);
+    const cands = words.filter(x => x !== w).map(x => ({ x, s: Math.abs(pronSyll(x) - pronSyll(w)) * 100 + pronEdit(pronJamo(x), jw) }))
+      .sort((p, q) => p.s - q.s).map(p => p.x);
+    other = cands.length ? cands[d % Math.min(cands.length, 3)] : null;
+  }
+  if (!other) return [w];
+  return (wi + d) % 2 === 1 ? [other, w] : [w, other];
+}
+const PRON_KINDS = ["pick", "say", "rec"];
+function pronItem(a, k) {
+  const words = Array.isArray(a?.words) ? a.words : [];
+  const W = words.length;
+  if (!W || !Number.isInteger(k) || k < 0 || k >= W * 3) return null;
+  return { kind: PRON_KINDS[Math.floor(k / W)], wi: k % W, word: String(words[k % W]) };
+}
+// 그날 순서: ① 전부 → ② 전부 → ③ 전부. 전날 ①② 가운데 막힌 단어(ok === false)를 먼저.
+function pronDayOrder(a, d, prog) {
+  const W = Array.isArray(a?.words) ? a.words.length : 0;
+  const prev = d > 0 && Array.isArray(prog?.days) ? prog.days[d - 1] : null;
+  const bad = new Set((prev && Array.isArray(prev.answers) ? prev.answers : []).filter(x => x && x.ok === false)
+    .map(x => pronItem(a, x.k)).filter(it => it && it.kind !== "rec").map(it => it.wi));
+  const idx = Array.from({ length: W }, (_, i) => i);
+  const wOrder = [...idx.filter(i => bad.has(i)), ...idx.filter(i => !bad.has(i))];
+  return [0, 1, 2].flatMap(ki => wOrder.map(wi => ki * W + wi));
+}
+// 음성 인식 결과가 그 단어로 들렸는지(띄어쓰기·문장부호 무시, 자모 기준 85% 이상 같으면 인정 — 기존 발음 테스트 기준과 같음)
+function pronNorm(s) { return String(s || "").replace(/[^가-힣]/g, ""); }
+//   (검토 반영) 짝 단어로 들렸으면 인정하지 않음(변하다/편하다처럼 자모 85%를 넘는 짝이 있음) — 짝이 있는 단어는 그 단어가 그대로 들려야 인정.
+//   기계가 내놓는 후보 가운데 앞의 2개만 봄(뒤쪽 후보에는 짝 단어가 섞여 나오기 쉬움)
+function pronHeardOk(alts, word) {
+  const w = pronNorm(word);
+  if (!w) return false;
+  const ps = pronPartners(word).map(pronNorm).filter(p => p && p !== w);
+  return (alts || []).slice(0, 2).some(t => {
+    const h = pronNorm(t);
+    if (!h) return false;
+    if (ps.some(p => h.includes(p) && !h.includes(w))) return false;
+    if (h === w || h.includes(w)) return true;
+    if (ps.length) return false;
+    const ja = pronJamo(w), jb = pronJamo(h);
+    return 1 - pronEdit(ja, jb) / Math.max(ja.length, jb.length) >= 0.85;
+  });
+}
+// 녹음된 원어민 음성이 있는지 확인(없으면 기계 음성으로 대신 들려줌 — playKoreanWord가 자동으로 바꿈)
+const __pronAudioOk = {};
+function pronAudioCheck(word) {
+  if (__pronAudioOk[word] !== undefined) return Promise.resolve(__pronAudioOk[word]);
+  return new Promise(res => {
+    let done = false;
+    const fin = (v) => { if (done) return; done = true; if (v !== null) __pronAudioOk[word] = v; res(v); };
+    try {
+      if (typeof Audio === "undefined") { fin(null); return; }
+      const au = new Audio();
+      au.preload = "metadata";
+      au.onloadedmetadata = () => fin(true);
+      au.onerror = () => fin(false);
+      au.src = pronAudioUrl(word);
+      try { au.load && au.load(); } catch (e) {}
+    } catch (e) { fin(null); return; }
+    setTimeout(() => fin(null), 8000);
+  });
+}
+
+// ── 교수자: 발음 세트 설정 ──
+function PronSetEditor({ form, setForm }) {
+  const steps = pronSetSteps();
+  const stepWords = form.pStep ? pronStepWords(form.pStep) : [];
+  const [audio, setAudio] = useState({}); // 단어 → true(원어민 음성 있음) / false(없음) / null(확인 못 함)
+  const [addPick, setAddPick] = useState("");
+  const wordsKey = form.pWords.join(",");
+  useEffect(() => {
+    let alive = true;
+    form.pWords.forEach(w => { pronAudioCheck(w).then(v => { if (alive) setAudio(p => (p[w] === v ? p : { ...p, [w]: v })); }); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wordsKey]);
+  const left = stepWords.filter(w => !form.pWords.includes(w));
+  const chip = { display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, padding: "5px 8px", borderRadius: 20, border: "1px solid #C8DAF0", background: "white", color: "#1A3A5C" };
+  return (
+    <div style={{ marginTop: 10, background: "#F5F8FF", border: "1px solid #D6E4F5", borderRadius: 12, padding: 12 }}>
+      <div style={{ fontSize: 11, color: "#2E75B6", marginBottom: 10, lineHeight: 1.6 }}>
+        🎧 학습자는 하루 5분쯤 <b>① 듣고 고르기 → ② 듣고 따라 말하기 → ③ 내 목소리 비교</b>를 해요. 같은 단어를 여러 날 나눠 다시 만나고, <b>모든 날을 끝내면 완료</b>예요. 학습자 화면에 점수는 없어요.
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>발음 단계 *</div>
+        <select value={form.pStep} aria-label="발음 단계"
+          onChange={e => { const v = e.target.value; setForm(f => ({ ...f, pStep: v, pWords: v ? pronSuggestWords(v) : [] })); }}
+          style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 14, background: "white" }}>
+          <option value="">단계를 고르세요</option>
+          {steps.map(s => <option key={s.id} value={s.id}>{(s.title && s.title.ko) || s.id}</option>)}
+        </select>
+      </div>
+      {form.pStep && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>단어 {form.pWords.length}개 <span style={{ fontWeight: 600, color: "#888" }}>(4~12개, 추천은 짝 단어 먼저)</span></span>
+            <button type="button" onClick={() => setForm(f => ({ ...f, pWords: pronSuggestWords(f.pStep) }))}
+              style={{ fontSize: 11, background: "none", border: "none", color: "#2E75B6", fontWeight: 700, cursor: "pointer" }}>↺ 추천 단어로 다시</button>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {form.pWords.map(w => {
+              const pair = pronPartners(w).filter(p => form.pWords.includes(p));
+              return (
+                <span key={w} style={chip} aria-label={`단어 ${w}`}>
+                  <button type="button" onClick={() => playKoreanWord(w)} title="들어 보기" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: 13 }}>🔊</button>
+                  <b>{w}</b>
+                  {pair.length > 0 && <span style={{ fontSize: 10, color: "#2E75B6" }}>↔ {pair.join("·")}</span>}
+                  {audio[w] === false && <span style={{ fontSize: 10, color: "#B23B00", background: "#FFF0E0", borderRadius: 8, padding: "1px 5px" }}>음성 없음</span>}
+                  <button type="button" aria-label={`${w} 빼기`} onClick={() => setForm(f => ({ ...f, pWords: f.pWords.filter(x => x !== w) }))}
+                    style={{ background: "none", border: "none", color: "#E53935", cursor: "pointer", padding: 0, fontSize: 12 }}>✕</button>
+                </span>
+              );
+            })}
+          </div>
+          {left.length > 0 && form.pWords.length < 12 && (
+            <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+              <select value={addPick} onChange={e => setAddPick(e.target.value)} aria-label="더할 단어"
+                style={{ flex: 1, border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "8px 10px", fontSize: 13, background: "white" }}>
+                <option value="">이 단계의 다른 단어 더하기</option>
+                {left.map(w => <option key={w} value={w}>{w}{pronPartners(w).length ? " (짝 있음)" : ""}</option>)}
+              </select>
+              <button type="button" disabled={!addPick} onClick={() => { setForm(f => ({ ...f, pWords: f.pWords.includes(addPick) || f.pWords.length >= 12 ? f.pWords : [...f.pWords, addPick] })); setAddPick(""); }}
+                style={{ background: addPick ? "#2E75B6" : "#ccc", color: "white", border: "none", borderRadius: 10, padding: "0 14px", fontSize: 13, fontWeight: 700, cursor: addPick ? "pointer" : "default" }}>더하기</button>
+            </div>
+          )}
+          {Object.keys(audio).some(w => form.pWords.includes(w) && audio[w] === false) && (
+            <div style={{ fontSize: 11, color: "#B23B00", marginTop: 6 }}>'음성 없음' 단어는 원어민 녹음 대신 기계 음성으로 들려줘요. 빼고 다른 단어를 더해도 돼요.</div>
+          )}
+        </div>
+      )}
+      <div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>며칠 동안</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {[2, 3, 4, 5].map(n => (
+            <button key={n} type="button" onClick={() => setForm(f => ({ ...f, pDays: n }))}
+              style={{ flex: 1, padding: "9px 0", border: form.pDays === n ? "2px solid #2E75B6" : "1.5px solid #e0e0e0", borderRadius: 10, background: form.pDays === n ? "#EBF3FB" : "white", fontSize: 13, fontWeight: form.pDays === n ? 800 : 600, color: form.pDays === n ? "#2E75B6" : "#555", cursor: "pointer" }}>
+              {n}일
+            </button>
+          ))}
+        </div>
+        <div style={{ fontSize: 11, color: "#888", marginTop: 4 }}>하루에 한 날씩 열려요(날을 나눠야 더 오래 기억해요).</div>
+      </div>
+    </div>
+  );
+}
+function pronSetCheck(form) {
+  if (!form.pStep || !pronSetSteps().some(s => s.id === form.pStep)) return "발음 단계를 골라 주세요.";
+  if (form.pWords.length < 4 || form.pWords.length > 12) return "단어는 4개에서 12개까지 넣어 주세요.";
+  if (!(form.pDays >= 2 && form.pDays <= 5)) return "날수는 2~5일 가운데 골라 주세요.";
+  return "";
+}
+
+// ── 학습자: 하루 세션 ──
+const PRON_REC_MAX_SEC = 6;
+const PRON_REC_MAX_BYTES = 150 * 1024; // base64로 늘어나도 보안 규칙 한도(22만 자) 안
+function pronCanSTT() {
+  return typeof window !== "undefined" && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+const pronBtn = (bg, color = "white", extra = {}) => ({ background: bg, color, border: "none", borderRadius: 24, padding: "12px 0", fontSize: 15, fontWeight: 800, cursor: "pointer", width: "100%", fontFamily: "inherit", ...extra });
+function PronPlayBtn({ word, onPlay, label }) {
+  return (
+    <button type="button" onClick={() => { playKoreanWord(word); onPlay && onPlay(); }}
+      style={pronBtn("#EBF3FB", "#1A3A5C", { border: "2px solid #C8DAF0" })}>{label || "▶ 들어 보기"}</button>
+  );
+}
+function PronPickCard({ word, choices, onAnswer, onNext }) {
+  const [heard, setHeard] = useState(false);
+  const [fb, setFb] = useState(null); // { a, ok }
+  const fbAt = useRef(0);
+  return (<>
+    <PronPlayBtn word={word} onPlay={() => setHeard(true)} label={heard ? "▶ 한 번 더 듣기" : "▶ 소리 듣기"} />
+    {!heard && <div style={{ fontSize: 12, color: "#888", textAlign: "center", marginTop: 6 }}>먼저 소리를 들어 보세요</div>}
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
+      {choices.map((c, ci) => {
+        const chosen = fb && fb.a === c, right = fb && c === word;
+        return (
+          <button key={ci} type="button" disabled={!heard || !!fb} aria-label={`보기 ${c}`}
+            onClick={() => { const ok = c === word; fbAt.current = Date.now(); setFb({ a: c, ok }); onAnswer({ ok, a: c }); }}
+            style={{ padding: "16px 8px", borderRadius: 14, fontSize: 20, fontWeight: 800, fontFamily: "inherit", cursor: !heard || fb ? "default" : "pointer", opacity: heard || fb ? 1 : 0.5,
+              border: `2px solid ${right ? "#4CAF50" : chosen ? "#FF9800" : "#e0e0e0"}`, background: right ? "#EEF7EE" : chosen ? "#FFF6E5" : "white", color: "#1A3A5C" }}>
+            {c}
+          </button>
+        );
+      })}
+    </div>
+    {fb && (
+      <div style={{ marginTop: 14, background: fb.ok ? "#EEF7EE" : "#FFF6E5", borderRadius: 12, padding: "10px 12px", fontSize: 13, lineHeight: 1.6, color: "#333" }}>
+        {fb.ok ? <b style={{ color: "#2D7A2D" }}>👏 맞았어요! 두 소리를 한 번 더 비교해 보세요.</b> : <b style={{ color: "#8A4B00" }}>괜찮아요. 두 소리를 번갈아 들어 보세요 👂</b>}
+        {choices.length > 1 && (
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            {choices.map(c => (
+              <button key={c} type="button" onClick={() => playKoreanWord(c)}
+                style={{ flex: 1, background: "white", border: "1.5px solid #C8DAF0", borderRadius: 20, padding: "8px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>▶ {c}</button>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
+    {fb && <button type="button" style={pronBtn("linear-gradient(135deg,#2E75B6,#1A3A5C)", "white", { marginTop: 14 })} onClick={() => { if (Date.now() - fbAt.current < 500) return; onNext(); }}>다음 →</button>}
+  </>);
+}
+function PronSayCard({ word, onDone }) {
+  const one = pronSyll(word) < 2;
+  const [broken, setBroken] = useState(false);
+  const [heard, setHeard] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [res, setRes] = useState(null); // { ok, heard }
+  const [tries, setTries] = useState(0);
+  const srRef = useRef(null);
+  const doneAt = useRef(0);
+  const stopTimer = useRef(null);
+  const alive = useRef(true);
+  useEffect(() => () => { alive.current = false; clearTimeout(stopTimer.current); try { srRef.current && srRef.current.abort && srRef.current.abort(); } catch (e) {} }, []);
+  const skipMode = one || broken || !pronCanSTT();
+  // (검토 반영) 끝난(isFinal) 결과만 쓰고, 한 번 말할 때마다 onend에서 한 번만 셈. 8초가 지나면 자동으로 멈춤(아이폰에서 끝나지 않는 경우 대비).
+  //   마이크 거부·인터넷 오류·언어 미지원은 학습자 탓이 아니므로 '따라 말하기만'으로 바꿈(막힌 단어로 치지 않음)
+  function listen() {
+    if (listening) { try { srRef.current && srRef.current.stop(); } catch (e) {} return; }
+    try {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const r = new SR(); srRef.current = r;
+      r.lang = "ko-KR"; r.interimResults = false; r.continuous = false; r.maxAlternatives = 3;
+      let alts = null, broke = false, ended = false;
+      r.onresult = (e) => {
+        const list = Array.from(e.results || []);
+        const fin = list.filter(x => x.isFinal !== false);
+        const pick = fin.length ? fin[fin.length - 1] : null;
+        if (pick) alts = Array.from(pick).map(x => x.transcript);
+      };
+      r.onerror = (e) => { if (e && ["not-allowed", "service-not-allowed", "audio-capture", "network", "language-not-supported"].includes(e.error)) broke = true; };
+      r.onend = () => {
+        if (ended) return; ended = true;
+        clearTimeout(stopTimer.current);
+        if (!alive.current) return;
+        setListening(false);
+        if (broke) { setBroken(true); return; }
+        setRes({ ok: pronHeardOk(alts || [], word), heard: String((alts || [])[0] || "").slice(0, 60) });
+        setTries(t => t + 1);
+      };
+      setListening(true); r.start();
+      clearTimeout(stopTimer.current);
+      stopTimer.current = setTimeout(() => { try { r.stop(); } catch (e) {} setTimeout(() => { if (!ended) r.onend(); }, 1500); }, 8000);
+    } catch (e) { setListening(false); setBroken(true); }
+  }
+  const finish = (entry) => { if (Date.now() - doneAt.current < 500) return; doneAt.current = Date.now(); onDone(entry); };
+  if (skipMode) return (<>
+    <PronPlayBtn word={word} onPlay={() => setHeard(true)} />
+    <div style={{ fontSize: 13, color: "#555", marginTop: 12, lineHeight: 1.6, background: "#F5F8FF", borderRadius: 10, padding: "10px 12px" }}>
+      {one ? "한 글자 단어는 기계가 잘 알아듣지 못해요." : broken ? "지금은 음성 인식을 쓸 수 없어서 건너뛰어요." : "이 기기에서는 음성 인식이 안 돼요."}<br />
+      <b>▶ 듣고, 소리 내어 세 번 따라 말해 보세요.</b>
+    </div>
+    <button type="button" disabled={!heard} style={pronBtn(heard ? "linear-gradient(135deg,#2E75B6,#1A3A5C)" : "#ccc", "white", { marginTop: 14, cursor: heard ? "pointer" : "default" })}
+      onClick={() => finish({ ok: null, a: "", skip: true })}>다 했어요 →</button>
+  </>);
+  return (<>
+    <PronPlayBtn word={word} onPlay={() => setHeard(true)} />
+    <button type="button" disabled={!heard} onClick={listen}
+      style={pronBtn(listening ? "#FFE0E0" : "white", "#C62828", { border: "2px solid #FFCDD2", marginTop: 10, opacity: heard ? 1 : 0.5, cursor: heard ? "pointer" : "default" })}>
+      {listening ? "🎙️ 듣고 있어요... 말해 보세요 (다 말했으면 누르기)" : tries ? "🎙️ 한 번 더 말하기" : "🎙️ 눌러서 따라 말하기"}
+    </button>
+    {!heard && <div style={{ fontSize: 12, color: "#888", textAlign: "center", marginTop: 6 }}>먼저 소리를 들어 보세요</div>}
+    {res && !listening && (
+      <div role="status" style={{ marginTop: 14, background: res.ok ? "#EEF7EE" : "#FFF6E5", borderRadius: 12, padding: "10px 12px", fontSize: 14, fontWeight: 800, color: res.ok ? "#2D7A2D" : "#8A4B00", textAlign: "center" }}>
+        {res.ok ? "👂 알아들었어요!" : "다시 들어 볼까요? 🙂"}
+      </div>
+    )}
+    <button type="button" disabled={!tries || listening} style={pronBtn(tries && !listening ? "linear-gradient(135deg,#2E75B6,#1A3A5C)" : "#ccc", "white", { marginTop: 14, cursor: tries ? "pointer" : "default" })}
+      onClick={() => finish({ ok: !!(res && res.ok), a: res ? res.heard : "", n: tries })}>다음 →</button>
+  </>);
+}
+function PronRecCard({ word, onTake, onDone }) {
+  const [state, setState] = useState("idle"); // idle | recording | processing
+  const [elapsed, setElapsed] = useState(0);
+  const [err, setErr] = useState("");
+  const [noMic, setNoMic] = useState(typeof navigator === "undefined" || !navigator.mediaDevices || typeof MediaRecorder === "undefined");
+  const [myUrl, setMyUrl] = useState(null);
+  const [takes, setTakes] = useState(0);
+  const mrRef = useRef(null), chunks = useRef([]), timer = useRef(null), startAt = useRef(0), streamRef = useRef(null);
+  const takeN = useRef(0), aSave = useRef(null), lastRec = useRef(null), urlRef = useRef(null), doneAt = useRef(0);
+  const alive = useRef(true), busy = useRef(false);
+  // (검토 반영) 카드를 떠난 뒤(다음·넘어가기·닫기)에는 녹음이 시작되거나 선생님께 보내지지 않게 alive로 막음
+  useEffect(() => () => {
+    alive.current = false;
+    clearInterval(timer.current);
+    try { mrRef.current && mrRef.current.state !== "inactive" && mrRef.current.stop(); } catch (e) {}
+    try { streamRef.current && streamRef.current.getTracks().forEach(t => t.stop()); } catch (e) {}
+    try { urlRef.current && URL.revokeObjectURL(urlRef.current); } catch (e) {}
+  }, []);
+  async function start() {
+    if (busy.current) return; // 두 번 눌러 녹음기가 둘 생기지 않게
+    busy.current = true;
+    setErr("");
+    setState("starting");
+    let stream = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (!alive.current) { try { stream.getTracks().forEach(t => t.stop()); } catch (e) {} return; }
+      streamRef.current = stream;
+      const mime = pickAudioMime();
+      const mr = new MediaRecorder(stream, { ...(mime ? { mimeType: mime } : {}), audioBitsPerSecond: 16000 });
+      chunks.current = [];
+      mr.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.current.push(e.data); };
+      mr.onstop = () => {
+        clearInterval(timer.current);
+        try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+        busy.current = false;
+        if (!alive.current) return; // 떠난 카드의 녹음은 버림
+        const dur = Math.max(1, Math.min(PRON_REC_MAX_SEC, Math.round((Date.now() - startAt.current) / 1000)));
+        const type = (mr.mimeType || mime || "audio/webm").split(";")[0];
+        const blob = new Blob(chunks.current, { type });
+        if (blob.size === 0) { setState("idle"); setErr("녹음된 소리가 없어요. 다시 녹음해 주세요."); return; }
+        if (blob.size > PRON_REC_MAX_BYTES) { setState("idle"); setErr("녹음이 너무 커요. 다시 녹음해 주세요."); return; }
+        setState("processing");
+        try { urlRef.current && URL.revokeObjectURL(urlRef.current); } catch (e) {}
+        try { urlRef.current = URL.createObjectURL(blob); setMyUrl(urlRef.current); } catch (e) {}
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (!alive.current) return;
+          const data = String(reader.result || "").split(",")[1] || "";
+          setState("idle");
+          if (!data) return;
+          const rec = { data, type, durSec: dur };
+          lastRec.current = rec;
+          takeN.current += 1;
+          setTakes(takeN.current);
+          if (takeN.current === 1) aSave.current = Promise.resolve(onTake("a", rec)); // "ok" | "exists" | "failed"
+        };
+        reader.readAsDataURL(blob);
+      };
+      mrRef.current = mr;
+      startAt.current = Date.now();
+      setElapsed(0);
+      mr.start();
+      setState("recording");
+      timer.current = setInterval(() => {
+        const sec = (Date.now() - startAt.current) / 1000;
+        setElapsed(sec);
+        if (sec >= PRON_REC_MAX_SEC && mrRef.current && mrRef.current.state !== "inactive") mrRef.current.stop();
+      }, 200);
+    } catch (e) {
+      busy.current = false;
+      try { stream && stream.getTracks().forEach(t => t.stop()); } catch (e2) {}
+      if (!alive.current) return;
+      setNoMic(true);
+      setErr("마이크를 쓸 수 있게 허용해 주세요.");
+      setState("idle");
+    }
+  }
+  function stop() { if (mrRef.current && mrRef.current.state !== "inactive") mrRef.current.stop(); }
+  function next(skip) {
+    if (Date.now() - doneAt.current < 500) return;
+    doneAt.current = Date.now();
+    // 그날 마지막 녹음(b): 두 번 이상 녹음했거나, 첫 녹음(a)을 보내지 못했거나 이미 있었을 때(이어서 하기)만 보냄 — 단어마다 하루 최대 2개.
+    //   a를 보내는 중이면 끝난 뒤에 판단(같은 녹음을 두 번 보내지 않게)
+    if (!skip && lastRec.current) {
+      const last = lastRec.current, many = takeN.current > 1;
+      Promise.resolve(aSave.current).then(st => { if (many || st !== "ok") onTake("b", last); });
+    }
+    onDone(skip || !takeN.current ? { ok: null, n: 0, skip: true } : { ok: true, n: takeN.current });
+  }
+  return (<>
+    <div style={{ fontSize: 12, color: "#8A4B00", background: "#FFF8E1", borderRadius: 10, padding: "8px 10px", marginBottom: 12, lineHeight: 1.5 }}>🎙️ 이 녹음은 선생님이 들을 수 있어요.</div>
+    <PronPlayBtn word={word} label="▶ 본보기 소리" />
+    {state === "starting" ? (
+      <div style={{ textAlign: "center", color: "#888", fontSize: 13, marginTop: 10 }}>마이크를 켜는 중...</div>
+    ) : state === "recording" ? (
+      <button type="button" onClick={stop} style={pronBtn("#E53935", "white", { marginTop: 10 })}>⏹ 멈추기 ({Math.floor(elapsed)}초 / {PRON_REC_MAX_SEC}초)</button>
+    ) : state === "processing" ? (
+      <div style={{ textAlign: "center", color: "#888", fontSize: 13, marginTop: 10 }}>준비 중...</div>
+    ) : !noMic ? (
+      <button type="button" onClick={start} style={pronBtn("white", "#C62828", { border: "2px solid #FFCDD2", marginTop: 10 })}>{takes ? "🎙️ 다시 녹음하기" : "🎙️ 내 목소리 녹음하기"}</button>
+    ) : null}
+    {myUrl && state === "idle" && (
+      <button type="button" onClick={() => { try { new Audio(myUrl).play().catch(() => {}); } catch (e) {} }}
+        style={pronBtn("#FFF3E0", "#8A4B00", { border: "2px solid #FFCC80", marginTop: 10 })}>▶ 내 목소리</button>
+    )}
+    {takes > 0 && state === "idle" && <div style={{ fontSize: 12, color: "#555", textAlign: "center", marginTop: 8 }}>두 소리를 번갈아 들어 보세요. 다르게 들리면 다시 녹음해도 돼요.</div>}
+    {noMic && <div style={{ fontSize: 12, color: "#B23B00", marginTop: 10, textAlign: "center" }}>{err || "이 기기에서는 녹음할 수 없어요."} 원어민 소리를 듣고 따라 말한 뒤 넘어가세요.</div>}
+    {!noMic && err && <div style={{ fontSize: 12, color: "#E53935", marginTop: 8, textAlign: "center" }}>{err}</div>}
+    <button type="button" disabled={state !== "idle" || (!takes && !noMic)} onClick={() => next(false)}
+      style={pronBtn(state === "idle" && (takes || noMic) ? "linear-gradient(135deg,#2E75B6,#1A3A5C)" : "#ccc", "white", { marginTop: 14, cursor: state === "idle" && (takes || noMic) ? "pointer" : "default" })}>다음 →</button>
+    {!takes && !noMic && state === "idle" && (
+      <button type="button" onClick={() => next(true)} style={{ display: "block", margin: "10px auto 0", background: "none", border: "none", color: "#888", fontSize: 12, textDecoration: "underline", cursor: "pointer" }}>녹음하지 않고 넘어가기</button>
+    )}
+  </>);
+}
+function PronSessionScreen({ assignment, teacherId, user, prog, onClose }) {
+  const a = assignment;
+  const words = Array.isArray(a.words) ? a.words.map(String) : [];
+  const ref = doc(db, "classes", teacherId, "assignments", a.id, "pronProgress", user.uid);
+  const [days, setDays] = useState(null);
+  const [view, setView] = useState(null);   // { mode: "play"|"locked"|"alldone"|"daydone", day }
+  const [pinK, setPinK] = useState(null);   // ① 결과를 보여 주는 동안 그 문항에 머물기
+  const [saveErr, setSaveErr] = useState("");
+  const [audioErr, setAudioErr] = useState("");
+  const tick = useRef(Date.now());
+  const progRef = useRef(prog); progRef.current = prog;
+
+  useEffect(() => {
+    if (days !== null || prog === undefined) return;
+    const cur = Array.isArray(prog?.days) ? prog.days.map(x => (x ? { ...x } : x)) : [];
+    const st = vocabDayState(a, prog);
+    if (st.done) { setDays(cur); setView({ mode: "alldone" }); return; }
+    if (st.locked) { setDays(cur); setView({ mode: "locked", day: st.next }); return; }
+    const d = st.next;
+    if (!cur[d] || !Array.isArray(cur[d].order)) {
+      cur[d] = { order: pronDayOrder(a, d, prog), startedAtMs: Date.now(), answers: [], sec: 0 };
+      setDays(cur);
+      save(cur);
+    } else setDays(cur);
+    tick.current = Date.now();
+    setView({ mode: "play", day: d });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prog]);
+
+  async function save(next) {
+    const clean = vocabMergeDays(next, progRef.current && progRef.current.days).map(x => x || null);
+    try {
+      await setDoc(ref, { learnerUid: user.uid, days: clean, doneDays: clean.filter(x => x && x.doneAtMs).length, updatedAt: serverTimestamp(), updatedAtMs: Date.now() });
+      setSaveErr("");
+    } catch (e) {
+      setSaveErr(e && e.code === "permission-denied"
+        ? "다른 기기에서 먼저 저장된 기록이 있거나 과제가 정리됐어요. 닫고 다시 열어 주세요."
+        : "저장하지 못했어요. 인터넷 연결을 확인해 주세요. (다음 문제를 할 때 다시 저장해요)");
+    }
+  }
+  function record(d, entry) {
+    const now = Date.now();
+    const add = Math.min(Math.max(0, now - tick.current), 180000);
+    tick.current = now;
+    const cur = vocabMergeDays(days, progRef.current && progRef.current.days).map(x => (x ? { ...x } : x));
+    if (!cur[d] || cur[d].doneAtMs) { setDays(cur); return cur[d] || null; } // 다른 기기에서 이미 끝낸 날
+    const r = { ...cur[d], answers: [...(Array.isArray(cur[d].answers) ? cur[d].answers : []), entry] };
+    r.sec = Math.round((Number(r.sec) || 0) + add / 1000);
+    if (r.answers.length >= r.order.length && !r.doneAtMs) { r.doneAtMs = now; r.date = vocabToday(); }
+    cur[d] = r;
+    setDays(cur);
+    save(cur);
+    return r;
+  }
+  // 결과: "ok" | "exists"(이미 보낸 녹음 — 이어서 하기 등, 새로 만들기만 되므로 거절됨) | "failed"
+  async function saveTake(d, wi, take, rec) {
+    const aref = doc(db, "classes", teacherId, "assignments", a.id, "pronAudio", `${user.uid}_${d}_${wi}_${take}`);
+    try {
+      await setDoc(aref, { learnerUid: user.uid, day: d, w: words[wi] || "", take, data: rec.data, type: rec.type, durSec: rec.durSec, createdAt: serverTimestamp() });
+      return "ok";
+    } catch (e) {
+      if (e && e.code === "permission-denied") {
+        try { const s = await getDoc(aref); if (s.exists()) return "exists"; } catch (e2) {}
+      }
+      setAudioErr("녹음을 선생님께 보내지 못했어요. 공부는 그대로 이어서 하면 돼요.");
+      return "failed";
+    }
+  }
+
+  const shell = (sub, body) => (
+    <div style={{ position: "fixed", inset: 0, background: "#F5F8FF", zIndex: 3100, display: "flex", flexDirection: "column", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
+      <div style={{ maxWidth: 600, width: "100%", margin: "0 auto", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+        <div style={{ background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", padding: "16px 18px", color: "white" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 15, fontWeight: 800 }}>🎧 {a.title}</div>
+            <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", borderRadius: 20, padding: "6px 14px", fontSize: 13, cursor: "pointer", fontWeight: 700 }}>닫기</button>
+          </div>
+          {sub && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", marginTop: 4 }}>{sub}</div>}
+        </div>
+        <div style={{ overflowY: "auto", padding: 18, flex: 1 }}>
+          {saveErr && <div style={{ background: "#FFF0F0", color: "#C62828", borderRadius: 10, padding: "8px 12px", fontSize: 12, marginBottom: 10 }}>{saveErr}</div>}
+          {audioErr && <div style={{ background: "#FFF8E1", color: "#8A4B00", borderRadius: 10, padding: "8px 12px", fontSize: 12, marginBottom: 10 }}>{audioErr}</div>}
+          {body}
+        </div>
+      </div>
+    </div>
+  );
+  const card = (children) => <div style={{ background: "white", borderRadius: 16, padding: 18, boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}>{children}</div>;
+  const endCard = (emoji, title, msg) => card(
+    <div style={{ textAlign: "center", padding: "10px 0" }}>
+      <div style={{ fontSize: 44 }}>{emoji}</div>
+      <div style={{ fontSize: 17, fontWeight: 800, color: "#1A3A5C", marginTop: 8 }}>{title}</div>
+      <div style={{ fontSize: 13, color: "#555", marginTop: 6, lineHeight: 1.6 }}>{msg}</div>
+      <button type="button" onClick={onClose} style={pronBtn("linear-gradient(135deg,#2E75B6,#1A3A5C)", "white", { marginTop: 14 })}>닫기</button>
+    </div>
+  );
+
+  if (!view || !days) return shell("", <div style={{ textAlign: "center", color: "#888", padding: 40 }}>불러오는 중...</div>);
+  if (words.length === 0) return shell("", card(<div>단어를 찾지 못했어요. 선생님께 알려 주세요.</div>));
+  if (view.mode === "alldone") return shell(`${a.days}일을 모두 끝냈어요`, endCard("🎉", "모든 날을 끝냈어요!", <>{words.join(", ")}<br />이제 대화에서 이 소리들을 자신 있게 말해 보세요.</>));
+  if (view.mode === "locked") return shell(`${view.day}일째까지 끝났어요`, endCard("🌙", "오늘 공부는 끝났어요", <>하루 쉬고 다시 들어야 귀가 더 오래 기억해요.<br />내일 {view.day + 1}일째가 열려요 🌱</>));
+  const d = view.day;
+  const rec = days[d];
+  if (view.mode === "daydone" || !rec || (rec.doneAtMs && pinK === null)) {
+    const last = d + 1 >= Number(a.days);
+    return shell(`${d + 1}일째 끝`, endCard(last ? "🎉" : "🌱", `${d + 1}일째 공부를 끝냈어요!`, last ? "모든 날을 끝냈어요. 정말 잘했어요!" : `내일 ${d + 2}일째에서 같은 단어를 또 만나요.`));
+  }
+  const answers = Array.isArray(rec.answers) ? rec.answers : [];
+  const order = Array.isArray(rec.order) ? rec.order : [];
+  const k = pinK !== null ? pinK : order[answers.length];
+  const it = pronItem(a, k);
+  if (!it) return shell("", card(<div>문항을 찾지 못했어요. 선생님께 알려 주세요.</div>));
+  const step = pinK !== null ? answers.length : answers.length + 1;
+  const sub = `${d + 1}일째 · ${Math.min(step, order.length)}/${order.length}`;
+  const afterRecord = (r) => { if (r && r.doneAtMs) setView({ mode: "daydone", day: d }); };
+  const title = it.kind === "pick" ? "① 듣고 고르기 — 어떤 단어로 들리나요?" : it.kind === "say" ? "② 듣고 따라 말하기" : "③ 내 목소리 비교";
+  let body;
+  if (it.kind === "pick") {
+    body = <PronPickCard key={`${d}_${k}`} word={it.word} choices={pronChoices(a, it.wi, d)}
+      onAnswer={(x) => { setPinK(k); record(d, { k, ok: x.ok, a: x.a }); }}
+      onNext={() => { setPinK(null); const r = days[d]; if (r && r.doneAtMs) setView({ mode: "daydone", day: d }); }} />;
+  } else if (it.kind === "say") {
+    body = <>
+      <div style={{ fontSize: 28, fontWeight: 800, color: "#1A3A5C", textAlign: "center", margin: "4px 0 14px" }}>{it.word}</div>
+      <PronSayCard key={`${d}_${k}`} word={it.word} onDone={(x) => afterRecord(record(d, { k, ...x }))} />
+    </>;
+  } else {
+    body = <>
+      <div style={{ fontSize: 28, fontWeight: 800, color: "#1A3A5C", textAlign: "center", margin: "4px 0 14px" }}>{it.word}</div>
+      <PronRecCard key={`${d}_${k}`} word={it.word} onTake={(take, r) => saveTake(d, it.wi, take, r)} onDone={(x) => afterRecord(record(d, { k, ...x }))} />
+    </>;
+  }
+  return shell(sub, card(<>
+    <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 12 }}>{title}</div>
+    {body}
+  </>));
 }
 
 // ════════════════════════════════════════════════════════
@@ -7191,1605 +9450,7 @@ ${vocabList}
     const uz = lc === "uz";
 
     // 발음 단계 목록
-    const PRON_STEPS = [
-      // ── 단계 1: 모음1 학습 ──
-      { id:"vowel1", type:"learn", emoji:"🔤",
-        title:{ko:"01. 기본 모음",vi:"01. Nguyên âm cơ bản",en:"01. Basic Vowels",zh:"01. 基本元音",ja:"01. 基本母音",id:"01. Vokal Dasar",ru:"01. Основные гласные",th:"01. สระพื้นฐาน",mn:"01. Үндсэн эгшиг",uz:"01. Asosiy unlilar",es:"01. Vocales básicas",fr:"01. Voyelles de base",ne:"01. आधारभूत स्वर",de:"01. Grundvokale"},
-        desc:{ko:"한국어 기본 모음 10개의 소리와 형태를 익히고 소리 내어 말합니다.",vi:"Học hình dạng và âm thanh của 10 nguyên âm cơ bản tiếng Hàn.",en:"Learn the shapes and sounds of 10 basic Korean vowels.",zh:"学习韩语10个基本元音的发音和形态，并大声读出来。",ja:"韓国語の基本母音10個の音と形を学び、声に出して言います。",id:"Pelajari bunyi dan bentuk 10 vokal dasar bahasa Korea, lalu ucapkan dengan lantang.",ru:"Изучите звуки и форму 10 основных гласных корейского языка и произнесите их вслух.",th:"เรียนรู้เสียงและรูปร่างของสระพื้นฐาน 10 ตัวในภาษาเกาหลี แล้วออกเสียงดัง ๆ",mn:"Солонгос хэлний үндсэн 10 эгшгийн дуу авиа, хэлбэрийг мэдэж аваад дуу гарган хэлнэ.",uz:"Koreys tilining 10 ta asosiy unlisining tovushi va shaklini o'rganib, ovoz chiqarib ayting.",es:"Aprenda los sonidos y formas de las 10 vocales básicas del coreano y pronúncielas en voz alta.",fr:"Apprenez les sons et les formes des 10 voyelles de base du coréen, puis prononcez-les à voix haute.",ne:"कोरियाली आधारभूत १० स्वरको ध्वनि र आकार सिकेर ठूलो स्वरमा भन्नुहोस्।",de:"Lernen Sie die Klänge und Formen der 10 koreanischen Grundvokale und sprechen Sie sie laut aus."},
-        items:[
-          { char:"ㅏ", word:"아버지", meaning:{ko:"아버지",vi:"bố",zh:"父亲",en:"father",ja:"お父さん",id:"ayah",ru:"отец",th:"พ่อ",mn:"аав",uz:"ota",es:"father"} },
-          { char:"ㅑ", word:"야채",   meaning:{ko:"야채",  vi:"rau củ",zh:"蔬菜",en:"vegetable",ja:"野菜",id:"sayuran",ru:"овощи",th:"ผัก",mn:"ногоо",uz:"sabzavot",es:"vegetable"} },
-          { char:"ㅓ", word:"어머니", meaning:{ko:"어머니",vi:"mẹ",zh:"母亲",en:"mother",ja:"お母さん",id:"ibu",ru:"мать",th:"แม่",mn:"ээж",uz:"ona",es:"mother"} },
-          { char:"ㅕ", word:"여자",   meaning:{ko:"여자",  vi:"phụ nữ",zh:"女子",en:"woman",ja:"女性",id:"wanita",ru:"женщина",th:"ผู้หญิง",mn:"эмэгтэй",uz:"ayol",es:"woman"} },
-          { char:"ㅗ", word:"오빠",   meaning:{ko:"오빠",  vi:"anh trai",zh:"哥哥",en:"older brother",ja:"お兄さん",id:"kakak laki-laki",ru:"старший брат",th:"พี่ชาย",mn:"ах",uz:"aka",es:"older brother"} },
-          { char:"ㅛ", word:"요리",   meaning:{ko:"요리",  vi:"nấu ăn",zh:"料理",en:"cooking",ja:"料理",id:"memasak",ru:"приготовление пищи",th:"การทำอาหาร",mn:"хоол хийх",uz:"ovqat pishirish",es:"cooking"} },
-          { char:"ㅜ", word:"우리",   meaning:{ko:"우리",  vi:"chúng ta",zh:"我们",en:"we/us",ja:"私たち",id:"kita",ru:"мы",th:"เรา",mn:"бид",uz:"biz",es:"we/us"} },
-          { char:"ㅠ", word:"유리",   meaning:{ko:"유리",  vi:"thủy tinh",zh:"玻璃",en:"glass",ja:"ガラス",id:"kaca",ru:"стекло",th:"กระจก",mn:"шил",uz:"shisha",es:"glass"} },
-          { char:"ㅡ", word:"음식",   meaning:{ko:"음식",  vi:"thức ăn",zh:"食物",en:"food",ja:"食べ物",id:"makanan",ru:"еда",th:"อาหาร",mn:"хоол",uz:"ovqat",es:"food"} },
-          { char:"ㅣ", word:"이름",   meaning:{ko:"이름",  vi:"tên",zh:"名字",en:"name",ja:"名前",id:"nama",ru:"имя",th:"ชื่อ",mn:"нэр",uz:"ism",es:"name"} },
-        ],
-        tip:{ko:"입 모양과 소리의 패턴을 여러 번 듣고 소리 내어 암송하십시오.",vi:"Hãy nghe nhiều lần rồi đọc to để ghi nhớ hình dạng miệng và âm thanh.",en:"Listen repeatedly and read aloud to memorize the mouth shape and sound pattern.",zh:"请多次聆听嘴型与发音规律，并大声跟读记忆。",ja:"口の形と音のパターンを何度も聞いて、声に出して覚えてください。",id:"Dengarkan pola bentuk mulut dan bunyi berulang kali, lalu ucapkan dengan lantang untuk menghafalnya.",ru:"Слушайте форму рта и звуковую схему несколько раз и повторяйте вслух, чтобы запомнить.",th:"ฟังรูปปากและรูปแบบเสียงหลาย ๆ ครั้ง แล้วออกเสียงดัง ๆ เพื่อจดจำ",mn:"Амны хэлбэр, дууны хэв маягийг олон удаа сонсоод, дуу гарган давтаж цээжлээрэй.",uz:"Og'iz shakli va tovush naqshini bir necha marta tinglab, ovoz chiqarib takrorlab yodlang.",es:"Escuche varias veces la forma de la boca y el patrón del sonido, y repita en voz alta para memorizarlo.",fr:"Écoutez plusieurs fois la forme de la bouche et le schéma sonore, puis répétez à voix haute pour mémoriser.",ne:"मुखको आकार र ध्वनिको ढाँचा धेरैपटक सुनेर ठूलो स्वरमा दोहोर्याएर कण्ठ गर्नुहोस्।",de:"Hören Sie sich die Mundform und das Klangmuster mehrmals an und sprechen Sie laut nach, um es sich einzuprägen."},
-      },
-      // ── 단계 2: 모음 쓰기 ──
-      { id:"vowel1_write", type:"write", emoji:"✏️",
-        title:{ko:"02. 모음 쓰기",vi:"02. Viết nguyên âm",en:"02. Writing Vowels",zh:"02. 元音书写",ja:"02. 母音の書き方",id:"02. Menulis Vokal",ru:"02. Написание гласных",th:"02. การเขียนสระ",mn:"02. Эгшиг бичих",uz:"02. Unlilarni yozish",es:"02. Escritura de vocales",fr:"02. Écriture des voyelles",ne:"02. स्वर लेखन",de:"02. Vokale schreiben"},
-        desc:{ko:"기본 모음 10개를 순서에 맞게 써봅니다.",vi:"Viết 10 nguyên âm cơ bản theo đúng thứ tự nét.",en:"Write the 10 basic vowels in the correct stroke order.",zh:"按笔顺练习书写10个基本元音。",ja:"基本母音10個を書き順どおりに書いてみます。",id:"Tulis 10 vokal dasar sesuai urutan goresan.",ru:"Напишите 10 основных гласных в правильном порядке черт.",th:"ฝึกเขียนสระพื้นฐาน 10 ตัวตามลำดับขีด",mn:"Үндсэн 10 эгшгийг зөв дарааллаар нь бичиж үзнэ.",uz:"10 ta asosiy unlini to'g'ri chiziq tartibida yozib ko'ring.",es:"Escriba las 10 vocales básicas siguiendo el orden correcto de trazos.",fr:"Écrivez les 10 voyelles de base en respectant l'ordre des traits.",ne:"आधारभूत १० स्वर क्रमबद्ध रूपमा लेखेर हेर्नुहोस्।",de:"Schreiben Sie die 10 Grundvokale in der richtigen Strichfolge."},
-        writeTask:{ko:"아 야 어 여 오 요 우 유 으 이 를 각각 5번씩 써보세요.",vi:"Hãy viết mỗi chữ sau 5 lần: 아 야 어 여 오 요 우 유 으 이",en:"Write each of the following 5 times: 아 야 어 여 오 요 우 유 으 이",zh:"请把\"아 야 어 여 오 요 우 유 으 이\"各写5遍。",ja:"「아 야 어 여 오 요 우 유 으 이」をそれぞれ5回ずつ書いてみましょう。",id:"Tulis masing-masing \"아 야 어 여 오 요 우 유 으 이\" sebanyak 5 kali.",ru:"Напишите каждое из «아 야 어 여 오 요 우 유 으 이» по 5 раз.",th:"ลองเขียน \"아 야 어 여 오 요 우 유 으 이\" ตัวละ 5 ครั้ง",mn:"\"아 야 어 여 오 요 우 유 으 이\"-г тус бүрийг 5 удаа бичиж үзээрэй.",uz:"\"아 야 어 여 오 요 우 유 으 이\"ning har birini 5 martadan yozib ko'ring.",es:"Escriba \"아 야 어 여 오 요 우 유 으 이\" 5 veces cada una.",fr:"Écrivez chacun des caractères « 아 야 어 여 오 요 우 유 으 이 » 5 fois.",ne:"\"아 야 어 여 오 요 우 유 으 이\" प्रत्येकलाई ५ पटक लेख्नुहोस्।",de:"Schreiben Sie \"아 야 어 여 오 요 우 유 으 이\" jeweils 5-mal."},
-        items:[
-          { char:"ㅏ" }, { char:"ㅑ" }, { char:"ㅓ" }, { char:"ㅕ" },
-          { char:"ㅗ" }, { char:"ㅛ" }, { char:"ㅜ" }, { char:"ㅠ" },
-          { char:"ㅡ" }, { char:"ㅣ" },
-        ],
-        tip:{ko:"획순을 지켜서 천천히 써보세요. 80% 이상 정확하면 다음 단계로 넘어갑니다.",vi:"Viết chậm theo đúng thứ tự nét. Nếu đúng 80% trở lên, bạn sẽ qua bước tiếp theo.",en:"Write slowly following stroke order. 80% or more accuracy moves you to the next step.",zh:"请按照笔顺慢慢书写。正确率达到80%以上即可进入下一阶段。",ja:"書き順を守ってゆっくり書いてください。80%以上正確なら次の段階に進みます。",id:"Tulis perlahan sesuai urutan goresan. Jika akurasi 80% ke atas, Anda lanjut ke tahap berikutnya.",ru:"Пишите медленно, соблюдая порядок черт. При точности 80% и выше вы переходите к следующему этапу.",th:"เขียนช้า ๆ ตามลำดับขีด หากความแม่นยำถึง 80% ขึ้นไป จะผ่านไปขั้นตอนถัดไป",mn:"Зурлагын дарааллыг баримтлан аажуухан бичээрэй. 80%-иас дээш зөв бол дараагийн шатанд шилжинэ.",uz:"Chiziq tartibiga rioya qilib asta yozing. 80% yoki undan yuqori to'g'ri bo'lsa, keyingi bosqichga o'tasiz.",es:"Escriba despacio siguiendo el orden de los trazos. Con un 80% de precisión o más, pasará a la siguiente etapa.",fr:"Écrivez lentement en respectant l'ordre des traits. Avec 80 % de précision ou plus, vous passez à l'étape suivante.",ne:"कलमको क्रम पालना गर्दै बिस्तारै लेख्नुहोस्। ८०% वा सोभन्दा माथि सही भए अर्को चरणमा जानुहुनेछ।",de:"Schreiben Sie langsam in der richtigen Strichfolge. Bei 80 % Genauigkeit oder mehr geht es zum nächsten Schritt."},
-      },
-      // ── 단계 3: 모음1 단어 ──
-      { id:"vowel1_word", type:"learn", emoji:"📖",
-        title:{ko:"03. 모음1 단어",vi:"03. Từ vựng nguyên âm 1",en:"03. Vowel Words 1",zh:"03. 元音单词1",ja:"03. 母音単語1",id:"03. Kata Vokal 1",ru:"03. Слова с гласными 1",th:"03. คำศัพท์สระ 1",mn:"03. Эгшигтэй үг 1",uz:"03. Unli so'zlar 1",es:"03. Palabras con vocales 1",fr:"03. Mots avec voyelle 1",ne:"03. स्वर शब्द 1",de:"03. Vokalwörter 1"},
-        desc:{ko:"배운 모음이 들어간 실생활 단어를 읽고 뜻을 익힙니다.",vi:"Đọc và ghi nhớ ý nghĩa các từ thực tế có chứa nguyên âm đã học.",en:"Read and learn the meaning of everyday words containing the vowels you learned.",zh:"朗读并理解包含所学元音的生活常用词。",ja:"学んだ母音を含む実生活の単語を読んで意味を覚えます。",id:"Baca dan pelajari arti kata sehari-hari yang mengandung vokal yang telah dipelajari.",ru:"Прочитайте и выучите значения повседневных слов с изученными гласными.",th:"อ่านและเรียนรู้ความหมายของคำศัพท์ในชีวิตประจำวันที่มีสระที่เรียนไปแล้ว",mn:"Сурсан эгшиг орсон өдөр тутмын үгсийг уншиж, утгыг нь мэдэж авна.",uz:"O'rgangan unlilar bo'lgan kundalik so'zlarni o'qib, ma'nosini o'rganing.",es:"Lea y aprenda el significado de palabras cotidianas que contienen las vocales aprendidas.",fr:"Lisez et apprenez le sens de mots du quotidien contenant les voyelles apprises.",ne:"सिकेको स्वर भएका दैनिक जीवनका शब्दहरू पढेर अर्थ बुझ्नुहोस्।",de:"Lesen und lernen Sie die Bedeutung von Alltagswörtern mit den gelernten Vokalen."},
-        items:[
-          // ── 가족 (6개) ──
-          { char:"어머니", word:"어머니", meaning:{ko:"어머니",vi:"mẹ",zh:"母亲",en:"mother",ja:"お母さん",id:"ibu",ru:"мать",th:"แม่",mn:"ээж",uz:"ona",es:"mother"} },
-          { char:"아버지", word:"아버지", meaning:{ko:"아버지",vi:"bố",zh:"父亲",en:"father",ja:"お父さん",id:"ayah",ru:"отец",th:"พ่อ",mn:"аав",uz:"ota",es:"father"} },
-          { char:"누나",   word:"누나",   meaning:{ko:"누나",  vi:"chị gái",zh:"姐姐",en:"older sister",ja:"お姉さん",id:"kakak perempuan",ru:"старшая сестра",th:"พี่สาว",mn:"эгч",uz:"opa",es:"older sister"} },
-          { char:"아가",   word:"아가",   meaning:{ko:"아가",  vi:"em bé",zh:"婴儿",en:"baby",ja:"赤ちゃん",id:"bayi",ru:"малыш",th:"ทารก",mn:"нялх хүүхэд",uz:"chaqaloq",es:"baby"} },
-          { char:"아이",   word:"아이",   meaning:{ko:"아이",  vi:"trẻ em",zh:"孩子",en:"child",ja:"子供",id:"anak",ru:"ребёнок",th:"เด็ก",mn:"хүүхэд",uz:"bola",es:"child"} },
-          { char:"여자",   word:"여자",   meaning:{ko:"여자",  vi:"phụ nữ",zh:"女子",en:"woman",ja:"女性",id:"wanita",ru:"женщина",th:"ผู้หญิง",mn:"эмэгтэй",uz:"ayol",es:"woman"} },
-          // ── 직업 (4개) ──
-          { char:"의사",   word:"의사",   meaning:{ko:"의사",  vi:"bác sĩ",zh:"医生",en:"doctor",ja:"医者",id:"dokter",ru:"врач",th:"หมอ",mn:"эмч",uz:"shifokor",es:"doctor"} },
-          { char:"가수",   word:"가수",   meaning:{ko:"가수",  vi:"ca sĩ",zh:"歌手",en:"singer",ja:"歌手",id:"penyanyi",ru:"певец",th:"นักร้อง",mn:"дуучин",uz:"qo'shiqchi",es:"singer"} },
-          { char:"기자",   word:"기자",   meaning:{ko:"기자",  vi:"phóng viên",zh:"记者",en:"reporter",ja:"記者",id:"jurnalis",ru:"журналист",th:"นักข่าว",mn:"сэтгүүлч",uz:"jurnalist",es:"reporter"} },
-          { char:"교수",   word:"교수",   meaning:{ko:"교수",  vi:"giáo sư",zh:"教授",en:"professor",ja:"教授",id:"profesor",ru:"профессор",th:"ศาสตราจารย์",mn:"профессор",uz:"professor",es:"professor"} },
-          // ── 시간·일상 (4개) ──
-          { char:"오후",   word:"오후",   meaning:{ko:"오후",  vi:"buổi chiều",zh:"下午",en:"afternoon",ja:"午後",id:"sore",ru:"послеполудень",th:"บ่าย",mn:"үд хойно",uz:"tushdan keyin",es:"afternoon"} },
-          { char:"하루",   word:"하루",   meaning:{ko:"하루",  vi:"một ngày",zh:"一天",en:"one day",ja:"一日",id:"satu hari",ru:"один день",th:"หนึ่งวัน",mn:"нэг өдөр",uz:"bir kun",es:"one day"} },
-          { char:"휴가",   word:"휴가",   meaning:{ko:"휴가",  vi:"kỳ nghỉ",zh:"休假",en:"vacation",ja:"休暇",id:"liburan",ru:"отпуск",th:"วันหยุด",mn:"амралт",uz:"ta'til",es:"vacation"} },
-          { char:"자주",   word:"자주",   meaning:{ko:"자주",  vi:"thường xuyên",zh:"经常",en:"often",ja:"よく",id:"sering",ru:"часто",th:"บ่อยๆ",mn:"байнга",uz:"tez-tez",es:"often"} },
-          // ── 장소·주거 (5개) ──
-          { char:"도시",   word:"도시",   meaning:{ko:"도시",  vi:"thành phố",zh:"都市",en:"city",ja:"都市",id:"kota",ru:"город",th:"เมือง",mn:"хот",uz:"shahar",es:"city"} },
-          { char:"아파트", word:"아파트", meaning:{ko:"아파트",vi:"căn hộ",zh:"公寓",en:"apartment",ja:"アパート",id:"apartemen",ru:"квартира",th:"อพาร์ตเมนต์",mn:"орон сууц",uz:"kvartira",es:"apartment"} },
-          { char:"주소",   word:"주소",   meaning:{ko:"주소",  vi:"địa chỉ",zh:"地址",en:"address",ja:"住所",id:"alamat",ru:"адрес",th:"ที่อยู่",mn:"хаяг",uz:"manzil",es:"address"} },
-          { char:"가구",   word:"가구",   meaning:{ko:"가구",  vi:"đồ nội thất",zh:"家具",en:"furniture",ja:"家具",id:"furnitur",ru:"мебель",th:"เฟอร์นิเจอร์",mn:"тавилга",uz:"mebel",es:"furniture"} },
-          { char:"비누",   word:"비누",   meaning:{ko:"비누",  vi:"xà phòng",zh:"肥皂",en:"soap",ja:"石鹸",id:"sabun",ru:"мыло",th:"สบู่",mn:"саван",uz:"sovun",es:"soap"} },
-          // ── 의류 (5개) ──
-          { char:"치마",   word:"치마",   meaning:{ko:"치마",  vi:"váy",zh:"裙子",en:"skirt",ja:"スカート",id:"rok",ru:"юбка",th:"กระโปรง",mn:"банзал",uz:"yubka",es:"skirt"} },
-          { char:"바지",   word:"바지",   meaning:{ko:"바지",  vi:"quần",zh:"裤子",en:"pants",ja:"ズボン",id:"celana",ru:"брюки",th:"กางเกง",mn:"өмд",uz:"shim",es:"pants"} },
-          { char:"구두",   word:"구두",   meaning:{ko:"구두",  vi:"giày",zh:"皮鞋",en:"shoes",ja:"靴",id:"sepatu",ru:"туфли",th:"รองเท้า",mn:"гутал",uz:"tufli",es:"shoes"} },
-          { char:"모자",   word:"모자",   meaning:{ko:"모자",  vi:"mũ",zh:"帽子",en:"hat",ja:"帽子",id:"topi",ru:"шапка",th:"หมวก",mn:"малгай",uz:"shapka",es:"hat"} },
-          { char:"우표",   word:"우표",   meaning:{ko:"우표",  vi:"tem thư",zh:"邮票",en:"stamp",ja:"切手",id:"perangko",ru:"марка",th:"แสตมป์",mn:"марк",uz:"marka",es:"stamp"} },
-          // ── 신체 (8개) ──
-          { char:"머리",   word:"머리",   meaning:{ko:"머리",  vi:"đầu",zh:"头",en:"head",ja:"頭",id:"kepala",ru:"голова",th:"หัว",mn:"толгой",uz:"bosh",es:"head"} },
-          { char:"이마",   word:"이마",   meaning:{ko:"이마",  vi:"trán",zh:"额头",en:"forehead",ja:"額",id:"dahi",ru:"лоб",th:"หน้าผาก",mn:"дух",uz:"peshona",es:"forehead"} },
-          { char:"코",     word:"코",     meaning:{ko:"코",    vi:"mũi",zh:"鼻子",en:"nose",ja:"鼻",id:"hidung",ru:"нос",th:"จมูก",mn:"хамар",uz:"burun",es:"nose"} },
-          { char:"허리",   word:"허리",   meaning:{ko:"허리",  vi:"eo",zh:"腰",en:"waist",ja:"腰",id:"pinggang",ru:"талия",th:"เอว",mn:"бүсэлхий",uz:"bel",es:"waist"} },
-          { char:"다리",   word:"다리",   meaning:{ko:"다리",  vi:"chân",zh:"腿",en:"leg",ja:"足",id:"kaki",ru:"нога",th:"ขา",mn:"хөл",uz:"oyoq",es:"leg"} },
-          { char:"혀",     word:"혀",     meaning:{ko:"혀",    vi:"lưỡi",zh:"舌头",en:"tongue",ja:"舌",id:"lidah",ru:"язык",th:"ลิ้น",mn:"хэл",uz:"til",es:"tongue"} },
-          { char:"키",     word:"키",     meaning:{ko:"키",    vi:"chiều cao",zh:"身高",en:"height",ja:"身長",id:"tinggi",ru:"рост",th:"ส่วนสูง",mn:"өндөр",uz:"bo'y",es:"height"} },
-          { char:"이",     word:"이",     meaning:{ko:"이",    vi:"răng",zh:"牙齿",en:"tooth",ja:"歯",id:"gigi",ru:"зуб",th:"ฟัน",mn:"шүд",uz:"tish",es:"tooth"} },
-          // ── 음식·음료 (10개) ──
-          { char:"피자",   word:"피자",   meaning:{ko:"피자",  vi:"pizza",zh:"披萨",en:"pizza",ja:"ピザ",id:"pizza",ru:"пицца",th:"พิซซ่า",mn:"пицца",uz:"pitsa",es:"pizza"} },
-          { char:"소고기", word:"소고기", meaning:{ko:"소고기",vi:"thịt bò",zh:"牛肉",en:"beef",ja:"牛肉",id:"daging sapi",ru:"говядина",th:"เนื้อวัว",mn:"үхрийн мах",uz:"mol go'shti",es:"beef"} },
-          { char:"오이",   word:"오이",   meaning:{ko:"오이",  vi:"dưa chuột",zh:"黄瓜",en:"cucumber",ja:"きゅうり",id:"mentimun",ru:"огурец",th:"แตงกวา",mn:"өргөст хэмх",uz:"bodring",es:"cucumber"} },
-          { char:"고구마", word:"고구마", meaning:{ko:"고구마",vi:"khoai lang",zh:"地瓜",en:"sweet potato",ja:"サツマイモ",id:"ubi jalar",ru:"батат",th:"มันเทศ",mn:"батат",uz:"battat",es:"sweet potato"} },
-          { char:"두부",   word:"두부",   meaning:{ko:"두부",  vi:"đậu phụ",zh:"豆腐",en:"tofu",ja:"豆腐",id:"tahu",ru:"тофу",th:"เต้าหู้",mn:"тофу",uz:"tofu",es:"tofu"} },
-          { char:"포도",   word:"포도",   meaning:{ko:"포도",  vi:"nho",zh:"葡萄",en:"grape",ja:"ブドウ",id:"anggur",ru:"виноград",th:"องุ่น",mn:"усан үзэм",uz:"uzum",es:"grape"} },
-          { char:"바나나", word:"바나나", meaning:{ko:"바나나",vi:"chuối",zh:"香蕉",en:"banana",ja:"バナナ",id:"pisang",ru:"банан",th:"กล้วย",mn:"банан",uz:"banan",es:"banana"} },
-          { char:"우유",   word:"우유",   meaning:{ko:"우유",  vi:"sữa",zh:"牛奶",en:"milk",ja:"牛乳",id:"susu",ru:"молоко",th:"นม",mn:"сүү",uz:"sut",es:"milk"} },
-          { char:"주스",   word:"주스",   meaning:{ko:"주스",  vi:"nước trái cây",zh:"果汁",en:"juice",ja:"ジュース",id:"jus",ru:"сок",th:"น้ำผลไม้",mn:"шүүс",uz:"sharbat",es:"juice"} },
-          { char:"커피",   word:"커피",   meaning:{ko:"커피",  vi:"cà phê",zh:"咖啡",en:"coffee",ja:"コーヒー",id:"kopi",ru:"кофе",th:"กาแฟ",mn:"кофе",uz:"qahva",es:"coffee"} },
-          // ── 교통·기기 (5개) ──
-          { char:"버스",   word:"버스",   meaning:{ko:"버스",  vi:"xe buýt",zh:"巴士",en:"bus",ja:"バス",id:"bus",ru:"автобус",th:"รถบัส",mn:"автобус",uz:"avtobus",es:"bus"} },
-          { char:"오토바이",word:"오토바이",meaning:{ko:"오토바이",vi:"xe máy",zh:"摩托车",en:"motorcycle",ja:"バイク",id:"motor",ru:"мотоцикл",th:"มอเตอร์ไซค์",mn:"мотоцикл",uz:"mototsikl",es:"motorcycle"} },
-          { char:"라디오", word:"라디오", meaning:{ko:"라디오",vi:"đài phát thanh",zh:"收音机",en:"radio",ja:"ラジオ",id:"radio",ru:"радио",th:"วิทยุ",mn:"радио",uz:"radio",es:"radio"} },
-          { char:"키보드", word:"키보드", meaning:{ko:"키보드",vi:"bàn phím",zh:"键盘",en:"keyboard",ja:"キーボード",id:"keyboard",ru:"клавиатура",th:"คีย์บอร์ด",mn:"гар",uz:"klaviatura",es:"keyboard"} },
-          { char:"마우스", word:"마우스", meaning:{ko:"마우스",vi:"chuột máy tính",zh:"鼠标",en:"mouse",ja:"マウス",id:"mouse",ru:"мышка",th:"เมาส์",mn:"хулгана",uz:"sichqoncha",es:"mouse"} },
-          { char:"나이",   word:"나이",   meaning:{ko:"나이",   vi:"tuổi",zh:"年龄",en:"age",ja:"年齢",id:"usia",ru:"возраст",th:"อายุ",mn:"нас",uz:"yosh",es:"age"} },
-          { char:"부자",   word:"부자",   meaning:{ko:"부자",   vi:"người giàu",zh:"富人",en:"the rich",ja:"お金持ち",id:"orang kaya",ru:"богач",th:"คนรวย",mn:"баян хүн",uz:"boy",es:"the rich"} },
-          { char:"주유소", word:"주유소", meaning:{ko:"주유소", vi:"trạm xăng",zh:"加油站",en:"gas station",ja:"ガソリンスタンド",id:"SPBU",ru:"заправка",th:"ปั้มน้ำมัน",mn:"шатахуун",uz:"yoqilg'i stansiyasi",es:"gas station"} },
-          { char:"이사",   word:"이사",   meaning:{ko:"이사",   vi:"chuyển nhà",zh:"搬家",en:"moving house",ja:"引っ越し",id:"pindah rumah",ru:"переезд",th:"ย้ายบ้าน",mn:"нүүлгэн",uz:"ko'chish",es:"moving house"} },
-          { char:"소포",   word:"소포",   meaning:{ko:"소포",   vi:"bưu phẩm",zh:"包裹",en:"postal package",ja:"小包",id:"paket pos",ru:"посылка",th:"พัสดุ",mn:"илгээмж",uz:"pochta",es:"postal package"} },
-          { char:"후추",   word:"후추",   meaning:{ko:"후추",   vi:"tiêu đen",zh:"胡椒",en:"black pepper",ja:"コショウ",id:"lada hitam",ru:"чёрный перец",th:"พริกไทย",mn:"чинжүү",uz:"qalampir",es:"black pepper"} },
-          { char:"고추",   word:"고추",   meaning:{ko:"고추",   vi:"ớt",zh:"辣椒",en:"chili pepper",ja:"唐辛子",id:"cabai",ru:"перец чили",th:"พริก",mn:"халуун чинжүү",uz:"chili",es:"chili pepper"} },
-          { char:"보리",   word:"보리",   meaning:{ko:"보리",   vi:"lúa mạch",zh:"大麦",en:"barley",ja:"大麦",id:"jelai",ru:"ячмень",th:"ข้าวบาร์เลย์",mn:"арвай",uz:"arpa",es:"barley"} },
-        ],
-        tip:{ko:"단어의 뜻을 이해한 채로 소리 내어 읽으면 기억에 훨씬 오래 남습니다.",vi:"Đọc to khi đã hiểu nghĩa từ sẽ giúp ghi nhớ lâu hơn nhiều.",en:"Reading aloud while understanding the meaning helps you remember much longer.",zh:"理解词义的同时大声朗读，会记得更牢固。",ja:"意味を理解しながら声に出して読むと、ずっと記憶に残ります。",id:"Membaca dengan lantang sambil memahami artinya akan membuat Anda mengingat jauh lebih lama.",ru:"Чтение вслух с пониманием значения помогает запомнить намного дольше.",th:"การอ่านออกเสียงพร้อมเข้าใจความหมายจะช่วยให้จำได้นานขึ้นมาก",mn:"Утгыг ойлгосон байдалтайгаа дуу гарган уншвал маш удаан цээжинд үлдэнэ.",uz:"Ma'nosini tushunib turib ovoz chiqarib o'qish esda ancha uzoq qoladi.",es:"Leer en voz alta mientras comprende el significado ayuda a recordar mucho más tiempo.",fr:"Lire à voix haute tout en comprenant le sens aide à mémoriser beaucoup plus longtemps.",ne:"अर्थ बुझेर ठूलो स्वरमा पढ्दा धेरै लामो समयसम्म सम्झनामा रहन्छ।",de:"Lautes Lesen mit Verständnis der Bedeutung hilft, sich viel länger zu merken."},
-      },
-
-      // ── 단계 4: 모음2 학습 ──
-      { id:"vowel2", type:"learn", emoji:"🔤",
-        title:{ko:"04. 복합 모음",vi:"04. Nguyên âm phức hợp",en:"04. Compound Vowels",zh:"04. 复合元音",ja:"04. 複合母音",id:"04. Vokal Gabungan",ru:"04. Составные гласные",th:"04. สระประสม",mn:"04. Нийлмэл эгшиг",uz:"04. Qo'shma unlilar",es:"04. Vocales compuestas",fr:"04. Voyelles composées",ne:"04. संयुक्त स्वर",de:"04. Zusammengesetzte Vokale"},
-        desc:{ko:"두 모음이 합쳐진 복합 모음의 소리를 익힙니다.",vi:"Học âm thanh của các nguyên âm phức hợp ghép từ hai nguyên âm.",en:"Learn the sounds of compound vowels formed by combining two vowels.",zh:"学习由两个元音结合而成的复合元音的发音。",ja:"2つの母音が合わさった複合母音の音を学びます。",id:"Pelajari bunyi vokal gabungan yang terbentuk dari dua vokal.",ru:"Изучите звучание составных гласных, образованных из двух гласных.",th:"เรียนรู้เสียงของสระประสมที่เกิดจากการรวมสระสองตัว",mn:"Хоёр эгшиг нийлж үүссэн нийлмэл эгшгийн дууг мэдэж авна.",uz:"Ikki unlining birikishidan hosil bo'lgan qo'shma unlilarning tovushini o'rganing.",es:"Aprenda el sonido de las vocales compuestas formadas por la unión de dos vocales.",fr:"Apprenez le son des voyelles composées formées par l'union de deux voyelles.",ne:"दुई स्वर मिलेर बनेको संयुक्त स्वरको ध्वनि सिक्नुहोस्।",de:"Lernen Sie den Klang zusammengesetzter Vokale, die aus zwei Vokalen gebildet werden."},
-        items:[
-          { char:"ㅘ", word:"화요일", meaning:{ko:"화요일",vi:"thứ ba",zh:"星期二",en:"Tuesday",ja:"火曜日",id:"Selasa",ru:"вторник",th:"วันอังคาร",mn:"мягмар",uz:"seshanba",es:"Tuesday"} },
-          { char:"ㅙ", word:"왜",     meaning:{ko:"왜",    vi:"tại sao",zh:"为什么",en:"why",ja:"なぜ",id:"mengapa",ru:"почему",th:"ทำไม",mn:"яагаад",uz:"nima uchun",es:"why"} },
-          { char:"ㅚ", word:"최고",   meaning:{ko:"최고",  vi:"tốt nhất",zh:"最好",en:"the best",ja:"最高",id:"terbaik",ru:"лучший",th:"ดีที่สุด",mn:"хамгийн сайн",uz:"eng yaxshi",es:"the best"} },
-          { char:"ㅝ", word:"원하다", meaning:{ko:"원하다",vi:"muốn",zh:"想要",en:"to want",ja:"欲しい",id:"ingin",ru:"хотеть",th:"ต้องการ",mn:"хүсэх",uz:"xohlamoq",es:"to want"} },
-          { char:"ㅞ", word:"웨이터", meaning:{ko:"웨이터",vi:"bồi bàn",zh:"服务生",en:"waiter",ja:"ウェイター",id:"pelayan",ru:"официант",th:"บริกร",mn:"зөөгч",uz:"ofitsiant",es:"waiter"} },
-          { char:"ㅟ", word:"위험",   meaning:{ko:"위험",  vi:"nguy hiểm",zh:"危险",en:"danger",ja:"危険",id:"bahaya",ru:"опасность",th:"อันตราย",mn:"аюул",uz:"xavf",es:"danger"} },
-          { char:"ㅢ", word:"의사",   meaning:{ko:"의사",  vi:"bác sĩ",zh:"医生",en:"doctor",ja:"医者",id:"dokter",ru:"врач",th:"หมอ",mn:"эмч",uz:"shifokor",es:"doctor"} },
-          { char:"ㅐ", word:"냉장고", meaning:{ko:"냉장고",vi:"tủ lạnh",zh:"冰箱",en:"refrigerator",ja:"冷蔵庫",id:"kulkas",ru:"холодильник",th:"ตู้เย็น",mn:"хөргөгч",uz:"muzlatgich",es:"refrigerator"} },
-          { char:"ㅒ", word:"얘기",   meaning:{ko:"얘기",  vi:"câu chuyện",zh:"故事/话题",en:"talk/story",ja:"話",id:"cerita",ru:"разговор",th:"เรื่องราว",mn:"яриа",uz:"suhbat",es:"talk/story"} },
-          { char:"ㅔ", word:"세계",   meaning:{ko:"세계",  vi:"thế giới",zh:"世界",en:"world",ja:"世界",id:"dunia",ru:"мир",th:"โลก",mn:"дэлхий",uz:"dunyo",es:"world"} },
-          { char:"ㅖ", word:"예약",   meaning:{ko:"예약",  vi:"đặt chỗ",zh:"预约",en:"reservation",ja:"予約",id:"reservasi",ru:"бронирование",th:"การจอง",mn:"захиалга",uz:"bron",es:"reservation"} },
-        ],
-        tip:{ko:"복합 모음은 두 소리가 부드럽게 하나로 합쳐지는 소리입니다.",vi:"Nguyên âm phức hợp là âm ghép mượt mà từ hai âm riêng biệt.",en:"Compound vowels are sounds formed by smoothly blending two separate vowel sounds.",zh:"复合元音是两个音柔和地合为一体发出的声音。",ja:"複合母音は2つの音が滑らかに1つに合わさった音です。",id:"Vokal gabungan adalah bunyi dua suara yang menyatu dengan lembut menjadi satu.",ru:"Составные гласные — это звук, образованный плавным слиянием двух отдельных звуков.",th:"สระประสมคือเสียงที่เกิดจากการรวมเสียงสองเสียงเข้าด้วยกันอย่างนุ่มนวล",mn:"Нийлмэл эгшиг гэдэг нь хоёр дуу зөөлөн нийлж нэг болсон дуу юм.",uz:"Qo'shma unli — ikki tovushning yumshoq birlashib bitta bo'lib chiqishidir.",es:"Las vocales compuestas son un sonido formado por la fusión suave de dos sonidos en uno.",fr:"Une voyelle composée est un son formé par la fusion douce de deux sons en un seul.",ne:"संयुक्त स्वर भनेको दुई ध्वनि नरम रूपमा मिसिएर एक भएको ध्वनि हो।",de:"Ein zusammengesetzter Vokal ist ein Klang, der durch das sanfte Verschmelzen zweier Laute zu einem entsteht."},
-      },
-      // ── 단계 5: 모음2 쓰기 ──
-      { id:"vowel2_write", type:"write", emoji:"✏️",
-        title:{ko:"05. 복합 모음 쓰기",vi:"05. Viết nguyên âm phức hợp",en:"05. Writing Compound Vowels",zh:"05. 复合元音书写",ja:"05. 複合母音の書き方",id:"05. Menulis Vokal Gabungan",ru:"05. Написание составных гласных",th:"05. การเขียนสระประสม",mn:"05. Нийлмэл эгшиг бичих",uz:"05. Qo'shma unlilarni yozish",es:"05. Escritura de vocales compuestas",fr:"05. Écriture des voyelles composées",ne:"05. संयुक्त स्वर लेखन",de:"05. Zusammengesetzte Vokale schreiben"},
-        desc:{ko:"복합 모음 11개를 써봅니다.",vi:"Viết 11 nguyên âm phức hợp tiếng Hàn.",en:"Write the 11 compound Korean vowels.",zh:"练习书写11个复合元音。",ja:"複合母音11個を書いてみます。",id:"Tulis 11 vokal gabungan.",ru:"Напишите 11 составных гласных.",th:"ฝึกเขียนสระประสม 11 ตัว",mn:"Нийлмэл эгшиг 11-ийг бичиж үзнэ.",uz:"11 ta qo'shma unlini yozib ko'ring.",es:"Escriba las 11 vocales compuestas.",fr:"Écrivez les 11 voyelles composées.",ne:"११ संयुक्त स्वर लेखेर हेर्नुहोस्।",de:"Schreiben Sie die 11 zusammengesetzten Vokale."},
-        writeTask:{ko:"와 왜 외 워 웨 위 의 애 얘 에 예 를 각각 5번씩 써보세요.",vi:"Hãy viết mỗi chữ sau 5 lần: 와 왜 외 워 웨 위 의 애 얘 에 예",en:"Write each of the following 5 times: 와 왜 외 워 웨 위 의 애 얘 에 예",zh:"请把\"와 왜 외 워 웨 위 의 애 얘 에 예\"各写5遍。",ja:"「와 왜 외 워 웨 위 의 애 얘 에 예」をそれぞれ5回ずつ書いてみましょう。",id:"Tulis masing-masing \"와 왜 외 워 웨 위 의 애 얘 에 예\" sebanyak 5 kali.",ru:"Напишите каждое из «와 왜 외 워 웨 위 의 애 얘 에 예» по 5 раз.",th:"ลองเขียน \"와 왜 외 워 웨 위 의 애 얘 에 예\" ตัวละ 5 ครั้ง",mn:"\"와 왜 외 워 웨 위 의 애 얘 에 예\"-г тус бүрийг 5 удаа бичиж үзээрэй.",uz:"\"와 왜 외 워 웨 위 의 애 얘 에 예\"ning har birini 5 martadan yozib ko'ring.",es:"Escriba \"와 왜 외 워 웨 위 의 애 얘 에 예\" 5 veces cada una.",fr:"Écrivez chacun des caractères « 와 왜 외 워 웨 위 의 애 얘 에 예 » 5 fois.",ne:"\"와 왜 외 워 웨 위 의 애 얘 에 예\" प्रत्येकलाई ५ पटक लेख्नुहोस्।",de:"Schreiben Sie \"와 왜 외 워 웨 위 의 애 얘 에 예\" jeweils 5-mal."},
-        items:[
-          { char:"ㅘ" }, { char:"ㅙ" }, { char:"ㅚ" },
-          { char:"ㅝ" }, { char:"ㅞ" }, { char:"ㅟ" }, { char:"ㅢ" },
-          { char:"ㅐ" }, { char:"ㅒ" }, { char:"ㅔ" }, { char:"ㅖ" },
-        ],
-        tip:{ko:"두 모음이 합쳐진 모양을 천천히 따라 써보세요.",vi:"Hãy chép chậm theo hình dạng ghép của hai nguyên âm.",en:"Slowly trace the combined shape of the two vowels.",zh:"请慢慢临摹两个元音结合而成的形状。",ja:"2つの母音が合わさった形をゆっくりなぞって書いてみてください。",id:"Tirukan perlahan bentuk gabungan dari dua vokal.",ru:"Медленно обведите форму, образованную соединением двух гласных.",th:"ลองเขียนตามรูปร่างที่รวมกันของสระสองตัวอย่างช้า ๆ",mn:"Хоёр эгшиг нийлж үүссэн хэлбэрийг аажуухан дуурайж бичиж үзээрэй.",uz:"Ikki unlining birikkan shaklini asta chizib ko'ring.",es:"Trace despacio la forma combinada de las dos vocales.",fr:"Tracez lentement la forme combinée des deux voyelles.",ne:"दुई स्वर मिलेर बनेको आकार बिस्तारै हेरेर लेख्नुहोस्।",de:"Zeichnen Sie langsam die kombinierte Form der beiden Vokale nach."},
-      },
-      // ── 단계 6: 모음2 단어 ──
-      { id:"vowel2_word", type:"learn", emoji:"📖",
-        title:{ko:"06. 복합 모음 단어",vi:"06. Từ vựng nguyên âm phức hợp",en:"06. Compound Vowel Words",zh:"06. 复合元音单词",ja:"06. 複合母音単語",id:"06. Kata Vokal Gabungan",ru:"06. Слова с составными гласными",th:"06. คำศัพท์สระประสม",mn:"06. Нийлмэл эгшигтэй үг",uz:"06. Qo'shma unlili so'zlar",es:"06. Palabras con vocales compuestas",fr:"06. Mots avec voyelles composées",ne:"06. संयुक्त स्वर शब्द",de:"06. Wörter mit zusammengesetzten Vokalen"},
-        desc:{ko:"복합 모음이 들어간 실생활 단어를 익힙니다.",vi:"Học từ vựng thực tế có chứa nguyên âm phức hợp.",en:"Learn everyday words containing compound vowels.",zh:"学习包含复合元音的生活常用词。",ja:"複合母音を含む実生活の単語を覚えます。",id:"Pelajari kata sehari-hari yang mengandung vokal gabungan.",ru:"Выучите повседневные слова с составными гласными.",th:"เรียนรู้คำศัพท์ในชีวิตประจำวันที่มีสระประสม",mn:"Нийлмэл эгшиг орсон өдөр тутмын үгсийг мэдэж авна.",uz:"Qo'shma unlilar bo'lgan kundalik so'zlarni o'rganing.",es:"Aprenda palabras cotidianas que contienen vocales compuestas.",fr:"Apprenez des mots du quotidien contenant des voyelles composées.",ne:"संयुक्त स्वर भएका दैनिक जीवनका शब्दहरू सिक्नुहोस्।",de:"Lernen Sie Alltagswörter mit zusammengesetzten Vokalen."},
-        items:[
-          { char:"회사", word:"회사",  meaning:{ko:"회사",  vi:"công ty",zh:"公司",en:"company",ja:"会社",id:"perusahaan",ru:"компания",th:"บริษัท",mn:"компани",uz:"kompaniya",es:"company"} },
-          { char:"회의", word:"회의",  meaning:{ko:"회의",  vi:"cuộc họp",zh:"会议",en:"meeting",ja:"会議",id:"rapat",ru:"собрание",th:"การประชุม",mn:"хурал",uz:"yig'ilish",es:"meeting"} },
-          { char:"카페", word:"카페",  meaning:{ko:"카페",  vi:"quán cà phê",zh:"咖啡厅",en:"cafe",ja:"カフェ",id:"kafe",ru:"кафе",th:"คาเฟ่",mn:"кафе",uz:"kafe",es:"cafe"} },
-          { char:"의자", word:"의자",  meaning:{ko:"의자",  vi:"ghế",zh:"椅子",en:"chair",ja:"椅子",id:"kursi",ru:"стул",th:"เก้าอี้",mn:"сандал",uz:"stul",es:"chair"} },
-          { char:"시계", word:"시계",  meaning:{ko:"시계",  vi:"đồng hồ",zh:"手表",en:"watch/clock",ja:"時計",id:"jam",ru:"часы",th:"นาฬิกา",mn:"цаг",uz:"soat",es:"watch/clock"} },
-          { char:"카메라",word:"카메라",meaning:{ko:"카메라",vi:"máy ảnh",zh:"相机",en:"camera",ja:"カメラ",id:"kamera",ru:"камера",th:"กล้อง",mn:"камер",uz:"kamera",es:"camera"} },
-          { char:"샤워", word:"샤워",  meaning:{ko:"샤워",  vi:"tắm vòi sen",zh:"淋浴",en:"shower",ja:"シャワー",id:"mandi",ru:"душ",th:"อาบน้ำฝักบัว",mn:"шүршүүр",uz:"dush",es:"shower"} },
-          { char:"사과", word:"사과",  meaning:{ko:"사과",  vi:"táo",zh:"苹果",en:"apple",ja:"りんご",id:"apel",ru:"яблоко",th:"แอปเปิ้ล",mn:"алим",uz:"olma",es:"apple"} },
-          { char:"야채", word:"야채",  meaning:{ko:"야채",  vi:"rau",zh:"蔬菜",en:"vegetable",ja:"野菜",en:"vegetable",id:"sayuran",ru:"овощи",th:"ผัก",mn:"ногоо",uz:"sabzavot",es:"vegetable"} },
-          { char:"배추", word:"배추",  meaning:{ko:"배추",  vi:"cải thảo",zh:"白菜",en:"cabbage",ja:"白菜",id:"sawi putih",ru:"пекинская капуста",th:"กะหล่ำปลีจีน",mn:"Хятад байцаа",uz:"xitoy karam",es:"cabbage"} },
-          { char:"귀",   word:"귀",    meaning:{ko:"귀",    vi:"tai",zh:"耳朵",en:"ear",ja:"耳",id:"telinga",ru:"ухо",th:"หู",mn:"чих",uz:"quloq",es:"ear"} },
-          { char:"어제", word:"어제",  meaning:{ko:"어제",  vi:"hôm qua",zh:"昨天",en:"yesterday",ja:"昨日",id:"kemarin",ru:"вчера",th:"เมื่อวาน",mn:"өчигдөр",uz:"kecha",es:"yesterday"} },
-          { char:"자매",    word:"자매",    meaning:{ko:"자매",    vi:"chị em gái",zh:"姐妹",en:"sisters",ja:"姉妹",id:"saudari",ru:"сёстры",th:"พี่น้องผู้หญิง",mn:"эгч дүүс",uz:"singillar",es:"sisters"} },
-          { char:"아내",    word:"아내",    meaning:{ko:"아내",    vi:"vợ",zh:"妻子",en:"wife",ja:"妻",id:"istri",ru:"жена",th:"ภรรยา",mn:"эхнэр",uz:"xotin",es:"wife"} },
-          { char:"사위",    word:"사위",    meaning:{ko:"사위",    vi:"con rể",zh:"女婿",en:"son-in-law",ja:"婿",id:"menantu laki-laki",ru:"зять",th:"ลูกเขย",mn:"хүргэн",uz:"kuyov",es:"son-in-law"} },
-          { char:"후배",    word:"후배",    meaning:{ko:"후배",    vi:"hậu bối",zh:"后辈",en:"junior",ja:"後輩",id:"junior",ru:"младший",th:"รุ่นน้อง",mn:"дүү",uz:"kenja",es:"junior"} },
-          { char:"배우",    word:"배우",    meaning:{ko:"배우",    vi:"diễn viên",zh:"演员",en:"actor",ja:"俳優",id:"aktor",ru:"актёр",th:"นักแสดง",mn:"жүжигчин",uz:"aktyor",es:"actor"} },
-          { char:"웨이터",  word:"웨이터",  meaning:{ko:"웨이터",  vi:"nam bồi bàn",zh:"服务员",en:"waiter",ja:"ウェーター",id:"pelayan",ru:"официант",th:"พนักงานเสิร์ฟ",mn:"зөөгч",uz:"ofitsiant",es:"waiter"} },
-          { char:"모레",    word:"모레",    meaning:{ko:"모레",    vi:"ngày kia",zh:"后天",en:"day after tomorrow",ja:"明後日",id:"lusa",ru:"послезавтра",th:"มะรืนนี้",mn:"нөгөөдөр",uz:"indinga",es:"day after tomorrow"} },
-          { char:"매주",    word:"매주",    meaning:{ko:"매주",    vi:"hàng tuần",zh:"每周",en:"every week",ja:"毎週",id:"setiap minggu",ru:"каждую неделю",th:"ทุกสัปดาห์",mn:"долоо хоног бүр",uz:"har hafta",es:"every week"} },
-          { char:"미래",    word:"미래",    meaning:{ko:"미래",    vi:"tương lai",zh:"未来",en:"future",ja:"未来",id:"masa depan",ru:"будущее",th:"อนาคต",mn:"ирээдүй",uz:"kelajak",es:"future"} },
-          { char:"새해",    word:"새해",    meaning:{ko:"새해",    vi:"năm mới",zh:"新年",en:"new year",ja:"新年",id:"tahun baru",ru:"новый год",th:"ปีใหม่",mn:"шинэ жил",uz:"yangi yil",es:"new year"} },
-          { char:"교회",    word:"교회",    meaning:{ko:"교회",    vi:"nhà thờ",zh:"教会",en:"church",ja:"教会",id:"gereja",ru:"церковь",th:"โบสถ์",mn:"сүм",uz:"cherkov",es:"church"} },
-          { char:"휴게소",  word:"휴게소",  meaning:{ko:"휴게소",  vi:"trạm nghỉ",zh:"休息站",en:"rest area",ja:"休憩所",id:"area istirahat",ru:"место отдыха",th:"จุดพักรถ",mn:"амрах газар",uz:"dam olish joyi",es:"rest area"} },
-          { char:"메모",    word:"메모",    meaning:{ko:"메모",    vi:"ghi chú",zh:"备忘录",en:"memo",ja:"メモ",id:"memo",ru:"заметка",th:"บันทึก",mn:"тэмдэглэл",uz:"eslatma",es:"memo"} },
-          { char:"교과서",  word:"교과서",  meaning:{ko:"교과서",  vi:"sách giáo khoa",zh:"教科书",en:"textbook",ja:"教科書",id:"buku teks",ru:"учебник",th:"หนังสือเรียน",mn:"сурах бичиг",uz:"darslik",es:"textbook"} },
-          { char:"사회",    word:"사회",    meaning:{ko:"사회",    vi:"xã hội",zh:"社会",en:"society",ja:"社会",id:"masyarakat",ru:"общество",th:"สังคม",mn:"нийгэм",uz:"jamiyat",es:"society"} },
-          { char:"세수",    word:"세수",    meaning:{ko:"세수",    vi:"rửa mặt",zh:"洗脸",en:"washing face",ja:"洗顔",id:"cuci muka",ru:"умывание",th:"ล้างหน้า",mn:"нүүр угаах",uz:"yuz yuvish",es:"washing face"} },
-          { char:"무늬",    word:"무늬",    meaning:{ko:"무늬",    vi:"hoa văn",zh:"纹理",en:"pattern",ja:"模様",id:"motif",ru:"узор",th:"ลาย",mn:"хээ",uz:"naqsh",es:"pattern"} },
-          { char:"휴지",    word:"휴지",    meaning:{ko:"휴지",    vi:"giấy vệ sinh",zh:"手纸",en:"tissue",ja:"ティッシュ",id:"tisu",ru:"салфетка",th:"กระดาษทิชชู",mn:"цаас",uz:"salfetkа",es:"tissue"} },
-          { char:"세포",    word:"세포",    meaning:{ko:"세포",    vi:"tế bào",zh:"细胞",en:"cell",ja:"細胞",id:"sel",ru:"клетка",th:"เซลล์",mn:"эс",uz:"hujayra",es:"cell"} },
-          { char:"메뉴",    word:"메뉴",    meaning:{ko:"메뉴",    vi:"thực đơn",zh:"菜单",en:"menu",ja:"メニュー",id:"menu",ru:"меню",th:"เมนู",mn:"цэс",uz:"menyu",es:"menu"} },
-          { char:"채소",    word:"채소",    meaning:{ko:"채소",    vi:"rau củ",zh:"蔬菜",en:"vegetables",ja:"野菜",id:"sayuran",ru:"овощи",th:"ผัก",mn:"ногоо",uz:"sabzavot",es:"vegetables"} },
-          { char:"돼지고기",word:"돼지고기",meaning:{ko:"돼지고기",vi:"thịt lợn",zh:"猪肉",en:"pork",ja:"豚肉",id:"daging babi",ru:"свинина",th:"หมู",mn:"гахайн мах",uz:"cho'chqa go'shti",es:"pork"} },
-          { char:"해외",    word:"해외",    meaning:{ko:"해외",    vi:"nước ngoài",zh:"海外",en:"abroad",ja:"海外",id:"luar negeri",ru:"за рубежом",th:"ต่างประเทศ",mn:"гадаад",uz:"xorij",es:"abroad"} },
-          { char:"내과",    word:"내과",    meaning:{ko:"내과",    vi:"khoa nội",zh:"内科",en:"internal medicine",ja:"内科",id:"penyakit dalam",ru:"терапевт",th:"อายุรกรรม",mn:"дотрын эмч",uz:"terapevt",es:"internal medicine"} },
-          { char:"외과",    word:"외과",    meaning:{ko:"외과",    vi:"khoa ngoại",zh:"外科",en:"surgery",ja:"外科",id:"bedah",ru:"хирургия",th:"ศัลยกรรม",mn:"мэс ажилбар",uz:"jarrohlik",es:"surgery"} },
-          { char:"피부과",  word:"피부과",  meaning:{ko:"피부과",  vi:"khoa da liễu",zh:"皮肤科",en:"dermatology",ja:"皮膚科",id:"dermatologi",ru:"дерматология",th:"ผิวหนัง",mn:"арьс судлал",uz:"dermatologiya",es:"dermatology"} },
-          { char:"소아과",  word:"소아과",  meaning:{ko:"소아과",  vi:"khoa nhi",zh:"小儿科",en:"pediatrics",ja:"小児科",id:"pediatri",ru:"педиатрия",th:"กุมารเวชกรรม",mn:"хүүхдийн эмч",uz:"pediatriya",es:"pediatrics"} },
-          { char:"마취",    word:"마취",    meaning:{ko:"마취",    vi:"gây mê",zh:"麻醉",en:"anesthesia",ja:"麻酔",id:"anestesi",ru:"анестезия",th:"การระงับความรู้สึก",mn:"мэдээгүй болгох",uz:"narkoz",es:"anesthesia"} },
-          { char:"가래",    word:"가래",    meaning:{ko:"가래",    vi:"đờm",zh:"痰",en:"phlegm",ja:"痰",id:"dahak",ru:"мокрота",th:"เสมหะ",mn:"цэр",uz:"balg'am",es:"phlegm"} },
-          { char:"재채기",  word:"재채기",  meaning:{ko:"재채기",  vi:"hắt hơi",zh:"打喷嚏",en:"sneeze",ja:"くしゃみ",id:"bersin",ru:"чихание",th:"การจาม",mn:"ханиах",uz:"aksa urish",es:"sneeze"} },
-          { char:"소화제",  word:"소화제",  meaning:{ko:"소화제",  vi:"thuốc tiêu hóa",zh:"消化剂",en:"digestive medicine",ja:"消化剤",id:"obat pencernaan",ru:"средство от диспепсии",th:"ยาช่วยย่อย",mn:"хоол шингээх эм",uz:"hazm dori",es:"digestive medicine"} },
-          { char:"배구",    word:"배구",    meaning:{ko:"배구",    vi:"bóng chuyền",zh:"排球",en:"volleyball",ja:"バレーボール",id:"bola voli",ru:"волейбол",th:"วอลเลย์บอล",mn:"волейбол",uz:"voleybol",es:"volleyball"} },
-          { char:"취미",    word:"취미",    meaning:{ko:"취미",    vi:"sở thích",zh:"爱好",en:"hobby",ja:"趣味",id:"hobi",ru:"хобби",th:"งานอดิเรก",mn:"хобби",uz:"hobbi",es:"hobby"} },
-          { char:"예매",    word:"예매",    meaning:{ko:"예매",    vi:"đặt vé trước",zh:"预购",en:"advance ticketing",ja:"前売り",id:"beli tiket awal",ru:"предварительная покупка",th:"จองตั๋วล่วงหน้า",mn:"урьдчилсан тийз",uz:"oldindan chipta",es:"advance ticketing"} },
-          { char:"노래",    word:"노래",    meaning:{ko:"노래",    vi:"bài hát",zh:"歌曲",en:"song",ja:"歌",id:"lagu",ru:"песня",th:"เพลง",mn:"дуу",uz:"qo'shiq",es:"song"} },
-          { char:"세배",    word:"세배",    meaning:{ko:"세배",    vi:"cúi chào năm mới",zh:"新年拜年",en:"New Year's bow",ja:"お辞儀",id:"salam tahun baru",ru:"новогодний поклон",th:"ไหว้ปีใหม่",mn:"шинэ жилийн мэнд",uz:"yangi yil salomi",es:"New Year's bow"} },
-          { char:"부채",    word:"부채",    meaning:{ko:"부채",    vi:"nợ",zh:"债务",en:"debt",ja:"借金",id:"hutang",ru:"долг",th:"หนี้",mn:"өр",uz:"qarz",es:"debt"} },
-          { char:"계좌번호",word:"계좌번호",meaning:{ko:"계좌번호",vi:"số tài khoản",zh:"账号",en:"account number",ja:"口座番号",id:"nomor rekening",ru:"номер счёта",th:"หมายเลขบัญชี",mn:"дансны дугаар",uz:"hisob raqami",es:"account number"} },
-          { char:"쥐",      word:"쥐",      meaning:{ko:"쥐",      vi:"con chuột",zh:"老鼠",en:"mouse/rat",ja:"ネズミ",id:"tikus",ru:"мышь",th:"หนู",mn:"хулгана",uz:"sichqon",es:"mouse/rat"} },
-          { char:"돼지",    word:"돼지",    meaning:{ko:"돼지",    vi:"con lợn",zh:"猪",en:"pig",ja:"豚",id:"babi",ru:"свинья",th:"หมู",mn:"гахай",uz:"cho'chqa",es:"pig"} },
-          { char:"개구리",  word:"개구리",  meaning:{ko:"개구리",  vi:"con ếch",zh:"青蛙",en:"frog",ja:"カエル",id:"katak",ru:"лягушка",th:"กบ",mn:"мэлхий",uz:"qurbaqa",es:"frog"} },
-          { char:"새",      word:"새",      meaning:{ko:"새",      vi:"con chim",zh:"鸟",en:"bird",ja:"鳥",id:"burung",ru:"птица",th:"นก",mn:"шувуу",uz:"qush",es:"bird"} },
-          { char:"개미",    word:"개미",    meaning:{ko:"개미",    vi:"con kiến",zh:"蚂蚁",en:"ant",ja:"アリ",id:"semut",ru:"муравей",th:"มด",mn:"шоргоолж",uz:"chumoli",es:"ant"} },
-          { char:"새우",    word:"새우",    meaning:{ko:"새우",    vi:"con tôm",zh:"虾",en:"shrimp",ja:"エビ",id:"udang",ru:"креветка",th:"กุ้ง",mn:"сам хорхой",uz:"krevetka",es:"shrimp"} },
-          { char:"개",      word:"개",      meaning:{ko:"개",      vi:"con chó",zh:"狗",en:"dog",ja:"犬",id:"anjing",ru:"собака",th:"หมา",mn:"нохой",uz:"it",es:"dog"} },
-          { char:"파래",    word:"파래",    meaning:{ko:"파래",    vi:"tảo biển",zh:"海青菜",en:"green laver",ja:"アオノリ",id:"rumput laut hijau",ru:"морская водоросль",th:"สาหร่าย",mn:"далайн замаг",uz:"suv o'ti",es:"green laver"} },
-          { char:"조개",    word:"조개",    meaning:{ko:"조개",    vi:"con sò",zh:"贝壳",en:"shellfish",ja:"貝",id:"kerang",ru:"моллюск",th:"หอย",mn:"нялцгай биет",uz:"chig'anoq",es:"shellfish"} },
-          { char:"고래",    word:"고래",    meaning:{ko:"고래",    vi:"cá voi",zh:"鲸鱼",en:"whale",ja:"クジラ",id:"paus",ru:"кит",th:"วาฬ",mn:"халим",uz:"kit",es:"whale"} },
-          { char:"대나무",  word:"대나무",  meaning:{ko:"대나무",  vi:"cây tre",zh:"竹子",en:"bamboo",ja:"竹",id:"bambu",ru:"бамбук",th:"ไม้ไผ่",mn:"хулс",uz:"bambuk",es:"bamboo"} },
-          { char:"무지개",  word:"무지개",  meaning:{ko:"무지개",  vi:"cầu vồng",zh:"彩虹",en:"rainbow",ja:"虹",id:"pelangi",ru:"радуга",th:"รุ้ง",mn:"солонго",uz:"kamalak",es:"rainbow"} },
-          { char:"예보",    word:"예보",    meaning:{ko:"예보",    vi:"dự báo",zh:"预报",en:"forecast",ja:"予報",id:"prakiraan",ru:"прогноз",th:"การพยากรณ์",mn:"таамаглал",uz:"bashorat",es:"forecast"} },
-          { char:"위도",    word:"위도",    meaning:{ko:"위도",    vi:"vĩ độ",zh:"纬度",en:"latitude",ja:"緯度",id:"lintang",ru:"широта",th:"ละติจูด",mn:"өргөрөг",uz:"kenglik",es:"latitude"} },
-          { char:"세계",    word:"세계",    meaning:{ko:"세계",    vi:"thế giới",zh:"世界",en:"world",ja:"世界",id:"dunia",ru:"мир",th:"โลก",mn:"дэлхий",uz:"dunyo",es:"world"} },
-          { char:"캐나다",  word:"캐나다",  meaning:{ko:"캐나다",  vi:"Canada",zh:"加拿大",en:"Canada",ja:"カナダ",id:"Kanada",ru:"Канада",th:"แคนาดา",mn:"Канад",uz:"Kanada",es:"Canada"} },
-          { char:"고체",    word:"고체",    meaning:{ko:"고체",    vi:"thể rắn",zh:"固体",en:"solid",ja:"固体",id:"padat",ru:"твёрдое тело",th:"ของแข็ง",mn:"хатуу бие",uz:"qattiq jism",es:"solid"} },
-          { char:"무게",    word:"무게",    meaning:{ko:"무게",    vi:"cân nặng",zh:"重量",en:"weight",ja:"重さ",id:"berat",ru:"вес",th:"น้ำหนัก",mn:"жин",uz:"og'irlik",es:"weight"} },
-          { char:"위기",    word:"위기",    meaning:{ko:"위기",    vi:"khủng hoảng",zh:"危机",en:"crisis",ja:"危機",id:"krisis",ru:"кризис",th:"วิกฤต",mn:"хямрал",uz:"inqiroz",es:"crisis"} },
-          { char:"위로",    word:"위로",    meaning:{ko:"위로",    vi:"sự an ủi",zh:"安慰",en:"comfort",ja:"慰め",id:"hiburan",ru:"утешение",th:"การปลอบใจ",mn:"тайтгарал",uz:"tasalli",es:"comfort"} },
-          { char:"기회",    word:"기회",    meaning:{ko:"기회",    vi:"cơ hội",zh:"机会",en:"chance",ja:"機会",id:"kesempatan",ru:"шанс",th:"โอกาส",mn:"боломж",uz:"imkoniyat",es:"chance"} },
-          { char:"최고",    word:"최고",    meaning:{ko:"최고",    vi:"tốt nhất",zh:"最高",en:"best",ja:"最高",id:"terbaik",ru:"лучший",th:"ดีที่สุด",mn:"хамгийн дээд",uz:"eng yaxshi",es:"best"} },
-          { char:"태도",    word:"태도",    meaning:{ko:"태도",    vi:"thái độ",zh:"态度",en:"attitude",ja:"態度",id:"sikap",ru:"отношение",th:"ทัศนคติ",mn:"хандлага",uz:"munosabat",es:"attitude"} },
-          { char:"취소",    word:"취소",    meaning:{ko:"취소",    vi:"hủy bỏ",zh:"取消",en:"cancel",ja:"キャンセル",id:"pembatalan",ru:"отмена",th:"การยกเลิก",mn:"цуцлах",uz:"bekor qilish",es:"cancel"} },
-          { char:"가위",    word:"가위",    meaning:{ko:"가위",    vi:"cái kéo",zh:"剪刀",en:"scissors",ja:"はさみ",id:"gunting",ru:"ножницы",th:"กรรไกร",mn:"хайч",uz:"qaychi",es:"scissors"} },
-          { char:"제주도",  word:"제주도",  meaning:{ko:"제주도",  vi:"đảo Jeju",zh:"济州岛",en:"Jeju Island",ja:"チェジュ島",id:"Pulau Jeju",ru:"остров Чеджу",th:"เกาะเจจู",mn:"Жежү арал",uz:"Jeju oroli",es:"Jeju Island"} },
-          { char:"대구",    word:"대구",    meaning:{ko:"대구",    vi:"Daegu",zh:"大邱",en:"Daegu",ja:"テグ",id:"Daegu",ru:"Тэгу",th:"แทกู",mn:"Тэгу",uz:"Daegu",es:"Daegu"} },
-          { char:"대화",    word:"대화",    meaning:{ko:"대화",    vi:"cuộc hội thoại",zh:"对话",en:"conversation",ja:"対話",id:"percakapan",ru:"беседа",th:"การสนทนา",mn:"яриа",uz:"suhbat",es:"conversation"} },
-          { char:"뇌",      word:"뇌",      meaning:{ko:"뇌",      vi:"não",zh:"大脑",en:"brain",ja:"脳",id:"otak",ru:"мозг",th:"สมอง",mn:"тархи",uz:"miya",es:"brain"} },
-          { char:"화요일",  word:"화요일",  meaning:{ko:"화요일",  vi:"thứ ba",zh:"星期二",en:"Tuesday",ja:"火曜日",id:"Selasa",ru:"вторник",th:"วันอังคาร",mn:"мягмар",uz:"seshanba",es:"Tuesday"} },
-          { char:"왜",      word:"왜",      meaning:{ko:"왜",      vi:"tại sao",zh:"为什么",en:"why",ja:"なぜ",id:"kenapa",ru:"почему",th:"ทำไม",mn:"яагаад",uz:"nega",es:"why"} },
-          { char:"매일",    word:"매일",    meaning:{ko:"매일",    vi:"mỗi ngày",zh:"每天",en:"every day",ja:"毎日",id:"setiap hari",ru:"каждый день",th:"ทุกวัน",mn:"өдөр бүр",uz:"har kuni",es:"every day"} },
-          { char:"배우다",  word:"배우다",  meaning:{ko:"배우다",  vi:"học",zh:"学习",en:"to learn",ja:"学ぶ",id:"belajar",ru:"учиться",th:"เรียน",mn:"сурах",uz:"o'rganmoq",es:"to learn"} },
-          { char:"노래하다",word:"노래하다",meaning:{ko:"노래하다",vi:"hát",zh:"唱歌",en:"to sing",ja:"歌う",id:"bernyanyi",ru:"петь",th:"ร้องเพลง",mn:"дуулах",uz:"qo'shiq aytmoq",es:"to sing"} },
-          { char:"소개하다",word:"소개하다",meaning:{ko:"소개하다",vi:"giới thiệu",zh:"介绍",en:"to introduce",ja:"紹介する",id:"memperkenalkan",ru:"знакомить",th:"แนะนำ",mn:"танилцуулах",uz:"tanishtirmoq",es:"to introduce"} },
-          { char:"이해하다",word:"이해하다",meaning:{ko:"이해하다",vi:"hiểu",zh:"理解",en:"to understand",ja:"理解する",id:"memahami",ru:"понимать",th:"เข้าใจ",mn:"ойлгох",uz:"tushunmoq",es:"to understand"} },
-          { char:"사귀다",  word:"사귀다",  meaning:{ko:"사귀다",  vi:"kết bạn/hẹn hò",zh:"交朋友",en:"to make friends",ja:"付き合う",id:"berteman",ru:"дружить",th:"คบหา",mn:"найзлах",uz:"do'st bo'lmoq",es:"to make friends"} },
-          { char:"쉬다",    word:"쉬다",    meaning:{ko:"쉬다",    vi:"nghỉ ngơi",zh:"休息",en:"to rest",ja:"休む",id:"beristirahat",ru:"отдыхать",th:"พักผ่อน",mn:"амрах",uz:"dam olmoq",es:"to rest"} },
-          { char:"지내다",  word:"지내다",  meaning:{ko:"지내다",  vi:"trải qua/sống",zh:"度过",en:"to spend time",ja:"暮らす",id:"menjalani",ru:"проживать",th:"ใช้ชีวิต",mn:"амьдрах",uz:"yashash",es:"to spend time"} },
-          { char:"태어나다",word:"태어나다",meaning:{ko:"태어나다",vi:"được sinh ra",zh:"出生",en:"to be born",ja:"生まれる",id:"dilahirkan",ru:"родиться",th:"เกิด",mn:"төрөх",uz:"tug'ilmoq",es:"to be born"} },
-          { char:"초대하다",word:"초대하다",meaning:{ko:"초대하다",vi:"mời",zh:"邀请",en:"to invite",ja:"招待する",id:"mengundang",ru:"приглашать",th:"เชิญ",mn:"урих",uz:"taklif qilmoq",es:"to invite"} },
-        ],
-        tip:{ko:"단어를 보면서 뜻을 확인하고, 소리 내어 3번씩 말해보세요.",vi:"Xem từ, kiểm tra nghĩa rồi đọc to mỗi từ 3 lần.",en:"Check the meaning of each word and read it aloud 3 times.",zh:"边看单词边确认词义，并大声读3遍。",ja:"単語を見ながら意味を確認し、声に出して3回ずつ言ってみてください。",id:"Lihat kata, periksa artinya, lalu ucapkan dengan lantang sebanyak 3 kali.",ru:"Смотрите на слово, проверяйте значение и произносите вслух по 3 раза.",th:"ดูคำศัพท์และตรวจสอบความหมาย แล้วออกเสียงดัง ๆ 3 ครั้ง",mn:"Үгийг харж утгыг нь шалгаад, дуу гарган 3 удаа хэлж үзээрэй.",uz:"So'zga qarab ma'nosini tekshiring, so'ng ovoz chiqarib 3 marta ayting.",es:"Mire la palabra, verifique su significado y dígala en voz alta 3 veces.",fr:"Regardez le mot, vérifiez son sens, puis dites-le à voix haute 3 fois.",ne:"शब्द हेर्दै अर्थ जाँचेर ठूलो स्वरमा ३ पटक भन्नुहोस्।",de:"Schauen Sie sich das Wort an, prüfen Sie die Bedeutung und sagen Sie es 3-mal laut."},
-      },
-      // ── 단계 7: 쌍자음 학습 ──
-      { id:"ssang", type:"learn", emoji:"💪",
-        title:{ko:"07. 쌍자음",vi:"07. Phụ âm đôi",en:"07. Double Consonants",zh:"07. 双辅音",ja:"07. 濃音（二重子音）",id:"07. Konsonan Ganda",ru:"07. Двойные согласные",th:"07. พยัญชนะคู่",mn:"07. Давхар гийгүүлэгч",uz:"07. Qo'sh undoshlar",es:"07. Consonantes dobles",fr:"07. Consonnes doubles",ne:"07. दोहोरो व्यञ्जन",de:"07. Doppelkonsonanten"},
-        desc:{ko:"된소리(긴장음) 쌍자음 5개의 발음을 연습합니다.",vi:"Luyện phát âm 5 phụ âm đôi (âm căng) tiếng Hàn.",en:"Practice the pronunciation of 5 tense double consonants.",zh:"练习5个紧音（双辅音）的发音。",ja:"濃音（二重子音）5個の発音を練習します。",id:"Latih pengucapan 5 konsonan ganda (bunyi tegang).",ru:"Потренируйте произношение 5 двойных (напряжённых) согласных.",th:"ฝึกออกเสียงพยัญชนะคู่ (เสียงตึง) 5 ตัว",mn:"Хурц авиат (давхар гийгүүлэгч) 5 үсгийн дуудлагыг дадлагажина.",uz:"5 ta qo'sh undosh (keskin tovush)ning talaffuzini mashq qiling.",es:"Practique la pronunciación de las 5 consonantes dobles (sonido tenso).",fr:"Entraînez-vous à prononcer les 5 consonnes doubles (son tendu).",ne:"कडा ध्वनि (दोहोरो व्यञ्जन) ५ को उच्चारण अभ्यास गर्नुहोस्।",de:"Üben Sie die Aussprache der 5 Doppelkonsonanten (angespannter Laut)."},
-        items:[
-          { char:"ㄲ", word:"까치",   meaning:{ko:"까치",  vi:"chim ác là",zh:"喜鹊",en:"magpie",ja:"カチ",id:"burung murai",ru:"сорока",th:"นกสาลิกา",mn:"шаазгай",uz:"urriq",es:"magpie"} },
-          { char:"ㄸ", word:"딸기",   meaning:{ko:"딸기",  vi:"dâu tây",zh:"草莓",en:"strawberry",ja:"いちご",id:"stroberi",ru:"клубника",th:"สตรอเบอร์รี่",mn:"гүзээлзгэнэ",uz:"qulupnay",es:"strawberry"} },
-          { char:"ㅃ", word:"빠르다", meaning:{ko:"빠르다",vi:"nhanh",zh:"快速",en:"fast",ja:"速い",id:"cepat",ru:"быстрый",th:"เร็ว",mn:"хурдан",uz:"tez",es:"fast"} },
-          { char:"ㅆ", word:"씩씩하다",meaning:{ko:"씩씩하다",vi:"dũng cảm",zh:"勇敢",en:"brave",ja:"勇ましい",id:"berani",ru:"смелый",th:"กล้าหาญ",mn:"зоригтой",uz:"jasur",es:"brave"} },
-          { char:"ㅉ", word:"짜다",   meaning:{ko:"짜다",  vi:"mặn",zh:"咸",en:"salty",ja:"塩辛い",id:"asin",ru:"солёный",th:"เค็ม",mn:"давслаг",uz:"sho'r",es:"salty"} },
-        ],
-        tip:{ko:"목에 살짝 힘을 주어 소리를 강하게 밀어내며 말해보세요.",vi:"Căng nhẹ cổ họng và đẩy âm ra mạnh mẽ.",en:"Tighten your throat slightly and push the sound out forcefully.",zh:"请稍微收紧喉咙，用力将声音推出来说。",ja:"喉に少し力を入れて、音を強く押し出すように言ってみてください。",id:"Kencangkan sedikit tenggorokan Anda dan dorong bunyi keluar dengan kuat.",ru:"Слегка напрягите горло и произнесите звук с силой.",th:"เกร็งคอเล็กน้อยแล้วดันเสียงออกมาให้แรง",mn:"Хоолойгоо бага зэрэг чангалж, дууг хүчтэй түлхэн гаргаж хэлж үзээрэй.",uz:"Tomog'ingizni sal taranglashtirib, tovushni kuchli itarib chiqaring.",es:"Tense ligeramente la garganta y empuje el sonido con fuerza al hablar.",fr:"Serrez légèrement la gorge et poussez le son fortement en parlant.",ne:"घाँटीलाई अलिक कस्दै ध्वनि बलियोसँग धकेलेर बोल्नुहोस्।",de:"Spannen Sie den Hals leicht an und drücken Sie den Laut beim Sprechen kräftig heraus."},
-      },
-      // ── 단계 8: 쌍자음 쓰기 ──
-      { id:"ssang_write", type:"write", emoji:"✏️",
-        title:{ko:"08. 쌍자음 쓰기",vi:"08. Viết phụ âm đôi",en:"08. Writing Double Consonants",zh:"08. 双辅音书写",ja:"08. 濃音の書き方",id:"08. Menulis Konsonan Ganda",ru:"08. Написание двойных согласных",th:"08. การเขียนพยัญชนะคู่",mn:"08. Давхар гийгүүлэгч бичих",uz:"08. Qo'sh undoshlarni yozish",es:"08. Escritura de consonantes dobles",fr:"08. Écriture des consonnes doubles",ne:"08. दोहोरो व्यञ्जन लेखन",de:"08. Doppelkonsonanten schreiben"},
-        desc:{ko:"쌍자음 5개를 써봅니다.",vi:"Viết 5 phụ âm đôi tiếng Hàn.",en:"Write the 5 double consonants in Korean.",zh:"练习书写5个双辅音。",ja:"濃音5個を書いてみます。",id:"Tulis 5 konsonan ganda.",ru:"Напишите 5 двойных согласных.",th:"ฝึกเขียนพยัญชนะคู่ 5 ตัว",mn:"Давхар гийгүүлэгч 5-ыг бичиж үзнэ.",uz:"5 ta qo'sh undoshni yozib ko'ring.",es:"Escriba las 5 consonantes dobles.",fr:"Écrivez les 5 consonnes doubles.",ne:"दोहोरो व्यञ्जन ५ लेखेर हेर्नुहोस्।",de:"Schreiben Sie die 5 Doppelkonsonanten."},
-        writeTask:{ko:"까 따 빠 싸 짜 를 각각 5번씩 써보세요.",vi:"Hãy viết mỗi chữ sau 5 lần: 까 따 빠 싸 짜",en:"Write each of the following 5 times: 까 따 빠 싸 짜",zh:"请把\"까 따 빠 싸 짜\"各写5遍。",ja:"「까 따 빠 싸 짜」をそれぞれ5回ずつ書いてみましょう。",id:"Tulis masing-masing \"까 따 빠 싸 짜\" sebanyak 5 kali.",ru:"Напишите каждое из «까 따 빠 싸 짜» по 5 раз.",th:"ลองเขียน \"까 따 빠 싸 짜\" ตัวละ 5 ครั้ง",mn:"\"까 따 빠 싸 짜\"-г тус бүрийг 5 удаа бичиж үзээрэй.",uz:"\"까 따 빠 싸 짜\"ning har birini 5 martadan yozib ko'ring.",es:"Escriba \"까 따 빠 싸 짜\" 5 veces cada una.",fr:"Écrivez chacun des caractères « 까 따 빠 싸 짜 » 5 fois.",ne:"\"까 따 빠 싸 짜\" प्रत्येकलाई ५ पटक लेख्नुहोस्।",de:"Schreiben Sie \"까 따 빠 싸 짜\" jeweils 5-mal."},
-        items:[
-          { char:"ㄲ" }, { char:"ㄸ" }, { char:"ㅃ" }, { char:"ㅆ" }, { char:"ㅉ" },
-        ],
-        tip:{ko:"같은 자음을 두 번 겹쳐 쓰는 모양입니다. 획순에 맞게 써보세요.",vi:"Đây là hình dạng viết phụ âm giống nhau hai lần. Hãy viết đúng thứ tự nét.",en:"These are consonants written by doubling the same character. Follow the stroke order.",zh:"这是把同一辅音重叠书写两次的形态，请按笔顺书写。",ja:"同じ子音を2つ重ねて書く形です。書き順どおりに書いてください。",id:"Ini adalah bentuk menulis konsonan yang sama dua kali. Tulis sesuai urutan goresan.",ru:"Это форма написания одной и той же согласной дважды подряд. Пишите в правильном порядке черт.",th:"นี่คือรูปแบบการเขียนพยัญชนะตัวเดียวกันซ้อนกันสองครั้ง เขียนตามลำดับขีด",mn:"Энэ бол ижил гийгүүлэгчийг хоёр удаа давхарлан бичсэн хэлбэр юм. Зурлагын дарааллыг баримтлан бичээрэй.",uz:"Bu bir xil undoshni ikki marta ustma-ust yozish shaklidir. Chiziq tartibiga rioya qilib yozing.",es:"Esta es la forma de escribir la misma consonante dos veces seguidas. Escriba siguiendo el orden de los trazos.",fr:"C'est la forme d'écriture d'une même consonne doublée. Écrivez en respectant l'ordre des traits.",ne:"यो एउटै व्यञ्जनलाई दुई पटक दोहोर्याएर लेख्ने आकार हो। कलमको क्रम अनुसार लेख्नुहोस्।",de:"Dies ist die Schreibweise desselben Konsonanten, zweimal übereinander. Schreiben Sie in der richtigen Strichfolge."},
-      },
-      // ── 단계 9: 쌍자음 단어 ──
-      { id:"ssang_word", type:"learn", emoji:"📖",
-        title:{ko:"09. 쌍자음 단어",vi:"09. Từ vựng phụ âm đôi",en:"09. Double Consonant Words",zh:"09. 双辅音单词",ja:"09. 濃音単語",id:"09. Kata Konsonan Ganda",ru:"09. Слова с двойными согласными",th:"09. คำศัพท์พยัญชนะคู่",mn:"09. Давхар гийгүүлэгчтэй үг",uz:"09. Qo'sh undoshli so'zlar",es:"09. Palabras con consonantes dobles",fr:"09. Mots avec consonnes doubles",ne:"09. दोहोरो व्यञ्जन शब्द",de:"09. Wörter mit Doppelkonsonanten"},
-        desc:{ko:"쌍자음이 들어간 실생활 단어를 익힙니다.",vi:"Học từ vựng thực tế có phụ âm đôi. Hãy phát âm thật dứt khoát!",en:"Learn everyday words with double consonants. Pronounce them boldly!",zh:"学习包含双辅音的生活常用词。",ja:"濃音を含む実生活の単語を覚えます。",id:"Pelajari kata sehari-hari yang mengandung konsonan ganda.",ru:"Выучите повседневные слова с двойными согласными.",th:"เรียนรู้คำศัพท์ในชีวิตประจำวันที่มีพยัญชนะคู่",mn:"Давхар гийгүүлэгч орсон өдөр тутмын үгсийг мэдэж авна.",uz:"Qo'sh undoshlar bo'lgan kundalik so'zlarni o'rganing.",es:"Aprenda palabras cotidianas que contienen consonantes dobles.",fr:"Apprenez des mots du quotidien contenant des consonnes doubles.",ne:"दोहोरो व्यञ्जन भएका दैनिक जीवनका शब्दहरू सिक्नुहोस्।",de:"Lernen Sie Alltagswörter mit Doppelkonsonanten."},
-        items:[
-          { char:"오빠", word:"오빠",  meaning:{ko:"오빠",  vi:"anh trai (em gái gọi)",zh:"哥哥",en:"older brother",ja:"お兄さん",id:"kakak laki-laki",ru:"старший брат",th:"พี่ชาย",mn:"ах",uz:"aka",es:"older brother"} },
-          { char:"아빠", word:"아빠",  meaning:{ko:"아빠",  vi:"bố",zh:"爸爸",en:"dad",ja:"パパ",id:"ayah",ru:"папа",th:"พ่อ",mn:"аав",uz:"dada",es:"dad"} },
-          { char:"토끼", word:"토끼",  meaning:{ko:"토끼",  vi:"con thỏ",zh:"兔子",en:"rabbit",ja:"ウサギ",id:"kelinci",ru:"кролик",th:"กระต่าย",mn:"туулай",uz:"quyon",es:"rabbit"} },
-          { char:"코끼리",word:"코끼리",meaning:{ko:"코끼리",vi:"con voi",zh:"大象",en:"elephant",ja:"ゾウ",id:"gajah",ru:"слон",th:"ช้าง",mn:"заан",uz:"fil",es:"elephant"} },
-          { char:"찌개", word:"찌개",  meaning:{ko:"찌개",  vi:"canh hầm",zh:"炖菜",en:"stew",ja:"チゲ",id:"sup rebus",ru:"чигэ",th:"ซุปเกาหลี",mn:"шөл",uz:"qozon osh",es:"stew"} },
-          { char:"예쁘다",word:"예쁘다",meaning:{ko:"예쁘다",vi:"xinh đẹp",zh:"漂亮",en:"pretty",ja:"きれいだ",id:"cantik",ru:"красивый",th:"สวยงาม",mn:"үзэсгэлэнтэй",uz:"chiroyli",es:"pretty"} },
-          { char:"바쁘다",word:"바쁘다",meaning:{ko:"바쁘다",vi:"bận rộn",zh:"忙",en:"busy",ja:"忙しい",id:"sibuk",ru:"занятый",th:"ยุ่ง",mn:"завгүй",uz:"band",es:"busy"} },
-          { char:"싸다", word:"싸다",  meaning:{ko:"싸다",  vi:"rẻ",zh:"便宜",en:"cheap",ja:"安い",id:"murah",ru:"дешёвый",th:"ถูก",mn:"хямд",uz:"arzon",es:"cheap"} },
-          { char:"비싸다",word:"비싸다",meaning:{ko:"비싸다",vi:"đắt",zh:"贵",en:"expensive",ja:"高い",id:"mahal",ru:"дорогой",th:"แพง",mn:"үнэтэй",uz:"qimmat",es:"expensive"} },
-          { char:"기쁘다",word:"기쁘다",meaning:{ko:"기쁘다",vi:"vui vẻ",zh:"高兴",en:"glad/happy",ja:"嬉しい",id:"gembira",ru:"радостный",th:"ดีใจ",mn:"баяртай",uz:"xursand",es:"glad/happy"} },
-          { char:"쓰레기",word:"쓰레기",meaning:{ko:"쓰레기",vi:"rác",zh:"垃圾",en:"garbage",ja:"ゴミ",id:"sampah",ru:"мусор",th:"ขยะ",mn:"хог",uz:"axlat",es:"garbage"} },
-          { char:"어깨", word:"어깨",  meaning:{ko:"어깨",  vi:"vai",zh:"肩膀",en:"shoulder",ja:"肩",id:"bahu",ru:"плечо",th:"ไหล่",mn:"мөр",uz:"yelka",es:"shoulder"} },
-          { char:"뼈",   word:"뼈",    meaning:{ko:"뼈",    vi:"xương",zh:"骨头",en:"bone",ja:"骨",id:"tulang",ru:"кость",th:"กระดูก",mn:"яс",uz:"suyak",es:"bone"} },
-          { char:"빠르다",word:"빠르다",meaning:{ko:"빠르다",vi:"nhanh",zh:"快",en:"fast",ja:"速い",id:"cepat",ru:"быстрый",th:"เร็ว",mn:"хурдан",uz:"tez",es:"fast"} },
-          { char:"짜다", word:"짜다",  meaning:{ko:"짜다",  vi:"mặn",zh:"咸",en:"salty",ja:"塩辛い",id:"asin",ru:"солёный",th:"เค็ม",mn:"давслаг",uz:"sho'r",es:"salty"} },
-          { char:"뛰다", word:"뛰다",  meaning:{ko:"뛰다",  vi:"chạy/nhảy",zh:"跑/跳",en:"run/jump",ja:"走る/跳ぶ",id:"berlari/melompat",ru:"бежать/прыгать",th:"วิ่ง/กระโดด",mn:"гүйх/үсрэх",uz:"yugurmoq/sakramoq",es:"run/jump"} },
-          { char:"바꾸다",word:"바꾸다",meaning:{ko:"바꾸다",vi:"thay đổi",zh:"换/改变",en:"exchange/change",ja:"変える",id:"mengganti",ru:"менять",th:"เปลี่ยน",mn:"солих",uz:"almashtirmoq",es:"exchange/change"} },
-          { char:"떠나다",word:"떠나다",meaning:{ko:"떠나다",vi:"rời đi",zh:"离开",en:"leave",ja:"去る",id:"pergi",ru:"уходить",th:"จากไป",mn:"явах",uz:"ketmoq",es:"leave"} },
-          { char:"싸우다",word:"싸우다",meaning:{ko:"싸우다",vi:"cãi vã/đánh nhau",zh:"吵架",en:"fight",ja:"喧嘩する",id:"bertengkar",ru:"драться",th:"ทะเลาะ",mn:"тэмцэх",uz:"janjal qilmoq",es:"fight"} },
-          { char:"느끼다",word:"느끼다",meaning:{ko:"느끼다",vi:"cảm nhận",zh:"感觉",en:"feel",ja:"感じる",id:"merasakan",ru:"чувствовать",th:"รู้สึก",mn:"мэдрэх",uz:"his qilmoq",es:"feel"} },
-          { char:"빠지다",word:"빠지다",meaning:{ko:"빠지다",vi:"rơi/ngã",zh:"掉落",en:"fall/slip",ja:"落ちる",id:"jatuh",ru:"падать",th:"ตก/หล่น",mn:"унах",uz:"tushmoq",es:"fall/slip"} },
-          { char:"꼬마", word:"꼬마",  meaning:{ko:"꼬마",  vi:"cậu bé",zh:"小孩",en:"little kid",ja:"ちび",id:"anak kecil",ru:"малыш",th:"เด็กน้อย",mn:"хүүхэд",uz:"bola",es:"little kid"} },
-          { char:"도끼", word:"도끼",  meaning:{ko:"도끼",  vi:"cái rìu",zh:"斧头",en:"axe",ja:"斧",id:"kapak",ru:"топор",th:"ขวาน",mn:"сүх",uz:"bolta",es:"axe"} },
-          { char:"뿌리", word:"뿌리",  meaning:{ko:"뿌리",  vi:"rễ cây",zh:"根",en:"root",ja:"根",id:"akar",ru:"корень",th:"ราก",mn:"үндэс",uz:"ildiz",es:"root"} },
-          { char:"때때로",word:"때때로",meaning:{ko:"때때로",vi:"thỉnh thoảng",zh:"有时候",en:"sometimes",ja:"時々",id:"kadang-kadang",ru:"иногда",th:"บางครั้ง",mn:"заримдаа",uz:"ba'zan",es:"sometimes"} },
-          { char:"쓰다", word:"쓰다",  meaning:{ko:"쓰다(맛)",vi:"đắng",zh:"苦",en:"bitter",ja:"苦い",id:"pahit",ru:"горький",th:"ขม",mn:"гашуун",uz:"achchiq",es:"bitter"} },
-          { char:"끄다", word:"끄다",  meaning:{ko:"끄다",  vi:"tắt",zh:"关掉",en:"turn off",ja:"消す",id:"mematikan",ru:"выключать",th:"ปิด",mn:"унтраах",uz:"o'chirmoq",es:"turn off"} },
-          { char:"꾸다", word:"꾸다",  meaning:{ko:"꾸다",  vi:"vay mượn",zh:"借",en:"borrow",ja:"借りる",id:"meminjam",ru:"занимать",th:"ยืม",mn:"зээлэх",uz:"qarz olmoq",es:"borrow"} },
-          { char:"깨다", word:"깨다",  meaning:{ko:"깨다",  vi:"đập vỡ",zh:"打破",en:"break",ja:"割る",id:"memecahkan",ru:"разбивать",th:"แตก",mn:"хагалах",uz:"sindirmoq",es:"break"} },
-          { char:"뜨다", word:"뜨다",  meaning:{ko:"뜨다",  vi:"nổi lềnh bềnh",zh:"漂浮",en:"float",ja:"浮かぶ",id:"mengapung",ru:"плавать",th:"ลอย",mn:"хөвөх",uz:"suzmoq",es:"float"} },
-          { char:"미끄러지다",word:"미끄러지다",meaning:{ko:"미끄러지다",vi:"trượt ngã",zh:"滑倒",en:"slip",ja:"滑る",id:"terpeleset",ru:"поскользнуться",th:"ลื่น",mn:"гулсах",uz:"sirpanmoq",es:"slip"} },
-          { char:"따다", word:"따다",  meaning:{ko:"따다",  vi:"hái/lấy",zh:"摘",en:"pick",ja:"摘む",id:"memetik",ru:"срывать",th:"เก็บ",mn:"түүх",uz:"uzmoq",es:"pick"} },
-          { char:"찌다", word:"찌다",  meaning:{ko:"찌다",  vi:"hấp",zh:"蒸",en:"steam",ja:"蒸す",id:"mengukus",ru:"готовить на пару",th:"นึ่ง",mn:"жигнэх",uz:"bug'da pishirmoq",es:"steam"} },
-          { char:"빼다", word:"빼다",  meaning:{ko:"빼다",  vi:"lấy ra/trừ",zh:"取出/减",en:"take out/subtract",ja:"取り出す/引く",id:"mengeluarkan",ru:"вынимать/вычитать",th:"เอาออก",mn:"авах/хасах",uz:"olib chiqmoq",es:"take out/subtract"} },
-          { char:"때리다",word:"때리다",meaning:{ko:"때리다",vi:"đánh",zh:"打",en:"hit",ja:"叩く",id:"memukul",ru:"ударять",th:"ตี",mn:"цохих",uz:"urmoq",es:"hit"} },
-          { char:"씨",   word:"씨",    meaning:{ko:"씨",    vi:"hạt giống",zh:"种子",en:"seed",ja:"種",id:"biji",ru:"семена",th:"เมล็ด",mn:"үр",uz:"urug'",es:"seed"} },
-          { char:"쓰다", word:"쓰다(쓰기)", meaning:{ko:"쓰다(글)",vi:"viết",zh:"写",en:"write",ja:"書く",id:"menulis",ru:"писать",th:"เขียน",mn:"бичих",uz:"yozmoq",es:"write"} },
-          { char:"(짐을)싸다",word:"짐을 싸다",meaning:{ko:"짐을 싸다",vi:"thu xếp hành lý",zh:"收拾行李",en:"pack (bags)",ja:"荷造りする",id:"mengemas",ru:"паковать вещи",th:"จัดกระเป๋า",mn:"чемодан баглах",uz:"yuk yig'moq",es:"pack (bags)"} },
-          { char:"꺼내다",word:"꺼내다", meaning:{ko:"꺼내다",vi:"lấy ra",zh:"取出",en:"take out",ja:"取り出す",id:"mengeluarkan",ru:"вынимать",th:"เอาออกมา",mn:"гаргах",uz:"chiqarmoq",es:"take out"} },
-          { char:"꽃",   word:"꽃",    meaning:{ko:"꽃",    vi:"hoa",zh:"花",en:"flower",ja:"花",id:"bunga",ru:"цветок",th:"ดอกไม้",mn:"цэцэг",uz:"gul",es:"flower"} },
-          { char:"껍질", word:"껍질",  meaning:{ko:"껍질",  vi:"vỏ",zh:"皮/壳",en:"peel/shell",ja:"皮",id:"kulit",ru:"кожура",th:"เปลือก",mn:"хальс",uz:"po'choq",es:"peel/shell"} },
-          { char:"뚜껑", word:"뚜껑",  meaning:{ko:"뚜껑",  vi:"nắp",zh:"盖子",en:"lid/cap",ja:"ふた",id:"tutup",ru:"крышка",th:"ฝา",mn:"таг",uz:"qopqoq",es:"lid/cap"} },
-          { char:"씻다", word:"씻다",  meaning:{ko:"씻다",  vi:"rửa",zh:"洗",en:"wash",ja:"洗う",id:"mencuci",ru:"мыть",th:"ล้าง",mn:"угаах",uz:"yuvmoq",es:"wash"} },
-          { char:"쪽",   word:"쪽",    meaning:{ko:"쪽",    vi:"phía/trang",zh:"方向/页",en:"direction/page",ja:"方/ページ",id:"arah/halaman",ru:"сторона/страница",th:"ด้าน/หน้า",mn:"тал/хуудас",uz:"tomon/sahifa",es:"direction/page"} },
-          { char:"짝",   word:"짝",    meaning:{ko:"짝",    vi:"đôi/bạn cặp",zh:"一双/搭档",en:"pair/partner",ja:"ペア",id:"pasangan",ru:"пара",th:"คู่",mn:"хос",uz:"juft",es:"pair/partner"} },
-        ],
-        tip:{ko:"쌍자음이 들어간 단어는 강하고 힘찬 소리가 납니다. 과감하게 발음해보세요.",vi:"Từ có phụ âm đôi phát ra âm mạnh và dứt khoát. Hãy phát âm thật tự tin!",en:"Words with double consonants have a strong, forceful sound. Pronounce them boldly!",zh:"含双辅音的单词发音强劲有力，请大胆地发音。",ja:"濃音を含む単語は強く力強い音がします。思い切って発音してみてください。",id:"Kata yang mengandung konsonan ganda menghasilkan bunyi yang kuat dan tegas. Ucapkan dengan berani.",ru:"Слова с двойными согласными звучат сильно и энергично. Произносите их смело.",th:"คำที่มีพยัญชนะคู่จะออกเสียงหนักแน่นและเข้มแข็ง ลองออกเสียงอย่างกล้าหาญ",mn:"Давхар гийгүүлэгч орсон үгс хүчтэй, эрч хүчтэй дуу авиатай байдаг. Зоригтойгоор дуудаж үзээрэй.",uz:"Qo'sh undosh bo'lgan so'zlar kuchli va jasur tovush chiqaradi. Jasorat bilan talaffuz qiling.",es:"Las palabras con consonantes dobles tienen un sonido fuerte y enérgico. Pronúncielas con valentía.",fr:"Les mots avec des consonnes doubles ont un son fort et énergique. Prononcez-les avec audace.",ne:"दोहोरो व्यञ्जन भएका शब्दहरूमा बलियो र शक्तिशाली ध्वनि आउँछ। साहसका साथ उच्चारण गर्नुहोस्।",de:"Wörter mit Doppelkonsonanten klingen stark und kraftvoll. Sprechen Sie sie mutig aus."},
-      },
-      // ── 단계 10: 받침 ㄱ·ㄲ·ㅋ ──
-      { id:"batchim_gk", type:"learn", emoji:"🧱",
-        title:{ko:"10. 받침 [ㄱ·ㄲ·ㅋ]",vi:"10. Phụ âm cuối [ㄱ·ㄲ·ㅋ]",en:"10. Final Consonant [ㄱ·ㄲ·ㅋ]",zh:"10. 收音 [ㄱ·ㄲ·ㅋ]",ja:"10. パッチム [ㄱ·ㄲ·ㅋ]",id:"10. Konsonan Akhir [ㄱ·ㄲ·ㅋ]",ru:"10. Конечная согласная [ㄱ·ㄲ·ㅋ]",th:"10. ตัวสะกด [ㄱ·ㄲ·ㅋ]",mn:"10. Төгсгөлийн гийгүүлэгч [ㄱ·ㄲ·ㅋ]",uz:"10. Oxirgi undosh [ㄱ·ㄲ·ㅋ]",es:"10. Consonante final [ㄱ·ㄲ·ㅋ]",fr:"10. Consonne finale [ㄱ·ㄲ·ㅋ]",ne:"10. अन्त्य व्यञ्जन [ㄱ·ㄲ·ㅋ]",de:"10. Endkonsonant [ㄱ·ㄲ·ㅋ]"},
-        desc:{ko:"교육·장소·음식 관련 어휘로 ㄱ계열 받침을 익힙니다.",vi:"Học phụ âm cuối nhóm ㄱ qua từ vựng giáo dục, địa điểm và thức ăn.",en:"Learn the ㄱ-group final consonant through education, place, and food vocabulary.",zh:"通过教育、场所、食物相关词汇学习ㄱ系列收音。",ja:"教育・場所・食べ物に関する語彙でㄱ系パッチムを学びます。",id:"Pelajari konsonan akhir kelompok ㄱ melalui kosakata pendidikan, tempat, dan makanan.",ru:"Изучите конечную согласную группы ㄱ через лексику об образовании, местах и еде.",th:"เรียนรู้ตัวสะกดกลุ่ม ㄱ ผ่านคำศัพท์เกี่ยวกับการศึกษา สถานที่ และอาหาร",mn:"Боловсрол, газар, хоолтой холбоотой үгсээр ㄱ бүлгийн төгсгөлийн гийгүүлэгчийг мэдэж авна.",uz:"Ta'lim, joy, ovqat bilan bog'liq lug'at orqali ㄱ guruhi oxirgi undoshini o'rganing.",es:"Aprenda la consonante final del grupo ㄱ mediante vocabulario de educación, lugares y comida.",fr:"Apprenez la consonne finale du groupe ㄱ à travers un vocabulaire lié à l'éducation, aux lieux et à la nourriture.",ne:"शिक्षा, स्थान, खानासँग सम्बन्धित शब्दहरूबाट ㄱ समूहको अन्त्य व्यञ्जन सिक्नुहोस्।",de:"Lernen Sie den Endkonsonanten der ㄱ-Gruppe anhand von Vokabeln zu Bildung, Orten und Essen."},
-        items:[
-          { char:"국",    word:"국",    meaning:{ko:"국",    vi:"canh",zh:"汤",en:"soup",ja:"スープ",id:"sup",ru:"суп",th:"ซุป",mn:"шөл",uz:"sho'rva",es:"soup"} },
-          { char:"학교",  word:"학교",  meaning:{ko:"학교",  vi:"trường học",zh:"学校",en:"school",ja:"学校",id:"sekolah",ru:"школа",th:"โรงเรียน",mn:"сургууль",uz:"maktab",es:"school"} },
-          { char:"약국",  word:"약국",  meaning:{ko:"약국",  vi:"hiệu thuốc",zh:"药店",en:"pharmacy",ja:"薬局",id:"apotek",ru:"аптека",th:"ร้านขายยา",mn:"эмийн сан",uz:"dorixona",es:"pharmacy"} },
-          { char:"역",    word:"역",    meaning:{ko:"역",    vi:"ga",zh:"车站",en:"station",ja:"駅",id:"stasiun",ru:"станция",th:"สถานี",mn:"буудал",uz:"stansiya",es:"station"} },
-          { char:"수박",  word:"수박",  meaning:{ko:"수박",  vi:"dưa hấu",zh:"西瓜",en:"watermelon",ja:"スイカ",id:"semangka",ru:"арбуз",th:"แตงโม",mn:"тарвас",uz:"tarvuz",es:"watermelon"} },
-          { char:"책",    word:"책",    meaning:{ko:"책",    vi:"sách",zh:"书",en:"book",ja:"本",id:"buku",ru:"книга",th:"หนังสือ",mn:"ном",uz:"kitob",es:"book"} },
-          { char:"국수",  word:"국수",  meaning:{ko:"국수",  vi:"mì",zh:"面条",en:"noodle",ja:"そば",id:"mie",ru:"лапша",th:"เส้นก๋วยเตี๋ยว",mn:"гоймон",uz:"erishtа",es:"noodle"} },
-          { char:"음악",  word:"음악",  meaning:{ko:"음악",  vi:"âm nhạc",zh:"音乐",en:"music",ja:"音楽",id:"musik",ru:"музыка",th:"ดนตรี",mn:"хөгжим",uz:"musiqa",es:"music"} },
-          { char:"박수",  word:"박수",  meaning:{ko:"박수",  vi:"tiếng vỗ tay",zh:"鼓掌",en:"applause",ja:"拍手",id:"tepuk tangan",ru:"аплодисменты",th:"การปรบมือ",mn:"алга ташилт",uz:"qarsak",es:"applause"} },
-          { char:"특별",  word:"특별",  meaning:{ko:"특별",  vi:"đặc biệt",zh:"特别",en:"special",ja:"特別",id:"istimewa",ru:"особый",th:"พิเศษ",mn:"онцгой",uz:"maxsus",es:"special"} },
-          { char:"직업",  word:"직업",  meaning:{ko:"직업",  vi:"nghề nghiệp",zh:"职业",en:"job/occupation",ja:"職業",id:"pekerjaan",ru:"профессия",th:"อาชีพ",mn:"мэргэжил",uz:"kasb",es:"job/occupation"} },
-          { char:"복잡",  word:"복잡",  meaning:{ko:"복잡",  vi:"phức tạp",zh:"复杂",en:"complicated/crowded",ja:"複雑",id:"rumit",ru:"сложный",th:"ซับซ้อน",mn:"төвөгтэй",uz:"murakkab",es:"complicated/crowded"} },
-          { char:"가족",  word:"가족",  meaning:{ko:"가족",  vi:"gia đình",zh:"家族",en:"family",ja:"家族",id:"keluarga",ru:"семья",th:"ครอบครัว",mn:"гэр бүл",uz:"oila",es:"family"} },
-          { char:"약사",  word:"약사",  meaning:{ko:"약사",  vi:"dược sĩ",zh:"药剂师",en:"pharmacist",ja:"薬剤師",id:"apoteker",ru:"фармацевт",th:"เภสัชกร",mn:"эмийн сангийн ажилтан",uz:"dorixonachi",es:"pharmacist"} },
-          { char:"음악가",word:"음악가",meaning:{ko:"음악가",vi:"nhạc sĩ",zh:"音乐家",en:"musician",ja:"音楽家",id:"musisi",ru:"музыкант",th:"นักดนตรี",mn:"хөгжимчин",uz:"musiqachi",es:"musician"} },
-          { char:"저녁",  word:"저녁",  meaning:{ko:"저녁",  vi:"buổi tối",zh:"晚上",en:"evening",ja:"夕方",id:"malam",ru:"вечер",th:"ตอนเย็น",mn:"орой",uz:"kechqurun",es:"evening"} },
-          { char:"새벽",  word:"새벽",  meaning:{ko:"새벽",  vi:"sáng sớm",zh:"黎明",en:"dawn",ja:"夜明け",id:"fajar",ru:"рассвет",th:"รุ่งเช้า",mn:"үүр цайх",uz:"tong",es:"dawn"} },
-          { char:"추석",  word:"추석",  meaning:{ko:"추석",  vi:"Trung thu",zh:"中秋",en:"Korean Thanksgiving",ja:"チュソク",id:"Chuseok",ru:"Чусок",th:"ชูซอก",mn:"Чусок",uz:"Chuseok",es:"Korean Thanksgiving"} },
-          { char:"주택",  word:"주택",  meaning:{ko:"주택",  vi:"nhà ở",zh:"住宅",en:"house",ja:"住宅",id:"rumah",ru:"жилой дом",th:"บ้าน",mn:"орон сууц",uz:"uy-joy",es:"house"} },
-          { char:"기숙사",word:"기숙사",meaning:{ko:"기숙사",vi:"ký túc xá",zh:"宿舍",en:"dormitory",ja:"寮",id:"asrama",ru:"общежитие",th:"หอพัก",mn:"дотуур байр",uz:"yotoqxona",es:"dormitory"} },
-          { char:"우체국",word:"우체국",meaning:{ko:"우체국",vi:"bưu điện",zh:"邮局",en:"post office",ja:"郵便局",id:"kantor pos",ru:"почта",th:"ที่ทำการไปรษณีย์",mn:"шуудан",uz:"pochta",es:"post office"} },
-          { char:"대학교",word:"대학교",meaning:{ko:"대학교",vi:"trường đại học",zh:"大学",en:"university",ja:"大学",id:"universitas",ru:"университет",th:"มหาวิทยาลัย",mn:"их сургууль",uz:"universitet",es:"university"} },
-          { char:"개학",  word:"개학",  meaning:{ko:"개학",  vi:"khai giảng",zh:"开学",en:"beginning of school",ja:"始業式",id:"awal sekolah",ru:"начало учёбы",th:"เปิดเทอม",mn:"сургууль эхлэх",uz:"maktab boshlanishi",es:"beginning of school"} },
-          { char:"과목",  word:"과목",  meaning:{ko:"과목",  vi:"môn học",zh:"科目",en:"subject",ja:"科目",id:"mata pelajaran",ru:"предмет",th:"วิชา",mn:"хичээл",uz:"fan",es:"subject"} },
-          { char:"역사",  word:"역사",  meaning:{ko:"역사",  vi:"lịch sử",zh:"历史",en:"history",ja:"歴史",id:"sejarah",ru:"история",th:"ประวัติศาสตร์",mn:"түүх",uz:"tarix",es:"history"} },
-          { char:"화학",  word:"화학",  meaning:{ko:"화학",  vi:"hóa học",zh:"化学",en:"chemistry",ja:"化学",id:"kimia",ru:"химия",th:"เคมี",mn:"хими",uz:"kimyo",es:"chemistry"} },
-          { char:"수학",  word:"수학",  meaning:{ko:"수학",  vi:"toán học",zh:"数学",en:"mathematics",ja:"数学",id:"matematika",ru:"математика",th:"คณิตศาสตร์",mn:"математик",uz:"matematika",es:"mathematics"} },
-          { char:"숙제",  word:"숙제",  meaning:{ko:"숙제",  vi:"bài tập về nhà",zh:"作业",en:"homework",ja:"宿題",id:"pekerjaan rumah",ru:"домашнее задание",th:"การบ้าน",mn:"гэрийн даалгавар",uz:"uy vazifasi",es:"homework"} },
-          { char:"지각",  word:"지각",  meaning:{ko:"지각",  vi:"đi muộn",zh:"迟到",en:"late/tardy",ja:"遅刻",id:"terlambat",ru:"опоздание",th:"มาสาย",mn:"хожимдох",uz:"kechikish",es:"late/tardy"} },
-          { char:"규칙",  word:"규칙",  meaning:{ko:"규칙",  vi:"quy tắc",zh:"规则",en:"rule",ja:"規則",id:"aturan",ru:"правило",th:"กฎ",mn:"дүрэм",uz:"qoida",es:"rule"} },
-          { char:"교육",  word:"교육",  meaning:{ko:"교육",  vi:"giáo dục",zh:"教育",en:"education",ja:"教育",id:"pendidikan",ru:"образование",th:"การศึกษา",mn:"боловсрол",uz:"ta'lim",es:"education"} },
-          { char:"학사",  word:"학사",  meaning:{ko:"학사",  vi:"cử nhân",zh:"学士",en:"bachelor",ja:"学士",id:"sarjana",ru:"бакалавр",th:"ปริญญาตรี",mn:"бакалавр",uz:"bakalavr",es:"bachelor"} },
-          { char:"석사",  word:"석사",  meaning:{ko:"석사",  vi:"thạc sĩ",zh:"硕士",en:"master",ja:"修士",id:"magister",ru:"магистр",th:"ปริญญาโท",mn:"магистр",uz:"magistr",es:"master"} },
-          { char:"박사",  word:"박사",  meaning:{ko:"박사",  vi:"tiến sĩ",zh:"博士",en:"doctor/PhD",ja:"博士",id:"doktor",ru:"доктор",th:"ดอกเตอร์",mn:"доктор",uz:"doktor",es:"doctor/PhD"} },
-          { char:"유학",  word:"유학",  meaning:{ko:"유학",  vi:"du học",zh:"留学",en:"study abroad",ja:"留学",id:"belajar di luar negeri",ru:"учёба за рубежом",th:"เรียนต่างประเทศ",mn:"гадаадад суралцах",uz:"chet elda o'qish",es:"study abroad"} },
-          { char:"학기",  word:"학기",  meaning:{ko:"학기",  vi:"học kì",zh:"学期",en:"semester",ja:"学期",id:"semester",ru:"семестр",th:"ภาคเรียน",mn:"улирал",uz:"semestr",es:"semester"} },
-          { char:"부엌",  word:"부엌",  meaning:{ko:"부엌",  vi:"nhà bếp",zh:"厨房",en:"kitchen",ja:"台所",id:"dapur",ru:"кухня",th:"ครัว",mn:"гал тогоо",uz:"oshxona",es:"kitchen"} },
-          { char:"식탁",  word:"식탁",  meaning:{ko:"식탁",  vi:"bàn ăn",zh:"餐桌",en:"dining table",ja:"食卓",id:"meja makan",ru:"обеденный стол",th:"โต๊ะอาหาร",mn:"хоолны ширээ",uz:"ovqat stoli",es:"dining table"} },
-          { char:"외식",  word:"외식",  meaning:{ko:"외식",  vi:"ăn ngoài",zh:"外出就餐",en:"eat out",ja:"外食",id:"makan di luar",ru:"есть в ресторане",th:"ทานข้าวนอกบ้าน",mn:"гадуур хоол идэх",uz:"tashqarida ovqatlanish",es:"eat out"} },
-          { char:"목욕",  word:"목욕",  meaning:{ko:"목욕",  vi:"tắm",zh:"洗澡",en:"bath",ja:"入浴",id:"mandi",ru:"купание",th:"อาบน้ำ",mn:"усанд орох",uz:"cho'milish",es:"bath"} },
-          { char:"약속",  word:"약속",  meaning:{ko:"약속",  vi:"lời hứa/hẹn",zh:"约定",en:"promise/appointment",ja:"約束",id:"janji",ru:"обещание",th:"นัดหมาย",mn:"амлалт",uz:"va'da",es:"promise/appointment"} },
-          { char:"바닥",  word:"바닥",  meaning:{ko:"바닥",  vi:"sàn",zh:"地面",en:"floor",ja:"床",id:"lantai",ru:"пол",th:"พื้น",mn:"шал",uz:"pol",es:"floor"} },
-          { char:"치약",  word:"치약",  meaning:{ko:"치약",  vi:"kem đánh răng",zh:"牙膏",en:"toothpaste",ja:"歯磨き粉",id:"pasta gigi",ru:"зубная паста",th:"ยาสีฟัน",mn:"шүдний оо",uz:"tish pastasi",es:"toothpaste"} },
-          { char:"택배",  word:"택배",  meaning:{ko:"택배",  vi:"chuyển phát",zh:"快递",en:"delivery",ja:"宅配",id:"pengiriman",ru:"служба доставки",th:"พัสดุ",mn:"хүргэлт",uz:"yetkazib berish",es:"delivery"} },
-          { char:"내복",  word:"내복",  meaning:{ko:"내복",  vi:"quần áo lót",zh:"内衣",en:"underwear",ja:"下着",id:"pakaian dalam",ru:"нижнее бельё",th:"ชุดชั้นใน",mn:"доторхи хувцас",uz:"ichki kiyim",es:"underwear"} },
-          { char:"축구화",word:"축구화",meaning:{ko:"축구화",vi:"giày bóng đá",zh:"足球鞋",en:"soccer shoes",ja:"サッカーシューズ",id:"sepatu bola",ru:"бутсы",th:"รองเท้าฟุตบอล",mn:"хөлбөмбөгийн гутал",uz:"futbol poyabzali",es:"soccer shoes"} },
-          { char:"넥타이",word:"넥타이",meaning:{ko:"넥타이",vi:"cà vạt",zh:"领带",en:"neck tie",ja:"ネクタイ",id:"dasi",ru:"галстук",th:"เนคไท",mn:"зангиа",uz:"galstuk",es:"neck tie"} },
-          { char:"목도리",word:"목도리",meaning:{ko:"목도리",vi:"khăn quàng cổ",zh:"围巾",en:"scarf/muffler",ja:"マフラー",id:"syal",ru:"шарф",th:"ผ้าพันคอ",mn:"хүзүүвч",uz:"sharf",es:"scarf/muffler"} },
-          { char:"턱",    word:"턱",    meaning:{ko:"턱",    vi:"cằm",zh:"下巴",en:"chin",ja:"あご",id:"dagu",ru:"подбородок",th:"คาง",mn:"эрүү",uz:"iyak",es:"chin"} },
-          { char:"목",    word:"목",    meaning:{ko:"목",    vi:"cổ",zh:"脖子",en:"neck",ja:"首",id:"leher",ru:"шея",th:"คอ",mn:"хүзүү",uz:"bo'yin",es:"neck"} },
-          { char:"식도",  word:"식도",  meaning:{ko:"식도",  vi:"thực quản",zh:"食道",en:"throat",ja:"食道",id:"kerongkongan",ru:"пищевод",th:"หลอดอาหาร",mn:"улаан хоолой",uz:"qizilo'ngach",es:"throat"} },
-          { char:"시력",  word:"시력",  meaning:{ko:"시력",  vi:"thị lực",zh:"视力",en:"vision",ja:"視力",id:"penglihatan",ru:"зрение",th:"สายตา",mn:"харааны чадвар",uz:"ko'rish qobiliyati",es:"vision"} },
-          { char:"깍두기",word:"깍두기",meaning:{ko:"깍두기",vi:"kim chi củ cải",zh:"萝卜泡菜",en:"diced radish kimchi",ja:"カクトゥギ",id:"kimchi lobak",ru:"кактуги",th:"กิมจิหัวไชเท้า",mn:"хаздуги",uz:"kaktughi",es:"diced radish kimchi"} },
-          { char:"떡",    word:"떡",    meaning:{ko:"떡",    vi:"bánh gạo",zh:"年糕",en:"rice cake",ja:"餅",id:"kue beras",ru:"рисовый хлеб",th:"ขนมข้าวเกาหลี",mn:"тогтмол",uz:"guruch keki",es:"rice cake"} },
-          { char:"떡볶이",word:"떡볶이",meaning:{ko:"떡볶이",vi:"bánh gạo cay",zh:"炒年糕",en:"spicy rice cake",ja:"トッポッキ",id:"tteokbokki",ru:"токпокки",th:"ต็อกบกกี",mn:"тогтмол болгосон",uz:"tteokbokki",es:"spicy rice cake"} },
-          { char:"도시락",word:"도시락",meaning:{ko:"도시락",vi:"cơm hộp",zh:"便当",en:"packed lunch",ja:"お弁当",id:"bekal makan siang",ru:"еда в дороге",th:"กล่องข้าว",mn:"хоолны хайрцаг",uz:"tushlik quticha",es:"packed lunch"} },
-          { char:"낙지",  word:"낙지",  meaning:{ko:"낙지",  vi:"bạch tuộc",zh:"八爪鱼",en:"octopus",ja:"タコ",id:"gurita",ru:"осьминог",th:"ปลาหมึก",mn:"наймалж",uz:"ahtapot",es:"octopus"} },
-          { char:"맥주",  word:"맥주",  meaning:{ko:"맥주",  vi:"bia",zh:"啤酒",en:"beer",ja:"ビール",id:"bir",ru:"пиво",th:"เบียร์",mn:"шар айраг",uz:"pivo",es:"beer"} },
-          { char:"녹차",  word:"녹차",  meaning:{ko:"녹차",  vi:"trà xanh",zh:"绿茶",en:"green tea",ja:"緑茶",id:"teh hijau",ru:"зелёный чай",th:"ชาเขียว",mn:"ногоон цай",uz:"yashil choy",es:"green tea"} },
-          { char:"세탁기",word:"세탁기",meaning:{ko:"세탁기",vi:"máy giặt",zh:"洗衣机",en:"washer",ja:"洗濯機",id:"mesin cuci",ru:"стиральная машина",th:"เครื่องซักผ้า",mn:"угаалгын машин",uz:"kir yuvish mashinasi",es:"washer"} },
-          { char:"복사기",word:"복사기",meaning:{ko:"복사기",vi:"máy photo",zh:"复印机",en:"copier",ja:"コピー機",id:"mesin fotokopi",ru:"копировальный аппарат",th:"เครื่องถ่ายเอกสาร",mn:"хувилагч",uz:"ko'chirma mashinasi",es:"copier"} },
-          { char:"고속도로",word:"고속도로",meaning:{ko:"고속도로",vi:"đường cao tốc",zh:"高速公路",en:"highway",ja:"高速道路",id:"jalan tol",ru:"автострада",th:"ทางด่วน",mn:"хурдны зам",uz:"avtomagistral",es:"highway"} },
-          { char:"택시",  word:"택시",  meaning:{ko:"택시",  vi:"taxi",zh:"出租车",en:"taxi",ja:"タクシー",id:"taksi",ru:"такси",th:"แท็กซี่",mn:"такси",uz:"taksi",es:"taxi"} },
-          { char:"트럭",  word:"트럭",  meaning:{ko:"트럭",  vi:"xe tải",zh:"卡车",en:"truck",ja:"トラック",id:"truk",ru:"грузовик",th:"รถบรรทุก",mn:"ачааны машин",uz:"yuk mashinasi",es:"truck"} },
-          { char:"과속",  word:"과속",  meaning:{ko:"과속",  vi:"vượt tốc độ",zh:"超速",en:"speeding",ja:"スピード違反",id:"ngebut",ru:"превышение скорости",th:"ขับเร็วเกิน",mn:"хурд хэтрүүлэх",uz:"tezlikni oshirish",es:"speeding"} },
-          { char:"육교",  word:"육교",  meaning:{ko:"육교",  vi:"cầu vượt",zh:"天桥",en:"overhead bridge",ja:"陸橋",id:"jembatan penyeberangan",ru:"путепровод",th:"สะพานลอย",mn:"гүүр",uz:"ko'prik",es:"overhead bridge"} },
-          { char:"목표",  word:"목표",  meaning:{ko:"목표",  vi:"mục tiêu",zh:"目标",en:"goal/target",ja:"目標",id:"tujuan",ru:"цель",th:"เป้าหมาย",mn:"зорилго",uz:"maqsad",es:"goal/target"} },
-          { char:"이륙",  word:"이륙",  meaning:{ko:"이륙",  vi:"cất cánh",zh:"起飞",en:"take-off",ja:"離陸",id:"lepas landas",ru:"взлёт",th:"การบินขึ้น",mn:"нислэг",uz:"uchish",es:"take-off"} },
-          { char:"착륙",  word:"착륙",  meaning:{ko:"착륙",  vi:"hạ cánh",zh:"着陆",en:"landing",ja:"着陸",id:"mendarat",ru:"приземление",th:"การลงจอด",mn:"буух",uz:"qo'nish",es:"landing"} },
-          { char:"기내식",word:"기내식",meaning:{ko:"기내식",vi:"thức ăn trong máy bay",zh:"机内餐",en:"in-flight meal",ja:"機内食",id:"makanan pesawat",ru:"питание на борту",th:"อาหารบนเครื่องบิน",mn:"онгоцны хоол",uz:"samolyotdagi ovqat",es:"in-flight meal"} },
-          { char:"주식",  word:"주식",  meaning:{ko:"주식",  vi:"cổ phiếu",zh:"股票",en:"stock",ja:"株式",id:"saham",ru:"акция",th:"หุ้น",mn:"хувьцаа",uz:"aksiya",es:"stock"} },
-          { char:"계획",  word:"계획",  meaning:{ko:"계획",  vi:"kế hoạch",zh:"计划",en:"plan",ja:"計画",id:"rencana",ru:"план",th:"แผน",mn:"төлөвлөгөө",uz:"reja",es:"plan"} },
-          { char:"약",    word:"약",    meaning:{ko:"약",    vi:"thuốc",zh:"药",en:"medicine/drug",ja:"薬",id:"obat",ru:"лекарство",th:"ยา",mn:"эм",uz:"dori",es:"medicine/drug"} },
-          { char:"속",    word:"속",    meaning:{ko:"속",    vi:"trong",zh:"里面",en:"inside",ja:"中",id:"dalam",ru:"внутри",th:"ข้างใน",mn:"дотор",uz:"ichida",es:"inside"} },
-          { char:"밖",    word:"밖",    meaning:{ko:"밖",    vi:"ngoài",zh:"外面",en:"outside",ja:"外",id:"luar",ru:"снаружи",th:"ข้างนอก",mn:"гадна",uz:"tashqarida",es:"outside"} },
-          { char:"북(北)",word:"북",   meaning:{ko:"북(北)",vi:"phía bắc",zh:"北",en:"north",ja:"北",id:"utara",ru:"север",th:"เหนือ",mn:"хойд",uz:"shimol",es:"north"} },
-          { char:"독서",  word:"독서",  meaning:{ko:"독서",  vi:"đọc sách",zh:"读书",en:"reading",ja:"読書",id:"membaca buku",ru:"чтение книг",th:"การอ่านหนังสือ",mn:"ном унших",uz:"kitob o'qish",es:"reading"} },
-          { char:"탁구",  word:"탁구",  meaning:{ko:"탁구",  vi:"bóng bàn",zh:"乒乓球",en:"ping-pong",ja:"卓球",id:"tenis meja",ru:"настольный теннис",th:"ปิงปอง",mn:"ширээний теннис",uz:"stol tennisi",es:"ping-pong"} },
-          { char:"역도",  word:"역도",  meaning:{ko:"역도",  vi:"cử tạ",zh:"举重",en:"weight lifting",ja:"重量挙げ",id:"angkat besi",ru:"тяжёлая атлетика",th:"ยกน้ำหนัก",mn:"сурьяа өргөх",uz:"og'irlik ko'tarish",es:"weight lifting"} },
-          { char:"바둑",  word:"바둑",  meaning:{ko:"바둑",  vi:"cờ vây",zh:"围棋",en:"Go game",ja:"囲碁",id:"Go",ru:"Го",th:"หมากล้อม",mn:"Го тоглоом",uz:"Go o'yini",es:"Go game"} },
-          { char:"낚시",  word:"낚시",  meaning:{ko:"낚시",  vi:"câu cá",zh:"钓鱼",en:"fishing",ja:"釣り",id:"memancing",ru:"рыбалка",th:"การตกปลา",mn:"загас агнах",uz:"baliq ovlash",es:"fishing"} },
-          { char:"예약",  word:"예약",  meaning:{ko:"예약",  vi:"đặt chỗ",zh:"预约",en:"reservation",ja:"予約",id:"reservasi",ru:"бронирование",th:"การจอง",mn:"захиалга",uz:"bron",es:"reservation"} },
-          { char:"저축",  word:"저축",  meaning:{ko:"저축",  vi:"tiết kiệm",zh:"储蓄",en:"saving",ja:"貯蓄",id:"tabungan",ru:"накопление",th:"การออม",mn:"хадгаламж",uz:"jamg'arma",es:"saving"} },
-          { char:"악어",  word:"악어",  meaning:{ko:"악어",  vi:"cá sấu",zh:"鳄鱼",en:"alligator",ja:"ワニ",id:"buaya",ru:"крокодил",th:"จระเข้",mn:"матар",uz:"timsoh",es:"alligator"} },
-          { char:"박쥐",  word:"박쥐",  meaning:{ko:"박쥐",  vi:"con dơi",zh:"蝙蝠",en:"bat",ja:"コウモリ",id:"kelelawar",ru:"летучая мышь",th:"ค้างคาว",mn:"сарьсан багваахай",uz:"ko'rshapalak",es:"bat"} },
-          { char:"미역",  word:"미역",  meaning:{ko:"미역",  vi:"rong biển",zh:"海带",en:"seaweed",ja:"ワカメ",id:"rumput laut",ru:"морская капуста",th:"สาหร่าย",mn:"далайн замаг",uz:"dengiz o'ti",es:"seaweed"} },
-          { char:"사막",  word:"사막",  meaning:{ko:"사막",  vi:"sa mạc",zh:"沙漠",en:"desert",ja:"砂漠",id:"gurun",ru:"пустыня",th:"ทะเลทราย",mn:"цөл",uz:"cho'l",es:"desert"} },
-          { char:"북극",  word:"북극",  meaning:{ko:"북극",  vi:"Bắc Cực",zh:"北极",en:"North Pole",ja:"北極",id:"Kutub Utara",ru:"Северный полюс",th:"ขั้วโลกเหนือ",mn:"Хойд туйл",uz:"Shimoliy qutb",es:"North Pole"} },
-          { char:"적도",  word:"적도",  meaning:{ko:"적도",  vi:"xích đạo",zh:"赤道",en:"equator",ja:"赤道",id:"khatulistiwa",ru:"экватор",th:"เส้นศูนย์สูตร",mn:"экватор",uz:"ekvator",es:"equator"} },
-          { char:"대륙",  word:"대륙",  meaning:{ko:"대륙",  vi:"đại lục",zh:"大陆",en:"continent",ja:"大陸",id:"benua",ru:"континент",th:"ทวีป",mn:"тив",uz:"qit'a",es:"continent"} },
-          { char:"미국",  word:"미국",  meaning:{ko:"미국",  vi:"Mỹ",zh:"美国",en:"United States",ja:"アメリカ",id:"Amerika Serikat",ru:"США",th:"สหรัฐอเมริกา",mn:"АНУ",uz:"AQSH",es:"United States"} },
-          { char:"태국",  word:"태국",  meaning:{ko:"태국",  vi:"Thái Lan",zh:"泰国",en:"Thailand",ja:"タイ",id:"Thailand",ru:"Таиланд",th:"ไทย",mn:"Тайланд",uz:"Tailand",es:"Thailand"} },
-          { char:"멕시코",word:"멕시코",meaning:{ko:"멕시코",vi:"Mexico",zh:"墨西哥",en:"Mexico",ja:"メキシコ",id:"Meksiko",ru:"Мексика",th:"เม็กซิโก",mn:"Мексик",uz:"Meksika",es:"Mexico"} },
-          { char:"국가",  word:"국가",  meaning:{ko:"국가",  vi:"quốc gia",zh:"国家",en:"nation",ja:"国家",id:"negara",ru:"государство",th:"ประเทศ",mn:"улс",uz:"davlat",es:"nation"} },
-          { char:"외국",  word:"외국",  meaning:{ko:"외국",  vi:"nước ngoài",zh:"外国",en:"foreign country",ja:"外国",id:"negara asing",ru:"иностранное государство",th:"ต่างประเทศ",mn:"гадаад улс",uz:"xorijiy davlat",es:"foreign country"} },
-          { char:"국적",  word:"국적",  meaning:{ko:"국적",  vi:"quốc tịch",zh:"国籍",en:"nationality",ja:"国籍",id:"kewarganegaraan",ru:"гражданство",th:"สัญชาติ",mn:"харьяалал",uz:"fuqarolik",es:"nationality"} },
-          { char:"뉴욕",  word:"뉴욕",  meaning:{ko:"뉴욕",  vi:"New York",zh:"纽约",en:"New York",ja:"ニューヨーク",id:"New York",ru:"Нью-Йорк",th:"นิวยอร์ก",mn:"Нью-Йорк",uz:"Nyu-York",es:"New York"} },
-          { char:"액체",  word:"액체",  meaning:{ko:"액체",  vi:"chất lỏng",zh:"液体",en:"liquid",ja:"液体",id:"cairan",ru:"жидкость",th:"ของเหลว",mn:"шингэн",uz:"suyuqlik",es:"liquid"} },
-          { char:"과학",  word:"과학",  meaning:{ko:"과학",  vi:"khoa học",zh:"科学",en:"science",ja:"科学",id:"sains",ru:"наука",th:"วิทยาศาสตร์",mn:"шинжлэх ухаан",uz:"fan",es:"science"} },
-          { char:"속도",  word:"속도",  meaning:{ko:"속도",  vi:"tốc độ",zh:"速度",en:"speed",ja:"速度",id:"kecepatan",ru:"скорость",th:"ความเร็ว",mn:"хурд",uz:"tezlik",es:"speed"} },
-          { char:"보라색",word:"보라색",meaning:{ko:"보라색",vi:"màu tím",zh:"紫色",en:"violet/purple",ja:"紫色",id:"ungu",ru:"фиолетовый",th:"สีม่วง",mn:"нил ягаан",uz:"binafsha rang",es:"violet/purple"} },
-          { char:"초록색",word:"초록색",meaning:{ko:"초록색",vi:"màu xanh lá cây",zh:"绿色",en:"green",ja:"緑色",id:"hijau",ru:"зелёный",th:"สีเขียว",mn:"ногоон",uz:"yashil rang",es:"green"} },
-          { char:"억",    word:"억",    meaning:{ko:"억",    vi:"trăm triệu",zh:"亿",en:"hundred million",ja:"億",id:"seratus juta",ru:"сто миллионов",th:"ร้อยล้าน",mn:"зуун сая",uz:"yuz million",es:"hundred million"} },
-          { char:"격려",  word:"격려",  meaning:{ko:"격려",  vi:"khích lệ",zh:"鼓励",en:"encourage",ja:"激励",id:"dorongan",ru:"поощрение",th:"การให้กำลังใจ",mn:"дэмжих",uz:"rag'batlantirish",es:"encourage"} },
-          { char:"추억",  word:"추억",  meaning:{ko:"추억",  vi:"kỉ niệm",zh:"回忆",en:"remembrance",ja:"思い出",id:"kenangan",ru:"воспоминание",th:"ความทรงจำ",mn:"дурсамж",uz:"xotira",es:"remembrance"} },
-          { char:"기억",  word:"기억",  meaning:{ko:"기억",  vi:"trí nhớ",zh:"记忆",en:"memory",ja:"記憶",id:"ingatan",ru:"память",th:"ความจำ",mn:"ой санамж",uz:"xotira",es:"memory"} },
-          { char:"노력",  word:"노력",  meaning:{ko:"노력",  vi:"nỗ lực",zh:"努力",en:"effort",ja:"努力",id:"usaha",ru:"старание",th:"ความพยายาม",mn:"хичээл зүтгэл",uz:"harakat",es:"effort"} },
-          { char:"목적",  word:"목적",  meaning:{ko:"목적",  vi:"mục đích",zh:"目的",en:"purpose",ja:"目的",id:"tujuan",ru:"цель",th:"วัตถุประสงค์",mn:"зорилго",uz:"maqsad",es:"purpose"} },
-          { char:"부탁",  word:"부탁",  meaning:{ko:"부탁",  vi:"nhờ vả",zh:"拜托",en:"asking favor",ja:"お願い",id:"permintaan tolong",ru:"просьба",th:"การขอร้อง",mn:"хүсэлт",uz:"iltimos",es:"asking favor"} },
-          { char:"목소리",word:"목소리",meaning:{ko:"목소리",vi:"giọng nói",zh:"声音",en:"voice",ja:"声",id:"suara",ru:"голос",th:"เสียง",mn:"дуу хоолой",uz:"ovoz",es:"voice"} },
-          { char:"작다",  word:"작다",  meaning:{ko:"작다",  vi:"nhỏ bé",zh:"小",en:"small",ja:"小さい",id:"kecil",ru:"маленький",th:"เล็ก",mn:"жижиг",uz:"kichik",es:"small"} },
-          { char:"적다",  word:"적다",  meaning:{ko:"적다",  vi:"ít",zh:"少",en:"few/little",ja:"少ない",id:"sedikit",ru:"мало",th:"น้อย",mn:"цөөн",uz:"kam",es:"few/little"} },
-          { char:"착하다",word:"착하다",meaning:{ko:"착하다",vi:"착하다",zh:"善良",en:"kind",ja:"優しい",id:"baik hati",ru:"добрый",th:"ใจดี",mn:"сайхан сэтгэлтэй",uz:"mehribon",es:"kind"} },
-          { char:"똑똑하다",word:"똑똑하다",meaning:{ko:"똑똑하다",vi:"thông minh",zh:"聪明",en:"smart",ja:"賢い",id:"pintar",ru:"умный",th:"ฉลาด",mn:"ухаалаг",uz:"aqlli",es:"smart"} },
-          { char:"익숙하다",word:"익숙하다",meaning:{ko:"익숙하다",vi:"quen thuộc",zh:"熟悉",en:"familiar",ja:"慣れている",id:"terbiasa",ru:"привычный",th:"คุ้นเคย",mn:"дасаж зуршсан",uz:"ko'nikma",es:"familiar"} },
-          { char:"깎다",  word:"깎다",  meaning:{ko:"깎다",  vi:"cắt/gọt",zh:"削",en:"cut/peel",ja:"削る",id:"mengupas",ru:"срезать",th:"ปอก/ตัด",mn:"хуулах",uz:"tozalamoq",es:"cut/peel"} },
-          { char:"볶다",  word:"볶다",  meaning:{ko:"볶다",  vi:"xào rang",zh:"炒",en:"roast/stir-fry",ja:"炒める",id:"menumis",ru:"жарить",th:"ผัด",mn:"шарах",uz:"qovurmoq",es:"roast/stir-fry"} },
-          { char:"식다",  word:"식다",  meaning:{ko:"식다",  vi:"nguội",zh:"变凉",en:"cool down",ja:"冷める",id:"mendingin",ru:"остывать",th:"เย็นลง",mn:"хөрөх",uz:"sovumoq",es:"cool down"} },
-          { char:"섞다",  word:"섞다",  meaning:{ko:"섞다",  vi:"trộn",zh:"混合",en:"mix",ja:"混ぜる",id:"mencampur",ru:"смешивать",th:"ผสม",mn:"холих",uz:"aralashtimoq",es:"mix"} },
-          { char:"찍다",  word:"찍다",  meaning:{ko:"찍다",  vi:"chụp/chấm",zh:"拍照/蘸",en:"take (photo)",ja:"撮る",id:"mengambil foto",ru:"фотографировать",th:"ถ่ายรูป",mn:"зураг дарах",uz:"rasm olmoq",es:"take (photo)"} },
-          { char:"먹다",  word:"먹다",  meaning:{ko:"먹다",  vi:"ăn",zh:"吃",en:"eat",ja:"食べる",id:"makan",ru:"есть",th:"กิน",mn:"идэх",uz:"yemoq",es:"eat"} },
-          { char:"식사하다",word:"식사하다",meaning:{ko:"식사하다",vi:"dùng bữa",zh:"用餐",en:"have a meal",ja:"食事する",id:"makan makanan",ru:"принимать пищу",th:"ทานอาหาร",mn:"хоол идэх",uz:"ovqatlanmoq",es:"have a meal"} },
-          { char:"닦다",  word:"닦다",  meaning:{ko:"닦다",  vi:"lau dọn",zh:"擦",en:"clean/wipe",ja:"磨く",id:"membersihkan",ru:"вытирать",th:"เช็ด",mn:"арчих",uz:"artmoq",es:"clean/wipe"} },
-          { char:"숙제하다",word:"숙제하다",meaning:{ko:"숙제하다",vi:"làm bài tập",zh:"做作业",en:"do homework",ja:"宿題をする",id:"mengerjakan PR",ru:"делать домашнее задание",th:"ทำการบ้าน",mn:"гэрийн даалгавар хийх",uz:"uy vazifasini bajarmoq",es:"do homework"} },
-          { char:"축하하다",word:"축하하다",meaning:{ko:"축하하다",vi:"chúc mừng",zh:"祝贺",en:"congratulate",ja:"祝う",id:"mengucapkan selamat",ru:"поздравлять",th:"แสดงความยินดี",mn:"баяр хүргэх",uz:"tabriklаmoq",es:"congratulate"} },
-          { char:"약속하다",word:"약속하다",meaning:{ko:"약속하다",vi:"hứa hẹn",zh:"约定",en:"promise",ja:"約束する",id:"berjanji",ru:"обещать",th:"สัญญา",mn:"амлах",uz:"va'da bermoq",es:"promise"} },
-          { char:"예약하다",word:"예약하다",meaning:{ko:"예약하다",vi:"đặt chỗ trước",zh:"预约",en:"reserve",ja:"予約する",id:"mereservasi",ru:"бронировать",th:"จอง",mn:"захиалах",uz:"bron qilmoq",es:"reserve"} },
-          { char:"기억하다",word:"기억하다",meaning:{ko:"기억하다",vi:"ghi nhớ",zh:"记住",en:"memorize/remember",ja:"覚える",id:"mengingat",ru:"помнить",th:"จำ",mn:"санах",uz:"eslab qolmoq",es:"memorize/remember"} },
-          { char:"시작하다",word:"시작하다",meaning:{ko:"시작하다",vi:"bắt đầu",zh:"开始",en:"start",ja:"始める",id:"memulai",ru:"начинать",th:"เริ่มต้น",mn:"эхлэх",uz:"boshlаmoq",es:"start"} },
-          { char:"막히다",word:"막히다", meaning:{ko:"막히다",vi:"bị tắc nghẽn",zh:"堵塞",en:"be blocked",ja:"支える",id:"tersumbat",ru:"быть заблокированным",th:"ติดขัด",mn:"түгжрэх",uz:"tiqilib qolmoq",es:"be blocked"} },
-          { char:"도착하다",word:"도착하다",meaning:{ko:"도착하다",vi:"đến nơi",zh:"到达",en:"arrive",ja:"到着する",id:"tiba",ru:"прибывать",th:"มาถึง",mn:"ирэх",uz:"yetib kelmoq",es:"arrive"} },
-          { char:"익다",  word:"익다",  meaning:{ko:"익다",  vi:"chín",zh:"成熟/熟透",en:"ripen/be cooked",ja:"熟す",id:"matang",ru:"созревать",th:"สุก",mn:"боловсрох",uz:"pismoq",es:"ripen/be cooked"} },
-          { char:"녹다",  word:"녹다",  meaning:{ko:"녹다",  vi:"tan ra",zh:"融化",en:"melt/dissolve",ja:"溶ける",id:"mencair",ru:"таять",th:"ละลาย",mn:"хайлах",uz:"ermoq",es:"melt/dissolve"} },
-          { char:"노약자석",word:"노약자석",meaning:{ko:"노약자석",vi:"chỗ ngồi ưu tiên",zh:"老弱残疾人座位",en:"priority seat",ja:"優先席",id:"tempat duduk prioritas",ru:"места для пожилых",th:"ที่นั่งผู้สูงอายุ",mn:"ахмадын суудал",uz:"imtiyozli o'rindiq",es:"priority seat"} },
-          { char:"페이스북",word:"페이스북",meaning:{ko:"페이스북",vi:"Facebook",zh:"脸书",en:"Facebook",ja:"フェイスブック",id:"Facebook",ru:"Facebook",th:"เฟซบุ๊ก",mn:"Фэйсбүүк",uz:"Facebook",es:"Facebook"} },
-          { char:"부족하다",word:"부족하다",meaning:{ko:"부족하다",vi:"không đủ",zh:"不足",en:"insufficient",ja:"足りない",id:"tidak cukup",ru:"недостаточный",th:"ไม่เพียงพอ",mn:"хүрэлцэхгүй",uz:"yetarli emas",es:"insufficient"} },
-          { char:"합격",  word:"합격",  meaning:{ko:"합격",vi:"đậu/trúng tuyển",zh:"合格",en:"pass (exam)",ja:"合格",id:"lulus",ru:"поступление",th:"ผ่าน",mn:"тэнцэх",uz:"o'tmoq",es:"pass (exam)"} },
-          { char:"불합격",word:"불합격",meaning:{ko:"불합격",vi:"trượt",zh:"不合格",en:"fail (exam)",ja:"不合格",id:"gagal",ru:"провал",th:"ไม่ผ่าน",mn:"тэнцэхгүй",uz:"o'tolmaslik",es:"fail (exam)"} },
-          { char:"출국",  word:"출국",  meaning:{ko:"출국",vi:"xuất cảnh",zh:"出国",en:"departure",ja:"出国",id:"keberangkatan",ru:"выезд из страны",th:"ออกนอกประเทศ",mn:"гарах",uz:"chiqish",es:"departure"} },
-          { char:"입국",  word:"입국",  meaning:{ko:"입국",vi:"nhập cảnh",zh:"入国",en:"entry",ja:"入国",id:"kedatangan",ru:"въезд в страну",th:"เข้าประเทศ",mn:"орох",uz:"kirish",es:"entry"} },
-          { char:"목격",  word:"목격",  meaning:{ko:"목격",vi:"chứng kiến",zh:"目击",en:"witness",ja:"目撃",id:"menyaksikan",ru:"стать свидетелем",th:"เป็นพยาน",mn:"гэрч болох",uz:"guvoh bo'lmoq",es:"witness"} },
-          { char:"연락",  word:"연락",  meaning:{ko:"연락",vi:"liên lạc",zh:"联络",en:"contact",ja:"連絡",id:"kontak",ru:"связь",th:"ติดต่อ",mn:"холбоо барих",uz:"aloqa",es:"contact"} },
-                ],
-        tip:{ko:"💡 [대표음화] ㄱ·ㄲ·ㅋ은 받침에서 모두 [ㄱ]으로 발음해요. 표기는 달라도 소리는 같아요! 예) 국[국] 부엌[부억] 볶다[볶따]",vi:"💡 [Âm đại diện] ㄱ·ㄲ·ㅋ đều phát âm là [ㄱ] ở vị trí cuối. Chữ viết khác nhau nhưng âm thanh giống nhau! Ví dụ: 국[국] 부엌[부억]",en:"💡 [Representative sound] ㄱ·ㄲ·ㅋ are all pronounced as [ㄱ] at the end. Different spelling, same sound! e.g. 국[국] 부엌[부억]",zh:"💡【代表音化】ㄱ·ㄲ·ㅋ作收音时都发[ㄱ]音。写法不同，发音相同！例：국[국] 부엌[부억] 볶다[볶따]",ja:"💡【代表音化】ㄱ·ㄲ·ㅋはパッチムでは全て[ㄱ]と発音します。表記は違っても音は同じです！例）국[국] 부엌[부억] 볶다[볶따]",id:"💡[Bunyi representatif] ㄱ·ㄲ·ㅋ semuanya diucapkan sebagai [ㄱ] saat menjadi konsonan akhir. Ejaan berbeda tapi bunyinya sama! Contoh) 국[국] 부엌[부억] 볶다[볶따]",ru:"💡[Репрезентативный звук] ㄱ·ㄲ·ㅋ в конце слова всегда произносятся как [ㄱ]. Написание разное, а звук одинаковый! Напр.) 국[국] 부엌[부억] 볶다[볶따]",th:"💡[เสียงตัวแทน] ㄱ·ㄲ·ㅋ เมื่อเป็นตัวสะกดจะออกเสียงเป็น [ㄱ] ทั้งหมด การเขียนต่างกันแต่เสียงเหมือนกัน! ตัวอย่าง) 국[국] 부엌[부억] 볶다[볶따]",mn:"💡[Төлөөлөх авиа] ㄱ·ㄲ·ㅋ нь төгсгөлийн байрлалд бүгд [ㄱ] гэж дуудагдана. Бичлэг өөр ч дуу авиа адилхан! Жишээ) 국[국] 부엌[부억] 볶다[볶따]",uz:"💡[Vakillik tovushi] ㄱ·ㄲ·ㅋ oxirgi undosh bo'lganda hammasi [ㄱ] deb aytiladi. Yozilishi har xil, lekin tovushi bir xil! Masalan) 국[국] 부엌[부억] 볶다[볶따]",es:"💡[Sonido representativo] ㄱ·ㄲ·ㅋ se pronuncian todas como [ㄱ] al final de sílaba. ¡La escritura es diferente, pero el sonido es el mismo! Ej.) 국[국] 부엌[부억] 볶다[볶따]",fr:"💡[Son représentatif] ㄱ·ㄲ·ㅋ se prononcent tous [ㄱ] en position finale. L'orthographe diffère mais le son est le même ! Ex. : 국[국] 부엌[부억] 볶다[볶따]",ne:"💡[प्रतिनिधि ध्वनि] ㄱ·ㄲ·ㅋ अन्त्य व्यञ्जनमा सबै [ㄱ] उच्चारण हुन्छ। लेखाइ फरक भए पनि ध्वनि उस्तै हो! उदाहरण) 국[국] 부엌[부억] 볶다[볶따]",de:"💡[Repräsentativer Laut] ㄱ·ㄲ·ㅋ werden am Ende alle als [ㄱ] ausgesprochen. Die Schreibweise ist unterschiedlich, aber der Klang ist gleich! Bsp.: 국[국] 부엌[부억] 볶다[볶따]"},
-      },
-      // ── 단계 11: 받침 ㅇ ──
-      { id:"batchim_ng", type:"learn", emoji:"🧱",
-        title:{ko:"11. 받침 [ㅇ]",vi:"11. Phụ âm cuối [ㅇ]",en:"11. Final Consonant [ㅇ]",zh:"11. 收音 [ㅇ]",ja:"11. パッチム [ㅇ]",id:"11. Konsonan Akhir [ㅇ]",ru:"11. Конечная согласная [ㅇ]",th:"11. ตัวสะกด [ㅇ]",mn:"11. Төгсгөлийн гийгүүлэгч [ㅇ]",uz:"11. Oxirgi undosh [ㅇ]",es:"11. Consonante final [ㅇ]",fr:"11. Consonne finale [ㅇ]",ne:"11. अन्त्य व्यञ्जन [ㅇ]",de:"11. Endkonsonant [ㅇ]"},
-        desc:{ko:"사회생활 관련 어휘로 ㅇ받침을 익힙니다.",vi:"Học phụ âm cuối ㅇ qua từ vựng về đời sống xã hội.",en:"Learn the final consonant ㅇ through social life vocabulary.",zh:"通过社交生活相关词汇学习ㅇ收音。",ja:"社会生活に関する語彙でㅇパッチムを学びます。",id:"Pelajari konsonan akhir ㅇ melalui kosakata kehidupan sosial.",ru:"Изучите конечную согласную ㅇ через лексику о социальной жизни.",th:"เรียนรู้ตัวสะกด ㅇ ผ่านคำศัพท์เกี่ยวกับสังคม",mn:"Нийгмийн амьдралтай холбоотой үгсээр ㅇ төгсгөлийн гийгүүлэгчийг мэдэж авна.",uz:"Ijtimoiy hayot bilan bog'liq lug'at orqali ㅇ oxirgi undoshini o'rganing.",es:"Aprenda la consonante final ㅇ mediante vocabulario de vida social.",fr:"Apprenez la consonne finale ㅇ à travers un vocabulaire lié à la vie sociale.",ne:"सामाजिक जीवनसँग सम्बन्धित शब्दहरूबाट ㅇ अन्त्य व्यञ्जन सिक्नुहोस्।",de:"Lernen Sie den Endkonsonanten ㅇ anhand von Vokabeln zum sozialen Leben."},
-        items:[
-          { char:"형",    word:"형",    meaning:{ko:"형",    vi:"anh trai (em trai gọi)",zh:"兄",en:"older brother",ja:"お兄さん",id:"kakak laki-laki",ru:"старший брат",th:"พี่ชาย",mn:"ах",uz:"aka",es:"older brother"} },
-          { char:"형제",  word:"형제",  meaning:{ko:"형제",  vi:"anh em",zh:"兄弟",en:"siblings",ja:"兄弟",id:"saudara laki-laki",ru:"братья",th:"พี่น้อง",mn:"ах дүү",uz:"aka-uka",es:"siblings"} },
-          { char:"동생",  word:"동생",  meaning:{ko:"동생",  vi:"em (trai/gái)",zh:"弟弟/妹妹",en:"younger sibling",ja:"弟/妹",id:"adik",ru:"младший брат/сестра",th:"น้อง",mn:"дүү",uz:"uka/singil",es:"younger sibling"} },
-          { char:"왕",    word:"왕",    meaning:{ko:"왕",    vi:"vua",zh:"王",en:"king",ja:"王",id:"raja",ru:"король",th:"กษัตริย์",mn:"хаан",uz:"qirol",es:"king"} },
-          { char:"항상",  word:"항상",  meaning:{ko:"항상",  vi:"luôn luôn",zh:"经常",en:"always",ja:"いつも",id:"selalu",ru:"всегда",th:"เสมอ",mn:"үргэлж",uz:"doimo",es:"always"} },
-          { char:"방",    word:"방",    meaning:{ko:"방",    vi:"phòng",zh:"房间",en:"room",ja:"部屋",id:"kamar",ru:"комната",th:"ห้อง",mn:"өрөө",uz:"xona",es:"room"} },
-          { char:"강",    word:"강",    meaning:{ko:"강",    vi:"sông",zh:"河流",en:"river",ja:"川",id:"sungai",ru:"река",th:"แม่น้ำ",mn:"гол",uz:"daryo",es:"river"} },
-          { char:"영어",  word:"영어",  meaning:{ko:"영어",  vi:"tiếng Anh",zh:"英语",en:"English",ja:"英語",id:"bahasa Inggris",ru:"английский",th:"ภาษาอังกฤษ",mn:"англи хэл",uz:"ingliz tili",es:"English"} },
-          { char:"병원",  word:"병원",  meaning:{ko:"병원",  vi:"bệnh viện",zh:"医院",en:"hospital",ja:"病院",id:"rumah sakit",ru:"больница",th:"โรงพยาบาล",mn:"эмнэлэг",uz:"kasalxona",es:"hospital"} },
-          { char:"공항",  word:"공항",  meaning:{ko:"공항",  vi:"sân bay",zh:"机场",en:"airport",ja:"空港",id:"bandara",ru:"аэропорт",th:"สนามบิน",mn:"нисэх онгоцны буудал",uz:"aeroport",es:"airport"} },
-          { char:"학생",  word:"학생",  meaning:{ko:"학생",  vi:"học sinh",zh:"学生",en:"student",ja:"学生",id:"siswa",ru:"студент",th:"นักเรียน",mn:"сурагч",uz:"talaba",es:"student"} },
-          { char:"경찰",  word:"경찰",  meaning:{ko:"경찰",  vi:"cảnh sát",zh:"警察",en:"police",ja:"警察",id:"polisi",ru:"полиция",th:"ตำรวจ",mn:"цагдаа",uz:"politsiya",es:"police"} },
-          { char:"성함",  word:"성함",  meaning:{ko:"성함",  vi:"tên (kính ngữ)",zh:"尊姓大名",en:"name (honorific)",ja:"お名前",id:"nama (hormat)",ru:"имя (уважит.)",th:"ชื่อ (สุภาพ)",mn:"нэр (хүндлэл)",uz:"ism (hurmat)",es:"name (honorific)"} },
-          { char:"상자",  word:"상자",  meaning:{ko:"상자",  vi:"hộp",zh:"箱子",en:"box",ja:"箱",id:"kotak",ru:"коробка",th:"กล่อง",mn:"хайрцаг",uz:"quti",es:"box"} },
-          { char:"소방서",word:"소방서",meaning:{ko:"소방서",vi:"sở cứu hỏa",zh:"消防局",en:"fire station",ja:"消防署",id:"pemadam kebakaran",ru:"пожарная часть",th:"สถานีดับเพลิง",mn:"гал унтраах алба",uz:"o't o'chirish",es:"fire station"} },
-          { char:"고향",  word:"고향",  meaning:{ko:"고향",  vi:"quê hương",zh:"故乡",en:"hometown",ja:"故郷",id:"kampung halaman",ru:"родина",th:"บ้านเกิด",mn:"нутаг",uz:"vatan",es:"hometown"} },
-          { char:"식당",  word:"식당",  meaning:{ko:"식당",  vi:"nhà hàng",zh:"餐厅",en:"restaurant",ja:"食堂",id:"restoran",ru:"ресторан",th:"ร้านอาหาร",mn:"гуанз",uz:"restoran",es:"restaurant"} },
-          { char:"노래방",word:"노래방",meaning:{ko:"노래방",vi:"phòng karaoke",zh:"卡拉OK",en:"karaoke room",ja:"カラオケ",id:"karaoke",ru:"караоке",th:"คาราโอเกะ",mn:"хаяоке",uz:"karaoke",es:"karaoke room"} },
-          { char:"목욕",  word:"목욕",  meaning:{ko:"목욕",  vi:"tắm rửa",zh:"沐浴",en:"bathing",ja:"入浴",id:"mandi",ru:"купание",th:"การอาบน้ำ",mn:"усанд орох",uz:"cho'milish",es:"bathing"} },
-          { char:"극장",  word:"극장",  meaning:{ko:"극장",  vi:"rạp chiếu phim",zh:"剧场",en:"theater",ja:"劇場",id:"bioskop",ru:"театр",th:"โรงละคร",mn:"театр",uz:"teatr",es:"theater"} },
-          { char:"초등학교",word:"초등학교",meaning:{ko:"초등학교",vi:"trường tiểu học",zh:"小学",en:"elementary school",ja:"小学校",id:"sekolah dasar",ru:"начальная школа",th:"โรงเรียนประถม",mn:"бага сургууль",uz:"boshlang'ich maktab",es:"elementary school"} },
-          { char:"중학교",word:"중학교",meaning:{ko:"중학교",vi:"trường trung học",zh:"中学",en:"middle school",ja:"中学校",id:"SMP",ru:"средняя школа",th:"โรงเรียนมัธยมต้น",mn:"дунд сургууль",uz:"o'rta maktab",es:"middle school"} },
-          { char:"대학생",word:"대학생",meaning:{ko:"대학생",vi:"sinh viên đại học",zh:"大学生",en:"college student",ja:"大学生",id:"mahasiswa",ru:"студент вуза",th:"นักศึกษา",mn:"их сургуулийн оюутан",uz:"talaba",es:"college student"} },
-          { char:"수영",  word:"수영",  meaning:{ko:"수영",  vi:"bơi lội",zh:"游泳",en:"swimming",ja:"水泳",id:"berenang",ru:"плавание",th:"ว่ายน้ำ",mn:"усанд сэлэх",uz:"suzish",es:"swimming"} },
-          { char:"농구",  word:"농구",  meaning:{ko:"농구",  vi:"bóng rổ",zh:"篮球",en:"basketball",ja:"バスケットボール",id:"bola basket",ru:"баскетбол",th:"บาสเกตบอล",mn:"сагсан бөмбөг",uz:"basketbol",es:"basketball"} },
-          { char:"방향",  word:"방향",  meaning:{ko:"방향",  vi:"hướng",zh:"方向",en:"direction",ja:"方向",id:"arah",ru:"направление",th:"ทิศทาง",mn:"чиглэл",uz:"yo'nalish",es:"direction"} },
-          { char:"여행",  word:"여행",  meaning:{ko:"여행",  vi:"du lịch",zh:"旅行",en:"travel",ja:"旅行",id:"perjalanan",ru:"путешествие",th:"การเดินทาง",mn:"аялал",uz:"sayohat",es:"travel"} },
-          { char:"조상",   word:"조상",   meaning:{ko:"조상",   vi:"tổ tiên",zh:"祖先",en:"ancestor",ja:"祖先",id:"leluhur",ru:"предок",th:"บรรพบุรุษ",mn:"өвөг дээдэс",uz:"ajdod",es:"ancestor"} },
-          { char:"장소",   word:"장소",   meaning:{ko:"장소",   vi:"địa điểm",zh:"场所",en:"place",ja:"場所",id:"tempat",ru:"место",th:"สถานที่",mn:"газар",uz:"joy",es:"place"} },
-          { char:"동네",   word:"동네",   meaning:{ko:"동네",   vi:"khu phố",zh:"街坊",en:"neighborhood",ja:"近所",id:"lingkungan",ru:"район",th:"ละแวกบ้าน",mn:"хороо",uz:"mahalla",es:"neighborhood"} },
-          { char:"방학",   word:"방학",   meaning:{ko:"방학",   vi:"kỳ nghỉ",zh:"放假",en:"school vacation",ja:"夏休み",id:"liburan sekolah",ru:"каникулы",th:"ปิดเทอม",mn:"амралт",uz:"ta'til",es:"school vacation"} },
-          { char:"향수",   word:"향수",   meaning:{ko:"향수",   vi:"nước hoa",zh:"香水",en:"perfume",ja:"香水",id:"parfum",ru:"духи",th:"น้ำหอม",mn:"үнэртэй ус",uz:"atir",es:"perfume"} },
-          { char:"가방",   word:"가방",   meaning:{ko:"가방",   vi:"túi xách",zh:"包",en:"bag",ja:"かばん",id:"tas",ru:"сумка",th:"กระเป๋า",mn:"цүнх",uz:"sumka",es:"bag"} },
-          { char:"지붕",   word:"지붕",   meaning:{ko:"지붕",   vi:"mái nhà",zh:"屋顶",en:"roof",ja:"屋根",id:"atap",ru:"крыша",th:"หลังคา",mn:"дээвэр",uz:"tom",es:"roof"} },
-          { char:"수영복", word:"수영복", meaning:{ko:"수영복", vi:"đồ bơi",zh:"泳衣",en:"swimsuit",ja:"水着",id:"pakaian renang",ru:"купальник",th:"ชุดว่ายน้ำ",mn:"усны хувцас",uz:"suzish kiyimi",es:"swimsuit"} },
-          { char:"영화",   word:"영화",   meaning:{ko:"영화",   vi:"bộ phim",zh:"电影",en:"movie",ja:"映画",id:"film",ru:"фильм",th:"ภาพยนตร์",mn:"кино",uz:"film",es:"movie"} },
-          { char:"경제",   word:"경제",   meaning:{ko:"경제",   vi:"kinh tế",zh:"经济",en:"economy",ja:"経済",id:"ekonomi",ru:"экономика",th:"เศรษฐกิจ",mn:"эдийн засаг",uz:"iqtisodiyot",es:"economy"} },
-          { char:"시장",   word:"시장",   meaning:{ko:"시장",   vi:"chợ",zh:"市场",en:"market",ja:"市場",id:"pasar",ru:"рынок",th:"ตลาด",mn:"зах",uz:"bozor",es:"market"} },
-          { char:"광고",   word:"광고",   meaning:{ko:"광고",   vi:"quảng cáo",zh:"广告",en:"advertisement",ja:"広告",id:"iklan",ru:"реклама",th:"โฆษณา",mn:"зар сурталчилгаа",uz:"reklama",es:"advertisement"} },
-          { char:"공",     word:"공",     meaning:{ko:"공",     vi:"quả bóng",zh:"球",en:"ball",ja:"ボール",id:"bola",ru:"мяч",th:"ลูกบอล",mn:"бөмбөг",uz:"to'p",es:"ball"} },
-          { char:"당구",   word:"당구",   meaning:{ko:"당구",   vi:"bi-a",zh:"台球",en:"billiards",ja:"ビリヤード",id:"biliar",ru:"бильярд",th:"บิลเลียด",mn:"биллиард",uz:"bilyard",es:"billiards"} },
-          { char:"동쪽",   word:"동쪽",   meaning:{ko:"동쪽",   vi:"phía đông",zh:"东方",en:"east",ja:"東",id:"timur",ru:"восток",th:"ทิศตะวันออก",mn:"зүүн",uz:"sharq",es:"east"} },
-          { char:"장모",  word:"장모",  meaning:{ko:"장모",vi:"mẹ vợ",zh:"丈母娘",en:"mother-in-law",ja:"義母",id:"mertua perempuan",ru:"тёща",th:"แม่ยาย",mn:"хадам эх",uz:"qaynona",es:"mother-in-law"} },
-          { char:"남녀평등",word:"남녀평등",meaning:{ko:"남녀평등",vi:"bình đẳng nam nữ",zh:"男女平等",en:"gender equality",ja:"男女平等",id:"kesetaraan gender",ru:"равноправие",th:"ความเท่าเทียมทางเพศ",mn:"эрэгтэй эмэгтэй тэгш эрх",uz:"gender tengligi",es:"gender equality"} },
-          { char:"시청",  word:"시청",  meaning:{ko:"시청",vi:"tòa thị chính",zh:"市政府",en:"city hall",ja:"市役所",id:"balai kota",ru:"мэрия",th:"ศาลาว่าการ",mn:"хотын захиргаа",uz:"shahar hokimligi",es:"city hall"} },
-          { char:"고등학교",word:"고등학교",meaning:{ko:"고등학교",vi:"trường THPT",zh:"高中",en:"high school",ja:"高等学校",id:"SMA",ru:"старшая школа",th:"โรงเรียนมัธยมปลาย",mn:"ахлах сургууль",uz:"yuqori maktab",es:"high school"} },
-          { char:"목욕탕",word:"목욕탕",meaning:{ko:"목욕탕",vi:"phòng tắm công cộng",zh:"澡堂",en:"public bath",ja:"銭湯",id:"pemandian umum",ru:"общественная баня",th:"โรงอาบน้ำ",mn:"усан ванн",uz:"hammom",es:"public bath"} },
-          { char:"동아리",word:"동아리",meaning:{ko:"동아리",vi:"câu lạc bộ",zh:"社团",en:"club/circle",ja:"サークル",id:"klub",ru:"кружок",th:"ชมรม",mn:"дугуйлан",uz:"to'garak",es:"club/circle"} },
-          { char:"소풍",  word:"소풍",  meaning:{ko:"소풍",vi:"dã ngoại",zh:"郊游",en:"picnic/excursion",ja:"遠足",id:"piknik",ru:"пикник",th:"遠足",mn:"гоё аялал",uz:"piknik",es:"picnic/excursion"} },
-          { char:"수학여행",word:"수학여행",meaning:{ko:"수학여행",vi:"chuyến tham quan học tập",zh:"修学旅行",en:"school trip",ja:"修学旅行",id:"perjalanan sekolah",ru:"учебная экскурсия",th:"ทัศนศึกษา",mn:"сургуулийн аялал",uz:"maktab sayohati",es:"school trip"} },
-          { char:"성적",  word:"성적",  meaning:{ko:"성적",vi:"thành tích",zh:"成绩",en:"grade/mark",ja:"成績",id:"nilai",ru:"успеваемость",th:"ผลการเรียน",mn:"дүн",uz:"baho",es:"grade/mark"} },
-          { char:"학생증",word:"학생증",meaning:{ko:"학생증",vi:"thẻ học sinh",zh:"学生证",en:"student ID",ja:"学生証",id:"kartu pelajar",ru:"студенческий билет",th:"บัตรนักเรียน",mn:"сурагчийн үнэмлэх",uz:"talaba guvohnomasi",es:"student ID"} },
-          { char:"주방",  word:"주방",  meaning:{ko:"주방",vi:"khu bếp",zh:"厨房",en:"kitchen",ja:"キッチン",id:"dapur",ru:"кухня",th:"ห้องครัว",mn:"тогооны өрөө",uz:"oshxona",es:"kitchen"} },
-          { char:"책상",  word:"책상",  meaning:{ko:"책상",vi:"bàn học",zh:"书桌",en:"desk",ja:"机",id:"meja belajar",ru:"письменный стол",th:"โต๊ะเรียน",mn:"бичгийн ширээ",uz:"o'quv stoli",es:"desk"} },
-          { char:"마당",  word:"마당",  meaning:{ko:"마당",vi:"sân",zh:"院子",en:"yard",ja:"庭",id:"halaman",ru:"двор",th:"สนาม",mn:"хашаа",uz:"hovli",es:"yard"} },
-          { char:"청소",  word:"청소",  meaning:{ko:"청소",vi:"dọn dẹp",zh:"打扫",en:"cleaning",ja:"掃除",id:"kebersihan",ru:"уборка",th:"การทำความสะอาด",mn:"цэвэрлэгээ",uz:"tozalash",es:"cleaning"} },
-          { char:"병",    word:"병",    meaning:{ko:"병",vi:"chai/bệnh",zh:"瓶子/病",en:"bottle/illness",ja:"瓶/病気",id:"botol/sakit",ru:"бутылка/болезнь",th:"ขวด/โรค",mn:"лонх/өвчин",uz:"shisha/kasallik",es:"bottle/illness"} },
-          { char:"생활",  word:"생활",  meaning:{ko:"생활",vi:"cuộc sống",zh:"生活",en:"life",ja:"生活",id:"kehidupan",ru:"жизнь",th:"ชีวิต",mn:"амьдрал",uz:"hayot",es:"life"} },
-          { char:"고장",  word:"고장",  meaning:{ko:"고장",vi:"hỏng",zh:"故障",en:"breakdown",ja:"故障",id:"kerusakan",ru:"поломка",th:"เสีย",mn:"эвдрэл",uz:"nosozlik",es:"breakdown"} },
-          { char:"쓰레기통",word:"쓰레기통",meaning:{ko:"쓰레기통",vi:"thùng rác",zh:"垃圾桶",en:"garbage can",ja:"ゴミ箱",id:"tempat sampah",ru:"мусорное ведро",th:"ถังขยะ",mn:"хогийн сав",uz:"axlat quti",es:"garbage can"} },
-          { char:"포장",  word:"포장",  meaning:{ko:"포장",vi:"đóng gói",zh:"包装",en:"packing",ja:"包装",id:"pengemasan",ru:"упаковка",th:"บรรจุภัณฑ์",mn:"баглаа боодол",uz:"qadoqlash",es:"packing"} },
-          { char:"정장",  word:"정장",  meaning:{ko:"정장",vi:"áo vest",zh:"正装",en:"suit",ja:"スーツ",id:"pakaian formal",ru:"деловой костюм",th:"ชุดสูท",mn:"тогтмол хувцас",uz:"rasmiy kiyim",es:"suit"} },
-          { char:"양복",  word:"양복",  meaning:{ko:"양복",vi:"âu phục nam",zh:"西装",en:"western suit",ja:"洋服",id:"pakaian barat",ru:"мужской костюм",th:"สูทผู้ชาย",mn:"хүрэм",uz:"erkaklar kostyumi",es:"western suit"} },
-          { char:"양장",  word:"양장",  meaning:{ko:"양장",vi:"âu phục nữ",zh:"洋装",en:"western dress",ja:"洋装",id:"gaun barat",ru:"западное платье",th:"ชุดเดรส",mn:"барууны хувцас",uz:"g'arb libosi",es:"western dress"} },
-          { char:"장화",  word:"장화",  meaning:{ko:"장화",vi:"giày cao cổ",zh:"长靴",en:"boots",ja:"ブーツ",id:"sepatu bot",ru:"сапоги",th:"รองเท้าบูท",mn:"гутал",uz:"etik",es:"boots"} },
-          { char:"청바지",word:"청바지",meaning:{ko:"청바지",vi:"quần jeans",zh:"牛仔裤",en:"jeans",ja:"ジーンズ",id:"celana jeans",ru:"джинсы",th:"กางเกงยีนส์",mn:"жинс өмд",uz:"jinsi shim",es:"jeans"} },
-          { char:"장(시장)",word:"장",  meaning:{ko:"장(시장)",vi:"chợ",zh:"市场",en:"market",ja:"マーケット",id:"pasar",ru:"рынок",th:"ตลาด",mn:"зах",uz:"bozor",es:"market"} },
-          { char:"등",    word:"등",    meaning:{ko:"등(조명)",vi:"đèn",zh:"灯",en:"lamp",ja:"ランプ",id:"lampu",ru:"лампа",th:"โคมไฟ",mn:"чийдэн",uz:"chiroq",es:"lamp"} },
-          { char:"망고",  word:"망고",  meaning:{ko:"망고",vi:"quả xoài",zh:"芒果",en:"mango",ja:"マンゴー",id:"mangga",ru:"манго",th:"มะม่วง",mn:"манго",uz:"mango",es:"mango"} },
-          { char:"복숭아",word:"복숭아",meaning:{ko:"복숭아",vi:"quả đào",zh:"桃子",en:"peach",ja:"桃",id:"persik",ru:"персик",th:"ลูกพีช",mn:"тахиа жимс",uz:"shaftoli",es:"peach"} },
-          { char:"빵",    word:"빵",    meaning:{ko:"빵",vi:"bánh mì",zh:"面包",en:"bread",ja:"パン",id:"roti",ru:"хлеб",th:"ขนมปัง",mn:"талх",uz:"non",es:"bread"} },
-          { char:"사탕",  word:"사탕",  meaning:{ko:"사탕",vi:"kẹo",zh:"糖果",en:"candy",ja:"飴",id:"permen",ru:"конфета",th:"ลูกอม",mn:"чихэр",uz:"konfet",es:"candy"} },
-          { char:"중식",  word:"중식",  meaning:{ko:"중식",vi:"thức ăn Trung Quốc",zh:"中餐",en:"Chinese food",ja:"中華料理",id:"masakan Cina",ru:"китайская кухня",th:"อาหารจีน",mn:"Хятад хоол",uz:"Xitoy taomi",es:"Chinese food"} },
-          { char:"양식",  word:"양식",  meaning:{ko:"양식",vi:"thức ăn phương Tây",zh:"西餐",en:"western food",ja:"洋食",id:"masakan barat",ru:"европейская кухня",th:"อาหารตะวันตก",mn:"барууны хоол",uz:"G'arb taomi",es:"western food"} },
-          { char:"양파",  word:"양파",  meaning:{ko:"양파",vi:"hành tây",zh:"洋葱",en:"onion",ja:"玉ねぎ",id:"bawang bombai",ru:"лук",th:"หัวหอม",mn:"сонгино",uz:"piyoz",es:"onion"} },
-          { char:"홍차",  word:"홍차",  meaning:{ko:"홍차",vi:"hồng trà",zh:"红茶",en:"black tea",ja:"紅茶",id:"teh hitam",ru:"чёрный чай",th:"ชาดำ",mn:"улаан цай",uz:"qora choy",es:"black tea"} },
-          { char:"냉장고",word:"냉장고",meaning:{ko:"냉장고",vi:"tủ lạnh",zh:"冰箱",en:"refrigerator",ja:"冷蔵庫",id:"kulkas",ru:"холодильник",th:"ตู้เย็น",mn:"хөргөгч",uz:"muzlatgich",es:"refrigerator"} },
-          { char:"청소기",word:"청소기",meaning:{ko:"청소기",vi:"máy hút bụi",zh:"吸尘器",en:"vacuum cleaner",ja:"掃除機",id:"penyedot debu",ru:"пылесос",th:"เครื่องดูดฝุ่น",mn:"тоосгогч",uz:"chang yutgich",es:"vacuum cleaner"} },
-          { char:"교통",  word:"교통",  meaning:{ko:"교통",vi:"giao thông",zh:"交通",en:"traffic",ja:"交通",id:"lalu lintas",ru:"транспорт",th:"การจราจร",mn:"тээвэр",uz:"transport",es:"traffic"} },
-          { char:"교통사고",word:"교통사고",meaning:{ko:"교통사고",vi:"tai nạn giao thông",zh:"交通事故",en:"car accident",ja:"交通事故",id:"kecelakaan",ru:"ДТП",th:"อุบัติเหตุทางรถ",mn:"замын осол",uz:"yo'l halokati",es:"car accident"} },
-          { char:"승객",  word:"승객",  meaning:{ko:"승객",vi:"hành khách",zh:"乘客",en:"passenger",ja:"乗客",id:"penumpang",ru:"пассажир",th:"ผู้โดยสาร",mn:"зорчигч",uz:"yo'lovchi",es:"passenger"} },
-          { char:"정류장",word:"정류장",meaning:{ko:"정류장",vi:"trạm xe buýt",zh:"公交站",en:"bus stop",ja:"停留所",id:"halte bus",ru:"остановка",th:"ป้ายรถเมล์",mn:"буудал",uz:"avtobus bekati",es:"bus stop"} },
-          { char:"자동차",word:"자동차",meaning:{ko:"자동차",vi:"xe hơi",zh:"汽车",en:"automobile",ja:"自動車",id:"mobil",ru:"автомобиль",th:"รถยนต์",mn:"машин",uz:"avtomobil",es:"automobile"} },
-          { char:"자가용",word:"자가용",meaning:{ko:"자가용",vi:"xe cá nhân",zh:"私家车",en:"personal car",ja:"自家用車",id:"mobil pribadi",ru:"личный автомобиль",th:"รถส่วนตัว",mn:"хувийн машин",uz:"shaxsiy avtomobil",es:"personal car"} },
-          { char:"주차장",word:"주차장",meaning:{ko:"주차장",vi:"bãi đỗ xe",zh:"停车场",en:"parking lot",ja:"駐車場",id:"tempat parkir",ru:"автостоянка",th:"ที่จอดรถ",mn:"машины зогсоол",uz:"avtoturargoh",es:"parking lot"} },
-          { char:"비행기",word:"비행기",meaning:{ko:"비행기",vi:"máy bay",zh:"飞机",en:"airplane",ja:"飛行機",id:"pesawat",ru:"самолёт",th:"เครื่องบิน",mn:"нисэх онгоц",uz:"samolyot",es:"airplane"} },
-          { char:"항공사",word:"항공사",meaning:{ko:"항공사",vi:"hãng hàng không",zh:"航空公司",en:"airline",ja:"航空会社",id:"maskapai",ru:"авиакомпания",th:"สายการบิน",mn:"агаарын тээвэр",uz:"aviakompaniya",es:"airline"} },
-          { char:"왕복",  word:"왕복",  meaning:{ko:"왕복",vi:"hai chiều",zh:"往返",en:"round trip",ja:"往復",id:"pulang pergi",ru:"в оба конца",th:"ไปกลับ",mn:"буцах тийз",uz:"ikki tomonlama",es:"round trip"} },
-          { char:"항구",  word:"항구",  meaning:{ko:"항구",vi:"cảng",zh:"港口",en:"harbor",ja:"港",id:"pelabuhan",ru:"порт",th:"ท่าเรือ",mn:"боомт",uz:"port",es:"harbor"} },
-          { char:"사장",  word:"사장",  meaning:{ko:"사장",vi:"giám đốc",zh:"社长",en:"boss/president",ja:"社長",id:"direktur",ru:"директор",th:"ผู้จัดการ",mn:"захирал",uz:"direktor",es:"boss/president"} },
-          { char:"동료",  word:"동료",  meaning:{ko:"동료",vi:"đồng nghiệp",zh:"同事",en:"colleague",ja:"同僚",id:"rekan kerja",ru:"коллега",th:"เพื่อนร่วมงาน",mn:"хамт ажиллагч",uz:"hamkasb",es:"colleague"} },
-          { char:"공장",  word:"공장",  meaning:{ko:"공장",vi:"nhà máy",zh:"工厂",en:"factory",ja:"工場",id:"pabrik",ru:"завод",th:"โรงงาน",mn:"үйлдвэр",uz:"zavod",es:"factory"} },
-          { char:"마케팅",word:"마케팅",meaning:{ko:"마케팅",vi:"tiếp thị",zh:"市场营销",en:"marketing",ja:"マーケティング",id:"pemasaran",ru:"маркетинг",th:"การตลาด",mn:"маркетинг",uz:"marketing",es:"marketing"} },
-          { char:"도장",  word:"도장",  meaning:{ko:"도장",vi:"con dấu",zh:"印章",en:"stamp/seal",ja:"はんこ",id:"stempel",ru:"печать",th:"ตราประทับ",mn:"тамга",uz:"muhr",es:"stamp/seal"} },
-          { char:"두통",  word:"두통",  meaning:{ko:"두통",vi:"đau đầu",zh:"头痛",en:"headache",ja:"頭痛",id:"sakit kepala",ru:"головная боль",th:"ปวดหัว",mn:"толгой өвдөх",uz:"bosh og'rig'i",es:"headache"} },
-          { char:"치통",  word:"치통",  meaning:{ko:"치통",vi:"đau răng",zh:"牙痛",en:"toothache",ja:"歯痛",id:"sakit gigi",ru:"зубная боль",th:"ปวดฟัน",mn:"шүд өвдөх",uz:"tish og'rig'i",es:"toothache"} },
-          { char:"통증",  word:"통증",  meaning:{ko:"통증",vi:"chứng đau nhức",zh:"疼痛",en:"pain",ja:"痛み",id:"nyeri",ru:"боль",th:"ความเจ็บปวด",mn:"өвдөлт",uz:"og'riq",es:"pain"} },
-          { char:"화상",  word:"화상",  meaning:{ko:"화상",vi:"vết bỏng",zh:"烧伤",en:"burn/scald",ja:"やけど",id:"luka bakar",ru:"ожог",th:"แผลไฟไหม้",mn:"түлэгдэлт",uz:"kuydirish",es:"burn/scald"} },
-          { char:"당뇨병",word:"당뇨병",meaning:{ko:"당뇨병",vi:"bệnh tiểu đường",zh:"糖尿病",en:"diabetes",ja:"糖尿病",id:"diabetes",ru:"диабет",th:"โรคเบาหวาน",mn:"чихрийн шижин",uz:"diabet",es:"diabetes"} },
-          { char:"충치",  word:"충치",  meaning:{ko:"충치",vi:"răng sâu",zh:"蛀牙",en:"cavity",ja:"虫歯",id:"gigi berlubang",ru:"кариес",th:"ฟันผุ",mn:"хорхойтсон шүд",uz:"karies",es:"cavity"} },
-          { char:"항생제",word:"항생제",meaning:{ko:"항생제",vi:"thuốc kháng sinh",zh:"抗生素",en:"antibiotic",ja:"抗生剤",id:"antibiotik",ru:"антибиотик",th:"ยาปฏิชีวนะ",mn:"антибиотик",uz:"antibiotik",es:"antibiotic"} },
-          { char:"위장약",word:"위장약",meaning:{ko:"위장약",vi:"thuốc đau dạ dày",zh:"胃药",en:"digestive medicine",ja:"胃腸薬",id:"obat lambung",ru:"средство от диспепсии",th:"ยาแก้ท้อง",mn:"ходоодны эм",uz:"me'da dori",es:"digestive medicine"} },
-          { char:"동(東)",word:"동",    meaning:{ko:"동(東)",vi:"phía đông",zh:"东",en:"east direction",ja:"東",id:"timur",ru:"восток",th:"ตะวันออก",mn:"зүүн",uz:"sharq",es:"east direction"} },
-          { char:"승마",  word:"승마",  meaning:{ko:"승마",vi:"cưỡi ngựa",zh:"骑马",en:"horseback riding",ja:"乗馬",id:"berkuda",ru:"верховая езда",th:"ขี่ม้า",mn:"морь унах",uz:"otda yurish",es:"horseback riding"} },
-          { char:"방송",  word:"방송",  meaning:{ko:"방송",vi:"phát sóng",zh:"广播",en:"broadcast",ja:"放送",id:"siaran",ru:"трансляция",th:"การออกอากาศ",mn:"нэвтрүүлэг",uz:"translyatsiya",es:"broadcast"} },
-          { char:"무용",  word:"무용",  meaning:{ko:"무용",vi:"vũ điệu",zh:"舞蹈",en:"dancing",ja:"舞踊",id:"tarian",ru:"танец",th:"การเต้นรำ",mn:"бүжиг",uz:"raqs",es:"dancing"} },
-          { char:"대형마트",word:"대형마트",meaning:{ko:"대형마트",vi:"siêu thị lớn",zh:"大型超市",en:"department store",ja:"デパート",id:"supermarket besar",ru:"гипермаркет",th:"ห้างสรรพสินค้า",mn:"том дэлгүүр",uz:"katta supermarket",es:"department store"} },
-          { char:"쇼핑",  word:"쇼핑",  meaning:{ko:"쇼핑",vi:"mua sắm",zh:"购物",en:"shopping",ja:"ショッピング",id:"belanja",ru:"шопинг",th:"การช็อปปิ้ง",mn:"дэлгүүр хэсэх",uz:"xarid qilish",es:"shopping"} },
-          { char:"공짜",  word:"공짜",  meaning:{ko:"공짜",vi:"miễn phí",zh:"免费",en:"free",ja:"タダ",id:"gratis",ru:"бесплатно",th:"ฟรี",mn:"үнэгүй",uz:"bepul",es:"free"} },
-          { char:"영수증",word:"영수증",meaning:{ko:"영수증",vi:"hóa đơn",zh:"收据",en:"receipt",ja:"レシート",id:"kwitansi",ru:"квитанция",th:"ใบเสร็จ",mn:"баримт",uz:"chek",es:"receipt"} },
-          { char:"통장",  word:"통장",  meaning:{ko:"통장",vi:"sổ tiết kiệm",zh:"存折",en:"bankbook",ja:"通帳",id:"buku tabungan",ru:"сберкнижка",th:"สมุดบัญชี",mn:"дансны дэвтэр",uz:"jamg'arma daftari",es:"bankbook"} },
-          { char:"직장",  word:"직장",  meaning:{ko:"직장",vi:"nơi làm việc",zh:"职场",en:"workplace",ja:"職場",id:"tempat kerja",ru:"место работы",th:"ที่ทำงาน",mn:"ажлын газар",uz:"ish joyi",es:"workplace"} },
-          { char:"호랑이",word:"호랑이",meaning:{ko:"호랑이",vi:"con hổ",zh:"老虎",en:"tiger",ja:"トラ",id:"harimau",ru:"тигр",th:"เสือ",mn:"бар",uz:"yo'lbars",es:"tiger"} },
-          { char:"용",    word:"용",    meaning:{ko:"용",vi:"con rồng",zh:"龙",en:"dragon",ja:"ドラゴン",id:"naga",ru:"дракон",th:"มังกร",mn:"луу",uz:"ajdar",es:"dragon"} },
-          { char:"양",    word:"양",    meaning:{ko:"양",vi:"con cừu",zh:"羊",en:"sheep/lamb",ja:"羊",id:"domba",ru:"овца",th:"แกะ",mn:"хонь",uz:"qo'y",es:"sheep/lamb"} },
-          { char:"강아지",word:"강아지",meaning:{ko:"강아지",vi:"chó con",zh:"小狗",en:"puppy",ja:"子犬",id:"anak anjing",ru:"щенок",th:"ลูกหมา",mn:"гөлөг",uz:"kuchukcha",es:"puppy"} },
-          { char:"송아지",word:"송아지",meaning:{ko:"송아지",vi:"con bê",zh:"小牛",en:"calf",ja:"子牛",id:"anak sapi",ru:"телёнок",th:"ลูกวัว",mn:"тугал",uz:"buzoq",es:"calf"} },
-          { char:"병아리",word:"병아리",meaning:{ko:"병아리",vi:"gà con",zh:"小鸡",en:"chick",ja:"ひよこ",id:"anak ayam",ru:"цыплёнок",th:"ลูกไก่",mn:"тахианы дэгдэгдэй",uz:"jo'ja",es:"chick"} },
-          { char:"상어",  word:"상어",  meaning:{ko:"상어",vi:"cá mập",zh:"鲨鱼",en:"shark",ja:"サメ",id:"hiu",ru:"акула",th:"ปลาฉลาม",mn:"акул",uz:"акула",es:"shark"} },
-          { char:"장마",  word:"장마",  meaning:{ko:"장마",vi:"mùa mưa dầm",zh:"梅雨",en:"rainy season",ja:"梅雨",id:"musim hujan",ru:"сезон дождей",th:"ฤดูฝน",mn:"бороо орох улирал",uz:"yomg'ir mavsumi",es:"rainy season"} },
-          { char:"홍수",  word:"홍수",  meaning:{ko:"홍수",vi:"lũ lụt",zh:"洪水",en:"flood",ja:"洪水",id:"banjir",ru:"наводнение",th:"น้ำท่วม",mn:"үер",uz:"suv toshqini",es:"flood"} },
-          { char:"영상",  word:"영상",  meaning:{ko:"영상(기온)",vi:"dương (trên 0°)",zh:"零上",en:"above zero",ja:"プラス気温",id:"di atas nol",ru:"выше нуля",th:"อุณหภูมิเหนือศูนย์",mn:"тэгээс дээш",uz:"noldan yuqori",es:"above zero"} },
-          { char:"영하",  word:"영하",  meaning:{ko:"영하",vi:"âm (dưới 0°)",zh:"零下",en:"below zero",ja:"マイナス気温",id:"di bawah nol",ru:"ниже нуля",th:"อุณหภูมิต่ำกว่าศูนย์",mn:"тэгээс доош",uz:"noldan past",es:"below zero"} },
-          { char:"태평양",word:"태평양",meaning:{ko:"태평양",vi:"Thái Bình Dương",zh:"太平洋",en:"Pacific Ocean",ja:"太平洋",id:"Samudra Pasifik",ru:"Тихий океан",th:"มหาสมุทรแปซิฟิก",mn:"Номхон далай",uz:"Tinch okeani",es:"Pacific Ocean"} },
-          { char:"대서양",word:"대서양",meaning:{ko:"대서양",vi:"Đại Tây Dương",zh:"大西洋",en:"Atlantic Ocean",ja:"大西洋",id:"Samudra Atlantik",ru:"Атлантический океан",th:"มหาสมุทรแอตแลนติก",mn:"Атлантын далай",uz:"Atlantik okeani",es:"Atlantic Ocean"} },
-          { char:"인도양",word:"인도양",meaning:{ko:"인도양",vi:"Ấn Độ Dương",zh:"印度洋",en:"Indian Ocean",ja:"インド洋",id:"Samudra Hindia",ru:"Индийский океан",th:"มหาสมุทรอินเดีย",mn:"Энэтхэгийн далай",uz:"Hind okeani",es:"Indian Ocean"} },
-          { char:"지중해",word:"지중해",meaning:{ko:"지중해",vi:"Địa Trung Hải",zh:"地中海",en:"Mediterranean Sea",ja:"地中海",id:"Laut Mediterania",ru:"Средиземное море",th:"ทะเลเมดิเตอร์เรเนียน",mn:"Газрын дундад тэнгис",uz:"O'rta dengiz",es:"Mediterranean Sea"} },
-          { char:"경도",  word:"경도",  meaning:{ko:"경도",vi:"kinh độ",zh:"经度",en:"longitude",ja:"経度",id:"bujur",ru:"долгота",th:"ลองจิจูด",mn:"уртраг",uz:"longitude",es:"longitude"} },
-          { char:"해외여행",word:"해외여행",meaning:{ko:"해외여행",vi:"du lịch nước ngoài",zh:"海外旅行",en:"trip abroad",ja:"海外旅行",id:"perjalanan luar negeri",ru:"путешествие за рубеж",th:"ท่องเที่ยวต่างประเทศ",mn:"гадаадад аялах",uz:"xorijga sayohat",es:"trip abroad"} },
-          { char:"중국",  word:"중국",  meaning:{ko:"중국",vi:"Trung Quốc",zh:"中国",en:"China",ja:"中国",id:"Tiongkok",ru:"Китай",th:"จีน",mn:"Хятад",uz:"Xitoy",es:"China"} },
-          { char:"영국",  word:"영국",  meaning:{ko:"영국",vi:"Anh Quốc",zh:"英国",en:"England",ja:"イギリス",id:"Inggris",ru:"Англия",th:"อังกฤษ",mn:"Их Британи",uz:"Angliya",es:"England"} },
-          { char:"프랑스",word:"프랑스",meaning:{ko:"프랑스",vi:"Pháp",zh:"法国",en:"France",ja:"フランス",id:"Prancis",ru:"Франция",th:"ฝรั่งเศส",mn:"Франц",uz:"Frantsiya",es:"France"} },
-          { char:"싱가포르",word:"싱가포르",meaning:{ko:"싱가포르",vi:"Singapore",zh:"新加坡",en:"Singapore",ja:"シンガポール",id:"Singapura",ru:"Сингапур",th:"สิงคโปร์",mn:"Сингапур",uz:"Singapur",es:"Singapore"} },
-          { char:"방콕",  word:"방콕",  meaning:{ko:"방콕",vi:"Bangkok",zh:"曼谷",en:"Bangkok",ja:"バンコク",id:"Bangkok",ru:"Бангкок",th:"กรุงเทพฯ",mn:"Бангкок",uz:"Bangkok",es:"Bangkok"} },
-          { char:"북경",  word:"북경",  meaning:{ko:"북경",vi:"Bắc Kinh",zh:"北京",en:"Beijing",ja:"北京",id:"Beijing",ru:"Пекин",th:"ปักกิ่ง",mn:"Бээжин",uz:"Pekin",es:"Beijing"} },
-          { char:"상해",  word:"상해",  meaning:{ko:"상해",vi:"Thượng Hải",zh:"上海",en:"Shanghai",ja:"シャンハイ",id:"Shanghai",ru:"Шанхай",th:"เซี่ยงไฮ้",mn:"Шанхай",uz:"Shanxay",es:"Shanghai"} },
-          { char:"홍콩",  word:"홍콩",  meaning:{ko:"홍콩",vi:"Hồng Kông",zh:"香港",en:"Hongkong",ja:"ホンコン",id:"Hong Kong",ru:"Гонконг",th:"ฮ่องกง",mn:"Хонконг",uz:"Gonkong",es:"Hongkong"} },
-          { char:"다낭",  word:"다낭",  meaning:{ko:"다낭",vi:"Đà Nẵng",zh:"岘港",en:"Danang",ja:"ダナン",id:"Da Nang",ru:"Дананг",th:"ดานัง",mn:"Да Нанг",uz:"Da Nang",es:"Danang"} },
-          { char:"동경",  word:"동경",  meaning:{ko:"동경",vi:"Tokyo",zh:"东京",en:"Tokyo",ja:"東京",id:"Tokyo",ru:"Токио",th:"โตเกียว",mn:"Токио",uz:"Tokio",es:"Tokyo"} },
-          { char:"태양",  word:"태양",  meaning:{ko:"태양",vi:"mặt trời",zh:"太阳",en:"sun",ja:"太陽",id:"matahari",ru:"солнце",th:"ดวงอาทิตย์",mn:"нар",uz:"quyosh",es:"sun"} },
-          { char:"항성",  word:"항성",  meaning:{ko:"항성",vi:"định tinh",zh:"恒星",en:"fixed star",ja:"恒星",id:"bintang tetap",ru:"неподвижная звезда",th:"ดาวฤกษ์",mn:"тогтмол од",uz:"yulduz",es:"fixed star"} },
-          { char:"행성",  word:"행성",  meaning:{ko:"행성",vi:"hành tinh",zh:"行星",en:"planet",ja:"惑星",id:"planet",ru:"планета",th:"ดาวเคราะห์",mn:"гараг",uz:"sayyora",es:"planet"} },
-          { char:"위성",  word:"위성",  meaning:{ko:"위성",vi:"vệ tinh",zh:"卫星",en:"satellite",ja:"衛星",id:"satelit",ru:"спутник",th:"ดาวเทียม",mn:"хиймэл дагуул",uz:"sun'iy yo'ldosh",es:"satellite"} },
-          { char:"수증기",word:"수증기",meaning:{ko:"수증기",vi:"hơi nước",zh:"水蒸气",en:"vapor",ja:"水蒸気",id:"uap air",ru:"пар",th:"ไอน้ำ",mn:"усны уур",uz:"suv bug'i",es:"vapor"} },
-          { char:"중력",  word:"중력",  meaning:{ko:"중력",vi:"trọng lực",zh:"重力",en:"gravity",ja:"重力",id:"gravitasi",ru:"сила притяжения",th:"แรงโน้มถ่วง",mn:"таталцал",uz:"tortishish kuchi",es:"gravity"} },
-          { char:"무중력",word:"무중력",meaning:{ko:"무중력",vi:"không trọng lực",zh:"失重",en:"zero gravity",ja:"無重力",id:"tanpa gravitasi",ru:"невесомость",th:"ไร้แรงโน้มถ่วง",mn:"жингүй байдал",uz:"og'irsizlik",es:"zero gravity"} },
-          { char:"통계",  word:"통계",  meaning:{ko:"통계",vi:"thống kê",zh:"统计",en:"statistics",ja:"統計",id:"statistik",ru:"статистика",th:"สถิติ",mn:"статистик",uz:"statistika",es:"statistics"} },
-          { char:"주황색",word:"주황색",meaning:{ko:"주황색",vi:"màu cam",zh:"橙色",en:"orange",ja:"オレンジ色",id:"oranye",ru:"оранжевый",th:"สีส้ม",mn:"улбар шар",uz:"to'q sariq",es:"orange"} },
-          { char:"사랑",  word:"사랑",  meaning:{ko:"사랑",vi:"tình yêu",zh:"爱",en:"love",ja:"愛",id:"cinta",ru:"любовь",th:"ความรัก",mn:"хайр",uz:"sevgi",es:"love"} },
-          { char:"희망",  word:"희망",  meaning:{ko:"희망",vi:"hy vọng",zh:"希望",en:"hope",ja:"希望",id:"harapan",ru:"надежда",th:"ความหวัง",mn:"найдвар",uz:"umid",es:"hope"} },
-          { char:"평화",  word:"평화",  meaning:{ko:"평화",vi:"hòa bình",zh:"和平",en:"peace",ja:"平和",id:"perdamaian",ru:"мир",th:"สันติภาพ",mn:"энх тайван",uz:"tinchlik",es:"peace"} },
-          { char:"충성",  word:"충성",  meaning:{ko:"충성",vi:"lòng trung thành",zh:"忠诚",en:"loyalty",ja:"忠誠",id:"kesetiaan",ru:"преданность",th:"ความจงรักภักดี",mn:"үнэнч байдал",uz:"sadoqat",es:"loyalty"} },
-          { char:"생각",  word:"생각",  meaning:{ko:"생각",vi:"suy nghĩ",zh:"想法",en:"thought",ja:"考え",id:"pikiran",ru:"мысль",th:"ความคิด",mn:"бодол",uz:"fikr",es:"thought"} },
-          { char:"행복",  word:"행복",  meaning:{ko:"행복",vi:"hạnh phúc",zh:"幸福",en:"happiness",ja:"幸せ",id:"kebahagiaan",ru:"счастье",th:"ความสุข",mn:"аз жаргал",uz:"baxt",es:"happiness"} },
-          { char:"걱정",  word:"걱정",  meaning:{ko:"걱정",vi:"lo lắng",zh:"担心",en:"worry",ja:"心配",id:"khawatir",ru:"беспокойство",th:"ความกังวล",mn:"санаа зов",uz:"tashvish",es:"worry"} },
-          { char:"공경",  word:"공경",  meaning:{ko:"공경",vi:"kính trọng",zh:"恭敬",en:"respect",ja:"敬意",id:"menghormati",ru:"уважение",th:"ความเคารพ",mn:"хүндлэл",uz:"hurmat",es:"respect"} },
-          { char:"성격",  word:"성격",  meaning:{ko:"성격",vi:"tính cách",zh:"性格",en:"personality",ja:"性格",id:"kepribadian",ru:"характер",th:"บุคลิกภาพ",mn:"зан чанар",uz:"shaxsiyat",es:"personality"} },
-          { char:"성공",  word:"성공",  meaning:{ko:"성공",vi:"thành công",zh:"成功",en:"success",ja:"成功",id:"sukses",ru:"успех",th:"ความสำเร็จ",mn:"амжилт",uz:"muvaffaqiyat",es:"success"} },
-          { char:"망치",  word:"망치",  meaning:{ko:"망치",vi:"cái búa",zh:"锤子",en:"hammer",ja:"ハンマー",id:"palu",ru:"молоток",th:"ค้อน",mn:"алх",uz:"bolg'a",es:"hammer"} },
-          { char:"강의",  word:"강의",  meaning:{ko:"강의",vi:"bài giảng",zh:"讲义",en:"lecture",ja:"講義",id:"kuliah",ru:"лекция",th:"การบรรยาย",mn:"лекц",uz:"ma'ruza",es:"lecture"} },
-          { char:"광주",  word:"광주",  meaning:{ko:"광주",vi:"Gwangju",zh:"光州",en:"Gwangju",ja:"クァンジュ",id:"Gwangju",ru:"Кванджу",th:"กวางจู",mn:"Гуанжу",uz:"Kwangju",es:"Gwangju"} },
-          { char:"경치",  word:"경치",  meaning:{ko:"경치",vi:"cảnh trí",zh:"景色",en:"scenery",ja:"景色",id:"pemandangan",ru:"пейзаж",th:"ทิวทัศน์",mn:"байгаль",uz:"manzara",es:"scenery"} },
-          { char:"풍경",  word:"풍경",  meaning:{ko:"풍경",vi:"phong cảnh",zh:"风景",en:"landscape",ja:"風景",id:"pemandangan alam",ru:"пейзаж",th:"ทัศนียภาพ",mn:"байгаль дэлхий",uz:"tabiat manzarasi",es:"landscape"} },
-          { char:"마중",  word:"마중",  meaning:{ko:"마중",vi:"sự tiếp đón",zh:"迎接",en:"welcoming/meeting",ja:"出迎え",id:"penjemputan",ru:"встреча",th:"การต้อนรับ",mn:"угтах",uz:"kutib olish",es:"welcoming/meeting"} },
-          { char:"배웅",  word:"배웅",  meaning:{ko:"배웅",vi:"tiễn đưa",zh:"送行",en:"send-off",ja:"見送り",id:"pengantaran",ru:"проводы",th:"การส่ง",mn:"үдэх",uz:"kuzatish",es:"send-off"} },
-          { char:"모양",  word:"모양",  meaning:{ko:"모양",vi:"hình dáng",zh:"模样",en:"shape",ja:"形",id:"bentuk",ru:"форма",th:"รูปร่าง",mn:"хэлбэр",uz:"shakl",es:"shape"} },
-          { char:"다양하다",word:"다양하다",meaning:{ko:"다양하다",vi:"đa dạng",zh:"多样",en:"various",ja:"多様だ",id:"beragam",ru:"разнообразный",th:"หลากหลาย",mn:"олон янз",uz:"xilma-xil",es:"various"} },
-          { char:"증가하다",word:"증가하다",meaning:{ko:"증가하다",vi:"gia tăng",zh:"增加",en:"increase",ja:"増加する",id:"meningkat",ru:"повышаться",th:"เพิ่มขึ้น",mn:"нэмэгдэх",uz:"oshmoq",es:"increase"} },
-          { char:"유명하다",word:"유명하다",meaning:{ko:"유명하다",vi:"nổi tiếng",zh:"有名",en:"famous",ja:"有名だ",id:"terkenal",ru:"известный",th:"มีชื่อเสียง",mn:"алдартай",uz:"mashhur",es:"famous"} },
-          { char:"정확하다",word:"정확하다",meaning:{ko:"정확하다",vi:"chính xác",zh:"准确",en:"accurate",ja:"正確だ",id:"tepat",ru:"точный",th:"แม่นยำ",mn:"нарийн",uz:"aniq",es:"accurate"} },
-          { char:"소중하다",word:"소중하다",meaning:{ko:"소중하다",vi:"quý báu",zh:"珍贵",en:"precious",ja:"大切だ",id:"berharga",ru:"ценный",th:"มีค่า",mn:"үнэтэй",uz:"qimmatli",es:"precious"} },
-          { char:"조용하다",word:"조용하다",meaning:{ko:"조용하다",vi:"im lặng",zh:"安静",en:"quiet",ja:"静かだ",id:"tenang",ru:"тихий",th:"เงียบ",mn:"чимээгүй",uz:"jim",es:"quiet"} },
-          { char:"죄송하다",word:"죄송하다",meaning:{ko:"죄송하다",vi:"xin lỗi",zh:"抱歉",en:"sorry",ja:"申し訳ない",id:"minta maaf",ru:"извиниться",th:"ขอโทษ",mn:"уучлаарай",uz:"kechirasiz",es:"sorry"} },
-          { char:"뚱뚱하다",word:"뚱뚱하다",meaning:{ko:"뚱뚱하다",vi:"béo",zh:"胖",en:"fat",ja:"太っている",id:"gemuk",ru:"толстый",th:"อ้วน",mn:"тарган",uz:"semiz",es:"fat"} },
-          { char:"공부하다",word:"공부하다",meaning:{ko:"공부하다",vi:"học hành",zh:"学习",en:"study",ja:"勉強する",id:"belajar",ru:"учиться",th:"เรียนหนังสือ",mn:"суралцах",uz:"o'qimoq",es:"study"} },
-          { char:"용서하다",word:"용서하다",meaning:{ko:"용서하다",vi:"tha thứ",zh:"原谅",en:"forgive",ja:"許す",id:"memaafkan",ru:"прощать",th:"ให้อภัย",mn:"уучлах",uz:"kechirmoq",es:"forgive"} },
-          { char:"성공하다",word:"성공하다",meaning:{ko:"성공하다",vi:"thành công",zh:"成功",en:"succeed",ja:"成功する",id:"berhasil",ru:"добиться успеха",th:"ประสบความสำเร็จ",mn:"амжилт гаргах",uz:"muvaffaqiyat qozonmoq",es:"succeed"} },
-          { char:"청소하다",word:"청소하다",meaning:{ko:"청소하다",vi:"dọn dẹp",zh:"打扫",en:"clean",ja:"掃除する",id:"membersihkan",ru:"убираться",th:"ทำความสะอาด",mn:"цэвэрлэх",uz:"tozalamoq",es:"clean"} },
-          { char:"사용하다",word:"사용하다",meaning:{ko:"사용하다",vi:"sử dụng",zh:"使用",en:"use",ja:"使う",id:"menggunakan",ru:"использовать",th:"ใช้",mn:"ашиглах",uz:"ishlatmoq",es:"use"} },
-          { char:"걱정하다",word:"걱정하다",meaning:{ko:"걱정하다",vi:"lo lắng",zh:"担心",en:"worry",ja:"心配する",id:"khawatir",ru:"беспокоиться",th:"กังวล",mn:"санаа зовох",uz:"tashvishlаnmoq",es:"worry"} },
-          { char:"수영하다",word:"수영하다",meaning:{ko:"수영하다",vi:"bơi lội",zh:"游泳",en:"swim",ja:"泳ぐ",id:"berenang",ru:"плавать",th:"ว่ายน้ำ",mn:"сэлэх",uz:"suzmoq",es:"swim"} },
-          { char:"생각하다",word:"생각하다",meaning:{ko:"생각하다",vi:"suy nghĩ",zh:"思考",en:"think",ja:"考える",id:"berpikir",ru:"думать",th:"คิด",mn:"бодох",uz:"o'ylamoq",es:"think"} },
-          { char:"생기다",  word:"생기다",  meaning:{ko:"생기다",vi:"xuất hiện",zh:"产生",en:"appear",ja:"生まれる",id:"muncul",ru:"появляться",th:"เกิดขึ้น",mn:"үүсэх",uz:"paydo bo'lmoq",es:"appear"} },
-          { char:"정하다",  word:"정하다",  meaning:{ko:"정하다",vi:"quyết định",zh:"决定",en:"decide",ja:"決める",id:"menentukan",ru:"устанавливать",th:"ตัดสินใจ",mn:"тодорхойлох",uz:"belgilamoq",es:"decide"} },
-          { char:"자랑하다",word:"자랑하다",meaning:{ko:"자랑하다",vi:"khoe khoang",zh:"炫耀",en:"boast",ja:"自慢する",id:"membanggakan",ru:"хвастаться",th:"อวด",mn:"сайрхах",uz:"maqtanmoq",es:"boast"} },
-          { char:"정리하다",word:"정리하다",meaning:{ko:"정리하다",vi:"sắp xếp",zh:"整理",en:"arrange",ja:"整理する",id:"menata",ru:"приводить в порядок",th:"จัดระเบียบ",mn:"цэгцлэх",uz:"tartibga solmoq",es:"arrange"} },
-          { char:"여행하다",word:"여행하다",meaning:{ko:"여행하다",vi:"du lịch",zh:"旅行",en:"travel",ja:"旅行する",id:"berwisata",ru:"путешествовать",th:"ท่องเที่ยว",mn:"аялах",uz:"sayohat qilmoq",es:"travel"} },
-        ],
-        tip:{ko:"💡 [비음] 받침 ㅇ은 콧속에서 울리는 소리예요. 입을 살짝 열고 코로 소리를 내보세요. 예) 형[형] 항상[항상] 강[강]",vi:"💡 [Âm mũi] Phụ âm cuối ㅇ là âm vang trong mũi. Hé miệng nhẹ và phát âm qua mũi. Ví dụ: 형[형] 항상[항상]",en:"💡 [Nasal sound] ㅇ at the end resonates through the nose. Open your mouth slightly and let the sound come through your nose. e.g. 형[형] 항상[항상]",zh:"💡【鼻音】收音ㅇ是在鼻腔中共鸣的音。请稍微张开嘴，让声音从鼻子发出。例：형[형] 항상[항상] 강[강]",ja:"💡【鼻音】パッチムㅇは鼻の中で響く音です。口を少し開けて鼻から音を出してみてください。例）형[형] 항상[항상] 강[강]",id:"💡[Bunyi nasal] Konsonan akhir ㅇ adalah bunyi yang bergema di hidung. Buka mulut sedikit dan keluarkan bunyi lewat hidung. Contoh) 형[형] 항상[항상] 강[강]",ru:"💡[Носовой звук] Конечная согласная ㅇ — это звук, резонирующий в носу. Слегка приоткройте рот и произнесите звук через нос. Напр.) 형[형] 항상[항상] 강[강]",th:"💡[เสียงนาสิก] ตัวสะกด ㅇ คือเสียงที่สะท้อนในจมูก อ้าปากเล็กน้อยแล้วปล่อยเสียงออกทางจมูก ตัวอย่าง) 형[형] 항상[항상] 강[강]",mn:"💡[Хамрын авиа] Төгсгөлийн ㅇ бол хамарт цуурайтдаг дуу авиа юм. Амаа бага зэрэг нээгээд хамраар дуу гаргаж үзээрэй. Жишээ) 형[형] 항상[항상] 강[강]",uz:"💡[Burun tovushi] Oxirgi undosh ㅇ burunda jaranglaydigan tovushdir. Og'zingizni sal ochib, tovushni burundan chiqaring. Masalan) 형[형] 항상[항상] 강[강]",es:"💡[Sonido nasal] La consonante final ㅇ es un sonido que resuena en la nariz. Abra un poco la boca y emita el sonido por la nariz. Ej.) 형[형] 항상[항상] 강[강]",fr:"💡[Son nasal] La consonne finale ㅇ est un son qui résonne dans le nez. Ouvrez légèrement la bouche et laissez le son sortir par le nez. Ex. : 형[형] 항상[항상] 강[강]",ne:"💡[नाक ध्वनि] अन्त्य व्यञ्जन ㅇ नाकभित्र गुञ्जने ध्वनि हो। मुख अलिक खोलेर नाकबाट ध्वनि निकाल्नुहोस्। उदाहरण) 형[형] 항상[항상] 강[강]",de:"💡[Nasallaut] Der Endkonsonant ㅇ ist ein Klang, der in der Nase mitschwingt. Öffnen Sie den Mund leicht und lassen Sie den Klang durch die Nase kommen. Bsp.: 형[형] 항상[항상] 강[강]"},
-      },
-      // ── 단계 12: 받침 ㅁ ──
-      { id:"batchim_m", type:"learn", emoji:"🧱",
-        title:{ko:"12. 받침 [ㅁ]",vi:"12. Phụ âm cuối [ㅁ]",en:"12. Final Consonant [ㅁ]",zh:"12. 收音 [ㅁ]",ja:"12. パッチム [ㅁ]",id:"12. Konsonan Akhir [ㅁ]",ru:"12. Конечная согласная [ㅁ]",th:"12. ตัวสะกด [ㅁ]",mn:"12. Төгсгөлийн гийгүүлэгч [ㅁ]",uz:"12. Oxirgi undosh [ㅁ]",es:"12. Consonante final [ㅁ]",fr:"12. Consonne finale [ㅁ]",ne:"12. अन्त्य व्यञ्जन [ㅁ]",de:"12. Endkonsonant [ㅁ]"},
-        desc:{ko:"가족·음식·감정 관련 어휘로 ㅁ받침을 익힙니다.",vi:"Học phụ âm cuối ㅁ qua từ vựng về gia đình, thức ăn và cảm xúc.",en:"Learn the final consonant ㅁ through family, food, and emotion vocabulary.",zh:"通过家庭、食物、情感相关词汇学习ㅁ收音。",ja:"家族・食べ物・感情に関する語彙でㅁパッチムを学びます。",id:"Pelajari konsonan akhir ㅁ melalui kosakata keluarga, makanan, dan emosi.",ru:"Изучите конечную согласную ㅁ через лексику о семье, еде и эмоциях.",th:"เรียนรู้ตัวสะกด ㅁ ผ่านคำศัพท์เกี่ยวกับครอบครัว อาหาร และอารมณ์",mn:"Гэр бүл, хоол, сэтгэл хөдлөлтэй холбоотой үгсээр ㅁ төгсгөлийн гийгүүлэгчийг мэдэж авна.",uz:"Oila, ovqat, his-tuyg'u bilan bog'liq lug'at orqali ㅁ oxirgi undoshini o'rganing.",es:"Aprenda la consonante final ㅁ mediante vocabulario de familia, comida y emociones.",fr:"Apprenez la consonne finale ㅁ à travers un vocabulaire lié à la famille, la nourriture et les émotions.",ne:"परिवार, खाना, भावनासँग सम्बन्धित शब्दहरूबाट ㅁ अन्त्य व्यञ्जन सिक्नुहोस्।",de:"Lernen Sie den Endkonsonanten ㅁ anhand von Vokabeln zu Familie, Essen und Gefühlen."},
-        items:[
-          { char:"엄마",   word:"엄마",   meaning:{ko:"엄마",   vi:"mẹ",zh:"妈妈",en:"mom",ja:"ママ",id:"mama",ru:"мама",th:"แม่",mn:"ээж",uz:"oyi",es:"mom"} },
-          { char:"부모님", word:"부모님", meaning:{ko:"부모님", vi:"bố mẹ",zh:"父母",en:"parents",ja:"両親",id:"orang tua",ru:"родители",th:"พ่อแม่",mn:"эцэг эх",uz:"ota-ona",es:"parents"} },
-          { char:"이름",   word:"이름",   meaning:{ko:"이름",   vi:"tên",zh:"名字",en:"name",ja:"名前",id:"nama",ru:"имя",th:"ชื่อ",mn:"нэр",uz:"ism",es:"name"} },
-          { char:"사람",   word:"사람",   meaning:{ko:"사람",   vi:"người",zh:"人",en:"person",ja:"人",id:"orang",ru:"человек",th:"คน",mn:"хүн",uz:"odam",es:"person"} },
-          { char:"남자",   word:"남자",   meaning:{ko:"남자",   vi:"đàn ông",zh:"男人",en:"man",ja:"男性",id:"pria",ru:"мужчина",th:"ผู้ชาย",mn:"эрэгтэй",uz:"erkak",es:"man"} },
-          { char:"남편",   word:"남편",   meaning:{ko:"남편",   vi:"chồng",zh:"丈夫",en:"husband",ja:"夫",id:"suami",ru:"муж",th:"สามี",mn:"нөхөр",uz:"er",es:"husband"} },
-          { char:"삼촌",   word:"삼촌",   meaning:{ko:"삼촌",   vi:"chú",zh:"叔叔",en:"uncle",ja:"おじさん",id:"paman",ru:"дядя",th:"ลุง",mn:"авга",uz:"amaki",es:"uncle"} },
-          { char:"아침",   word:"아침",   meaning:{ko:"아침",   vi:"buổi sáng",zh:"早上",en:"morning",ja:"朝",id:"pagi",ru:"утро",th:"เช้า",mn:"өглөө",uz:"ertalab",es:"morning"} },
-          { char:"점심",   word:"점심",   meaning:{ko:"점심",   vi:"bữa trưa",zh:"午饭",en:"lunch",ja:"昼食",id:"makan siang",ru:"обед",th:"อาหารกลางวัน",mn:"өдрийн хоол",uz:"tushlik",es:"lunch"} },
-          { char:"밤",     word:"밤",     meaning:{ko:"밤",     vi:"đêm",zh:"夜晚",en:"night",ja:"夜",id:"malam",ru:"ночь",th:"กลางคืน",mn:"шөнө",uz:"tun",es:"night"} },
-          { char:"봄",     word:"봄",     meaning:{ko:"봄",     vi:"mùa xuân",zh:"春天",en:"spring",ja:"春",id:"musim semi",ru:"весна",th:"ฤดูใบไม้ผลิ",mn:"хавар",uz:"bahor",es:"spring"} },
-          { char:"여름",   word:"여름",   meaning:{ko:"여름",   vi:"mùa hè",zh:"夏天",en:"summer",ja:"夏",id:"musim panas",ru:"лето",th:"ฤดูร้อน",mn:"зун",uz:"yoz",es:"summer"} },
-          { char:"다음",   word:"다음",   meaning:{ko:"다음",   vi:"tiếp theo",zh:"下一个",en:"next",ja:"次",id:"berikutnya",ru:"следующий",th:"ถัดไป",mn:"дараагийн",uz:"keyingi",es:"next"} },
-          { char:"처음",   word:"처음",   meaning:{ko:"처음",   vi:"lần đầu",zh:"第一次",en:"first time",ja:"初めて",id:"pertama kali",ru:"первый раз",th:"ครั้งแรก",mn:"анх удаа",uz:"birinchi marta",es:"first time"} },
-          { char:"요즘",   word:"요즘",   meaning:{ko:"요즘",   vi:"dạo này",zh:"最近",en:"these days",ja:"最近",id:"belakangan ini",ru:"в наши дни",th:"ช่วงนี้",mn:"сүүлийн үед",uz:"hozirgi kunda",es:"these days"} },
-          { char:"가끔",   word:"가끔",   meaning:{ko:"가끔",   vi:"thỉnh thoảng",zh:"偶尔",en:"sometimes",ja:"たまに",id:"kadang-kadang",ru:"иногда",th:"บางครั้ง",mn:"заримдаа",uz:"ba'zan",es:"sometimes"} },
-          { char:"보름",   word:"보름",   meaning:{ko:"보름",   vi:"nửa tháng",zh:"半个月",en:"half a month",ja:"半月",id:"setengah bulan",ru:"полмесяца",th:"ครึ่งเดือน",mn:"хагас сар",uz:"yarim oy",es:"half a month"} },
-          { char:"시험",   word:"시험",   meaning:{ko:"시험",   vi:"bài thi",zh:"考试",en:"exam",ja:"試験",id:"ujian",ru:"экзамен",th:"การสอบ",mn:"шалгалт",uz:"imtihon",es:"exam"} },
-          { char:"점수",   word:"점수",   meaning:{ko:"점수",   vi:"điểm số",zh:"分数",en:"score",ja:"点数",id:"skor",ru:"оценка",th:"คะแนน",mn:"оноо",uz:"ball",es:"score"} },
-          { char:"침대",   word:"침대",   meaning:{ko:"침대",   vi:"giường",zh:"床",en:"bed",ja:"ベッド",id:"tempat tidur",ru:"кровать",th:"เตียง",mn:"ор",uz:"karavot",es:"bed"} },
-          { char:"잠",     word:"잠",     meaning:{ko:"잠",     vi:"giấc ngủ",zh:"睡觉",en:"sleep",ja:"眠り",id:"tidur",ru:"сон",th:"การนอน",mn:"нойр",uz:"uyqu",es:"sleep"} },
-          { char:"짐",     word:"짐",     meaning:{ko:"짐",     vi:"hành lý",zh:"行李",en:"luggage",ja:"荷物",id:"barang bawaan",ru:"багаж",th:"กระเป๋า",mn:"тээш",uz:"yuk",es:"luggage"} },
-          { char:"몸",     word:"몸",     meaning:{ko:"몸",     vi:"cơ thể",zh:"身体",en:"body",ja:"体",id:"tubuh",ru:"тело",th:"ร่างกาย",mn:"бие",uz:"tana",es:"body"} },
-          { char:"가슴",   word:"가슴",   meaning:{ko:"가슴",   vi:"ngực",zh:"胸部",en:"chest",ja:"胸",id:"dada",ru:"грудь",th:"หน้าอก",mn:"цээж",uz:"ko'krak",es:"chest"} },
-          { char:"심장",   word:"심장",   meaning:{ko:"심장",   vi:"tim",zh:"心脏",en:"heart(organ)",ja:"心臓",id:"jantung",ru:"сердце",th:"หัวใจ",mn:"зүрх",uz:"yurak",es:"heart(organ)"} },
-          { char:"임신",   word:"임신",   meaning:{ko:"임신",   vi:"mang thai",zh:"怀孕",en:"pregnant",ja:"妊娠",id:"hamil",ru:"беременность",th:"ตั้งครรภ์",mn:"жирэмсэн",uz:"homilador",es:"pregnant"} },
-          { char:"감기",   word:"감기",   meaning:{ko:"감기",   vi:"cảm lạnh",zh:"感冒",en:"cold(illness)",ja:"風邪",id:"flu",ru:"простуда",th:"ไข้หวัด",mn:"томуу",uz:"sovuq",es:"cold(illness)"} },
-          { char:"기침",   word:"기침",   meaning:{ko:"기침",   vi:"ho",zh:"咳嗽",en:"cough",ja:"咳",id:"batuk",ru:"кашель",th:"ไอ",mn:"ханиад",uz:"yo'tal",es:"cough"} },
-          { char:"암",     word:"암",     meaning:{ko:"암",     vi:"ung thư",zh:"癌症",en:"cancer",ja:"癌",id:"kanker",ru:"рак",th:"มะเร็ง",mn:"хорт хавдар",uz:"saraton",es:"cancer"} },
-          { char:"담배",   word:"담배",   meaning:{ko:"담배",   vi:"thuốc lá",zh:"香烟",en:"cigarette",ja:"タバコ",id:"rokok",ru:"сигарета",th:"บุหรี่",mn:"тамхи",uz:"sigaret",es:"cigarette"} },
-          { char:"음식",   word:"음식",   meaning:{ko:"음식",   vi:"thức ăn",zh:"食物",en:"food",ja:"食べ物",id:"makanan",ru:"еда",th:"อาหาร",mn:"хоол",uz:"ovqat",es:"food"} },
-          { char:"점심",   word:"점심",   meaning:{ko:"점심",   vi:"bữa trưa",zh:"午饭",en:"lunch",ja:"昼食",id:"makan siang",ru:"обед",th:"อาหารกลางวัน",mn:"өдрийн хоол",uz:"tushlik",es:"lunch"} },
-          { char:"소금",   word:"소금",   meaning:{ko:"소금",   vi:"muối",zh:"盐",en:"salt",ja:"塩",id:"garam",ru:"соль",th:"เกลือ",mn:"давс",uz:"tuz",es:"salt"} },
-          { char:"감자",   word:"감자",   meaning:{ko:"감자",   vi:"khoai tây",zh:"土豆",en:"potato",ja:"じゃがいも",id:"kentang",ru:"картофель",th:"มันฝรั่ง",mn:"төмс",uz:"kartoshka",es:"potato"} },
-          { char:"음료수", word:"음료수", meaning:{ko:"음료수", vi:"đồ uống",zh:"饮料",en:"beverage",ja:"飲み物",id:"minuman",ru:"напиток",th:"เครื่องดื่ม",mn:"ундаа",uz:"ichimlik",es:"beverage"} },
-          { char:"김치",   word:"김치",   meaning:{ko:"김치",   vi:"kim chi",zh:"泡菜",en:"kimchi",ja:"キムチ",id:"kimchi",ru:"кимчи",th:"กิมจิ",mn:"кимчи",uz:"kimchi",es:"kimchi"} },
-          { char:"삼계탕", word:"삼계탕", meaning:{ko:"삼계탕", vi:"gà hầm sâm",zh:"参鸡汤",en:"ginseng chicken soup",ja:"サムゲタン",id:"samgyetang",ru:"самгетанг",th:"ซัมเกแทง",mn:"самгетанг",uz:"samgetan",es:"ginseng chicken soup"} },
-          { char:"껌",     word:"껌",     meaning:{ko:"껌",     vi:"kẹo cao su",zh:"口香糖",en:"chewing gum",ja:"ガム",id:"permen karet",ru:"жвачка",th:"หมากฝรั่ง",mn:"бохир",uz:"saqich",es:"chewing gum"} },
-          { char:"냄새",   word:"냄새",   meaning:{ko:"냄새",   vi:"mùi",zh:"气味",en:"smell",ja:"臭い",id:"bau",ru:"запах",th:"กลิ่น",mn:"үнэр",uz:"hid",es:"smell"} },
-          { char:"구름",   word:"구름",   meaning:{ko:"구름",   vi:"đám mây",zh:"云",en:"cloud",ja:"雲",id:"awan",ru:"облако",th:"เมฆ",mn:"үүл",uz:"bulut",es:"cloud"} },
-          { char:"바람",   word:"바람",   meaning:{ko:"바람",   vi:"gió",zh:"风",en:"wind",ja:"風",id:"angin",ru:"ветер",th:"ลม",mn:"салхи",uz:"shamol",es:"wind"} },
-          { char:"섬",     word:"섬",     meaning:{ko:"섬",     vi:"đảo",zh:"岛",en:"island",ja:"島",id:"pulau",ru:"остров",th:"เกาะ",mn:"арал",uz:"orol",es:"island"} },
-          { char:"마음",   word:"마음",   meaning:{ko:"마음",   vi:"tâm hồn",zh:"心",en:"heart/mind",ja:"心",id:"hati",ru:"душа",th:"ใจ",mn:"сэтгэл",uz:"yurak",es:"heart/mind"} },
-          { char:"꿈",     word:"꿈",     meaning:{ko:"꿈",     vi:"giấc mơ",zh:"梦想",en:"dream",ja:"夢",id:"mimpi",ru:"мечта",th:"ความฝัน",mn:"мөрөөдөл",uz:"orzu",es:"dream"} },
-          { char:"기쁨",   word:"기쁨",   meaning:{ko:"기쁨",   vi:"niềm vui",zh:"喜悦",en:"joy",ja:"喜び",id:"kegembiraan",ru:"радость",th:"ความสุข",mn:"баяр хөөр",uz:"quvonch",es:"joy"} },
-          { char:"근심",   word:"근심",   meaning:{ko:"근심",   vi:"lo lắng",zh:"忧虑",en:"worry",ja:"心配",id:"kekhawatiran",ru:"тревога",th:"ความกังวล",mn:"санаа зовнил",uz:"tashvish",es:"worry"} },
-          { char:"경험",   word:"경험",   meaning:{ko:"경험",   vi:"kinh nghiệm",zh:"经验",en:"experience",ja:"経験",id:"pengalaman",ru:"опыт",th:"ประสบการณ์",mn:"туршлага",uz:"tajriba",es:"experience"} },
-          { char:"도움",   word:"도움",   meaning:{ko:"도움",   vi:"sự giúp đỡ",zh:"帮助",en:"help",ja:"助け",id:"bantuan",ru:"помощь",th:"ความช่วยเหลือ",mn:"тусламж",uz:"yordam",es:"help"} },
-          { char:"힘",     word:"힘",     meaning:{ko:"힘",     vi:"sức mạnh",zh:"力量",en:"strength",ja:"力",id:"kekuatan",ru:"сила",th:"กำลัง",mn:"хүч",uz:"kuch",es:"strength"} },
-          { char:"감사",   word:"감사",   meaning:{ko:"감사",   vi:"lòng biết ơn",zh:"感谢",en:"gratitude",ja:"感謝",id:"rasa syukur",ru:"благодарность",th:"ความกตัญญู",mn:"талархал",uz:"minnatdorchilik",es:"gratitude"} },
-          { char:"감동",   word:"감동",   meaning:{ko:"감동",   vi:"cảm động",zh:"感动",en:"moved/touched",ja:"感動",id:"terharu",ru:"трогательный",th:"ประทับใจ",mn:"сэтгэл хөдлөл",uz:"hayajson",es:"moved/touched"} },
-          { char:"모임",   word:"모임",   meaning:{ko:"모임",   vi:"buổi gặp mặt",zh:"聚会",en:"gathering",ja:"集まり",id:"pertemuan",ru:"встреча",th:"การรวมตัว",mn:"уулзалт",uz:"yig'ilish",es:"gathering"} },
-          { char:"함께",   word:"함께",   meaning:{ko:"함께",   vi:"cùng nhau",zh:"一起",en:"together",ja:"一緒に",id:"bersama",ru:"вместе",th:"ด้วยกัน",mn:"хамт",uz:"birga",es:"together"} },
-          { char:"음악",   word:"음악",   meaning:{ko:"음악",   vi:"âm nhạc",zh:"音乐",en:"music",ja:"音楽",id:"musik",ru:"музыка",th:"ดนตรี",mn:"хөгжим",uz:"musiqa",es:"music"} },
-          { char:"그림",   word:"그림",   meaning:{ko:"그림",   vi:"bức tranh",zh:"图画",en:"picture",ja:"絵",id:"gambar",ru:"рисунок",th:"รูปภาพ",mn:"зураг",uz:"rasm",es:"picture"} },
-          { char:"드럼",   word:"드럼",   meaning:{ko:"드럼",   vi:"trống",zh:"鼓",en:"drums",ja:"ドラム",id:"drum",ru:"барабан",th:"กลอง",mn:"бөмбөр",uz:"baraban",es:"drums"} },
-          { char:"명함",   word:"명함",   meaning:{ko:"명함",   vi:"danh thiếp",zh:"名片",en:"business card",ja:"名刺",id:"kartu nama",ru:"визитка",th:"นามบัตร",mn:"визит карт",uz:"vizit karta",es:"business card"} },
-          { char:"음성",   word:"음성",   meaning:{ko:"음성",   vi:"giọng nói",zh:"声音",en:"voice",ja:"音声",id:"suara",ru:"голос",th:"เสียง",mn:"дуу хоолой",uz:"ovoz",es:"voice"} },
-          { char:"자음",   word:"자음",   meaning:{ko:"자음",   vi:"phụ âm",zh:"辅音",en:"consonant",ja:"子音",id:"konsonan",ru:"согласная",th:"พยัญชนะ",mn:"гийгүүлэгч",uz:"undosh",es:"consonant"} },
-          { char:"모음",   word:"모음",   meaning:{ko:"모음",   vi:"nguyên âm",zh:"元音",en:"vowel",ja:"母音",id:"vokal",ru:"гласная",th:"สระ",mn:"эгшиг",uz:"unli",es:"vowel"} },
-          { char:"음절",   word:"음절",   meaning:{ko:"음절",   vi:"âm tiết",zh:"音节",en:"syllable",ja:"音節",id:"suku kata",ru:"слог",th:"พยางค์",mn:"үе",uz:"bo'g'in",es:"syllable"} },
-          { char:"임금",   word:"임금",   meaning:{ko:"임금",   vi:"tiền lương",zh:"工资",en:"wage",ja:"賃金",id:"upah",ru:"зарплата",th:"ค่าจ้าง",mn:"цалин",uz:"ish haqi",es:"wage"} },
-          { char:"요금",   word:"요금",   meaning:{ko:"요금",   vi:"phí",zh:"费用",en:"fee/fare",ja:"料金",id:"tarif",ru:"плата",th:"ค่าธรรมเนียม",mn:"хөлс",uz:"to'lov",es:"fee/fare"} },
-          { char:"저금",   word:"저금",   meaning:{ko:"저금",   vi:"tiết kiệm",zh:"储蓄",en:"savings",ja:"貯金",id:"tabungan",ru:"накопления",th:"การออมเงิน",mn:"хадгаламж",uz:"jamg'arma",es:"savings"} },
-          { char:"점",     word:"점",     meaning:{ko:"점",     vi:"điểm/chấm",zh:"点",en:"dot/point",ja:"点",id:"titik",ru:"точка",th:"จุด",mn:"цэг",uz:"nuqta",es:"dot/point"} },
-          { char:"아줌마",  word:"아줌마",  meaning:{ko:"아줌마",  vi:"dì/cô",zh:"大妈",en:"aunt/ma'am",ja:"おばさん",id:"tante",ru:"тётушка",th:"ป้า",mn:"эгч",uz:"xola",es:"aunt/ma'am"} },
-          { char:"학점",    word:"학점",    meaning:{ko:"학점",    vi:"tín chỉ",zh:"学分",en:"credit/grade",ja:"単位",id:"kredit",ru:"кредит",th:"หน่วยกิต",mn:"кредит",uz:"kredit",es:"credit/grade"} },
-          { char:"담",      word:"담",      meaning:{ko:"담",      vi:"hàng rào",zh:"墙",en:"wall/fence",ja:"塀",id:"pagar",ru:"стена",th:"รั้ว",mn:"хана",uz:"devor",es:"wall/fence"} },
-          { char:"금",      word:"금",      meaning:{ko:"금",      vi:"vàng",zh:"金",en:"gold",ja:"金",id:"emas",ru:"золото",th:"ทอง",mn:"алт",uz:"oltin",es:"gold"} },
-          { char:"화장품",  word:"화장품",  meaning:{ko:"화장품",  vi:"mỹ phẩm",zh:"化妆品",en:"cosmetics",ja:"化粧品",id:"kosmetik",ru:"косметика",th:"เครื่องสำอาง",mn:"гоо сайхны бүтээгдэхүүн",uz:"kosmetika",es:"cosmetics"} },
-          { char:"땀",      word:"땀",      meaning:{ko:"땀",      vi:"mồ hôi",zh:"汗水",en:"sweat",ja:"汗",id:"keringat",ru:"пот",th:"เหงื่อ",mn:"хөлс",uz:"ter",es:"sweat"} },
-          { char:"감",      word:"감",      meaning:{ko:"감",      vi:"quả hồng",zh:"柿子",en:"persimmon",ja:"柿",id:"kesemek",ru:"хурма",th:"ลูกพลับ",mn:"хилэн жимс",uz:"xurmo",es:"persimmon"} },
-          { char:"아이스크림",word:"아이스크림",meaning:{ko:"아이스크림",vi:"kem",zh:"冰淇淋",en:"ice cream",ja:"アイスクリーム",id:"es krim",ru:"мороженое",th:"ไอศกรีม",mn:"зайрмаг",uz:"muzqaymoq",es:"ice cream"} },
-          { char:"참외",    word:"참외",    meaning:{ko:"참외",    vi:"dưa lê",zh:"甜瓜",en:"oriental melon",ja:"マクワウリ",id:"melon Korea",ru:"дыня",th:"แตงเกาหลี",mn:"тарвас",uz:"qovun",es:"oriental melon"} },
-          { char:"식품",    word:"식품",    meaning:{ko:"식품",    vi:"thực phẩm",zh:"食品",en:"food product",ja:"食品",id:"bahan makanan",ru:"продукты",th:"ผลิตภัณฑ์อาหาร",mn:"хүнс",uz:"oziq-ovqat",es:"food product"} },
-          { char:"냉동식품",word:"냉동식품",meaning:{ko:"냉동식품",vi:"thực phẩm đông lạnh",zh:"冷冻食品",en:"frozen food",ja:"冷凍食品",id:"makanan beku",ru:"замороженные продукты",th:"อาหารแช่แข็ง",mn:"хөлдөөсөн хоол",uz:"muzlatilgan ovqat",es:"frozen food"} },
-          { char:"컴퓨터",  word:"컴퓨터",  meaning:{ko:"컴퓨터",  vi:"máy tính",zh:"电脑",en:"computer",ja:"コンピュータ",id:"komputer",ru:"компьютер",th:"คอมพิวเตอร์",mn:"компьютер",uz:"kompyuter",es:"computer"} },
-          { char:"금지",    word:"금지",    meaning:{ko:"금지",    vi:"cấm",zh:"禁止",en:"prohibition",ja:"禁止",id:"larangan",ru:"запрет",th:"ห้าม",mn:"хориг",uz:"taqiq",es:"prohibition"} },
-          { char:"제품",    word:"제품",    meaning:{ko:"제품",    vi:"sản phẩm",zh:"产品",en:"product",ja:"製品",id:"produk",ru:"продукция",th:"ผลิตภัณฑ์",mn:"бүтээгдэхүүн",uz:"mahsulot",es:"product"} },
-          { char:"반품",    word:"반품",    meaning:{ko:"반품",    vi:"trả hàng",zh:"退货",en:"return",ja:"返品",id:"retur",ru:"возврат",th:"การคืนสินค้า",mn:"буцаалт",uz:"qaytarish",es:"return"} },
-          { char:"상여금",  word:"상여금",  meaning:{ko:"상여금",  vi:"tiền thưởng",zh:"奖金",en:"bonus",ja:"ボーナス",id:"bonus",ru:"бонус",th:"โบนัส",mn:"урамшуулал",uz:"bonus",es:"bonus"} },
-          { char:"의료보험",word:"의료보험",meaning:{ko:"의료보험",vi:"bảo hiểm y tế",zh:"医疗保险",en:"medical insurance",ja:"医療保険",id:"asuransi kesehatan",ru:"медицинская страховка",th:"ประกันสุขภาพ",mn:"эрүүл мэндийн даатгал",uz:"tibbiy sug'urta",es:"medical insurance"} },
-          { char:"위염",    word:"위염",    meaning:{ko:"위염",    vi:"viêm dạ dày",zh:"胃炎",en:"gastritis",ja:"胃炎",id:"gastritis",ru:"гастрит",th:"กระเพาะอักเสบ",mn:"ходоодны үрэвсэл",uz:"gastrit",es:"gastritis"} },
-          { char:"항암제",  word:"항암제",  meaning:{ko:"항암제",  vi:"thuốc trị ung thư",zh:"抗癌剂",en:"anticancer drug",ja:"抗癌剤",id:"obat antikanker",ru:"противораковый препарат",th:"ยาต้านมะเร็ง",mn:"хорт хавдрын эм",uz:"saraton dori",es:"anticancer drug"} },
-          { char:"감기약",  word:"감기약",  meaning:{ko:"감기약",  vi:"thuốc cảm",zh:"感冒药",en:"cold medicine",ja:"風邪薬",id:"obat flu",ru:"лекарство от простуды",th:"ยาแก้หวัด",mn:"томуугийн эм",uz:"shamollash dori",es:"cold medicine"} },
-          { char:"중심",    word:"중심",    meaning:{ko:"중심",    vi:"trung tâm",zh:"中心",en:"center",ja:"中心",id:"pusat",ru:"центр",th:"ศูนย์กลาง",mn:"төв",uz:"markaz",es:"center"} },
-          { char:"게임",    word:"게임",    meaning:{ko:"게임",    vi:"trò chơi",zh:"游戏",en:"game",ja:"ゲーム",id:"permainan",ru:"игра",th:"เกม",mn:"тоглоом",uz:"o'yin",es:"game"} },
-          { char:"예금",    word:"예금",    meaning:{ko:"예금",    vi:"tiền gửi",zh:"存款",en:"deposit/savings",ja:"預金",id:"deposito",ru:"вклад",th:"เงินฝาก",mn:"хадгаламж",uz:"omonat",es:"deposit/savings"} },
-          { char:"담보",    word:"담보",    meaning:{ko:"담보",    vi:"thế chấp",zh:"担保",en:"collateral",ja:"担保",id:"agunan",ru:"залог",th:"หลักประกัน",mn:"барьцаа",uz:"garov",es:"collateral"} },
-          { char:"뱀",      word:"뱀",      meaning:{ko:"뱀",      vi:"con rắn",zh:"蛇",en:"snake",ja:"ヘビ",id:"ular",ru:"змея",th:"งู",mn:"могой",uz:"ilon",es:"snake"} },
-          { char:"남극",    word:"남극",    meaning:{ko:"남극",    vi:"Nam Cực",zh:"南极",en:"South Pole",ja:"南極",id:"Kutub Selatan",ru:"Антарктида",th:"ขั้วโลกใต้",mn:"Өмнөд туйл",uz:"Janubiy qutb",es:"South Pole"} },
-          { char:"삼",      word:"삼",      meaning:{ko:"삼",      vi:"ba",zh:"三",en:"three",ja:"三",id:"tiga",ru:"три",th:"สาม",mn:"гурав",uz:"uch",es:"three"} },
-          { char:"의심",    word:"의심",    meaning:{ko:"의심",    vi:"nghi ngờ",zh:"怀疑",en:"doubt",ja:"疑い",id:"keraguan",ru:"сомнение",th:"ความสงสัย",mn:"эргэлзэл",uz:"shubha",es:"doubt"} },
-          { char:"위험",    word:"위험",    meaning:{ko:"위험",    vi:"nguy hiểm",zh:"危险",en:"danger",ja:"危険",id:"bahaya",ru:"опасность",th:"อันตราย",mn:"аюул",uz:"xavf",es:"danger"} },
-          { char:"프로그램",word:"프로그램",meaning:{ko:"프로그램",vi:"chương trình",zh:"节目/程序",en:"program",ja:"プログラム",id:"program",ru:"программа",th:"โปรแกรม",mn:"хөтөлбөр",uz:"dastur",es:"program"} },
-          { char:"감사하다", word:"감사하다", meaning:{ko:"감사하다", vi:"cảm ơn",zh:"感谢",en:"to thank",ja:"感謝する",id:"berterima kasih",ru:"благодарить",th:"ขอบคุณ",mn:"талархах",uz:"minnatdor bo'lmoq",es:"to thank"} },
-          { char:"넘어지다", word:"넘어지다", meaning:{ko:"넘어지다", vi:"ngã",zh:"倒下",en:"to fall down",ja:"倒れる",id:"jatuh",ru:"упасть",th:"ล้ม",mn:"унах",uz:"yiqilmoq",es:"to fall down"} },
-          { char:"멈추다",   word:"멈추다",   meaning:{ko:"멈추다",   vi:"dừng lại",zh:"停止",en:"to stop",ja:"止まる",id:"berhenti",ru:"остановиться",th:"หยุด",mn:"зогсох",uz:"to'xtamoq",es:"to stop"} },
-          { char:"심다",     word:"심다",     meaning:{ko:"심다",     vi:"trồng cây",zh:"种植",en:"to plant",ja:"植える",id:"menanam",ru:"сажать",th:"ปลูก",mn:"тарих",uz:"ekamoq",es:"to plant"} },
-          { char:"참다",     word:"참다",     meaning:{ko:"참다",     vi:"chịu đựng",zh:"忍耐",en:"to endure",ja:"耐える",id:"menahan",ru:"терпеть",th:"อดทน",mn:"тэвчих",uz:"chidamoq",es:"to endure"} },
-          { char:"넘다",     word:"넘다",     meaning:{ko:"넘다",     vi:"vượt qua",zh:"超过",en:"to overcome",ja:"越える",id:"melampaui",ru:"преодолевать",th:"ข้าม",mn:"давах",uz:"oshmoq",es:"to overcome"} },
-        ],
-        tip:{ko:"💡 [비음+비음화] 받침 ㅁ은 입술을 다물고 코로 내는 소리예요. 뒤에 비음(ㄴ·ㅁ)이 오면 앞 받침도 비음으로 바뀌어요! 예) 엄마[엄마] 국물→[궁물] 입맛→[임맏]",vi:"💡 [Âm mũi + đồng hóa mũi] Phụ âm cuối ㅁ phát âm bằng cách khép môi và phát qua mũi. Khi có âm mũi (ㄴ·ㅁ) theo sau, phụ âm cuối trước cũng biến thành âm mũi! Ví dụ: 국물→[궁물]",en:"💡 [Nasal + nasalization] ㅁ is made by closing your lips and humming through the nose. When followed by a nasal (ㄴ·ㅁ), the preceding final consonant also becomes nasal! e.g. 국물→[궁물]",zh:"💡【鼻音化】收音ㅁ是闭上嘴唇从鼻子发出的音。后面如果紧跟鼻音（ㄴ·ㅁ），前面的收音也会变成鼻音！例：국물→[궁물] 입맛→[임맏]",ja:"💡【鼻音＋鼻音化】パッチムㅁは唇を閉じて鼻から出す音です。後ろに鼻音（ㄴ·ㅁ）が来ると前のパッチムも鼻音に変わります！例）국물→[궁물] 입맛→[임맏]",id:"💡[Nasal + nasalisasi] Konsonan akhir ㅁ dibuat dengan menutup bibir dan mengeluarkan bunyi lewat hidung. Jika diikuti bunyi nasal (ㄴ·ㅁ), konsonan akhir sebelumnya juga berubah menjadi nasal! Contoh) 국물→[궁물] 입맛→[임맏]",ru:"💡[Носовой звук + назализация] Конечная согласная ㅁ образуется смыканием губ и произнесением через нос. Если за ней следует носовой звук (ㄴ·ㅁ), предыдущая конечная согласная тоже становится носовой! Напр.) 국물→[궁물] 입맛→[임맏]",th:"💡[เสียงนาสิก+การกลายเป็นเสียงนาสิก] ตัวสะกด ㅁ เกิดจากการหุบปากแล้วปล่อยเสียงออกทางจมูก หากตามด้วยเสียงนาสิก (ㄴ·ㅁ) ตัวสะกดก่อนหน้าจะกลายเป็นเสียงนาสิกด้วย! ตัวอย่าง) 국물→[궁물] 입맛→[임맏]",mn:"💡[Хамрын авиа + хамаржилт] Төгсгөлийн ㅁ нь уруулаа аниад хамраар гаргадаг дуу авиа юм. Ард нь хамрын авиа (ㄴ·ㅁ) ирвэл өмнөх төгсгөлийн гийгүүлэгч ч хамрын авиа болж хувирна! Жишээ) 국물→[궁물] 입맛→[임맏]",uz:"💡[Burun tovushi + nazallashuv] Oxirgi undosh ㅁ lablarni yumib, burundan chiqariladigan tovushdir. Agar keyin burun tovushi (ㄴ·ㅁ) kelsa, oldingi oxirgi undosh ham burun tovushiga aylanadi! Masalan) 국물→[궁물] 입맛→[임맏]",es:"💡[Nasal + nasalización] La consonante final ㅁ se produce cerrando los labios y emitiendo el sonido por la nariz. Si le sigue un sonido nasal (ㄴ·ㅁ), ¡la consonante final anterior también se vuelve nasal! Ej.) 국물→[궁물] 입맛→[임맏]",fr:"💡[Nasal + nasalisation] La consonne finale ㅁ se produit en fermant les lèvres et en laissant sortir le son par le nez. Si un son nasal (ㄴ·ㅁ) suit, la consonne finale précédente devient aussi nasale ! Ex. : 국물→[궁물] 입맛→[임맏]",ne:"💡[नाक ध्वनि + नासिकीकरण] अन्त्य व्यञ्जन ㅁ ओठ बन्द गरेर नाकबाट निकालिने ध्वनि हो। पछाडि नाक ध्वनि (ㄴ·ㅁ) आएमा अगाडिको अन्त्य व्यञ्जन पनि नाक ध्वनिमा बदलिन्छ! उदाहरण) 국물→[궁물] 입맛→[임맏]",de:"💡[Nasal + Nasalisierung] Der Endkonsonant ㅁ entsteht, indem man die Lippen schließt und den Klang durch die Nase abgibt. Folgt ein Nasallaut (ㄴ·ㅁ), wird auch der vorherige Endkonsonant nasal! Bsp.: 국물→[궁물] 입맛→[임맏]"},
-      },
-      // ── 단계 13: 받침 ㅂ·ㅍ ──
-      { id:"batchim_bp", type:"learn", emoji:"🧱",
-        title:{ko:"13. 받침 [ㅂ·ㅍ]",vi:"13. Phụ âm cuối [ㅂ·ㅍ]",en:"13. Final Consonant [ㅂ·ㅍ]",zh:"13. 收音 [ㅂ·ㅍ]",ja:"13. パッチム [ㅂ·ㅍ]",id:"13. Konsonan Akhir [ㅂ·ㅍ]",ru:"13. Конечная согласная [ㅂ·ㅍ]",th:"13. ตัวสะกด [ㅂ·ㅍ]",mn:"13. Төгсгөлийн гийгүүлэгч [ㅂ·ㅍ]",uz:"13. Oxirgi undosh [ㅂ·ㅍ]",es:"13. Consonante final [ㅂ·ㅍ]",fr:"13. Consonne finale [ㅂ·ㅍ]",ne:"13. अन्त्य व्यञ्जन [ㅂ·ㅍ]",de:"13. Endkonsonant [ㅂ·ㅍ]"},
-        desc:{ko:"직업·장소·신체 관련 어휘로 ㅂ계열 받침을 익힙니다.",vi:"Học phụ âm cuối nhóm ㅂ qua từ vựng về nghề nghiệp, địa điểm và cơ thể.",en:"Learn the ㅂ-group final consonant through job, place, and body vocabulary.",zh:"通过职业、场所、身体相关词汇学习ㅂ系列收音。",ja:"職業・場所・身体に関する語彙でㅂ系パッチムを学びます。",id:"Pelajari konsonan akhir kelompok ㅂ melalui kosakata pekerjaan, tempat, dan tubuh.",ru:"Изучите конечную согласную группы ㅂ через лексику о профессиях, местах и теле.",th:"เรียนรู้ตัวสะกดกลุ่ม ㅂ ผ่านคำศัพท์เกี่ยวกับอาชีพ สถานที่ และร่างกาย",mn:"Мэргэжил, газар, бие махбодтой холбоотой үгсээр ㅂ бүлгийн төгсгөлийн гийгүүлэгчийг мэдэж авна.",uz:"Kasb, joy, tana bilan bog'liq lug'at orqali ㅂ guruhi oxirgi undoshini o'rganing.",es:"Aprenda la consonante final del grupo ㅂ mediante vocabulario de profesiones, lugares y cuerpo.",fr:"Apprenez la consonne finale du groupe ㅂ à travers un vocabulaire lié aux métiers, aux lieux et au corps.",ne:"पेशा, स्थान, शरीरसँग सम्बन्धित शब्दहरूबाट ㅂ समूहको अन्त्य व्यञ्जन सिक्नुहोस्।",de:"Lernen Sie den Endkonsonanten der ㅂ-Gruppe anhand von Vokabeln zu Beruf, Ort und Körper."},
-        items:[
-          { char:"직업",  word:"직업",  meaning:{ko:"직업",  vi:"nghề nghiệp",zh:"职业",en:"job",ja:"職業",id:"pekerjaan",ru:"профессия",th:"อาชีพ",mn:"мэргэжил",uz:"kasb",es:"job"} },
-          { char:"종업원",word:"종업원",meaning:{ko:"종업원",vi:"nhân viên",zh:"员工",en:"employee",ja:"従業員",id:"karyawan",ru:"сотрудник",th:"พนักงาน",mn:"ажилтан",uz:"xodim",es:"employee"} },
-          { char:"집",    word:"집",    meaning:{ko:"집",    vi:"nhà",zh:"家",en:"house/home",ja:"家",id:"rumah",ru:"дом",th:"บ้าน",mn:"гэр",uz:"uy",es:"house/home"} },
-          { char:"꽃집",  word:"꽃집",  meaning:{ko:"꽃집",  vi:"cửa hàng hoa",zh:"花店",en:"flower shop",ja:"花屋",id:"toko bunga",ru:"цветочный магазин",th:"ร้านดอกไม้",mn:"цэцгийн дэлгүүр",uz:"gul do'koni",es:"flower shop"} },
-          { char:"입학",  word:"입학",  meaning:{ko:"입학",  vi:"nhập học",zh:"入学",en:"school admission",ja:"入学",id:"masuk sekolah",ru:"поступление",th:"การเข้าศึกษา",mn:"элсэн орох",uz:"o'qishga kirish",es:"school admission"} },
-          { char:"수업",  word:"수업",  meaning:{ko:"수업",  vi:"buổi học",zh:"课",en:"class/lesson",ja:"授業",id:"pelajaran",ru:"урок",th:"ชั้นเรียน",mn:"хичээл",uz:"dars",es:"class/lesson"} },
-          { char:"답",    word:"답",    meaning:{ko:"답",    vi:"câu trả lời",zh:"答案",en:"answer",ja:"答え",id:"jawaban",ru:"ответ",th:"คำตอบ",mn:"хариулт",uz:"javob",es:"answer"} },
-          { char:"준비",  word:"준비",  meaning:{ko:"준비",  vi:"chuẩn bị",zh:"准备",en:"preparation",ja:"準備",id:"persiapan",ru:"подготовка",th:"การเตรียม",mn:"бэлтгэл",uz:"tayyorlik",es:"preparation"} },
-          { char:"복습",  word:"복습",  meaning:{ko:"복습",  vi:"ôn tập",zh:"复习",en:"review",ja:"復習",id:"mengulang",ru:"повторение",th:"การทบทวน",mn:"давтан үзэх",uz:"takrorlash",es:"review"} },
-          { char:"법",    word:"법",    meaning:{ko:"법",    vi:"luật",zh:"法律",en:"law",ja:"法律",id:"hukum",ru:"закон",th:"กฎหมาย",mn:"хууль",uz:"qonun",es:"law"} },
-          { char:"입구",  word:"입구",  meaning:{ko:"입구",  vi:"lối vào",zh:"入口",en:"entrance",ja:"入口",id:"pintu masuk",ru:"вход",th:"ทางเข้า",mn:"орох хаалга",uz:"kirish",es:"entrance"} },
-          { char:"밥",    word:"밥",    meaning:{ko:"밥",    vi:"cơm",zh:"米饭",en:"rice",ja:"ご飯",id:"nasi",ru:"рис",th:"ข้าว",mn:"цагаан будаа",uz:"guruch",es:"rice"} },
-          { char:"김밥",  word:"김밥",  meaning:{ko:"김밥",  vi:"cơm cuộn rong biển",zh:"紫菜包饭",en:"gimbap",ja:"のり巻き",id:"gimbap",ru:"кимпаб",th:"คิมบับ",mn:"кимбап",uz:"kimbap",es:"gimbap"} },
-          { char:"비빔밥",word:"비빔밥",meaning:{ko:"비빔밥",vi:"cơm trộn",zh:"拌饭",en:"bibimbap",ja:"ビビンバ",id:"bibimbap",ru:"пибимпаб",th:"บิบิมบับ",mn:"бибимбаб",uz:"bibimbap",es:"bibimbap"} },
-          { char:"볶음밥",word:"볶음밥",meaning:{ko:"볶음밥",vi:"cơm chiên",zh:"炒饭",en:"fried rice",ja:"チャーハン",id:"nasi goreng",ru:"жареный рис",th:"ข้าวผัด",mn:"шарсан будаа",uz:"qovurilgan guruch",es:"fried rice"} },
-          { char:"잡지",  word:"잡지",  meaning:{ko:"잡지",  vi:"tạp chí",zh:"杂志",en:"magazine",ja:"雑誌",id:"majalah",ru:"журнал",th:"นิตยสาร",mn:"сэтгүүл",uz:"jurnal",es:"magazine"} },
-          { char:"무릎",  word:"무릎",  meaning:{ko:"무릎",  vi:"đầu gối",zh:"膝盖",en:"knee",ja:"膝",id:"lutut",ru:"колено",th:"เข่า",mn:"өвдөг",uz:"tizza",es:"knee"} },
-          { char:"입",    word:"입",    meaning:{ko:"입",    vi:"miệng",zh:"嘴",en:"mouth",ja:"口",id:"mulut",ru:"рот",th:"ปาก",mn:"ам",uz:"og'iz",es:"mouth"} },
-          { char:"앞",    word:"앞",    meaning:{ko:"앞",    vi:"phía trước",zh:"前面",en:"front",ja:"前",id:"depan",ru:"перед",th:"ข้างหน้า",mn:"өмнө",uz:"oldi",es:"front"} },
-          { char:"숲",    word:"숲",    meaning:{ko:"숲",    vi:"rừng",zh:"森林",en:"forest",ja:"森",id:"hutan",ru:"лес",th:"ป่า",mn:"ой",uz:"o'rmon",es:"forest"} },
-          { char:"잎",    word:"잎",    meaning:{ko:"잎",    vi:"lá cây",zh:"叶子",en:"leaf",ja:"葉",id:"daun",ru:"лист",th:"ใบไม้",mn:"навч",uz:"barg",es:"leaf"} },
-          { char:"사업",  word:"사업",  meaning:{ko:"사업",  vi:"sự nghiệp",zh:"事业",en:"business",ja:"事業",id:"bisnis",ru:"бизнес",th:"ธุรกิจ",mn:"бизнес",uz:"biznes",es:"business"} },
-          { char:"광합성",word:"광합성",meaning:{ko:"광합성",vi:"quang hợp",zh:"光合作用",en:"photosynthesis",ja:"光合成",id:"fotosintesis",ru:"фотосинтез",th:"การสังเคราะห์แสง",mn:"фотосинтез",uz:"fotosintez",es:"photosynthesis"} },
-          { char:"유럽",  word:"유럽",  meaning:{ko:"유럽",  vi:"châu Âu",zh:"欧洲",en:"Europe",ja:"ヨーロッパ",id:"Eropa",ru:"Европа",th:"ยุโรป",mn:"Европ",uz:"Yevropa",es:"Europe"} },
-          { char:"방법",  word:"방법",  meaning:{ko:"방법",  vi:"phương pháp",zh:"方法",en:"method",ja:"方法",id:"metode",ru:"метод",th:"วิธีการ",mn:"арга",uz:"usul",es:"method"} },
-          { char:"값",    word:"값",    meaning:{ko:"값",    vi:"giá cả",zh:"价格",en:"price/value",ja:"値段",id:"harga",ru:"цена",th:"ราคา",mn:"үнэ",uz:"narx",es:"price/value"} },
-          { char:"업무",  word:"업무",  meaning:{ko:"업무",  vi:"공việc",zh:"业务",en:"work/duties",ja:"業務",id:"tugas",ru:"обязанности",th:"งาน",mn:"ажил үүрэг",uz:"vazifa",es:"work/duties"} },
-          { char:"하숙집", word:"하숙집", meaning:{ko:"하숙집", vi:"nhà trọ",zh:"寄宿家庭",en:"boarding house",ja:"下宿",id:"rumah kos",ru:"съёмная комната",th:"บ้านพักอาศัย",mn:"түрээсийн байр",uz:"ijara uy",es:"boarding house"} },
-          { char:"서랍",   word:"서랍",   meaning:{ko:"서랍",   vi:"ngăn kéo",zh:"抽屉",en:"drawer",ja:"引き出し",id:"laci",ru:"ящик стола",th:"ลิ้นชัก",mn:"шургуулга",uz:"tortma",es:"drawer"} },
-          { char:"출입",   word:"출입",   meaning:{ko:"출입",   vi:"ra vào",zh:"出入",en:"entrance/exit",ja:"出入り",id:"keluar masuk",ru:"вход и выход",th:"เข้าออก",mn:"орох гарах",uz:"kirish-chiqish",es:"entrance/exit"} },
-          { char:"합창",   word:"합창",   meaning:{ko:"합창",   vi:"hợp xướng",zh:"合唱",en:"choir",ja:"合唱",id:"paduan suara",ru:"хор",th:"การร้องประสานเสียง",mn:"найрал дуу",uz:"xor",es:"choir"} },
-          { char:"십",     word:"십",     meaning:{ko:"십",     vi:"mười",zh:"十",en:"ten",ja:"十",id:"sepuluh",ru:"десять",th:"สิบ",mn:"арав",uz:"o'n",es:"ten"} },
-          { char:"삽",     word:"삽",     meaning:{ko:"삽",     vi:"cái xẻng",zh:"铲子",en:"shovel",ja:"シャベル",id:"sekop",ru:"лопата",th:"พลั่ว",mn:"хүрз",uz:"kurak",es:"shovel"} },
-          { char:"커피숍",word:"커피숍",meaning:{ko:"커피숍",vi:"quán cà phê",zh:"咖啡厅",en:"coffee shop",ja:"カフェ",id:"kafe",ru:"кофейня",th:"ร้านกาแฟ",mn:"кофе дэлгүүр",uz:"kofe do'koni",es:"coffee shop"} },
-          { char:"대답",  word:"대답",  meaning:{ko:"대답",  vi:"trả lời",zh:"回答",en:"answer",ja:"答え",id:"jawaban",ru:"ответ",th:"คำตอบ",mn:"хариулт",uz:"javob",es:"answer"} },
-          { char:"예습",  word:"예습",  meaning:{ko:"예습",  vi:"chuẩn bị bài trước",zh:"预习",en:"preparation",ja:"予習",id:"persiapan belajar",ru:"подготовка к занятию",th:"การเตรียมบทเรียน",mn:"урьдчилан бэлтгэх",uz:"oldindan tayyorgarlik",es:"preparation"} },
-          { char:"엽서",  word:"엽서",  meaning:{ko:"엽서",  vi:"bưu thiếp",zh:"明信片",en:"postcard",ja:"はがき",id:"kartu pos",ru:"открытка",th:"ไปรษณียบัตร",mn:"захидал",uz:"pochta kartochkasi",es:"postcard"} },
-          { char:"접시",  word:"접시",  meaning:{ko:"접시",  vi:"cái đĩa",zh:"盘子",en:"plate",ja:"お皿",id:"piring",ru:"тарелка",th:"จาน",mn:"таваг",uz:"likopcha",es:"plate"} },
-          { char:"잡채",  word:"잡채",  meaning:{ko:"잡채",  vi:"miến trộn",zh:"杂菜",en:"japchae",ja:"チャプチェ",id:"japchae",ru:"чапче",th:"แจปแช",mn:"жапче",uz:"japche",es:"japchae"} },
-          { char:"높이",  word:"높이",  meaning:{ko:"높이",  vi:"độ cao",zh:"高度",en:"height",ja:"高さ",id:"tinggi",ru:"высота",th:"ความสูง",mn:"өндөр",uz:"balandlik",es:"height"} },
-          { char:"아홉",  word:"아홉",  meaning:{ko:"아홉",  vi:"chín (9)",zh:"九",en:"nine",ja:"九",id:"sembilan",ru:"девять",th:"เก้า",mn:"ес",uz:"to'qqiz",es:"nine"} },
-          { char:"톱",    word:"톱",    meaning:{ko:"톱",    vi:"cái cưa",zh:"锯子",en:"saw",ja:"のこぎり",id:"gergaji",ru:"пила",th:"เลื่อย",mn:"хөрөө",uz:"arra",es:"saw"} },
-          { char:"무겁다",word:"무겁다",meaning:{ko:"무겁다",vi:"nặng",zh:"重",en:"heavy",ja:"重い",id:"berat",ru:"тяжёлый",th:"หนัก",mn:"хүнд",uz:"og'ir",es:"heavy"} },
-          { char:"가볍다",word:"가볍다",meaning:{ko:"가볍다",vi:"nhẹ",zh:"轻",en:"light",ja:"軽い",id:"ringan",ru:"лёгкий",th:"เบา",mn:"хөнгөн",uz:"yengil",es:"light"} },
-          { char:"두껍다",word:"두껍다",meaning:{ko:"두껍다",vi:"dày",zh:"厚",en:"thick",ja:"厚い",id:"tebal",ru:"толстый",th:"หนา",mn:"зузаан",uz:"qalin",es:"thick"} },
-          { char:"높다",  word:"높다",  meaning:{ko:"높다",  vi:"cao",zh:"高",en:"high",ja:"高い",id:"tinggi",ru:"высокий",th:"สูง",mn:"өндөр",uz:"baland",es:"high"} },
-          { char:"좁다",  word:"좁다",  meaning:{ko:"좁다",  vi:"chật hẹp",zh:"狭窄",en:"narrow",ja:"狭い",id:"sempit",ru:"тесный",th:"แคบ",mn:"нарийн",uz:"tor",es:"narrow"} },
-          { char:"어둡다",word:"어둡다",meaning:{ko:"어둡다",vi:"tối",zh:"黑暗",en:"dark",ja:"暗い",id:"gelap",ru:"тёмный",th:"มืด",mn:"харанхуй",uz:"qorong'u",es:"dark"} },
-          { char:"귀엽다",word:"귀엽다",meaning:{ko:"귀엽다",vi:"dễ thương",zh:"可爱",en:"cute",ja:"可愛い",id:"imut",ru:"милый",th:"น่ารัก",mn:"хөөрхөн",uz:"chiroyli",es:"cute"} },
-          { char:"아름답다",word:"아름답다",meaning:{ko:"아름답다",vi:"đẹp",zh:"美丽",en:"beautiful",ja:"美しい",id:"indah",ru:"красивый",th:"สวยงาม",mn:"үзэсгэлэнтэй",uz:"go'zal",es:"beautiful"} },
-          { char:"부드럽다",word:"부드럽다",meaning:{ko:"부드럽다",vi:"mềm mại",zh:"柔软",en:"soft",ja:"柔らかい",id:"lembut",ru:"мягкий",th:"นุ่ม",mn:"зөөлөн",uz:"yumshoq",es:"soft"} },
-          { char:"부럽다",word:"부럽다", meaning:{ko:"부럽다",vi:"ghen tị",zh:"羡慕",en:"envious",ja:"羨ましい",id:"iri",ru:"завидовать",th:"อิจฉา",mn:"атаархах",uz:"hasad qilmoq",es:"envious"} },
-          { char:"그립다",word:"그립다", meaning:{ko:"그립다",vi:"thương nhớ",zh:"怀念",en:"miss",ja:"懐かしい",id:"merindukan",ru:"скучать",th:"คิดถึง",mn:"санах",uz:"sog'inmoq",es:"miss"} },
-          { char:"외롭다",word:"외롭다", meaning:{ko:"외롭다",vi:"cô đơn",zh:"孤独",en:"alone/lonely",ja:"孤独だ",id:"kesepian",ru:"одинокий",th:"เหงา",mn:"ганцаардах",uz:"yolg'iz",es:"alone/lonely"} },
-          { char:"무섭다",word:"무섭다", meaning:{ko:"무섭다",vi:"đáng sợ",zh:"可怕",en:"scary",ja:"怖い",id:"menakutkan",ru:"страшный",th:"น่ากลัว",mn:"айдастай",uz:"qo'rqinchli",es:"scary"} },
-          { char:"섭섭하다",word:"섭섭하다",meaning:{ko:"섭섭하다",vi:"buồn tiếc",zh:"遗憾",en:"sad/sorry",ja:"残念だ",id:"kecewa",ru:"расстроенный",th:"เสียใจ",mn:"гонсойх",uz:"xafa bo'lmoq",es:"sad/sorry"} },
-          { char:"답답하다",word:"답답하다",meaning:{ko:"답답하다",vi:"ngột ngạt",zh:"郁闷",en:"stuffy/frustrated",ja:"息苦しい",id:"sesak",ru:"душный",th:"อึดอัด",mn:"амьсгаадах",uz:"bo'g'ilmoq",es:"stuffy/frustrated"} },
-          { char:"부끄럽다",word:"부끄럽다",meaning:{ko:"부끄럽다",vi:"xấu hổ",zh:"害羞",en:"ashamed",ja:"恥ずかしい",id:"malu",ru:"стыдиться",th:"อายุ",mn:"ичих",uz:"uyalmoq",es:"ashamed"} },
-          { char:"춥다",  word:"춥다",  meaning:{ko:"춥다",  vi:"lạnh",zh:"冷",en:"cold",ja:"寒い",id:"dingin",ru:"холодно",th:"หนาว",mn:"хүйтэн",uz:"sovuq",es:"cold"} },
-          { char:"덥다",  word:"덥다",  meaning:{ko:"덥다",  vi:"nóng",zh:"热",en:"hot",ja:"暑い",id:"panas",ru:"жарко",th:"ร้อน",mn:"халуун",uz:"issiq",es:"hot"} },
-          { char:"차갑다",word:"차갑다", meaning:{ko:"차갑다",vi:"lạnh",zh:"冷淡",en:"cold/cool",ja:"冷たい",id:"dingin",ru:"холодный",th:"เย็น",mn:"хүйтэн",uz:"sovuq",es:"cold/cool"} },
-          { char:"뜨겁다",word:"뜨겁다", meaning:{ko:"뜨겁다",vi:"nóng",zh:"烫",en:"hot",ja:"熱い",id:"panas sekali",ru:"горячий",th:"ร้อนจัด",mn:"халуун",uz:"issiq",es:"hot"} },
-          { char:"맵다",  word:"맵다",  meaning:{ko:"맵다",  vi:"cay",zh:"辣",en:"spicy",ja:"辛い",id:"pedas",ru:"острый",th:"เผ็ด",mn:"халуун",uz:"achchiq",es:"spicy"} },
-          { char:"싱겁다",word:"싱겁다", meaning:{ko:"싱겁다",vi:"nhạt",zh:"淡",en:"not salty enough",ja:"薄い",id:"tawar",ru:"пресный",th:"จืด",mn:"давсгүй",uz:"tuzsiz",es:"not salty enough"} },
-          { char:"쉽다",  word:"쉽다",  meaning:{ko:"쉽다",  vi:"dễ dàng",zh:"简单",en:"easy",ja:"易しい",id:"mudah",ru:"лёгкий",th:"ง่าย",mn:"хялбар",uz:"oson",es:"easy"} },
-          { char:"어렵다",word:"어렵다", meaning:{ko:"어렵다",vi:"khó",zh:"难",en:"difficult",ja:"難しい",id:"sulit",ru:"трудный",th:"ยาก",mn:"хэцүү",uz:"qiyin",es:"difficult"} },
-          { char:"더럽다",word:"더럽다", meaning:{ko:"더럽다",vi:"bẩn",zh:"脏",en:"dirty",ja:"汚い",id:"kotor",ru:"грязный",th:"สกปรก",mn:"бохир",uz:"iflos",es:"dirty"} },
-          { char:"싶다",  word:"싶다",  meaning:{ko:"싶다",  vi:"muốn",zh:"想要",en:"would like to",ja:"〜たい",id:"ingin",ru:"хотеть",th:"อยาก",mn:"хүсэх",uz:"xohlаmoq",es:"would like to"} },
-          { char:"눕다",  word:"눕다",  meaning:{ko:"눕다",  vi:"nằm xuống",zh:"躺下",en:"lie down",ja:"横になる",id:"berbaring",ru:"ложиться",th:"นอน",mn:"хэвтэх",uz:"yotmoq",es:"lie down"} },
-          { char:"돕다",  word:"돕다",  meaning:{ko:"돕다",  vi:"giúp đỡ",zh:"帮助",en:"help",ja:"手伝う",id:"membantu",ru:"помогать",th:"ช่วย",mn:"туслах",uz:"yordam bermoq",es:"help"} },
-          { char:"잡다",  word:"잡다",  meaning:{ko:"잡다",  vi:"bắt/nắm",zh:"抓",en:"grab/catch",ja:"つかむ",id:"menangkap",ru:"схватить",th:"จับ",mn:"барих",uz:"ushlаmoq",es:"grab/catch"} },
-          { char:"입다",  word:"입다",  meaning:{ko:"입다",  vi:"mặc",zh:"穿",en:"put on (clothes)",ja:"着る",id:"memakai",ru:"одеваться",th:"ใส่เสื้อผ้า",mn:"өмсөх",uz:"kiymoq",es:"put on (clothes)"} },
-          { char:"굽다",  word:"굽다",  meaning:{ko:"굽다",  vi:"cúi/uốn cong",zh:"弯曲",en:"bend/bake",ja:"曲げる",id:"membungkuk",ru:"изогнутый",th:"งอ",mn:"гулзайлгах",uz:"egilmoq",es:"bend/bake"} },
-          { char:"줍다",  word:"줍다",  meaning:{ko:"줍다",  vi:"lượm",zh:"捡",en:"pick up",ja:"拾う",id:"memungut",ru:"подбирать",th:"เก็บ",mn:"цуглуулах",uz:"terib olmoq",es:"pick up"} },
-          { char:"씹다",  word:"씹다",  meaning:{ko:"씹다",  vi:"nhai",zh:"嚼",en:"chew",ja:"噛む",id:"mengunyah",ru:"жевать",th:"เคี้ยว",mn:"зажлах",uz:"chaynаmoq",es:"chew"} },
-          { char:"복잡하다",word:"복잡하다",meaning:{ko:"복잡하다",vi:"phức tạp",zh:"复杂",en:"complicated",ja:"複雑だ",id:"rumit",ru:"запутанный",th:"ซับซ้อน",mn:"нарийн төвөгтэй",uz:"murakkab",es:"complicated"} },
-          { char:"즐겁다",word:"즐겁다", meaning:{ko:"즐겁다",vi:"vui vẻ",zh:"快乐",en:"enjoyable",ja:"楽しい",id:"menyenangkan",ru:"радостный",th:"สนุก",mn:"таатай",uz:"quvnoq",es:"enjoyable"} },
-          { char:"슬프다",word:"슬프다", meaning:{ko:"슬프다",vi:"buồn",zh:"悲伤",en:"sad",ja:"悲しい",id:"sedih",ru:"грустный",th:"เศร้า",mn:"гунигтай",uz:"qayg'uli",es:"sad"} },
-                ],
-        tip:{ko:"💡 [대표음화] ㅂ·ㅍ은 받침에서 모두 [ㅂ]으로 발음해요. 입술을 다물고 소리를 막아요. 예) 집[집] 직업[지겁] 앞[압]",vi:"Đây là âm khép hai môi lại, dừng âm bên trong miệng.",en:"This sound is made by pressing both lips together and stopping the sound inside.",zh:"💡【代表音化】ㅂ·ㅍ作收音时都发[ㅂ]音。请闭上嘴唇阻断声音。例：집[집] 직업[지겁] 앞[압]",ja:"💡【代表音化】ㅂ·ㅍはパッチムでは全て[ㅂ]と発音します。唇を閉じて音を止めます。例）집[집] 직업[지겁] 앞[압]",id:"💡[Bunyi representatif] ㅂ·ㅍ semuanya diucapkan sebagai [ㅂ] saat menjadi konsonan akhir. Tutup bibir dan tahan bunyinya. Contoh) 집[집] 직업[지겁] 앞[압]",ru:"💡[Репрезентативный звук] ㅂ·ㅍ в конце слова всегда произносятся как [ㅂ]. Сомкните губы и остановите звук. Напр.) 집[집] 직업[지겁] 앞[압]",th:"💡[เสียงตัวแทน] ㅂ·ㅍ เมื่อเป็นตัวสะกดจะออกเสียงเป็น [ㅂ] ทั้งหมด หุบปากแล้วกักเสียงไว้ ตัวอย่าง) 집[집] 직업[지겁] 앞[압]",mn:"💡[Төлөөлөх авиа] ㅂ·ㅍ нь төгсгөлийн байрлалд бүгд [ㅂ] гэж дуудагдана. Уруулаа аниад дууг хааж бай. Жишээ) 집[집] 직업[지겁] 앞[압]",uz:"💡[Vakillik tovushi] ㅂ·ㅍ oxirgi undosh bo'lganda hammasi [ㅂ] deb aytiladi. Lablarni yumib tovushni to'xtating. Masalan) 집[집] 직업[지겁] 앞[압]",es:"💡[Sonido representativo] ㅂ·ㅍ se pronuncian todas como [ㅂ] al final de sílaba. Cierre los labios y detenga el sonido. Ej.) 집[집] 직업[지겁] 앞[압]",fr:"💡[Son représentatif] ㅂ·ㅍ se prononcent tous [ㅂ] en position finale. Fermez les lèvres et arrêtez le son. Ex. : 집[집] 직업[지겁] 앞[압]",ne:"💡[प्रतिनिधि ध्वनि] ㅂ·ㅍ अन्त्य व्यञ्जनमा सबै [ㅂ] उच्चारण हुन्छ। ओठ बन्द गरेर ध्वनि रोक्नुहोस्। उदाहरण) 집[집] 직업[지겁] 앞[압]",de:"💡[Repräsentativer Laut] ㅂ·ㅍ werden am Ende alle als [ㅂ] ausgesprochen. Schließen Sie die Lippen und stoppen Sie den Klang. Bsp.: 집[집] 직업[지겁] 앞[압]"},
-      },
-      // ── 단계 14: 받침 ㄹ ⭐ ──
-      { id:"batchim_r", type:"learn", emoji:"⭐",
-        title:{ko:"14. 받침 [ㄹ] — 일상 대화 분기점!",vi:"14. Phụ âm cuối [ㄹ] — Bước ngoặt giao tiếp hằng ngày!",en:"14. Final Consonant [ㄹ] — Everyday Conversation Milestone!",zh:"14. 收音 [ㄹ] — 日常会话分水岭！",ja:"14. パッチム [ㄹ] — 日常会話の分岐点！",id:"14. Konsonan Akhir [ㄹ] — Titik Balik Percakapan Sehari-hari!",ru:"14. Конечная согласная [ㄹ] — Рубеж повседневного общения!",th:"14. ตัวสะกด [ㄹ] — จุดเปลี่ยนสู่การสนทนาในชีวิตประจำวัน!",mn:"14. Төгсгөлийн гийгүүлэгч [ㄹ] — Өдөр тутмын ярианы эргэлтийн цэг!",uz:"14. Oxirgi undosh [ㄹ] — Kundalik suhbat burilish nuqtasi!",es:"14. Consonante final [ㄹ] — ¡Punto de inflexión para la conversación diaria!",fr:"14. Consonne finale [ㄹ] — Tournant vers la conversation quotidienne !",ne:"14. अन्त्य व्यञ्जन [ㄹ] — दैनिक कुराकानीको मोड़!",de:"14. Endkonsonant [ㄹ] — Wendepunkt zum Alltagsgespräch!"},
-        desc:{ko:"이 단계를 마치면 일상적인 한국어 대화가 가능합니다!",vi:"Hoàn thành bước này, bạn có thể giao tiếp tiếng Hàn hàng ngày!",en:"After this step, you can hold everyday Korean conversations!",zh:"完成这一阶段后，您就能进行日常韩语对话了！",ja:"この段階を終えると、日常的な韓国語会話ができるようになります！",id:"Setelah menyelesaikan tahap ini, Anda bisa melakukan percakapan Korea sehari-hari!",ru:"После этого этапа вы сможете вести повседневные разговоры на корейском!",th:"เมื่อจบขั้นตอนนี้ คุณจะสามารถสนทนาภาษาเกาหลีในชีวิตประจำวันได้!",mn:"Энэ үе шатыг дуусгасны дараа өдөр тутмын солонгос хэлээр ярилцах боломжтой болно!",uz:"Ushbu bosqichni tugatgach, kundalik koreyscha suhbatlashishingiz mumkin bo'ladi!",es:"¡Al completar esta etapa, podrá mantener conversaciones cotidianas en coreano!",fr:"Une fois cette étape terminée, vous pourrez tenir des conversations quotidiennes en coréen !",ne:"यो चरण पूरा गरेपछि दैनिक कोरियाली कुराकानी गर्न सक्नुहुन्छ!",de:"Nach diesem Schritt können Sie alltägliche Gespräche auf Koreanisch führen!"},
-        items:[
-          { char:"말",    word:"말",    meaning:{ko:"말",    vi:"lời nói",zh:"话语",en:"word/speech",ja:"言葉",id:"kata",ru:"слово",th:"คำพูด",mn:"үг",uz:"so'z",es:"word/speech"} },
-          { char:"글",    word:"글",    meaning:{ko:"글",    vi:"chữ viết",zh:"文字",en:"writing",ja:"文字",id:"tulisan",ru:"письмо",th:"การเขียน",mn:"бичиг",uz:"yozuv",es:"writing"} },
-          { char:"일",    word:"일",    meaning:{ko:"일",    vi:"công việc",zh:"工作",en:"work/job",ja:"仕事",id:"pekerjaan",ru:"работа",th:"งาน",mn:"ажил",uz:"ish",es:"work/job"} },
-          { char:"불",    word:"불",    meaning:{ko:"불",    vi:"lửa",zh:"火",en:"fire",ja:"火",id:"api",ru:"огонь",th:"ไฟ",mn:"гал",uz:"olov",es:"fire"} },
-          { char:"발",    word:"발",    meaning:{ko:"발",    vi:"bàn chân",zh:"脚",en:"foot",ja:"足",id:"kaki",ru:"нога/стопа",th:"เท้า",mn:"хөл",uz:"oyoq",es:"foot"} },
-          { char:"물",    word:"물",    meaning:{ko:"물",    vi:"nước",zh:"水",en:"water",ja:"水",id:"air",ru:"вода",th:"น้ำ",mn:"ус",uz:"suv",es:"water"} },
-          { char:"길",    word:"길",    meaning:{ko:"길",    vi:"đường",zh:"路",en:"road/way",ja:"道",id:"jalan",ru:"дорога",th:"ถนน",mn:"зам",uz:"yo'l",es:"road/way"} },
-          { char:"달",    word:"달",    meaning:{ko:"달",    vi:"mặt trăng",zh:"月亮",en:"moon",ja:"月",id:"bulan",ru:"луна",th:"พระจันทร์",mn:"сар",uz:"oy",es:"moon"} },
-          { char:"별",    word:"별",    meaning:{ko:"별",    vi:"ngôi sao",zh:"星星",en:"star",ja:"星",id:"bintang",ru:"звезда",th:"ดาว",mn:"од",uz:"yulduz",es:"star"} },
-          { char:"하늘",  word:"하늘",  meaning:{ko:"하늘",  vi:"bầu trời",zh:"天空",en:"sky",ja:"空",id:"langit",ru:"небо",th:"ท้องฟ้า",mn:"тэнгэр",uz:"osmon",es:"sky"} },
-          { char:"할아버지",word:"할아버지",meaning:{ko:"할아버지",vi:"ông",zh:"爷爷",en:"grandfather",ja:"おじいさん",id:"kakek",ru:"дедушка",th:"ปู่/ตา",mn:"өвөө",uz:"bobo",es:"grandfather"} },
-          { char:"할머니",word:"할머니",meaning:{ko:"할머니",vi:"bà",zh:"奶奶",en:"grandmother",ja:"おばあさん",id:"nenek",ru:"бабушка",th:"ย่า/ยาย",mn:"эмээ",uz:"buvi",es:"grandmother"} },
-          { char:"아들",  word:"아들",  meaning:{ko:"아들",  vi:"con trai",zh:"儿子",en:"son",ja:"息子",id:"anak laki-laki",ru:"сын",th:"ลูกชาย",mn:"хүү",uz:"o'g'il",es:"son"} },
-          { char:"딸",    word:"딸",    meaning:{ko:"딸",    vi:"con gái",zh:"女儿",en:"daughter",ja:"娘",id:"anak perempuan",ru:"дочь",th:"ลูกสาว",mn:"охин",uz:"qiz",es:"daughter"} },
-          { char:"경찰",  word:"경찰",  meaning:{ko:"경찰",  vi:"cảnh sát",zh:"警察",en:"policeman",ja:"警察",id:"polisi",ru:"полиция",th:"ตำรวจ",mn:"цагдаа",uz:"politsiya",es:"policeman"} },
-          { char:"계절",  word:"계절",  meaning:{ko:"계절",  vi:"mùa",zh:"季节",en:"season",ja:"季節",id:"musim",ru:"сезон",th:"ฤดูกาล",mn:"улирал",uz:"fasl",es:"season"} },
-          { char:"가을",  word:"가을",  meaning:{ko:"가을",  vi:"mùa thu",zh:"秋天",en:"fall/autumn",ja:"秋",id:"musim gugur",ru:"осень",th:"ฤดูใบไม้ร่วง",mn:"намар",uz:"kuz",es:"fall/autumn"} },
-          { char:"겨울",  word:"겨울",  meaning:{ko:"겨울",  vi:"mùa đông",zh:"冬天",en:"winter",ja:"冬",id:"musim dingin",ru:"зима",th:"ฤดูหนาว",mn:"өвөл",uz:"qish",es:"winter"} },
-          { char:"오늘",  word:"오늘",  meaning:{ko:"오늘",  vi:"hôm nay",zh:"今天",en:"today",ja:"今日",id:"hari ini",ru:"сегодня",th:"วันนี้",mn:"өнөөдөр",uz:"bugun",es:"today"} },
-          { char:"내일",  word:"내일",  meaning:{ko:"내일",  vi:"ngày mai",zh:"明天",en:"tomorrow",ja:"明日",id:"besok",ru:"завтра",th:"พรุ่งนี้",mn:"маргааш",uz:"ertaga",es:"tomorrow"} },
-          { char:"올해",  word:"올해",  meaning:{ko:"올해",  vi:"năm nay",zh:"今年",en:"this year",ja:"今年",id:"tahun ini",ru:"этот год",th:"ปีนี้",mn:"энэ жил",uz:"bu yil",es:"this year"} },
-          { char:"주말",  word:"주말",  meaning:{ko:"주말",  vi:"cuối tuần",zh:"周末",en:"weekend",ja:"週末",id:"akhir pekan",ru:"выходные",th:"สุดสัปดาห์",mn:"амралтын өдрүүд",uz:"dam olish kunlari",es:"weekend"} },
-          { char:"매일",  word:"매일",  meaning:{ko:"매일",  vi:"mỗi ngày",zh:"每天",en:"everyday",ja:"毎日",id:"setiap hari",ru:"каждый день",th:"ทุกวัน",mn:"өдөр бүр",uz:"har kuni",es:"everyday"} },
-          { char:"늘",    word:"늘",    meaning:{ko:"늘",    vi:"luôn luôn",zh:"一直",en:"always",ja:"いつも",id:"selalu",ru:"всегда",th:"เสมอ",mn:"үргэлж",uz:"doimo",es:"always"} },
-          { char:"월",    word:"월",    meaning:{ko:"월",    vi:"tháng",zh:"月",en:"month",ja:"月",id:"bulan",ru:"месяц",th:"เดือน",mn:"сар",uz:"oy",es:"month"} },
-          { char:"요일",  word:"요일",  meaning:{ko:"요일",  vi:"thứ",zh:"星期",en:"day of week",ja:"曜日",id:"hari",ru:"день недели",th:"วันในสัปดาห์",mn:"гаргийн өдөр",uz:"hafta kuni",es:"day of week"} },
-          { char:"월요일",word:"월요일",meaning:{ko:"월요일",vi:"thứ Hai",zh:"星期一",en:"Monday",ja:"月曜日",id:"Senin",ru:"понедельник",th:"วันจันทร์",mn:"Даваа",uz:"Dushanba",es:"Monday"} },
-          { char:"화요일",word:"화요일",meaning:{ko:"화요일",vi:"thứ Ba",zh:"星期二",en:"Tuesday",ja:"火曜日",id:"Selasa",ru:"вторник",th:"วันอังคาร",mn:"Мягмар",uz:"Seshanba",es:"Tuesday"} },
-          { char:"수요일",word:"수요일",meaning:{ko:"수요일",vi:"thứ Tư",zh:"星期三",en:"Wednesday",ja:"水曜日",id:"Rabu",ru:"среда",th:"วันพุธ",mn:"Лхагва",uz:"Chorshanba",es:"Wednesday"} },
-          { char:"목요일",word:"목요일",meaning:{ko:"목요일",vi:"thứ Năm",zh:"星期四",en:"Thursday",ja:"木曜日",id:"Kamis",ru:"четверг",th:"วันพฤหัสบดี",mn:"Пүрэв",uz:"Payshanba",es:"Thursday"} },
-          { char:"금요일",word:"금요일",meaning:{ko:"금요일",vi:"thứ Sáu",zh:"星期五",en:"Friday",ja:"金曜日",id:"Jumat",ru:"пятница",th:"วันศุกร์",mn:"Баасан",uz:"Juma",es:"Friday"} },
-          { char:"토요일",word:"토요일",meaning:{ko:"토요일",vi:"thứ Bảy",zh:"星期六",en:"Saturday",ja:"土曜日",id:"Sabtu",ru:"суббота",th:"วันเสาร์",mn:"Бямба",uz:"Shanba",es:"Saturday"} },
-          { char:"일요일",word:"일요일",meaning:{ko:"일요일",vi:"Chủ nhật",zh:"星期天",en:"Sunday",ja:"日曜日",id:"Minggu",ru:"воскресенье",th:"วันอาทิตย์",mn:"Ням",uz:"Yakshanba",es:"Sunday"} },
-          { char:"평일",  word:"평일",  meaning:{ko:"평일",  vi:"ngày thường",zh:"平日",en:"weekday",ja:"平日",id:"hari kerja",ru:"будни",th:"วันธรรมดา",mn:"ажлын өдөр",uz:"ish kuni",es:"weekday"} },
-          { char:"생일",  word:"생일",  meaning:{ko:"생일",  vi:"sinh nhật",zh:"生日",en:"birthday",ja:"誕生日",id:"ulang tahun",ru:"день рождения",th:"วันเกิด",mn:"төрсөн өдөр",uz:"tug'ilgan kun",es:"birthday"} },
-          { char:"명절",  word:"명절",  meaning:{ko:"명절",  vi:"ngày lễ",zh:"节日",en:"holiday",ja:"祝祭日",id:"hari raya",ru:"праздник",th:"วันหยุดเทศกาล",mn:"баяр ёслол",uz:"bayram",es:"holiday"} },
-          { char:"설(구정)",word:"설",  meaning:{ko:"설(구정)",vi:"Tết Âm lịch",zh:"春节",en:"New Year's Day",ja:"お正月",id:"Tahun Baru Imlek",ru:"Лунный Новый год",th:"ตรุษจีน",mn:"Цагаан сар",uz:"Lunar Yangi Yil",es:"New Year's Day"} },
-          { char:"공휴일",word:"공휴일",meaning:{ko:"공휴일",vi:"ngày nghỉ lễ",zh:"公休日",en:"public holiday",ja:"公休日",id:"hari libur nasional",ru:"выходной день",th:"วันหยุดราชการ",mn:"нийтийн амралт",uz:"rasmiy bayram",es:"public holiday"} },
-          { char:"휴일",  word:"휴일",  meaning:{ko:"휴일",  vi:"ngày nghỉ",zh:"休息日",en:"day off",ja:"休日",id:"hari libur",ru:"выходной",th:"วันหยุด",mn:"амралт",uz:"dam olish kuni",es:"day off"} },
-          { char:"이틀",  word:"이틀",  meaning:{ko:"이틀",  vi:"hai ngày",zh:"两天",en:"two days",ja:"二日",id:"dua hari",ru:"два дня",th:"สองวัน",mn:"хоёр өдөр",uz:"ikki kun",es:"two days"} },
-          { char:"사흘",  word:"사흘",  meaning:{ko:"사흘",  vi:"ba ngày",zh:"三天",en:"three days",ja:"三日",id:"tiga hari",ru:"три дня",th:"สามวัน",mn:"гурван өдөр",uz:"uch kun",es:"three days"} },
-          { char:"나흘",  word:"나흘",  meaning:{ko:"나흘",  vi:"bốn ngày",zh:"四天",en:"four days",ja:"四日",id:"empat hari",ru:"четыре дня",th:"สี่วัน",mn:"дөрвөн өдөр",uz:"to'rt kun",es:"four days"} },
-          { char:"열흘",  word:"열흘",  meaning:{ko:"열흘",  vi:"mười ngày",zh:"十天",en:"ten days",ja:"十日",id:"sepuluh hari",ru:"десять дней",th:"สิบวัน",mn:"арван өдөр",uz:"o'n kun",es:"ten days"} },
-          { char:"며칠",  word:"며칠",  meaning:{ko:"며칠",  vi:"mấy ngày",zh:"几天",en:"a few days",ja:"数日",id:"beberapa hari",ru:"несколько дней",th:"หลายวัน",mn:"хэдэн өдөр",uz:"bir necha kun",es:"a few days"} },
-          { char:"지하철",word:"지하철",meaning:{ko:"지하철",vi:"tàu điện ngầm",zh:"地铁",en:"subway",ja:"地下鉄",id:"kereta bawah tanah",ru:"метро",th:"รถไฟใต้ดิน",mn:"метро",uz:"metro",es:"subway"} },
-          { char:"호텔",  word:"호텔",  meaning:{ko:"호텔",  vi:"khách sạn",zh:"酒店",en:"hotel",ja:"ホテル",id:"hotel",ru:"гостиница",th:"โรงแรม",mn:"зочид буудал",uz:"mehmonxona",es:"hotel"} },
-          { char:"휴게실",word:"휴게실",meaning:{ko:"휴게실",vi:"phòng nghỉ",zh:"休息室",en:"resting room",ja:"休憩室",id:"ruang istirahat",ru:"комната отдыха",th:"ห้องพักผ่อน",mn:"амрах өрөө",uz:"dam olish xonasi",es:"resting room"} },
-          { char:"미용실",word:"미용실",meaning:{ko:"미용실",vi:"tiệm làm tóc",zh:"美容室",en:"beauty salon",ja:"ヘアサロン",id:"salon kecantikan",ru:"салон красоты",th:"ร้านทำผม",mn:"гоо засалгааны газар",uz:"go'zallik saloni",es:"beauty salon"} },
-          { char:"이발소",word:"이발소",meaning:{ko:"이발소",vi:"tiệm cắt tóc nam",zh:"理发所",en:"barber shop",ja:"床屋",id:"barbershop",ru:"мужская парикмахерская",th:"ร้านตัดผมชาย",mn:"үс засах газар",uz:"sartaroshxona",es:"barber shop"} },
-          { char:"절",    word:"절",    meaning:{ko:"절",    vi:"chùa",zh:"寺庙",en:"buddhist temple",ja:"お寺",id:"kuil Buddha",ru:"буддийский храм",th:"วัด",mn:"сүм",uz:"buddist ibodatxona",es:"buddhist temple"} },
-          { char:"시골",  word:"시골",  meaning:{ko:"시골",  vi:"nông thôn",zh:"乡村",en:"countryside",ja:"田舎",id:"pedesaan",ru:"деревня",th:"ชนบท",mn:"хөдөө",uz:"qishloq",es:"countryside"} },
-          { char:"마을",  word:"마을",  meaning:{ko:"마을",  vi:"làng",zh:"村庄",en:"town/village",ja:"村",id:"desa",ru:"посёлок",th:"หมู่บ้าน",mn:"тосгон",uz:"qishloq",es:"town/village"} },
-          { char:"교실",  word:"교실",  meaning:{ko:"교실",  vi:"phòng học",zh:"教室",en:"classroom",ja:"教室",id:"ruang kelas",ru:"аудитория",th:"ห้องเรียน",mn:"анги танхим",uz:"sinf xonasi",es:"classroom"} },
-          { char:"출석",  word:"출석",  meaning:{ko:"출석",  vi:"điểm danh",zh:"出席",en:"attendance",ja:"出席",id:"kehadiran",ru:"присутствие",th:"การเข้าเรียน",mn:"ирц",uz:"davomat",es:"attendance"} },
-          { char:"결석",  word:"결석",  meaning:{ko:"결석",  vi:"vắng mặt",zh:"缺席",en:"absence",ja:"欠席",id:"ketidakhadiran",ru:"отсутствие",th:"การขาดเรียน",mn:"тасалгаа",uz:"darsdan qolish",es:"absence"} },
-          { char:"생물",  word:"생물",  meaning:{ko:"생물",  vi:"sinh vật",zh:"生物",en:"biology",ja:"生物",id:"biologi",ru:"живое существо",th:"ชีววิทยา",mn:"амьд биет",uz:"biologiya",es:"biology"} },
-          { char:"글씨",  word:"글씨",  meaning:{ko:"글씨",  vi:"chữ viết",zh:"字体",en:"handwriting",ja:"字",id:"tulisan tangan",ru:"почерк",th:"ลายมือ",mn:"гар бичмэл",uz:"qo'l yozuvi",es:"handwriting"} },
-          { char:"졸업",  word:"졸업",  meaning:{ko:"졸업",  vi:"tốt nghiệp",zh:"毕业",en:"graduation",ja:"卒業",id:"kelulusan",ru:"окончание",th:"จบการศึกษา",mn:"төгсөлт",uz:"bitirish",es:"graduation"} },
-          { char:"졸업여행",word:"졸업여행",meaning:{ko:"졸업여행",vi:"du lịch tốt nghiệp",zh:"毕业旅行",en:"graduation trip",ja:"卒業旅行",id:"perjalanan kelulusan",ru:"выпускное путешествие",th:"ทริปจบการศึกษา",mn:"төгсөлтийн аялал",uz:"bitirish sayohati",es:"graduation trip"} },
-          { char:"거실",  word:"거실",  meaning:{ko:"거실",  vi:"phòng khách",zh:"客厅",en:"living room",ja:"リビング",id:"ruang tamu",ru:"гостиная",th:"ห้องนั่งเล่น",mn:"зочны өрөө",uz:"mehmonxona",es:"living room"} },
-          { char:"화장실",word:"화장실",meaning:{ko:"화장실",vi:"phòng vệ sinh",zh:"洗手间",en:"restroom",ja:"トイレ",id:"kamar mandi",ru:"туалет",th:"ห้องน้ำ",mn:"угаалгын өрөө",uz:"hojatxona",es:"restroom"} },
-          { char:"빨래",  word:"빨래",  meaning:{ko:"빨래",  vi:"giặt giũ",zh:"洗衣",en:"laundry/wash",ja:"洗濯",id:"mencuci pakaian",ru:"стирка",th:"ซักผ้า",mn:"хувцас угаах",uz:"kir yuvish",es:"laundry/wash"} },
-          { char:"설거지",word:"설거지",meaning:{ko:"설거지",vi:"rửa chén",zh:"洗碗",en:"dish-washing",ja:"食器洗い",id:"mencuci piring",ru:"мытьё посуды",th:"ล้างจาน",mn:"аяга таваг угаах",uz:"idish yuvish",es:"dish-washing"} },
-          { char:"다림질",word:"다림질",meaning:{ko:"다림질",vi:"là quần áo",zh:"熨烫",en:"ironing",ja:"アイロンがけ",id:"menyetrika",ru:"глажение",th:"รีดผ้า",mn:"хувцас тэгшлэх",uz:"dazmol bosish",es:"ironing"} },
-          { char:"양치질",word:"양치질",meaning:{ko:"양치질",vi:"đánh răng",zh:"刷牙",en:"tooth brushing",ja:"歯磨き",id:"menyikat gigi",ru:"чистка зубов",th:"แปรงฟัน",mn:"шүд угаах",uz:"tish yuvish",es:"tooth brushing"} },
-          { char:"거울",  word:"거울",  meaning:{ko:"거울",  vi:"gương",zh:"镜子",en:"mirror",ja:"鏡",id:"cermin",ru:"зеркало",th:"กระจก",mn:"толь",uz:"ko'zgu",es:"mirror"} },
-          { char:"열쇠",  word:"열쇠",  meaning:{ko:"열쇠",  vi:"chìa khóa",zh:"钥匙",en:"key",ja:"鍵",id:"kunci",ru:"ключ",th:"กุญแจ",mn:"түлхүүр",uz:"kalit",es:"key"} },
-          { char:"귀걸이",word:"귀걸이",meaning:{ko:"귀걸이",vi:"bông tai",zh:"耳环",en:"earring",ja:"イヤリング",id:"anting",ru:"серьги",th:"ต่างหู",mn:"чихний чимэг",uz:"isirg'a",es:"earring"} },
-          { char:"달력",  word:"달력",  meaning:{ko:"달력",  vi:"tờ lịch",zh:"日历",en:"calendar",ja:"カレンダー",id:"kalender",ru:"календарь",th:"ปฏิทิน",mn:"хуанли",uz:"taqvim",es:"calendar"} },
-          { char:"앨범",  word:"앨범",  meaning:{ko:"앨범",  vi:"album",zh:"相册",en:"album",ja:"アルバム",id:"album",ru:"альбом",th:"อัลบั้ม",mn:"цомог",uz:"albom",es:"album"} },
-          { char:"이불",  word:"이불",  meaning:{ko:"이불",  vi:"chăn",zh:"被子",en:"bedding/comforter",ja:"布団",id:"selimut",ru:"одеяло",th:"ผ้าห่ม",mn:"хөнжил",uz:"ko'rpa",es:"bedding/comforter"} },
-          { char:"줄",    word:"줄",    meaning:{ko:"줄",    vi:"sợi dây",zh:"绳子/线",en:"string/line",ja:"ロープ/線",id:"tali",ru:"верёвка",th:"เชือก",mn:"утас",uz:"ip",es:"string/line"} },
-          { char:"외출",  word:"외출",  meaning:{ko:"외출",  vi:"ra ngoài",zh:"外出",en:"going out",ja:"外出",id:"keluar",ru:"выход",th:"ออกนอกบ้าน",mn:"гадагш гарах",uz:"chiqish",es:"going out"} },
-          { char:"출구",  word:"출구",  meaning:{ko:"출구",  vi:"lối ra",zh:"出口",en:"exit",ja:"出口",id:"pintu keluar",ru:"выход",th:"ทางออก",mn:"гарц",uz:"chiqish",es:"exit"} },
-          { char:"출입구",word:"출입구",meaning:{ko:"출입구",vi:"lối ra vào",zh:"出入口",en:"entrance/exit",ja:"出入り口",id:"pintu masuk/keluar",ru:"вход и выход",th:"ทางเข้าออก",mn:"орц гарц",uz:"kirish-chiqish",es:"entrance/exit"} },
-          { char:"테이블",word:"테이블",meaning:{ko:"테이블",vi:"bàn",zh:"桌子",en:"table",ja:"テーブル",id:"meja",ru:"стол",th:"โต๊ะ",mn:"ширээ",uz:"stol",es:"table"} },
-          { char:"양말",  word:"양말",  meaning:{ko:"양말",  vi:"tất",zh:"袜子",en:"socks",ja:"靴下",id:"kaus kaki",ru:"носки",th:"ถุงเท้า",mn:"оймс",uz:"paypoq",es:"socks"} },
-          { char:"목걸이",word:"목걸이",meaning:{ko:"목걸이",vi:"dây chuyền",zh:"项链",en:"necklace",ja:"ネックレス",id:"kalung",ru:"цепочка",th:"สร้อยคอ",mn:"зүүлт",uz:"bo'yinbog'",es:"necklace"} },
-          { char:"블라우스",word:"블라우스",meaning:{ko:"블라우스",vi:"áo sơ mi nữ",zh:"女衬衫",en:"blouse",ja:"ブラウス",id:"blus",ru:"блуза",th:"เสื้อผู้หญิง",mn:"блуз",uz:"bluzka",es:"blouse"} },
-          { char:"얼굴",  word:"얼굴",  meaning:{ko:"얼굴",  vi:"khuôn mặt",zh:"脸",en:"face",ja:"顔",id:"wajah",ru:"лицо",th:"ใบหน้า",mn:"нүүр",uz:"yuz",es:"face"} },
-          { char:"입술",  word:"입술",  meaning:{ko:"입술",  vi:"môi",zh:"嘴唇",en:"lip",ja:"唇",id:"bibir",ru:"губы",th:"ริมฝีปาก",mn:"уруул",uz:"lab",es:"lip"} },
-          { char:"팔",    word:"팔",    meaning:{ko:"팔",    vi:"cánh tay",zh:"胳膊",en:"arm",ja:"腕",id:"lengan",ru:"рука",th:"แขน",mn:"гар",uz:"qo'l",es:"arm"} },
-          { char:"팔꿈치",word:"팔꿈치",meaning:{ko:"팔꿈치",vi:"khuỷu tay",zh:"肘部",en:"elbow",ja:"肘",id:"siku",ru:"локоть",th:"ข้อศอก",mn:"тохой",uz:"tirsak",es:"elbow"} },
-          { char:"발목",  word:"발목",  meaning:{ko:"발목",  vi:"cổ chân",zh:"脚踝",en:"ankle",ja:"足首",id:"pergelangan kaki",ru:"лодыжка",th:"ข้อเท้า",mn:"шагай",uz:"to'piq",es:"ankle"} },
-          { char:"발등",  word:"발등",  meaning:{ko:"발등",  vi:"mu bàn chân",zh:"脚背",en:"top of foot",ja:"足の甲",id:"punggung kaki",ru:"верхняя часть ступни",th:"หลังเท้า",mn:"хөлийн дээд хэсэг",uz:"oyoq usti",es:"top of foot"} },
-          { char:"발바닥",word:"발바닥",meaning:{ko:"발바닥",vi:"lòng bàn chân",zh:"脚底",en:"sole of foot",ja:"足の裏",id:"telapak kaki",ru:"ступня",th:"ฝ่าเท้า",mn:"хөлийн ул",uz:"oyoq kaftи",es:"sole of foot"} },
-          { char:"발가락",word:"발가락",meaning:{ko:"발가락",vi:"ngón chân",zh:"脚趾",en:"toe",ja:"足の指",id:"jari kaki",ru:"палец ноги",th:"นิ้วเท้า",mn:"хурууны",uz:"oyoq barmog'i",es:"toe"} },
-          { char:"발톱",  word:"발톱",  meaning:{ko:"발톱",  vi:"móng chân",zh:"脚趾甲",en:"toenail",ja:"足の爪",id:"kuku kaki",ru:"ноготь на пальце ноги",th:"เล็บเท้า",mn:"хөлийн хумс",uz:"oyoq tirnog'i",es:"toenail"} },
-          { char:"귤",    word:"귤",    meaning:{ko:"귤",    vi:"quít",zh:"橘子",en:"mandarin",ja:"みかん",id:"jeruk mandarin",ru:"мандарин",th:"ส้มแมนดาริน",mn:"хандгайн жимс",uz:"mandarin",es:"mandarin"} },
-          { char:"파인애플",word:"파인애플",meaning:{ko:"파인애플",vi:"quả thơm",zh:"菠萝",en:"pineapple",ja:"パイナップル",id:"nanas",ru:"ананас",th:"สับปะรด",mn:"ананас",uz:"ananas",es:"pineapple"} },
-          { char:"불고기",word:"불고기",meaning:{ko:"불고기",vi:"thịt bò xào",zh:"烤牛肉",en:"bulgogi/beef",ja:"プルゴギ",id:"bulgogi",ru:"пулькоги",th:"บุลโกกิ",mn:"булгоги",uz:"bulgogi",es:"bulgogi/beef"} },
-          { char:"갈비탕",word:"갈비탕",meaning:{ko:"갈비탕",vi:"canh sườn bò",zh:"排骨汤",en:"beef-rib soup",ja:"カルビタン",id:"sup iga sapi",ru:"суп из говяжьих рёбер",th:"ซุปซี่โครงวัว",mn:"хавиргатай шөл",uz:"qovurg'a sho'rvasi",es:"beef-rib soup"} },
-          { char:"칼국수",word:"칼국수",meaning:{ko:"칼국수",vi:"mì cắt",zh:"刀削面",en:"knife-cut noodles",ja:"カルグクス",id:"mie pisau",ru:"лапша домашняя",th:"ราเม็งมีดตัด",mn:"хутгаар тайрсан гоймон",uz:"qo'l bichim lapsha",es:"knife-cut noodles"} },
-          { char:"설렁탕",word:"설렁탕",meaning:{ko:"설렁탕",vi:"canh xương bò hầm",zh:"牛骨汤",en:"Korean beef soup",ja:"ソルロンタン",id:"sup tulang sapi",ru:"соллонтан",th:"ซุปกระดูกวัว",mn:"үхэрний ясан шөл",uz:"sollontan",es:"Korean beef soup"} },
-          { char:"일식",  word:"일식",  meaning:{ko:"일식",  vi:"món Nhật",zh:"日本料理",en:"Japanese food",ja:"和食",id:"masakan Jepang",ru:"японская кухня",th:"อาหารญี่ปุ่น",mn:"Японы хоол",uz:"Yapon taomi",es:"Japanese food"} },
-          { char:"쌀",    word:"쌀",    meaning:{ko:"쌀",    vi:"gạo",zh:"大米",en:"rice",ja:"米",id:"beras",ru:"рис",th:"ข้าวสาร",mn:"цагаан будаа",uz:"guruch",es:"rice"} },
-          { char:"밀가루",word:"밀가루",meaning:{ko:"밀가루",vi:"bột mì",zh:"面粉",en:"flour",ja:"小麦粉",id:"tepung terigu",ru:"мука",th:"แป้งสาลี",mn:"гурил",uz:"un",es:"flour"} },
-          { char:"꿀",    word:"꿀",    meaning:{ko:"꿀",    vi:"mật ong",zh:"蜂蜜",en:"honey",ja:"はちみつ",id:"madu",ru:"мёд",th:"น้ำผึ้ง",mn:"зөгийн бал",uz:"asal",es:"honey"} },
-          { char:"술",    word:"술",    meaning:{ko:"술",    vi:"rượu",zh:"酒",en:"liquor/alcohol",ja:"お酒",id:"minuman beralkohol",ru:"алкоголь",th:"แอลกอฮอล์",mn:"архи",uz:"alkogol",es:"liquor/alcohol"} },
-          { char:"콜라",  word:"콜라",  meaning:{ko:"콜라",  vi:"cola",zh:"可乐",en:"cola",ja:"コーラ",id:"cola",ru:"кола",th:"โคล่า",mn:"кола",uz:"kola",es:"cola"} },
-          { char:"텔레비전",word:"텔레비전",meaning:{ko:"텔레비전",vi:"tivi",zh:"电视",en:"television",ja:"テレビ",id:"televisi",ru:"телевизор",th:"โทรทัศน์",mn:"телевиз",uz:"televizor",es:"television"} },
-          { char:"터미널",word:"터미널",meaning:{ko:"터미널",vi:"bến xe",zh:"客运站",en:"terminal",ja:"ターミナル",id:"terminal",ru:"терминал",th:"สถานีขนส่ง",mn:"терминал",uz:"terminal",es:"terminal"} },
-          { char:"출발",  word:"출발",  meaning:{ko:"출발",  vi:"xuất phát",zh:"出发",en:"departure",ja:"出発",id:"keberangkatan",ru:"отправление",th:"ออกเดินทาง",mn:"гарах",uz:"jo'nab ketish",es:"departure"} },
-          { char:"고속전철",word:"고속전철",meaning:{ko:"고속전철",vi:"tàu điện ngầm cao tốc",zh:"高速电车",en:"rapid railway",ja:"高速電鉄",id:"kereta cepat",ru:"электричка",th:"รถไฟความเร็วสูง",mn:"хурдан цахилгаан галт тэрэг",uz:"tezkor elektr poyezd",es:"rapid railway"} },
-          { char:"일방통행",word:"일방통행",meaning:{ko:"일방통행",vi:"một chiều",zh:"单方通行",en:"one way",ja:"一方通行",id:"satu arah",ru:"одностороннее движение",th:"ทางเดียว",mn:"нэг чиглэлийн замнал",uz:"bir yo'nalishli harakat",es:"one way"} },
-          { char:"수출",  word:"수출",  meaning:{ko:"수출",  vi:"xuất khẩu",zh:"出口",en:"export",ja:"輸出",id:"ekspor",ru:"экспорт",th:"การส่งออก",mn:"экспорт",uz:"eksport",es:"export"} },
-          { char:"출장",  word:"출장",  meaning:{ko:"출장",  vi:"công tác",zh:"出差",en:"business trip",ja:"出張",id:"perjalanan bisnis",ru:"командировка",th:"เดินทางเพื่อธุรกิจ",mn:"томилолт",uz:"xizmat safari",es:"business trip"} },
-          { char:"월급",  word:"월급",  meaning:{ko:"월급",  vi:"lương tháng",zh:"月薪",en:"monthly salary",ja:"月給",id:"gaji bulanan",ru:"зарплата",th:"เงินเดือน",mn:"сарын цалин",uz:"oylik maosh",es:"monthly salary"} },
-          { char:"사무실",word:"사무실",meaning:{ko:"사무실",vi:"văn phòng",zh:"办公室",en:"office",ja:"事務所",id:"kantor",ru:"офис",th:"สำนักงาน",mn:"оффис",uz:"ofis",es:"office"} },
-          { char:"수술실",word:"수술실",meaning:{ko:"수술실",vi:"phòng phẫu thuật",zh:"手术室",en:"operating room",ja:"手術室",id:"ruang operasi",ru:"операционная",th:"ห้องผ่าตัด",mn:"мэс заслын өрөө",uz:"jarrohlik xonasi",es:"operating room"} },
-          { char:"회복실",word:"회복실",meaning:{ko:"회복실",vi:"phòng hồi sức",zh:"恢复室",en:"recovery room",ja:"回復室",id:"ruang pemulihan",ru:"реанимационная палата",th:"ห้องพักฟื้น",mn:"сэргэлтийн өрөө",uz:"tiklanish xonasi",es:"recovery room"} },
-          { char:"배탈",  word:"배탈",  meaning:{ko:"배탈",  vi:"rối loạn tiêu hóa",zh:"胃肠不适",en:"stomach disorder",ja:"腹痛",id:"sakit perut",ru:"расстройство желудка",th:"ท้องเสีย",mn:"гэдэс өвдөх",uz:"oshqozon buzilishi",es:"stomach disorder"} },
-          { char:"설사",  word:"설사",  meaning:{ko:"설사",  vi:"tiêu chảy",zh:"腹泻",en:"diarrhea",ja:"下痢",id:"diare",ru:"диарея",th:"ท้องเสีย",mn:"суулга",uz:"ich ketish",es:"diarrhea"} },
-          { char:"열",    word:"열",    meaning:{ko:"열",    vi:"sốt",zh:"发烧",en:"fever",ja:"熱",id:"demam",ru:"температура",th:"ไข้",mn:"халуун",uz:"isitma",es:"fever"} },
-          { char:"몸살",  word:"몸살",  meaning:{ko:"몸살",  vi:"mệt mỏi toàn thân",zh:"全身疲劳",en:"general fatigue",ja:"倦怠感",id:"pegal linu",ru:"ломота",th:"อ่อนเพลีย",mn:"биеийн өвдөлт",uz:"umumiy charchoq",es:"general fatigue"} },
-          { char:"이메일",word:"이메일",meaning:{ko:"이메일",vi:"email",zh:"邮件",en:"email",ja:"電子メール",id:"email",ru:"электронная почта",th:"อีเมล",mn:"и-мэйл",uz:"elektron pochta",es:"email"} },
-          { char:"일부",  word:"일부",  meaning:{ko:"일부",  vi:"một phần",zh:"一部分",en:"part",ja:"一部",id:"sebagian",ru:"часть",th:"ส่วนหนึ่ง",mn:"нэг хэсэг",uz:"bir qism",es:"part"} },
-          { char:"골프",  word:"골프",  meaning:{ko:"골프",  vi:"Golf",zh:"高尔夫",en:"golf",ja:"ゴルフ",id:"golf",ru:"гольф",th:"กอล์ฟ",mn:"гольф",uz:"golf",es:"golf"} },
-          { char:"달리기",word:"달리기",meaning:{ko:"달리기",vi:"chạy",zh:"跑步",en:"running",ja:"走り",id:"lari",ru:"бег",th:"การวิ่ง",mn:"гүйлт",uz:"yugurish",es:"running"} },
-          { char:"볼링",  word:"볼링",  meaning:{ko:"볼링",  vi:"bowling",zh:"保龄球",en:"bowling",ja:"ボーリング",id:"bowling",ru:"боулинг",th:"โบว์ลิ่ง",mn:"боулинг",uz:"bouling",es:"bowling"} },
-          { char:"예술",  word:"예술",  meaning:{ko:"예술",  vi:"nghệ thuật",zh:"艺术",en:"art",ja:"芸術",id:"seni",ru:"искусство",th:"ศิลปะ",mn:"урлаг",uz:"san'at",es:"art"} },
-          { char:"미술",  word:"미술",  meaning:{ko:"미술",  vi:"mỹ thuật",zh:"美术",en:"fine art",ja:"美術",id:"seni rupa",ru:"изобразительное искусство",th:"ศิลปกรรม",mn:"дүрслэх урлаг",uz:"tasviriy san'at",es:"fine art"} },
-          { char:"클래식",word:"클래식",meaning:{ko:"클래식",vi:"nhạc cổ điển",zh:"古典音乐",en:"classical music",ja:"クラシック",id:"musik klasik",ru:"классика",th:"ดนตรีคลาสสิก",mn:"сонгодог",uz:"klassik musiqa",es:"classical music"} },
-          { char:"뮤지컬",word:"뮤지컬",meaning:{ko:"뮤지컬",vi:"nhạc kịch",zh:"音乐剧",en:"musical",ja:"ミュージカル",id:"musikal",ru:"мюзикл",th:"ละครเพลง",mn:"мюзикл",uz:"musiqiy spektakl",es:"musical"} },
-          { char:"소설",  word:"소설",  meaning:{ko:"소설",  vi:"tiểu thuyết",zh:"小说",en:"novel",ja:"小説",id:"novel",ru:"роман",th:"นิยาย",mn:"роман",uz:"roman",es:"novel"} },
-          { char:"결제",  word:"결제",  meaning:{ko:"결제",  vi:"thanh toán",zh:"结账",en:"payment",ja:"決済",id:"pembayaran",ru:"оплата",th:"การชำระเงิน",mn:"төлбөр",uz:"to'lov",es:"payment"} },
-          { char:"대출",  word:"대출",  meaning:{ko:"대출",  vi:"cho vay",zh:"贷款",en:"loan",ja:"貸し出し",id:"pinjaman",ru:"ссуда",th:"เงินกู้",mn:"зээл",uz:"qarz",es:"loan"} },
-          { char:"달러",  word:"달러",  meaning:{ko:"달러",  vi:"đô la",zh:"美元",en:"dollar",ja:"ドル",id:"dolar",ru:"доллар",th:"ดอลลาร์",mn:"доллар",uz:"dollar",es:"dollar"} },
-          { char:"얼룩말",word:"얼룩말",meaning:{ko:"얼룩말",vi:"ngựa vằn",zh:"斑马",en:"zebra",ja:"シマウマ",id:"zebra",ru:"зебра",th:"ม้าลาย",mn:"тахь",uz:"zebra",es:"zebra"} },
-          { char:"올챙이",word:"올챙이",meaning:{ko:"올챙이",vi:"con nòng nọc",zh:"蝌蚪",en:"tadpole",ja:"オタマジャクシ",id:"kecebong",ru:"головастик",th:"ลูกอ๊อด",mn:"мэлхий бага",uz:"qurbaqa bolasi",es:"tadpole"} },
-          { char:"동물",  word:"동물",  meaning:{ko:"동물",  vi:"động vật",zh:"动物",en:"animal",ja:"動物",id:"hewan",ru:"животное",th:"สัตว์",mn:"амьтан",uz:"hayvon",es:"animal"} },
-          { char:"미생물",word:"미생물",meaning:{ko:"미생물",vi:"vi sinh vật",zh:"微生物",en:"microbe",ja:"微生物",id:"mikroba",ru:"микроб",th:"จุลินทรีย์",mn:"бичил биетэн",uz:"mikrob",es:"microbe"} },
-          { char:"벌레",  word:"벌레",  meaning:{ko:"벌레",  vi:"sâu bọ",zh:"虫子",en:"insect/bug",ja:"虫",id:"serangga",ru:"насекомое",th:"แมลง",mn:"хорхой",uz:"hasharot",es:"insect/bug"} },
-          { char:"물고기",word:"물고기",meaning:{ko:"물고기",vi:"con cá",zh:"鱼",en:"fish",ja:"魚",id:"ikan",ru:"рыба",th:"ปลา",mn:"загас",uz:"baliq",es:"fish"} },
-          { char:"굴",    word:"굴",    meaning:{ko:"굴",    vi:"con hàu",zh:"牡蛎",en:"oyster",ja:"カキ",id:"tiram",ru:"устрица",th:"หอยนางรม",mn:"хясаа",uz:"mollyuska",es:"oyster"} },
-          { char:"식물",  word:"식물",  meaning:{ko:"식물",  vi:"thực vật",zh:"植物",en:"plant",ja:"植物",id:"tanaman",ru:"растение",th:"พืช",mn:"ургамал",uz:"o'simlik",es:"plant"} },
-          { char:"풀",    word:"풀",    meaning:{ko:"풀",    vi:"cỏ",zh:"草",en:"grass",ja:"草",id:"rumput",ru:"трава",th:"หญ้า",mn:"өвс",uz:"o't",es:"grass"} },
-          { char:"줄기",  word:"줄기",  meaning:{ko:"줄기",  vi:"thân cây",zh:"茎",en:"stem",ja:"茎",id:"batang",ru:"стебель",th:"ก้านต้นไม้",mn:"иш",uz:"poya",es:"stem"} },
-          { char:"열매",  word:"열매",  meaning:{ko:"열매",  vi:"quả",zh:"果实",en:"fruit",ja:"実",id:"buah",ru:"плод",th:"ผลไม้",mn:"жимс",uz:"meva",es:"fruit"} },
-          { char:"날씨",  word:"날씨",  meaning:{ko:"날씨",  vi:"thời tiết",zh:"天气",en:"weather",ja:"天気",id:"cuaca",ru:"погода",th:"สภาพอากาศ",mn:"цаг агаар",uz:"ob-havo",es:"weather"} },
-          { char:"열대",  word:"열대",  meaning:{ko:"열대",  vi:"nhiệt đới",zh:"热带",en:"tropics",ja:"熱帯",id:"tropis",ru:"тропики",th:"เขตร้อน",mn:"халуун бүс",uz:"tropik",es:"tropics"} },
-          { char:"아열대",word:"아열대",meaning:{ko:"아열대",vi:"cận nhiệt đới",zh:"亚热带",en:"subtropical",ja:"亜熱帯",id:"subtropis",ru:"субтропический",th:"กึ่งเขตร้อน",mn:"дулаан бүс",uz:"subtropik",es:"subtropical"} },
-          { char:"해일",  word:"해일",  meaning:{ko:"해일",  vi:"sóng thần",zh:"海啸",en:"tsunami",ja:"津波",id:"tsunami",ru:"цунами",th:"สึนามิ",mn:"далайн давалгаа",uz:"tsunami",es:"tsunami"} },
-          { char:"돌",    word:"돌",    meaning:{ko:"돌",    vi:"hòn đá",zh:"石头",en:"stone",ja:"石",id:"batu",ru:"камень",th:"หิน",mn:"чулуу",uz:"tosh",es:"stone"} },
-          { char:"독일",  word:"독일",  meaning:{ko:"독일",  vi:"Đức",zh:"德国",en:"Germany",ja:"ドイツ",id:"Jerman",ru:"Германия",th:"เยอรมนี",mn:"Герман",uz:"Germaniya",es:"Germany"} },
-          { char:"이탈리아",word:"이탈리아",meaning:{ko:"이탈리아",vi:"Italy",zh:"意大利",en:"Italy",ja:"イタリア",id:"Italia",ru:"Италия",th:"อิตาลี",mn:"Итали",uz:"Italiya",es:"Italy"} },
-          { char:"몽골",  word:"몽골",  meaning:{ko:"몽골",  vi:"Mông Cổ",zh:"蒙古",en:"Mongolia",ja:"モンゴル",id:"Mongolia",ru:"Монголия",th:"มองโกเลีย",mn:"Монгол",uz:"Mo'g'uliston",es:"Mongolia"} },
-          { char:"네팔",  word:"네팔",  meaning:{ko:"네팔",  vi:"Nepal",zh:"尼泊尔",en:"Nepal",ja:"ネパール",id:"Nepal",ru:"Непал",th:"เนปาล",mn:"Непал",uz:"Nepal",es:"Nepal"} },
-          { char:"방글라데시",word:"방글라데시",meaning:{ko:"방글라데시",vi:"Bangladesh",zh:"孟加拉国",en:"Bangladesh",ja:"バングラデシュ",id:"Bangladesh",ru:"Бангладеш",th:"บังกลาเทศ",mn:"Бангладеш",uz:"Bangladesh",es:"Bangladesh"} },
-          { char:"말레이시아",word:"말레이시아",meaning:{ko:"말레이시아",vi:"Malaysia",zh:"马来西亚",en:"Malaysia",ja:"マレーシア",id:"Malaysia",ru:"Малайзия",th:"มาเลเซีย",mn:"Малайз",uz:"Malayziya",es:"Malaysia"} },
-          { char:"브라질",word:"브라질",meaning:{ko:"브라질",vi:"Brazil",zh:"巴西",en:"Brazil",ja:"ブラジル",id:"Brasil",ru:"Бразилия",th:"บราซิล",mn:"Бразил",uz:"Braziliya",es:"Brazil"} },
-          { char:"칠레",  word:"칠레",  meaning:{ko:"칠레",  vi:"Chile",zh:"智利",en:"Chile",ja:"チリ",id:"Chili",ru:"Чили",th:"ชิลี",mn:"Чили",uz:"Chili",es:"Chile"} },
-          { char:"서울",  word:"서울",  meaning:{ko:"서울",  vi:"Seoul",zh:"首尔",en:"Seoul",ja:"ソウル",id:"Seoul",ru:"Сеул",th:"โซล",mn:"Сеул",uz:"Seul",es:"Seoul"} },
-          { char:"마닐라",word:"마닐라",meaning:{ko:"마닐라",vi:"Manila",zh:"马尼拉",en:"Manila",ja:"マニラ",id:"Manila",ru:"Манила",th:"มะนิลา",mn:"Манила",uz:"Manila",es:"Manila"} },
-          { char:"색깔",  word:"색깔",  meaning:{ko:"색깔",  vi:"màu sắc",zh:"颜色",en:"color",ja:"色",id:"warna",ru:"цвет",th:"สี",mn:"өнгө",uz:"rang",es:"color"} },
-          { char:"갈색",  word:"갈색",  meaning:{ko:"갈색",  vi:"màu nâu",zh:"棕色",en:"brown",ja:"茶色",id:"coklat",ru:"коричневый",th:"สีน้ำตาล",mn:"хүрэн",uz:"jigarrang",es:"brown"} },
-          { char:"하늘색",word:"하늘색",meaning:{ko:"하늘색",vi:"màu xanh da trời",zh:"天蓝色",en:"sky blue",ja:"スカイブルー",id:"biru langit",ru:"голубой",th:"สีฟ้า",mn:"тэнгэрийн цэнхэр",uz:"osmon rangi",es:"sky blue"} },
-          { char:"그들",  word:"그들",  meaning:{ko:"그들",  vi:"họ",zh:"他们",en:"they",ja:"彼ら",id:"mereka",ru:"они",th:"พวกเขา",mn:"тэд",uz:"ular",es:"they"} },
-          { char:"둘",    word:"둘",    meaning:{ko:"둘",    vi:"hai",zh:"二",en:"two",ja:"二",id:"dua",ru:"два",th:"สอง",mn:"хоёр",uz:"ikki",es:"two"} },
-          { char:"일곱",  word:"일곱",  meaning:{ko:"일곱",  vi:"bảy",zh:"七",en:"seven",ja:"七",id:"tujuh",ru:"семь",th:"เจ็ด",mn:"долоо",uz:"yetti",es:"seven"} },
-          { char:"열",    word:"열",    meaning:{ko:"열",    vi:"mười",zh:"十",en:"ten",ja:"十",id:"sepuluh",ru:"десять",th:"สิบ",mn:"арав",uz:"o'n",es:"ten"} },
-          { char:"하나(일)",word:"일",  meaning:{ko:"일(하나)",vi:"một",zh:"一",en:"one",ja:"一",id:"satu",ru:"один",th:"หนึ่ง",mn:"нэг",uz:"bir",es:"one"} },
-          { char:"절제",  word:"절제",  meaning:{ko:"절제",  vi:"tiết chế",zh:"节制",en:"moderation",ja:"節制",id:"pengekangan diri",ru:"сдержанность",th:"ความพอดี",mn:"дэнчин",uz:"o'zini tuta bilish",es:"moderation"} },
-          { char:"결과",  word:"결과",  meaning:{ko:"결과",  vi:"kết quả",zh:"结果",en:"result",ja:"結果",id:"hasil",ru:"результат",th:"ผลลัพธ์",mn:"үр дүн",uz:"natija",es:"result"} },
-          { char:"필요",  word:"필요",  meaning:{ko:"필요",  vi:"cần thiết",zh:"必要",en:"necessity",ja:"必要",id:"keperluan",ru:"необходимость",th:"ความจำเป็น",mn:"хэрэгцээ",uz:"zaruratlilik",es:"necessity"} },
-          { char:"칼",    word:"칼",    meaning:{ko:"칼",    vi:"con dao",zh:"刀",en:"knife",ja:"ナイフ",id:"pisau",ru:"нож",th:"มีด",mn:"хутга",uz:"pichoq",es:"knife"} },
-          { char:"틀리다",word:"틀리다",meaning:{ko:"틀리다",vi:"sai",zh:"错误",en:"wrong",ja:"間違う",id:"salah",ru:"неверный",th:"ผิด",mn:"буруу",uz:"noto'g'ri",es:"wrong"} },
-          { char:"슬프다",word:"슬프다",meaning:{ko:"슬프다",vi:"buồn",zh:"悲伤",en:"sad",ja:"悲しい",id:"sedih",ru:"грустный",th:"เศร้า",mn:"гунигтай",uz:"qayg'uli",es:"sad"} },
-          { char:"불쌍하다",word:"불쌍하다",meaning:{ko:"불쌍하다",vi:"đáng thương",zh:"可怜",en:"pitiful",ja:"かわいそうだ",id:"menyedihkan",ru:"жалкий",th:"น่าสงสาร",mn:"гомдолтой",uz:"achinarli",es:"pitiful"} },
-          { char:"힘들다",word:"힘들다",meaning:{ko:"힘들다",vi:"vất vả",zh:"辛苦",en:"hard/tiring",ja:"大変だ",id:"melelahkan",ru:"тяжёлый",th:"ยากลำบาก",mn:"хэцүү",uz:"qiyin",es:"hard/tiring"} },
-          { char:"특별하다",word:"특별하다",meaning:{ko:"특별하다",vi:"đặc biệt",zh:"特别",en:"special",ja:"特別だ",id:"istimewa",ru:"особый",th:"พิเศษ",mn:"онцгой",uz:"maxsus",es:"special"} },
-          { char:"훌륭하다",word:"훌륭하다",meaning:{ko:"훌륭하다",vi:"xuất sắc",zh:"优秀",en:"excellent",ja:"立派だ",id:"luar biasa",ru:"превосходный",th:"ยอดเยี่ยม",mn:"гайхалтай",uz:"ajoyib",es:"excellent"} },
-          { char:"늘다",  word:"늘다",  meaning:{ko:"늘다",  vi:"gia tăng",zh:"增加",en:"increase",ja:"増える",id:"meningkat",ru:"возрастать",th:"เพิ่มขึ้น",mn:"нэмэгдэх",uz:"oshmoq",es:"increase"} },
-          { char:"가늘다",word:"가늘다",meaning:{ko:"가늘다",vi:"mảnh mai",zh:"纤细",en:"thin/slender",ja:"細い",id:"tipis",ru:"тонкий",th:"เรียว",mn:"нарийн",uz:"ingichka",es:"thin/slender"} },
-          { char:"달다",  word:"달다",  meaning:{ko:"달다",  vi:"ngọt",zh:"甜",en:"sweet",ja:"甘い",id:"manis",ru:"сладкий",th:"หวาน",mn:"чихэрлэг",uz:"shirin",es:"sweet"} },
-          { char:"졸다",  word:"졸다",  meaning:{ko:"졸다",  vi:"ngủ gật",zh:"打瞌睡",en:"doze",ja:"居眠りする",id:"mengantuk",ru:"дремать",th:"หาวนอน",mn:"нойрмоглох",uz:"mudrash",es:"doze"} },
-          { char:"일어나다",word:"일어나다",meaning:{ko:"일어나다",vi:"đứng dậy",zh:"起床/站起来",en:"stand up/rise",ja:"起き上がる",id:"bangun",ru:"вставать",th:"ลุกขึ้น",mn:"босох",uz:"turmoq",es:"stand up/rise"} },
-          { char:"들어가다",word:"들어가다",meaning:{ko:"들어가다",vi:"đi vào",zh:"进入",en:"enter",ja:"入る",id:"masuk",ru:"войти",th:"เข้าไป",mn:"орох",uz:"kirmoq",es:"enter"} },
-          { char:"올라가다",word:"올라가다",meaning:{ko:"올라가다",vi:"đi lên",zh:"上去",en:"go up/rise",ja:"上がる",id:"naik",ru:"подниматься",th:"ขึ้นไป",mn:"өгсөх",uz:"ko'tarilmoq",es:"go up/rise"} },
-          { char:"달리다",word:"달리다", meaning:{ko:"달리다",vi:"chạy",zh:"奔跑",en:"run",ja:"走る",id:"berlari",ru:"бежать",th:"วิ่ง",mn:"гүйх",uz:"yugurmoq",es:"run"} },
-          { char:"날다",  word:"날다",  meaning:{ko:"날다",  vi:"bay",zh:"飞",en:"fly",ja:"飛ぶ",id:"terbang",ru:"лететь",th:"บิน",mn:"нисэх",uz:"uchmoq",es:"fly"} },
-          { char:"열다",  word:"열다",  meaning:{ko:"열다",  vi:"mở",zh:"打开",en:"open",ja:"開ける",id:"membuka",ru:"открывать",th:"เปิด",mn:"нээх",uz:"ochmoq",es:"open"} },
-          { char:"들다",  word:"들다",  meaning:{ko:"들다",  vi:"nâng lên",zh:"举起",en:"raise/lift",ja:"持つ",id:"mengangkat",ru:"поднимать",th:"ยกขึ้น",mn:"өргөх",uz:"ko'tarmoq",es:"raise/lift"} },
-          { char:"걸리다",word:"걸리다",meaning:{ko:"걸리다",vi:"tiêu tốn (thời gian)",zh:"花费",en:"take (time)",ja:"かかる",id:"membutuhkan",ru:"занимать время",th:"ใช้เวลา",mn:"зарцуулах",uz:"sarflamoq",es:"take (time)"} },
-          { char:"필요하다",word:"필요하다",meaning:{ko:"필요하다",vi:"cần thiết",zh:"必要",en:"necessary",ja:"必要になる",id:"diperlukan",ru:"быть необходимым",th:"จำเป็น",mn:"хэрэгтэй",uz:"zarur",es:"necessary"} },
-          { char:"빌리다",word:"빌리다",meaning:{ko:"빌리다",vi:"mượn",zh:"借用",en:"borrow",ja:"借りる",id:"meminjam",ru:"одалживать",th:"ยืม",mn:"зээлэх",uz:"qarz olmoq",es:"borrow"} },
-          { char:"일하다",word:"일하다",meaning:{ko:"일하다",vi:"làm việc",zh:"工作",en:"work",ja:"働く",id:"bekerja",ru:"работать",th:"ทำงาน",mn:"ажиллах",uz:"ishlamoq",es:"work"} },
-          { char:"만들다",word:"만들다",meaning:{ko:"만들다",vi:"tạo ra",zh:"制作",en:"make/create",ja:"作る",id:"membuat",ru:"делать",th:"สร้าง",mn:"хийх",uz:"yaratmoq",es:"make/create"} },
-          { char:"잘하다",word:"잘하다",meaning:{ko:"잘하다",vi:"làm tốt",zh:"做好",en:"do well",ja:"よくする",id:"melakukan dengan baik",ru:"делать хорошо",th:"ทำได้ดี",mn:"сайн хийх",uz:"yaxshi bajarmoq",es:"do well"} },
-          { char:"팔다",  word:"팔다",  meaning:{ko:"팔다",  vi:"bán",zh:"卖",en:"sell",ja:"売る",id:"menjual",ru:"продавать",th:"ขาย",mn:"зарах",uz:"sotmoq",es:"sell"} },
-          { char:"출발하다",word:"출발하다",meaning:{ko:"출발하다",vi:"xuất phát",zh:"出发",en:"start/depart",ja:"出発する",id:"berangkat",ru:"отправляться",th:"ออกเดินทาง",mn:"гарах",uz:"jo'nab ketmoq",es:"start/depart"} },
-          { char:"들르다",word:"들르다",meaning:{ko:"들르다",vi:"ghé vào",zh:"顺路去",en:"stop by",ja:"寄る",id:"mampir",ru:"зайти по пути",th:"แวะ",mn:"зам дахь зогсолт",uz:"yo'lda to'xtamoq",es:"stop by"} },
-          { char:"배달하다",word:"배달하다",meaning:{ko:"배달하다",vi:"giao hàng",zh:"送货",en:"deliver",ja:"配達する",id:"mengantarkan",ru:"доставлять",th:"ส่งของ",mn:"хүргэх",uz:"yetkazib bermoq",es:"deliver"} },
-          { char:"벌다",  word:"벌다",  meaning:{ko:"벌다",  vi:"kiếm tiền",zh:"赚钱",en:"earn money",ja:"稼ぐ",id:"menghasilkan",ru:"зарабатывать",th:"หาเงิน",mn:"орлого олох",uz:"pul topmoq",es:"earn money"} },
-          { char:"살다",  word:"살다",  meaning:{ko:"살다",  vi:"sống",zh:"生活",en:"live",ja:"生きる",id:"hidup",ru:"жить",th:"อาศัยอยู่",mn:"амьдрах",uz:"yashаmoq",es:"live"} },
-          { char:"물다",  word:"물다",  meaning:{ko:"물다",  vi:"cắn",zh:"咬",en:"bite",ja:"噛む",id:"menggigit",ru:"кусать",th:"กัด",mn:"хазах",uz:"tishlamoq",es:"bite"} },
-          { char:"놀라다",word:"놀라다",meaning:{ko:"놀라다",vi:"ngạc nhiên",zh:"吃惊",en:"surprise",ja:"驚く",id:"terkejut",ru:"изумляться",th:"ตกใจ",mn:"гайхах",uz:"hayron bo'lmoq",es:"surprise"} },
-          { char:"불다",  word:"불다",  meaning:{ko:"불다",  vi:"thổi",zh:"吹",en:"blow",ja:"吹く",id:"meniup",ru:"дуть",th:"เป่า",mn:"үлээх",uz:"esmoq",es:"blow"} },
-          { char:"울다",  word:"울다",  meaning:{ko:"울다",  vi:"khóc",zh:"哭",en:"cry",ja:"泣く",id:"menangis",ru:"плакать",th:"ร้องไห้",mn:"уйлах",uz:"yig'lamoq",es:"cry"} },
-          { char:"어울리다",word:"어울리다",meaning:{ko:"어울리다",vi:"phù hợp",zh:"适合",en:"fit/match",ja:"似合う",id:"cocok",ru:"подходить",th:"เข้ากันได้",mn:"тохирох",uz:"mos kelmoq",es:"fit/match"} },
-          { char:"놀다",  word:"놀다",  meaning:{ko:"놀다",  vi:"chơi",zh:"玩耍",en:"play",ja:"遊ぶ",id:"bermain",ru:"играть",th:"เล่น",mn:"тоглох",uz:"o'ynamoq",es:"play"} },
-          { char:"떠들다",word:"떠들다",meaning:{ko:"떠들다",vi:"làm ồn",zh:"吵闹",en:"make noise",ja:"騒ぐ",id:"berisik",ru:"шуметь",th:"ส่งเสียงดัง",mn:"чимээ гаргах",uz:"shovqin qilmoq",es:"make noise"} },
-          { char:"즐기다",word:"즐기다",meaning:{ko:"즐기다",vi:"tận hưởng",zh:"享受",en:"enjoy",ja:"楽しむ",id:"menikmati",ru:"наслаждаться",th:"สนุก",mn:"таашаах",uz:"zavqlanmoq",es:"enjoy"} },
-          { char:"돌다",  word:"돌다",  meaning:{ko:"돌다",  vi:"xoay vòng",zh:"旋转",en:"rotate/turn",ja:"回る",id:"berputar",ru:"крутиться",th:"หมุน",mn:"эргэх",uz:"aylanmoq",es:"rotate/turn"} },
-          { char:"틀다",  word:"틀다",  meaning:{ko:"틀다",  vi:"bật",zh:"打开(电器)",en:"turn on",ja:"つける",id:"menyalakan",ru:"включать",th:"เปิด(เครื่องใช้)",mn:"асаах",uz:"yoqmoq",es:"turn on"} },
-          { char:"떨어지다",word:"떨어지다",meaning:{ko:"떨어지다",vi:"rơi",zh:"落下",en:"fall/drop",ja:"落ちる",id:"jatuh",ru:"падать",th:"ตกลงมา",mn:"унах",uz:"tushib ketmoq",es:"fall/drop"} },
-          { char:"설거지하다",word:"설거지하다",meaning:{ko:"설거지하다",vi:"rửa chén",zh:"洗碗",en:"wash dishes",ja:"食器を洗う",id:"mencuci piring",ru:"мыть посуду",th:"ล้างจาน",mn:"аяга угаах",uz:"idish yuvmoq",es:"wash dishes"} },
-          { char:"빨래하다",word:"빨래하다",meaning:{ko:"빨래하다",vi:"giặt quần áo",zh:"洗衣服",en:"wash clothes",ja:"洗濯する",id:"mencuci pakaian",ru:"стирать",th:"ซักผ้า",mn:"хувцас угаах",uz:"kir yuvmoq",es:"wash clothes"} },
-          { char:"얼다",  word:"얼다",  meaning:{ko:"얼다",  vi:"đông lạnh",zh:"冻结",en:"freeze",ja:"凍る",id:"membeku",ru:"замерзать",th:"แข็งตัว",mn:"хөлдөх",uz:"muzlash",es:"freeze"} },
-          { char:"거절하다",word:"거절하다",meaning:{ko:"거절하다",vi:"từ chối",zh:"拒绝",en:"deny/refuse",ja:"断る",id:"menolak",ru:"отказывать",th:"ปฏิเสธ",mn:"татгалзах",uz:"rad etmoq",es:"deny/refuse"} },
-          { char:"실패하다",word:"실패하다",meaning:{ko:"실패하다",vi:"thất bại",zh:"失败",en:"fail",ja:"失敗する",id:"gagal",ru:"потерпеть поражение",th:"ล้มเหลว",mn:"бүтэлгүйтэх",uz:"muvaffaqiyatsiz bo'lmoq",es:"fail"} },
-          { char:"설명하다",word:"설명하다",meaning:{ko:"설명하다",vi:"giải thích",zh:"说明",en:"explain",ja:"説明する",id:"menjelaskan",ru:"объяснять",th:"อธิบาย",mn:"тайлбарлах",uz:"tushuntirmoq",es:"explain"} },
-          { char:"졸업하다",word:"졸업하다",meaning:{ko:"졸업하다",vi:"tốt nghiệp",zh:"毕业",en:"graduate",ja:"卒業する",id:"lulus",ru:"оканчивать",th:"จบการศึกษา",mn:"төгсөх",uz:"bitirmoq",es:"graduate"} },
-          { char:"알다",  word:"알다",  meaning:{ko:"알다",  vi:"biết",zh:"知道",en:"know",ja:"知る",id:"mengetahui",ru:"знать",th:"รู้",mn:"мэдэх",uz:"bilmoq",es:"know"} },
-          { char:"울음",  word:"울음",  meaning:{ko:"울음",  vi:"sự khóc",zh:"哭泣",en:"crying",ja:"泣き",id:"tangisan",ru:"плач",th:"การร้องไห้",mn:"уйлалт",uz:"yig'lash",es:"crying"} },
-          { char:"슬픔",  word:"슬픔",  meaning:{ko:"슬픔",  vi:"nỗi buồn",zh:"悲伤",en:"grief/sadness",ja:"悲しみ",id:"kesedihan",ru:"грусть",th:"ความเศร้า",mn:"гуниг",uz:"qayg'u",es:"grief/sadness"} },
-          { char:"절망",  word:"절망",  meaning:{ko:"절망",  vi:"tuyệt vọng",zh:"绝望",en:"despair",ja:"絶望",id:"keputusasaan",ru:"отчаяние",th:"ความสิ้นหวัง",mn:"найдваргүй байдал",uz:"umidsizlik",es:"despair"} },
-                  { char:"생활",  word:"생활",  meaning:{ko:"생활",  vi:"cuộc sống",zh:"生活",en:"life/living",ja:"生活",id:"kehidupan",ru:"жизнь",th:"ชีวิต",mn:"амьдрал",uz:"hayot",es:"life/living"} },
-                  { char:"팔(8)", word:"팔(8)", meaning:{ko:"팔(8)", vi:"tám (8)",zh:"八",en:"eight",ja:"八",id:"delapan",ru:"восемь",th:"แปด",mn:"найм",uz:"sakkiz",es:"eight"} },
-                  { char:"울부짖다",word:"울부짖다",meaning:{ko:"울부짖다",vi:"gào khóc",zh:"嚎哭",en:"wail/cry out",ja:"わめく",id:"meraung",ru:"рыдать",th:"ร้องไห้",mn:"уйлах",uz:"yig'lamoq",es:"wail/cry out"} },
-                  { char:"흘리다",word:"흘리다", meaning:{ko:"흘리다",vi:"đổ/rơi",zh:"流/洒",en:"spill/shed",ja:"こぼす",id:"menumpahkan",ru:"проливать",th:"หกหล่น",mn:"асгах",uz:"to'kmoq",es:"spill/shed"} },
-                  { char:"갈다",  word:"갈다",  meaning:{ko:"갈다",  vi:"mài/thay",zh:"磨/换",en:"grind/replace",ja:"갈다",id:"menggiling",ru:"менять",th:"เปลี่ยน/บด",mn:"солих",uz:"almashmoq",es:"grind/replace"} },
-                  { char:"걸다",  word:"걸다",  meaning:{ko:"걸다",  vi:"treo/gọi",zh:"挂/打电话",en:"hang/call",ja:"掛ける",id:"menggantung",ru:"вешать",th:"แขวน/โทร",mn:"өлгөх",uz:"osmoq",es:"hang/call"} },
-                  { char:"풀다",  word:"풀다",  meaning:{ko:"풀다",  vi:"tháo/giải",zh:"解开",en:"untie/solve",ja:"解く",id:"membuka",ru:"развязывать",th:"แก้/คลาย",mn:"тайлах",uz:"yechmoq",es:"untie/solve"} },
-                  { char:"밀다",  word:"밀다",  meaning:{ko:"밀다",  vi:"đẩy",zh:"推",en:"push",ja:"押す",id:"mendorong",ru:"толкать",th:"ดัน",mn:"түлхэх",uz:"itarmoq",es:"push"} },
-                  { char:"끌다",  word:"끌다",  meaning:{ko:"끌다",  vi:"kéo",zh:"拉",en:"pull/drag",ja:"引く",id:"menarik",ru:"тянуть",th:"ลาก",mn:"чирэх",uz:"tortmoq",es:"pull/drag"} },
-                                ],
-        tip:{ko:"💡 [유음화] ㄹ은 혀를 입천장에 살짝 튕기는 소리예요. ㄹ+ㄴ 또는 ㄴ+ㄹ이 만나면 둘 다 [ㄹㄹ]로 발음해요! 예) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",vi:"⭐ Mốc quan trọng! Chạm nhẹ đầu lưỡi lên nướu trên, lăn âm mượt mà.",en:"⭐ Key milestone! Lightly touch your tongue tip to your upper gum and roll the sound smoothly.",zh:"💡【流音化】ㄹ是舌尖轻弹上颚发出的音。ㄹ+ㄴ或ㄴ+ㄹ相遇时都发[ㄹㄹ]音！例：설날→[설랄] 칼날→[칼랄] 일년→[일련]",ja:"💡【流音化】ㄹは舌先を上あごに軽くはじく音です。ㄹ+ㄴ、またはㄴ+ㄹが出会うと両方とも[ㄹㄹ]と発音します！例）설날→[설랄] 칼날→[칼랄] 일년→[일련]",id:"💡[Liuk/pelunakan ㄹ] ㄹ adalah bunyi lidah yang menyentil ringan langit-langit mulut. Jika ㄹ+ㄴ atau ㄴ+ㄹ bertemu, keduanya diucapkan sebagai [ㄹㄹ]! Contoh) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",ru:"💡[Латерализация] ㄹ — это звук, при котором кончик языка слегка касается нёба. Когда встречаются ㄹ+ㄴ или ㄴ+ㄹ, оба произносятся как [ㄹㄹ]! Напр.) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",th:"💡[การกลายเป็นเสียงข้าง] ㄹ คือเสียงที่ปลายลิ้นแตะเพดานปากเบา ๆ เมื่อ ㄹ+ㄴ หรือ ㄴ+ㄹ มาเจอกันจะออกเสียงเป็น [ㄹㄹ] ทั้งคู่! ตัวอย่าง) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",mn:"💡[Хажуугийн авиажилт] ㄹ бол хэлний үзүүрээр тагнайг хөнгөхөн цохих дуу авиа юм. ㄹ+ㄴ эсвэл ㄴ+ㄹ уулзвал хоёулаа [ㄹㄹ] гэж дуудагдана! Жишээ) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",uz:"💡[Yon tovushga aylanish] ㄹ — til uchini tanglayga yengil urib chiqariladigan tovush. ㄹ+ㄴ yoki ㄴ+ㄹ uchrashsa, ikkalasi ham [ㄹㄹ] deb aytiladi! Masalan) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",es:"💡[Lateralización] ㄹ es un sonido en el que la punta de la lengua roza ligeramente el paladar. ¡Cuando se encuentran ㄹ+ㄴ o ㄴ+ㄹ, ambos se pronuncian como [ㄹㄹ]! Ej.) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",fr:"💡[Latéralisation] ㄹ est un son où le bout de la langue touche légèrement le palais. Quand ㄹ+ㄴ ou ㄴ+ㄹ se rencontrent, les deux se prononcent [ㄹㄹ] ! Ex. : 설날→[설랄] 칼날→[칼랄] 일년→[일련]",ne:"💡[तरल ध्वनि परिवर्तन] ㄹ जिब्रोको टुप्पोले तालुलाई हल्का छुने ध्वनि हो। ㄹ+ㄴ वा ㄴ+ㄹ भेटिँदा दुवै [ㄹㄹ] उच्चारण हुन्छ! उदाहरण) 설날→[설랄] 칼날→[칼랄] 일년→[일련]",de:"💡[Lateralisierung] ㄹ ist ein Klang, bei dem die Zungenspitze leicht den Gaumen berührt. Treffen ㄹ+ㄴ oder ㄴ+ㄹ aufeinander, werden beide als [ㄹㄹ] ausgesprochen! Bsp.: 설날→[설랄] 칼날→[칼랄] 일년→[일련]"},
-      },
-      // ── 단계 15: 받침 ㄴ ──
-      { id:"batchim_n", type:"learn", emoji:"🧱",
-        title:{ko:"15. 받침 [ㄴ]",vi:"15. Phụ âm cuối [ㄴ]",en:"15. Final Consonant [ㄴ]",zh:"15. 收音 [ㄴ]",ja:"15. パッチム [ㄴ]",id:"15. Konsonan Akhir [ㄴ]",ru:"15. Конечная согласная [ㄴ]",th:"15. ตัวสะกด [ㄴ]",mn:"15. Төгсгөлийн гийгүүлэгч [ㄴ]",uz:"15. Oxirgi undosh [ㄴ]",es:"15. Consonante final [ㄴ]",fr:"15. Consonne finale [ㄴ]",ne:"15. अन्त्य व्यञ्जन [ㄴ]",de:"15. Endkonsonant [ㄴ]"},
-        desc:{ko:"일상 어휘로 ㄴ받침을 익힙니다.",vi:"Học phụ âm cuối ㄴ qua từ vựng hàng ngày.",en:"Learn the final consonant ㄴ through everyday vocabulary.",zh:"通过日常词汇学习ㄴ收音。",ja:"日常語彙でㄴパッチムを学びます。",id:"Pelajari konsonan akhir ㄴ melalui kosakata sehari-hari.",ru:"Изучите конечную согласную ㄴ через повседневную лексику.",th:"เรียนรู้ตัวสะกด ㄴ ผ่านคำศัพท์ในชีวิตประจำวัน",mn:"Өдөр тутмын үгсээр ㄴ төгсгөлийн гийгүүлэгчийг мэдэж авна.",uz:"Kundalik lug'at orqali ㄴ oxirgi undoshini o'rganing.",es:"Aprenda la consonante final ㄴ mediante vocabulario cotidiano.",fr:"Apprenez la consonne finale ㄴ à travers un vocabulaire du quotidien.",ne:"दैनिक शब्दहरूबाट ㄴ अन्त्य व्यञ्जन सिक्नुहोस्।",de:"Lernen Sie den Endkonsonanten ㄴ anhand von Alltagsvokabeln."},
-        items:[
-          { char:"눈",    word:"눈",    meaning:{ko:"눈",    vi:"mắt / tuyết",zh:"眼睛 / 雪",en:"eye / snow",ja:"目 / 雪",id:"mata / salju",ru:"глаз / снег",th:"ตา / หิมะ",mn:"нүд / цас",uz:"ko'z / qor",es:"eye / snow"} },
-          { char:"손",    word:"손",    meaning:{ko:"손",    vi:"bàn tay",zh:"手",en:"hand",ja:"手",id:"tangan",ru:"рука",th:"มือ",mn:"гар",uz:"qo'l",es:"hand"} },
-          { char:"문",    word:"문",    meaning:{ko:"문",    vi:"cửa",zh:"门",en:"door",ja:"ドア",id:"pintu",ru:"дверь",th:"ประตู",mn:"хаалга",uz:"eshik",es:"door"} },
-          { char:"돈",    word:"돈",    meaning:{ko:"돈",    vi:"tiền",zh:"钱",en:"money",ja:"お金",id:"uang",ru:"деньги",th:"เงิน",mn:"мөнгө",uz:"pul",es:"money"} },
-          { char:"친구",  word:"친구",  meaning:{ko:"친구",  vi:"bạn bè",zh:"朋友",en:"friend",ja:"友達",id:"teman",ru:"друг",th:"เพื่อน",mn:"найз",uz:"do'st",es:"friend"} },
-          { char:"전화",  word:"전화",  meaning:{ko:"전화",  vi:"điện thoại",zh:"电话",en:"phone",ja:"電話",id:"telepon",ru:"телефон",th:"โทรศัพท์",mn:"утас",uz:"telefon",es:"phone"} },
-          { char:"인생",  word:"인생",  meaning:{ko:"인생",  vi:"cuộc đời",zh:"人生",en:"life",ja:"人生",id:"kehidupan",ru:"жизнь",th:"ชีวิต",mn:"амьдрал",uz:"hayot",es:"life"} },
-          { char:"한국",  word:"한국",  meaning:{ko:"한국",  vi:"Hàn Quốc",zh:"韩国",en:"Korea",ja:"韓国",id:"Korea",ru:"Корея",th:"เกาหลี",mn:"Солонгос",uz:"Koreya",es:"Korea"} },
-          { char:"신발",  word:"신발",  meaning:{ko:"신발",  vi:"giày dép",zh:"鞋子",en:"shoes",ja:"靴",id:"alas kaki",ru:"обувь",th:"รองเท้า",mn:"гутал",uz:"oyoq kiyim",es:"shoes"} },
-          { char:"인간",  word:"인간",  meaning:{ko:"인간",  vi:"con người",zh:"人类",en:"human being",ja:"人間",id:"manusia",ru:"человек",th:"มนุษย์",mn:"хүн",uz:"inson",es:"human being"} },
-          { char:"반",    word:"반",    meaning:{ko:"반",    vi:"lớp học / nửa",zh:"班 / 半",en:"class / half",ja:"クラス / 半",id:"kelas / setengah",ru:"класс / половина",th:"ห้องเรียน / ครึ่ง",mn:"анги / хагас",uz:"sinf / yarmi",es:"class / half"} },
-          { char:"운동",  word:"운동",  meaning:{ko:"운동",  vi:"thể dục",zh:"运动",en:"exercise",ja:"運動",id:"olahraga",ru:"упражнение",th:"การออกกำลังกาย",mn:"дасгал",uz:"jismoniy mashq",es:"exercise"} },
-          { char:"언니",  word:"언니",  meaning:{ko:"언니",  vi:"chị (em gái gọi)",zh:"姐姐",en:"older sister",ja:"お姉さん",id:"kakak perempuan",ru:"старшая сестра",th:"พี่สาว",mn:"эгч",uz:"opa",es:"older sister"} },
-          { char:"신랑",  word:"신랑",  meaning:{ko:"신랑",  vi:"chú rể",zh:"新郎",en:"bridegroom",ja:"新郎",id:"pengantin pria",ru:"жених",th:"เจ้าบ่าว",mn:"сүйт залуу",uz:"kuyov",es:"bridegroom"} },
-          { char:"신부",  word:"신부",  meaning:{ko:"신부",  vi:"cô dâu",zh:"新娘",en:"bride",ja:"新婦",id:"pengantin wanita",ru:"невеста",th:"เจ้าสาว",mn:"сүйт бүсгүй",uz:"kelin",es:"bride"} },
-          { char:"친척",  word:"친척",  meaning:{ko:"친척",  vi:"họ hàng",zh:"亲戚",en:"relative",ja:"親戚",id:"kerabat",ru:"родственник",th:"ญาติ",mn:"төрөл",uz:"qarindosh",es:"relative"} },
-          { char:"외삼촌",word:"외삼촌",meaning:{ko:"외삼촌",vi:"cậu",zh:"舅舅",en:"uncle (mother's side)",ja:"おじさん",id:"paman",ru:"дядя по матери",th:"ลุง",mn:"нагац ах",uz:"tog'a",es:"uncle (mother's side)"} },
-          { char:"장인",  word:"장인",  meaning:{ko:"장인",  vi:"bố vợ",zh:"岳父",en:"father-in-law",ja:"義父",id:"mertua laki-laki",ru:"тесть",th:"พ่อตา",mn:"хадам эцэг",uz:"qaynota",es:"father-in-law"} },
-          { char:"남편",  word:"남편",  meaning:{ko:"남편",  vi:"chồng",zh:"丈夫",en:"husband",ja:"夫",id:"suami",ru:"муж",th:"สามี",mn:"нөхөр",uz:"er",es:"husband"} },
-          { char:"어린이",word:"어린이",meaning:{ko:"어린이",vi:"trẻ nhỏ",zh:"儿童",en:"kid/child",ja:"子供",id:"anak",ru:"дитя",th:"เด็ก",mn:"хүүхэд",uz:"bola",es:"kid/child"} },
-          { char:"청소년",word:"청소년",meaning:{ko:"청소년",vi:"thanh thiếu niên",zh:"青少年",en:"youth",ja:"青少年",id:"remaja",ru:"подросток",th:"เยาวชน",mn:"залуучууд",uz:"yoshlar",es:"youth"} },
-          { char:"청년",  word:"청년",  meaning:{ko:"청년",  vi:"thanh niên",zh:"青年",en:"young adult",ja:"青年",id:"pemuda",ru:"юноша",th:"หนุ่มสาว",mn:"залуу хүн",uz:"yigit",es:"young adult"} },
-          { char:"어른",  word:"어른",  meaning:{ko:"어른",  vi:"người lớn",zh:"成人",en:"adult",ja:"大人",id:"orang dewasa",ru:"взрослый",th:"ผู้ใหญ่",mn:"насанд хүрсэн",uz:"katta kishi",es:"adult"} },
-          { char:"노인",  word:"노인",  meaning:{ko:"노인",  vi:"người già",zh:"老人",en:"old/senior",ja:"老人",id:"orang tua",ru:"пожилой человек",th:"ผู้สูงอายุ",mn:"өндөр настан",uz:"keksa",es:"old/senior"} },
-          { char:"선배",  word:"선배",  meaning:{ko:"선배",  vi:"tiền bối",zh:"前辈",en:"senior",ja:"先輩",id:"senior",ru:"старший по учёбе",th:"รุ่นพี่",mn:"ахмад",uz:"katta kurs",es:"senior"} },
-          { char:"연인",  word:"연인",  meaning:{ko:"연인",  vi:"người yêu",zh:"情人",en:"lover",ja:"恋人",id:"kekasih",ru:"любимый человек",th:"คนรัก",mn:"хайртай хүн",uz:"sevgilisi",es:"lover"} },
-          { char:"애인",  word:"애인",  meaning:{ko:"애인",  vi:"người yêu",zh:"爱人",en:"lover",ja:"愛人",id:"pacar",ru:"возлюбленная",th:"แฟน",mn:"нөхөр/найз",uz:"sevgilisi",es:"lover"} },
-          { char:"결혼",  word:"결혼",  meaning:{ko:"결혼",  vi:"kết hôn",zh:"结婚",en:"marriage",ja:"結婚",id:"pernikahan",ru:"женитьба",th:"การแต่งงาน",mn:"гэрлэлт",uz:"nikoh",es:"marriage"} },
-          { char:"국민",  word:"국민",  meaning:{ko:"국민",  vi:"nhân dân",zh:"国民",en:"people/citizens",ja:"国民",id:"warga negara",ru:"народ",th:"ประชาชน",mn:"иргэн",uz:"xalq",es:"people/citizens"} },
-          { char:"시민",  word:"시민",  meaning:{ko:"시민",  vi:"dân thành thị",zh:"市民",en:"citizen",ja:"市民",id:"warga kota",ru:"горожанин",th:"พลเมือง",mn:"хотын иргэн",uz:"shahar fuqarosi",es:"citizen"} },
-          { char:"주인",  word:"주인",  meaning:{ko:"주인",  vi:"chủ nhà",zh:"主人",en:"host/owner",ja:"主人",id:"pemilik",ru:"хозяин",th:"เจ้าของ",mn:"эзэн",uz:"ega",es:"host/owner"} },
-          { char:"집주인",word:"집주인",meaning:{ko:"집주인",vi:"chủ nhà",zh:"房主",en:"landlord",ja:"家主",id:"pemilik rumah",ru:"хозяин дома",th:"เจ้าของบ้าน",mn:"байрны эзэн",uz:"uy egasi",es:"landlord"} },
-          { char:"회원",  word:"회원",  meaning:{ko:"회원",  vi:"hội viên",zh:"会员",en:"member",ja:"会員",id:"anggota",ru:"член",th:"สมาชิก",mn:"гишүүн",uz:"a'zo",es:"member"} },
-          { char:"타인",  word:"타인",  meaning:{ko:"타인",  vi:"người khác",zh:"他人",en:"third person/others",ja:"他人",id:"orang lain",ru:"чужой человек",th:"คนอื่น",mn:"бусад хүн",uz:"boshqa odam",es:"third person/others"} },
-          { char:"은행원",word:"은행원",meaning:{ko:"은행원",vi:"nhân viên ngân hàng",zh:"银行员",en:"bank teller",ja:"銀行員",id:"pegawai bank",ru:"банковский служащий",th:"พนักงานธนาคาร",mn:"банкны ажилтан",uz:"bank xodimi",es:"bank teller"} },
-          { char:"회사원",word:"회사원",meaning:{ko:"회사원",vi:"nhân viên công ty",zh:"公司员",en:"clerk/employee",ja:"会社員",id:"karyawan",ru:"работник компании",th:"พนักงานบริษัท",mn:"компанийн ажилтан",uz:"kompaniya xodimi",es:"clerk/employee"} },
-          { char:"변호사",word:"변호사",meaning:{ko:"변호사",vi:"luật sư",zh:"律师",en:"lawyer",ja:"弁護士",id:"pengacara",ru:"юрист",th:"ทนายความ",mn:"өмгөөлөгч",uz:"advokat",es:"lawyer"} },
-          { char:"간호사",word:"간호사",meaning:{ko:"간호사",vi:"y tá",zh:"护士",en:"nurse",ja:"看護師",id:"perawat",ru:"медсестра",th:"พยาบาล",mn:"сувилагч",uz:"hamshira",es:"nurse"} },
-          { char:"운전기사",word:"운전기사",meaning:{ko:"운전기사",vi:"tài xế",zh:"司机",en:"driver",ja:"運転手",id:"pengemudi",ru:"водитель",th:"คนขับรถ",mn:"жолооч",uz:"haydovchi",es:"driver"} },
-          { char:"군인",  word:"군인",  meaning:{ko:"군인",  vi:"quân nhân",zh:"军人",en:"soldier",ja:"軍人",id:"tentara",ru:"солдат",th:"ทหาร",mn:"цэрэг",uz:"askar",es:"soldier"} },
-          { char:"운동선수",word:"운동선수",meaning:{ko:"운동선수",vi:"vận động viên",zh:"运动选手",en:"athlete",ja:"運動選手",id:"atlet",ru:"спортсмен",th:"นักกีฬา",mn:"тамирчин",uz:"sportchi",es:"athlete"} },
-          { char:"공무원",word:"공무원", meaning:{ko:"공무원",vi:"công chức",zh:"公务员",en:"government employee",ja:"公務員",id:"pegawai negeri",ru:"государственный служащий",th:"ข้าราชการ",mn:"төрийн ажилтан",uz:"davlat xodimi",es:"government employee"} },
-          { char:"아나운서",word:"아나운서",meaning:{ko:"아나운서",vi:"phát thanh viên",zh:"播音员",en:"announcer",ja:"アナウンサー",id:"penyiar",ru:"диктор",th:"ผู้ประกาศ",mn:"зарлагч",uz:"diktor",es:"announcer"} },
-          { char:"연예인",word:"연예인", meaning:{ko:"연예인",vi:"nghệ sĩ",zh:"演艺人",en:"performer/celebrity",ja:"エンタテイナー",id:"artis",ru:"артист",th:"ดารา",mn:"жүжигчин",uz:"artist",es:"performer/celebrity"} },
-          { char:"시간",  word:"시간",  meaning:{ko:"시간",  vi:"thời gian",zh:"时间",en:"time",ja:"時間",id:"waktu",ru:"время",th:"เวลา",mn:"цаг",uz:"vaqt",es:"time"} },
-          { char:"기간",  word:"기간",  meaning:{ko:"기간",  vi:"thời hạn",zh:"期间",en:"period",ja:"期間",id:"periode",ru:"период",th:"ช่วงเวลา",mn:"хугацаа",uz:"muddat",es:"period"} },
-          { char:"현재",  word:"현재",  meaning:{ko:"현재",  vi:"hiện tại",zh:"现在",en:"current",ja:"現在",id:"sekarang",ru:"настоящее время",th:"ปัจจุบัน",mn:"одоо",uz:"hozir",es:"current"} },
-          { char:"오전",  word:"오전",  meaning:{ko:"오전",  vi:"buổi sáng",zh:"上午",en:"morning (AM)",ja:"午前",id:"pagi",ru:"первая половина дня",th:"ช่วงเช้า",mn:"өглөө",uz:"ertalab",es:"morning (AM)"} },
-          { char:"년",    word:"년",    meaning:{ko:"년",    vi:"năm",zh:"年",en:"year",ja:"年",id:"tahun",ru:"год",th:"ปี",mn:"жил",uz:"yil",es:"year"} },
-          { char:"분",    word:"분",    meaning:{ko:"분",    vi:"phút",zh:"分钟",en:"minute",ja:"分",id:"menit",ru:"минута",th:"นาที",mn:"минут",uz:"daqiqa",es:"minute"} },
-          { char:"지난주",word:"지난주",meaning:{ko:"지난주",vi:"tuần trước",zh:"上周",en:"last week",ja:"先週",id:"minggu lalu",ru:"прошлая неделя",th:"สัปดาห์ที่แล้ว",mn:"өнгөрсөн долоо хоног",uz:"o'tgan hafta",es:"last week"} },
-          { char:"이번주",word:"이번주",meaning:{ko:"이번주",vi:"tuần này",zh:"这周",en:"this week",ja:"今週",id:"minggu ini",ru:"эта неделя",th:"สัปดาห์นี้",mn:"энэ долоо хоног",uz:"bu hafta",es:"this week"} },
-          { char:"작년",  word:"작년",  meaning:{ko:"작년",  vi:"năm ngoái",zh:"去年",en:"last year",ja:"去年",id:"tahun lalu",ru:"прошлый год",th:"ปีที่แล้ว",mn:"өнгөрсөн жил",uz:"o'tgan yil",es:"last year"} },
-          { char:"내년",  word:"내년",  meaning:{ko:"내년",  vi:"năm sau",zh:"明年",en:"next year",ja:"来年",id:"tahun depan",ru:"следующий год",th:"ปีหน้า",mn:"ирэх жил",uz:"kelgusi yil",es:"next year"} },
-          { char:"춘하추동",word:"춘하추동",meaning:{ko:"춘하추동",vi:"xuân hạ thu đông",zh:"春夏秋冬",en:"four seasons",ja:"春夏秋冬",id:"empat musim",ru:"четыре времени года",th:"ฤดูทั้งสี่",mn:"дөрвөн улирал",uz:"to'rt fasl",es:"four seasons"} },
-          { char:"언제나",word:"언제나",meaning:{ko:"언제나",vi:"luôn luôn",zh:"无论何时",en:"always",ja:"いつも",id:"selalu",ru:"всегда",th:"เสมอ",mn:"үргэлж",uz:"har doim",es:"always"} },
-          { char:"영원히",word:"영원히",meaning:{ko:"영원히",vi:"mãi mãi",zh:"永远",en:"forever",ja:"永遠に",id:"selamanya",ru:"вечно",th:"ตลอดกาล",mn:"мөнхөд",uz:"abadiy",es:"forever"} },
-          { char:"도서관",word:"도서관",meaning:{ko:"도서관",vi:"thư viện",zh:"图书馆",en:"library",ja:"図書館",id:"perpustakaan",ru:"библиотека",th:"ห้องสมุด",mn:"номын сан",uz:"kutubxona",es:"library"} },
-          { char:"대사관",word:"대사관",meaning:{ko:"대사관",vi:"đại sứ quán",zh:"大使馆",en:"embassy",ja:"大使館",id:"kedutaan besar",ru:"посольство",th:"สถานทูต",mn:"элчин сайдын яам",uz:"elchixona",es:"embassy"} },
-          { char:"체육관",word:"체육관",meaning:{ko:"체육관",vi:"nhà thi đấu",zh:"体育馆",en:"gym",ja:"体育館",id:"gedung olahraga",ru:"спортзал",th:"โรงยิม",mn:"спортын зал",uz:"sport zali",es:"gym"} },
-          { char:"미술관",word:"미술관",meaning:{ko:"미술관",vi:"bảo tàng mỹ thuật",zh:"美术馆",en:"art gallery",ja:"美術館",id:"galeri seni",ru:"музей изобразительного искусства",th:"หอศิลป์",mn:"урлагийн музей",uz:"san'at galereyasi",es:"art gallery"} },
-          { char:"기념관",word:"기념관",meaning:{ko:"기념관",vi:"nhà tưởng niệm",zh:"纪念馆",en:"memorial hall",ja:"記念館",id:"gedung peringatan",ru:"мемориальный комплекс",th:"หอรำลึก",mn:"дурсгалын байр",uz:"memorial",es:"memorial hall"} },
-          { char:"운동장",word:"운동장",meaning:{ko:"운동장",vi:"sân vận động",zh:"运动场",en:"playground/stadium",ja:"運動場",id:"lapangan",ru:"стадион",th:"สนามกีฬา",mn:"тамирын талбай",uz:"sport maydoni",es:"playground/stadium"} },
-          { char:"공원",  word:"공원",  meaning:{ko:"공원",  vi:"công viên",zh:"公园",en:"park",ja:"公園",id:"taman",ru:"парк",th:"สวนสาธารณะ",mn:"цэцэрлэгт хүрээлэн",uz:"park",es:"park"} },
-          { char:"식물원",word:"식물원",meaning:{ko:"식물원",vi:"vườn thực vật",zh:"植物园",en:"botanical garden",ja:"植物園",id:"kebun raya",ru:"ботанический сад",th:"สวนพฤกษศาสตร์",mn:"ургамлын цэцэрлэг",uz:"botanika bog'i",es:"botanical garden"} },
-          { char:"동물원",word:"동물원",meaning:{ko:"동물원",vi:"sở thú",zh:"动物园",en:"zoo",ja:"動物園",id:"kebun binatang",ru:"зоопарк",th:"สวนสัตว์",mn:"амьтны хүрээлэн",uz:"hayvonot bog'i",es:"zoo"} },
-          { char:"박물관",word:"박물관",meaning:{ko:"박물관",vi:"viện bảo tàng",zh:"博物馆",en:"museum",ja:"博物館",id:"museum",ru:"музей",th:"พิพิธภัณฑ์",mn:"музей",uz:"muzey",es:"museum"} },
-          { char:"유치원",word:"유치원",meaning:{ko:"유치원",vi:"trường mầm non",zh:"幼儿园",en:"kindergarten",ja:"幼稚園",id:"taman kanak-kanak",ru:"детский сад",th:"อนุบาล",mn:"цэцэрлэг",uz:"bog'cha",es:"kindergarten"} },
-          { char:"대학원",word:"대학원",meaning:{ko:"대학원",vi:"trường cao học",zh:"研究院",en:"graduate school",ja:"大学院",id:"pascasarjana",ru:"высшая школа",th:"บัณฑิตวิทยาลัย",mn:"дээд сургууль",uz:"magistratura",es:"graduate school"} },
-          { char:"선생님",word:"선생님",meaning:{ko:"선생님",vi:"giáo viên",zh:"老师",en:"teacher",ja:"先生",id:"guru",ru:"учитель",th:"ครู",mn:"багш",uz:"o'qituvchi",es:"teacher"} },
-          { char:"사전",  word:"사전",  meaning:{ko:"사전",  vi:"từ điển",zh:"词典",en:"dictionary",ja:"辞典",id:"kamus",ru:"словарь",th:"พจนานุกรม",mn:"толь бичиг",uz:"lug'at",es:"dictionary"} },
-          { char:"운동회",word:"운동회",meaning:{ko:"운동회",vi:"Đại hội thể thao",zh:"运动会",en:"sports day",ja:"運動会",id:"hari olahraga",ru:"день спортивных состязаний",th:"วันกีฬา",mn:"тамирын баяр",uz:"sport bayrami",es:"sports day"} },
-          { char:"순서",  word:"순서",  meaning:{ko:"순서",  vi:"thứ tự",zh:"顺序",en:"order",ja:"順番",id:"urutan",ru:"очередь",th:"ลำดับ",mn:"дараалал",uz:"tartib",es:"order"} },
-          { char:"질문",  word:"질문",  meaning:{ko:"질문",  vi:"câu hỏi",zh:"疑问",en:"question",ja:"質問",id:"pertanyaan",ru:"вопрос",th:"คำถาม",mn:"асуулт",uz:"savol",es:"question"} },
-          { char:"시간표",word:"시간표",meaning:{ko:"시간표",vi:"thời gian biểu",zh:"时间表",en:"timetable",ja:"時間割",id:"jadwal",ru:"расписание",th:"ตารางเวลา",mn:"хичээлийн хуваарь",uz:"jadval",es:"timetable"} },
-          { char:"전공",  word:"전공",  meaning:{ko:"전공",  vi:"chuyên ngành",zh:"专修",en:"major",ja:"専攻",id:"jurusan",ru:"специальность",th:"วิชาเอก",mn:"мэргэжил",uz:"ixtisoslik",es:"major"} },
-          { char:"개근",  word:"개근",  meaning:{ko:"개근",  vi:"sự chuyên cần",zh:"全勤",en:"perfect attendance",ja:"皆勤",id:"kehadiran penuh",ru:"абсолютная посещаемость",th:"เข้าเรียนครบ",mn:"бүрэн ирц",uz:"to'liq davomat",es:"perfect attendance"} },
-          { char:"학년",  word:"학년",  meaning:{ko:"학년",  vi:"năm học",zh:"学年",en:"grade/school year",ja:"学年",id:"tahun ajaran",ru:"учебный год",th:"ชั้นปี",mn:"хичээлийн жил",uz:"o'quv yili",es:"grade/school year"} },
-          { char:"1학년",word:"1학년", meaning:{ko:"1학년",vi:"năm nhất",zh:"一年级",en:"first year freshman",ja:"一年生",id:"kelas satu",ru:"первокурсник",th:"ปีหนึ่ง",mn:"1-р анги",uz:"birinchi kurs",es:"first year freshman"} },
-          { char:"대문",  word:"대문",  meaning:{ko:"대문",  vi:"cửa chính",zh:"大门",en:"main gate",ja:"正門",id:"pintu gerbang",ru:"главный вход",th:"ประตูหน้า",mn:"үүд хаалга",uz:"bosh darvoza",es:"main gate"} },
-          { char:"정원",  word:"정원",  meaning:{ko:"정원",  vi:"vườn",zh:"庭院",en:"garden",ja:"庭",id:"taman",ru:"сад",th:"สวน",mn:"цэцэрлэг",uz:"bog'",es:"garden"} },
-          { char:"계단",  word:"계단",  meaning:{ko:"계단",  vi:"cầu thang",zh:"楼梯",en:"stairs",ja:"階段",id:"tangga",ru:"лестница",th:"บันได",mn:"шат",uz:"zinа",es:"stairs"} },
-          { char:"현관",  word:"현관",  meaning:{ko:"현관",  vi:"lối vào nhà",zh:"玄关",en:"entrance/door",ja:"玄関",id:"pintu masuk",ru:"входные ворота",th:"ทางเข้า",mn:"орц",uz:"kirish",es:"entrance/door"} },
-          { char:"천장",  word:"천장",  meaning:{ko:"천장",  vi:"trần nhà",zh:"天棚",en:"ceiling",ja:"天井",id:"langit-langit",ru:"потолок",th:"เพดาน",mn:"тааз",uz:"shiftm",es:"ceiling"} },
-          { char:"창문",  word:"창문",  meaning:{ko:"창문",  vi:"cửa sổ",zh:"窗户",en:"window",ja:"窓",id:"jendela",ru:"окно",th:"หน้าต่าง",mn:"цонх",uz:"oyna",es:"window"} },
-          { char:"선물",  word:"선물",  meaning:{ko:"선물",  vi:"món quà",zh:"礼物",en:"gift",ja:"贈り物",id:"hadiah",ru:"подарок",th:"ของขวัญ",mn:"бэлэг",uz:"sovg'a",es:"gift"} },
-          { char:"반지",  word:"반지",  meaning:{ko:"반지",  vi:"nhẫn",zh:"戒指",en:"ring",ja:"指輪",id:"cincin",ru:"кольцо",th:"แหวน",mn:"бөгж",uz:"uzuk",es:"ring"} },
-          { char:"편지",  word:"편지",  meaning:{ko:"편지",  vi:"bức thư",zh:"信",en:"letter",ja:"手紙",id:"surat",ru:"письмо",th:"จดหมาย",mn:"захидал",uz:"xat",es:"letter"} },
-          { char:"사진",  word:"사진",  meaning:{ko:"사진",  vi:"bức ảnh",zh:"照片",en:"photo",ja:"写真",id:"foto",ru:"фотография",th:"รูปถ่าย",mn:"зураг",uz:"surat",es:"photo"} },
-          { char:"신분증",word:"신분증",meaning:{ko:"신분증",vi:"giấy tờ tùy thân",zh:"身份证",en:"ID card",ja:"身分証明書",id:"kartu identitas",ru:"идентификационная карта",th:"บัตรประชาชน",mn:"иргэний үнэмлэх",uz:"shaxsiy guvohnoma",es:"ID card"} },
-          { char:"연필",  word:"연필",  meaning:{ko:"연필",  vi:"bút chì",zh:"铅笔",en:"pencil",ja:"鉛筆",id:"pensil",ru:"карандаш",th:"ดินสอ",mn:"харандаа",uz:"qalam",es:"pencil"} },
-          { char:"볼펜",  word:"볼펜",  meaning:{ko:"볼펜",  vi:"bút bi",zh:"圆珠笔",en:"ballpoint pen",ja:"ボールペン",id:"bolpoin",ru:"шариковая ручка",th:"ปากกา",mn:"үзэг",uz:"ruchka",es:"ballpoint pen"} },
-          { char:"수건",  word:"수건",  meaning:{ko:"수건",  vi:"khăn",zh:"手巾",en:"towel",ja:"タオル",id:"handuk",ru:"полотенце",th:"ผ้าขนหนู",mn:"алчуур",uz:"sochiq",es:"towel"} },
-          { char:"프라이팬",word:"프라이팬",meaning:{ko:"프라이팬",vi:"chảo rán",zh:"煎锅",en:"fry pan",ja:"フライパン",id:"wajan",ru:"сковорода",th:"กระทะ",mn:"тогоо",uz:"tova",es:"fry pan"} },
-          { char:"만화",  word:"만화",  meaning:{ko:"만화",  vi:"truyện tranh",zh:"漫画",en:"cartoon/comic",ja:"漫画",id:"komik",ru:"комикс",th:"การ์ตูน",mn:"мультфильм",uz:"multfilm",es:"cartoon/comic"} },
-          { char:"자판기",word:"자판기",meaning:{ko:"자판기",vi:"máy bán hàng tự động",zh:"自动贩卖机",en:"vending machine",ja:"自動販売機",id:"mesin otomatis",ru:"автомат",th:"ตู้หยอดเหรียญ",mn:"дэлгүүрийн автомат",uz:"avtomat",es:"vending machine"} },
-          { char:"잔치",  word:"잔치",  meaning:{ko:"잔치",  vi:"bữa tiệc",zh:"宴会",en:"feast/party",ja:"宴会",id:"pesta",ru:"пир",th:"งานเลี้ยง",mn:"найр",uz:"ziyofat",es:"feast/party"} },
-          { char:"산책",  word:"산책",  meaning:{ko:"산책",  vi:"dạo đi bộ",zh:"散步",en:"walk",ja:"散歩",id:"jalan-jalan",ru:"прогулка",th:"เดินเล่น",mn:"зугаалах",uz:"sayr",es:"walk"} },
-          { char:"반바지",word:"반바지",meaning:{ko:"반바지",vi:"quần đùi",zh:"短裤",en:"shorts",ja:"半ズボン",id:"celana pendek",ru:"шорты",th:"กางเกงขาสั้น",mn:"богино өмд",uz:"shim",es:"shorts"} },
-          { char:"운동복",word:"운동복",meaning:{ko:"운동복",vi:"quần áo thể thao",zh:"运动服",en:"sportswear",ja:"トレーニングウェア",id:"pakaian olahraga",ru:"спортивный костюм",th:"ชุดกีฬา",mn:"спортын хувцас",uz:"sport kiyimi",es:"sportswear"} },
-          { char:"한복",  word:"한복",  meaning:{ko:"한복",  vi:"Hanbok",zh:"韩服",en:"Korean traditional clothes",ja:"ハンボク",id:"hanbok",ru:"ханбок",th:"ฮันบก",mn:"Ханбок",uz:"Xanbok",es:"Korean traditional clothes"} },
-          { char:"손수건",word:"손수건",meaning:{ko:"손수건",vi:"khăn tay",zh:"手帕",en:"handkerchief",ja:"ハンカチ",id:"sapu tangan",ru:"носовой платок",th:"ผ้าเช็ดหน้า",mn:"алчуур",uz:"ro'molcha",es:"handkerchief"} },
-          { char:"운동화",word:"운동화",meaning:{ko:"운동화",vi:"giày thể thao",zh:"运动鞋",en:"sneakers",ja:"運動靴",id:"sepatu olahraga",ru:"кроссовки",th:"รองเท้ากีฬา",mn:"спортын гутал",uz:"krossovka",es:"sneakers"} },
-          { char:"우산",  word:"우산",  meaning:{ko:"우산",  vi:"cái dù",zh:"雨伞",en:"umbrella",ja:"傘",id:"payung",ru:"зонт",th:"ร่ม",mn:"шүхэр",uz:"soyabon",es:"umbrella"} },
-          { char:"신체",  word:"신체",  meaning:{ko:"신체",  vi:"cơ thể",zh:"身体",en:"body",ja:"身体",id:"tubuh",ru:"тело",th:"ร่างกาย",mn:"бие",uz:"tana",es:"body"} },
-          { char:"눈물",  word:"눈물",  meaning:{ko:"눈물",  vi:"nước mắt",zh:"眼泪",en:"tears",ja:"涙",id:"air mata",ru:"слёзы",th:"น้ำตา",mn:"нулимс",uz:"ko'z yoshi",es:"tears"} },
-          { char:"눈썹",  word:"눈썹",  meaning:{ko:"눈썹",  vi:"lông mày",zh:"眉毛",en:"eyebrow",ja:"眉毛",id:"alis",ru:"бровь",th:"คิ้ว",mn:"хөмсөг",uz:"qosh",es:"eyebrow"} },
-          { char:"혈관",  word:"혈관",  meaning:{ko:"혈관",  vi:"mạch máu",zh:"血管",en:"blood vessel",ja:"血管",id:"pembuluh darah",ru:"кровеносный сосуд",th:"หลอดเลือด",mn:"судас",uz:"qon tomiri",es:"blood vessel"} },
-          { char:"호르몬",word:"호르몬",meaning:{ko:"호르몬",vi:"hormone",zh:"荷尔蒙",en:"hormone",ja:"ホルモン",id:"hormon",ru:"гормон",th:"ฮอร์โมน",mn:"дааврын",uz:"gormon",es:"hormone"} },
-          { char:"면역",  word:"면역",  meaning:{ko:"면역",  vi:"sự miễn dịch",zh:"免疫",en:"immunity",ja:"免疫",id:"imunitas",ru:"иммунитет",th:"ภูมิคุ้มกัน",mn:"дархлаа",uz:"immunitet",es:"immunity"} },
-          { char:"손목",  word:"손목",  meaning:{ko:"손목",  vi:"cổ tay",zh:"手腕",en:"wrist",ja:"手首",id:"pergelangan tangan",ru:"запястье",th:"ข้อมือ",mn:"бугуй",uz:"bilak",es:"wrist"} },
-          { char:"손바닥",word:"손바닥",meaning:{ko:"손바닥",vi:"lòng bàn tay",zh:"手掌",en:"palm",ja:"手のひら",id:"telapak tangan",ru:"ладонь",th:"ฝ่ามือ",mn:"алга",uz:"kaft",es:"palm"} },
-          { char:"손가락",word:"손가락",meaning:{ko:"손가락",vi:"ngón tay",zh:"手指",en:"finger",ja:"手指",id:"jari tangan",ru:"палец на руке",th:"นิ้วมือ",mn:"хуруу",uz:"barmoq",es:"finger"} },
-          { char:"손톱",  word:"손톱",  meaning:{ko:"손톱",  vi:"móng tay",zh:"指甲",en:"nail",ja:"つめ",id:"kuku",ru:"ноготь",th:"เล็บมือ",mn:"хумс",uz:"tirnoq",es:"nail"} },
-          { char:"지문",  word:"지문",  meaning:{ko:"지문",  vi:"vân tay",zh:"指纹",en:"fingerprint",ja:"指紋",id:"sidik jari",ru:"отпечаток пальца",th:"ลายนิ้วมือ",mn:"хурууны хээ",uz:"barmoq izi",es:"fingerprint"} },
-          { char:"오른손",word:"오른손",meaning:{ko:"오른손",vi:"bàn tay phải",zh:"右手",en:"right hand",ja:"右手",id:"tangan kanan",ru:"правая рука",th:"มือขวา",mn:"баруун гар",uz:"o'ng qo'l",es:"right hand"} },
-          { char:"왼손",  word:"왼손",  meaning:{ko:"왼손",  vi:"bàn tay trái",zh:"左手",en:"left hand",ja:"左手",id:"tangan kiri",ru:"левая рука",th:"มือซ้าย",mn:"зүүн гар",uz:"chap qo'l",es:"left hand"} },
-          { char:"오른발",word:"오른발",meaning:{ko:"오른발",vi:"bàn chân phải",zh:"右脚",en:"right foot",ja:"右足",id:"kaki kanan",ru:"правая нога",th:"เท้าขวา",mn:"баруун хөл",uz:"o'ng oyoq",es:"right foot"} },
-          { char:"왼발",  word:"왼발",  meaning:{ko:"왼발",  vi:"bàn chân trái",zh:"左脚",en:"left foot",ja:"左足",id:"kaki kiri",ru:"левая нога",th:"เท้าซ้าย",mn:"зүүн хөл",uz:"chap oyoq",es:"left foot"} },
-          { char:"오렌지",word:"오렌지",meaning:{ko:"오렌지",vi:"quả cam",zh:"橙子",en:"orange",ja:"オレンジ",id:"jeruk",ru:"апельсин",th:"ส้ม",mn:"жүрж",uz:"apelsin",es:"orange"} },
-          { char:"한식",  word:"한식",  meaning:{ko:"한식",  vi:"món ăn Hàn",zh:"韩食",en:"Korean food",ja:"韓国料理",id:"masakan Korea",ru:"корейская кухня",th:"อาหารเกาหลี",mn:"Солонгос хоол",uz:"Koreya taomi",es:"Korean food"} },
-          { char:"반찬",  word:"반찬",  meaning:{ko:"반찬",  vi:"món ăn kèm",zh:"小菜",en:"side dish",ja:"おかず",id:"lauk-pauk",ru:"салаты к рису",th:"กับข้าว",mn:"хоолны нэмэлт",uz:"qo'shimcha taom",es:"side dish"} },
-          { char:"냉면",  word:"냉면",  meaning:{ko:"냉면",  vi:"mì lạnh",zh:"冷面",en:"cold noodle",ja:"冷麺",id:"mie dingin",ru:"холодная лапша",th:"บะหมี่เย็น",mn:"хүйтэн гоймон",uz:"sovuq lagmon",es:"cold noodle"} },
-          { char:"라면",  word:"라면",  meaning:{ko:"라면",  vi:"mì gói",zh:"拉面",en:"ramen",ja:"ラーメン",id:"ramen",ru:"рамэн",th:"ราเมน",mn:"раамэн",uz:"ramen",es:"ramen"} },
-          { char:"만두",  word:"만두",  meaning:{ko:"만두",  vi:"bánh hấp",zh:"饺子",en:"dumpling",ja:"餃子",id:"pangsit",ru:"манты",th:"เกี๊ยว",mn:"манти",uz:"manti",es:"dumpling"} },
-          { char:"자장면",word:"자장면",meaning:{ko:"자장면",vi:"mì tương đen",zh:"炸酱面",en:"black bean noodle",ja:"ジャジャーメン",id:"jajangmyeon",ru:"чаджангмён",th:"จาจางมยอน",mn:"жажанмён",uz:"jajangmyeon",es:"black bean noodle"} },
-          { char:"샌드위치",word:"샌드위치",meaning:{ko:"샌드위치",vi:"bánh sandwich",zh:"三明治",en:"sandwich",ja:"サンドイッチ",id:"sandwich",ru:"сэндвич",th:"แซนด์วิช",mn:"сэндвич",uz:"sendvich",es:"sandwich"} },
-          { char:"치킨",  word:"치킨",  meaning:{ko:"치킨",  vi:"gà",zh:"炸鸡",en:"chicken",ja:"チキン",id:"ayam goreng",ru:"курица в кляре",th:"ไก่ทอด",mn:"тахиа",uz:"tovuq",es:"chicken"} },
-          { char:"간장",  word:"간장",  meaning:{ko:"간장",  vi:"xì dầu",zh:"酱油",en:"soy sauce",ja:"醤油",id:"kecap asin",ru:"соевый соус",th:"ซอสถั่วเหลือง",mn:"шар буурцаг",uz:"soya sousi",es:"soy sauce"} },
-          { char:"계란",  word:"계란",  meaning:{ko:"계란",  vi:"trứng gà",zh:"鸡蛋",en:"egg",ja:"卵",id:"telur",ru:"яйцо",th:"ไข่",mn:"өндөг",uz:"tuxum",es:"egg"} },
-          { char:"가전제품",word:"가전제품",meaning:{ko:"가전제품",vi:"thiết bị gia dụng",zh:"家电产品",en:"home appliance",ja:"家電製品",id:"peralatan rumah",ru:"бытовая техника",th:"เครื่องใช้ไฟฟ้า",mn:"гэрийн техник",uz:"maishiy texnika",es:"home appliance"} },
-          { char:"선풍기",word:"선풍기",meaning:{ko:"선풍기",vi:"quạt",zh:"电风扇",en:"fan",ja:"扇風機",id:"kipas angin",ru:"вентилятор",th:"พัดลม",mn:"сэнс",uz:"shamollatgich",es:"fan"} },
-          { char:"에어컨",word:"에어컨",meaning:{ko:"에어컨",vi:"máy lạnh",zh:"空调",en:"air conditioner",ja:"エアコン",id:"AC",ru:"кондиционер",th:"แอร์",mn:"агааржуулалт",uz:"konditsioner",es:"air conditioner"} },
-          { char:"휴대폰",word:"휴대폰",meaning:{ko:"휴대폰",vi:"điện thoại di động",zh:"手机",en:"cell phone",ja:"携帯",id:"ponsel",ru:"мобильный телефон",th:"มือถือ",mn:"гар утас",uz:"mobil telefon",es:"cell phone"} },
-          { char:"프린터",word:"프린터",meaning:{ko:"프린터",vi:"máy in",zh:"打印机",en:"printer",ja:"プリンター",id:"printer",ru:"принтер",th:"เครื่องพิมพ์",mn:"принтер",uz:"printer",es:"printer"} },
-          { char:"자전거",word:"자전거",meaning:{ko:"자전거",vi:"xe đạp",zh:"自行车",en:"bicycle",ja:"自転車",id:"sepeda",ru:"велосипед",th:"จักรยาน",mn:"унадаг дугуй",uz:"velosiped",es:"bicycle"} },
-          { char:"편도",  word:"편도",  meaning:{ko:"편도",  vi:"một chiều",zh:"单程",en:"one way",ja:"片道",id:"satu arah",ru:"в один конец",th:"เที่ยวเดียว",mn:"нэг тийш",uz:"bir tomonlama",es:"one way"} },
-          { char:"국제선",word:"국제선",meaning:{ko:"국제선",vi:"tuyến quốc tế",zh:"国际线",en:"international airline",ja:"国際線",id:"penerbangan internasional",ru:"международные авиалинии",th:"เส้นทางบินระหว่างประเทศ",mn:"олон улсын агаарын зам",uz:"xalqaro avia yo'nalish",es:"international airline"} },
-          { char:"국내선",word:"국내선",meaning:{ko:"국내선",vi:"tuyến quốc nội",zh:"国内线",en:"domestic airline",ja:"国内線",id:"penerbangan domestik",ru:"внутренние авиалинии",th:"เส้นทางบินภายในประเทศ",mn:"дотоодын агаарын зам",uz:"ichki avia yo'nalish",es:"domestic airline"} },
-          { char:"면세점",word:"면세점",meaning:{ko:"면세점",vi:"cửa hàng miễn thuế",zh:"免税店",en:"duty free shop",ja:"免税店",id:"toko bebas bea",ru:"магазин беспошлинной торговли",th:"ร้านปลอดภาษี",mn:"татваргүй дэлгүүр",uz:"bojxonasiz do'kon",es:"duty free shop"} },
-          { char:"승무원",word:"승무원",meaning:{ko:"승무원",vi:"tiếp viên hàng không",zh:"乘务员",en:"crew/flight attendant",ja:"乗務員",id:"pramugari",ru:"бортпроводница",th:"แอร์โฮสเตส",mn:"нисэхийн ажилтан",uz:"styuardessa",es:"crew/flight attendant"} },
-          { char:"운전면허증",word:"운전면허증",meaning:{ko:"운전면허증",vi:"bằng lái xe",zh:"驾照",en:"driver's license",ja:"運転免許証",id:"SIM",ru:"водительские права",th:"ใบขับขี่",mn:"жолооны үнэмлэх",uz:"haydovchilik guvohnomasi",es:"driver's license"} },
-          { char:"안전벨트",word:"안전벨트",meaning:{ko:"안전벨트",vi:"dây an toàn",zh:"安全带",en:"seat belt",ja:"シートベルト",id:"sabuk pengaman",ru:"ремень безопасности",th:"เข็มขัดนิรภัย",mn:"аюулгүйн бүс",uz:"xavfsizlik kamari",es:"seat belt"} },
-          { char:"좌회전",word:"좌회전",meaning:{ko:"좌회전",vi:"sẽ rẽ trái",zh:"左转",en:"left turn",ja:"左折",id:"belok kiri",ru:"поворот налево",th:"เลี้ยวซ้าย",mn:"зүүн эргэлт",uz:"chapga burilish",es:"left turn"} },
-          { char:"우회전",word:"우회전",meaning:{ko:"우회전",vi:"sẽ rẽ phải",zh:"右转",en:"right turn",ja:"右折",id:"belok kanan",ru:"поворот направо",th:"เลี้ยวขวา",mn:"баруун эргэлт",uz:"o'ngga burilish",es:"right turn"} },
-          { char:"유턴",  word:"유턴",  meaning:{ko:"유턴",  vi:"quay đầu xe",zh:"掉头",en:"U-turn",ja:"Uターン",id:"putar balik",ru:"разворот",th:"กลับรถ",mn:"эргэлт",uz:"qaytish",es:"U-turn"} },
-          { char:"신호등",word:"신호등",meaning:{ko:"신호등",vi:"đèn giao thông",zh:"信号灯",en:"traffic lights",ja:"信号",id:"lampu lalu lintas",ru:"светофор",th:"สัญญาณไฟ",mn:"гэрэлт дохио",uz:"svetofor",es:"traffic lights"} },
-          { char:"횡단보도",word:"횡단보도",meaning:{ko:"횡단보도",vi:"vạch sang đường",zh:"人行横道",en:"pedestrian crossing",ja:"横断歩道",id:"penyeberangan",ru:"пешеходный переход",th:"ทางม้าลาย",mn:"явган хүний гарц",uz:"piyodalar o'tish joyi",es:"pedestrian crossing"} },
-          { char:"초보운전",word:"초보운전",meaning:{ko:"초보운전",vi:"người mới lái xe",zh:"初学者驾车",en:"beginner driving",ja:"初心者運転",id:"pengemudi pemula",ru:"стажёр",th:"ผู้ขับรถมือใหม่",mn:"анхан шатны жолооч",uz:"yangi haydovchi",es:"beginner driving"} },
-          { char:"음주운전",word:"음주운전",meaning:{ko:"음주운전",vi:"lái xe khi say rượu",zh:"酒驾",en:"drunk driving",ja:"飲酒運転",id:"mengemudi mabuk",ru:"вождение в нетрезвом состоянии",th:"ขับรถขณะเมาสุรา",mn:"согтуу жолоодох",uz:"mast holda haydash",es:"drunk driving"} },
-          { char:"속도위반",word:"속도위반",meaning:{ko:"속도위반",vi:"vi phạm tốc độ",zh:"超速",en:"speeding violation",ja:"速度違反",id:"pelanggaran kecepatan",ru:"превышение скорости",th:"ขับรถเร็วเกิน",mn:"хурд хэтрүүлсэн",uz:"tezlikni buzish",es:"speeding violation"} },
-          { char:"신호위반",word:"신호위반",meaning:{ko:"신호위반",vi:"vi phạm tín hiệu",zh:"闯红灯",en:"signal violation",ja:"信号違反",id:"melanggar lampu",ru:"проезд на запрещающий сигнал",th:"ฝ่าไฟแดง",mn:"гэрэлт дохио зөрчих",uz:"signal buzish",es:"signal violation"} },
-          { char:"연구소",word:"연구소", meaning:{ko:"연구소",vi:"viện nghiên cứu",zh:"研究所",en:"research institute",ja:"研究所",id:"lembaga penelitian",ru:"научно-исследовательский институт",th:"สถาบันวิจัย",mn:"судалгааны байгууллага",uz:"tadqiqot instituti",es:"research institute"} },
-          { char:"생산부",word:"생산부", meaning:{ko:"생산부",vi:"bộ phận sản xuất",zh:"生产部",en:"production department",ja:"生産部",id:"bagian produksi",ru:"отдел производства",th:"ฝ่ายผลิต",mn:"үйлдвэрлэлийн хэлтэс",uz:"ishlab chiqarish bo'limi",es:"production department"} },
-          { char:"품질관리부",word:"품질관리부",meaning:{ko:"품질관리부",vi:"bộ phận quản lý chất lượng",zh:"品质管理部",en:"quality control",ja:"品質管理",id:"QC",ru:"отдел управления качеством",th:"ฝ่ายควบคุมคุณภาพ",mn:"чанарын хяналт",uz:"sifat nazorati",es:"quality control"} },
-          { char:"판매",  word:"판매",  meaning:{ko:"판매",  vi:"sự bán hàng",zh:"销售",en:"sale",ja:"販売",id:"penjualan",ru:"продажа",th:"การขาย",mn:"борлуулалт",uz:"sotuv",es:"sale"} },
-          { char:"출근",  word:"출근",  meaning:{ko:"출근",  vi:"đi làm",zh:"上班",en:"going to work",ja:"出勤",id:"berangkat kerja",ru:"идти на работу",th:"ไปทำงาน",mn:"ажилд гарах",uz:"ishga borish",es:"going to work"} },
-          { char:"퇴근",  word:"퇴근",  meaning:{ko:"퇴근",vi:"tan làm",zh:"下班",en:"leave the office",ja:"退勤",id:"pulang kerja",ru:"покидать работу",th:"เลิกงาน",mn:"ажлаас гарах",uz:"ishdan ketish",es:"leave the office"} },
-          { char:"직원",  word:"직원",  meaning:{ko:"직원",vi:"nhân viên",zh:"职员",en:"employee",ja:"職員",id:"pegawai",ru:"сотрудник",th:"พนักงาน",mn:"ажилтан",uz:"xodim",es:"employee"} },
-          { char:"연봉",  word:"연봉",  meaning:{ko:"연봉",vi:"lương hàng năm",zh:"年薪",en:"annual salary",ja:"年棒",id:"gaji tahunan",ru:"годовой оклад",th:"เงินเดือนต่อปี",mn:"жилийн цалин",uz:"yillik maosh",es:"annual salary"} },
-          { char:"이비인후과",word:"이비인후과",meaning:{ko:"이비인후과",vi:"khoa tai mũi họng",zh:"耳鼻喉科",en:"otorhinolaryngology",ja:"耳鼻咽喉科",id:"THT",ru:"отоларингология",th:"หู คอ จมูก",mn:"чих хамар хоолой",uz:"quloq burun tomoq",es:"otorhinolaryngology"} },
-          { char:"정신과",word:"정신과", meaning:{ko:"정신과",vi:"khoa thần kinh",zh:"精神科",en:"psychiatry",ja:"精神科",id:"psikiatri",ru:"психиатрия",th:"จิตเวช",mn:"сэтгэцийн эмнэлэг",uz:"psixiatriya",es:"psychiatry"} },
-          { char:"산부인과",word:"산부인과",meaning:{ko:"산부인과",vi:"khoa sản",zh:"妇产科",en:"obstetrics & gynecology",ja:"産婦人科",id:"kebidanan",ru:"акушерство и гинекология",th:"สูตินรีเวช",mn:"эх барих эмэгтэйчүүдийн",uz:"ginekologiya",es:"obstetrics & gynecology"} },
-          { char:"건강검진",word:"건강검진",meaning:{ko:"건강검진",vi:"kiểm tra sức khỏe",zh:"健康检查",en:"medical examination",ja:"健康診断",id:"pemeriksaan kesehatan",ru:"медицинский осмотр",th:"ตรวจสุขภาพ",mn:"эрүүл мэндийн үзлэг",uz:"tibbiy ko'rik",es:"medical examination"} },
-          { char:"진단",  word:"진단",  meaning:{ko:"진단",vi:"chẩn đoán",zh:"诊断",en:"diagnosis",ja:"診断",id:"diagnosis",ru:"диагноз",th:"การวินิจฉัย",mn:"оношлогоо",uz:"tashxis",es:"diagnosis"} },
-          { char:"입원",  word:"입원",  meaning:{ko:"입원",vi:"nhập viện",zh:"住院",en:"hospitalization",ja:"入院",id:"rawat inap",ru:"госпитализация",th:"รับตัวเข้าโรงพยาบาล",mn:"эмнэлэгт хэвтэх",uz:"kasalxonaga yotish",es:"hospitalization"} },
-          { char:"퇴원",  word:"퇴원",  meaning:{ko:"퇴원",vi:"xuất viện",zh:"出院",en:"leaving hospital",ja:"退院",id:"keluar dari rumah sakit",ru:"выписка из больницы",th:"ออกจากโรงพยาบาล",mn:"эмнэлгээс гарах",uz:"kasalxonadan chiqish",es:"leaving hospital"} },
-          { char:"병문안",word:"병문안", meaning:{ko:"병문안",vi:"thăm bệnh",zh:"探病",en:"patient visiting",ja:"お見舞い",id:"membesuk",ru:"посещение больного",th:"เยี่ยมผู้ป่วย",mn:"өвчтөнийг эргэх",uz:"bemorni ko'rish",es:"patient visiting"} },
-          { char:"건강",  word:"건강",  meaning:{ko:"건강",vi:"sức khỏe",zh:"健康",en:"health",ja:"健康",id:"kesehatan",ru:"здоровье",th:"สุขภาพ",mn:"эрүүл мэнд",uz:"salomatlik",es:"health"} },
-          { char:"관절염",word:"관절염", meaning:{ko:"관절염",vi:"viêm xương khớp",zh:"关节炎",en:"arthritis",ja:"関節炎",id:"radang sendi",ru:"артрит",th:"ข้ออักเสบ",mn:"үеийн үрэвсэл",uz:"artrit",es:"arthritis"} },
-          { char:"간염",  word:"간염",  meaning:{ko:"간염",vi:"viêm gan",zh:"肝炎",en:"hepatitis",ja:"肝炎",id:"hepatitis",ru:"гепатит",th:"ตับอักเสบ",mn:"элэгний хатуурал",uz:"gepatit",es:"hepatitis"} },
-          { char:"진통제",word:"진통제", meaning:{ko:"진통제",vi:"thuốc giảm đau",zh:"止痛剂",en:"pain-killer",ja:"止痛薬",id:"obat nyeri",ru:"обезболивающее",th:"ยาแก้ปวด",mn:"өвдөлт намдаагч",uz:"og'riq qoldiruvchi",es:"pain-killer"} },
-          { char:"번호",  word:"번호",  meaning:{ko:"번호",vi:"số",zh:"号码",en:"number",ja:"番号",id:"nomor",ru:"номер",th:"หมายเลข",mn:"дугаар",uz:"raqam",es:"number"} },
-          { char:"비밀번호",word:"비밀번호",meaning:{ko:"비밀번호",vi:"mật khẩu",zh:"密码",en:"password",ja:"パスワード",id:"kata sandi",ru:"пароль",th:"รหัสผ่าน",mn:"нууц үг",uz:"parol",es:"password"} },
-          { char:"왼쪽",  word:"왼쪽",  meaning:{ko:"왼쪽",vi:"bên trái",zh:"左边",en:"left side",ja:"左",id:"kiri",ru:"левая сторона",th:"ด้านซ้าย",mn:"зүүн тал",uz:"chap tomon",es:"left side"} },
-          { char:"오른쪽",word:"오른쪽", meaning:{ko:"오른쪽",vi:"bên phải",zh:"右边",en:"right side",ja:"右",id:"kanan",ru:"правая сторона",th:"ด้านขวา",mn:"баруун тал",uz:"o'ng tomon",es:"right side"} },
-          { char:"가운데",word:"가운데", meaning:{ko:"가운데",vi:"giữa",zh:"中间",en:"center/middle",ja:"真ん中",id:"tengah",ru:"середина",th:"ตรงกลาง",mn:"дунд",uz:"o'rta",es:"center/middle"} },
-          { char:"안",    word:"안",    meaning:{ko:"안",vi:"trong",zh:"里",en:"inside",ja:"内",id:"dalam",ru:"внутри",th:"ข้างใน",mn:"дотор",uz:"ichida",es:"inside"} },
-          { char:"전체",  word:"전체",  meaning:{ko:"전체",vi:"toàn thể",zh:"全体",en:"whole/all",ja:"全体",id:"keseluruhan",ru:"всё",th:"ทั้งหมด",mn:"бүхэлд",uz:"hammasi",es:"whole/all"} },
-          { char:"태권도",word:"태권도", meaning:{ko:"태권도",vi:"Taekwondo",zh:"跆拳道",en:"Taekwondo",ja:"テコンドー",id:"taekwondo",ru:"тхэквондо",th:"เทควันโด",mn:"Тэквондо",uz:"Taekwondo",es:"Taekwondo"} },
-          { char:"마라톤",word:"마라톤", meaning:{ko:"마라톤",vi:"marathon",zh:"马拉松",en:"marathon",ja:"マラソン",id:"maraton",ru:"марафон",th:"มาราธอน",mn:"марафон",uz:"marafon",es:"marathon"} },
-          { char:"배드민턴",word:"배드민턴",meaning:{ko:"배드민턴",vi:"cầu lông",zh:"羽毛球",en:"badminton",ja:"バドミントン",id:"bulu tangkis",ru:"бадминтон",th:"แบดมินตัน",mn:"бадминтон",uz:"badminton",es:"badminton"} },
-          { char:"등산",  word:"등산",  meaning:{ko:"등산",vi:"leo núi",zh:"登山",en:"mountain climbing",ja:"登山",id:"mendaki gunung",ru:"альпинизм",th:"ปีนเขา",mn:"уул авирах",uz:"tog'ga chiqish",es:"mountain climbing"} },
-          { char:"연습",  word:"연습",  meaning:{ko:"연습",vi:"luyện tập",zh:"练习",en:"practice",ja:"練習",id:"latihan",ru:"тренировка",th:"การฝึกซ้อม",mn:"дасгал",uz:"mashq",es:"practice"} },
-          { char:"인형",  word:"인형",  meaning:{ko:"인형",vi:"búp bê",zh:"玩偶",en:"doll",ja:"人形",id:"boneka",ru:"кукла",th:"ตุ๊กตา",mn:"хүүхэлдэй",uz:"qo'g'irchoq",es:"doll"} },
-          { char:"장난감",word:"장난감", meaning:{ko:"장난감",vi:"đồ chơi",zh:"玩具",en:"toy",ja:"おもちゃ",id:"mainan",ru:"игрушка",th:"ของเล่น",mn:"тоглоом",uz:"o'yinchoq",es:"toy"} },
-          { char:"문화",  word:"문화",  meaning:{ko:"문화",vi:"văn hóa",zh:"文化",en:"culture",ja:"文化",id:"budaya",ru:"культура",th:"วัฒนธรรม",mn:"соёл",uz:"madaniyat",es:"culture"} },
-          { char:"콘서트",word:"콘서트", meaning:{ko:"콘서트",vi:"buổi biểu diễn nhạc",zh:"演唱会",en:"concert",ja:"コンサート",id:"konser",ru:"концерт",th:"คอนเสิร์ต",mn:"тоглолт",uz:"konsert",es:"concert"} },
-          { char:"연극",  word:"연극",  meaning:{ko:"연극",vi:"vở kịch",zh:"演剧",en:"drama/play",ja:"演劇",id:"drama",ru:"пьеса",th:"ละคร",mn:"жүжиг",uz:"teatr",es:"drama/play"} },
-          { char:"공연",  word:"공연",  meaning:{ko:"공연",vi:"công diễn",zh:"公演",en:"performance",ja:"公演",id:"pertunjukan",ru:"выступление",th:"การแสดง",mn:"тоглолт",uz:"tomosho",es:"performance"} },
-          { char:"연주회",word:"연주회", meaning:{ko:"연주회",vi:"buổi hòa nhạc",zh:"演奏会",en:"concert/recital",ja:"演奏会",id:"resital",ru:"концерт",th:"การแสดงดนตรี",mn:"хөгжмийн тоглолт",uz:"konsert",es:"concert/recital"} },
-          { char:"전시회",word:"전시회", meaning:{ko:"전시회",vi:"buổi triển lãm",zh:"展示会",en:"exhibition",ja:"展示会",id:"pameran",ru:"выставка",th:"นิทรรศการ",mn:"үзэсгэлэн",uz:"ko'rgazma",es:"exhibition"} },
-          { char:"디자인",word:"디자인", meaning:{ko:"디자인",vi:"thiết kế",zh:"设计",en:"design",ja:"デザイン",id:"desain",ru:"дизайн",th:"การออกแบบ",mn:"дизайн",uz:"dizayn",es:"design"} },
-          { char:"건축",  word:"건축",  meaning:{ko:"건축",vi:"kiến trúc",zh:"建筑",en:"architecture",ja:"建築",id:"arsitektur",ru:"архитектура",th:"สถาปัตยกรรม",mn:"барилга байгууламж",uz:"arxitektura",es:"architecture"} },
-          { char:"문학",  word:"문학",  meaning:{ko:"문학",vi:"văn học",zh:"文学",en:"literature",ja:"文学",id:"sastra",ru:"литература",th:"วรรณกรรม",mn:"уран зохиол",uz:"adabiyot",es:"literature"} },
-          { char:"바이올린",word:"바이올린",meaning:{ko:"바이올린",vi:"vĩ cầm",zh:"小提琴",en:"violin",ja:"バイオリン",id:"biola",ru:"скрипка",th:"ไวโอลิน",mn:"хийл хөгжим",uz:"skripka",es:"violin"} },
-          { char:"은행",  word:"은행",  meaning:{ko:"은행",vi:"ngân hàng",zh:"银行",en:"bank",ja:"銀行",id:"bank",ru:"банк",th:"ธนาคาร",mn:"банк",uz:"bank",es:"bank"} },
-          { char:"동전",  word:"동전",  meaning:{ko:"동전",vi:"tiền xu",zh:"硬币",en:"coin",ja:"コイン",id:"koin",ru:"монета",th:"เหรียญ",mn:"зоос",uz:"tanga",es:"coin"} },
-          { char:"현금",  word:"현금",  meaning:{ko:"현금",vi:"tiền mặt",zh:"现金",en:"cash",ja:"現金",id:"uang tunai",ru:"наличные",th:"เงินสด",mn:"бэлэн мөнгө",uz:"naqd pul",es:"cash"} },
-          { char:"환전",  word:"환전",  meaning:{ko:"환전",vi:"đổi tiền",zh:"兑换",en:"money exchange",ja:"両替",id:"penukaran uang",ru:"обмен валюты",th:"แลกเงิน",mn:"мөнгө солих",uz:"valyuta almashtirish",es:"money exchange"} },
-          { char:"환율",  word:"환율",  meaning:{ko:"환율",vi:"tỷ giá hối đoái",zh:"汇率",en:"exchange rate",ja:"為替レート",id:"kurs",ru:"курс обмена валюты",th:"อัตราแลกเปลี่ยน",mn:"ханш",uz:"valyuta kursi",es:"exchange rate"} },
-          { char:"상환",  word:"상환",  meaning:{ko:"상환",vi:"sự trả nợ",zh:"偿还",en:"repayment",ja:"引き替え",id:"pelunasan",ru:"погашение",th:"การชำระหนี้",mn:"эргэн төлөлт",uz:"qaytarish",es:"repayment"} },
-          { char:"회원가입",word:"회원가입",meaning:{ko:"회원가입",vi:"đăng ký hội viên",zh:"加入会员",en:"membership sign up",ja:"会員加入",id:"pendaftaran anggota",ru:"регистрация аккаунта",th:"สมัครสมาชิก",mn:"гишүүнчлэлд нэгдэх",uz:"a'zolikka ro'yxatdan o'tish",es:"membership sign up"} },
-          { char:"주문",  word:"주문",  meaning:{ko:"주문",vi:"đặt hàng",zh:"订货",en:"order",ja:"注文",id:"pesanan",ru:"заказ",th:"การสั่งซื้อ",mn:"захиалга",uz:"buyurtma",es:"order"} },
-          { char:"신용카드",word:"신용카드",meaning:{ko:"신용카드",vi:"thẻ tín dụng",zh:"信用卡",en:"credit card",ja:"クレジットカード",id:"kartu kredit",ru:"кредитная карта",th:"บัตรเครดิต",mn:"зээлийн карт",uz:"kredit karta",es:"credit card"} },
-          { char:"반품",  word:"반품",  meaning:{ko:"반품",vi:"hàng trả lại",zh:"退货",en:"return",ja:"返品",id:"pengembalian barang",ru:"возврат",th:"การคืนสินค้า",mn:"буцаалт",uz:"qaytarish",es:"return"} },
-          { char:"환불",  word:"환불",  meaning:{ko:"환불",vi:"sự hoàn tiền",zh:"退款",en:"refund",ja:"払い戻し",id:"pengembalian uang",ru:"возврат денег",th:"การคืนเงิน",mn:"мөнгө буцаалт",uz:"pul qaytarish",es:"refund"} },
-          { char:"할인",  word:"할인",  meaning:{ko:"할인",vi:"giảm giá",zh:"打折",en:"bargain/discount",ja:"割引",id:"diskon",ru:"скидка",th:"ส่วนลด",mn:"хөнгөлөлт",uz:"chegirma",es:"bargain/discount"} },
-          { char:"편의점",word:"편의점", meaning:{ko:"편의점",vi:"cửa hàng tiện lợi",zh:"便利店",en:"convenience store",ja:"コンビニ",id:"minimarket",ru:"круглосуточный магазин",th:"ร้านสะดวกซื้อ",mn:"худалдааны газар",uz:"qulay do'kon",es:"convenience store"} },
-          { char:"기린",  word:"기린",  meaning:{ko:"기린",vi:"hươu cao cổ",zh:"长颈鹿",en:"giraffe",ja:"キリン",id:"jerapah",ru:"жираф",th:"ยีราฟ",mn:"анааш",uz:"jirafa",es:"giraffe"} },
-          { char:"원숭이",word:"원숭이", meaning:{ko:"원숭이",vi:"con khỉ",zh:"猴子",en:"monkey",ja:"猿",id:"monyet",ru:"обезьяна",th:"ลิง",mn:"сармагчин",uz:"maymun",es:"monkey"} },
-          { char:"세균",  word:"세균",  meaning:{ko:"세균",vi:"vi khuẩn",zh:"细菌",en:"bacteria/virus",ja:"細菌",id:"bakteri",ru:"бактерия",th:"แบคทีเรีย",mn:"бактери",uz:"bakteriya",es:"bacteria/virus"} },
-          { char:"진균",  word:"진균",  meaning:{ko:"진균",vi:"bệnh nấm da",zh:"真菌",en:"mycosis/fungus",ja:"真菌",id:"jamur",ru:"микоз",th:"เชื้อรา",mn:"мөөг",uz:"zamburug'",es:"mycosis/fungus"} },
-          { char:"자연",  word:"자연",  meaning:{ko:"자연",vi:"tự nhiên",zh:"自然",en:"nature",ja:"自然",id:"alam",ru:"природа",th:"ธรรมชาติ",mn:"байгаль",uz:"tabiat",es:"nature"} },
-          { char:"환경",  word:"환경",  meaning:{ko:"환경",vi:"môi trường",zh:"环境",en:"environment",ja:"環境",id:"lingkungan",ru:"окружающая среда",th:"สิ่งแวดล้อม",mn:"орчин тойрон",uz:"muhit",es:"environment"} },
-          { char:"환경보호",word:"환경보호",meaning:{ko:"환경보호",vi:"bảo vệ môi trường",zh:"环境保护",en:"environmental protection",ja:"環境保護",id:"perlindungan lingkungan",ru:"охрана окружающей среды",th:"การปกป้องสิ่งแวดล้อม",mn:"байгаль орчны хамгаалал",uz:"atrof-muhitni himoya qilish",es:"environmental protection"} },
-          { char:"지구온난화",word:"지구온난화",meaning:{ko:"지구온난화",vi:"hiện tượng trái đất nóng lên",zh:"地球温暖化",en:"global warming",ja:"地球温暖化",id:"pemanasan global",ru:"глобальное потепление",th:"ภาวะโลกร้อน",mn:"дэлхийн дулааралт",uz:"global isish",es:"global warming"} },
-          { char:"화산",  word:"화산",  meaning:{ko:"화산",vi:"núi lửa",zh:"火山",en:"volcano",ja:"火山",id:"gunung berapi",ru:"вулкан",th:"ภูเขาไฟ",mn:"галт уул",uz:"vulqon",es:"volcano"} },
-          { char:"온천",  word:"온천",  meaning:{ko:"온천",vi:"suối nước nóng",zh:"温泉",en:"hot springs",ja:"温泉",id:"sumber air panas",ru:"горячий источник",th:"น้ำพุร้อน",mn:"халуун булаг",uz:"issiq buloq",es:"hot springs"} },
-          { char:"지진",  word:"지진",  meaning:{ko:"지진",vi:"động đất",zh:"地震",en:"earthquake",ja:"地震",id:"gempa bumi",ru:"землетрясение",th:"แผ่นดินไหว",mn:"газар хөдлөлт",uz:"zilzila",es:"earthquake"} },
-          { char:"안개",  word:"안개",  meaning:{ko:"안개",vi:"sương mù",zh:"雾气",en:"fog",ja:"霧",id:"kabut",ru:"туман",th:"หมอก",mn:"манан",uz:"tuman",es:"fog"} },
-          { char:"번개",  word:"번개",  meaning:{ko:"번개",vi:"tia chớp",zh:"闪电",en:"lightning",ja:"稲光",id:"kilat",ru:"молния",th:"ฟ้าแลบ",mn:"аянга",uz:"chaqmoq",es:"lightning"} },
-          { char:"건기",  word:"건기",  meaning:{ko:"건기",vi:"mùa khô",zh:"旱季",en:"dry season",ja:"乾季",id:"musim kemarau",ru:"сезон засухи",th:"ฤดูแล้ง",mn:"хуурай улирал",uz:"quruq mavsum",es:"dry season"} },
-          { char:"한대",  word:"한대",  meaning:{ko:"한대",vi:"hàn đới",zh:"寒带",en:"arctic regions",ja:"寒帯",id:"daerah kutub",ru:"арктический (полярный) пояс",th:"เขตหนาว",mn:"хүйтэн бүс",uz:"arktika mintaqasi",es:"arctic regions"} },
-          { char:"온대",  word:"온대",  meaning:{ko:"온대",vi:"ôn đới",zh:"温带",en:"temperate zone",ja:"温帯",id:"daerah beriklim sedang",ru:"зона с умеренным климатом",th:"เขตอบอุ่น",mn:"дулаан бүс",uz:"mo'tadil mintaqa",es:"temperate zone"} },
-          { char:"해변",  word:"해변",  meaning:{ko:"해변",vi:"bãi biển",zh:"海边",en:"beach",ja:"海辺",id:"pantai",ru:"пляж",th:"ชายหาด",mn:"далайн эрэг",uz:"qirg'oq",es:"beach"} },
-          { char:"염전",  word:"염전",  meaning:{ko:"염전",vi:"ruộng muối",zh:"盐田",en:"salt field",ja:"塩田",id:"ladang garam",ru:"соляные прииски",th:"นาเกลือ",mn:"давсны талбай",uz:"tuz dalalari",es:"salt field"} },
-          { char:"일본",  word:"일본",  meaning:{ko:"일본",vi:"Nhật Bản",zh:"日本",en:"Japan",ja:"日本",id:"Jepang",ru:"Япония",th:"ญี่ปุ่น",mn:"Япон",uz:"Yaponiya",es:"Japan"} },
-          { char:"대만",  word:"대만",  meaning:{ko:"대만",vi:"Đài Loan",zh:"台湾",en:"Taiwan",ja:"台湾",id:"Taiwan",ru:"Тайвань",th:"ไต้หวัน",mn:"Тайван",uz:"Tayvan",es:"Taiwan"} },
-          { char:"필리핀",word:"필리핀", meaning:{ko:"필리핀",vi:"Philippines",zh:"菲律宾",en:"Philippines",ja:"フィリピン",id:"Filipina",ru:"Филиппины",th:"ฟิลิปปินส์",mn:"Филиппин",uz:"Filippin",es:"Philippines"} },
-          { char:"인도네시아",word:"인도네시아",meaning:{ko:"인도네시아",vi:"Indonesia",zh:"印度尼西亚",en:"Indonesia",ja:"インドネシア",id:"Indonesia",ru:"Индонезия",th:"อินโดนีเซีย",mn:"Индонез",uz:"Indoneziya",es:"Indonesia"} },
-          { char:"미얀마",word:"미얀마", meaning:{ko:"미얀마",vi:"Myanmar",zh:"缅甸",en:"Myanmar",ja:"ミャンマー",id:"Myanmar",ru:"Мьянма",th:"เมียนมาร์",mn:"Мьянмар",uz:"Myanma",es:"Myanmar"} },
-          { char:"인도",  word:"인도",  meaning:{ko:"인도",vi:"Ấn Độ",zh:"印度",en:"India",ja:"インド",id:"India",ru:"Индия",th:"อินเดีย",mn:"Энэтхэг",uz:"Hindiston",es:"India"} },
-          { char:"뉴질랜드",word:"뉴질랜드",meaning:{ko:"뉴질랜드",vi:"New Zealand",zh:"新西兰",en:"New Zealand",ja:"ニュージーランド",id:"Selandia Baru",ru:"Новая Зеландия",th:"นิวซีแลนด์",mn:"Шинэ Зеланд",uz:"Yangi Zelandiya",es:"New Zealand"} },
-          { char:"아르헨티나",word:"아르헨티나",meaning:{ko:"아르헨티나",vi:"Argentina",zh:"阿根廷",en:"Argentina",ja:"アルゼンチン",id:"Argentina",ru:"Аргентина",th:"อาร์เจนตินา",mn:"Аргентин",uz:"Argentina",es:"Argentina"} },
-          { char:"스페인",word:"스페인", meaning:{ko:"스페인",vi:"Tây Ban Nha",zh:"西班牙",en:"Spain",ja:"スペイン",id:"Spanyol",ru:"Испания",th:"สเปน",mn:"Испани",uz:"Ispaniya",es:"Spain"} },
-          { char:"호치민",word:"호치민", meaning:{ko:"호치민",vi:"Hồ Chí Minh",zh:"胡志明",en:"Ho Chi Minh",ja:"ホーチミン",id:"Ho Chi Minh",ru:"Хошимин",th:"โฮจิมินห์",mn:"Хошимин",uz:"Xo'shiMin",es:"Ho Chi Minh"} },
-          { char:"프놈펜",word:"프놈펜", meaning:{ko:"프놈펜",vi:"Phnom Penh",zh:"金边",en:"Phnompenh",ja:"プノンペン",id:"Phnom Penh",ru:"Пномпень",th:"พนมเปญ",mn:"Пномпень",uz:"Pnompen",es:"Phnompenh"} },
-          { char:"비엔티엔",word:"비엔티엔",meaning:{ko:"비엔티엔",vi:"Viêng Chăn",zh:"万象",en:"Vientiane",ja:"ビエンチャン",id:"Vientiane",ru:"Вьентьян",th:"เวียงจันทน์",mn:"Вьентьян",uz:"Vyentyan",es:"Vientiane"} },
-          { char:"양곤",  word:"양곤",  meaning:{ko:"양곤",vi:"Yangon",zh:"仰光",en:"Yangon",ja:"ヤンゴン",id:"Yangon",ru:"Янгон",th:"ย่างกุ้ง",mn:"Янгон",uz:"Yangon",es:"Yangon"} },
-          { char:"워싱턴",word:"워싱턴", meaning:{ko:"워싱턴",vi:"Washington",zh:"华盛顿",en:"Washington",ja:"ワシントン",id:"Washington",ru:"Вашингтон",th:"วอชิงตัน",mn:"Вашингтон",uz:"Vashington",es:"Washington"} },
-          { char:"런던",  word:"런던",  meaning:{ko:"런던",vi:"Luân Đôn",zh:"伦敦",en:"London",ja:"ロンドン",id:"London",ru:"Лондон",th:"ลอนดอน",mn:"Лондон",uz:"London",es:"London"} },
-          { char:"베를린",word:"베를린", meaning:{ko:"베를린",vi:"Berlin",zh:"柏林",en:"Berlin",ja:"ベルリン",id:"Berlin",ru:"Берлин",th:"เบอร์ลิน",mn:"Берлин",uz:"Berlin",es:"Berlin"} },
-          { char:"여권",  word:"여권",  meaning:{ko:"여권",vi:"hộ chiếu",zh:"护照",en:"passport",ja:"パスポート",id:"paspor",ru:"паспорт",th:"หนังสือเดินทาง",mn:"гадаад паспорт",uz:"pasport",es:"passport"} },
-          { char:"우주선",word:"우주선", meaning:{ko:"우주선",vi:"tàu vũ trụ",zh:"宇宙飞船",en:"spaceship",ja:"宇宙船",id:"pesawat luar angkasa",ru:"космический корабль",th:"ยานอวกาศ",mn:"сансрын хөлөг",uz:"kosmik kemа",es:"spaceship"} },
-          { char:"광년",  word:"광년",  meaning:{ko:"광년",vi:"năm ánh sáng",zh:"光年",en:"light year",ja:"光年",id:"tahun cahaya",ru:"световой год",th:"ปีแสง",mn:"гэрлийн жил",uz:"yorug'lik yili",es:"light year"} },
-          { char:"성운",  word:"성운",  meaning:{ko:"성운",vi:"tinh vân",zh:"星云",en:"nebula",ja:"星雲",id:"nebula",ru:"галактическая туманность",th:"เนบิวลา",mn:"мананцар",uz:"nebula",es:"nebula"} },
-          { char:"전기",  word:"전기",  meaning:{ko:"전기",vi:"điện",zh:"电气",en:"electricity",ja:"電気",id:"listrik",ru:"электричество",th:"ไฟฟ้า",mn:"цахилгаан",uz:"elektr",es:"electricity"} },
-          { char:"전자",  word:"전자",  meaning:{ko:"전자",vi:"điện tử",zh:"电子",en:"electron",ja:"電子",id:"elektron",ru:"электрон",th:"อิเล็กตรอน",mn:"электрон",uz:"elektron",es:"electron"} },
-          { char:"유전자",word:"유전자", meaning:{ko:"유전자",vi:"mã gen di truyền",zh:"遗传基因",en:"gene",ja:"遺伝子",id:"gen",ru:"гены",th:"ยีน",mn:"ген",uz:"gen",es:"gene"} },
-          { char:"온도",  word:"온도",  meaning:{ko:"온도",vi:"nhiệt độ",zh:"温度",en:"temperature",ja:"温度",id:"suhu",ru:"температура",th:"อุณหภูมิ",mn:"дулааны хэм",uz:"harorat",es:"temperature"} },
-          { char:"기온",  word:"기온",  meaning:{ko:"기온",vi:"nhiệt độ không khí",zh:"气温",en:"air temperature",ja:"気温",id:"suhu udara",ru:"температура воздуха",th:"อุณหภูมิอากาศ",mn:"агаарын температур",uz:"havo harorati",es:"air temperature"} },
-          { char:"수온",  word:"수온",  meaning:{ko:"수온",vi:"nhiệt độ nước",zh:"水温",en:"water temperature",ja:"水温",id:"suhu air",ru:"температура воды",th:"อุณหภูมิน้ำ",mn:"усны температур",uz:"suv harorati",es:"water temperature"} },
-          { char:"면적",  word:"면적",  meaning:{ko:"면적",vi:"diện tích",zh:"面积",en:"area",ja:"面積",id:"luas",ru:"площадь",th:"พื้นที่",mn:"талбай",uz:"maydon",es:"area"} },
-          { char:"빨간색",word:"빨간색", meaning:{ko:"빨간색",vi:"màu đỏ",zh:"红色",en:"red color",ja:"赤色",id:"merah",ru:"красный цвет",th:"สีแดง",mn:"улаан",uz:"qizil rang",es:"red color"} },
-          { char:"노란색",word:"노란색", meaning:{ko:"노란색",vi:"màu vàng",zh:"黄色",en:"yellow color",ja:"黄色",id:"kuning",ru:"жёлтый цвет",th:"สีเหลือง",mn:"шар",uz:"sariq rang",es:"yellow color"} },
-          { char:"파란색",word:"파란색", meaning:{ko:"파란색",vi:"màu xanh dương",zh:"蓝色",en:"blue color",ja:"青色",id:"biru",ru:"синий цвет",th:"สีฟ้า",mn:"хөх",uz:"ko'k rang",es:"blue color"} },
-          { char:"흰색",  word:"흰색",  meaning:{ko:"흰색",vi:"màu trắng",zh:"白色",en:"white color",ja:"白色",id:"putih",ru:"белый цвет",th:"สีขาว",mn:"цагаан",uz:"oq rang",es:"white color"} },
-          { char:"검은색",word:"검은색", meaning:{ko:"검은색",vi:"màu đen",zh:"黑色",en:"black color",ja:"黒色",id:"hitam",ru:"чёрный цвет",th:"สีดำ",mn:"хар",uz:"qora rang",es:"black color"} },
-          { char:"분홍색",word:"분홍색", meaning:{ko:"분홍색",vi:"màu hồng",zh:"粉红色",en:"pink color",ja:"ピンク色",id:"merah muda",ru:"розовый цвет",th:"สีชมพู",mn:"ягаан",uz:"pushti rang",es:"pink color"} },
-          { char:"천(1000)",word:"천",meaning:{ko:"천(1000)",vi:"nghìn",zh:"千",en:"thousand",ja:"千",id:"seribu",ru:"тысяча",th:"พัน",mn:"мянга",uz:"ming",es:"thousand"} },
-          { char:"만(10000)",word:"만",meaning:{ko:"만(10000)",vi:"mười nghìn",zh:"万",en:"ten thousand",ja:"万",id:"sepuluh ribu",ru:"десять тысяч",th:"หมื่น",mn:"арван мянга",uz:"o'n ming",es:"ten thousand"} },
-          { char:"백만",  word:"백만",  meaning:{ko:"백만",vi:"một triệu",zh:"百万",en:"million",ja:"百万",id:"satu juta",ru:"миллион",th:"ล้าน",mn:"сая",uz:"million",es:"million"} },
-          { char:"선",    word:"선",    meaning:{ko:"선",vi:"điều thiện",zh:"善",en:"goodness",ja:"善",id:"kebaikan",ru:"добро",th:"ความดี",mn:"сайн",uz:"yaxshilik",es:"goodness"} },
-          { char:"천사",  word:"천사",  meaning:{ko:"천사",vi:"thiên thần",zh:"天使",en:"angel",ja:"天使",id:"malaikat",ru:"ангел",th:"นางฟ้า",mn:"тэнгэр элч",uz:"farishta",es:"angel"} },
-          { char:"관계",  word:"관계",  meaning:{ko:"관계",vi:"mối quan hệ",zh:"关系",en:"relation",ja:"関係",id:"hubungan",ru:"отношения",th:"ความสัมพันธ์",mn:"харилцаа",uz:"munosabat",es:"relation"} },
-          { char:"환영",  word:"환영",  meaning:{ko:"환영",vi:"sự hoan nghênh",zh:"欢迎",en:"welcome",ja:"歓迎",id:"selamat datang",ru:"приветствие",th:"การต้อนรับ",mn:"угтан авах",uz:"xush kelibsiz",es:"welcome"} },
-          { char:"관심",  word:"관심",  meaning:{ko:"관심",vi:"sự quan tâm",zh:"关心",en:"interest",ja:"関心",id:"perhatian",ru:"интерес",th:"ความสนใจ",mn:"сонирхол",uz:"qiziqish",es:"interest"} },
-          { char:"칭찬",  word:"칭찬",  meaning:{ko:"칭찬",vi:"sự khen ngợi",zh:"称赞",en:"compliment",ja:"褒め言葉",id:"pujian",ru:"похвала",th:"คำชม",mn:"магтаал",uz:"maqtov",es:"compliment"} },
-          { char:"존경",  word:"존경",  meaning:{ko:"존경",vi:"sự tôn kính",zh:"尊敬",en:"respect",ja:"尊敬",id:"penghormatan",ru:"уважение",th:"ความเคารพ",mn:"хүндэтгэл",uz:"hurmat",es:"respect"} },
-          { char:"인기",  word:"인기",  meaning:{ko:"인기",vi:"độ yêu thích",zh:"人气",en:"popularity",ja:"人気",id:"popularitas",ru:"популярность",th:"ความนิยม",mn:"алдаршил",uz:"mashhurlik",es:"popularity"} },
-          { char:"기분",  word:"기분",  meaning:{ko:"기분",vi:"tâm trạng",zh:"心情",en:"mood/feeling",ja:"気分",id:"suasana hati",ru:"настроение",th:"อารมณ์",mn:"сэтгэл санаа",uz:"kayfiyat",es:"mood/feeling"} },
-          { char:"분위기",word:"분위기", meaning:{ko:"분위기",vi:"bầu không khí",zh:"氛围",en:"atmosphere",ja:"雰囲気",id:"suasana",ru:"атмосфера",th:"บรรยากาศ",mn:"уур амьсгал",uz:"atmosfera",es:"atmosphere"} },
-          { char:"편리",  word:"편리",  meaning:{ko:"편리",vi:"sự tiện lợi",zh:"便利",en:"convenience",ja:"便利",id:"kenyamanan",ru:"удобство",th:"ความสะดวก",mn:"тохиромжтой",uz:"qulaylik",es:"convenience"} },
-          { char:"불편",  word:"불편",  meaning:{ko:"불편",vi:"sự bất tiện",zh:"不便",en:"inconvenience",ja:"不便",id:"ketidaknyamanan",ru:"дискомфорт",th:"ความไม่สะดวก",mn:"тохиромжгүй",uz:"noqulaylik",es:"inconvenience"} },
-          { char:"불안",  word:"불안",  meaning:{ko:"불안",vi:"sự lo âu",zh:"不安",en:"anxiety/worry",ja:"不安",id:"kekhawatiran",ru:"тревога",th:"ความวิตก",mn:"сэтгэл тайвшрахгүй",uz:"tashvish",es:"anxiety/worry"} },
-          { char:"피곤",  word:"피곤",  meaning:{ko:"피곤",vi:"sự mệt mỏi",zh:"疲倦",en:"tired",ja:"疲労",id:"kelelahan",ru:"усталость",th:"ความเหนื่อยล้า",mn:"ядрал",uz:"charchoq",es:"tired"} },
-          { char:"연결",  word:"연결",  meaning:{ko:"연결",vi:"sự liên kết",zh:"连结",en:"connection",ja:"連結",id:"koneksi",ru:"соединение",th:"การเชื่อมต่อ",mn:"холболт",uz:"ulanish",es:"connection"} },
-          { char:"준비",  word:"준비",  meaning:{ko:"준비",vi:"sự chuẩn bị",zh:"准备",en:"preparation",ja:"準備",id:"persiapan",ru:"подготовка",th:"การเตรียมพร้อม",mn:"бэлтгэл",uz:"tayyorgarlik",es:"preparation"} },
-          { char:"언어",  word:"언어",  meaning:{ko:"언어",vi:"ngôn ngữ",zh:"语言",en:"language",ja:"言語",id:"bahasa",ru:"язык",th:"ภาษา",mn:"хэл",uz:"til",es:"language"} },
-          { char:"습관",  word:"습관",  meaning:{ko:"습관",vi:"thói quen",zh:"习惯",en:"custom/habit",ja:"習慣",id:"kebiasaan",ru:"привычка",th:"นิสัย",mn:"дадал",uz:"odat",es:"custom/habit"} },
-          { char:"자연보호",word:"자연보호",meaning:{ko:"자연보호",vi:"bảo vệ tự nhiên",zh:"自然保护",en:"nature conservation",ja:"自然保護",id:"pelestarian alam",ru:"охрана природы",th:"การอนุรักษ์ธรรมชาติ",mn:"байгалийг хамгаалах",uz:"tabiatni muhofaza qilish",es:"nature conservation"} },
-          { char:"주변",  word:"주변",  meaning:{ko:"주변",vi:"xung quanh",zh:"周边",en:"surroundings",ja:"周辺",id:"sekitar",ru:"окружение",th:"บริเวณ",mn:"орчин",uz:"atrofi",es:"surroundings"} },
-          { char:"처방전",word:"처방전", meaning:{ko:"처방전",vi:"đơn thuốc",zh:"处方笺",en:"prescription",ja:"処方箋",id:"resep dokter",ru:"рецепт врача",th:"ใบสั่งยา",mn:"жор",uz:"retsept",es:"prescription"} },
-          { char:"인공위성",word:"인공위성",meaning:{ko:"인공위성",vi:"vệ tinh nhân tạo",zh:"人造卫星",en:"artificial satellite",ja:"人工衛星",id:"satelit buatan",ru:"искусственный спутник",th:"ดาวเทียมเทียม",mn:"хиймэл дагуул",uz:"sun'iy yo'ldosh",es:"artificial satellite"} },
-          { char:"한과",  word:"한과",  meaning:{ko:"한과",vi:"bánh kẹo truyền thống Hàn Quốc",zh:"韩国糖果",en:"Korean sweets",ja:"韓国お菓子",id:"kue tradisional Korea",ru:"корейские сладости",th:"ขนมเกาหลีดั้งเดิม",mn:"Солонгосын чихэр",uz:"Koreya shirinliklari",es:"Korean sweets"} },
-          { char:"한옥",  word:"한옥",  meaning:{ko:"한옥",vi:"nhà truyền thống Hàn Quốc",zh:"韩式房子",en:"Korean-style house",ja:"ハノク",id:"rumah tradisional Korea",ru:"дом, построенный в корейском стиле",th:"บ้านเกาหลีดั้งเดิม",mn:"Солонгос гэр",uz:"Koreya uyi",es:"Korean-style house"} },
-          { char:"부산",  word:"부산",  meaning:{ko:"부산",vi:"Busan",zh:"釜山",en:"Busan",ja:"プサン",id:"Busan",ru:"Пусан",th:"ปูซาน",mn:"Пусан",uz:"Busan",es:"Busan"} },
-          { char:"대전",  word:"대전",  meaning:{ko:"대전",vi:"Daejeon",zh:"大田",en:"Daejon",ja:"テジョン",id:"Daejeon",ru:"Тэджон",th:"แทจอน",mn:"Тэжон",uz:"Daejeon",es:"Daejon"} },
-          { char:"인천",  word:"인천",  meaning:{ko:"인천",vi:"Incheon",zh:"仁川",en:"Incheon",ja:"インチョン",id:"Incheon",ru:"Инчхон",th:"อินชอน",mn:"Инчон",uz:"Incheon",es:"Incheon"} },
-          { char:"마닐라",word:"마닐라", meaning:{ko:"마닐라",vi:"Manila",zh:"马尼拉",en:"Manila",ja:"マニラ",id:"Manila",ru:"Манила",th:"มะนิลา",mn:"Манила",uz:"Manila",es:"Manila"} },
-          { char:"편하다",word:"편하다", meaning:{ko:"편하다",vi:"thoải mái",zh:"舒服",en:"comfortable",ja:"楽だ",id:"nyaman",ru:"удобный",th:"สบาย",mn:"тохиромжтой",uz:"qulay",es:"comfortable"} },
-          { char:"편리하다",word:"편리하다",meaning:{ko:"편리하다",vi:"tiện lợi",zh:"便利",en:"convenient",ja:"便利だ",id:"mudah",ru:"удобный",th:"สะดวก",mn:"тохиромжтой",uz:"qulay",es:"convenient"} },
-          { char:"불편하다",word:"불편하다",meaning:{ko:"불편하다",vi:"bất tiện",zh:"不便",en:"inconvenient",ja:"不便だ",id:"tidak nyaman",ru:"неудобный",th:"ไม่สะดวก",mn:"тохиромжгүй",uz:"noqulay",es:"inconvenient"} },
-          { char:"친절하다",word:"친절하다",meaning:{ko:"친절하다",vi:"thân thiện",zh:"亲切",en:"kind",ja:"親切だ",id:"ramah",ru:"вежливый",th:"อ่อนโยน",mn:"найрсаг",uz:"mehribon",es:"kind"} },
-          { char:"반갑다",word:"반갑다", meaning:{ko:"반갑다",vi:"hân hạnh",zh:"高兴",en:"glad to meet",ja:"嬉しい",id:"senang bertemu",ru:"радушный",th:"ดีใจที่ได้พบ",mn:"уулзаж баяртай",uz:"uchrashgandan xursand",es:"glad to meet"} },
-          { char:"미안하다",word:"미안하다",meaning:{ko:"미안하다",vi:"xin lỗi",zh:"对不起",en:"sorry",ja:"申し訳ない",id:"maaf",ru:"извиниться",th:"ขอโทษ",mn:"уучлаарай",uz:"kechirasiz",es:"sorry"} },
-          { char:"부지런하다",word:"부지런하다",meaning:{ko:"부지런하다",vi:"siêng năng",zh:"勤劳",en:"diligent",ja:"勤勉だ",id:"rajin",ru:"прилежный",th:"ขยัน",mn:"хичээнгүй",uz:"mehnatkash",es:"diligent"} },
-          { char:"한가하다",word:"한가하다",meaning:{ko:"한가하다",vi:"rảnh rỗi",zh:"闲暇",en:"free/leisurely",ja:"暇だ",id:"santai",ru:"иметь свободное время",th:"ว่าง",mn:"чөлөөтэй",uz:"bo'sh",es:"free/leisurely"} },
-          { char:"시원하다",word:"시원하다",meaning:{ko:"시원하다",vi:"mát mẻ",zh:"凉爽",en:"cool/refreshing",ja:"さわやかだ",id:"segar",ru:"прохладный",th:"เย็นสบาย",mn:"сэрүүн",uz:"salqin",es:"cool/refreshing"} },
-          { char:"선선하다",word:"선선하다",meaning:{ko:"선선하다",vi:"mát rượi",zh:"清凉",en:"cool/fresh",ja:"涼しい",id:"sejuk",ru:"свежий",th:"เย็นสบาย",mn:"сэрүүхэн",uz:"salqin",es:"cool/fresh"} },
-          { char:"신선하다",word:"신선하다",meaning:{ko:"신선하다",vi:"tươi mới",zh:"新鲜",en:"fresh",ja:"新鮮だ",id:"segar",ru:"свежий",th:"สดชื่น",mn:"шинэлэг",uz:"yangi",es:"fresh"} },
-          { char:"진하다",word:"진하다",  meaning:{ko:"진하다",vi:"đậm/dày",zh:"浓/深",en:"thick/deep",ja:"濃い",id:"kental",ru:"густой",th:"เข้ม",mn:"зузаан",uz:"qalin",es:"thick/deep"} },
-          { char:"충분하다",word:"충분하다",meaning:{ko:"충분하다",vi:"đầy đủ",zh:"充分",en:"sufficient",ja:"十分だ",id:"cukup",ru:"достаточный",th:"เพียงพอ",mn:"хангалттай",uz:"yetarli",es:"sufficient"} },
-          { char:"튼튼하다",word:"튼튼하다",meaning:{ko:"튼튼하다",vi:"chắc chắn",zh:"结实",en:"strong/sturdy",ja:"丈夫だ",id:"kuat",ru:"крепкий",th:"แข็งแรง",mn:"бат бөх",uz:"mustahkam",es:"strong/sturdy"} },
-          { char:"전화하다",word:"전화하다",meaning:{ko:"전화하다",vi:"gọi điện thoại",zh:"打电话",en:"call",ja:"電話する",id:"menelepon",ru:"звонить",th:"โทรศัพท์",mn:"утасдах",uz:"telefon qilmoq",es:"call"} },
-          { char:"준비하다",word:"준비하다",meaning:{ko:"준비하다",vi:"chuẩn bị",zh:"准备",en:"prepare",ja:"準備する",id:"mempersiapkan",ru:"приготовлять",th:"เตรียม",mn:"бэлтгэх",uz:"tayyorlamoq",es:"prepare"} },
-          { char:"신다",  word:"신다",  meaning:{ko:"신다",vi:"mang (giày dép)",zh:"穿（鞋袜）",en:"put on (shoes)",ja:"履く",id:"memakai sepatu",ru:"обуваться",th:"สวมรองเท้า",mn:"гутал өмсөх",uz:"kiymoq",es:"put on (shoes)"} },
-          { char:"만나다",word:"만나다", meaning:{ko:"만나다",vi:"gặp gỡ",zh:"见面",en:"meet",ja:"会う",id:"bertemu",ru:"встречаться",th:"พบ",mn:"уулзах",uz:"uchrashmoq",es:"meet"} },
-          { char:"인사하다",word:"인사하다",meaning:{ko:"인사하다",vi:"chào hỏi",zh:"打招呼",en:"greet",ja:"挨拶する",id:"menyapa",ru:"приветствовать",th:"ทักทาย",mn:"мэндлэх",uz:"salomlashmoq",es:"greet"} },
-          { char:"선택하다",word:"선택하다",meaning:{ko:"선택하다",vi:"lựa chọn",zh:"选择",en:"select/choose",ja:"選ぶ",id:"memilih",ru:"выбирать",th:"เลือก",mn:"сонгох",uz:"tanlаmoq",es:"select/choose"} },
-          { char:"결혼하다",word:"결혼하다",meaning:{ko:"결혼하다",vi:"kết hôn",zh:"结婚",en:"marry",ja:"結婚する",id:"menikah",ru:"жениться",th:"แต่งงาน",mn:"гэрлэх",uz:"uylаnmoq",es:"marry"} },
-          { char:"전하다",word:"전하다",  meaning:{ko:"전하다",vi:"truyền đạt",zh:"传达",en:"bring/tell",ja:"伝える",id:"menyampaikan",ru:"передавать",th:"บอก",mn:"дамжуулах",uz:"yetkazmoq",es:"bring/tell"} },
-          { char:"연주하다",word:"연주하다",meaning:{ko:"연주하다",vi:"biểu diễn",zh:"演奏",en:"play (instrument)",ja:"演奏する",id:"bermain musik",ru:"исполнять",th:"เล่นดนตรี",mn:"хөгжим тоглох",uz:"musiqa chalmoq",es:"play (instrument)"} },
-          { char:"인정받다",word:"인정받다",meaning:{ko:"인정받다",vi:"được công nhận",zh:"被认可",en:"be recognized",ja:"認定される",id:"diakui",ru:"получать признание",th:"ได้รับการยอมรับ",mn:"хүлээн зөвшөөрөгдөх",uz:"tan olinmoq",es:"be recognized"} },
-          { char:"만지다",word:"만지다",  meaning:{ko:"만지다",vi:"chạm sờ",zh:"触摸",en:"touch",ja:"触る",id:"menyentuh",ru:"трогать",th:"แตะ",mn:"хүрэх",uz:"teginmoq",es:"touch"} },
-          { char:"변하다",word:"변하다",  meaning:{ko:"변하다",vi:"biến đổi",zh:"改变",en:"change",ja:"変わる",id:"berubah",ru:"меняться",th:"เปลี่ยนแปลง",mn:"өөрчлөгдөх",uz:"o'zgarmoq",es:"change"} },
-          { char:"던지다",word:"던지다",  meaning:{ko:"던지다",vi:"ném",zh:"投",en:"throw",ja:"投げる",id:"melempar",ru:"бросать",th:"ขว้าง",mn:"шидэх",uz:"otmoq",es:"throw"} },
-          { char:"그만두다",word:"그만두다",meaning:{ko:"그만두다",vi:"dừng lại",zh:"停止",en:"stop/quit",ja:"やめる",id:"berhenti",ru:"останавливать",th:"หยุด",mn:"зогсоох",uz:"to'xtatmoq",es:"stop/quit"} },
-          { char:"건너다",word:"건너다", meaning:{ko:"건너다",vi:"băng qua",zh:"横渡",en:"cross",ja:"渡る",id:"menyeberang",ru:"переходить",th:"ข้าม",mn:"гарах",uz:"kesib o'tmoq",es:"cross"} },
-          { char:"연구하다",word:"연구하다",meaning:{ko:"연구하다",vi:"nghiên cứu",zh:"研究",en:"study/research",ja:"研究する",id:"meneliti",ru:"исследовать",th:"วิจัย",mn:"судлах",uz:"tadqiq qilmoq",es:"study/research"} },
-          { char:"건설하다",word:"건설하다",meaning:{ko:"건설하다",vi:"xây dựng",zh:"建设",en:"build/construct",ja:"建設する",id:"membangun",ru:"строить",th:"สร้าง",mn:"барих",uz:"qurmoq",es:"build/construct"} },
-          { char:"중국",  word:"중국",  meaning:{ko:"중국",  vi:"Trung Quốc",zh:"中国",en:"China",ja:"中国",id:"China",ru:"Китай",th:"จีน",mn:"Хятад",uz:"Xitoy",es:"China"} },
-          { char:"영국",  word:"영국",  meaning:{ko:"영국",  vi:"Anh Quốc",zh:"英国",en:"UK/England",ja:"イギリス",id:"Inggris",ru:"Великобритания",th:"อังกฤษ",mn:"Их Британи",uz:"Britaniya",es:"UK/England"} },
-          { char:"독일",  word:"독일",  meaning:{ko:"독일",  vi:"Đức",zh:"德国",en:"Germany",ja:"ドイツ",id:"Jerman",ru:"Германия",th:"เยอรมนี",mn:"Герман",uz:"Germaniya",es:"Germany"} },
-          { char:"프랑스",word:"프랑스",meaning:{ko:"프랑스",vi:"Pháp",zh:"法国",en:"France",ja:"フランス",id:"Prancis",ru:"Франция",th:"ฝรั่งเศส",mn:"Франц",uz:"Fransiya",es:"France"} },
-          { char:"러시아",word:"러시아",meaning:{ko:"러시아",vi:"Nga",zh:"俄罗斯",en:"Russia",ja:"ロシア",id:"Rusia",ru:"Россия",th:"รัสเซีย",mn:"Орос",uz:"Rossiya",es:"Russia"} },
-          { char:"태국",  word:"태국",  meaning:{ko:"태국",  vi:"Thái Lan",zh:"泰国",en:"Thailand",ja:"タイ",id:"Thailand",ru:"Таиланд",th:"ไทย",mn:"Тайланд",uz:"Tailand",es:"Thailand"} },
-          { char:"캐나다",word:"캐나다",meaning:{ko:"캐나다",vi:"Canada",zh:"加拿大",en:"Canada",ja:"カナダ",id:"Kanada",ru:"Канада",th:"แคนาดา",mn:"Канад",uz:"Kanada",es:"Canada"} },
-          { char:"베트남",word:"베트남",meaning:{ko:"베트남",vi:"Việt Nam",zh:"越南",en:"Vietnam",ja:"ベトナム",id:"Vietnam",ru:"Вьетнам",th:"เวียดนาม",mn:"Вьетнам",uz:"Vyetnam",es:"Vietnam"} },
-          { char:"안전",  word:"안전",  meaning:{ko:"안전",  vi:"an toàn",zh:"安全",en:"safety",ja:"安全",id:"keamanan",ru:"безопасность",th:"ความปลอดภัย",mn:"аюулгүй байдал",uz:"xavfsizlik",es:"safety"} },
-          { char:"건물",  word:"건물",  meaning:{ko:"건물",  vi:"tòa nhà",zh:"建筑物",en:"building",ja:"建物",id:"gedung",ru:"здание",th:"อาคาร",mn:"байшин",uz:"bino",es:"building"} },
-          { char:"전통",  word:"전통",  meaning:{ko:"전통",  vi:"truyền thống",zh:"传统",en:"tradition",ja:"伝統",id:"tradisi",ru:"традиция",th:"ประเพณี",mn:"уламжлал",uz:"an'ana",es:"tradition"} },
-          { char:"인터넷",word:"인터넷",meaning:{ko:"인터넷",vi:"internet",zh:"互联网",en:"internet",ja:"インターネット",id:"internet",ru:"интернет",th:"อินเทอร์เน็ต",mn:"интернет",uz:"internet",es:"internet"} },
-          { char:"신청",  word:"신청",  meaning:{ko:"신청",  vi:"đăng ký / xin",zh:"申请",en:"application/request",ja:"申請",id:"permohonan",ru:"заявление",th:"การสมัคร",mn:"өргөдөл",uz:"ariza",es:"application/request"} },
-                ],
-        tip:{ko:"💡 [비음+연음] 받침 ㄴ은 혀를 윗니 뒤에 붙이고 코로 내는 소리예요. 다음 음절이 모음으로 시작하면 받침 ㄴ이 그대로 넘어가요! 예) 친구[친구] 문이[무니] 돈이[도니]",vi:"Chạm lưỡi vào mặt trong răng cửa và thổi nhẹ không khí qua mũi.",en:"Touch your tongue behind your front teeth and gently release air through your nose.",zh:"💡【鼻音+连音】收音ㄴ是舌头抵住上齿背从鼻子发出的音。若下一音节以元音开头，收音ㄴ会直接连读过去！例：친구[친구] 문이[무니] 돈이[도니]",ja:"💡【鼻音＋連音】パッチムㄴは舌を上の歯の裏につけて鼻から出す音です。次の音節が母音で始まると、パッチムㄴはそのままつながります！例）친구[친구] 문이[무니] 돈이[도니]",id:"💡[Nasal + liaison] Konsonan akhir ㄴ dibuat dengan menempelkan lidah di belakang gigi atas dan mengeluarkan bunyi lewat hidung. Jika suku kata berikutnya dimulai dengan vokal, konsonan akhir ㄴ akan terhubung langsung! Contoh) 친구[친구] 문이[무니] 돈이[도니]",ru:"💡[Носовой звук + связывание] Конечная согласная ㄴ образуется прижатием языка за верхними зубами и произнесением через нос. Если следующий слог начинается с гласной, конечная ㄴ переходит прямо в него! Напр.) 친구[친구] 문이[무니] 돈이[도니]",th:"💡[เสียงนาสิก+การเชื่อมเสียง] ตัวสะกด ㄴ เกิดจากการแตะลิ้นด้านหลังฟันบนแล้วปล่อยเสียงออกทางจมูก หากพยางค์ถัดไปขึ้นต้นด้วยสระ ตัวสะกด ㄴ จะเชื่อมต่อไปเลย! ตัวอย่าง) 친구[친구] 문이[무니] 돈이[도니]",mn:"💡[Хамрын авиа + холбох дуудлага] Төгсгөлийн ㄴ нь хэлээ дээд шүдний ард наагаад хамраар гаргадаг дуу авиа юм. Дараагийн үе эгшгээр эхэлбэл төгсгөлийн ㄴ шууд холбогдоно! Жишээ) 친구[친구] 문이[무니] 돈이[도니]",uz:"💡[Burun tovushi + bog'lovchi talaffuz] Oxirgi undosh ㄴ tilni yuqori tishlar ortiga tekkizib, burundan chiqariladigan tovushdir. Keyingi bo'g'in unli bilan boshlansa, oxirgi ㄴ to'g'ridan-to'g'ri o'tadi! Masalan) 친구[친구] 문이[무니] 돈이[도니]",es:"💡[Nasal + enlace] La consonante final ㄴ se produce tocando la lengua detrás de los dientes superiores y emitiendo el sonido por la nariz. ¡Si la siguiente sílaba empieza con vocal, la ㄴ final se conecta directamente! Ej.) 친구[친구] 문이[무니] 돈이[도니]",fr:"💡[Nasal + liaison] La consonne finale ㄴ se produit en touchant la langue derrière les dents du haut et en laissant sortir le son par le nez. Si la syllabe suivante commence par une voyelle, la consonne finale ㄴ se lie directement ! Ex. : 친구[친구] 문이[무니] 돈이[도니]",ne:"💡[नाक ध्वनि + जोड्ने उच्चारण] अन्त्य व्यञ्जन ㄴ जिब्रो माथिल्लो दाँतको पछाडि टाँसेर नाकबाट निकालिने ध्वनि हो। अर्को अक्षर स्वरबाट सुरु भएमा अन्त्य ㄴ सिधै जोडिन्छ! उदाहरण) 친구[친구] 문이[무니] 돈이[도니]",de:"💡[Nasal + Verbindung] Der Endkonsonant ㄴ entsteht, indem die Zunge hinter die oberen Zähne gelegt und der Klang durch die Nase abgegeben wird. Beginnt die nächste Silbe mit einem Vokal, geht das End-ㄴ direkt über! Bsp.: 친구[친구] 문이[무니] 돈이[도니]"},
-      },
-      // ── 단계 16: 받침 ㄷ계열 ──
-      { id:"batchim_d", type:"learn", emoji:"🧱",
-        title:{ko:"16. 받침 [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",vi:"16. Phụ âm cuối [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",en:"16. Final Consonant [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",zh:"16. 收音 [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",ja:"16. パッチム [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",id:"16. Konsonan Akhir [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",ru:"16. Конечная согласная [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",th:"16. ตัวสะกด [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",mn:"16. Төгсгөлийн гийгүүлэгч [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",uz:"16. Oxirgi undosh [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",es:"16. Consonante final [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",fr:"16. Consonne finale [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",ne:"16. अन्त्य व्यञ्जन [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]",de:"16. Endkonsonant [ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ]"},
-        desc:{ko:"모양은 달라도 받침에서는 모두 같은 [ㄷ] 소리가 납니다.",vi:"Dù hình dạng khác nhau, tất cả đều phát âm [ㄷ] ở vị trí phụ âm cuối.",en:"Though the shapes differ, all are pronounced as [ㄷ] in the final position.",zh:"虽然字形不同，但作为收音时都发[ㄷ]的音。",ja:"形は違っても、パッチムではすべて同じ[ㄷ]の音になります。",id:"Meskipun bentuknya berbeda, semuanya diucapkan sebagai bunyi [ㄷ] saat menjadi konsonan akhir.",ru:"Хотя написание разное, в конце слова все они произносятся как звук [ㄷ].",th:"แม้รูปร่างจะต่างกัน แต่เมื่อเป็นตัวสะกดจะออกเสียงเป็น [ㄷ] เหมือนกันหมด",mn:"Бичлэг өөр ч төгсгөлийн байрлалд бүгд адилхан [ㄷ] дуу гардаг.",uz:"Shakli har xil bo'lsa-da, oxirgi undosh bo'lganda hammasi [ㄷ] tovushi bilan aytiladi.",es:"Aunque la forma sea diferente, como consonante final todas se pronuncian igual, como [ㄷ].",fr:"Bien que la forme diffère, toutes se prononcent [ㄷ] en position finale.",ne:"आकार फरक भए पनि अन्त्य व्यञ्जनमा सबै [ㄷ] जस्तै उच्चारण हुन्छ।",de:"Auch wenn die Form unterschiedlich ist, werden sie als Endkonsonant alle wie [ㄷ] ausgesprochen."},
-        items:[
-          { char:"옷",    word:"옷",    meaning:{ko:"옷",    vi:"quần áo",zh:"衣服",en:"clothes",ja:"服",id:"pakaian",ru:"одежда",th:"เสื้อผ้า",mn:"хувцас",uz:"kiyim",es:"clothes"} },
-          { char:"꽃",    word:"꽃",    meaning:{ko:"꽃",    vi:"hoa",zh:"花",en:"flower",ja:"花",id:"bunga",ru:"цветок",th:"ดอกไม้",mn:"цэцэг",uz:"gul",es:"flower"} },
-          { char:"빛",    word:"빛",    meaning:{ko:"빛",    vi:"ánh sáng",zh:"光",en:"light",ja:"光",id:"cahaya",ru:"свет",th:"แสง",mn:"гэрэл",uz:"nur",es:"light"} },
-          { char:"낮",    word:"낮",    meaning:{ko:"낮",    vi:"ban ngày",zh:"白天",en:"daytime",ja:"昼",id:"siang hari",ru:"день",th:"กลางวัน",mn:"өдөр",uz:"kunduz",es:"daytime"} },
-          { char:"밖",    word:"밖",    meaning:{ko:"밖",    vi:"bên ngoài",zh:"外面",en:"outside",ja:"外",id:"luar",ru:"снаружи",th:"ข้างนอก",mn:"гадаа",uz:"tashqari",es:"outside"} },
-          { char:"듣다",  word:"듣다",  meaning:{ko:"듣다",  vi:"nghe",zh:"听",en:"to listen",ja:"聞く",id:"mendengar",ru:"слушать",th:"ฟัง",mn:"сонсох",uz:"eshitmoq",es:"to listen"} },
-          { char:"믿다",  word:"믿다",  meaning:{ko:"믿다",  vi:"tin tưởng",zh:"相信",en:"to trust",ja:"信じる",id:"percaya",ru:"верить",th:"เชื่อ",mn:"итгэх",uz:"ishonmoq",es:"to trust"} },
-          { char:"걷다",  word:"걷다",  meaning:{ko:"걷다",  vi:"đi bộ",zh:"走路",en:"to walk",ja:"歩く",id:"berjalan",ru:"ходить",th:"เดิน",mn:"явах",uz:"yurmoq",es:"to walk"} },
-          { char:"낫다",  word:"낫다",  meaning:{ko:"낫다",  vi:"tốt hơn / khỏi bệnh",zh:"好转",en:"to get better",ja:"治る",id:"lebih baik",ru:"поправиться",th:"ดีขึ้น",mn:"сайжрах",uz:"yaxshilanmoq",es:"to get better"} },
-          { char:"부엌",  word:"부엌",  meaning:{ko:"부엌",  vi:"nhà bếp",zh:"厨房",en:"kitchen",ja:"台所",id:"dapur",ru:"кухня",th:"ห้องครัว",mn:"гал тогоо",uz:"oshxona",es:"kitchen"} },
-          { char:"이웃",  word:"이웃",  meaning:{ko:"이웃",  vi:"hàng xóm",zh:"邻居",en:"neighbor",ja:"隣人",id:"tetangga",ru:"сосед",th:"เพื่อนบ้าน",mn:"хөрш",uz:"qo'shni",es:"neighbor"} },
-          { char:"끝",    word:"끝",    meaning:{ko:"끝",    vi:"kết thúc",zh:"结束",en:"end/finish",ja:"終わり",id:"akhir",ru:"конец",th:"จุดสิ้นสุด",mn:"төгсгөл",uz:"tugash",es:"end/finish"} },
-          { char:"이웃",  word:"이웃",  meaning:{ko:"이웃",  vi:"hàng xóm",zh:"邻居",en:"neighbor",ja:"隣人",id:"tetangga",ru:"сосед",th:"เพื่อนบ้าน",mn:"хөрш",uz:"qo'shni",es:"neighbor"} },
-          { char:"닷새",  word:"닷새",  meaning:{ko:"닷새",  vi:"năm ngày",zh:"五天",en:"five days",ja:"五日",id:"lima hari",ru:"пять дней",th:"ห้าวัน",mn:"таван өдөр",uz:"besh kun",es:"five days"} },
-          { char:"낮",    word:"낮",    meaning:{ko:"낮(낮)",vi:"ban ngày",zh:"白天",en:"the day/daytime",ja:"昼",id:"siang hari",ru:"день",th:"กลางวัน",mn:"өдөр",uz:"kunduz",es:"the day/daytime"} },
-          { char:"낫",    word:"낫",    meaning:{ko:"낫",    vi:"cái liềm",zh:"镰刀",en:"sickle",ja:"鎌",id:"sabit",ru:"серп",th:"เคียว",mn:"хадуур",uz:"o'roq",es:"sickle"} },
-          { char:"낯",    word:"낯",    meaning:{ko:"낯",    vi:"diện mạo",zh:"脸",en:"face",ja:"顔",id:"wajah",ru:"лицо",th:"หน้า",mn:"нүүр",uz:"yuz",es:"face"} },
-          { char:"못",    word:"못",    meaning:{ko:"못",    vi:"cái đinh",zh:"钉子",en:"nail",ja:"釘",id:"paku",ru:"гвоздь",th:"ตะปู",mn:"хадаас",uz:"mix",es:"nail"} },
-          { char:"젓가락",word:"젓가락",meaning:{ko:"젓가락",vi:"đũa",zh:"筷子",en:"chopsticks",ja:"箸",id:"sumpit",ru:"палочки",th:"ตะเกียบ",mn:"савх",uz:"tayoqchalar",es:"chopsticks"} },
-          { char:"숟가락",word:"숟가락",meaning:{ko:"숟가락",vi:"muỗng",zh:"汤匙",en:"spoon",ja:"スプーン",id:"sendok",ru:"ложка",th:"ช้อน",mn:"халбага",uz:"qoshiq",es:"spoon"} },
-          { char:"빗",    word:"빗",    meaning:{ko:"빗",    vi:"cái lược",zh:"梳子",en:"comb",ja:"くし",id:"sisir",ru:"расчёска",th:"หวี",mn:"самуур",uz:"taroq",es:"comb"} },
-          { char:"빚",    word:"빚",    meaning:{ko:"빚",    vi:"món nợ",zh:"债务",en:"debt",ja:"借金",id:"hutang",ru:"долг",th:"หนี้สิน",mn:"өр",uz:"qarz",es:"debt"} },
-          { char:"그릇",  word:"그릇",  meaning:{ko:"그릇",  vi:"cái bát",zh:"碗",en:"bowl",ja:"器",id:"mangkuk",ru:"миска",th:"ถ้วยชาม",mn:"аяга",uz:"idish",es:"bowl"} },
-          { char:"옷걸이",word:"옷걸이",meaning:{ko:"옷걸이",vi:"móc treo quần áo",zh:"衣架",en:"hanger",ja:"ハンガー",id:"hanger",ru:"вешалка",th:"ไม้แขวนเสื้อ",mn:"цүнх өлгөгч",uz:"kiyim ilgich",es:"hanger"} },
-          { char:"옷장",  word:"옷장",  meaning:{ko:"옷장",  vi:"tủ quần áo",zh:"衣橱",en:"closet",ja:"タンス",id:"lemari pakaian",ru:"шкафонер",th:"ตู้เสื้อผ้า",mn:"хувцасны шүүгээ",uz:"kiyim shkafi",es:"closet"} },
-          { char:"칫솔",  word:"칫솔",  meaning:{ko:"칫솔",  vi:"bàn chải đánh răng",zh:"牙刷",en:"toothbrush",ja:"歯ブラシ",id:"sikat gigi",ru:"зубная щётка",th:"แปรงสีฟัน",mn:"шүдний сойз",uz:"tish cho'tkasi",es:"toothbrush"} },
-          { char:"잇몸",  word:"잇몸",  meaning:{ko:"잇몸",  vi:"chân răng (lợi)",zh:"牙龈",en:"gum",ja:"歯茎",id:"gusi",ru:"десна",th:"เหงือก",mn:"буй луу",uz:"milk",es:"gum"} },
-          { char:"맛",    word:"맛",    meaning:{ko:"맛",    vi:"vị",zh:"味道",en:"taste",ja:"味",id:"rasa",ru:"вкус",th:"รสชาติ",mn:"амт",uz:"ta'm",es:"taste"} },
-          { char:"삼겹살",word:"삼겹살",meaning:{ko:"삼겹살",vi:"thịt ba chỉ",zh:"五花肉",en:"pork belly",ja:"サムギョプサル",id:"perut babi",ru:"самгёпсал",th:"หมูสามชั้น",mn:"гурван давхар мах",uz:"qorin mazi",es:"pork belly"} },
-          { char:"초콜릿",word:"초콜릿",meaning:{ko:"초콜릿",vi:"sô cô la",zh:"巧克力",en:"chocolate",ja:"チョコレート",id:"cokelat",ru:"шоколад",th:"ช็อกโกแลต",mn:"шоколад",uz:"shokolad",es:"chocolate"} },
-          { char:"콧물",  word:"콧물",  meaning:{ko:"콧물",  vi:"nước mũi",zh:"鼻涕",en:"runny nose",ja:"鼻水",id:"ingus",ru:"сопли",th:"น้ำมูก",mn:"хамрын нус",uz:"burun suyi",es:"runny nose"} },
-          { char:"댓글",  word:"댓글",  meaning:{ko:"댓글",  vi:"bình luận",zh:"留言",en:"reply/comment",ja:"リプライ",id:"komentar",ru:"комментарий",th:"ความคิดเห็น",mn:"сэтгэгдэл",uz:"izoh",es:"reply/comment"} },
-          { char:"인터넷",word:"인터넷",meaning:{ko:"인터넷",vi:"internet",zh:"网络",en:"internet",ja:"インターネット",id:"internet",ru:"интернет",th:"อินเทอร์เน็ต",mn:"интернет",uz:"internet",es:"internet"} },
-          { char:"트럼펫",word:"트럼펫",meaning:{ko:"트럼펫",vi:"kèn trumpet",zh:"小号",en:"trumpet",ja:"トランペット",id:"terompet",ru:"труба",th:"ทรัมเป็ต",mn:"бүрээ",uz:"truba",es:"trumpet"} },
-          { char:"인터넷뱅킹",word:"인터넷뱅킹",meaning:{ko:"인터넷뱅킹",vi:"ngân hàng điện tử",zh:"网上金融",en:"internet banking",ja:"インターネットバンキング",id:"internet banking",ru:"интернет-банкинг",th:"ธนาคารออนไลน์",mn:"интернет банк",uz:"internet banking",es:"internet banking"} },
-          { char:"슈퍼마켓",word:"슈퍼마켓",meaning:{ko:"슈퍼마켓",vi:"siêu thị",zh:"超市",en:"supermarket",ja:"スーパーマーケット",id:"supermarket",ru:"супермаркет",th:"ซูเปอร์มาร์เก็ต",mn:"супермаркет",uz:"supermarket",es:"supermarket"} },
-          { char:"꽃다발",word:"꽃다발",meaning:{ko:"꽃다발",vi:"bó hoa",zh:"花束",en:"a bunch of flowers",ja:"花束",id:"buket bunga",ru:"букет цветов",th:"ช่อดอกไม้",mn:"цэцэгийн баглаа",uz:"guldasta",es:"a bunch of flowers"} },
-          { char:"밭",    word:"밭",    meaning:{ko:"밭",    vi:"cánh đồng",zh:"田地",en:"field",ja:"畑",id:"ladang",ru:"поле",th:"ทุ่งนา",mn:"тариалан",uz:"dala",es:"field"} },
-          { char:"햇빛",  word:"햇빛",  meaning:{ko:"햇빛",  vi:"ánh sáng mặt trời",zh:"阳光",en:"sunlight",ja:"日の光",id:"sinar matahari",ru:"солнечные лучи",th:"แสงแดด",mn:"нарны гэрэл",uz:"quyosh nuri",es:"sunlight"} },
-          { char:"숫자",  word:"숫자",  meaning:{ko:"숫자",  vi:"chữ số",zh:"数字",en:"number/digit",ja:"数字",id:"angka",ru:"цифра",th:"ตัวเลข",mn:"тоо",uz:"raqam",es:"number/digit"} },
-          { char:"노랗다",word:"노랗다",meaning:{ko:"노랗다",vi:"vàng",zh:"黄色",en:"yellow",ja:"黄色い",id:"kuning",ru:"жёлтый",th:"สีเหลือง",mn:"шар",uz:"sariq",es:"yellow"} },
-          { char:"파랗다",word:"파랗다",meaning:{ko:"파랗다",vi:"xanh dương",zh:"蓝色",en:"blue",ja:"青い",id:"biru",ru:"синий",th:"สีน้ำเงิน",mn:"хөх",uz:"ko'k",es:"blue"} },
-          { char:"하얗다",word:"하얗다",meaning:{ko:"하얗다",vi:"trắng",zh:"雪白",en:"white",ja:"白い",id:"putih",ru:"белый",th:"สีขาว",mn:"цагаан",uz:"oq",es:"white"} },
-          { char:"까맣다",word:"까맣다",meaning:{ko:"까맣다",vi:"đen",zh:"漆黑",en:"black",ja:"黒い",id:"hitam",ru:"чёрный",th:"สีดำ",mn:"хар",uz:"qora",es:"black"} },
-          { char:"셋",    word:"셋",    meaning:{ko:"셋",    vi:"ba (3)",zh:"三",en:"three",ja:"三",id:"tiga",ru:"три",th:"สาม",mn:"гурав",uz:"uch",es:"three"} },
-          { char:"넷",    word:"넷",    meaning:{ko:"넷",    vi:"bốn (4)",zh:"四",en:"four",ja:"四",id:"empat",ru:"четыре",th:"สี่",mn:"дөрөв",uz:"to'rt",es:"four"} },
-          { char:"다섯",  word:"다섯",  meaning:{ko:"다섯",  vi:"năm (5)",zh:"五",en:"five",ja:"五",id:"lima",ru:"пять",th:"ห้า",mn:"тав",uz:"besh",es:"five"} },
-          { char:"여섯",  word:"여섯",  meaning:{ko:"여섯",  vi:"sáu (6)",zh:"六",en:"six",ja:"六",id:"enam",ru:"шесть",th:"หก",mn:"зургаа",uz:"olti",es:"six"} },
-          { char:"뜻",    word:"뜻",    meaning:{ko:"뜻",    vi:"ý nghĩa",zh:"意思",en:"meaning",ja:"意味",id:"arti",ru:"значение",th:"ความหมาย",mn:"утга",uz:"ma'no",es:"meaning"} },
-          { char:"멋",    word:"멋",    meaning:{ko:"멋",    vi:"vẻ hấp dẫn",zh:"风度",en:"stylish/cool",ja:"しゃれ",id:"gaya",ru:"элегантность",th:"สไตล์",mn:"загвар",uz:"uslub",es:"stylish/cool"} },
-          { char:"웃음",  word:"웃음",  meaning:{ko:"웃음",  vi:"nụ cười",zh:"笑容",en:"smile",ja:"笑い",id:"senyum",ru:"смех",th:"รอยยิ้ม",mn:"инээмсэглэл",uz:"tabassum",es:"smile"} },
-          { char:"윷놀이",word:"윷놀이",meaning:{ko:"윷놀이",vi:"trò chơi Yut",zh:"掷棍游戏",en:"game of yut",ja:"ユンノリ",id:"permainan yut",ru:"игра «Ют»",th:"เกมยุต",mn:"юут тоглоом",uz:"yut o'yini",es:"game of yut"} },
-          { char:"거짓말",word:"거짓말",meaning:{ko:"거짓말",vi:"lời nói dối",zh:"谎言",en:"lie",ja:"嘘",id:"kebohongan",ru:"ложь",th:"การโกหก",mn:"худал",uz:"yolg'on",es:"lie"} },
-          { char:"얕다",  word:"얕다",  meaning:{ko:"얕다",  vi:"cạn",zh:"浅",en:"shallow",ja:"浅い",id:"dangkal",ru:"неглубокий",th:"ตื้น",mn:"гүехэн",uz:"sayoz",es:"shallow"} },
-          { char:"굳다",  word:"굳다",  meaning:{ko:"굳다",  vi:"cứng",zh:"坚硬",en:"harden",ja:"固い",id:"mengeras",ru:"затвердевать",th:"แข็ง",mn:"хатуурах",uz:"qotmoq",es:"harden"} },
-          { char:"못하다",word:"못하다",meaning:{ko:"못하다",vi:"không giỏi",zh:"不能",en:"be bad at",ja:"できない",id:"tidak bisa",ru:"не мочь",th:"ไม่เก่ง",mn:"чадахгүй",uz:"qila olmaslik",es:"be bad at"} },
-          { char:"따뜻하다",word:"따뜻하다",meaning:{ko:"따뜻하다",vi:"ấm áp",zh:"温暖",en:"warm",ja:"暖かい",id:"hangat",ru:"тёплый",th:"อบอุ่น",mn:"дулаахан",uz:"iliq",es:"warm"} },
-          { char:"깨끗하다",word:"깨끗하다",meaning:{ko:"깨끗하다",vi:"sạch sẽ",zh:"干净",en:"clean",ja:"きれいだ",id:"bersih",ru:"чистый",th:"สะอาด",mn:"цэвэр",uz:"toza",es:"clean"} },
-          { char:"못생기다",word:"못생기다",meaning:{ko:"못생기다",vi:"xấu xí",zh:"丑陋",en:"ugly",ja:"醜い",id:"jelek",ru:"некрасивый",th:"น่าเกลียด",mn:"муухай",uz:"xunuk",es:"ugly"} },
-          { char:"알맞다",word:"알맞다", meaning:{ko:"알맞다",vi:"phù hợp",zh:"合适",en:"fit/suitable",ja:"通当だ",id:"sesuai",ru:"подходящий",th:"เหมาะสม",mn:"тохирсон",uz:"mos",es:"fit/suitable"} },
-          { char:"걷다",  word:"걷다",  meaning:{ko:"걷다",vi:"đi bộ",zh:"走",en:"walk",ja:"歩く",id:"berjalan",ru:"идти пешком",th:"เดิน",mn:"алхах",uz:"yurmoq",es:"walk"} },
-          { char:"닫다",  word:"닫다",  meaning:{ko:"닫다",vi:"đóng",zh:"关闭",en:"close",ja:"閉める",id:"menutup",ru:"закрывать",th:"ปิด",mn:"хаах",uz:"yopmoq",es:"close"} },
-          { char:"벗다",  word:"벗다",  meaning:{ko:"벗다",vi:"cởi",zh:"脱",en:"take off",ja:"脱ぐ",id:"melepas",ru:"снимать",th:"ถอด",mn:"тайлах",uz:"yechmoq",es:"take off"} },
-          { char:"씻다",  word:"씻다",  meaning:{ko:"씻다",vi:"rửa",zh:"洗",en:"wash/clean",ja:"洗う",id:"mencuci",ru:"мыть",th:"ล้าง",mn:"угаах",uz:"yuvmoq",es:"wash/clean"} },
-          { char:"젖다",  word:"젖다",  meaning:{ko:"젖다",vi:"ướt",zh:"湿",en:"wet",ja:"濡れる",id:"basah",ru:"мокнуть",th:"เปียก",mn:"норох",uz:"ho'llanmoq",es:"wet"} },
-          { char:"끝나다",word:"끝나다",meaning:{ko:"끝나다",vi:"kết thúc",zh:"结束",en:"finish/end",ja:"終わる",id:"selesai",ru:"завершаться",th:"เสร็จสิ้น",mn:"дуусах",uz:"tugamoq",es:"finish/end"} },
-          { char:"받다",  word:"받다",  meaning:{ko:"받다",vi:"nhận",zh:"接受",en:"accept/receive",ja:"受ける",id:"menerima",ru:"принимать",th:"รับ",mn:"хүлээн авах",uz:"qabul qilmoq",es:"accept/receive"} },
-          { char:"넣다",  word:"넣다",  meaning:{ko:"넣다",vi:"bỏ vào",zh:"放入",en:"put in",ja:"入れる",id:"memasukkan",ru:"вложить",th:"ใส่",mn:"хийх",uz:"solishtirmoq",es:"put in"} },
-          { char:"놓다",  word:"놓다",  meaning:{ko:"놓다",vi:"đặt/để",zh:"放下",en:"put/place",ja:"置く",id:"meletakkan",ru:"класть",th:"วาง",mn:"тавих",uz:"qo'ymoq",es:"put/place"} },
-          { char:"쌓다",  word:"쌓다",  meaning:{ko:"쌓다",vi:"chồng chất",zh:"堆积",en:"accumulate/pile up",ja:"積む",id:"menumpuk",ru:"складывать",th:"กองสะสม",mn:"нийлүүлэх",uz:"to'plamoq",es:"accumulate/pile up"} },
-          { char:"맞추다",word:"맞추다",meaning:{ko:"맞추다",vi:"làm cho khớp",zh:"配合",en:"fit/match",ja:"合わせる",id:"menyesuaikan",ru:"подстраивать",th:"ให้พอดี",mn:"тохируулах",uz:"moslashtirmoq",es:"fit/match"} },
-          { char:"잊다",  word:"잊다",  meaning:{ko:"잊다",vi:"quên",zh:"忘记",en:"forget",ja:"忘れる",id:"melupakan",ru:"забывать",th:"ลืม",mn:"мартах",uz:"unutmoq",es:"forget"} },
-          { char:"찾다",  word:"찾다",  meaning:{ko:"찾다",vi:"tìm kiếm",zh:"寻找",en:"find/seek",ja:"探す",id:"mencari",ru:"искать",th:"หา",mn:"хайх",uz:"qidirmoq",es:"find/seek"} },
-          { char:"웃다",  word:"웃다",  meaning:{ko:"웃다",vi:"cười",zh:"笑",en:"laugh",ja:"笑う",id:"tertawa",ru:"смеяться",th:"หัวเราะ",mn:"инээх",uz:"kulmoq",es:"laugh"} },
-          { char:"싣다",  word:"싣다",  meaning:{ko:"싣다",vi:"chất lên",zh:"装载",en:"load",ja:"のせる",id:"memuat",ru:"грузить",th:"บรรทุก",mn:"ачих",uz:"yuklаmoq",es:"load"} },
-          { char:"듣다",  word:"듣다",  meaning:{ko:"듣다",vi:"nghe",zh:"听",en:"hear/listen",ja:"聞く",id:"mendengar",ru:"слышать",th:"ฟัง",mn:"сонсох",uz:"eshitmoq",es:"hear/listen"} },
-          { char:"묻다",  word:"묻다",  meaning:{ko:"묻다",vi:"hỏi",zh:"问",en:"ask",ja:"問う",id:"bertanya",ru:"спрашивать",th:"ถาม",mn:"асуух",uz:"so'ramoq",es:"ask"} },
-          { char:"맺다",  word:"맺다",  meaning:{ko:"맺다",vi:"kết trái/thiết lập",zh:"结",en:"bear fruit/form",ja:"結ぶ",id:"membentuk",ru:"образовываться",th:"ผูก",mn:"жимслэх",uz:"hosil bermoq",es:"bear fruit/form"} },
-          { char:"낳다",  word:"낳다",  meaning:{ko:"낳다",vi:"sinh",zh:"生",en:"give birth",ja:"生む",id:"melahirkan",ru:"рожать",th:"คลอด",mn:"төрүүлэх",uz:"tug'moq",es:"give birth"} },
-          { char:"낫다",  word:"낫다(회복)",meaning:{ko:"낫다(회복)",vi:"tốt hơn",zh:"康复",en:"recover/get better",ja:"良くなる",id:"sembuh",ru:"поправляться",th:"หายดีขึ้น",mn:"сайжрах",uz:"yaxshilanmoq",es:"recover/get better"} },
-          { char:"붙다",  word:"붙다",  meaning:{ko:"붙다",vi:"dính lại",zh:"粘",en:"glue/attach",ja:"付く",id:"menempel",ru:"прикреплять",th:"ติด",mn:"наалдах",uz:"yopishmoq",es:"glue/attach"} },
-          { char:"재미있다",word:"재미있다",meaning:{ko:"재미있다",vi:"thú vị",zh:"有趣",en:"funny/interesting",ja:"面白い",id:"menarik",ru:"интересный",th:"สนุก",mn:"сонирхолтой",uz:"qiziqarli",es:"funny/interesting"} },
-          { char:"낮다",  word:"낮다",  meaning:{ko:"낮다",vi:"thấp",zh:"低矮",en:"low",ja:"低い",id:"rendah",ru:"низкий",th:"ต่ำ",mn:"нам",uz:"past",es:"low"} },
-          { char:"같다",  word:"같다",  meaning:{ko:"같다",vi:"giống nhau",zh:"一样",en:"same/equal",ja:"同じ",id:"sama",ru:"одинаковый",th:"เหมือนกัน",mn:"ижил",uz:"bir xil",es:"same/equal"} },
-          { char:"빨갛다",word:"빨갛다",meaning:{ko:"빨갛다",vi:"đỏ",zh:"红",en:"red",ja:"赤い",id:"merah",ru:"красный",th:"สีแดง",mn:"улаан",uz:"qizil",es:"red"} },
-          { char:"수줍다",word:"수줍다", meaning:{ko:"수줍다",vi:"e dè",zh:"害羞",en:"shy",ja:"恥ずかしがり",id:"pemalu",ru:"застенчивый",th:"ขี้อาย",mn:"ичимхий",uz:"uyatchan",es:"shy"} },
-          { char:"긋다",  word:"긋다",  meaning:{ko:"긋다",vi:"vạch/kẻ",zh:"划线",en:"draw a line",ja:"線を引く",id:"menggaris",ru:"проводить линию",th:"ขีดเส้น",mn:"зурах",uz:"chizmoq",es:"draw a line"} },
-          { char:"돋다",  word:"돋다",  meaning:{ko:"돋다",vi:"mọc/nổi lên",zh:"升起",en:"rise/sprout",ja:"生える",id:"tumbuh",ru:"восходить",th:"งอก",mn:"ургах",uz:"unmoq",es:"rise/sprout"} },
-                ],
-        tip:{ko:"💡 [대표음화] 7가지 자음(ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ)이 받침에서 모두 [ㄷ]으로 발음돼요. 혀를 윗니 뒤에 살짝 대고 소리를 막아요. 예) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",vi:"Dù hình dạng chữ khác nhau, tất cả đều phát âm [ㄷ] ở vị trí phụ âm cuối.",en:"Though the shapes differ, all of these are pronounced as [ㄷ] in the final consonant position.",zh:"💡【代表音化】7个辅音（ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ）作收音时都发[ㄷ]音。舌尖轻抵上齿背阻断声音。例：옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",ja:"💡【代表音化】7つの子音（ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ）はパッチムでは全て[ㄷ]と発音されます。舌先を上の歯の裏に軽く当てて音を止めます。例）옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",id:"💡[Bunyi representatif] 7 konsonan (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) semuanya diucapkan sebagai [ㄷ] saat menjadi konsonan akhir. Tempelkan lidah ringan di belakang gigi atas dan tahan bunyinya. Contoh) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",ru:"💡[Репрезентативный звук] 7 согласных (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) в конце слова все произносятся как [ㄷ]. Слегка коснитесь языком верхних зубов и остановите звук. Напр.) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",th:"💡[เสียงตัวแทน] พยัญชนะ 7 ตัว (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) เมื่อเป็นตัวสะกดจะออกเสียงเป็น [ㄷ] ทั้งหมด แตะปลายลิ้นที่ฟันบนเบา ๆ แล้วกักเสียงไว้ ตัวอย่าง) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",mn:"💡[Төлөөлөх авиа] 7 гийгүүлэгч (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) нь төгсгөлийн байрлалд бүгд [ㄷ] гэж дуудагдана. Хэлний үзүүрээ дээд шүдэнд бага зэрэг хүргээд дууг хааж бай. Жишээ) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",uz:"💡[Vakillik tovushi] 7 ta undosh (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) oxirgi undosh bo'lganda hammasi [ㄷ] deb aytiladi. Til uchini yuqori tishlar ortiga yengil tekkizib tovushni to'xtating. Masalan) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",es:"💡[Sonido representativo] Las 7 consonantes (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) se pronuncian todas como [ㄷ] al final de sílaba. Toque ligeramente la lengua detrás de los dientes superiores y detenga el sonido. Ej.) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",fr:"💡[Son représentatif] Les 7 consonnes (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) se prononcent toutes [ㄷ] en position finale. Touchez légèrement la langue derrière les dents du haut et arrêtez le son. Ex. : 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",ne:"💡[प्रतिनिधि ध्वनि] ७ व्यञ्जन (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) अन्त्य व्यञ्जनमा सबै [ㄷ] उच्चारण हुन्छ। जिब्रोको टुप्पो माथिल्लो दाँतमा हल्का छोई ध्वनि रोक्नुहोस्। उदाहरण) 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]",de:"💡[Repräsentativer Laut] Die 7 Konsonanten (ㄷ·ㅌ·ㅅ·ㅆ·ㅈ·ㅊ·ㅎ) werden am Ende alle als [ㄷ] ausgesprochen. Berühren Sie mit der Zungenspitze leicht die oberen Zähne und stoppen Sie den Klang. Bsp.: 옷[옫] 꽃[꼳] 낮[낟] 빛[빋]"},
-      },
-      // ── 단계 17: 겹받침 + 연음 ──
-      { id:"double_liaison", type:"learn", emoji:"🔗",
-        title:{ko:"17. 겹받침 + 연음법칙 — 최종 관문!",vi:"17. Phụ âm cuối kép + Quy tắc liên âm — Cửa ải cuối cùng!",en:"17. Double Final Consonants + Liaison Rule — Final Gate!",zh:"17. 复合收音 + 连音规则 — 最终关卡！",ja:"17. 二重パッチム＋連音規則 — 最終関門！",id:"17. Konsonan Akhir Ganda + Aturan Liaison — Gerbang Terakhir!",ru:"17. Двойная конечная согласная + правило связывания — финальные врата!",th:"17. ตัวสะกดซ้อน + กฎการเชื่อมเสียง — ด่านสุดท้าย!",mn:"17. Давхар төгсгөлийн гийгүүлэгч + Холбох дуудлагын дүрэм — Сүүлчийн хаалга!",uz:"17. Qo'sh oxirgi undosh + Bog'lovchi talaffuz qoidasi — Yakuniy darvoza!",es:"17. Consonante final doble + regla de enlace — ¡Puerta final!",fr:"17. Consonne finale double + règle de liaison — Dernière étape !",ne:"17. दोहोरो अन्त्य व्यञ्जन + जोड्ने ध्वनि नियम — अन्तिम ढोका!",de:"17. Doppelter Endkonsonant + Verbindungsregel — Das letzte Tor!"},
-        desc:{ko:"겹받침과 조사 결합 시 소리 변화(연음)를 익힙니다.",vi:"Học sự thay đổi âm (liên âm) khi phụ âm cuối kép kết hợp với trợ từ.",en:"Learn sound changes (liaison) when double final consonants combine with particles.",zh:"学习复合收音与助词结合时的音变（连音）规则。",ja:"二重パッチムと助詞が結合するときの音変化（連音）を学びます。",id:"Pelajari perubahan bunyi (liaison) saat konsonan akhir ganda bertemu partikel.",ru:"Изучите изменение звука (связывание) при соединении двойных конечных согласных с частицами.",th:"เรียนรู้การเปลี่ยนเสียง (การเชื่อมเสียง) เมื่อตัวสะกดซ้อนรวมกับคำช่วย",mn:"Давхар төгсгөлийн гийгүүлэгч нөхцөлтэй нийлэх үеийн дууны өөрчлөлт (холбох дуудлага)-ыг мэдэж авна.",uz:"Qo'sh oxirgi undosh yuklama bilan birikkanda yuzaga keladigan tovush o'zgarishi (bog'lovchi talaffuz)ni o'rganing.",es:"Aprenda el cambio de sonido (enlace) al combinar consonantes finales dobles con partículas.",fr:"Apprenez le changement de son (liaison) lorsque des consonnes finales doubles se combinent avec des particules.",ne:"दोहोरो अन्त्य व्यञ्जन र कारक जोडिँदा हुने ध्वनि परिवर्तन (जोड्ने उच्चारण) सिक्नुहोस्।",de:"Lernen Sie die Lautveränderung (Verbindung), wenn doppelte Endkonsonanten mit Partikeln kombiniert werden."},
-        items:[
-          { char:"닭",    word:"닭",    meaning:{ko:"닭",    vi:"con gà",zh:"鸡",en:"chicken",ja:"鶏",id:"ayam",ru:"курица",th:"ไก่",mn:"тахиа",uz:"tovuq",es:"chicken"} },
-          { char:"앉다",  word:"앉다",  meaning:{ko:"앉다",  vi:"ngồi",zh:"坐",en:"to sit",ja:"座る",id:"duduk",ru:"сидеть",th:"นั่ง",mn:"суух",uz:"o'tirmoq",es:"to sit"} },
-          { char:"읽다",  word:"읽다",  meaning:{ko:"읽다",  vi:"đọc",zh:"读",en:"to read",ja:"読む",id:"membaca",ru:"читать",th:"อ่าน",mn:"унших",uz:"o'qimoq",es:"to read"} },
-          { char:"없다",  word:"없다",  meaning:{ko:"없다",  vi:"không có",zh:"没有",en:"to not exist",ja:"ない",id:"tidak ada",ru:"нет",th:"ไม่มี",mn:"байхгүй",uz:"yo'q",es:"to not exist"} },
-          { char:"가족이",word:"가족이", meaning:{ko:"가족이",vi:"gia đình (chủ ngữ)",zh:"家庭(主语)",en:"family (subject)",ja:"家族が",id:"keluarga (subjek)",ru:"семья (субъект)",th:"ครอบครัว (ประธาน)",mn:"гэр бүл (эзэн)",uz:"oila (ega)",es:"family (subject)"} },
-          { char:"옷이",  word:"옷이",  meaning:{ko:"옷이",  vi:"quần áo (chủ ngữ)",zh:"衣服(主语)",en:"clothes (subject)",ja:"服が",id:"pakaian (subjek)",ru:"одежда (субъект)",th:"เสื้อผ้า (ประธาน)",mn:"хувцас (эзэн)",uz:"kiyim (ega)",es:"clothes (subject)"} },
-          { char:"꽃이",  word:"꽃이",  meaning:{ko:"꽃이",  vi:"hoa (chủ ngữ)",zh:"花(主语)",en:"flower (subject)",ja:"花が",id:"bunga (subjek)",ru:"цветок (субъект)",th:"ดอกไม้ (ประธาน)",mn:"цэцэг (эзэн)",uz:"gul (ega)",es:"flower (subject)"} },
-          { char:"밥을",  word:"밥을",  meaning:{ko:"밥을",  vi:"cơm (tân ngữ)",zh:"米饭(宾语)",en:"rice (object)",ja:"ご飯を",id:"nasi (objek)",ru:"рис (объект)",th:"ข้าว (กรรม)",mn:"будаа (тэсвэрлэгч)",uz:"guruch (to'ldiruvchi)",es:"rice (object)"} },
-          { char:"읽어요",word:"읽어요", meaning:{ko:"읽어요",vi:"đọc (thể hiện nay)",zh:"读",en:"(I) read",ja:"読みます",id:"membaca",ru:"читаю",th:"อ่าน",mn:"уншдаг",uz:"o'qiyman",es:"(I) read"} },
-          { char:"앉아요",word:"앉아요", meaning:{ko:"앉아요",vi:"ngồi",zh:"坐下",en:"(I) sit",ja:"座ります",id:"duduk",ru:"сижу",th:"นั่ง",mn:"суудаг",uz:"o'tiraman",es:"(I) sit"} },
-          { char:"값",    word:"값",    meaning:{ko:"값",    vi:"giá cả",zh:"价值",en:"cost/price",ja:"値段",id:"harga",ru:"цена",th:"ราคา",mn:"үнэ",uz:"narx",es:"cost/price"} },
-          { char:"몫",    word:"몫",    meaning:{ko:"몫",    vi:"phần chia",zh:"份额",en:"share/portion",ja:"分け前",id:"bagian",ru:"доля",th:"ส่วนแบ่ง",mn:"хувь",uz:"ulush",es:"share/portion"} },
-          { char:"여덟",  word:"여덟",  meaning:{ko:"여덟",  vi:"tám (8)",zh:"八",en:"eight",ja:"八",id:"delapan",ru:"восемь",th:"แปด",mn:"найм",uz:"sakkiz",es:"eight"} },
-          { char:"늙다",  word:"늙다",  meaning:{ko:"늙다",  vi:"già",zh:"老",en:"be old",ja:"老いる",id:"tua",ru:"стареть",th:"แก่",mn:"өтөлх",uz:"qarimoq",es:"be old"} },
-          { char:"많다",  word:"많다",  meaning:{ko:"많다",  vi:"nhiều",zh:"多",en:"many",ja:"多い",id:"banyak",ru:"много",th:"มาก",mn:"олон",uz:"ko'p",es:"many"} },
-          { char:"없다",  word:"없다",  meaning:{ko:"없다",  vi:"không có",zh:"没有",en:"there is none",ja:"ない",id:"tidak ada",ru:"нет",th:"ไม่มี",mn:"байхгүй",uz:"yo'q",es:"there is none"} },
-          { char:"재미없다",word:"재미없다",meaning:{ko:"재미없다",vi:"không thú vị",zh:"无趣",en:"boring",ja:"面白くない",id:"membosankan",ru:"неинтересный",th:"น่าเบื่อ",mn:"хөгжилгүй",uz:"zerikarli",es:"boring"} },
-          { char:"넓다",  word:"넓다",  meaning:{ko:"넓다",  vi:"rộng",zh:"广阔",en:"broad/wide",ja:"広い",id:"luas",ru:"широкий",th:"กว้าง",mn:"өргөн",uz:"keng",es:"broad/wide"} },
-          { char:"밝다",  word:"밝다",  meaning:{ko:"밝다",  vi:"sáng",zh:"明亮",en:"bright",ja:"明るい",id:"terang",ru:"светлый",th:"สว่าง",mn:"гэрэлтэй",uz:"yorqin",es:"bright"} },
-          { char:"굵다",  word:"굵다",  meaning:{ko:"굵다",  vi:"thô dày dặn",zh:"粗",en:"thick",ja:"太い",id:"tebal",ru:"толстый",th:"หนา",mn:"зузаан",uz:"yo'g'on",es:"thick"} },
-          { char:"얇다",  word:"얇다",  meaning:{ko:"얇다",  vi:"mỏng",zh:"薄",en:"thin",ja:"薄い",id:"tipis",ru:"тонкий",th:"บาง",mn:"нимгэн",uz:"yupqa",es:"thin"} },
-          { char:"귀찮다",word:"귀찮다",meaning:{ko:"귀찮다",vi:"phiền phức",zh:"麻烦",en:"bothering/annoying",ja:"面倒だ",id:"menyebalkan",ru:"надоедливый",th:"น่ารำคาญ",mn:"залхуу",uz:"bezovta",es:"bothering/annoying"} },
-          { char:"맑다",  word:"맑다",  meaning:{ko:"맑다",  vi:"trong trẻo",zh:"清澈",en:"clear",ja:"清い",id:"jernih",ru:"прозрачный",th:"ใส",mn:"тунгалаг",uz:"tiniq",es:"clear"} },
-          { char:"짧다",  word:"짧다",  meaning:{ko:"짧다",  vi:"ngắn",zh:"短",en:"short",ja:"短い",id:"pendek",ru:"короткий",th:"สั้น",mn:"богино",uz:"qisqa",es:"short"} },
-          { char:"편찮다",word:"편찮다",meaning:{ko:"편찮다",vi:"ốm",zh:"不舒服",en:"sick/ill",ja:"来て体調不良",id:"sakit",ru:"болеть",th:"ไม่สบาย",mn:"өвчтэй",uz:"kasal",es:"sick/ill"} },
-          { char:"앉다",  word:"앉다",  meaning:{ko:"앉다",  vi:"ngồi xuống",zh:"坐下",en:"sit down",ja:"座る",id:"duduk",ru:"садиться",th:"นั่ง",mn:"суух",uz:"o'tirmoq",es:"sit down"} },
-          { char:"잃다",  word:"잃다",  meaning:{ko:"잃다",  vi:"mất",zh:"丢失",en:"lose",ja:"失う",id:"kehilangan",ru:"терять",th:"สูญเสีย",mn:"алдах",uz:"yo'qotmoq",es:"lose"} },
-          { char:"끊다",  word:"끊다",  meaning:{ko:"끊다",  vi:"cắt đứt",zh:"切断",en:"cut/stop",ja:"切る",id:"memotong",ru:"резать",th:"ตัด",mn:"тасдах",uz:"kesmoq",es:"cut/stop"} },
-          { char:"젊다",  word:"젊다",  meaning:{ko:"젊다",  vi:"trẻ",zh:"年轻",en:"young",ja:"若い",id:"muda",ru:"молодой",th:"หนุ่มสาว",mn:"залуу",uz:"yosh",es:"young"} },
-          { char:"닮다",  word:"닮다",  meaning:{ko:"닮다",  vi:"giống",zh:"相似",en:"resemble/look like",ja:"似合う",id:"mirip",ru:"быть похожим",th:"คล้าย",mn:"төстэй",uz:"o'xshash",es:"resemble/look like"} },
-          { char:"밟다",  word:"밟다",  meaning:{ko:"밟다",  vi:"dẫm đạp",zh:"踩",en:"step on",ja:"踏む",id:"menginjak",ru:"наступать",th:"เหยียบ",mn:"гишгэх",uz:"bosmoq",es:"step on"} },
-          { char:"흙",    word:"흙",    meaning:{ko:"흙",    vi:"đất",zh:"泥土",en:"soil/earth",ja:"土",id:"tanah",ru:"почва",th:"ดิน",mn:"шороо",uz:"tuproq",es:"soil/earth"} },
-          { char:"붉다",  word:"붉다",  meaning:{ko:"붉다",  vi:"đỏ thẫm",zh:"红的",en:"red",ja:"赤い",id:"merah",ru:"красный",th:"สีแดง",mn:"улаан",uz:"qizil",es:"red"} },
-          { char:"삶",    word:"삶",    meaning:{ko:"삶",    vi:"cuộc đời",zh:"生活/人生",en:"life",ja:"人生",id:"kehidupan",ru:"жизнь",th:"ชีวิต",mn:"амьдрал",uz:"hayot",es:"life"} },
-          { char:"가족이",word:"가족이",meaning:{ko:"가족이",vi:"gia đình (chủ ngữ)",zh:"家人(主语)",en:"family (subject)",ja:"家族が",id:"keluarga",ru:"семья",th:"ครอบครัว",mn:"гэр бүл",uz:"oila",es:"family (subject)"} },
-          { char:"책이",  word:"책이",  meaning:{ko:"책이 → [채기]",vi:"quyển sách → [채기]",zh:"书→[채기]",en:"book → [chaegi]",ja:"本→[채기]",id:"buku",ru:"книга",th:"หนังสือ",mn:"ном",uz:"kitob",es:"book → [chaegi]"} },
-          { char:"밥을",  word:"밥을",  meaning:{ko:"밥을 → [바블]",vi:"cơm (tân ngữ) → [바블]",zh:"饭(宾语)→[바블]",en:"rice → [babeul]",ja:"ご飯を→[바블]",id:"nasi",ru:"рис",th:"ข้าว",mn:"будаа",uz:"guruch",es:"rice → [babeul]"} },
-          { char:"집에",  word:"집에",  meaning:{ko:"집에 → [지베]",vi:"ở nhà → [지베]",zh:"在家→[지베]",en:"at home → [jibe]",ja:"家に→[지베]",id:"di rumah",ru:"дома",th:"ที่บ้าน",mn:"гэртээ",uz:"uyda",es:"at home → [jibe]"} },
-          { char:"학교에",word:"학교에",meaning:{ko:"학교에 → [학꾜에]",vi:"ở trường → [학꾜에]",zh:"在学校→[학꾜에]",en:"at school → [hakkyoe]",ja:"学校に",id:"di sekolah",ru:"в школе",th:"ที่โรงเรียน",mn:"сургуульд",uz:"maktabda",es:"at school → [hakkyoe]"} },
-          { char:"음악을",word:"음악을",meaning:{ko:"음악을 → [으마글]",vi:"âm nhạc → [으마글]",zh:"音乐→[으마글]",en:"music → [eumageul]",ja:"音楽を",id:"musik",ru:"музыку",th:"เพลง",mn:"хөгжим",uz:"musiqa",es:"music → [eumageul]"} },
-          { char:"한국에서",word:"한국에서",meaning:{ko:"한국에서 → [한구게서]",vi:"ở Hàn Quốc → [한구게서]",zh:"在韩国→[한구게서]",en:"in Korea → [hangugeseo]",ja:"韓国で",id:"di Korea",ru:"в Корее",th:"ในเกาหลี",mn:"Солонгост",uz:"Koreyada",es:"in Korea → [hangugeseo]"} },
-          { char:"베트남에서",word:"베트남에서",meaning:{ko:"베트남에서 → [베트나메서]",vi:"ở Việt Nam → [베트나메서]",zh:"在越南",en:"in Vietnam",ja:"ベトナムで",id:"di Vietnam",ru:"во Вьетнаме",th:"ในเวียดนาม",mn:"Вьетнамд",uz:"Vetnamda",es:"in Vietnam"} },
-          { char:"서울에서",word:"서울에서",meaning:{ko:"서울에서 → [서우레서]",vi:"ở Seoul → [서우레서]",zh:"在首尔",en:"in Seoul",ja:"ソウルで",id:"di Seoul",ru:"в Сеуле",th:"ในโซล",mn:"Сөүлд",uz:"Seulda",es:"in Seoul"} },
-          { char:"별이",  word:"별이",  meaning:{ko:"별이 → [벼리]",vi:"ngôi sao → [벼리]",zh:"星星→[벼리]",en:"star → [byeori]",ja:"星が",id:"bintang",ru:"звезда",th:"ดาว",mn:"од",uz:"yulduz",es:"star → [byeori]"} },
-          { char:"면적이",word:"면적이",meaning:{ko:"면적이 → [면저기]",vi:"diện tích → [면저기]",zh:"面积→[면저기]",en:"area → [myeonjegi]",ja:"面積が",id:"luas wilayah",ru:"площадь",th:"พื้นที่",mn:"талбай",uz:"maydon",es:"area → [myeonjegi]"} },
-          { char:"검은색을",word:"검은색을",meaning:{ko:"검은색을 → [거믄새글]",vi:"màu đen → [거믄새글]",zh:"黑色→[거믄새글]",en:"black → [geomeunsaegeul]",ja:"黒色を",id:"warna hitam",ru:"чёрный",th:"สีดำ",mn:"хар",uz:"qora rang",es:"black → [geomeunsaegeul]"} },
-          { char:"그들은",word:"그들은", meaning:{ko:"그들은 → [그드른]",vi:"họ → [그드른]",zh:"他们→[그드른]",en:"they → [geudeureun]",ja:"彼らは",id:"mereka",ru:"они",th:"พวกเขา",mn:"тэд",uz:"ular",es:"they → [geudeureun]"} },
-          { char:"믿음이",word:"믿음이", meaning:{ko:"믿음이 → [미드미]",vi:"niềm tin → [미드미]",zh:"信念→[미드미]",en:"faith → [mideum-i]",ja:"信頼が",id:"kepercayaan",ru:"вера",th:"ความเชื่อ",mn:"итгэл",uz:"ishonch",es:"faith → [mideum-i]"} },
-          { char:"재미없어요",word:"재미없어요",meaning:{ko:"재미없어요 → [재미업써요]",vi:"không thú vị → [재미업써요]",zh:"无聊→[재미업써요]",en:"boring → [jaemi-eobsseoyo]",ja:"つまらないです",id:"membosankan",ru:"скучно",th:"น่าเบื่อ",mn:"уйтгартай",uz:"zerikarli",es:"boring → [jaemi-eobsseoyo]"} },
-          { char:"높아요",word:"높아요",  meaning:{ko:"높아요 → [노파요]",vi:"cao → [노파요]",zh:"高→[노파요]",en:"high → [nopayo]",ja:"高いです",id:"tinggi",ru:"высоко",th:"สูง",mn:"өндөр",uz:"baland",es:"high → [nopayo]"} },
-          { char:"낮아요",word:"낮아요",  meaning:{ko:"낮아요 → [나자요]",vi:"thấp → [나자요]",zh:"低→[나자요]",en:"low → [najayo]",ja:"低いです",id:"rendah",ru:"низко",th:"ต่ำ",mn:"нам",uz:"past",es:"low → [najayo]"} },
-          { char:"읽어요",word:"읽어요",  meaning:{ko:"읽어요 → [일거요]",vi:"đọc → [일거요]",zh:"读→[일거요]",en:"read → [ilgeoyo]",ja:"読みます",id:"membaca",ru:"читаю",th:"อ่าน",mn:"уншина",uz:"o'qiyapman",es:"read → [ilgeoyo]"} },
-          { char:"앉아요",word:"앉아요",  meaning:{ko:"앉아요 → [안자요]",vi:"ngồi → [안자요]",zh:"坐→[안자요]",en:"sit → [anjayo]",ja:"座ります",id:"duduk",ru:"сажусь",th:"นั่ง",mn:"сууна",uz:"o'tiraman",es:"sit → [anjayo]"} },
-          { char:"없어요",word:"없어요",  meaning:{ko:"없어요 → [업써요]",vi:"không có → [업써요]",zh:"没有→[업써요]",en:"there isn't → [eobsseoyo]",ja:"ありません",id:"tidak ada",ru:"нет",th:"ไม่มี",mn:"байхгүй",uz:"yo'q",es:"there isn't → [eobsseoyo]"} },
-          { char:"꽃이",  word:"꽃이",    meaning:{ko:"꽃이 → [꼬치]",vi:"hoa → [꼬치]",zh:"花→[꼬치]",en:"flower → [kkochi]",ja:"花が",id:"bunga",ru:"цветок",th:"ดอกไม้",mn:"цэцэг",uz:"gul",es:"flower → [kkochi]"} },
-          { char:"옷이",  word:"옷이",    meaning:{ko:"옷이 → [오시]",vi:"quần áo → [오시]",zh:"衣服→[오시]",en:"clothes → [osi]",ja:"服が",id:"baju",ru:"одежда",th:"เสื้อผ้า",mn:"хувцас",uz:"kiyim",es:"clothes → [osi]"} },
-          { char:"교수님이",word:"교수님이",meaning:{ko:"교수님이 → [교수니미]",vi:"giáo sư → [교수니미]",zh:"教授→[교수니미]",en:"professor → [gyosunimi]",ja:"教授が",id:"profesor",ru:"профессор",th:"อาจารย์",mn:"профессор",uz:"professor",es:"professor → [gyosunimi]"} },
-          { char:"잠을",  word:"잠을",    meaning:{ko:"잠을 → [자믈]",vi:"giấc ngủ → [자믈]",zh:"睡眠→[자믈]",en:"sleep → [jameul]",ja:"睡眠を",id:"tidur",ru:"сон",th:"การนอน",mn:"унтлага",uz:"uxlash",es:"sleep → [jameul]"} },
-          { char:"신발을",word:"신발을",  meaning:{ko:"신발을 → [신바를]",vi:"giày → [신바를]",zh:"鞋→[신바를]",en:"shoes → [sinbareul]",ja:"靴を",id:"sepatu",ru:"обувь",th:"รองเท้า",mn:"гутал",uz:"poyabzal",es:"shoes → [sinbareul]"} },
-          { char:"눈이",  word:"눈이",    meaning:{ko:"눈이 → [누니]",vi:"mắt/tuyết → [누니]",zh:"眼睛/雪→[누니]",en:"eye/snow → [nuni]",ja:"目/雪が",id:"mata/salju",ru:"глаза/снег",th:"ตา/หิมะ",mn:"нүд/цас",uz:"ko'z/qor",es:"eye/snow → [nuni]"} },
-          { char:"수박을",word:"수박을",  meaning:{ko:"수박을 → [수바글]",vi:"dưa hấu → [수바글]",zh:"西瓜→[수바글]",en:"watermelon → [subageul]",ja:"スイカを",id:"semangka",ru:"арбуз",th:"แตงโม",mn:"тарвас",uz:"tarvuz",es:"watermelon → [subageul]"} },
-          { char:"음식은",word:"음식은",  meaning:{ko:"음식은 → [음시근]",vi:"thức ăn → [음시근]",zh:"食物→[음시근]",en:"food → [eumssigeun]",ja:"食べ物は",id:"makanan",ru:"еда",th:"อาหาร",mn:"хоол",uz:"ovqat",es:"food → [eumssigeun]"} },
-          { char:"쌀을",  word:"쌀을",    meaning:{ko:"쌀을 → [싸를]",vi:"gạo → [싸를]",zh:"大米→[싸를]",en:"rice → [ssareul]",ja:"米を",id:"beras",ru:"рис",th:"ข้าวสาร",mn:"будаа",uz:"guruch",es:"rice → [ssareul]"} },
-          { char:"술을",  word:"술을",    meaning:{ko:"술을 → [수를]",vi:"rượu → [수를]",zh:"酒→[수를]",en:"liquor → [sureul]",ja:"お酒を",id:"alkohol",ru:"водку",th:"เหล้า",mn:"архи",uz:"spirt",es:"liquor → [sureul]"} },
-          { char:"부작용을",word:"부작용을",meaning:{ko:"부작용을 → [부자굥을]",vi:"tác dụng phụ → [부자굥을]",zh:"副作用→[부자굥을]",en:"side effect",ja:"副作用を",id:"efek samping",ru:"побочный эффект",th:"ผลข้างเคียง",mn:"гаж нөлөө",uz:"yon ta'sir",es:"side effect"} },
-          { char:"댓글을",word:"댓글을",  meaning:{ko:"댓글을 → [대글을]",vi:"bình luận → [대글을]",zh:"评论→[대글을]",en:"reply → [daeggeureul]",ja:"コメントを",id:"komentar",ru:"комментарий",th:"ความคิดเห็น",mn:"сэтгэгдэл",uz:"izoh",es:"reply → [daeggeureul]"} },
-          { char:"밖으로",word:"밖으로",  meaning:{ko:"밖으로 → [바끄로]",vi:"ra ngoài → [바끄로]",zh:"向外→[바끄로]",en:"outside → [bakkeuro]",ja:"外へ",id:"keluar",ru:"наружу",th:"ออกข้างนอก",mn:"гадагш",uz:"tashqariga",es:"outside → [bakkeuro]"} },
-          { char:"트럼펫을",word:"트럼펫을",meaning:{ko:"트럼펫을 → [트럼페들]",vi:"kèn trumpet → [트럼페들]",zh:"小号→[트럼페들]",en:"trumpet → [teurempeteul]",ja:"トランペットを",id:"terompet",ru:"трубу",th:"ทรัมเป็ต",mn:"бүрээ",uz:"truba",es:"trumpet → [teurempeteul]"} },
-                ],
-        tip:{ko:"⭐ 핵심 규칙 ① 겹받침: 하나만 발음 — 읽다[익따] 닭[닥] 삶[삼] ② 연음: 받침+모음 → 받침이 다음 음절로 — 밥을[바블] 책이[채기] 집에[지베] 💡 지금까지 배운 음운 규칙(대표음화·비음화·유음화)이 연음과 결합하면 더 자연스러운 한국어가 됩니다!",vi:"⭐ Quy tắc cốt lõi ① Phụ âm đôi: chỉ phát âm một — 읽다[익따] 닭[닥] ② Liên âm: phụ âm cuối+nguyên âm → chuyển sang âm tiết sau — 밥을[바블] 책이[채기]",en:"⭐ Key rules ① Double consonant: pronounce only one — 읽다[익따] 닭[닥] 삶[삼] ② Liaison: final+vowel → moves to next syllable — 밥을[바블] 책이[채기] 집에[지베]",zh:"⭐核心规则 ①复合收音：只发一个音——읽다[익따] 닭[닥] 삶[삼] ②连音：收音+元音→收音移到下一音节——밥을[바블] 책이[채기] 집에[지베] 💡目前学过的音变规则（代表音化·鼻音化·流音化）与连音结合，会让韩语听起来更自然！",ja:"⭐重要ルール①二重パッチム：1つだけ発音 — 읽다[익따] 닭[닥] 삶[삼] ②連音：パッチム＋母音→パッチムが次の音節へ — 밥을[바블] 책이[채기] 집에[지베] 💡これまで学んだ音韻ルール（代表音化・鼻音化・流音化）が連音と結びつくと、より自然な韓国語になります！",id:"⭐Aturan inti ① Konsonan akhir ganda: hanya ucapkan satu — 읽다[익따] 닭[닥] 삶[삼] ② Liaison: konsonan akhir+vokal → konsonan akhir pindah ke suku kata berikutnya — 밥을[바블] 책이[채기] 집에[지베] 💡Aturan fonologi yang telah dipelajari (bunyi representatif, nasalisasi, pelunakan ㄹ) yang digabungkan dengan liaison akan membuat bahasa Korea Anda terdengar lebih alami!",ru:"⭐Основные правила ① Двойная конечная согласная: произносится только одна — 읽다[익따] 닭[닥] 삶[삼] ② Связывание: конечная согласная+гласная → конечная согласная переходит в следующий слог — 밥을[바블] 책이[채기] 집에[지베] 💡Изученные ранее фонетические правила (репрезентативный звук, назализация, латерализация) в сочетании со связыванием делают корейскую речь более естественной!",th:"⭐กฎหลัก ① ตัวสะกดซ้อน: ออกเสียงเพียงตัวเดียว — 읽다[익따] 닭[닥] 삶[삼] ② การเชื่อมเสียง: ตัวสะกด+สระ → ตัวสะกดเลื่อนไปพยางค์ถัดไป — 밥을[바블] 책이[채기] 집에[지베] 💡เมื่อกฎการออกเสียงที่เรียนมา (เสียงตัวแทน เสียงนาสิก การกลายเป็นเสียงข้าง) รวมกับการเชื่อมเสียง ภาษาเกาหลีของคุณจะฟังดูเป็นธรรมชาติมากขึ้น!",mn:"⭐Гол дүрэм ① Давхар төгсгөлийн гийгүүлэгч: зөвхөн нэгийг нь дуудна — 읽다[익따] 닭[닥] 삶[삼] ② Холбох дуудлага: төгсгөл+эгшиг → төгсгөл дараагийн үед шилжинэ — 밥을[바블] 책이[채기] 집에[지베] 💡Одоог хүртэл сурсан авианы дүрмүүд (төлөөлөх авиа, хамаржилт, хажуугийн авиажилт) холбох дуудлагатай хосолвол илүү байгалийн жам ёсны солонгос хэл болно!",uz:"⭐Asosiy qoidalar ① Qo'sh oxirgi undosh: faqat bittasi aytiladi — 읽다[익따] 닭[닥] 삶[삼] ② Bog'lovchi talaffuz: oxirgi undosh+unli → oxirgi undosh keyingi bo'g'inga o'tadi — 밥을[바블] 책이[채기] 집에[지베] 💡Hozirgacha o'rgangan tovush qoidalari (vakillik tovushi, nazallashuv, yon tovushga aylanish) bog'lovchi talaffuz bilan birikkanda koreys tilingiz yanada tabiiy bo'ladi!",es:"⭐Reglas clave ① Consonante final doble: se pronuncia solo una — 읽다[익따] 닭[닥] 삶[삼] ② Enlace: consonante final+vocal → la consonante final pasa a la siguiente sílaba — 밥을[바블] 책이[채기] 집에[지베] 💡Cuando las reglas fonéticas aprendidas hasta ahora (sonido representativo, nasalización, lateralización) se combinan con el enlace, ¡el coreano suena mucho más natural!",fr:"⭐Règles clés ① Consonne finale double : une seule se prononce — 읽다[익따] 닭[닥] 삶[삼] ② Liaison : consonne finale+voyelle → la consonne finale passe à la syllabe suivante — 밥을[바블] 책이[채기] 집에[지베] 💡Lorsque les règles phonétiques apprises jusqu'ici (son représentatif, nasalisation, latéralisation) se combinent avec la liaison, votre coréen sonne encore plus naturel !",ne:"⭐मुख्य नियम ① दोहोरो अन्त्य व्यञ्जन: एउटा मात्र उच्चारण हुन्छ — 읽다[익따] 닭[닥] 삶[삼] ② जोड्ने उच्चारण: अन्त्य व्यञ्जन+स्वर → अन्त्य व्यञ्जन अर्को अक्षरमा सर्छ — 밥을[바블] 책이[채기] 집에[지베] 💡अहिलेसम्म सिकेका ध्वनि नियम (प्रतिनिधि ध्वनि·नासिकीकरण·तरल ध्वनि परिवर्तन) जोड्ने उच्चारणसँग मिल्दा कोरियाली भाषा अझ स्वाभाविक हुन्छ!",de:"⭐Kernregeln ① Doppelter Endkonsonant: nur einer wird ausgesprochen — 읽다[익따] 닭[닥] 삶[삼] ② Verbindung: Endkonsonant+Vokal → Endkonsonant wandert zur nächsten Silbe — 밥을[바블] 책이[채기] 집에[지베] 💡Wenn die bisher gelernten Lautregeln (repräsentativer Laut, Nasalisierung, Lateralisierung) mit der Verbindung kombiniert werden, klingt Ihr Koreanisch noch natürlicher!"},
-      },
-    ];
+    const PRON_STEPS = PRON_STEPS_DATA; // ✅ V539: 단어 모음은 모듈 수준(PRON_STEPS_DATA)으로 옮김 — 발음 세트 과제 설정에서도 같은 단어를 씀
 
     const current = PRON_STEPS[pronStep];
 
@@ -28523,11 +29184,11 @@ export default function App() {
 
   // ✅ V519: 내 논술 과제 제출 문서 실시간 구독 — 논술 과제가 있을 때만(문서 1개씩)
   // ✅ V536: 어휘·문법 세트도 같은 방식으로 내 기록(vocabProgress/{나})을 구독 → myEssaySubs[과제id]에 넣음(완료 판정·배너가 그대로 동작)
-  const myEssayIdsKey = learnerAssignments.filter(a => a.type === "ESSAY" || a.type === "VOCAB_SET").map(a => `${a.id}:${a.type}`).join(",");
+  const myEssayIdsKey = learnerAssignments.filter(a => a.type === "ESSAY" || a.type === "VOCAB_SET" || a.type === "PRON_SET").map(a => `${a.id}:${a.type}`).join(","); // ✅ V539: 발음 세트(pronProgress/{나})도
   useEffect(() => {
     if (!user || userRole !== "learner" || !assignTeacherId || !myEssayIdsKey) { setMyEssaySubs({}); setMyEssayFb({}); return; }
-    const unsubs = myEssayIdsKey.split(",").map(x => x.split(":")).flatMap(([aid, typ]) => typ === "VOCAB_SET" ? [
-      onSnapshot(doc(db, "classes", assignTeacherId, "assignments", aid, "vocabProgress", user.uid),
+    const unsubs = myEssayIdsKey.split(",").map(x => x.split(":")).flatMap(([aid, typ]) => (typ === "VOCAB_SET" || typ === "PRON_SET") ? [
+      onSnapshot(doc(db, "classes", assignTeacherId, "assignments", aid, typ === "PRON_SET" ? "pronProgress" : "vocabProgress", user.uid),
         d => setMyEssaySubs(prev => ({ ...prev, [aid]: d.exists() ? d.data() : (d.metadata && d.metadata.fromCache ? undefined : null) })),
         () => setMyEssaySubs(prev => ({ ...prev, [aid]: undefined }))),
     ] : [
@@ -29591,7 +30252,7 @@ export default function App() {
       {openEssayId && assignTeacherId && (() => {
         const ea = learnerAssignments.find(x => x.id === openEssayId);
         if (!ea) return null;
-        if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
+        if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ if (ea.type === "PRON_SET") return <PronSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V539 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
       })()}
 
       {/* ── ① 80시간 커리큘럼 미리보기 ── */}
@@ -29964,7 +30625,7 @@ export default function App() {
         {openEssayId && assignTeacherId && (() => {
           const ea = learnerAssignments.find(x => x.id === openEssayId);
           if (!ea) return null;
-          if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
+          if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ if (ea.type === "PRON_SET") return <PronSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V539 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
         })()}
         {/* ✅ V510: 학습자 클래스 참여 팝업 — 이 BegScreen 축약형 블록에도
             JoinClassModal 렌더가 연결돼 있지 않아 카드에서 코드를 입력해도 팝업이
@@ -30348,7 +31009,7 @@ export default function App() {
       {openEssayId && assignTeacherId && (() => {
         const ea = learnerAssignments.find(x => x.id === openEssayId);
         if (!ea) return null;
-        if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
+        if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ if (ea.type === "PRON_SET") return <PronSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V539 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
       })()}
 
       <div style={{maxWidth:600,margin:"0 auto",padding:`12px 12px ${browseMode?"150px":"80px"}`,boxSizing:"border-box"}}>
