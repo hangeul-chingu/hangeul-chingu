@@ -24,6 +24,7 @@ import {
   deleteField,
   addDoc,
   deleteDoc,
+  getDocFromServer, // ✅ V540: 말하기 과제 제출 — 기기에 남은 옛 데이터 말고 서버에서 버전 번호를 읽음
 } from "firebase/firestore";
 
 // ✅ V410: 회원번호(랜덤 코드) 생성 — 가입 순번 노출 방지 목적으로 순번이 아닌 랜덤 코드 채택
@@ -129,6 +130,9 @@ function isAssignmentDone(assignment, gramLog = [], pronLog = [], essaySub = nul
       // ✅ V536: 어휘·문법 세트는 "정해진 날수를 모두 끝까지 했는가"(원칙 8). essaySub 자리에 vocabProgress 문서가 들어옴
       //   doneDays 숫자가 아니라 실제로 끝낸 날(days[].doneAtMs)로 계산(검토 반영 — 숫자만 바꿔 완료로 보이는 것 방지)
       return !!(essaySub && Number(assignment.days) > 0 && vocabDayState(assignment, essaySub).done);
+    case "SPEAK_TASK":
+      // ✅ V540: 말하기 과제는 "한 번이라도 제출했는가"(원칙 8). essaySub 자리에 submissions 문서
+      return !!(essaySub && Array.isArray(essaySub.versions) && essaySub.versions.length > 0);
     case "PRON_SET":
       // ✅ V539: 발음 세트도 "정해진 날수를 모두 끝까지 했는가". essaySub 자리에 pronProgress 문서가 들어옴
       return !!(essaySub && Number(assignment.days) > 0 && vocabDayState(assignment, essaySub).done);
@@ -195,7 +199,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "539";
+const APP_VERSION = "540";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2519,7 +2523,7 @@ function VocabSetEditor({ form, setForm, essayExprs }) {
   );
 }
 
-function AssignmentPanel({ user, students }) {
+function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V540: 학습자 목록 오류 중에는 말하기 과제 영구 삭제를 막음
   const [assignments, setAssignments] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const EMPTY_FORM = {
@@ -2546,6 +2550,16 @@ function AssignmentPanel({ user, students }) {
     pStep: "",
     pWords: [],
     pDays: 3,
+    // ✅ V540: 말하기 과제 설정 (과제설계 원칙 8장)
+    sLevel: "basic",
+    sPartner: "",
+    sSituation: "",
+    sPurpose: "음성 메시지 남기기",
+    sPurposeCustom: "",
+    sTopic: "",
+    sExpr: "",
+    sChecklist: "",
+    sMaxSec: 120,
   };
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -2567,7 +2581,7 @@ function AssignmentPanel({ user, students }) {
     return () => unsub();
   }, [user]);
 
-  const essayIdsKey = assignments.filter(a => a.type === "ESSAY").map(a => a.id).join(",");
+  const essayIdsKey = assignments.filter(a => a.type === "ESSAY" || a.type === "SPEAK_TASK").map(a => a.id).join(","); // ✅ V540: 말하기 과제도 submissions·feedback 구독
   // ✅ V536: 어휘·문법 세트 학습 기록(vocabProgress) — essaySubs[과제id]에 함께 넣어 완료 현황 계산에 그대로 씀
   // ✅ V539: 발음 세트 학습 기록(pronProgress)도 같은 자리에
   const vocabIdsKey = assignments.filter(a => a.type === "VOCAB_SET" || a.type === "PRON_SET").map(a => `${a.id}:${a.type}`).join(",");
@@ -2613,6 +2627,7 @@ function AssignmentPanel({ user, students }) {
       if (!form.vReviewed) { alert("문항을 모두 읽고 '확인했어요'에 체크해 주세요."); return; }
     }
     if (form.type === "PRON_SET") { const pp = pronSetCheck(form); if (pp) { alert(pp); return; } } // ✅ V539
+    if (form.type === "SPEAK_TASK") { const sp = speakFormCheck(form); if (sp) { alert(sp); return; } } // ✅ V540
     if (!form.isClassWide && form.targetUids.length === 0) {
       alert("개별 지정 시 학습자를 최소 1명 선택해주세요"); return;
     }
@@ -2647,6 +2662,16 @@ function AssignmentPanel({ user, students }) {
           words: form.pWords.slice(0, 12),
           days: form.pDays,
         } : {}),
+        ...(form.type === "SPEAK_TASK" ? { // ✅ V540
+          level: form.sLevel === "adv" ? "adv" : "basic",
+          partner: form.sPartner.trim().slice(0, 100),
+          situation: form.sSituation.trim().slice(0, 500),
+          purpose: (form.sPurpose === "__custom" ? form.sPurposeCustom : form.sPurpose).trim().slice(0, 100),
+          topic: form.sLevel === "adv" ? form.sTopic.trim().slice(0, 500) : "",
+          expressions: form.sExpr.split("\n").map(x => x.trim()).filter(Boolean),
+          checklist: form.sChecklist.split("\n").map(x => x.trim()).filter(Boolean),
+          maxSec: SPEAK_LENGTHS.includes(form.sMaxSec) ? form.sMaxSec : 120,
+        } : {}),
         createdAt: serverTimestamp(),
       });
       setForm(EMPTY_FORM);
@@ -2671,6 +2696,16 @@ function AssignmentPanel({ user, students }) {
   async function deleteAssignment(id) {
     if (!window.confirm("이 과제를 영구 삭제할까요?\n학습자들의 글·선생님 의견·학습 기록이 모두 지워지고, 되돌릴 수 없어요.")) return;
     try {
+      // ✅ V540: 말하기 과제 녹음 — 제출 문서를 지우기 **전에** 지울 학습자 목록을 모으고, 녹음을 내려받지 않고 문서 이름으로 바로 지움
+      //   목록 = 과제 대상(전체 과제면 지금 연결된 학습자) ∪ 제출 문서가 있는 학습자. 목록을 못 불러온 동안에는 막음(녹음이 남지 않게)
+      const sa = assignments.find(x => x.id === id);
+      if (sa && sa.type === "SPEAK_TASK") {
+        if (studentsError) { alert("학습자 목록을 불러오지 못해 녹음을 모두 지울 수 없어요. 잠시 뒤 다시 해 주세요."); return; }
+        const ss = await getDocs(collection(db, "classes", user.uid, "assignments", id, "submissions"));
+        const uids = [...new Set([...(sa.isClassWide ? students.map(x => x.id) : (sa.targetUids || [])), ...ss.docs.map(d => d.id)])];
+        const ids = uids.flatMap(u => Array.from({ length: SPEAK_MAX_VERSIONS * SPEAK_MAX_PARTS }, (_, i) => speakAudioId(u, Math.floor(i / SPEAK_MAX_PARTS), i % SPEAK_MAX_PARTS)));
+        await Promise.all(ids.map(x => deleteDoc(doc(db, "classes", user.uid, "assignments", id, "speakAudio", x))));
+      }
       // ✅ V522·V527·V536: 제출 글 + 돌려준 의견 + 의견 초안 + 음성 의견 + 어휘·문법 세트 학습 기록
       for (const sub of ["submissions", "feedback", "feedbackDrafts", "feedbackAudio", "vocabProgress"]) {
         const snap = await getDocs(collection(db, "classes", user.uid, "assignments", id, sub));
@@ -2704,10 +2739,11 @@ function AssignmentPanel({ user, students }) {
     ESSAY: "✍️ 논술",
     VOCAB_SET: "🧩 어휘·문법 세트", // ✅ V530
     PRON_SET: "🎧 발음 세트", // ✅ V539
+    SPEAK_TASK: "🗣️ 상황 말하기", // ✅ V540
   };
   // ✅ V538: 새로 낼 수 있는 유형. 어휘·문법(중급/고급)=프리토킹 퀴즈 카드 연동 과제는 새로 내지 않음(과제설계 원칙 1장·7-5의 3-4).
   //   이미 낸 옛 과제는 교수자 화면에 기록과 함께 남고(원칙 10), 학습자 화면에서는 숨김.
-  const NEW_TYPES = ["VOCAB_SET", "PRON_SET", "ESSAY", "PRON_TEST"]; // ✅ V539: 발음 세트 추가(옛 발음 테스트 정리는 V540, 로드맵 4-4)
+  const NEW_TYPES = ["VOCAB_SET", "PRON_SET", "ESSAY", "SPEAK_TASK", "PRON_TEST"]; // ✅ V540: 상황 말하기 추가 // ✅ V539: 발음 세트 추가(옛 발음 테스트 정리는 V540, 로드맵 4-4)
   // ✅ V530: 논술 과제의 "꼭 써 볼 표현" 모음(어휘·문법 세트에서 가져오기)
   const essayExprs = [...new Set(assignments.filter(x => x.type === "ESSAY").flatMap(x => x.expressions || []).map(x => String(x).trim()).filter(Boolean))];
   function closeForm() {
@@ -2831,6 +2867,7 @@ function AssignmentPanel({ user, students }) {
             )}
             {form.type === "VOCAB_SET" && <VocabSetEditor form={form} setForm={setForm} essayExprs={essayExprs} />}
             {form.type === "PRON_SET" && <PronSetEditor form={form} setForm={setForm} />}
+            {form.type === "SPEAK_TASK" && <SpeakTaskEditor form={form} setForm={setForm} />}
           </div>
 
           {/* 대상 */}
@@ -2955,6 +2992,13 @@ function AssignmentPanel({ user, students }) {
                       <div style={{ fontSize: 11, color: "#2E75B6", marginTop: 2 }}>{a.stepTitle || a.step} · {a.days}일 · 단어 {(a.words || []).length}개</div>
                     </div>
                   )}
+                  {a.type === "SPEAK_TASK" && ( /* ✅ V540 */
+                    <div style={{ fontSize: 12, color: "#1A3A5C", marginTop: 4, background: "#FFF8E1", borderRadius: 8, padding: "6px 10px" }}>
+                      🗣️ {a.partner}에게 · {a.purpose}
+                      <div style={{ whiteSpace: "pre-wrap" }}>{a.situation}</div>
+                      <div style={{ fontSize: 11, color: "#7A6000", marginTop: 2 }}>{a.level === "adv" ? "고급" : "초·중급"} · 최대 {speakMaxSec(a) / 60}분{a.level === "adv" && a.topic ? ` · 주제: ${a.topic}` : ""}{(a.expressions || []).length > 0 ? ` · 표현: ${a.expressions.join(", ")}` : ""}</div>
+                    </div>
+                  )}
                   {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 4, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
                 </div>
                 {a.archived ? (
@@ -2989,14 +3033,15 @@ function AssignmentPanel({ user, students }) {
                     {targetStudents.map(st => {
                       // ✅ V519: 논술은 할 일 / 쓰는 중 / 제출함(+늦음) 상태로 표시
                       // ✅ V522: 제출함(확인 필요) / 돌려받음 / 다시 쓰는 중 추가, 누르면 글 보기·의견 쓰기
-                      if (a.type === "ESSAY") {
-                        const es = essayStatus(a, aSubs[st.id], (essayFb[a.id] || {})[st.id]);
+                      if (a.type === "ESSAY" || a.type === "SPEAK_TASK") { // ✅ V540: 말하기 과제도 같은 칩(제출함·돌려받음·다시 말하는 중)
+                        const isSp = a.type === "SPEAK_TASK";
+                        const es = (isSp ? speakStatus : essayStatus)(a, aSubs[st.id], (essayFb[a.id] || {})[st.id]);
                         // ✅ V524: 아직 안 읽은 학습자 답글
                         const newReply = ((aSubs[st.id] || {}).replies || []).length > (Number(((essayFb[a.id] || {})[st.id] || {}).seenReplies) || 0);
                         const look = es.key === "submitted" ? { bg: "#E3F2FD", c: "#1565C0", ic: "📥", tx: "제출함 · 확인 필요" }
                           : es.key === "returned" ? { bg: "#D6EAD6", c: "#2D7A2D", ic: "💬", tx: "돌려받음" }
-                          : es.key === "redo" ? { bg: "#FFE0B2", c: "#8A4B00", ic: "✏️", tx: "다시 쓰는 중" }
-                          : es.key === "draft" ? { bg: "#FFF3CD", c: "#8A6D00", ic: "✏️", tx: "쓰는 중" }
+                          : es.key === "redo" ? { bg: "#FFE0B2", c: "#8A4B00", ic: isSp ? "🗣️" : "✏️", tx: isSp ? "다시 말하는 중" : "다시 쓰는 중" }
+                          : es.key === "draft" ? { bg: "#FFF3CD", c: "#8A6D00", ic: isSp ? "📝" : "✏️", tx: isSp ? "메모 중" : "쓰는 중" }
                           : { bg: "#F5F5F5", c: "#aaa", ic: "⬜", tx: "할 일" };
                         return (
                           <button key={st.id} type="button" onClick={() => setReview({ aid: a.id, uid: st.id })}
@@ -3021,6 +3066,11 @@ function AssignmentPanel({ user, students }) {
                     })}
                   </div>
                   {a.type === "ESSAY" && <div style={{ fontSize: 10, color: "#999", marginTop: 6 }}>학습자 이름을 누르면 글을 보고 의견을 쓸 수 있어요</div>}
+                  {a.type === "SPEAK_TASK" && (() => { const sm = speakClassSummary(Object.fromEntries(targetStudents.map(st => [st.id, aSubs[st.id]]))); return ( /* ✅ V540 */
+                    <div style={{ fontSize: 11, color: "#555", marginTop: 8, lineHeight: 1.6 }}>
+                      {sm.n > 0 && <div>🎙️ 평균 녹음 {fmtSec(sm.dur)} · 다시 녹음 평균 {sm.takes.toFixed(1)}번 · 걸린 시간 평균 {vocabFmtSec(sm.active)} (제출 {sm.n}명, 가장 최근 녹음 기준)</div>}
+                      <div style={{ fontSize: 10, color: "#999" }}>학습자 이름을 누르면 녹음을 듣고 의견을 쓸 수 있어요</div>
+                    </div>); })()}
                   {a.type === "VOCAB_SET" && (() => { const sm = vocabClassSummary(a, Object.fromEntries(targetStudents.map(st => [st.id, aSubs[st.id]]))); return (
                     <div style={{ fontSize: 11, color: "#555", marginTop: 8, lineHeight: 1.6 }}>
                       {sm.started > 0 && <div>{sm.stuck.length ? `🟠 막힌 표현: ${sm.stuck.map(x => `${x.expr} (${x.n}명)`).join(", ")}` : "막힌 표현 없음"}</div>}
@@ -3347,6 +3397,7 @@ function essayAiClean(data, sections, parts) {
 
 function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose }) {
   const a = assignment;
+  const isSpeak = a.type === "SPEAK_TASK"; // ✅ V540: 말하기 과제 — 글 대신 녹음, 문장 의견·AI 초안 없음, 의견·음성 의견·돌려주기는 그대로
   const sections = essaySections(a);
   const expressions = Array.isArray(a.expressions) ? a.expressions : [];
   const checklist = Array.isArray(a.checklist) ? a.checklist : [];
@@ -3505,7 +3556,9 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
     const ns = cur.current.notes;
     if (!t && ns.length === 0 && !voice) { alert("의견을 먼저 써 주세요 ✍️"); return; }
     if (versions.length === 0) return;
-    const msg = action === "redo"
+    const msg = action === "redo" && isSpeak
+      ? "의견과 함께 '다시 말해 보세요'를 보낼까요?\n학습자는 지금 녹음과 의견을 들으면서 다시 녹음할 수 있어요.\n(완료 표시는 그대로 유지돼요)"
+      : action === "redo"
       ? "의견과 함께 '다시 써 보세요'를 보낼까요?\n학습자는 지금 글과 의견을 보면서 고쳐 쓸 수 있어요.\n(완료 표시는 그대로 유지돼요)"
       : "이 의견을 학습자에게 돌려줄까요?";
     if (!window.confirm(msg)) return;
@@ -3540,7 +3593,7 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
   const roundBox = (r, key) => (
     <div key={key} style={{ background: r.action === "redo" ? "#FFF3E0" : "#EEF7EE", border: `1px solid ${r.action === "redo" ? "#FFCC80" : "#B7DDB7"}`, borderRadius: 10, padding: "8px 12px", marginTop: 8 }}>
       <div style={{ fontSize: 11, fontWeight: 800, color: r.action === "redo" ? "#8A4B00" : "#2D7A2D" }}>
-        {r.action === "redo" ? "✏️ 보낸 의견 · 다시 써 보세요" : "💬 보낸 의견 · 돌려주기"} <span style={{ fontWeight: 600, color: "#888" }}>{fmt(r.atMs)}</span>
+        {r.action === "redo" ? (isSpeak ? "🗣️ 보낸 의견 · 다시 말해 보세요" : "✏️ 보낸 의견 · 다시 써 보세요") : "💬 보낸 의견 · 돌려주기"} <span style={{ fontWeight: 600, color: "#888" }}>{fmt(r.atMs)}</span>
       </div>
       {r.text ? <div style={{ fontSize: 13, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", marginTop: 4 }}>{r.text}</div> : null}
       {r.voice && r.voice.id && <EssayVoicePlayer teacherId={teacherUid} assignId={a.id} voice={r.voice} />}
@@ -3619,6 +3672,29 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
     );
   };
   const latestIdx = versions.length - 1;
+  // ✅ V540: 말하기 과제의 녹음 카드 — 녹음(누를 때만 내려받음)·메모·길이·다시 녹음 횟수·걸린 시간·학습자가 체크한 확인할 것
+  const speakCard = (v, i) => {
+    const vList = fit(v.listChecks, checklist.length, false);
+    const late = i === 0 && deadlineMs && v.submittedAtMs > deadlineMs;
+    return (
+      <div>
+        <div style={{ fontSize: 12, color: "#555", marginBottom: 4 }}>
+          {fmt(v.submittedAtMs)} 제출 · 녹음 {fmtSec(Number(v.durSec) || 0)} · 녹음 {Number(v.takes) || 1}번 해 보고 고름{Number(v.activeSec) > 0 ? ` · 걸린 시간 ${vocabFmtSec(v.activeSec)}` : ""}{late ? " · ⏰ 마감 후 제출" : ""}
+        </div>
+        <SpeakPlayer key={i + "_" + v.recId} teacherId={teacherUid} assignId={a.id} learnerUid={student.id} ver={v} v={i} label={`🎙️ ${i + 1}차 녹음`} />
+        {i > 0 && i === versions.length - 1 && <SpeakPlayer key={"prev_" + (i - 1) + "_" + versions[i - 1].recId} teacherId={teacherUid} assignId={a.id} learnerUid={student.id} ver={versions[i - 1]} v={i - 1} label={`🎙️ ${i}차 녹음 (비교)`} />}
+        <div style={{ fontSize: 12, color: "#555", marginTop: 6 }}>📝 준비 메모: {v.memo ? <span style={{ whiteSpace: "pre-wrap", color: "#333" }}>{v.memo}</span> : <span style={{ color: "#999" }}>(없음)</span>}</div>
+        {checklist.length > 0 && (
+          <div style={{ fontSize: 12, color: "#555", lineHeight: 1.7, marginTop: 4 }}>
+            {checklist.map((c, k) => <div key={"l" + k}>{vList[k] ? "☑️" : "⬜"} {c}</div>)}
+            <div style={{ fontSize: 10, color: "#999" }}>(학습자가 녹음을 들어 보고 스스로 체크한 것)</div>
+          </div>
+        )}
+        {info.rounds.filter(r => r.forVersion === i).map((r, k) => roundBox(r, "r" + k))}
+      </div>
+    );
+  };
+  const card = isSpeak ? speakCard : versionCard;
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "#F5F8FF", zIndex: 3200, overflowY: "auto", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
@@ -3626,48 +3702,49 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
         <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", borderRadius: 20, padding: "6px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>← 닫기</button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 800, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{studentLabel(student)}</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>✍️ {a.title}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isSpeak ? "🗣️" : "✍️"} {a.title}</div>
         </div>
       </div>
 
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "14px 14px 40px", boxSizing: "border-box" }}>
+        {isSpeak ? <SpeakSituationCard a={a} /> : (
         <div style={{ ...box, background: "#FFF8E1", borderLeft: "4px solid #FFC107" }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: "#F57F17", marginBottom: 4 }}>📝 주제·상황</div>
           <div style={{ fontSize: 13, color: "#333", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{a.topic || a.title}</div>
-        </div>
+        </div>)}
 
         {versions.length === 0 ? (
           <div style={{ ...box, textAlign: "center", color: "#888", fontSize: 13, padding: 28 }}>
-            아직 제출하지 않았어요.<br />제출하면 여기에서 글을 보고 의견을 쓸 수 있어요.
+            아직 제출하지 않았어요.<br />{isSpeak ? "제출하면 여기에서 녹음을 듣고 의견을 쓸 수 있어요." : "제출하면 여기에서 글을 보고 의견을 쓸 수 있어요."}
           </div>
         ) : (
           <>
             {info.state === "redo" && (
               <div style={{ ...box, background: "#FFF3E0", color: "#8A4B00", fontSize: 13, fontWeight: 700 }}>
-                ✏️ 학습자가 다시 쓰는 중이에요. 고쳐 쓴 글을 제출하면 아래에 {versions.length + 1}차 글로 나와요.
+                {isSpeak ? `🗣️ 학습자가 다시 말하는 중이에요. 새로 녹음해 제출하면 아래에 ${versions.length + 1}차 녹음으로 나와요.` : `✏️ 학습자가 다시 쓰는 중이에요. 고쳐 쓴 글을 제출하면 아래에 ${versions.length + 1}차 글로 나와요.`}
               </div>
             )}
             <div style={box}>
-              <div style={{ fontSize: 14, fontWeight: 900, color: "#1A3A5C", marginBottom: 6 }}>📄 {versions.length}차 글{versions.length > 1 ? " (최신)" : ""}</div>
-              {versionCard(versions[latestIdx], latestIdx)}
+              <div style={{ fontSize: 14, fontWeight: 900, color: "#1A3A5C", marginBottom: 6 }}>{isSpeak ? "🎙️" : "📄"} {versions.length}차 {isSpeak ? "녹음" : "글"}{versions.length > 1 ? " (최신)" : ""}</div>
+              {card(versions[latestIdx], latestIdx)}
             </div>
             {versions.length > 1 && (
               <details style={{ ...box }}>
-                <summary style={{ fontSize: 13, fontWeight: 800, color: "#2E75B6", cursor: "pointer" }}>🗂️ 이전 글과 보낸 의견 ({versions.length - 1}개)</summary>
+                <summary style={{ fontSize: 13, fontWeight: 800, color: "#2E75B6", cursor: "pointer" }}>🗂️ 이전 {isSpeak ? "녹음" : "글"}과 보낸 의견 ({versions.length - 1}개)</summary>
                 {versions.slice(0, -1).map((v, i) => (
                   <div key={i} style={{ borderTop: "1px solid #eee", marginTop: 10, paddingTop: 10 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: "#1A3A5C", marginBottom: 6 }}>📄 {i + 1}차 글</div>
-                    {versionCard(v, i)}
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#1A3A5C", marginBottom: 6 }}>{isSpeak ? "🎙️" : "📄"} {i + 1}차 {isSpeak ? "녹음" : "글"}</div>
+                    {card(v, i)}
                   </div>
                 ))}
               </details>
             )}
 
             <div style={{ ...box, border: "1.5px solid #C8DAF0" }}>
-              <div style={{ fontSize: 14, fontWeight: 900, color: "#1A3A5C" }}>💬 {versions.length}차 글에 대한 의견</div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: "#1A3A5C" }}>💬 {versions.length}차 {isSpeak ? "녹음" : "글"}에 대한 의견</div>
               <div style={{ fontSize: 11, color: "#888", margin: "2px 0 8px", lineHeight: 1.5 }}>쓰는 내용은 자동으로 저장되고, <b>보내기 전에는 학습자에게 보이지 않아요.</b>{notes.length > 0 ? <><br />📍 문장 의견 {notes.length}개도 함께 보내져요.</> : null}</div>
               {/* ✅ V528: AI 의견 초안 — 따로 떨어진 상자, [넣기]를 눌러야 선생님 칸으로 옮겨짐 */}
-              <div style={{ background: "#F6F3FF", border: "1px dashed #C9B8F0", borderRadius: 10, padding: "8px 10px", marginBottom: 8 }}>
+              <div style={{ display: isSpeak ? "none" : "block", background: "#F6F3FF", border: "1px dashed #C9B8F0", borderRadius: 10, padding: "8px 10px", marginBottom: 8 }}>{/* ✅ V540: 말하기는 AI 초안 없음(녹음을 글로 옮길 믿을 만한 방법이 없음) */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                   <span style={{ fontSize: 12, fontWeight: 800, color: "#5E35B1" }}>🤖 AI 의견 초안 <span style={{ fontWeight: 600, color: "#888", fontSize: 11 }}>— 선생님이 넣고 고친 것만 학습자에게 가요</span></span>
                   {aiDraft && aiState !== "loading" && (
@@ -3730,7 +3807,7 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
               </div>
               <EssayVoiceRecorder voice={voice} onChange={changeVoice} disabled={!loaded || sending} />
               <textarea value={text} onChange={e => onChange(e.target.value)} disabled={!loaded || sending} rows={6}
-                placeholder={loaded ? "예: 명절 음식을 구체적으로 써서 잘 전해졌어요. 두 번째 문단에 이유를 한 문장 더 써 보면 좋겠어요." : "불러오는 중..."}
+                placeholder={!loaded ? "불러오는 중..." : isSpeak ? "예: 인사로 시작해서 듣는 사람이 편했어요. 부탁하는 말을 끝에 한 번 더 넣어 보면 좋겠어요." : loaded ? "예: 명절 음식을 구체적으로 써서 잘 전해졌어요. 두 번째 문단에 이유를 한 문장 더 써 보면 좋겠어요." : "불러오는 중..."}
                 style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 14, lineHeight: 1.7, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit" }} />
               <div style={{ fontSize: 11, color: saveState === "error" ? "#E53935" : "#999", margin: "4px 0 10px" }}>
                 {saveState === "saving" ? "저장 중..." : saveState === "saved" ? "✓ 초안 저장됨 (학습자에게는 안 보여요)" : saveState === "error" ? "⚠️ 초안 저장 실패 — 인터넷 연결을 확인해 주세요" : " "}
@@ -3740,12 +3817,12 @@ function EssayReviewPanel({ teacherUid, assignment, student, sub, fb, onClose })
                   style={{ flex: 1, background: sending || (!text.trim() && notes.length === 0 && !voice) ? "#bbb" : "linear-gradient(135deg,#2D9D78,#1E7A5C)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || (!text.trim() && notes.length === 0 && !voice) ? "not-allowed" : "pointer" }}>
                   💬 돌려주기
                 </button>
-                <button onClick={() => send("redo")} disabled={sending || (!text.trim() && notes.length === 0 && !voice)}
-                  style={{ flex: 1, background: sending || (!text.trim() && notes.length === 0 && !voice) ? "#bbb" : "linear-gradient(135deg,#FF8C42,#E65100)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || (!text.trim() && notes.length === 0 && !voice) ? "not-allowed" : "pointer" }}>
-                  ✏️ 다시 써 보세요
+                <button onClick={() => send("redo")} disabled={(isSpeak && versions.length >= SPEAK_MAX_VERSIONS) || sending || (!text.trim() && notes.length === 0 && !voice)}
+                  style={{ flex: 1, background: (isSpeak && versions.length >= SPEAK_MAX_VERSIONS) || sending || (!text.trim() && notes.length === 0 && !voice) ? "#bbb" : "linear-gradient(135deg,#FF8C42,#E65100)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 800, cursor: sending || (!text.trim() && notes.length === 0 && !voice) ? "not-allowed" : "pointer" }}>
+                  {isSpeak ? "🗣️ 다시 말해 보세요" : "✏️ 다시 써 보세요"}
                 </button>
               </div>
-              <div style={{ fontSize: 10, color: "#999", marginTop: 6, lineHeight: 1.5 }}>돌려주기 = 이 글로 마무리 · 다시 써 보세요 = 학습자가 지금 글을 보면서 고쳐 쓰기(완료 표시는 유지)</div>
+              <div style={{ fontSize: 10, color: "#999", marginTop: 6, lineHeight: 1.5 }}>{isSpeak ? `돌려주기 = 이 녹음으로 마무리 · 다시 말해 보세요 = 학습자가 지금 녹음을 들으면서 다시 녹음하기(완료 표시는 유지, 최대 ${SPEAK_MAX_VERSIONS}번 제출)` : "돌려주기 = 이 글로 마무리 · 다시 써 보세요 = 학습자가 지금 글을 보면서 고쳐 쓰기(완료 표시는 유지)"}</div>
             </div>
           </>
         )}
@@ -3772,6 +3849,7 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
     ESSAY: "✍️ 논술",
     VOCAB_SET: "🧩 어휘·문법 세트", // ✅ V530
     PRON_SET: "🎧 발음 세트", // ✅ V539
+    SPEAK_TASK: "🗣️ 상황 말하기", // ✅ V540
   };
   // ✅ V517: MID/ADV 퀴즈 기록(gramLog)은 프리토킹(SpeakTab) 5턴마다 나오는 퀴즈 카드에서만 저장됨 → speak로 수정
   const TYPE_TAB = {
@@ -3807,6 +3885,8 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
               const done = isAssignmentDone(a, myGramLog, myPronLog, essaySubs[a.id]);
               const isEssay = a.type === "ESSAY";
               const es = isEssay ? essayStatus(a, essaySubs[a.id], essayFb[a.id]) : null;
+              const isSpeak = a.type === "SPEAK_TASK"; // ✅ V540
+              const ss = isSpeak ? speakStatus(a, essaySubs[a.id], essayFb[a.id]) : null;
               const deadlineDate = a.deadline?.toDate ? a.deadline.toDate() : (a.deadline ? new Date(a.deadline) : null);
               const isOverdue = deadlineDate && deadlineDate < new Date();
               const targetTab = TYPE_TAB[a.type];
@@ -3831,6 +3911,17 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
                               : es.key === "submitted" ? "✅ 제출했어요 · 선생님이 읽고 있어요"
                               : es.key === "draft" ? "✏️ 쓰는 중이에요 (자동 저장됨)" : "⬜ 아직 시작하지 않았어요"}{es.late ? " · ⏰ 마감 후 제출" : ""}
                             {es.unseen && <span style={{ marginLeft: 6, background: "#E53935", color: "white", borderRadius: 8, padding: "1px 6px", fontSize: 10 }}>NEW</span>}
+                          </div>
+                        </div>
+                      ) : isSpeak ? (
+                        <div style={{ fontSize: 12, color: "#1A3A5C", marginTop: 6, background: "#FFF8E1", borderRadius: 8, padding: "6px 10px" }}>
+                          🗣️ {a.partner}에게 · {a.purpose}
+                          <div style={{ fontSize: 11, marginTop: 3, fontWeight: 700, color: ss.key === "redo" ? "#8A4B00" : (ss.key === "submitted" || ss.key === "returned") ? "#2D7A2D" : ss.key === "draft" ? "#8A6D00" : "#888" }}>
+                            {ss.key === "returned" ? "💬 선생님 의견이 왔어요"
+                              : ss.key === "redo" ? "🗣️ 선생님이 한 번 더 말해 보자고 하셨어요"
+                              : ss.key === "submitted" ? "✅ 제출했어요 · 선생님이 듣고 있어요"
+                              : ss.key === "draft" ? "📝 메모 중이에요 (자동 저장됨)" : "⬜ 아직 시작하지 않았어요"}{ss.late ? " · ⏰ 마감 후 제출" : ""}
+                            {ss.unseen && <span style={{ marginLeft: 6, background: "#E53935", color: "white", borderRadius: 8, padding: "1px 6px", fontSize: 10 }}>NEW</span>}
                           </div>
                         </div>
                       ) : a.type === "VOCAB_SET" ? (
@@ -3865,12 +3956,18 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
                       {es.key === "returned" ? "💬 선생님 의견 보기" : es.key === "redo" ? "✍️ 다시 쓰기" : es.key === "submitted" ? "📄 제출한 글 보기" : es.key === "draft" ? "✍️ 이어 쓰기" : "✍️ 글쓰기 시작"} →
                     </button>
                   )}
+                  {isSpeak && onOpenEssay && ( /* ✅ V540 */
+                    <button onClick={() => onOpenEssay(a)}
+                      style={{ marginTop: 10, width: "100%", background: (ss.key === "submitted" || ss.key === "returned") ? "white" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: (ss.key === "submitted" || ss.key === "returned") ? "#2E75B6" : "white", border: (ss.key === "submitted" || ss.key === "returned") ? "1.5px solid #2E75B6" : "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                      {ss.key === "returned" ? "💬 선생님 의견 보기" : ss.key === "redo" ? "🗣️ 다시 말하기" : ss.key === "submitted" ? "🎧 제출한 녹음 보기" : ss.key === "draft" ? "📝 이어서 하기" : "🗣️ 말하기 시작"} →
+                    </button>
+                  )}
                   {(a.type === "VOCAB_SET" || a.type === "PRON_SET") && onOpenEssay && (() => { const vs = vocabDayState(a, essaySubs[a.id]); const ic = a.type === "PRON_SET" ? "🎧" : "🧩"; return !vs.done && (
                     <button onClick={() => onOpenEssay(a)} disabled={vs.locked}
                       style={{ marginTop: 10, width: "100%", background: vs.locked ? "#E0E0E0" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: vs.locked ? "#777" : "white", border: "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: vs.locked ? "default" : "pointer" }}>
                       {vs.locked ? `🌙 오늘 공부 끝! 내일 ${vs.next + 1}일째가 열려요` : vs.started ? `▶️ 이어서 하기 (${vs.next + 1}일째)` : `${ic} 오늘 공부 시작 (${vs.next + 1}일째) →`}
                     </button>); })()}
-                  {!isEssay && !done && targetTab && (
+                  {!isEssay && !isSpeak && !done && targetTab && (
                     <button onClick={() => onGoToTab(targetTab)}
                       style={{ marginTop: 10, width: "100%", background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 20, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
                       {a.type === "MID_QUIZ" || a.type === "ADV_QUIZ" ? "🗣️ 프리토킹에서 퀴즈 풀기" :
@@ -6830,6 +6927,590 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }
   );
 }
 
+// ════════════════════════════════════════════════════════
+// ✅ V540: 확장형 말하기 과제 SPEAK_TASK (로드맵 5, 과제설계 원칙 8장 — 2026-09-27 교수자 승인 설계안)
+// - 교수자는 "누구에게·어떤 상황에서·무엇을 하려고"만 정함(주제 지정 금지 — 5·6급만 주제 칸)
+// - 학습자: A 상황과 준비 메모(80자) → B 녹음·들어 보기·다시 녹음·하나만 제출 → C 제출한 뒤(의견·답글·다시 말하기)
+// - 서버에 가는 녹음 = 제출한 것만. 녹음은 speakAudio/{학습자}_{버전}_{조각}에 700,000자씩 최대 3조각(아이폰 품질 미확인 대비)
+// - 제출 순서: 서버에서 버전 번호 읽기 → 조각 저장(recId 표식) → versions 1개 추가. 등록 전 조각만 덮어쓸 수 있음(보안 규칙 V540)
+// - 재생: 모든 조각의 recId가 그 버전의 recId와 같을 때만(두 기기 동시 제출로 섞인 녹음은 재생하지 않음)
+// ════════════════════════════════════════════════════════
+const SPEAK_PART_CHARS = 700000; // 4의 배수 — base64 조각을 이어 붙여도 깨지지 않음
+const SPEAK_MAX_PARTS = 3;
+const SPEAK_MAX_VERSIONS = 10;
+const SPEAK_MEMO_MAX = 80;
+const SPEAK_GAP_CAP = 180; // 걸린 시간: 3분 넘는 공백은 3분까지만(어휘·문법 세트와 같은 방식)
+const SPEAK_PURPOSES = ["음성 메시지 남기기", "전화로 예약·문의하기", "부탁하기", "사과하기", "안내·설명하기"];
+const SPEAK_LENGTHS = [60, 120, 180];
+function speakMaxSec(a) { const m = Number(a?.maxSec); return SPEAK_LENGTHS.includes(m) ? m : 120; }
+function speakAudioId(uid, v, p) { return `${uid}_${v}_${p}`; }
+function speakSplit(data) {
+  const s = String(data || ""), out = [];
+  for (let i = 0; i < s.length; i += SPEAK_PART_CHARS) out.push(s.slice(i, i + SPEAK_PART_CHARS));
+  return out;
+}
+function speakNewRecId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+// 상태: 제출했으면 논술과 같은 판정(제출함·돌려받음·다시 말하는 중·늦음), 아니면 메모 중 / 할 일
+function speakStatus(a, sub, fb) {
+  const versions = sub && Array.isArray(sub.versions) ? sub.versions : [];
+  if (versions.length > 0) return essayStatus(a, sub, fb);
+  if (sub && typeof sub.memo === "string" && sub.memo.trim()) return { key: "draft", late: false, unseen: false };
+  return { key: "todo", late: false, unseen: false };
+}
+// 반 요약(교수자 카드): 제출 인원, 가장 최근 녹음 기준 평균 길이·다시 녹음 횟수·걸린 시간(분량 조정용)
+function speakClassSummary(subs) {
+  const lasts = Object.values(subs || {}).map(s => (s && Array.isArray(s.versions) && s.versions.length ? s.versions[s.versions.length - 1] : null)).filter(Boolean);
+  const avg = (f) => (lasts.length ? lasts.reduce((t, v) => t + (Number(v[f]) || 0), 0) / lasts.length : null);
+  return { n: lasts.length, dur: avg("durSec"), takes: avg("takes"), active: avg("activeSec") };
+}
+// 녹음 불러오기: 조각을 모두 받아 표식(recId)을 맞춰 본 뒤, 글자를 먼저 이어 붙이고 한 번에 소리로 바꿈
+async function speakLoadAudio(teacherId, aid, uid, ver, v) {
+  const n = Math.min(SPEAK_MAX_PARTS, Math.max(1, Number(ver?.nParts) || 1));
+  const ds = await Promise.all(Array.from({ length: n }, (_, p) => getDoc(doc(db, "classes", teacherId, "assignments", aid, "speakAudio", speakAudioId(uid, v, p)))));
+  if (ds.some(d => !d.exists() || typeof d.data().data !== "string")) throw new Error("missing");
+  if (ds.some(d => d.data().recId !== ver.recId)) throw new Error("mismatch");
+  const data = ds.map(d => d.data().data).join("");
+  const type = ds[0].data().type || ver.type || "audio/webm";
+  try {
+    const bin = atob(data), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return URL.createObjectURL(new Blob([bytes], { type }));
+  } catch (e) {
+    return `data:${type};base64,${data}`;
+  }
+}
+// 제출: ① 서버에서 직접 버전 번호 읽기 ② 조각 저장 ③ versions 1개 추가. 실패 이유를 돌려줌
+async function speakSubmit({ teacherId, aid, uid, rec, memo, takes, activeSec, listChecks, expectV }) {
+  const subRef = doc(db, "classes", teacherId, "assignments", aid, "submissions", uid);
+  const readVersions = async () => { const s = await getDocFromServer(subRef); return s.exists() && Array.isArray(s.data().versions) ? s.data().versions : []; };
+  let versions;
+  try { versions = await readVersions(); } catch (e) { return { error: "network" }; }
+  const v = versions.length;
+  // (검토 반영) 화면이 알고 있던 제출 수와 서버가 다르면 다른 기기에서 먼저 제출한 것 — 늦은 쪽은 새 버전으로 올리지 않음
+  if (expectV !== undefined && v !== expectV) return { error: "race" };
+  if (v >= SPEAK_MAX_VERSIONS) return { error: "full" };
+  const chunks = speakSplit(rec && rec.data);
+  if (chunks.length === 0) return { error: "empty" };
+  if (chunks.length > SPEAK_MAX_PARTS) return { error: "big" };
+  const recId = speakNewRecId(), now = Date.now();
+  const type = String((rec && rec.type) || "audio/webm").slice(0, 40);
+  const durSec = Math.max(1, Math.min(180, Math.round(Number(rec && rec.durSec) || 1)));
+  try {
+    for (let p = 0; p < chunks.length; p++) {
+      await setDoc(doc(db, "classes", teacherId, "assignments", aid, "speakAudio", speakAudioId(uid, v, p)),
+        { learnerUid: uid, v, part: p, recId, data: chunks[p], type, durSec, createdAtMs: now });
+    }
+  } catch (e) { return { error: "network" }; }
+  const ver = {
+    submittedAtMs: now, memo: String(memo || "").slice(0, SPEAK_MEMO_MAX), durSec,
+    takes: Math.max(1, Math.round(Number(takes) || 1)), nParts: chunks.length, recId, type,
+    activeSec: Math.max(0, Math.round(Number(activeSec) || 0)), listChecks: Array.isArray(listChecks) ? listChecks.map(Boolean) : [],
+  };
+  try {
+    await setDoc(subRef, { learnerUid: uid, memo: ver.memo, status: "submitted", versions: [...versions, ver], updatedAt: serverTimestamp(), updatedAtMs: now }, { merge: true });
+  } catch (e) {
+    try { if ((await readVersions()).length > v) return { error: "race" }; } catch (e2) {}
+    return { error: "network" };
+  }
+  return { ok: true, v, ver };
+}
+// 녹음 듣기(교수자·학습자 공용) — 누를 때만 내려받음
+function SpeakPlayer({ teacherId, assignId, learnerUid, ver, v, label, onMismatch }) {
+  const [src, setSrc] = useState(null);
+  const [status, setStatus] = useState("idle"); // idle | loading | ready | error | mismatch
+  useEffect(() => () => { try { src && src.startsWith("blob:") && URL.revokeObjectURL(src); } catch (e) {} }, [src]);
+  async function load() {
+    setStatus("loading");
+    try {
+      const u = await speakLoadAudio(teacherId, assignId, learnerUid, ver, v);
+      setSrc(u); setStatus("ready");
+    } catch (e) {
+      if (e && e.message === "mismatch") { setStatus("mismatch"); onMismatch && onMismatch(); }
+      else setStatus("error");
+    }
+  }
+  return (
+    <div style={{ background: "white", border: "1px solid #C8DAF0", borderRadius: 10, padding: "6px 10px", marginTop: 6 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#1A3A5C", marginBottom: 4 }}>{label || "🎙️ 녹음"} ({fmtSec(Number(ver?.durSec) || 0)})</div>
+      {status === "ready" ? (
+        <audio controls autoPlay src={src} style={{ width: "100%", height: 36 }} onError={() => setStatus("error")} />
+      ) : status === "mismatch" ? (
+        <div style={{ fontSize: 12, color: "#E53935" }}>녹음을 불러오지 못했어요. (두 기기에서 동시에 제출해 녹음이 섞였어요)</div>
+      ) : status === "error" ? (
+        <div style={{ fontSize: 12, color: "#E53935" }}>이 기기에서 녹음을 재생하지 못했어요. 다른 기기(컴퓨터 등)에서 들어 보세요. <button type="button" onClick={load} style={{ background: "none", border: "none", color: "#2E75B6", fontWeight: 800, cursor: "pointer", fontSize: 12 }}>다시 시도</button></div>
+      ) : (
+        <button type="button" onClick={load} disabled={status === "loading"}
+          style={{ background: "#2E75B6", color: "white", border: "none", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
+          {status === "loading" ? "불러오는 중..." : "▶ 듣기"}
+        </button>
+      )}
+    </div>
+  );
+}
+// 상황 카드(교수자가 낸 것) — 학습자·교수자 공용
+function SpeakSituationCard({ a, small }) {
+  const ex = Array.isArray(a.expressions) ? a.expressions : [];
+  return (
+    <div style={{ background: "#FFF8E1", borderLeft: "4px solid #FFC107", borderRadius: 14, padding: small ? "8px 12px" : "12px 14px", marginBottom: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 800, color: "#F57F17", marginBottom: 4 }}>🗣️ 상황</div>
+      <div style={{ fontSize: small ? 13 : 14, color: "#333", lineHeight: 1.7 }}>
+        <div><b>누구에게</b> · {a.partner}</div>
+        <div style={{ whiteSpace: "pre-wrap" }}><b>어떤 상황</b> · {a.situation}</div>
+        <div><b>무엇을 하려고</b> · {a.purpose}</div>
+        {a.level === "adv" && a.topic ? <div style={{ whiteSpace: "pre-wrap" }}><b>주제</b> · {a.topic}</div> : null}
+      </div>
+      {!small && ex.length > 0 && <div style={{ fontSize: 12, color: "#7A6000", marginTop: 6 }}>🎯 넣어 보면 좋은 표현: {ex.join(", ")}</div>}
+      {!small && a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
+    </div>
+  );
+}
+// 교수자 과제 만들기 — 말하기 칸
+function SpeakTaskEditor({ form, setForm }) {
+  const inp = { width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 13, boxSizing: "border-box", outline: "none", fontFamily: "inherit" };
+  const lab = { fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 };
+  const adv = form.sLevel === "adv";
+  const guide = (ok, bad, why) => adv ? null : (
+    <div style={{ fontSize: 11, color: "#7A6000", background: "#FFF8DC", border: "1px solid #F0D060", borderRadius: 8, padding: "6px 9px", marginTop: 4, lineHeight: 1.6 }}>
+      ⭕ {ok}<br />❌ {bad}{why ? <><br />{why}</> : null}
+    </div>
+  );
+  const pick = (k, v, cur, on) => (
+    <button key={k} type="button" onClick={on}
+      style={{ flex: 1, padding: "9px 4px", border: cur ? "2px solid #2E75B6" : "1.5px solid #e0e0e0", borderRadius: 10, background: cur ? "#EBF3FB" : "white", fontSize: 12, fontWeight: cur ? 800 : 600, color: cur ? "#2E75B6" : "#555", cursor: "pointer" }}>{v}</button>
+  );
+  return (
+    <div style={{ marginTop: 10, background: "#F5F8FF", border: "1px solid #D6E4F5", borderRadius: 12, padding: "12px 12px 4px" }}>
+      <div style={{ fontSize: 11, color: "#2E75B6", marginBottom: 10, lineHeight: 1.6 }}>
+        🗣️ 학습자는 상황을 보고 <b>할 말을 스스로 정해</b> 짧게 메모 → 녹음 → 들어 보기 → (필요하면) 다시 녹음한 뒤 <b>하나를 제출</b>해요. <b>제출하면 완료</b>, 점수는 없어요.<br />
+        혼자 전달하는 말을 연습하는 과제예요. 주고받는 대화 연습은 프리토킹이 맡아요.
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={lab}>수준</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {pick("basic", "초·중급 (1~4급)", !adv, () => setForm(f => ({ ...f, sLevel: "basic" })))}
+          {pick("adv", "고급 (5·6급)", adv, () => setForm(f => ({ ...f, sLevel: "adv" })))}
+        </div>
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={lab}>누구에게 *</div>
+        <input value={form.sPartner} onChange={e => setForm(f => ({ ...f, sPartner: e.target.value }))} placeholder="예: 담임 선생님, 병원 접수처, 집주인" style={inp} />
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={lab}>어떤 상황 *</div>
+        <textarea value={form.sSituation} rows={2} onChange={e => setForm(f => ({ ...f, sSituation: e.target.value }))} placeholder="예: 오늘 수업에 갈 수 없게 됐어요." style={{ ...inp, resize: "vertical" }} />
+        {guide("\"오늘 수업에 갈 수 없게 됐어요. 선생님께 음성 메시지를 남겨 보세요.\" — 상황·상대만", "\"감기에 걸려서 결석한다고 말해 보세요.\"", "이유(내용)까지 정하면 학습자가 스스로 생각할 일이 없어져요. 무엇을 말할지는 학습자가 정해요.")}
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={lab}>무엇을 하려고 *</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {[...SPEAK_PURPOSES, "__custom"].map(p => (
+            <button key={p} type="button" onClick={() => setForm(f => ({ ...f, sPurpose: p }))}
+              style={{ fontSize: 12, padding: "6px 10px", borderRadius: 20, border: form.sPurpose === p ? "2px solid #2E75B6" : "1px solid #C8DAF0", background: form.sPurpose === p ? "#EBF3FB" : "white", color: "#1A3A5C", fontWeight: form.sPurpose === p ? 800 : 600, cursor: "pointer" }}>
+              {p === "__custom" ? "✏️ 직접 입력" : p}
+            </button>
+          ))}
+        </div>
+        {form.sPurpose === "__custom" && <>
+          <input value={form.sPurposeCustom} onChange={e => setForm(f => ({ ...f, sPurposeCustom: e.target.value }))} placeholder="예: 집주인에게 고장 난 곳 알리기" style={{ ...inp, marginTop: 6 }} />
+          {guide("\"집주인에게 고장 난 곳 알리기\"", "\"보일러가 고장 났다고 알리기\" — 무엇이 고장 났는지는 학습자가 정해요")}
+        </>}
+      </div>
+      {adv && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={lab}>주제 (선택 — 고급만)</div>
+          <textarea value={form.sTopic} rows={2} onChange={e => setForm(f => ({ ...f, sTopic: e.target.value }))} placeholder="예: 우리 회사의 재택근무 확대에 대한 내 의견" style={{ ...inp, resize: "vertical" }} />
+        </div>
+      )}
+      <div style={{ marginBottom: 10 }}>
+        <div style={lab}>말할 때 넣어 보면 좋은 표현 (선택, 한 줄에 하나씩)</div>
+        <textarea value={form.sExpr} rows={2} onChange={e => setForm(f => ({ ...f, sExpr: e.target.value }))} placeholder={"예: -게 되다\n-(으)ㄹ 수 있을까요?"} style={{ ...inp, resize: "vertical" }} />
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={lab}>확인할 것 (선택, 한 줄에 하나씩 — 학습자가 녹음을 들어 본 뒤 스스로 체크)</div>
+        <textarea value={form.sChecklist} rows={2} onChange={e => setForm(f => ({ ...f, sChecklist: e.target.value }))} placeholder={"예: 인사로 시작했나요?\n끝에 부탁을 했나요?"} style={{ ...inp, resize: "vertical" }} />
+        {guide("\"인사로 시작했나요?\" \"끝에 부탁을 했나요?\" — 말의 짜임만", "\"감기라고 말했나요?\" — 내용을 정하게 돼요")}
+      </div>
+      <div style={{ marginBottom: 10 }}>
+        <div style={lab}>녹음 길이 (최대)</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {SPEAK_LENGTHS.map(s => pick(String(s), `${s / 60}분`, form.sMaxSec === s, () => setForm(f => ({ ...f, sMaxSec: s }))))}
+        </div>
+      </div>
+    </div>
+  );
+}
+function speakFormCheck(form) {
+  if (!String(form.sPartner || "").trim()) return "말하기 과제는 '누구에게'를 입력해 주세요";
+  if (!String(form.sSituation || "").trim()) return "말하기 과제는 '어떤 상황'을 입력해 주세요";
+  const p = form.sPurpose === "__custom" ? form.sPurposeCustom : form.sPurpose;
+  if (!String(p || "").trim()) return "말하기 과제는 '무엇을 하려고'를 골라 주세요";
+  return "";
+}
+// 학습자 녹음기 — 녹음은 이 기기 안에만 두고, 제출할 때만 서버로 감
+function SpeakRecorder({ maxSec, hasRec, onRec, onActivity, disabled, onBusy }) {
+  const [state, setState] = useState("idle"); // idle | starting | recording | processing
+  const [elapsed, setElapsed] = useState(0);
+  const [err, setErr] = useState("");
+  const [noMic, setNoMic] = useState(typeof navigator === "undefined" || !navigator.mediaDevices || typeof MediaRecorder === "undefined");
+  const mrRef = useRef(null), chunks = useRef([]), timer = useRef(null), startAt = useRef(0), streamRef = useRef(null);
+  const alive = useRef(true), busy = useRef(false);
+  useEffect(() => { onBusy && onBusy(state !== "idle"); }, [state]);
+  useEffect(() => () => {
+    alive.current = false;
+    clearInterval(timer.current);
+    try { mrRef.current && mrRef.current.state !== "inactive" && mrRef.current.stop(); } catch (e) {}
+    try { streamRef.current && streamRef.current.getTracks().forEach(t => t.stop()); } catch (e) {}
+  }, []);
+  async function start() {
+    if (busy.current || disabled) return;
+    busy.current = true;
+    setErr(""); setState("starting");
+    onActivity && onActivity();
+    let stream = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (!alive.current) { try { stream.getTracks().forEach(t => t.stop()); } catch (e) {} return; }
+      streamRef.current = stream;
+      const mime = pickAudioMime();
+      const mr = new MediaRecorder(stream, { ...(mime ? { mimeType: mime } : {}), audioBitsPerSecond: 16000 });
+      chunks.current = [];
+      mr.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.current.push(e.data); };
+      mr.onstop = () => {
+        clearInterval(timer.current);
+        try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+        busy.current = false;
+        if (!alive.current) return;
+        const dur = Math.max(1, Math.min(maxSec, Math.round((Date.now() - startAt.current) / 1000)));
+        const type = (mr.mimeType || mime || "audio/webm").split(";")[0];
+        const blob = new Blob(chunks.current, { type });
+        if (blob.size === 0) { setState("idle"); setErr("녹음된 소리가 없어요. 다시 녹음해 주세요."); return; }
+        setState("processing");
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (!alive.current) return;
+          const data = String(reader.result || "").split(",")[1] || "";
+          setState("idle");
+          if (!data) { setErr("녹음된 소리가 없어요. 다시 녹음해 주세요."); return; }
+          if (data.length > SPEAK_PART_CHARS * SPEAK_MAX_PARTS) { setErr("녹음이 너무 커요. 조금 짧게 다시 녹음해 주세요."); return; }
+          let url = null;
+          try { url = URL.createObjectURL(blob); } catch (e) {}
+          onActivity && onActivity();
+          onRec({ data, type, durSec: dur, url });
+        };
+        reader.readAsDataURL(blob);
+      };
+      mrRef.current = mr;
+      startAt.current = Date.now();
+      setElapsed(0);
+      mr.start();
+      setState("recording");
+      timer.current = setInterval(() => {
+        const sec = (Date.now() - startAt.current) / 1000;
+        setElapsed(sec);
+        if (sec >= maxSec && mrRef.current && mrRef.current.state !== "inactive") mrRef.current.stop();
+      }, 250);
+    } catch (e) {
+      busy.current = false;
+      try { stream && stream.getTracks().forEach(t => t.stop()); } catch (e2) {}
+      if (!alive.current) return;
+      setNoMic(true);
+      setErr("마이크를 쓸 수 있게 허용해 주세요.");
+      setState("idle");
+    }
+  }
+  function stop() { if (mrRef.current && mrRef.current.state !== "inactive") mrRef.current.stop(); }
+  const big = (bg, c, extra) => ({ width: "100%", background: bg, color: c, border: "none", borderRadius: 50, padding: "13px 0", fontSize: 15, fontWeight: 800, cursor: "pointer", ...(extra || {}) });
+  if (noMic) return (
+    <div style={{ fontSize: 13, color: "#B23B00", background: "#FFF3E0", borderRadius: 10, padding: "10px 12px", lineHeight: 1.6 }}>
+      {err ? err + " " : ""}이 기기에서는 녹음할 수 없어요. 휴대폰이나 다른 컴퓨터에서 이어서 해 주세요. (메모는 저장돼 있어요)
+    </div>
+  );
+  return (
+    <div>
+      {state === "starting" ? (
+        <div style={{ textAlign: "center", color: "#888", fontSize: 13, padding: 10 }}>마이크를 켜는 중...</div>
+      ) : state === "recording" ? (
+        <button type="button" onClick={stop} style={big("#E53935", "white")}>⏹ 멈추기 ({fmtSec(elapsed)} / {fmtSec(maxSec)})</button>
+      ) : state === "processing" ? (
+        <div style={{ textAlign: "center", color: "#888", fontSize: 13, padding: 10 }}>준비 중...</div>
+      ) : (
+        <button type="button" onClick={start} disabled={disabled} style={big(hasRec ? "white" : "linear-gradient(135deg,#E53935,#C62828)", hasRec ? "#C62828" : "white", hasRec ? { border: "2px solid #FFCDD2" } : null)}>
+          {hasRec ? "🎙️ 다시 녹음하기" : "🎙️ 녹음 시작"}
+        </button>
+      )}
+      {state === "idle" && !hasRec && <div style={{ fontSize: 11, color: "#888", textAlign: "center", marginTop: 6 }}>최대 {fmtSec(maxSec)} · 몇 번이든 다시 녹음할 수 있어요</div>}
+      {err && <div style={{ fontSize: 12, color: "#E53935", marginTop: 8, textAlign: "center" }}>{err}</div>}
+    </div>
+  );
+}
+// 학습자 말하기 과제 화면 — A 상황과 준비 / B 녹음·들어 보기·제출 / C 제출한 뒤
+function SpeakAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }) {
+  const a = assignment;
+  const subRef = doc(db, "classes", teacherId, "assignments", a.id, "submissions", user.uid);
+  const [sent, setSent] = useState(null); // 방금 제출한 것 — 실시간 구독이 따라오기 전에도 화면 C에 보이게
+  const subVersions = sub && Array.isArray(sub.versions) ? sub.versions : [];
+  const versions = sent && subVersions.length === sent.v ? [...subVersions, sent.ver] : subVersions; // (검토 반영) 구독이 뒤처지면 번호가 어긋나지 않게 정확히 한 칸만
+  const lastVer = versions[versions.length - 1] || null;
+  const fbInfo = essayFbInfo(sub, fb);
+  const isRedo = fbInfo.state === "redo";
+  const checklist = Array.isArray(a.checklist) ? a.checklist : [];
+  const maxSec = speakMaxSec(a);
+  const deadlineMs = toMs(a.deadline);
+  const replies = sub && Array.isArray(sub.replies) ? sub.replies : [];
+  const lastRoundIdx = fbInfo.rounds.length - 1;
+  const [retry, setRetry] = useState(false); // 섞인 녹음 → 한 번 더 제출
+  const full = versions.length >= SPEAK_MAX_VERSIONS;
+  const canRecord = !full && (versions.length === 0 || isRedo || retry);
+  const [stage, setStage] = useState(null); // "A" | "B" | "C"
+  const [memo, setMemo] = useState("");
+  const [saveState, setSaveState] = useState("idle");
+  const [rec, setRec] = useState(null); // { data, type, durSec, url }
+  const [takes, setTakes] = useState(0);
+  const [listChecks, setListChecks] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [slow, setSlow] = useState(false); // 인터넷이 느릴 때(Firestore는 끊겨도 실패하지 않고 기다림)
+  const [recBusy, setRecBusy] = useState(false); // 녹음 중에는 제출 못 함(검토 반영)
+  const [replyText, setReplyText] = useState("");
+  const [replySending, setReplySending] = useState(false);
+  const inited = useRef(false), timer = useRef(null), pending = useRef(null);
+  const act = useRef({ sec: 0, last: Date.now() });
+  const bump = () => { const now = Date.now(); act.current.sec += Math.min(SPEAK_GAP_CAP, Math.max(0, (now - act.current.last) / 1000)); act.current.last = now; };
+
+  // 처음 한 번: 메모 불러오기, 시작 시각 기록, 첫 화면 정하기
+  useEffect(() => {
+    if (inited.current || sub === undefined) return;
+    inited.current = true;
+    setMemo(typeof sub?.memo === "string" ? sub.memo.slice(0, SPEAK_MEMO_MAX) : "");
+    setStage(versions.length === 0 ? "A" : "C");
+    if (versions.length === 0 && !sub?.startedAtMs) {
+      setDoc(subRef, { learnerUid: user.uid, startedAtMs: Date.now() }, { merge: true }).catch(() => {});
+    }
+  }, [sub]);
+  // 의견을 열어 봤음을 기록
+  useEffect(() => {
+    if (!fbInfo.unseen || fbInfo.rounds.length === 0) return;
+    setDoc(subRef, { learnerUid: user.uid, seenRound: fbInfo.rounds.length }, { merge: true }).catch(() => {});
+  }, [fbInfo.rounds.length, fbInfo.unseen]);
+  async function flush(data) {
+    try {
+      await setDoc(subRef, { learnerUid: user.uid, ...data, updatedAt: serverTimestamp() }, { merge: true });
+      if (pending.current === data) pending.current = null;
+      setSaveState("saved");
+    } catch (e) { setSaveState("error"); }
+  }
+  function changeMemo(v) {
+    const m = v.slice(0, SPEAK_MEMO_MAX);
+    setMemo(m); bump();
+    const data = { memo: m, updatedAtMs: Date.now() };
+    pending.current = data;
+    setSaveState("saving");
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => flush(data), 1500);
+  }
+  useEffect(() => () => {
+    clearTimeout(timer.current);
+    if (pending.current) setDoc(subRef, { learnerUid: user.uid, ...pending.current, updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
+  }, []);
+  const recUrl = useRef(null);
+  useEffect(() => () => { try { recUrl.current && URL.revokeObjectURL(recUrl.current); } catch (e) {} }, []);
+  function gotRec(r) {
+    try { recUrl.current && URL.revokeObjectURL(recUrl.current); } catch (e) {}
+    recUrl.current = r.url || null;
+    setRec(r); setTakes(n => n + 1);
+  }
+  function close() {
+    if (rec && !window.confirm("녹음을 아직 보내지 않았어요. 닫으면 녹음이 사라져요.\n닫을까요?")) return;
+    onClose();
+  }
+  async function submit() {
+    if (!rec || submitting) return;
+    if (!window.confirm(versions.length > 0 ? `이 녹음을 ${versions.length + 1}차 녹음으로 선생님께 보낼까요?\n지난 녹음은 그대로 보관돼요.` : "이 녹음을 선생님께 보낼까요?\n보내면 선생님이 들을 수 있어요.")) return;
+    bump();
+    setSubmitting(true); setSlow(false);
+    clearTimeout(timer.current);
+    const slowT = setTimeout(() => setSlow(true), 15000);
+    const res = await speakSubmit({ teacherId, aid: a.id, uid: user.uid, rec, memo, takes, activeSec: act.current.sec, listChecks, expectV: versions.length });
+    clearTimeout(slowT);
+    setSubmitting(false); setSlow(false);
+    if (res.ok) {
+      pending.current = null;
+      try { recUrl.current && URL.revokeObjectURL(recUrl.current); } catch (e) {}
+      recUrl.current = null;
+      setSent({ v: res.v, ver: res.ver });
+      setRec(null); setTakes(0); setListChecks([]); setRetry(false);
+      act.current = { sec: 0, last: Date.now() };
+      setStage("C");
+      return;
+    }
+    if (res.error === "race") { alert("다른 기기에서 먼저 제출했어요. 제출한 녹음을 확인해 주세요."); setRec(null); setStage("C"); return; }
+    if (res.error === "full") { alert(`더 제출할 수 없어요. (최대 ${SPEAK_MAX_VERSIONS}번)`); setStage("C"); return; }
+    if (res.error === "big") { alert("녹음이 너무 커요. 조금 짧게 다시 녹음해 주세요."); return; }
+    alert("보내지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.\n(녹음은 이 화면에 그대로 있어요)");
+  }
+  async function sendReply() {
+    const t = replyText.trim().slice(0, 300);
+    if (!t || lastRoundIdx < 0) return;
+    setReplySending(true);
+    try {
+      await setDoc(subRef, { learnerUid: user.uid, replies: [...replies, { text: t, atMs: Date.now(), forRound: lastRoundIdx }] }, { merge: true });
+      setReplyText("");
+    } catch (e) { alert("보내지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요."); }
+    setReplySending(false);
+  }
+
+  const fmt = (ms) => new Date(ms).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const box = { background: "white", borderRadius: 14, padding: "12px 14px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" };
+  const bigBtn = (bg, extra) => ({ width: "100%", background: bg, color: "white", border: "none", borderRadius: 50, padding: "13px 0", fontSize: 15, fontWeight: 800, cursor: "pointer", ...(extra || {}) });
+  const lastPlayer = lastVer ? <SpeakPlayer key={(versions.length - 1) + "_" + lastVer.recId} teacherId={teacherId} assignId={a.id} learnerUid={user.uid} ver={lastVer} v={versions.length - 1} label={`🎙️ ${versions.length}차 녹음 (제출한 것)`} onMismatch={() => setRetry(true)} /> : null;
+  const sub1 = stage === "A" ? "상황과 준비" : stage === "B" ? "녹음하기" : "제출한 녹음";
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "#F5F8FF", zIndex: 3100, overflowY: "auto", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 2, background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", padding: "14px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+        <button onClick={close} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", borderRadius: 20, padding: "6px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>← 닫기</button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>🗣️ {a.title}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.8)" }}>{sub1}{deadlineMs ? ` · 📅 마감 ${fmt(deadlineMs)}` : ""}</div>
+        </div>
+      </div>
+      <div style={{ maxWidth: 600, margin: "0 auto", padding: "14px 14px 60px", boxSizing: "border-box" }}>
+        {stage === null ? (
+          <div style={{ textAlign: "center", padding: 40, color: "#aaa" }}>불러오는 중...</div>
+        ) : stage === "A" ? (
+          <>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#2D7A2D", background: "#EEF7EE", borderRadius: 10, padding: "8px 12px", marginBottom: 12 }}>💡 무엇을 말할지는 내가 정해요</div>
+            <SpeakSituationCard a={a} />
+            {versions.length > 0 && <div style={box}><div style={{ fontSize: 12, fontWeight: 800, color: "#1A3A5C" }}>지난 녹음을 들어 보고 다시 말해 보세요</div>{lastPlayer}</div>}
+            <div style={box}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#1A3A5C" }}>📝 준비 메모 <span style={{ fontWeight: 600, color: "#888", fontSize: 11 }}>— 건너뛰어도 돼요</span></div>
+              <div style={{ fontSize: 11, color: "#888", margin: "2px 0 8px" }}>문장 말고 <b>낱말로</b> 적어 보세요. (보고 읽지 않고 말하기 위해서예요)</div>
+              <textarea value={memo} onChange={e => changeMemo(e.target.value)} rows={3} maxLength={SPEAK_MEMO_MAX} placeholder="예: 인사 / 못 가요 / 왜? / 숙제는?"
+                style={{ width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 10, padding: "10px 12px", fontSize: 15, lineHeight: 1.6, boxSizing: "border-box", resize: "none", outline: "none", fontFamily: "inherit" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: saveState === "error" ? "#E53935" : "#999", marginTop: 4 }}>
+                <span>{saveState === "saving" ? "저장 중..." : saveState === "saved" ? "✓ 자동 저장됨" : saveState === "error" ? "⚠️ 인터넷 저장 실패" : " "}</span>
+                <span>{memo.length}/{SPEAK_MEMO_MAX}자</span>
+              </div>
+              <details style={{ marginTop: 6 }}>
+                <summary style={{ fontSize: 12, color: "#2E75B6", cursor: "pointer", fontWeight: 700 }}>💡 말의 순서가 생각나지 않으면</summary>
+                <div style={{ fontSize: 12, color: "#555", marginTop: 4, lineHeight: 1.7 }}>인사 → 하고 싶은 말 → 부탁·마무리</div>
+              </details>
+            </div>
+            {canRecord ? (
+              <button type="button" onClick={() => { bump(); setStage("B"); }} style={bigBtn("linear-gradient(135deg,#2E75B6,#1A3A5C)")}>🎙️ 녹음하러 가기 →</button>
+            ) : (
+              <button type="button" onClick={() => setStage("C")} style={bigBtn("#90A4AE")}>← 제출한 녹음으로</button>
+            )}
+          </>
+        ) : stage === "B" ? (
+          <>
+            <SpeakSituationCard a={a} small />
+            {memo.trim() && (
+              <details style={{ ...box, padding: "8px 14px" }}>
+                <summary style={{ fontSize: 12, color: "#2E75B6", cursor: "pointer", fontWeight: 700 }}>📝 내 메모 보기</summary>
+                <div style={{ fontSize: 13, color: "#333", marginTop: 4, whiteSpace: "pre-wrap" }}>{memo}</div>
+              </details>
+            )}
+            {versions.length > 0 && lastPlayer}
+            <div style={box}>
+              <div style={{ fontSize: 12, color: "#8A4B00", background: "#FFF8E1", borderRadius: 10, padding: "8px 10px", marginBottom: 12, lineHeight: 1.5 }}>🎙️ 제출한 녹음은 선생님이 들을 수 있어요. 제출하기 전 녹음은 이 기기에만 있어요.</div>
+              <SpeakRecorder maxSec={maxSec} hasRec={!!rec} onRec={gotRec} onActivity={bump} disabled={submitting} onBusy={setRecBusy} />
+              {rec && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "#1A3A5C", marginBottom: 4 }}>▶ 내 녹음 들어 보기 ({fmtSec(rec.durSec)})</div>
+                  <audio controls src={rec.url || `data:${rec.type};base64,${rec.data}`} onPlay={bump} style={{ width: "100%", height: 36 }} />
+                  {checklist.length > 0 && (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 4 }}>🔍 들어 보고 확인해요</div>
+                      {checklist.map((c, i) => (
+                        <label key={i} onClick={() => { bump(); setListChecks(l => { const n = checklist.map((_, j) => !!l[j]); n[i] = !n[i]; return n; }); }}
+                          style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "5px 0", cursor: "pointer", fontSize: 13, color: "#333", lineHeight: 1.5 }}>
+                          <span style={{ fontSize: 16, lineHeight: 1.2 }}>{listChecks[i] ? "☑️" : "⬜"}</span><span>{c}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ fontSize: 12, color: "#555", marginTop: 8, lineHeight: 1.6 }}>마음에 들지 않으면 다시 녹음해도 돼요. 마지막 녹음 하나만 보내져요.</div>
+                </div>
+              )}
+            </div>
+            <button type="button" onClick={submit} disabled={!rec || submitting || recBusy}
+              style={bigBtn(!rec || submitting || recBusy ? "#bbb" : "linear-gradient(135deg,#2D9D78,#1E7A5C)", { cursor: !rec || submitting || recBusy ? "not-allowed" : "pointer" })}>
+              {submitting ? "보내는 중..." : "📤 이 녹음으로 제출"}
+            </button>
+            {slow && <div style={{ fontSize: 12, color: "#8A4B00", textAlign: "center", marginTop: 8 }}>인터넷이 느려요. 연결되면 이어서 보내져요 — 이 화면을 닫지 말아 주세요.</div>}
+            <button type="button" onClick={() => setStage("A")} disabled={submitting} style={{ display: "block", margin: "12px auto 0", background: "none", border: "none", color: "#2E75B6", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>← 상황과 메모로</button>
+          </>
+        ) : (
+          <>
+            {lastVer ? (
+              <div style={{ ...box, background: "#F0FAF0", border: "1.5px solid #A8D5A8" }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "#2D7A2D" }}>✅ 제출했어요!{versions.length > 1 ? ` (${versions.length}차 녹음)` : ""}</div>
+                <div style={{ fontSize: 12, color: "#555", marginTop: 4, lineHeight: 1.6 }}>
+                  {fmt(lastVer.submittedAtMs)}에 제출{deadlineMs && versions[0]?.submittedAtMs > deadlineMs ? " · ⏰ 마감 후 제출" : ""}
+                  {!fbInfo.state && <><br />선생님이 녹음을 듣고 의견을 보내 주실 거예요.</>}
+                </div>
+                {lastPlayer}
+                {retry && !full && (
+                  <button type="button" onClick={() => setStage("A")} style={bigBtn("linear-gradient(135deg,#FF8C42,#E65100)", { marginTop: 10, fontSize: 13, padding: "10px 0" })}>🎙️ 다시 녹음해서 제출하기</button>
+                )}
+              </div>
+            ) : (
+              <div style={{ ...box, textAlign: "center", color: "#888" }}>아직 제출하지 않았어요.</div>
+            )}
+            {fbInfo.state && fbInfo.last && (
+              <div style={{ ...box, background: isRedo ? "#FFF3E0" : "#EEF7EE", border: `1.5px solid ${isRedo ? "#FFCC80" : "#B7DDB7"}` }}>
+                <div style={{ fontSize: 13, fontWeight: 900, color: isRedo ? "#8A4B00" : "#2D7A2D" }}>{isRedo ? "🗣️ 선생님이 한 번 더 말해 보자고 하셨어요" : "💬 선생님 의견"}</div>
+                {fbInfo.last.text ? <div style={{ fontSize: 14, color: "#333", lineHeight: 1.8, whiteSpace: "pre-wrap", marginTop: 6 }}>{fbInfo.last.text}</div> : null}
+                {fbInfo.last.voice && fbInfo.last.voice.id && <EssayVoicePlayer teacherId={teacherId} assignId={a.id} voice={fbInfo.last.voice} />}
+                <div style={{ fontSize: 11, color: "#888", marginTop: 4 }}>{fbInfo.last.atMs ? fmt(fbInfo.last.atMs) : ""}</div>
+                {replies.filter(rp => rp.forRound === lastRoundIdx).map((rp, k) => (
+                  <div key={k} style={{ background: "white", border: "1px solid #D6E4F5", borderRadius: 10, padding: "6px 10px", marginTop: 6, fontSize: 13, color: "#333", lineHeight: 1.6 }}>
+                    <b style={{ color: "#2E75B6", fontSize: 12 }}>🙋 내 답글</b> <span style={{ fontSize: 11, color: "#999" }}>{fmt(rp.atMs)}</span>
+                    <div style={{ whiteSpace: "pre-wrap" }}>{rp.text}</div>
+                  </div>
+                ))}
+                <div style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "flex-end" }}>
+                  <textarea value={replyText} onChange={e => setReplyText(e.target.value.slice(0, 300))} rows={1} placeholder="선생님께 답하기 (예: 고맙습니다!)"
+                    style={{ flex: 1, border: "1.5px solid #D6E4F5", borderRadius: 10, padding: "8px 10px", fontSize: 13, lineHeight: 1.5, boxSizing: "border-box", resize: "vertical", outline: "none", fontFamily: "inherit", background: "white" }} />
+                  <button onClick={sendReply} disabled={replySending || !replyText.trim()}
+                    style={{ background: replySending || !replyText.trim() ? "#bbb" : "#2E75B6", color: "white", border: "none", borderRadius: 20, padding: "8px 14px", fontSize: 13, fontWeight: 800, cursor: replySending || !replyText.trim() ? "not-allowed" : "pointer", flexShrink: 0 }}>{replySending ? "..." : "보내기"}</button>
+                </div>
+                {isRedo && !full && (
+                  <button type="button" onClick={() => setStage("A")} style={bigBtn("linear-gradient(135deg,#FF8C42,#E65100)", { marginTop: 10 })}>🗣️ 다시 말하기 ({versions.length + 1}차) →</button>
+                )}
+                {isRedo && full && <div style={{ fontSize: 12, color: "#8A4B00", marginTop: 8 }}>더 제출할 수 없어요. (최대 {SPEAK_MAX_VERSIONS}번)</div>}
+              </div>
+            )}
+            {(versions.length > 1 || fbInfo.rounds.length > (fbInfo.state ? 1 : 0)) && (
+              <details style={box}>
+                <summary style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", cursor: "pointer" }}>🗂️ 지난 녹음과 의견 보기</summary>
+                {versions.map((v, i) => {
+                  const rs = fbInfo.rounds.filter(r => r.forVersion === i && r !== fbInfo.last);
+                  const isLatest = i === versions.length - 1;
+                  if (isLatest && rs.length === 0) return null;
+                  return (
+                    <div key={i} style={{ borderTop: "1px solid #eee", marginTop: 8, paddingTop: 8 }}>
+                      {!isLatest && <SpeakPlayer key={i + "_" + v.recId} teacherId={teacherId} assignId={a.id} learnerUid={user.uid} ver={v} v={i} label={`🎙️ ${i + 1}차 녹음 · ${fmt(v.submittedAtMs)}`} />}
+                      {rs.map((r, k) => (
+                        <div key={k} style={{ fontSize: 13, color: "#333", lineHeight: 1.7, whiteSpace: "pre-wrap", background: "#F5F8FF", borderRadius: 8, padding: "6px 10px", marginTop: 6 }}>
+                          {r.action === "redo" ? "🗣️" : "💬"} {r.text}
+                          {r.voice && r.voice.id && <EssayVoicePlayer teacherId={teacherId} assignId={a.id} voice={r.voice} />}
+                          {replies.filter(rp => rp.forRound === fbInfo.rounds.indexOf(r)).map((rp, q) => <div key={"rp" + q} style={{ fontSize: 12, color: "#2E75B6", marginTop: 2 }}>🙋 {rp.text}</div>)}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </details>
+            )}
+            <SpeakSituationCard a={a} />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onViewAsLearner }) {
   const [teacherData, setTeacherData] = useState(null);
   const [classCode, setClassCode] = useState(null);
@@ -7223,7 +7904,7 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
 
         {/* ── 과제 탭 ── ✅ V514 */}
         {tab === "assign" && (
-          <AssignmentPanel user={user} students={students} />
+          <AssignmentPanel user={user} students={students} studentsError={studentsError} />
         )}
 
         {/* ── 견적서 탭 ── */}
@@ -29184,7 +29865,7 @@ export default function App() {
 
   // ✅ V519: 내 논술 과제 제출 문서 실시간 구독 — 논술 과제가 있을 때만(문서 1개씩)
   // ✅ V536: 어휘·문법 세트도 같은 방식으로 내 기록(vocabProgress/{나})을 구독 → myEssaySubs[과제id]에 넣음(완료 판정·배너가 그대로 동작)
-  const myEssayIdsKey = learnerAssignments.filter(a => a.type === "ESSAY" || a.type === "VOCAB_SET" || a.type === "PRON_SET").map(a => `${a.id}:${a.type}`).join(","); // ✅ V539: 발음 세트(pronProgress/{나})도
+  const myEssayIdsKey = learnerAssignments.filter(a => a.type === "ESSAY" || a.type === "SPEAK_TASK" || a.type === "VOCAB_SET" || a.type === "PRON_SET").map(a => `${a.id}:${a.type}`).join(","); // ✅ V539: 발음 세트(pronProgress/{나})도
   useEffect(() => {
     if (!user || userRole !== "learner" || !assignTeacherId || !myEssayIdsKey) { setMyEssaySubs({}); setMyEssayFb({}); return; }
     const unsubs = myEssayIdsKey.split(",").map(x => x.split(":")).flatMap(([aid, typ]) => (typ === "VOCAB_SET" || typ === "PRON_SET") ? [
@@ -29653,9 +30334,10 @@ export default function App() {
   // ✅ V522: 선생님 의견 알림 한 줄 — 안 읽은 의견 > 다시 써 볼 글 순서
   const essayFbLine = () => {
     const ess = learnerAssignments.filter(a => a.type === "ESSAY").map(a => essayStatus(a, myEssaySubs[a.id], myEssayFb[a.id]));
-    if (ess.some(e => e.unseen)) return "💬 선생님 의견이 도착했어요";
-    const redo = ess.filter(e => e.key === "redo").length;
-    return redo > 0 ? `✏️ 다시 써 볼 글 ${redo}개` : null;
+    const sps = learnerAssignments.filter(a => a.type === "SPEAK_TASK").map(a => speakStatus(a, myEssaySubs[a.id], myEssayFb[a.id])); // ✅ V540
+    if (ess.some(e => e.unseen) || sps.some(e => e.unseen)) return "💬 선생님 의견이 도착했어요";
+    const redo = ess.filter(e => e.key === "redo").length, sRedo = sps.filter(e => e.key === "redo").length;
+    return [redo > 0 ? `✏️ 다시 써 볼 글 ${redo}개` : "", sRedo > 0 ? `🗣️ 다시 말해 볼 과제 ${sRedo}개` : ""].filter(Boolean).join(" · ") || null;
   };
   const renderAssignmentBanner = () => {
     if (!learnerAssignments.length || !myAssignLogs) return null;
@@ -30252,7 +30934,7 @@ export default function App() {
       {openEssayId && assignTeacherId && (() => {
         const ea = learnerAssignments.find(x => x.id === openEssayId);
         if (!ea) return null;
-        if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ if (ea.type === "PRON_SET") return <PronSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V539 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
+        if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ if (ea.type === "PRON_SET") return <PronSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V539 */ if (ea.type === "SPEAK_TASK") return <SpeakAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V540 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
       })()}
 
       {/* ── ① 80시간 커리큘럼 미리보기 ── */}
@@ -30625,7 +31307,7 @@ export default function App() {
         {openEssayId && assignTeacherId && (() => {
           const ea = learnerAssignments.find(x => x.id === openEssayId);
           if (!ea) return null;
-          if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ if (ea.type === "PRON_SET") return <PronSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V539 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
+          if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ if (ea.type === "PRON_SET") return <PronSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V539 */ if (ea.type === "SPEAK_TASK") return <SpeakAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V540 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
         })()}
         {/* ✅ V510: 학습자 클래스 참여 팝업 — 이 BegScreen 축약형 블록에도
             JoinClassModal 렌더가 연결돼 있지 않아 카드에서 코드를 입력해도 팝업이
@@ -31009,7 +31691,7 @@ export default function App() {
       {openEssayId && assignTeacherId && (() => {
         const ea = learnerAssignments.find(x => x.id === openEssayId);
         if (!ea) return null;
-        if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ if (ea.type === "PRON_SET") return <PronSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V539 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
+        if (ea.type === "VOCAB_SET") return <VocabSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V536 */ if (ea.type === "PRON_SET") return <PronSessionScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} prog={myEssaySubs[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V539 */ if (ea.type === "SPEAK_TASK") return <SpeakAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />; /* ✅ V540 */ return <EssayAssignmentScreen key={ea.id} assignment={ea} teacherId={assignTeacherId} user={user} sub={myEssaySubs[ea.id]} fb={myEssayFb[ea.id]} onClose={() => setOpenEssayId(null)} />;
       })()}
 
       <div style={{maxWidth:600,margin:"0 auto",padding:`12px 12px ${browseMode?"150px":"80px"}`,boxSizing:"border-box"}}>
