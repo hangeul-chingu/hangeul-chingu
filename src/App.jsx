@@ -199,7 +199,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "540";
+const APP_VERSION = "541";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1138,6 +1138,7 @@ function OnboardingScreen({ onDone, initLang, onLangChange }) {
   );
 }
 
+// ✅ V541: 방침·약관 v8 전문을 앱 안에서 보여줌(PolicyModal). 아래 V409 주석의 "준비 중"은 지난 이야기.
 // ✅ V409: 신뢰 요소 — 회사정보·연락처를 담은 푸터.
 //   개인정보처리방침/이용약관은 아직 실제 문서가 없어서, 없는 내용을 지어내는 대신
 //   "준비 중"이라고 정직하게 안내함. 실제 문서가 준비되면 이 부분에 링크로 교체할 것.
@@ -1153,18 +1154,7 @@ function Footer() {
           개인정보처리방침 · 이용약관
         </button>
       </div>
-      {showLegal&&(
-        <div onClick={()=>setShowLegal(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:5000,padding:24}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:"white",borderRadius:16,padding:24,maxWidth:340,textAlign:"left"}}>
-            <div style={{fontSize:14,fontWeight:800,color:"#333",marginBottom:10}}>개인정보처리방침 · 이용약관</div>
-            <div style={{fontSize:12,color:"#666",lineHeight:1.7,marginBottom:16}}>
-              정식 개인정보처리방침·이용약관 문서를 준비 중이에요. 그 전까지 궁금한 점은
-              언제든 roh053068@gmail.com 으로 문의해주세요.
-            </div>
-            <button onClick={()=>setShowLegal(false)} style={{width:"100%",background:"#f5f5f5",border:"none",borderRadius:10,padding:"10px 0",fontSize:13,fontWeight:700,color:"#555",cursor:"pointer"}}>닫기</button>
-          </div>
-        </div>
-      )}
+      {showLegal&&<PolicyModal lang="ko" onClose={()=>setShowLegal(false)}/>}
     </div>
   );
 }
@@ -1223,7 +1213,10 @@ function AuthScreen({ onLogin, lang }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false); // ✅ V409: 비밀번호 표시/숨김 토글
-  const [dataOwnershipAgreed, setDataOwnershipAgreed] = useState(false);
+  // ✅ V541: 옛 "(필수) 소유권 귀속 및 활용 동의" 폐지 → (필수) 약관 동의 + 처리 안내 확인, (선택) 연구 활용 2칸
+  const [termsAgreed, setTermsAgreed] = useState(false);
+  const [resText, setResText] = useState(false);
+  const [resVoice, setResVoice] = useState(false);
   const [emailAgreed, setEmailAgreed] = useState(false);
   // ✅ V433: 만 14세 미만 가입 정책(반박타파 프로 v2 확정) — 나이 자기신고 + 미성년 시 책임 있는 어른 동의 확인
   const [isAdult, setIsAdult] = useState(false);
@@ -1239,7 +1232,7 @@ function AuthScreen({ onLogin, lang }) {
   async function handleSubmit() {
     if (!email.trim() || !password.trim()) { setError("이메일과 비밀번호를 입력해주세요"); return; }
     if (tab === "signup" && !name.trim()) { setError("이름을 입력해주세요"); return; }
-    if (tab === "signup" && !dataOwnershipAgreed) { setError("학습 데이터 소유권 귀속 및 활용 동의는 필수예요"); return; }
+    if (tab === "signup" && !termsAgreed) { setError(ctl("termsErr", lc)); return; }
     // ✅ V433: 만 14세 미만 가입 정책(반박타파 프로 v2 확정) — 자기신고로 성인이 아니면, 책임 있는 어른의 동의 확인이 필수
     if (tab === "signup" && !isAdult && !minorConsentConfirmed) { setError(at("minorConsentErr")); return; }
     setLoading(true); setError("");
@@ -1259,8 +1252,13 @@ function AuthScreen({ onLogin, lang }) {
           ...(memberNo ? { memberNo } : {}),
           // ✅ V432: 교수자가 소속 기관을 입력한 경우에만 저장(빈 값이면 필드 자체를 생략)
           ...(role === "instructor" && signupOrgName.trim() ? { orgName: signupOrgName.trim() } : {}),
-          dataOwnershipAgreed: true,
+          // ✅ V541: 약관 동의(v8) — 개인정보 처리는 계약 이행 근거(방침 제1조 가)
+          serviceAgreed: true,
+          policyVersion: POLICY_VERSION,
+          termsAgreedAtMs: Date.now(),
           emailAgreed,
+          // ✅ V541: 연구 활용(선택) — 만 14세 이상 학습자에게만 물음. 물었으면 끈 것도 기록
+          ...(role === "learner" && isAdult ? { researchConsent: researchConsentValue(resText, resVoice), researchAsked: true } : {}),
           // ✅ V433: 만 14세 미만 가입 정책(반박타파 프로 v2 확정) — 자기신고 나이 확인 + 미성년 시 책임 있는 어른 동의 확인 기록
           isAdult,
           ...(!isAdult ? { minorConsentConfirmed: true } : {}),
@@ -1268,6 +1266,9 @@ function AuthScreen({ onLogin, lang }) {
           createdAt: serverTimestamp(),
           stats: { speak: 0, write: 0, tutor: 0 },
         });
+        // ✅ V541: 동의 이력(실패해도 가입은 계속 — 현재 상태는 users 문서에 있음)
+        await logConsent(cred.user.uid, { kind: "terms", on: true });
+        if (role === "learner" && isAdult) await logConsent(cred.user.uid, { kind: "research", text: !!resText, voice: !!resVoice });
         // ✅ V284: 이메일 인증 메일 발송
         await sendEmailVerification(cred.user);
         setVerifyUser(cred.user);
@@ -1468,16 +1469,11 @@ function AuthScreen({ onLogin, lang }) {
 
         {/* ✅ V520: 보안질문 입력 제거 — 필수 동의부터 */}
         {tab==="signup"&&(<>
-          {/* 필수 동의 */}
-          <div onClick={()=>setDataOwnershipAgreed(p=>!p)} style={{display:"flex",alignItems:"flex-start",gap:10,background:dataOwnershipAgreed?"#F0FBF7":"#FAFAFA",border:`1.5px solid ${dataOwnershipAgreed?"#00C896":"#e0e0e0"}`,borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",transition:"all .2s"}}>
-            <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${dataOwnershipAgreed?"#00C896":"#ccc"}`,background:dataOwnershipAgreed?"#00C896":"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1,transition:"all .2s"}}>
-              {dataOwnershipAgreed&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
-            </div>
-            <div>
-              <div style={{fontSize:12,fontWeight:700,color:"#333",marginBottom:3}}>{at("dataAgree")}</div>
-              <div style={{fontSize:11,color:"#777",lineHeight:1.6}}>{at("dataAgreeDesc")}</div>
-            </div>
-          </div>
+          {/* ✅ V541: 필수 — 약관 동의 + 개인정보 처리 안내 확인(동의가 아니라 안내, 제15조①4호·제22조③) */}
+          <ConsentCheck on={termsAgreed} onToggle={()=>setTermsAgreed(p=>!p)}>
+            <div style={{fontSize:12,fontWeight:700,color:"#333",marginBottom:3}}>{ctl("termsAgree", lc)}</div>
+            <div style={{fontSize:11,color:"#777",lineHeight:1.6}}>{ctl("termsDesc", lc)} <PolicyLink lang={lc}/></div>
+          </ConsentCheck>
 
           {/* 선택 동의 */}
           <div onClick={()=>setEmailAgreed(p=>!p)} style={{display:"flex",alignItems:"center",gap:10,background:emailAgreed?"#FFF8F0":"#FAFAFA",border:`1.5px solid ${emailAgreed?C.orange:"#e0e0e0"}`,borderRadius:12,padding:"11px 14px",marginBottom:14,cursor:"pointer",transition:"all .2s"}}>
@@ -1488,7 +1484,7 @@ function AuthScreen({ onLogin, lang }) {
           </div>
 
           {/* ✅ V433: 나이 확인(자기신고) — 만 14세 미만 가입 정책(반박타파 프로 v2 확정) */}
-          <div onClick={()=>{setIsAdult(p=>!p); setMinorConsentConfirmed(false);}} style={{display:"flex",alignItems:"center",gap:10,background:isAdult?"#F0FBF7":"#FAFAFA",border:`1.5px solid ${isAdult?"#00C896":"#e0e0e0"}`,borderRadius:12,padding:"11px 14px",marginBottom:8,cursor:"pointer",transition:"all .2s"}}>
+          <div onClick={()=>{setIsAdult(p=>!p); setMinorConsentConfirmed(false); setResText(false); setResVoice(false);}} style={{display:"flex",alignItems:"center",gap:10,background:isAdult?"#F0FBF7":"#FAFAFA",border:`1.5px solid ${isAdult?"#00C896":"#e0e0e0"}`,borderRadius:12,padding:"11px 14px",marginBottom:8,cursor:"pointer",transition:"all .2s"}}>
             <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${isAdult?"#00C896":"#ccc"}`,background:isAdult?"#00C896":"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
               {isAdult&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
             </div>
@@ -1508,6 +1504,10 @@ function AuthScreen({ onLogin, lang }) {
                 placeholder={at("guardianNamePh")} maxLength={30}
                 style={{width:"100%",padding:"10px 12px",borderRadius:10,border:`1.5px solid ${C.orange}44`,outline:"none",fontSize:12,marginTop:10,boxSizing:"border-box"}}/>
             </div>
+          )}
+          {/* ✅ V541: (선택) 연구 활용 — 만 14세 이상 학습자에게만, 기본 꺼짐 */}
+          {role==="learner" && isAdult && (
+            <ResearchConsentBoxes text={resText} voice={resVoice} lang={lc} onChange={(t,v)=>{setResText(t); setResVoice(v);}}/>
           )}
         </>)}
 
@@ -7796,6 +7796,8 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
                     <div>
                       <div style={{fontSize:15, fontWeight:800, color:"#1A3A5C"}}>{st.name || "이름 없음"}</div>
                       <div style={{fontSize:12, color:"#aaa", marginTop:2}}>{st.email}</div>
+                      {/* ✅ V541: 학습자가 입력한 나를 소개해요(선택) */}
+                      {profileSummary(st.profile) && <div style={{fontSize:11, color:"#2E75B6", fontWeight:700, marginTop:3}}>🙋 {profileSummary(st.profile)}</div>}
                     </div>
                     <button onClick={()=>disconnectStudent(st.id)} style={{background:"#FFF0F0", border:"1px solid #FFCCCC", color:"#E53935", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:700, cursor:"pointer"}}>
                       연결 해제
@@ -8517,21 +8519,539 @@ async function recordStat(uid, field) {
   } catch(e) { console.warn("기록 저장 실패", e); }
 }
 
+// ════════════════════════════════════════════════════════
+// ✅ V541: 로드맵 6 — 동의 나누기 · 개인정보처리방침 v8 · 나를 소개해요
+// (설계: claude/한글친구_연구자료기반_설계안_260928.md v4, 벤치마킹: 로드맵6_벤치마킹_접목후보_260928.md)
+// - 예전 "(필수) 학습 데이터 소유권 귀속 및 활용 동의" 폐지 → (필수) 약관 동의 + 처리 안내 확인(제15조①4호)
+// - 연구 활용: 만 14세 이상 학습자만, 선택, 기본 꺼짐, 2칸(글·소개 정보 / 녹음)
+// - 동의 이력: users/{uid}/consentLog (본인 새로 만들기만, 서버 시각 — 보안 규칙 V541)
+// - 새 문구는 ko·en·zh·vi, 그 밖의 언어는 영어로 표시. 방침 전문은 한국어가 기준.
+// ════════════════════════════════════════════════════════
+const POLICY_VERSION = "v8";
+const CONSENT_T = {
+  termsAgree: {
+    ko: "(필수) 이용약관에 동의하고, 개인정보 처리 안내를 확인했어요",
+    en: "(Required) I agree to the Terms of Use and have read the Privacy Policy",
+    zh: "（必须）我同意使用条款，并已阅读个人信息处理说明",
+    vi: "(Bắt buộc) Tôi đồng ý Điều khoản sử dụng và đã đọc hướng dẫn xử lý thông tin cá nhân",
+  },
+  termsDesc: {
+    ko: "학습 기록 저장, 과제, 선생님 지도처럼 서비스에 꼭 필요한 개인정보 처리는 이용 계약에 따라 이루어져요. 무엇을 어떻게 처리하는지 전문에서 확인할 수 있어요.",
+    en: "Processing that the service needs (saving your study records, assignments, teacher feedback) is done under the service contract. See the full text for details.",
+    zh: "保存学习记录、作业、老师指导等服务所必需的个人信息处理，依据使用合同进行。详细内容请查看全文。",
+    vi: "Việc xử lý cần thiết cho dịch vụ (lưu lịch sử học, bài tập, nhận xét của giáo viên) được thực hiện theo hợp đồng sử dụng. Xem toàn văn để biết chi tiết.",
+  },
+  viewPolicy: { ko: "전문 보기", en: "Read full text", zh: "查看全文", vi: "Xem toàn văn" },
+  termsErr: {
+    ko: "이용약관 동의가 필요해요",
+    en: "Please agree to the Terms of Use",
+    zh: "需要同意使用条款",
+    vi: "Bạn cần đồng ý Điều khoản sử dụng",
+  },
+  resTitle: {
+    ko: "(선택) 연구 활용 동의 — 안 해도 돼요",
+    en: "(Optional) Research use — you can say no",
+    zh: "（可选）同意用于研究 — 可以不同意",
+    vi: "(Tuỳ chọn) Đồng ý dùng cho nghiên cứu — có thể không đồng ý",
+  },
+  resText: {
+    ko: "① 내 글·문장과 '나를 소개해요' 정보를 한국어 교육 연구에 써도 돼요",
+    en: "① My writing, sentences and 'About me' info may be used for Korean-education research",
+    zh: "① 我的文章、句子和“介绍我自己”信息可以用于韩语教育研究",
+    vi: "① Bài viết, câu văn và thông tin 'Giới thiệu bản thân' của tôi có thể dùng cho nghiên cứu giáo dục tiếng Hàn",
+  },
+  resVoice: {
+    ko: "② 내 말하기·발음 녹음도 한국어 교육 연구에 써도 돼요",
+    en: "② My speaking and pronunciation recordings may also be used for Korean-education research",
+    zh: "② 我的口语和发音录音也可以用于韩语教育研究",
+    vi: "② Bản ghi âm nói và phát âm của tôi cũng có thể dùng cho nghiên cứu giáo dục tiếng Hàn",
+  },
+  resMore: { ko: "자세히", en: "Details", zh: "详细", vi: "Chi tiết" },
+  resInfo: {
+    ko: "• 무엇을: ①은 과제로 낸 글(고쳐 쓴 글 포함)·말하기 준비 메모·어휘 과제에서 만든 문장·발음 인식 글·'나를 소개해요' 정보, ②는 과제로 낸 말하기·발음 녹음이에요. 선생님 의견은 넣지 않아요.\n• 왜: 한국어 교육 연구(학술 논문·학회 발표)\n• 어떻게: 이름·이메일을 지우고, 글 속 이름·연락처는 사람이 확인해 가린 뒤 써요. 누구나 받을 수 있게 공개하지 않아요.\n• 언제까지: 동의를 끄거나 탈퇴하면 그때부터 쓰지 않고, 연구용으로 옮긴 자료에서도 빼서 지워요. 연구용 자료는 만든 날부터 5년이 지나면 지워요.\n• 동의하지 않아도 모든 기능을 똑같이 쓸 수 있고, 선생님 의견과도 상관없어요. '내 정보'에서 언제든 바꿀 수 있어요.",
+    en: "• What: ① assignment writing (including rewrites), speaking prep notes, sentences from vocabulary tasks, pronunciation recognition text and 'About me' info; ② assignment speaking and pronunciation recordings. Teacher comments are not included.\n• Why: Korean-education research (academic papers and conference talks)\n• How: names and emails are removed, and names or contacts inside your writing are hidden after a person checks. It is never made public for anyone to download.\n• How long: if you turn this off or leave, it stops being used and is removed from research copies. Research copies are deleted 5 years after they are made.\n• Saying no changes nothing: every feature and your teacher's feedback stay the same. You can change this any time in 'My info'.",
+    zh: "• 内容：①作业中写的文章（含修改稿）、口语准备笔记、词汇作业中造的句子、发音识别文字、“介绍我自己”信息；②作业中的口语和发音录音。不包括老师的意见。\n• 目的：韩语教育研究（学术论文、学术会议发表）\n• 方式：删除姓名和邮箱，文章中的姓名、联系方式由人工确认后遮盖。不会公开给任何人下载。\n• 期限：关闭同意或退出后即停止使用，并从研究用资料中删除。研究用资料自制作之日起满5年后删除。\n• 不同意也可以同样使用所有功能，与老师的意见无关。随时可以在“我的信息”中更改。",
+    vi: "• Nội dung: ① bài viết nộp trong bài tập (kể cả bài sửa lại), ghi chú chuẩn bị nói, câu văn trong bài tập từ vựng, văn bản nhận dạng phát âm và thông tin 'Giới thiệu bản thân'; ② bản ghi âm nói và phát âm trong bài tập. Không gồm nhận xét của giáo viên.\n• Mục đích: nghiên cứu giáo dục tiếng Hàn (bài báo khoa học, hội thảo)\n• Cách làm: xoá tên và email; tên, số liên lạc trong bài viết được người kiểm tra và che đi. Không công khai cho bất kỳ ai tải về.\n• Thời hạn: khi bạn tắt đồng ý hoặc rút khỏi dịch vụ, dữ liệu không được dùng nữa và bị xoá khỏi bản dùng cho nghiên cứu. Bản dùng cho nghiên cứu bị xoá sau 5 năm kể từ ngày tạo.\n• Không đồng ý thì mọi chức năng và nhận xét của giáo viên vẫn như cũ. Bạn có thể thay đổi bất cứ lúc nào trong 'Thông tin của tôi'.",
+  },
+  ageCheck: { ko: "저는 만 14세 이상이에요", en: "I am 14 years old or older", zh: "我年满14周岁", vi: "Tôi từ 14 tuổi trở lên" },
+  updTitle: {
+    ko: "약관과 개인정보처리방침이 바뀌었어요",
+    en: "Our Terms and Privacy Policy have changed",
+    zh: "使用条款和个人信息处理方针已更新",
+    vi: "Điều khoản và Chính sách quyền riêng tư đã thay đổi",
+  },
+  updBody: {
+    ko: "예전의 '(필수) 학습 데이터 소유권 귀속 및 활용 동의'는 없어졌어요. 한글친구는 여러분의 글·녹음의 소유권을 갖지 않고, 연구에는 따로 동의한 사람의 자료만 써요.",
+    en: "The old '(Required) consent to data ownership and use' has been removed. Hangeul Chingu does not own your writing or recordings, and only uses data for research from people who separately agree.",
+    zh: "以前的“（必须）同意学习数据归属及使用”已取消。韩文朋友不拥有您的文章和录音，研究只使用另外同意的人的资料。",
+    vi: "Mục cũ '(Bắt buộc) Đồng ý quyền sở hữu và sử dụng dữ liệu học tập' đã bị bỏ. Hangeul Chingu không sở hữu bài viết hay bản ghi âm của bạn, và chỉ dùng dữ liệu cho nghiên cứu của người đồng ý riêng.",
+  },
+  resAskBody: {
+    ko: "연구 활용 동의가 선택으로 바뀌었어요. 원하면 켜 주세요. 켜지 않아도 아무것도 달라지지 않아요.",
+    en: "Research use is now optional. Turn it on only if you want to — nothing changes if you don't.",
+    zh: "用于研究的同意已改为可选。愿意的话请打开，不打开也不会有任何变化。",
+    vi: "Đồng ý dùng cho nghiên cứu nay là tuỳ chọn. Hãy bật nếu bạn muốn — không bật cũng không có gì thay đổi.",
+  },
+  confirm: { ko: "확인했어요", en: "OK", zh: "确认", vi: "Đã hiểu" },
+  save: { ko: "저장하기", en: "Save", zh: "保存", vi: "Lưu" },
+  rejectOut: {
+    ko: "약관에 동의하지 않아요 (로그아웃)",
+    en: "I do not agree (log out)",
+    zh: "不同意条款（退出登录）",
+    vi: "Tôi không đồng ý (đăng xuất)",
+  },
+  saveErr: {
+    ko: "저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.",
+    en: "Could not save. Please check your connection and try again.",
+    zh: "保存失败。请检查网络后再试。",
+    vi: "Không lưu được. Hãy kiểm tra kết nối và thử lại.",
+  },
+  aiNotice: {
+    ko: "💬 이 대화는 한글친구에 저장되지 않고, AI 학습에 쓰이지 않아요.",
+    en: "💬 This chat is not saved by Hangeul Chingu and is not used to train AI.",
+    zh: "💬 此对话不会保存在韩文朋友，也不会用于AI训练。",
+    vi: "💬 Cuộc trò chuyện này không được Hangeul Chingu lưu và không dùng để huấn luyện AI.",
+  },
+  myInfo: { ko: "🔒 내 정보와 동의", en: "🔒 My info & consent", zh: "🔒 我的信息与同意", vi: "🔒 Thông tin & đồng ý của tôi" },
+  under14: {
+    ko: "연구 활용 동의와 '나를 소개해요'는 만 14세 이상 학습자만 선택할 수 있어요.",
+    en: "Research use and 'About me' are only for learners aged 14 or older.",
+    zh: "用于研究的同意和“介绍我自己”仅限年满14周岁的学习者选择。",
+    vi: "Đồng ý nghiên cứu và 'Giới thiệu bản thân' chỉ dành cho người học từ 14 tuổi.",
+  },
+  rightsLine: {
+    ko: "내 정보 열람·고치기·지우기·보내 달라는 요청: roh053068@gmail.com",
+    en: "To see, correct, delete or receive a copy of your data: roh053068@gmail.com",
+    zh: "查看、更正、删除或获取您的数据：roh053068@gmail.com",
+    vi: "Để xem, sửa, xoá hoặc nhận bản sao dữ liệu: roh053068@gmail.com",
+  },
+  pfTitle: { ko: "🙋 나를 소개해요", en: "🙋 About me", zh: "🙋 介绍我自己", vi: "🙋 Giới thiệu bản thân" },
+  pfLead: {
+    ko: "선생님이 나를 더 잘 도울 수 있어요. 모두 선택이고, 건너뛰어도 돼요. 연결된 선생님도 볼 수 있어요.",
+    en: "This helps your teacher help you. Everything is optional and you can skip it. Your connected teacher can see it.",
+    zh: "这样老师能更好地帮助你。全部可选，可以跳过。已连接的老师也能看到。",
+    vi: "Giúp giáo viên hỗ trợ bạn tốt hơn. Tất cả đều tuỳ chọn, có thể bỏ qua. Giáo viên đã kết nối cũng xem được.",
+  },
+  pfL1Ok: {
+    ko: "(선택) 모어와 한국계 여부를 저장해도 돼요",
+    en: "(Optional) You may save my first language and whether I am of Korean heritage",
+    zh: "（可选）可以保存我的母语和是否为韩裔",
+    vi: "(Tuỳ chọn) Có thể lưu tiếng mẹ đẻ và việc tôi có gốc Hàn hay không",
+  },
+  pfL1Why: {
+    ko: "민족을 짐작할 수 있는 정보라서 따로 여쭤요. 목적: 선생님 지도와(연구 동의 ①을 켠 경우) 연구 · 보관: 지우거나 탈퇴할 때까지 · 체크하지 않아도 불이익이 없어요.",
+    en: "We ask separately because this can suggest ethnicity. Purpose: your teacher's guidance and (if research ① is on) research. Kept until you delete it or leave. No disadvantage if you don't tick it.",
+    zh: "因为这类信息可能推测出民族，所以单独询问。目的：老师指导及（开启研究同意①时）研究。保存至您删除或退出为止。不勾选也没有任何不利。",
+    vi: "Chúng tôi hỏi riêng vì thông tin này có thể cho biết dân tộc. Mục đích: giáo viên hướng dẫn và (nếu bật nghiên cứu ①) nghiên cứu. Lưu đến khi bạn xoá hoặc rút. Không đánh dấu cũng không bị bất lợi.",
+  },
+  pfL1: { ko: "모어(집에서 쓰는 말) — 여러 개 골라도 돼요", en: "First language(s) — choose all that apply", zh: "母语（家里说的语言）— 可多选", vi: "Tiếng mẹ đẻ (nói ở nhà) — có thể chọn nhiều" },
+  pfHeritage: { ko: "한국계(재외동포)인가요?", en: "Are you of Korean heritage?", zh: "您是韩裔（海外同胞）吗？", vi: "Bạn có phải người gốc Hàn không?" },
+  pfStudy: { ko: "한국어를 공부한 기간", en: "How long you have studied Korean", zh: "学习韩语的时间", vi: "Thời gian học tiếng Hàn" },
+  pfKorea: { ko: "한국에서 산 기간", en: "How long you have lived in Korea", zh: "在韩国生活的时间", vi: "Thời gian sống ở Hàn Quốc" },
+  pfPurpose: { ko: "한국어를 공부하는 이유", en: "Why you study Korean", zh: "学习韩语的原因", vi: "Lý do học tiếng Hàn" },
+  pfOther: { ko: "할 줄 아는 다른 언어 — 여러 개 골라도 돼요", en: "Other languages you speak — choose all that apply", zh: "会说的其他语言 — 可多选", vi: "Ngôn ngữ khác bạn biết — có thể chọn nhiều" },
+  pfAge: { ko: "나이대", en: "Age group", zh: "年龄段", vi: "Nhóm tuổi" },
+  pfSkip: { ko: "다음에 할게요", en: "Maybe later", zh: "下次再说", vi: "Để sau" },
+  pfEdit: { ko: "나를 소개해요 보기·고치기", en: "View / edit 'About me'", zh: "查看/修改“介绍我自己”", vi: "Xem / sửa 'Giới thiệu bản thân'" },
+  pfClear: { ko: "모두 지우기", en: "Delete all", zh: "全部删除", vi: "Xoá tất cả" },
+  pfSaved: { ko: "저장했어요", en: "Saved", zh: "已保存", vi: "Đã lưu" },
+  close: { ko: "닫기", en: "Close", zh: "关闭", vi: "Đóng" },
+};
+function consentLc(lang) {
+  const c = typeof lang === "string" ? lang : (lang && lang.code) || "ko";
+  return c || "ko";
+}
+function ctl(key, lang) {
+  const e = CONSENT_T[key];
+  if (!e) return "";
+  const c = consentLc(lang);
+  return e[c] ?? e.en ?? e.ko ?? "";
+}
+// 선택지: [code, ko, en, zh, vi]
+const PF_LANGS = [
+  ["vi","베트남어","Vietnamese","越南语","Tiếng Việt"],["zh","중국어","Chinese","中文","Tiếng Trung"],["en","영어","English","英语","Tiếng Anh"],
+  ["uz","우즈베크어","Uzbek","乌兹别克语","Tiếng Uzbek"],["mn","몽골어","Mongolian","蒙古语","Tiếng Mông Cổ"],["ru","러시아어","Russian","俄语","Tiếng Nga"],
+  ["tl","필리핀어(타갈로그어)","Filipino (Tagalog)","菲律宾语","Tiếng Philippines"],["th","태국어","Thai","泰语","Tiếng Thái"],["id","인도네시아어","Indonesian","印尼语","Tiếng Indonesia"],
+  ["km","크메르어","Khmer","高棉语","Tiếng Khmer"],["ne","네팔어","Nepali","尼泊尔语","Tiếng Nepal"],["ja","일본어","Japanese","日语","Tiếng Nhật"],
+  ["es","스페인어","Spanish","西班牙语","Tiếng Tây Ban Nha"],["fr","프랑스어","French","法语","Tiếng Pháp"],["de","독일어","German","德语","Tiếng Đức"],
+  ["ko","한국어","Korean","韩语","Tiếng Hàn"],["other","기타","Other","其他","Khác"],
+];
+const PF_HERITAGE = [["yes","네","Yes","是","Có"],["no","아니요","No","不是","Không"],["skip","말하지 않을래요","Prefer not to say","不想说","Không muốn nói"]];
+const PF_STUDY = [["lt6m","6개월 미만","Under 6 months","不到6个月","Dưới 6 tháng"],["6m1y","6개월~1년","6 months–1 year","6个月~1年","6 tháng–1 năm"],["1y2y","1~2년","1–2 years","1~2年","1–2 năm"],["2y5y","2~5년","2–5 years","2~5年","2–5 năm"],["gt5y","5년 이상","5+ years","5年以上","Trên 5 năm"]];
+const PF_KOREA = [["none","한국에 살지 않아요","I don't live in Korea","不在韩国生活","Không sống ở Hàn"],["lt1y","1년 미만","Under 1 year","不到1年","Dưới 1 năm"],["1y3y","1~3년","1–3 years","1~3年","1–3 năm"],["3y5y","3~5년","3–5 years","3~5年","3–5 năm"],["gt5y","5년 이상","5+ years","5年以上","Trên 5 năm"]];
+const PF_PURPOSE = [["study","진학","Further study","升学","Du học"],["job","취업·일","Work","就业·工作","Việc làm"],["life","한국 생활","Living in Korea","在韩国生活","Cuộc sống ở Hàn"],["hobby","취미·문화","Hobby / culture","兴趣·文化","Sở thích / văn hoá"],["family","결혼·가족","Marriage / family","婚姻·家庭","Hôn nhân / gia đình"],["other","기타","Other","其他","Khác"]];
+const PF_AGE = [["14_19","14~19세","14–19","14~19岁","14–19"],["20s","20대","20s","20多岁","20–29"],["30s","30대","30s","30多岁","30–39"],["40s","40대","40s","40多岁","40–49"],["50p","50대 이상","50+","50岁以上","50+"]];
+function pfLabel(list, code, lang) {
+  const row = list.find(r => r[0] === code);
+  if (!row) return "";
+  const i = { ko: 1, en: 2, zh: 3, vi: 4 }[consentLc(lang)] || 2;
+  return row[i];
+}
+// 교수자 학습자 카드에 보이는 한 줄(한국어)
+function profileSummary(p) {
+  if (!p || typeof p !== "object") return "";
+  const parts = [];
+  if (p.l1Ok && Array.isArray(p.l1) && p.l1.length) parts.push("모어 " + p.l1.map(c => pfLabel(PF_LANGS, c, "ko")).filter(Boolean).join("·"));
+  if (p.l1Ok && p.heritage === "yes") parts.push("한국계");
+  if (p.studyLen) parts.push("공부 " + pfLabel(PF_STUDY, p.studyLen, "ko"));
+  if (p.koreaLen) parts.push(p.koreaLen === "none" ? "한국 밖" : "한국 " + pfLabel(PF_KOREA, p.koreaLen, "ko"));
+  if (p.purpose) parts.push("목적 " + pfLabel(PF_PURPOSE, p.purpose, "ko"));
+  if (Array.isArray(p.otherLangs) && p.otherLangs.length) parts.push("다른 언어 " + p.otherLangs.map(c => pfLabel(PF_LANGS, c, "ko")).filter(Boolean).join("·"));
+  if (p.ageBand) parts.push(pfLabel(PF_AGE, p.ageBand, "ko"));
+  return parts.join(" · ");
+}
+
+// 동의 이력(감사 기록) — 실패해도 화면 흐름은 막지 않음(현재 상태는 users 문서에 따로 남음)
+function logConsent(uid, entry) {
+  return addDoc(collection(db, "users", uid, "consentLog"), { ...entry, version: POLICY_VERSION, at: serverTimestamp() })
+    .catch(e => console.warn("동의 기록 저장 실패", e));
+}
+function researchConsentValue(text, voice) {
+  return { text: !!text, voice: !!voice, atMs: Date.now(), version: POLICY_VERSION };
+}
+async function saveResearchConsent(uid, text, voice, extra) {
+  await updateDoc(doc(db, "users", uid), { researchConsent: researchConsentValue(text, voice), researchAsked: true, ...(extra || {}) });
+  await logConsent(uid, { kind: "research", text: !!text, voice: !!voice });
+}
+
+// ── 방침 전문 보기 ──
+const POLICY_V8_TEXT = "# 한글친구 개인정보처리방침 (v8)\n\n한글친구(Hangeul Chingu, 운영자 노치성, 이하 \"한글친구\")는 개인정보 보호법에 따라 이용자의 개인정보를 보호하고, 궁금한 점과 요청을 빠르게 처리하기 위해 이 방침을 공개합니다. 번역본이 있더라도 **한국어 원문이 기준**입니다.\n\n## 제1조 (처리하는 개인정보 — 두 가지로 나눠 알려 드려요)\n\n### 가. 동의 없이 처리하는 개인정보 (이용 계약 이행)\n아래 정보는 한글친구를 쓰는 데 꼭 필요해서, 이용 계약에 따라 처리합니다(개인정보 보호법 제15조 제1항 제4호). 동의 항목과 구분해 알려 드립니다(같은 법 제22조 제3항).\n- 회원 정보: 이메일, 비밀번호(인증 서비스에 암호화되어 저장), 이름, 역할(학습자·교수자), 회원번호, 만 14세 이상인지 여부, (만 14세 미만) 동의해 주신 분 성함(선택), (교수자) 소속 기관(선택)\n- 학습 기록: 학습 진도와 단원 통과, 레벨, 활동 횟수, 발음 테스트 결과와 음성 인식 결과 글, TOPIK 모의고사 답안과 채점 결과, TOPIK 성적 인증 결과(성적표 사진은 판독에만 쓰고 저장하지 않음)\n- 교수자 과제 기록: 고른 답·쓴 답·만든 문장·한 날짜와 걸린 시간, 논술 과제 글(고쳐 쓴 글 포함), 발음 과제 녹음(단어별 하루 최대 2개), 상황 말하기 과제에서 제출한 녹음·준비 메모·스스로 체크한 항목·녹음 횟수와 걸린 시간, 선생님 의견(글·음성)과 학습자 답글\n- 반 연결 정보: 어느 교수자의 반에 속해 있는지\n- 문의할 때: 이메일과 문의 내용\n- **저장하지 않는 것**: 마중이·프리토킹 대화 내용(횟수만 저장), KIIP 평가지 답안, 말하기 과제에서 제출하기 전의 연습 녹음(기기 안에만 있음)\n\n### 나. 선택 동의를 받아 처리하는 개인정보\n동의하지 않아도 모든 기능을 똑같이 쓸 수 있습니다.\n- 업데이트 소식 이메일 수신 여부\n- 연구 활용 동의(만 14세 이상 학습자): 제4조\n- 나를 소개해요(만 14세 이상 학습자, 모두 선택): 한국어를 공부한 기간, 한국에서 산 기간, 공부하는 이유, 할 줄 아는 다른 언어, 나이대. **모어와 한국계(재외동포)인지 여부**는 민족을 짐작할 수 있는 정보라서 따로 체크한 경우에만 저장합니다.\n- 동의 기록: 언제 무엇에 동의하거나 철회했는지\n\n## 제2조 (처리 목적)\n1. 회원 확인과 로그인\n2. 학습 기능 제공(학습 기록 저장, AI 응답, 자동 채점)\n3. 연결된 교수자가 학습 현황을 보고 과제에 의견을 줄 수 있도록 지원(녹음은 학습자 본인과 과제를 낸 교수자만 들을 수 있음)\n4. 문의와 요청 대응\n5. 서비스 개선을 위한 통계(횟수·비율 같은 집계만, 개인을 알아볼 수 없는 형태)\n6. 연구 활용 — 선택 동의한 사람의 자료만(제4조)\n\n## 제3조 (보유 기간)\n- 회원 정보와 학습 기록: 탈퇴하거나 삭제를 요청할 때까지 보관하고, 요청하면 지체 없이 파기합니다. 법령이 보존을 정한 정보는 그 기간 동안만 보관합니다.\n- 교수자 과제 기록: 교수자가 과제를 [보관하기] 해도 남고, 교수자가 보관함에서 영구 삭제하거나 학습자가 탈퇴·삭제를 요청하면 파기합니다. 제출한 녹음은 기록을 지키기 위해 학습자가 직접 고치거나 지울 수 없으며, 삭제는 요청으로 합니다.\n- 나를 소개해요: 본인이 지우거나 탈퇴할 때까지.\n- 동의 기록: 탈퇴할 때 함께 파기합니다.\n\n## 제4조 (연구 활용 — 선택 동의)\n- **누구의 자료를**: 만 14세 이상 학습자가 동의한 경우에만. 만 14세 미만 학습자와 교수자의 자료는 쓰지 않습니다.\n- **무엇을**: ① 과제로 낸 글(고쳐 쓴 글 포함), 말하기 준비 메모, 어휘 과제에서 만든 문장, 발음 인식 결과 글, '나를 소개해요' 정보(논술 탭 글은 저장 기능이 생기면 포함) ② 과제로 낸 말하기·발음 녹음. 선생님의 의견은 넣지 않습니다.\n- **왜**: 한국어 교육 연구(학술 논문·학회 발표)\n- **어떻게**: 이름·이메일·회원번호를 지우고 무작위 번호로 바꾸며, 글과 녹음 속 이름·연락처 같은 정보는 사람이 확인해 가립니다(가명처리와 안전조치 — 개인정보 보호법 제28조의2, 제28조의4).\n- **공개하지 않음**: 누구나 받을 수 있게 공개하지 않습니다. 다른 연구자에게 줄 일이 생기면 그때 따로 동의를 받습니다.\n- **언제까지**: 동의를 끄거나 탈퇴하면 그때부터 쓰지 않고, 연구용으로 옮긴 자료에서도 빼서 지웁니다(이미 발표된 통계 결과는 되돌릴 수 없습니다). 연구용 자료는 만든 날부터 5년이 지나면 파기합니다.\n- **거부할 권리**: 동의하지 않아도 모든 기능을 똑같이 쓸 수 있고, 선생님의 의견과도 상관없습니다. '내 정보'에서 언제든 켜고 끌 수 있습니다.\n- **예전 동의**: v7까지 가입할 때 받던 \"(필수) 학습 데이터 소유권 귀속 및 활용 동의\"는 v8부터 효력이 없습니다. 한글친구는 이용자의 글·녹음에 대한 소유권을 갖지 않으며, 예전 동의를 근거로 연구에 쓰지 않습니다.\n\n## 제5조 (제3자 제공)\n원칙적으로 외부에 제공하지 않습니다. 다만 이용자가 미리 동의한 경우와 법령에 따른 요구가 있는 경우는 예외입니다. 학습자가 참여한 반의 교수자가 제2조 3호의 목적으로 기록을 보는 것은 서비스 안의 처리이며, 교수자는 이용약관 제5조에 따라 학습 지도 외의 용도로 쓸 수 없습니다.\n\n## 제6조 (처리 위탁과 국외 이전)\n한글친구는 아래 업체의 서버(국외)를 통해 동작합니다. 이용 계약을 이행하는 데 필요한 처리 위탁·보관이라서 이 방침으로 알려 드립니다(개인정보 보호법 제28조의8 제1항 제3호).\n\n### Google LLC — Firebase(회원 인증, 데이터 저장)\n- 이전 항목: 제1조의 회원 정보, 학습 기록, 과제 기록(녹음 포함), 선택 입력 정보, 동의 기록\n- 이전 국가: 미국 등 Google 클라우드 데이터센터가 있는 국가\n- 이전 시기와 방법: 서비스를 이용할 때마다 암호화된 통신으로 전송·저장\n- 받는 자와 연락처: Google LLC, https://support.google.com/policies\n- 받는 자의 이용 목적과 보유 기간: 회원 인증과 데이터 저장, 제3조의 보유 기간 동안\n\n### Anthropic PBC — Claude API(AI 응답 생성)\n- 이전 항목: AI 응답이 필요한 기능에서 입력한 내용(마중이·프리토킹 대화, 논술 글과 피드백 요청, TOPIK 서술형 답안, TOPIK 성적표 사진, 교수자의 과제 문항·의견 초안 요청)\n- 이전 국가: 미국\n- 이전 시기와 방법: 해당 기능을 쓸 때 암호화된 통신으로 전송\n- 받는 자와 연락처: Anthropic PBC, privacy@anthropic.com\n- 받는 자의 이용 목적과 보유 기간: AI 응답 생성. Anthropic은 받은 내용을 30일 이내에 자동 삭제하고(이용 정책 위반으로 표시된 경우 최대 2년), 허락 없이 AI 학습에 쓰지 않습니다(Anthropic 상업용 데이터 정책 기준).\n\n### Vercel Inc. — 웹사이트 호스팅\n- 이전 항목: 접속 기록(IP 주소, 접속 시각, 요청 주소). AI 요청을 전달하는 한글친구 서버는 요청 내용을 기록하지 않습니다.\n- 이전 국가: 미국 등\n- 이전 시기와 방법: 접속할 때 암호화된 통신으로\n- 받는 자와 연락처: Vercel Inc., privacy@vercel.com\n- 받는 자의 이용 목적과 보유 기간: 웹사이트 제공과 보안, Vercel의 로그 보관 정책에 따른 기간\n\n### 국외 이전을 거부하는 방법과 그 효과\n가입하지 않거나 탈퇴하면 국외 이전이 일어나지 않습니다. 다만 한글친구 전체가 위 업체를 통해 동작하므로 이 경우 서비스를 쓸 수 없습니다. AI 기능을 쓰지 않으면 Anthropic으로의 이전은 일어나지 않습니다.\n\n### 참고 — 음성 입력\n마이크 버튼으로 말해서 글자를 넣는 기능은 기기 브라우저의 음성 인식을 씁니다. Chrome 같은 브라우저는 음성을 브라우저 제공사(예: Google)의 서버에서 글자로 바꿉니다. 한글친구는 음성을 받지 않고 바뀐 글자만 받습니다. (과제 녹음은 이와 달리 제1조대로 저장됩니다.)\n\n## 제7조 (이용자와 법정대리인의 권리)\n이용자(만 14세 미만이면 동의해 주신 분도)는 언제든 개인정보의 열람, 정정, 삭제, 처리 정지, 동의 철회, 그리고 본인 정보를 다른 곳으로 보내 달라는 전송 요구를 할 수 있습니다. 연구 활용 동의와 '나를 소개해요'는 앱의 '내 정보'에서 직접 바꿀 수 있고, 그 밖의 요청은 제12조의 연락처로 해 주세요.\n\n## 제8조 (파기 방법)\n전자 파일 형태의 개인정보는 복구할 수 없는 방법으로 영구 삭제합니다.\n\n## 제9조 (아동의 개인정보 보호)\n가입할 때 나이 확인 단계에서 만 14세 미만 이용자를 확인합니다. 만 14세 미만 이용자는 부모님 또는 그 학습자를 실제로 돌보고 있는 책임 있는 어른(담임교사, 사회복지사, 선교사 등 교육·돌봄 담당자)의 동의를 확인한 뒤 이용할 수 있습니다. 보호자와 떨어져 지내는 학습자도 배제되지 않도록 하기 위함입니다. 만 14세 미만 학습자에게는 연구 활용 동의와 '나를 소개해요'를 묻지 않습니다.\n\n## 제10조 (안전성 확보 조치)\n- 접근 권한: 데이터베이스 보안 규칙으로 본인, 연결된 교수자(필요한 범위), 관리자만 읽을 수 있게 제한합니다.\n- 암호화: 모든 통신은 암호화되며, 비밀번호는 인증 서비스가 암호화해 보관합니다.\n- 연구용 자료: 가명처리한 자료와 원래 정보를 분리해 보관하고, 처리 기록을 남깁니다.\n\n## 제11조 (자동화된 결정)\nAI 채점과 피드백은 학습을 돕는 참고용이며, 이용자의 권리나 의무에 영향을 주는 결정에 쓰지 않습니다. 교수자 과제의 평가는 교수자가 합니다.\n\n## 제12조 (개인정보 보호책임자와 문의처)\n- 성명: 노치성\n- 이메일: roh053068@gmail.com\n\n## 제13조 (방침의 변경)\n이 방침은 시행일부터 적용되며, 바뀌면 앱 안에서 알려 드립니다. 중요한 내용이 바뀌면 다음 로그인 때 확인을 받습니다.\n\n# 한글친구 이용약관 (v8)\n\n## 제1조 (목적)\n이 약관은 한글친구가 제공하는 AI 기반 한국어 학습 서비스의 이용에 관한 한글친구와 이용자의 권리, 의무, 책임을 정합니다.\n\n## 제2조 (정의)\n- \"이용자\"는 이 약관에 따라 서비스를 이용하는 학습자와 교수자입니다.\n- \"교수자\"는 클래스 코드를 발급해 학습자를 초대하고 관리하는 이용자입니다(관리자 승인 후).\n- \"학습자\"는 클래스 코드로 교수자와 연결되거나 혼자 서비스를 이용하는 이용자입니다.\n\n## 제3조 (서비스의 내용)\nAI 캐릭터와의 대화형 한국어 학습, 커리큘럼 학습, TOPIK Ⅰ·Ⅱ 모의고사와 자동 채점, KIIP 평가지와 자동 채점, 교수자 과제와 클래스 관리 기능 등을 제공합니다. 서비스는 계속 개발 중이어서 일부 기능은 바뀌거나 잠시 멈출 수 있습니다.\n\n## 제4조 (이용 계약의 성립)\n이용 계약은 이용자가 이 약관에 동의하고 개인정보 처리 안내를 확인한 뒤 회원가입을 마치면 성립합니다. 만 14세 미만 이용자는 개인정보처리방침 제9조의 확인 절차를 거칩니다.\n\n## 제5조 (이용자의 의무)\n- 다른 사람의 정보를 도용하거나 거짓 정보를 등록하지 않습니다.\n- 서비스에서 얻은 정보를 한글친구의 사전 승인 없이 영리 목적으로 쓰지 않습니다.\n- 교수자는 연결된 학습자의 정보를 학습 지도 외의 용도로 쓰지 않습니다.\n\n## 제6조 (한글친구의 의무와 책임의 한계)\n- 한글친구는 안정적인 서비스를 위해 노력하지만, 서버나 외부 AI 서비스 장애로 인한 일시적인 중단에는 책임을 지지 않습니다.\n- AI(마중이, 자동 채점 등)의 응답은 학습을 돕기 위한 것이며 항상 정확하지는 않습니다. 중요한 학습·평가 결정은 본인의 판단과 공식 시험 결과를 우선해 주세요.\n- 서비스는 무료로 제공되며, 유료로 바뀌게 되면 미리 알려 드립니다.\n\n## 제7조 (계약 해지와 이용 제한)\n이용자는 언제든 탈퇴(삭제 요청)로 계약을 해지할 수 있습니다. 한글친구는 이용자가 약관을 어긴 경우 미리 알린 뒤 이용을 제한할 수 있습니다.\n\n## 제8조 (지식재산권)\n- 서비스의 커리큘럼, 문제, 콘텐츠의 저작권은 한글친구에 있으며, 사전 동의 없이 복제·배포·2차 저작물 제작을 할 수 없습니다.\n- **이용자가 쓴 글과 녹음의 권리는 이용자에게 있습니다.** 한글친구는 서비스 제공(저장, 연결된 교수자에게 보여 주기, AI 응답 생성)에 필요한 범위에서만 이용하며, 연구 활용은 개인정보처리방침 제4조의 선택 동의에 따릅니다.\n\n## 제9조 (분쟁 해결)\n분쟁이 생기면 서로 협의해 해결하도록 노력하고, 협의가 되지 않으면 관계 법령에 따릅니다.\n\n부칙: 이 방침과 약관은 앱 버전 V541이 게시된 날(2026년 9월)부터 시행합니다. v7까지의 \"학습 데이터 소유권 귀속 및 활용 동의\"는 이날부터 효력이 없습니다.";
+function PolicyText() {
+  const lines = POLICY_V8_TEXT.split("\n");
+  const bold = (s) => s.split("**").map((part, i) => i % 2 ? <strong key={i}>{part}</strong> : <span key={i}>{part}</span>);
+  return (
+    <div>
+      {lines.map((ln, i) => {
+        if (!ln.trim()) return <div key={i} style={{ height: 6 }} />;
+        if (ln.startsWith("# ")) return <div key={i} style={{ fontSize: 15, fontWeight: 900, color: "#1A3A5C", margin: "14px 0 6px" }}>{ln.slice(2)}</div>;
+        if (ln.startsWith("## ")) return <div key={i} style={{ fontSize: 13, fontWeight: 800, color: "#2E75B6", margin: "10px 0 4px" }}>{ln.slice(3)}</div>;
+        if (ln.startsWith("### ")) return <div key={i} style={{ fontSize: 12, fontWeight: 800, color: "#333", margin: "8px 0 3px" }}>{ln.slice(4)}</div>;
+        if (ln.startsWith("- ")) return <div key={i} style={{ fontSize: 12, color: "#444", lineHeight: 1.65, paddingLeft: 12, textIndent: -9 }}>• {bold(ln.slice(2))}</div>;
+        return <div key={i} style={{ fontSize: 12, color: "#444", lineHeight: 1.65 }}>{bold(ln)}</div>;
+      })}
+    </div>
+  );
+}
+function PolicyModal({ onClose, lang }) {
+  return (
+    // 동의 체크 칸 안에서 열리므로 클릭·키 입력이 체크 칸까지 올라가지 않게 막음(V541 리뷰)
+    <div onClick={e => { e.stopPropagation(); onClose(); }} onKeyDown={e => e.stopPropagation()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100000, padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} role="dialog" aria-label="개인정보처리방침 · 이용약관"
+        style={{ background: "white", borderRadius: 16, width: "100%", maxWidth: 520, maxHeight: "86dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ padding: "14px 18px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: 14, fontWeight: 900, color: "#333" }}>개인정보처리방침 · 이용약관 ({POLICY_VERSION})</div>
+          <button onClick={onClose} aria-label={ctl("close", lang)} style={{ background: "none", border: "none", fontSize: 20, color: "#999", cursor: "pointer" }}>✕</button>
+        </div>
+        <div style={{ padding: "8px 18px 18px", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+          {consentLc(lang) !== "ko" && <div style={{ fontSize: 11, color: "#777", background: "#F7F7F7", borderRadius: 8, padding: "8px 10px", margin: "8px 0" }}>This document is in Korean, which is the official version. / 本文件以韩文为准。 / Văn bản này bằng tiếng Hàn và là bản chính thức.</div>}
+          <PolicyText />
+        </div>
+        <button onClick={onClose} style={{ margin: "0 18px 16px", background: "#f5f5f5", border: "none", borderRadius: 10, padding: "11px 0", fontSize: 13, fontWeight: 700, color: "#555", cursor: "pointer" }}>{ctl("close", lang)}</button>
+      </div>
+    </div>
+  );
+}
+function PolicyLink({ lang, style }) {
+  const [open, setOpen] = useState(false);
+  return (<>
+    <button type="button" onClick={e => { e.stopPropagation(); setOpen(true); }} onKeyDown={e => e.stopPropagation()}
+      style={{ background: "none", border: "none", padding: 0, color: "#2E75B6", textDecoration: "underline", fontSize: 11, fontWeight: 700, cursor: "pointer", ...(style || {}) }}>
+      {ctl("viewPolicy", lang)}
+    </button>
+    {open && <PolicyModal lang={lang} onClose={() => setOpen(false)} />}
+  </>);
+}
+
+// ── 체크 칸 한 줄(공통) ──
+function ConsentCheck({ on, onToggle, children, color = "#00C896", disabled = false }) {
+  return (
+    <div role="checkbox" aria-checked={!!on} aria-disabled={disabled} tabIndex={disabled ? -1 : 0}
+      onClick={() => { if (!disabled) onToggle(); }}
+      onKeyDown={e => { if (!disabled && (e.key === " " || e.key === "Enter")) { e.preventDefault(); onToggle(); } }}
+      style={{ display: "flex", alignItems: "flex-start", gap: 10, background: on ? "#F0FBF7" : "#FAFAFA", border: `1.5px solid ${on ? color : "#e0e0e0"}`, borderRadius: 12, padding: "11px 14px", marginBottom: 8, cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1 }}>
+      <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${on ? color : "#ccc"}`, background: on ? color : "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+        {on && <span style={{ color: "white", fontSize: 13, fontWeight: 900, lineHeight: 1 }}>✓</span>}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
+    </div>
+  );
+}
+
+// ── 연구 활용 2칸(가입 화면·안내 카드·내 정보 공통) ──
+function ResearchConsentBoxes({ text, voice, onChange, lang, disabled = false }) {
+  const [more, setMore] = useState(false);
+  return (
+    <div style={{ background: "#F7FAFF", border: "1.5px solid #D6E4F5", borderRadius: 12, padding: "12px 12px 4px", marginBottom: 10 }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 8 }}>{ctl("resTitle", lang)}</div>
+      <ConsentCheck on={text} disabled={disabled} color="#2E75B6" onToggle={() => onChange(!text, voice)}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#333", lineHeight: 1.5 }}>{ctl("resText", lang)}</div>
+      </ConsentCheck>
+      <ConsentCheck on={voice} disabled={disabled} color="#2E75B6" onToggle={() => onChange(text, !voice)}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#333", lineHeight: 1.5 }}>{ctl("resVoice", lang)}</div>
+      </ConsentCheck>
+      <button type="button" onClick={() => setMore(m => !m)} aria-expanded={more}
+        style={{ background: "none", border: "none", padding: "2px 0 8px", color: "#2E75B6", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+        {more ? "▲" : "▼"} {ctl("resMore", lang)}
+      </button>
+      {more && <div style={{ fontSize: 11, color: "#555", lineHeight: 1.7, whiteSpace: "pre-line", paddingBottom: 10 }}>{ctl("resInfo", lang)}</div>}
+    </div>
+  );
+}
+
+// ── 기존 가입자 안내 카드: 바뀐 약관 확인(필요할 때) + 연구 동의(만 14세 이상 학습자, 아직 안 물었을 때) ──
+function policyCardNeeded(me, userRole) {
+  if (!me) return { terms: false, research: false };
+  // 아주 옛 가입자(두 키 모두 없음)는 V148 팝업이 먼저 — 카드와 겹치지 않게
+  if (me.dataOwnershipAgreed === undefined && me.serviceAgreed === undefined) return { terms: false, research: false };
+  const terms = !me.serviceAgreed;
+  const research = userRole === "learner" && me.researchConsent === undefined && !me.researchAsked && me.isAdult !== false;
+  return { terms, research };
+}
+function PolicyUpdateCard({ user, me, userRole, lang, onReject, onDone, onSkip }) {
+  const need = policyCardNeeded(me, userRole);
+  const ageKnown = me && me.isAdult === true;
+  const [age14, setAge14] = useState(false);
+  const [text, setText] = useState(false);
+  const [voice, setVoice] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const canResearch = need.research && (ageKnown || age14);
+  async function submit() {
+    setBusy(true); setErr("");
+    try {
+      const upd = {};
+      if (need.terms) Object.assign(upd, { serviceAgreed: true, policyVersion: POLICY_VERSION, termsAgreedAtMs: Date.now() });
+      if (need.research) {
+        upd.researchAsked = true;
+        if (!ageKnown && age14) upd.isAdult = true;
+        if (canResearch) upd.researchConsent = researchConsentValue(text, voice);
+      }
+      await setDoc(doc(db, "users", user.uid), upd, { merge: true });
+      if (need.terms) await logConsent(user.uid, { kind: "terms", on: true });
+      if (canResearch) await logConsent(user.uid, { kind: "research", text: !!text, voice: !!voice });
+      if (onDone) onDone(upd); // 메인 화면의 meDoc에 바로 반영(학습자는 구독으로도 반영됨)
+    } catch (e) { setErr(ctl("saveErr", lang)); }
+    setBusy(false);
+  }
+  return (
+    <div style={{ minHeight: "100dvh", background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
+      <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, overflow: "hidden" }}>
+        <div style={{ background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", padding: "18px 20px", textAlign: "center" }}>
+          <div style={{ fontSize: 30, marginBottom: 4 }}>🔒</div>
+          <div style={{ fontSize: 16, fontWeight: 900, color: "white" }}>{ctl("updTitle", lang)}</div>
+        </div>
+        <div style={{ padding: "16px 18px 18px" }}>
+          <div style={{ fontSize: 12, color: "#444", lineHeight: 1.7, marginBottom: 10 }}>{need.terms ? ctl("updBody", lang) : ctl("resAskBody", lang)}</div>
+          {need.terms && (
+            <div style={{ fontSize: 11, color: "#666", lineHeight: 1.6, background: "#FAFAFA", borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
+              {ctl("termsDesc", lang)} <PolicyLink lang={lang} />
+            </div>
+          )}
+          {need.research && (<>
+            {!ageKnown && (
+              <ConsentCheck on={age14} onToggle={() => { setAge14(a => !a); setText(false); setVoice(false); }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#333" }}>{ctl("ageCheck", lang)}</div>
+              </ConsentCheck>
+            )}
+            <ResearchConsentBoxes text={text} voice={voice} lang={lang} disabled={!canResearch}
+              onChange={(t, v) => { setText(t); setVoice(v); }} />
+          </>)}
+          {err && <div style={{ background: "#FFF0F0", border: "1px solid #FFCCCC", borderRadius: 10, padding: "8px 12px", fontSize: 12, color: "#E53935", marginBottom: 10 }}>{err}</div>}
+          <button onClick={submit} disabled={busy}
+            style={{ width: "100%", background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 50, padding: "13px 0", fontSize: 14, fontWeight: 900, cursor: "pointer", opacity: busy ? 0.5 : 1 }}>
+            {busy ? "…" : need.terms ? ctl("confirm", lang) : ctl("save", lang)}
+          </button>
+          {!need.terms && onSkip && (
+            <button onClick={onSkip} style={{ width: "100%", background: "none", border: "none", color: "#aaa", fontSize: 11, cursor: "pointer", padding: "8px 0 0" }}>{ctl("pfSkip", lang)}</button>
+          )}
+          {need.terms && (
+            <button onClick={onReject} style={{ width: "100%", background: "none", border: "none", color: "#aaa", fontSize: 11, cursor: "pointer", padding: "8px 0 0" }}>{ctl("rejectOut", lang)}</button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── 나를 소개해요(카드·내 정보 공통 편집기) ──
+function ChipPick({ list, value, multi, onChange, lang }) {
+  const sel = multi ? (Array.isArray(value) ? value : []) : value;
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+      {list.map(r => {
+        const on = multi ? sel.includes(r[0]) : sel === r[0];
+        return (
+          <button key={r[0]} type="button" aria-pressed={on}
+            onClick={() => {
+              if (multi) onChange(on ? sel.filter(x => x !== r[0]) : [...sel, r[0]].slice(0, 6));
+              else onChange(on ? "" : r[0]);
+            }}
+            style={{ border: `1.5px solid ${on ? "#2E75B6" : "#e0e0e0"}`, background: on ? "#EAF2FB" : "white", color: on ? "#1A3A5C" : "#555", borderRadius: 50, padding: "6px 11px", fontSize: 12, fontWeight: on ? 800 : 500, cursor: "pointer" }}>
+            {pfLabel(list, r[0], lang)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+function ProfileEditor({ user, me, lang, asCard, onClose }) {
+  const p0 = (me && me.profile) || {};
+  const [l1Ok, setL1Ok] = useState(!!p0.l1Ok);
+  const [l1, setL1] = useState(Array.isArray(p0.l1) ? p0.l1 : []);
+  const [heritage, setHeritage] = useState(p0.heritage || "");
+  const [studyLen, setStudyLen] = useState(p0.studyLen || "");
+  const [koreaLen, setKoreaLen] = useState(p0.koreaLen || "");
+  const [purpose, setPurpose] = useState(p0.purpose || "");
+  const [otherLangs, setOtherLangs] = useState(Array.isArray(p0.otherLangs) ? p0.otherLangs : []);
+  const [ageBand, setAgeBand] = useState(p0.ageBand || "");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const lab = (k) => <div style={{ fontSize: 12, fontWeight: 800, color: "#333", marginBottom: 6 }}>{ctl(k, lang)}</div>;
+  async function save(clearAll) {
+    setBusy(true); setErr("");
+    try {
+      const profile = clearAll ? { l1Ok: false, updatedAtMs: Date.now() } : {
+        l1Ok,
+        ...(l1Ok && l1.length ? { l1 } : {}),
+        ...(l1Ok && heritage ? { heritage } : {}),
+        ...(studyLen ? { studyLen } : {}),
+        ...(koreaLen ? { koreaLen } : {}),
+        ...(purpose ? { purpose } : {}),
+        ...(otherLangs.length ? { otherLangs } : {}),
+        ...(ageBand ? { ageBand } : {}),
+        updatedAtMs: Date.now(),
+      };
+      await updateDoc(doc(db, "users", user.uid), { profile, profileAsked: true });
+      const was = !!p0.l1Ok, now = !!profile.l1Ok;
+      if (was !== now) await logConsent(user.uid, { kind: "l1", on: now });
+      onClose(true);
+    } catch (e) { setErr(ctl("saveErr", lang)); }
+    setBusy(false);
+  }
+  async function skip() {
+    try { await updateDoc(doc(db, "users", user.uid), { profileAsked: true }); } catch (e) {}
+    onClose(false);
+  }
+  const body = (
+    <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 440, maxHeight: "88dvh", display: "flex", flexDirection: "column", overflow: "hidden" }} onClick={e => e.stopPropagation()}>
+      <div style={{ background: "linear-gradient(135deg,#2E75B6,#4A9BE0)", padding: "16px 18px" }}>
+        <div style={{ fontSize: 16, fontWeight: 900, color: "white" }}>{ctl("pfTitle", lang)}</div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.9)", marginTop: 4, lineHeight: 1.5 }}>{ctl("pfLead", lang)}</div>
+      </div>
+      <div style={{ padding: "14px 16px", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+        <ConsentCheck on={l1Ok} color="#2E75B6" onToggle={() => setL1Ok(v => !v)}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#333", lineHeight: 1.5 }}>{ctl("pfL1Ok", lang)}</div>
+          <div style={{ fontSize: 11, color: "#777", lineHeight: 1.5, marginTop: 3 }}>{ctl("pfL1Why", lang)}</div>
+        </ConsentCheck>
+        {l1Ok && (<div style={{ paddingLeft: 4, marginTop: 6 }}>
+          {lab("pfL1")}<ChipPick list={PF_LANGS} value={l1} multi onChange={setL1} lang={lang} />
+          {lab("pfHeritage")}<ChipPick list={PF_HERITAGE} value={heritage} onChange={setHeritage} lang={lang} />
+        </div>)}
+        <div style={{ height: 6 }} />
+        {lab("pfStudy")}<ChipPick list={PF_STUDY} value={studyLen} onChange={setStudyLen} lang={lang} />
+        {lab("pfKorea")}<ChipPick list={PF_KOREA} value={koreaLen} onChange={setKoreaLen} lang={lang} />
+        {lab("pfPurpose")}<ChipPick list={PF_PURPOSE} value={purpose} onChange={setPurpose} lang={lang} />
+        {lab("pfOther")}<ChipPick list={PF_LANGS} value={otherLangs} multi onChange={setOtherLangs} lang={lang} />
+        {lab("pfAge")}<ChipPick list={PF_AGE} value={ageBand} onChange={setAgeBand} lang={lang} />
+        {err && <div style={{ background: "#FFF0F0", border: "1px solid #FFCCCC", borderRadius: 10, padding: "8px 12px", fontSize: 12, color: "#E53935", marginBottom: 10 }}>{err}</div>}
+      </div>
+      <div style={{ padding: "10px 16px 16px", borderTop: "1px solid #f0f0f0", display: "flex", gap: 8 }}>
+        {asCard
+          ? <button onClick={skip} disabled={busy} style={{ flex: 1, background: "#f5f5f5", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 13, fontWeight: 700, color: "#777", cursor: "pointer" }}>{ctl("pfSkip", lang)}</button>
+          : <button onClick={() => onClose(false)} disabled={busy} style={{ flex: 1, background: "#f5f5f5", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 13, fontWeight: 700, color: "#777", cursor: "pointer" }}>{ctl("close", lang)}</button>}
+        <button onClick={() => save(false)} disabled={busy} style={{ flex: 2, background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 50, padding: "12px 0", fontSize: 14, fontWeight: 900, cursor: "pointer", opacity: busy ? 0.5 : 1 }}>{busy ? "…" : ctl("save", lang)}</button>
+      </div>
+      {!asCard && p0.updatedAtMs && (
+        <button onClick={() => save(true)} disabled={busy} style={{ background: "none", border: "none", color: "#E53935", fontSize: 11, cursor: "pointer", padding: "0 0 12px" }}>{ctl("pfClear", lang)}</button>
+      )}
+    </div>
+  );
+  if (asCard) return (
+    <div style={{ minHeight: "100dvh", background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>{body}</div>
+  );
+  return (
+    <div onClick={() => onClose(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100000, padding: 16 }}>{body}</div>
+  );
+}
+function profileCardNeeded(me, userRole) {
+  return !!me && userRole === "learner" && me.isAdult === true && !!me.currentTeacherId && !me.profile && !me.profileAsked;
+}
+
+// ── 마이페이지 "내 정보와 동의" 칸(마이페이지 3곳 모두에 들어감) ──
+function MyInfoSection({ user, me, userRole, lang }) {
+  const [showPf, setShowPf] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const isLearner = userRole === "learner";
+  const rc = (me && me.researchConsent) || {};
+  const adult = !!me && me.isAdult === true;
+  async function change(t, v) {
+    setBusy(true); setErr("");
+    try { await saveResearchConsent(user.uid, t, v); } catch (e) { setErr(ctl("saveErr", lang)); }
+    setBusy(false);
+  }
+  async function confirmAge() {
+    setBusy(true); setErr("");
+    try { await updateDoc(doc(db, "users", user.uid), { isAdult: true }); } catch (e) { setErr(ctl("saveErr", lang)); }
+    setBusy(false);
+  }
+  return (
+    <div style={{ background: "white", border: "2px solid #2E75B622", borderRadius: 16, padding: 16, marginBottom: 12 }}>
+      <div style={{ fontSize: 13, fontWeight: 900, color: "#2E75B6", marginBottom: 10 }}>{ctl("myInfo", lang)}</div>
+      {isLearner && me && (<>
+        {adult ? (<>
+          <button onClick={() => setShowPf(true)} style={{ width: "100%", textAlign: "left", background: "#F7FAFF", border: "1.5px solid #D6E4F5", borderRadius: 12, padding: "11px 14px", marginBottom: 10, cursor: "pointer" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#1A3A5C" }}>{ctl("pfEdit", lang)} ›</div>
+            {profileSummary(me.profile) && <div style={{ fontSize: 11, color: "#777", marginTop: 3 }}>{profileSummary(me.profile)}</div>}
+          </button>
+          <ResearchConsentBoxes text={!!rc.text} voice={!!rc.voice} lang={lang} disabled={busy} onChange={change} />
+        </>) : me.isAdult === false ? (
+          <div style={{ fontSize: 11, color: "#777", lineHeight: 1.6, marginBottom: 10 }}>{ctl("under14", lang)}</div>
+        ) : (<>
+          <div style={{ fontSize: 11, color: "#777", lineHeight: 1.6, marginBottom: 8 }}>{ctl("under14", lang)}</div>
+          <ConsentCheck on={false} disabled={busy} onToggle={confirmAge}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#333" }}>{ctl("ageCheck", lang)}</div>
+          </ConsentCheck>
+        </>)}
+        {err && <div style={{ fontSize: 11, color: "#E53935", marginBottom: 8 }}>{err}</div>}
+      </>)}
+      <div style={{ fontSize: 11, color: "#777", lineHeight: 1.6 }}>
+        <PolicyLink lang={lang} /> · {ctl("rightsLine", lang)}
+      </div>
+      {showPf && <ProfileEditor user={user} me={me} lang={lang} onClose={() => setShowPf(false)} />}
+    </div>
+  );
+}
+
+// ── 마중이 대화창 한 줄 안내 ──
+function AiChatNotice({ lang }) {
+  return <div style={{ fontSize: 11, color: C.muted, textAlign: "center", margin: "0 0 6px" }}>{ctl("aiNotice", lang)}</div>;
+}
+
 // ✅ V148: 기존 가입자 마이그레이션 팝업
-function MigrationModal({ user, onComplete, onReject }) {
+// ✅ V541: 옛 "(필수) 소유권 귀속 및 활용 동의" 폐지 → (필수) 약관 동의 + 처리 안내 확인.
+//   역할이 이미 있으면 역할 선택을 숨김(승인된 교수자가 강등되지 않게), 없을 때 교수자를 고르면
+//   승인 대기(instructor_pending) + requestedRole — 가입 화면과 같게(로드맵 6-0).
+function MigrationModal({ user, hasRole, lang, onComplete, onReject }) {
   const [role, setRole] = useState("learner");
-  const [dataOwnershipAgreed, setDataOwnershipAgreed] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(false);
   const [emailAgreed, setEmailAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleAgree() {
-    if (!dataOwnershipAgreed) { setError("학습 데이터 소유권 귀속 및 활용 동의는 필수예요"); return; }
-    setLoading(true);
+    if (!termsAgreed) { setError(ctl("termsErr", lang)); return; }
+    setLoading(true); setError("");
     try {
-      await updateDoc(doc(db, "users", user.uid), { role, dataOwnershipAgreed: true, emailAgreed });
-      onComplete();
-    } catch(e) { setError("저장 중 오류가 발생했어요. 다시 시도해줘요"); }
+      const upd = { serviceAgreed: true, policyVersion: POLICY_VERSION, termsAgreedAtMs: Date.now(), emailAgreed };
+      if (!hasRole) {
+        upd.role = role === "instructor" ? "instructor_pending" : "learner";
+        if (role === "instructor") upd.requestedRole = "instructor";
+      }
+      await setDoc(doc(db, "users", user.uid), upd, { merge: true });
+      await logConsent(user.uid, { kind: "terms", on: true });
+      onComplete(upd.role || null);
+    } catch(e) { setError(ctl("saveErr", lang)); }
     setLoading(false);
   }
 
@@ -8543,54 +9063,34 @@ function MigrationModal({ user, onComplete, onReject }) {
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:2000,padding:24,fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
       <div style={{background:"white",borderRadius:24,width:"100%",maxWidth:380,overflow:"hidden",boxShadow:"0 16px 48px rgba(0,0,0,0.25)"}}>
-        {/* 헤더 */}
         <div style={{background:`linear-gradient(135deg,${C.pink},${C.orange})`,padding:"22px 24px 18px",textAlign:"center"}}>
           <div style={{fontSize:36,marginBottom:6}}>🤝</div>
-          <div style={{fontSize:17,fontWeight:900,color:"white",marginBottom:4}}>{txUI("한글 친구와 함께하기 위한 약속", lang)}</div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,0.85)"}}>상호 신뢰·상호 협조로 함께 성장해요</div>
+          <div style={{fontSize:17,fontWeight:900,color:"white",marginBottom:4}}>{txUI("한글 친구와 함께하기 위한 약속", {code:consentLc(lang)})}</div>
         </div>
-
-        {/* 본문 */}
         <div style={{padding:"20px 24px 24px"}}>
-          {/* 역할 선택 */}
-          <div style={{marginBottom:16}}>
-            <div style={{fontSize:12,color:"#888",fontWeight:700,marginBottom:8}}>나는 한글 친구에서</div>
-            <div style={{display:"flex",gap:8}}>
-              {[["learner","🎓 학습자"],["instructor","👩‍🏫 교수자"]].map(([k,l])=>(
-                <button key={k} onClick={()=>setRole(k)} style={{flex:1,padding:"11px 0",border:`2px solid ${role===k?C.pink:"#eee"}`,borderRadius:12,background:role===k?`${C.pink}12`:"white",color:role===k?C.pink:"#aaa",fontWeight:role===k?800:500,fontSize:13,cursor:"pointer",transition:"all .2s"}}>{l}</button>
-              ))}
+          {!hasRole && (
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:12,color:"#888",fontWeight:700,marginBottom:8}}>나는 한글 친구에서</div>
+              <div style={{display:"flex",gap:8}}>
+                {[["learner","🎓 학습자"],["instructor","👩‍🏫 교수자(승인 후)"]].map(([k,l])=>(
+                  <button key={k} onClick={()=>setRole(k)} style={{flex:1,padding:"11px 0",border:`2px solid ${role===k?C.pink:"#eee"}`,borderRadius:12,background:role===k?`${C.pink}12`:"white",color:role===k?C.pinkText:"#888",fontWeight:role===k?800:500,fontSize:13,cursor:"pointer"}}>{l}</button>
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* 필수 동의 */}
-          <div onClick={()=>setDataOwnershipAgreed(p=>!p)} style={{display:"flex",alignItems:"flex-start",gap:10,background:dataOwnershipAgreed?"#F0FBF7":"#FAFAFA",border:`1.5px solid ${dataOwnershipAgreed?"#00C896":"#e0e0e0"}`,borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer",transition:"all .2s"}}>
-            <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${dataOwnershipAgreed?"#00C896":"#ccc"}`,background:dataOwnershipAgreed?"#00C896":"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1,transition:"all .2s"}}>
-              {dataOwnershipAgreed&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
-            </div>
-            <div>
-              <div style={{fontSize:12,fontWeight:700,color:"#333",marginBottom:3}}>(필수) 학습 데이터 소유권 귀속 및 활용 동의</div>
-              <div style={{fontSize:11,color:"#777",lineHeight:1.6}}>학습자와 나눈 모든 대화 및 학습 데이터의 소유권은 한글 친구에 귀속되며, 이는 <strong>서비스의 고도화 및 인공지능 모델 업그레이드 연구</strong>를 위해 소중하게 사용됩니다.</div>
-            </div>
-          </div>
-
-          {/* 선택 동의 */}
-          <div onClick={()=>setEmailAgreed(p=>!p)} style={{display:"flex",alignItems:"center",gap:10,background:emailAgreed?"#FFF8F0":"#FAFAFA",border:`1.5px solid ${emailAgreed?C.orange:"#e0e0e0"}`,borderRadius:12,padding:"11px 14px",marginBottom:16,cursor:"pointer",transition:"all .2s"}}>
-            <div style={{width:20,height:20,borderRadius:6,border:`2px solid ${emailAgreed?C.orange:"#ccc"}`,background:emailAgreed?C.orange:"white",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
-              {emailAgreed&&<span style={{color:"white",fontSize:13,fontWeight:900,lineHeight:1}}>✓</span>}
-            </div>
+          )}
+          <ConsentCheck on={termsAgreed} onToggle={()=>setTermsAgreed(p=>!p)}>
+            <div style={{fontSize:12,fontWeight:700,color:"#333",marginBottom:3}}>{ctl("termsAgree", lang)}</div>
+            <div style={{fontSize:11,color:"#777",lineHeight:1.6}}>{ctl("termsDesc", lang)} <PolicyLink lang={lang}/></div>
+          </ConsentCheck>
+          <ConsentCheck on={emailAgreed} color={C.orange} onToggle={()=>setEmailAgreed(p=>!p)}>
             <div style={{fontSize:12,fontWeight:600,color:"#555"}}>(선택) 업데이트 소식 이메일 수신 동의</div>
-          </div>
-
+          </ConsentCheck>
           {error&&<div style={{background:"#FFF0F0",border:"1px solid #FFCCCC",borderRadius:10,padding:"9px 14px",fontSize:13,color:"#E53935",marginBottom:12}}>{error}</div>}
-
-          {/* 동의 버튼 */}
-          <button onClick={handleAgree} disabled={loading} style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:loading?0.5:1,marginBottom:10}}>
+          <button onClick={handleAgree} disabled={loading} style={{width:"100%",background:`linear-gradient(135deg,${C.pink},${C.orange})`,color:"white",border:"none",borderRadius:50,padding:"14px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:loading?0.5:1,marginTop:6,marginBottom:8}}>
             {loading?"저장 중...":"동의하고 한글 친구 시작하기 🚀"}
           </button>
-
-          {/* 거부 버튼 */}
-          <button onClick={handleReject} style={{width:"100%",background:"none",border:"none",color:"#bbb",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
-            동의하지 않음 (앱 사용 불가, 로그아웃)
+          <button onClick={handleReject} style={{width:"100%",background:"none",border:"none",color:"#aaa",fontSize:12,cursor:"pointer",padding:"6px 0"}}>
+            {ctl("rejectOut", lang)}
           </button>
         </div>
       </div>
@@ -27330,6 +27830,7 @@ function TutorTab({level, uid}) {
         {tutorLoad&&<div style={{display:"flex",alignItems:"flex-end",gap:6}}><div style={{fontSize:24}}>🎓</div><div style={{background:"#f5f0ff",borderRadius:"16px 16px 16px 4px",padding:"9px 14px",color:C.purple,fontSize:13}}>생각 중... ✨</div></div>}
         <div ref={tutorEnd}/>
       </div>
+      <AiChatNotice lang="ko"/>{/* ✅ V541: 대화는 저장·학습되지 않음(개인정보위 생성형 AI 안내서 권고) */}
       <div style={{display:"flex",gap:8,alignItems:"center"}}>
         <input value={tutorInput} onChange={e=>setTutorInput(e.target.value.slice(0,SEC.MAX_LEN))} onKeyDown={e=>e.key==="Enter"&&sendTutor()} placeholder="글을 쓰거나 질문해 보세요 ✍️" aria-label="튜터 입력" style={{flex:1,minWidth:0,padding:"13px 16px",borderRadius:50,border:`2px solid ${C.purple}`,outline:"none",fontSize:15,background:"white",boxSizing:"border-box",WebkitAppearance:"none"}}/>
         <button onClick={sendTutor} disabled={tutorLoad||!tutorInput.trim()} aria-label="전송" style={{flexShrink:0,width:50,height:50,background:`linear-gradient(135deg,${C.purple},${C.pink})`,border:"none",borderRadius:"50%",cursor:"pointer",opacity:tutorLoad||!tutorInput.trim()?0.4:1,display:"flex",alignItems:"center",justifyContent:"center",WebkitTapHighlightColor:"transparent",touchAction:"manipulation",padding:0}}>
@@ -29713,6 +30214,11 @@ export default function App() {
   const [showCurricPreview, setShowCurricPreview] = useState(true); // ✅ V263: 80시간 커리큘럼 미리보기
   const [showPromo, setShowPromo] = useState(false); // ✅ V143: 홍보 모달
   const [showMigration, setShowMigration] = useState(false); // ✅ V148: 기존 가입자 마이그레이션
+  const [migrationHasRole, setMigrationHasRole] = useState(true); // ✅ V541: 역할이 이미 있으면 팝업에서 역할 선택 숨김
+  const [meDoc, setMeDoc] = useState(null); // ✅ V541: 내 users 문서(동의·나를 소개해요) — null = 아직 모름
+  const [meRefresh, setMeRefresh] = useState(0); // ✅ V541: 학습자가 아닌 계정은 한 번 읽기 → 저장 뒤 다시 읽기용
+  const [profileCardDone, setProfileCardDone] = useState(false); // ✅ V541: 나를 소개해요 카드를 이번 세션에 닫음
+  const [researchCardSkip, setResearchCardSkip] = useState(false); // ✅ V541: 연구 동의만 묻는 카드를 이번 세션에 [다음에]
   const [userRole, setUserRole] = useState(null); // ✅ V148: 로그인 후 Firestore role
   const [memberNo, setMemberNo] = useState(null); // ✅ V410: 회원번호(랜덤 코드), 마이페이지 표시용
   const [adminMode, setAdminMode] = useState(false);  // ✅ V151: 관리자 모드 토글
@@ -29842,11 +30348,29 @@ export default function App() {
   useEffect(()=>{
     if(!user) return;
     getDoc(doc(db, "users", user.uid)).then(d => {
-      if(d.exists() && d.data().dataOwnershipAgreed === undefined) {
+      // ✅ V541: 새 가입자는 serviceAgreed만 기록 → 두 키가 모두 없을 때만(아주 옛 가입자)
+      if(d.exists() && d.data().dataOwnershipAgreed === undefined && d.data().serviceAgreed === undefined) {
+        setMigrationHasRole(!!d.data().role);
         setShowMigration(true);
       }
     }).catch(()=>{});
   },[user]);
+
+  // ✅ V541: 내 users 문서 — 바뀐 약관 확인·연구 동의·나를 소개해요 카드와 내 정보 칸.
+  //   학습자는 실시간 구독(내 정보에서 바꾸면 바로 반영), 교수자 등은 한 번 읽기(V522 원칙: 교수자에게 본인 문서 구독을 만들지 않음).
+  useEffect(() => {
+    // 로그아웃하면 계정별 상태를 처음으로(같은 탭에서 다른 계정으로 로그인할 때 옛 역할로 카드가 뜨지 않게 — V541 리뷰)
+    if (!user) { setMeDoc(null); setUserRole(null); setProfileCardDone(false); setResearchCardSkip(false); setMigrationHasRole(true); return; }
+    if (!userRole) return;
+    // 읽기 실패는 false(= 모름, 카드를 띄우지 않음) — null(읽는 중)과 구분
+    if (userRole === "learner") {
+      const unsub = onSnapshot(doc(db, "users", user.uid), d => setMeDoc(d.exists() ? d.data() : {}), () => setMeDoc(false));
+      return () => unsub();
+    }
+    let alive = true;
+    getDoc(doc(db, "users", user.uid)).then(d => { if (alive) setMeDoc(d.exists() ? d.data() : {}); }).catch(() => { if (alive) setMeDoc(false); });
+    return () => { alive = false; };
+  }, [user?.uid, userRole, meRefresh]);
 
   // ✅ V517: 학습자 본인 문서 실시간 구독(과제 완료 기록 gramLog/pronLog)
   // ✅ V521: 선생님 연결(currentTeacherId)도 이 구독으로 함께 추적 — 과제가 없어도 항상 구독.
@@ -30381,10 +30905,28 @@ export default function App() {
   if (showMigration) return (
     <MigrationModal
       user={user}
-      onComplete={()=>setShowMigration(false)}
+      hasRole={migrationHasRole}
+      lang={onboardingLang}
+      onComplete={(newRole)=>{ if (newRole) setUserRole(newRole); setMeDoc(prev => prev ? { ...prev, serviceAgreed: true } : prev); setMeRefresh(n => n + 1); setShowMigration(false); }}
       onReject={()=>setUser(null)}
     />
   );
+
+  // ✅ V541: 바뀐 약관 확인(기존 가입자) + 연구 활용 동의(만 14세 이상 학습자, 아직 안 물음) — 한 장의 카드.
+  //   역할·문서를 다 읽은 뒤에만, 반 참여 링크(?join) 팝업이 있으면 그 다음에.
+  // 역할은 읽었고 내 문서는 아직 읽는 중이면 잠깐 빈 화면(메인 화면이 보였다가 카드로 바뀌는 깜빡임 방지)
+  if (userRole && meDoc === null) return (
+    <div style={{minHeight:"100dvh",display:"flex",alignItems:"center",justifyContent:"center",color:"#bbb",fontSize:14}}>…</div>
+  );
+  if (meDoc && userRole && !joinCode) {
+    const pc = policyCardNeeded(meDoc, userRole);
+    if (pc.terms || (pc.research && !researchCardSkip)) return (
+      <PolicyUpdateCard user={user} me={meDoc} userRole={userRole} lang={onboardingLang}
+        onDone={(upd)=>{ setMeDoc(prev => ({ ...(prev || {}), ...upd })); setMeRefresh(n => n + 1); }}
+        onSkip={()=>setResearchCardSkip(true)}
+        onReject={async()=>{ try { await signOut(auth); } catch(e) {} setUser(null); }}/>
+    );
+  }
 
   // ✅ V151: 관리자 이메일 → 관리자 모드 토글 시 AdminDashboard
   if (user.email === ADMIN_EMAIL && adminMode) return (
@@ -30411,6 +30953,11 @@ export default function App() {
 
   // ✅ V148: 학습자 클래스 참여 팝업 (URL ?join= 감지)
   // joinCode가 있고 학습자인 경우 → 앱 위에 팝업 오버레이
+
+  // ✅ V541: 나를 소개해요 — 만 14세 이상 학습자가 선생님과 연결된 뒤 처음 한 번(건너뛰기 가능)
+  if (!showPromo && !joinCode && !profileCardDone && profileCardNeeded(meDoc, userRole)) return (
+    <ProfileEditor user={user} me={meDoc} lang={onboardingLang} asCard onClose={()=>setProfileCardDone(true)}/>
+  );
 
   // ✅ V143: 홍보 모달 (최초 3회 로그인 시 표시)
   if (showPromo) {
@@ -30890,6 +31437,8 @@ export default function App() {
                   👩‍🏫 교수자 화면으로 돌아가기
                 </button>
               )}
+              {/* ✅ V541: 내 정보와 동의(나를 소개해요·연구 활용·방침) — 마이페이지 3곳 모두 */}
+              <MyInfoSection user={user} me={meDoc} userRole={userRole} lang={onboardingLang}/>
               <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
                 {ht("logout")}
               </button>
@@ -31283,6 +31832,8 @@ export default function App() {
                   🇰🇷 KIIP 응시하러 가기 →
                 </button>
               </div>
+              {/* ✅ V541: 내 정보와 동의(나를 소개해요·연구 활용·방침) — 마이페이지 3곳 모두 */}
+              <MyInfoSection user={user} me={meDoc} userRole={userRole} lang={onboardingLang}/>
               <button onClick={()=>setShowMyPage(false)} style={{width:"100%",padding:"13px 0",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",border:"none",borderRadius:50,color:"white",fontSize:14,fontWeight:900,cursor:"pointer"}}>
                 계속 학습하기 →
               </button>
@@ -31620,6 +32171,8 @@ export default function App() {
                 </div>
               </div>
 
+              {/* ✅ V541: 내 정보와 동의(나를 소개해요·연구 활용·방침) — 마이페이지 3곳 모두 */}
+              <MyInfoSection user={user} me={meDoc} userRole={userRole} lang={onboardingLang}/>
               <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
                 {ht("logout")}
               </button>
