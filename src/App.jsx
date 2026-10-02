@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "545";
+const APP_VERSION = "546";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -23418,11 +23418,11 @@ const FEEDBACK_FMT_GUARD = "\n[출력 형식] 마크다운 표(|)는 쓰지 마�
 function fbIsTableRow(l) { return l.length >= 2 && l.startsWith("|") && l.endsWith("|"); }
 function fbIsSepRow(l) { const c = fbCells(l); return c.length > 0 && c.every(x => /^:?-+:?$/.test(x)); } // 모든 칸이 ---·:--: 일 때만(내용이 "-"인 칸은 살림)
 function fbCells(l) { return l.replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim()); }
-function fbInline(text, keyBase) {
+function fbInline(text, keyBase, strongStyle) { // ✅ V546: strongStyle — 강조 상자 안에서는 상자 색 그대로
   const parts = String(text).split(/(\*\*.*?\*\*)/g);
   return parts.map((p, j) =>
     /^\*\*.*\*\*$/.test(p)
-      ? <strong key={keyBase + "_" + j} style={{fontWeight:700,color:"#333"}}>{p.slice(2,-2)}</strong>
+      ? <strong key={keyBase + "_" + j} style={strongStyle || {fontWeight:700,color:"#333"}}>{p.slice(2,-2)}</strong>
       : <span key={keyBase + "_" + j}>{p}</span>
   );
 }
@@ -23474,7 +23474,7 @@ function renderFeedbackLine(line0, i, accentColor) {
       const clean = line.replace(/^[""]|[""]$/g,"");
       return (
         <div key={i} style={{margin:"10px 0",padding:"11px 14px",background:`${accentColor}18`,borderLeft:`4px solid ${accentColor}`,borderRadius:"0 10px 10px 0",fontSize:14,fontWeight:700,color:accentColor,lineHeight:1.7}}>
-          "{clean}"
+          "{fbInline(clean, "c" + i, {fontWeight:900,color:"inherit"})}"{/* ✅ V546: 상자 안의 **굵게**도 처리(상자 색 그대로, 더 굵게) */}
         </div>
       );
     }
