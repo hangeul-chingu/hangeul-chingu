@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "544";
+const APP_VERSION = "545";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -23154,7 +23154,7 @@ async function evaluateFile(file, level, depth = "normal") {
   try {
     const isTXT = file.type === "text/plain" || file.name.endsWith(".txt");
     const isPDF = file.type === "application/pdf";
-    const evalSys = buildWriteEvalSys(level, depth);
+    const evalSys = buildWriteEvalSys(level, depth) + FEEDBACK_FMT_GUARD; // ✅ V545: 표 대신 한 줄
 
     let userContent;
     if (isTXT) {
@@ -23409,10 +23409,66 @@ const CHARS_VIETNAM = [
   {key:"jake_vietnam", emoji:"👦", name:"제이크 (베트남 특화)", sub:"한-베트남 문화 브릿지", color:C.sky, bg:"#EBF8FF", initMsg:"안녕하세요! 😊 저 제이크예요! 베트남에서 오셨어요? 반가워요! 베트남 음식 중에 뭘 제일 좋아해요?"},
 ];
 
+// ✅ V545: 논술 피드백의 마크다운 표·인용(>)·글머리(-)가 기호 그대로 보이던 문제(실기기 10/02)
+//   - 앞뒤가 모두 "|"인 줄이 이어지면 표로 묶음(첫 줄 = 제목 줄, "-"가 들어간 구분선 줄은 숨김, 칸 수가 달라도 됨)
+//   - "> " 줄은 기호를 떼고 연한 들여쓰기(뒤가 따옴표 문장이면 기존 강조 상자)
+//   - "- " / "* " 글머리는 "• "로
+// 저장된 글(내 글 모음)에도 표가 들어 있으므로 프롬프트를 바꿔도 이 처리는 필요함.
+const FEEDBACK_FMT_GUARD = "\n[출력 형식] 마크다운 표(|)는 쓰지 마세요. 표로 정리하고 싶은 내용은 '학생 표현 → 고친 표현'처럼 한 줄씩 쓰세요.";
+function fbIsTableRow(l) { return l.length >= 2 && l.startsWith("|") && l.endsWith("|"); }
+function fbIsSepRow(l) { const c = fbCells(l); return c.length > 0 && c.every(x => /^:?-+:?$/.test(x)); } // 모든 칸이 ---·:--: 일 때만(내용이 "-"인 칸은 살림)
+function fbCells(l) { return l.replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim()); }
+function fbInline(text, keyBase) {
+  const parts = String(text).split(/(\*\*.*?\*\*)/g);
+  return parts.map((p, j) =>
+    /^\*\*.*\*\*$/.test(p)
+      ? <strong key={keyBase + "_" + j} style={{fontWeight:700,color:"#333"}}>{p.slice(2,-2)}</strong>
+      : <span key={keyBase + "_" + j}>{p}</span>
+  );
+}
+function fbTable(rows, key, accentColor) {
+  const data = rows.filter(r => !fbIsSepRow(r)).map(fbCells);
+  if (!data.length || data.every(r => r.every(c => !c))) return null; // 빈 칸뿐인 표("||")는 그리지 않음
+  const n = Math.max(...data.map(r => r.length));
+  const [head, ...body] = data;
+  const cell = { padding:"6px 8px", border:"1px solid #e3e3e3", verticalAlign:"top", wordBreak:"keep-all", whiteSpace:"normal", lineHeight:1.55 };
+  return (
+    <div key={key} style={{overflowX:"auto",WebkitOverflowScrolling:"touch",margin:"6px 0 8px"}}>
+      <table style={{borderCollapse:"collapse",fontSize:12,color:"#444",minWidth:"100%",background:"white"}}>
+        <thead><tr>{Array.from({length:n}).map((_, c) => <th key={c} style={{...cell,background:`${accentColor}18`,color:"#333",fontWeight:700,textAlign:"left"}}>{fbInline(head[c] || "", key + "h" + c)}</th>)}</tr></thead>
+        <tbody>{body.map((r, ri) => <tr key={ri}>{Array.from({length:n}).map((_, c) => <td key={c} style={cell}>{fbInline(r[c] || "", key + "b" + ri + "_" + c)}</td>)}</tr>)}</tbody>
+      </table>
+    </div>
+  );
+}
 function renderFeedback(text, accentColor) {
   if (!text) return null;
-  const lines = text.split("\n").filter(l => l.trim() !== "---").map(l => l.trim());
-  return lines.map((line, i) => {
+  const lines = String(text).split("\n").filter(l => l.trim() !== "---").map(l => l.trim());
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (fbIsTableRow(lines[i])) { // ✅ V545: 이어진 표 줄을 묶음
+      const start = i; const rows = [];
+      while (i < lines.length && fbIsTableRow(lines[i])) { rows.push(lines[i]); i++; }
+      i--;
+      const t = fbTable(rows, "t" + start, accentColor);
+      if (t) out.push(t);
+      continue;
+    }
+    out.push(renderFeedbackLine(lines[i], i, accentColor));
+  }
+  return out;
+}
+function renderFeedbackLine(line0, i, accentColor) {
+  let line = line0;
+  if (/^>\s?/.test(line)) { // ✅ V545: 인용 줄 — 기호를 떼고, 따옴표 문장이면 아래 강조 상자로
+    line = line.replace(/^>\s?/, "");
+    if (/^[-*]\s+/.test(line)) line = "• " + line.replace(/^[-*]\s+/, ""); // 인용 안의 글머리도
+    if (!/^[""].*[""]$/.test(line)) {
+      return <div key={i} style={{fontSize:13,color:"#444",lineHeight:1.8,margin:"2px 0",padding:"2px 0 2px 10px",borderLeft:`3px solid ${accentColor}55`}}>{fbInline(line, "q" + i)}</div>;
+    }
+  }
+  if (/^[-*]\s+/.test(line)) line = "• " + line.replace(/^[-*]\s+/, ""); // ✅ V545: 글머리
+  {
     if (!line) return <div key={i} style={{height:6}}/>;
     if (/^[""].*[""]$/.test(line)) {
       const clean = line.replace(/^[""]|[""]$/g,"");
@@ -23432,7 +23488,7 @@ function renderFeedback(text, accentColor) {
         : <span key={j}>{p}</span>
     );
     return <div key={i} style={{fontSize:13,color:"#444",lineHeight:1.8,marginBottom:2}}>{rendered}</div>;
-  });
+  }
 }
 
 function TodayTopic({purple}) {
@@ -27183,7 +27239,7 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce, preview=false}) 
     let ctx = wStep > 0 ? `[현상] ${wText[0]}\n` : "";
     if (wStep > 1) ctx += `[생각] ${wText[1]}\n`;
     ctx += `[학생 입력] ${wText[wStep]}`;
-    const fb = await callClaude([{role:"user", content:ctx}], writeSys[wStep]);
+    const fb = await callClaude([{role:"user", content:ctx}], writeSys[wStep] + FEEDBACK_FMT_GUARD); // ✅ V545: 표 대신 한 줄
     const nf = [...wFeed]; nf[wStep] = fb; setWFeed(nf);
     const next = wStep < 2 ? wStep + 1 : 3;
     setWStep(next);
