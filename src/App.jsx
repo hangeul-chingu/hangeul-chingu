@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "543";
+const APP_VERSION = "544";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -27154,7 +27154,12 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce, preview=false}) 
     } finally { clearTimeout(slow); }
   }
   // [다시 저장] — 서버엔 저장됐는데 앱만 오류를 받은 경우를 먼저 확인
-  async function retrySave() {
+  async function retrySave() { // ✅ V544: 감정까지 붙이는 동안 wLoad로 다른 버튼을 잠금
+    if (wLoad) return;
+    setWLoad(true);
+    try { await retrySaveInner(); } finally { setWLoad(false); }
+  }
+  async function retrySaveInner() {
     const p = pendingRef.current;
     if (!p || !uid || saveState === "saving" || saveState === "slow") return;
     if (!wCreated.current && wDocId.current) {
@@ -27229,11 +27234,11 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce, preview=false}) 
     setSubmitLoad(false);
   }
 
-  function resetWrite() {
+  function resetWrite(nextMode) { // ✅ V544: nextMode="mine"이면 글을 정리한 뒤 내 글 모음으로(버튼 onClick의 이벤트 객체는 무시)
     if (wLoad || artLoading || saveState === "saving" || saveState === "slow") return; // ✅ V543: 저장·매핑 중에는 막음
     if (saveState === "error" && !window.confirm("이 글을 아직 저장하지 못했어요. 저장하지 않고 새 글을 쓸까요?")) return;
     wDocId.current = null; wCreated.current = false; pendingRef.current = null; lastArtRef.current = null; setSaveState(null);
-    setWStep(0); setWText(["","",""]); setWFeed(["","",""]); setArtFeed(null); setMode(null);
+    setWStep(0); setWText(["","",""]); setWFeed(["","",""]); setArtFeed(null); setMode(nextMode === "mine" ? "mine" : null);
   }
 
   // ✅ V348: 모듈1 어휘 출력 자동화 훈련 — midLevel이고 m1 미완료 시 먼저 보여주기
@@ -27789,6 +27794,11 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce, preview=false}) 
             <div style={{textAlign:"center",fontSize:12,fontWeight:700,marginBottom:12,lineHeight:1.6,color:saveState==="error"?"#E53935":saveState==="slow"?"#E65100":saveState==="preview"?"#999":"#2E7D32"}}>
               {{preview:"👀 미리보기라 저장하지 않아요", saving:"💾 내 글 모음에 저장하는 중...", slow:"⏳ 저장 중이에요... 인터넷 연결을 확인하고 화면을 닫지 말아 주세요", saved:"✅ 내 글 모음에 저장했어요", updated:"✏️ 고친 글로 바꿔 저장했어요", error:"⚠️ 저장하지 못했어요"}[saveState]}
               {saveState==="error"&&<button onClick={retrySave} style={{marginLeft:8,background:"#E53935",color:"white",border:"none",borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:800,cursor:"pointer"}}>다시 저장</button>}
+              {(saveState==="saved"||saveState==="updated")&&(
+                <div style={{marginTop:8}}>{/* ✅ V544: 완성 화면에서 내 글 모음을 바로 찾을 수 있게(실기기에서 못 찾음) */}
+                  <button onClick={()=>resetWrite("mine")} disabled={wLoad||artLoading} style={{background:"white",border:"1.5px solid #2E75B6",color:"#2E75B6",borderRadius:20,padding:"6px 16px",fontSize:13,fontWeight:800,cursor:"pointer",opacity:(wLoad||artLoading)?0.5:1}}>📚 내 글 모음에서 보기</button>
+                </div>
+              )}
             </div>
           )}
           {STEPS.map((s,i) => (
