@@ -199,7 +199,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "541";
+const APP_VERSION = "542";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -8696,7 +8696,10 @@ function profileSummary(p) {
   if (p.studyLen) parts.push("공부 " + pfLabel(PF_STUDY, p.studyLen, "ko"));
   if (p.koreaLen) parts.push(p.koreaLen === "none" ? "한국 밖" : "한국 " + pfLabel(PF_KOREA, p.koreaLen, "ko"));
   if (p.purpose) parts.push("목적 " + pfLabel(PF_PURPOSE, p.purpose, "ko"));
-  if (Array.isArray(p.otherLangs) && p.otherLangs.length) parts.push("다른 언어 " + p.otherLangs.map(c => pfLabel(PF_LANGS, c, "ko")).filter(Boolean).join("·"));
+  // ✅ V542: 모어로 고른 언어는 '다른 언어'에서 빼고 보여 줌(V541 때 저장된 중복 대비)
+  const l1Set = p.l1Ok && Array.isArray(p.l1) ? p.l1.filter(c => c !== "other") : []; // '기타'는 서로 다른 언어일 수 있어 그대로 둠
+  const others = Array.isArray(p.otherLangs) ? p.otherLangs.filter(c => !l1Set.includes(c)) : [];
+  if (others.length) parts.push("다른 언어 " + others.map(c => pfLabel(PF_LANGS, c, "ko")).filter(Boolean).join("·"));
   if (p.ageBand) parts.push(pfLabel(PF_AGE, p.ageBand, "ko"));
   return parts.join(" · ");
 }
@@ -8907,6 +8910,10 @@ function ProfileEditor({ user, me, lang, asCard, onClose }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const lab = (k) => <div style={{ fontSize: 12, fontWeight: 800, color: "#333", marginBottom: 6 }}>{ctl(k, lang)}</div>;
+  // ✅ V542: 모어로 고른 언어는 '할 줄 아는 다른 언어' 선택지에서 뺌. 모어 체크를 끄면 선택지에 다시 보임
+  const l1Set = l1Ok ? l1.filter(c => c !== "other") : []; // '기타'는 서로 다른 언어일 수 있어 그대로 둠
+  const otherList = PF_LANGS.filter(r => !l1Set.includes(r[0]));
+  const otherVal = otherLangs.filter(c => !l1Set.includes(c));
   async function save(clearAll) {
     setBusy(true); setErr("");
     try {
@@ -8917,7 +8924,7 @@ function ProfileEditor({ user, me, lang, asCard, onClose }) {
         ...(studyLen ? { studyLen } : {}),
         ...(koreaLen ? { koreaLen } : {}),
         ...(purpose ? { purpose } : {}),
-        ...(otherLangs.length ? { otherLangs } : {}),
+        ...(otherVal.length ? { otherLangs: otherVal } : {}),
         ...(ageBand ? { ageBand } : {}),
         updatedAtMs: Date.now(),
       };
@@ -8951,7 +8958,7 @@ function ProfileEditor({ user, me, lang, asCard, onClose }) {
         {lab("pfStudy")}<ChipPick list={PF_STUDY} value={studyLen} onChange={setStudyLen} lang={lang} />
         {lab("pfKorea")}<ChipPick list={PF_KOREA} value={koreaLen} onChange={setKoreaLen} lang={lang} />
         {lab("pfPurpose")}<ChipPick list={PF_PURPOSE} value={purpose} onChange={setPurpose} lang={lang} />
-        {lab("pfOther")}<ChipPick list={PF_LANGS} value={otherLangs} multi onChange={setOtherLangs} lang={lang} />
+        {lab("pfOther")}<ChipPick list={otherList} value={otherVal} multi onChange={setOtherLangs} lang={lang} />
         {lab("pfAge")}<ChipPick list={PF_AGE} value={ageBand} onChange={setAgeBand} lang={lang} />
         {err && <div style={{ background: "#FFF0F0", border: "1px solid #FFCCCC", borderRadius: 10, padding: "8px 12px", fontSize: 12, color: "#E53935", marginBottom: 10 }}>{err}</div>}
       </div>
@@ -24396,6 +24403,7 @@ function SpeakTab({level, uid, unlock, speaking, speak, begReady, browseMode, mi
           })()}
         </div>
       )}
+      <AiChatNotice lang="ko"/>{/* ✅ V542: 프리토킹도 대화를 저장·학습하지 않음(방침 v8) — 하이터치와 같은 한 줄 */}
       <div style={{display:"flex",gap:8,alignItems:"center"}}>
         {/* ✅ V505: 전략 힌트 토글 버튼 — 입력창 옆 */}
         <button
