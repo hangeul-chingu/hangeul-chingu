@@ -25,6 +25,7 @@ import {
   addDoc,
   deleteDoc,
   getDocFromServer, // ✅ V540: 말하기 과제 제출 — 기기에 남은 옛 데이터 말고 서버에서 버전 번호를 읽음
+  orderBy, limit, startAfter, // ✅ V543: 내 글 모음 목록(최신순 20개씩)
 } from "firebase/firestore";
 
 // ✅ V410: 회원번호(랜덤 코드) 생성 — 가입 순번 노출 방지 목적으로 순번이 아닌 랜덤 코드 채택
@@ -199,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "542";
+const APP_VERSION = "543";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -1799,7 +1800,7 @@ function AdminDashboard({ user, onLogout, onExitAdmin }) {
                     <div style={{textAlign:"right"}}>
                       {u.topikApproved && <div style={{fontSize:11, background:"#00C89620", color:"#00C896", borderRadius:10, padding:"3px 10px", fontWeight:700}}>TOPIK 인증 ✅</div>}
                       <div style={{fontSize:11, color:"rgba(255,255,255,0.3)", marginTop:4}}>
-                        말하기 {u.stats?.speak||0} · 쓰기 {u.stats?.write||0}
+                        말하기 {u.stats?.speak||0} · 쓰기 {u.stats?.write||0} · 완성 글 {u.stats?.essay||0}
                       </div>
                     </div>
                   </div>
@@ -7806,7 +7807,7 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
                   {/* ✅ V355: 학습 통계 + 진도 + 발음 데이터 */}
                   {/* 기존 활동 횟수 */}
                   <div style={{display:"flex", gap:8, marginBottom:10}}>
-                    {[["🗣️","말하기", st.stats?.speak||0],["✍️","쓰기", st.stats?.write||0],["🤝","하이터치", st.stats?.tutor||0]].map(([icon, label, val]) => (
+                    {[["🗣️","말하기", st.stats?.speak||0],["✍️","완성 글", st.stats?.essay||0],["🤝","하이터치", st.stats?.tutor||0]].map(([icon, label, val]) => (
                       <div key={label} style={{flex:1, background:"#F5F8FF", borderRadius:10, padding:"10px 8px", textAlign:"center"}}>
                         <div style={{fontSize:16}}>{icon}</div>
                         <div style={{fontSize:18, fontWeight:900, color:"#2E75B6"}}>{val}</div>
@@ -8527,7 +8528,7 @@ async function recordStat(uid, field) {
 // - 동의 이력: users/{uid}/consentLog (본인 새로 만들기만, 서버 시각 — 보안 규칙 V541)
 // - 새 문구는 ko·en·zh·vi, 그 밖의 언어는 영어로 표시. 방침 전문은 한국어가 기준.
 // ════════════════════════════════════════════════════════
-const POLICY_VERSION = "v8";
+const POLICY_VERSION = "v8.1"; // ✅ V543: 논술 탭 글 저장 추가(방침 v8.1)
 const CONSENT_T = {
   termsAgree: {
     ko: "(필수) 이용약관에 동의하고, 개인정보 처리 안내를 확인했어요",
@@ -8568,10 +8569,29 @@ const CONSENT_T = {
   },
   resMore: { ko: "자세히", en: "Details", zh: "详细", vi: "Chi tiết" },
   resInfo: {
-    ko: "• 무엇을: ①은 과제로 낸 글(고쳐 쓴 글 포함)·말하기 준비 메모·어휘 과제에서 만든 문장·발음 인식 글·'나를 소개해요' 정보, ②는 과제로 낸 말하기·발음 녹음이에요. 선생님 의견은 넣지 않아요.\n• 왜: 한국어 교육 연구(학술 논문·학회 발표)\n• 어떻게: 이름·이메일을 지우고, 글 속 이름·연락처는 사람이 확인해 가린 뒤 써요. 누구나 받을 수 있게 공개하지 않아요.\n• 언제까지: 동의를 끄거나 탈퇴하면 그때부터 쓰지 않고, 연구용으로 옮긴 자료에서도 빼서 지워요. 연구용 자료는 만든 날부터 5년이 지나면 지워요.\n• 동의하지 않아도 모든 기능을 똑같이 쓸 수 있고, 선생님 의견과도 상관없어요. '내 정보'에서 언제든 바꿀 수 있어요.",
-    en: "• What: ① assignment writing (including rewrites), speaking prep notes, sentences from vocabulary tasks, pronunciation recognition text and 'About me' info; ② assignment speaking and pronunciation recordings. Teacher comments are not included.\n• Why: Korean-education research (academic papers and conference talks)\n• How: names and emails are removed, and names or contacts inside your writing are hidden after a person checks. It is never made public for anyone to download.\n• How long: if you turn this off or leave, it stops being used and is removed from research copies. Research copies are deleted 5 years after they are made.\n• Saying no changes nothing: every feature and your teacher's feedback stay the same. You can change this any time in 'My info'.",
-    zh: "• 内容：①作业中写的文章（含修改稿）、口语准备笔记、词汇作业中造的句子、发音识别文字、“介绍我自己”信息；②作业中的口语和发音录音。不包括老师的意见。\n• 目的：韩语教育研究（学术论文、学术会议发表）\n• 方式：删除姓名和邮箱，文章中的姓名、联系方式由人工确认后遮盖。不会公开给任何人下载。\n• 期限：关闭同意或退出后即停止使用，并从研究用资料中删除。研究用资料自制作之日起满5年后删除。\n• 不同意也可以同样使用所有功能，与老师的意见无关。随时可以在“我的信息”中更改。",
-    vi: "• Nội dung: ① bài viết nộp trong bài tập (kể cả bài sửa lại), ghi chú chuẩn bị nói, câu văn trong bài tập từ vựng, văn bản nhận dạng phát âm và thông tin 'Giới thiệu bản thân'; ② bản ghi âm nói và phát âm trong bài tập. Không gồm nhận xét của giáo viên.\n• Mục đích: nghiên cứu giáo dục tiếng Hàn (bài báo khoa học, hội thảo)\n• Cách làm: xoá tên và email; tên, số liên lạc trong bài viết được người kiểm tra và che đi. Không công khai cho bất kỳ ai tải về.\n• Thời hạn: khi bạn tắt đồng ý hoặc rút khỏi dịch vụ, dữ liệu không được dùng nữa và bị xoá khỏi bản dùng cho nghiên cứu. Bản dùng cho nghiên cứu bị xoá sau 5 năm kể từ ngày tạo.\n• Không đồng ý thì mọi chức năng và nhận xét của giáo viên vẫn như cũ. Bạn có thể thay đổi bất cứ lúc nào trong 'Thông tin của tôi'.",
+    ko: "• 무엇을: ①은 과제로 낸 글(고쳐 쓴 글 포함)·논술 탭에서 완성한 글(v8.1 이후 동의)·말하기 준비 메모·어휘 과제에서 만든 문장·발음 인식 글·'나를 소개해요' 정보, ②는 과제로 낸 말하기·발음 녹음이에요. 선생님 의견은 넣지 않아요.\n• 왜: 한국어 교육 연구(학술 논문·학회 발표)\n• 어떻게: 이름·이메일을 지우고, 글 속 이름·연락처는 사람이 확인해 가린 뒤 써요. 누구나 받을 수 있게 공개하지 않아요.\n• 언제까지: 동의를 끄거나 탈퇴하면 그때부터 쓰지 않고, 연구용으로 옮긴 자료에서도 빼서 지워요. 연구용 자료는 만든 날부터 5년이 지나면 지워요.\n• 동의하지 않아도 모든 기능을 똑같이 쓸 수 있고, 선생님 의견과도 상관없어요. '내 정보'에서 언제든 바꿀 수 있어요.",
+    en: "• What: ① assignment writing (including rewrites), essays completed in the Writing tab (consent v8.1 or later), speaking prep notes, sentences from vocabulary tasks, pronunciation recognition text and 'About me' info; ② assignment speaking and pronunciation recordings. Teacher comments are not included.\n• Why: Korean-education research (academic papers and conference talks)\n• How: names and emails are removed, and names or contacts inside your writing are hidden after a person checks. It is never made public for anyone to download.\n• How long: if you turn this off or leave, it stops being used and is removed from research copies. Research copies are deleted 5 years after they are made.\n• Saying no changes nothing: every feature and your teacher's feedback stay the same. You can change this any time in 'My info'.",
+    zh: "• 内容：①作业中写的文章（含修改稿）、论述标签中完成的文章（v8.1及以后的同意）、口语准备笔记、词汇作业中造的句子、发音识别文字、“介绍我自己”信息；②作业中的口语和发音录音。不包括老师的意见。\n• 目的：韩语教育研究（学术论文、学术会议发表）\n• 方式：删除姓名和邮箱，文章中的姓名、联系方式由人工确认后遮盖。不会公开给任何人下载。\n• 期限：关闭同意或退出后即停止使用，并从研究用资料中删除。研究用资料自制作之日起满5年后删除。\n• 不同意也可以同样使用所有功能，与老师的意见无关。随时可以在“我的信息”中更改。",
+    vi: "• Nội dung: ① bài viết nộp trong bài tập (kể cả bài sửa lại), bài viết hoàn thành ở tab Luận (đồng ý từ v8.1), ghi chú chuẩn bị nói, câu văn trong bài tập từ vựng, văn bản nhận dạng phát âm và thông tin 'Giới thiệu bản thân'; ② bản ghi âm nói và phát âm trong bài tập. Không gồm nhận xét của giáo viên.\n• Mục đích: nghiên cứu giáo dục tiếng Hàn (bài báo khoa học, hội thảo)\n• Cách làm: xoá tên và email; tên, số liên lạc trong bài viết được người kiểm tra và che đi. Không công khai cho bất kỳ ai tải về.\n• Thời hạn: khi bạn tắt đồng ý hoặc rút khỏi dịch vụ, dữ liệu không được dùng nữa và bị xoá khỏi bản dùng cho nghiên cứu. Bản dùng cho nghiên cứu bị xoá sau 5 năm kể từ ngày tạo.\n• Không đồng ý thì mọi chức năng và nhận xét của giáo viên vẫn như cũ. Bạn có thể thay đổi bất cứ lúc nào trong 'Thông tin của tôi'.",
+  },
+  // ✅ V543: 내 글 모음 — 쓰기 전 알림 · 누가 보는지 · 연구 안내
+  wSaveNote: {
+    ko: "📚 완성하면 '내 글 모음'에 저장돼요. 언제든 지울 수 있어요.",
+    en: "📚 When you finish, your essay is saved in 'My essays'. You can delete it anytime.",
+    zh: "📚 完成后会保存到“我的文章”。可以随时删除。",
+    vi: "📚 Khi hoàn thành, bài viết sẽ được lưu vào 'Bài viết của tôi'. Bạn có thể xoá bất cứ lúc nào.",
+  },
+  wMineLock: {
+    ko: "🔒 이 글은 앱에서 나만 볼 수 있어요. 선생님도 볼 수 없어요. (운영자는 삭제 요청·연구 동의 처리 때만 다뤄요)",
+    en: "🔒 In the app, only you can see these essays. Your teacher cannot see them. (The operator handles them only for deletion requests and research consent.)",
+    zh: "🔒 在应用中只有你能看到这些文章，老师也看不到。（运营者只在处理删除请求和研究同意时接触）",
+    vi: "🔒 Trong ứng dụng, chỉ bạn xem được các bài này. Giáo viên cũng không xem được. (Người vận hành chỉ xử lý khi có yêu cầu xoá hoặc đồng ý nghiên cứu.)",
+  },
+  wMineResearch: {
+    ko: "연구 활용 ①을 켜 두어서, 이름을 가린 뒤 연구에 쓰일 수 있어요. '내 정보'에서 끌 수 있어요.",
+    en: "Because research use ① is on, these essays may be used in research after names are removed. You can turn it off in 'My info'.",
+    zh: "因为你开启了研究使用①，这些文章在遮去姓名后可能用于研究。可以在“我的信息”中关闭。",
+    vi: "Vì bạn đã bật mục nghiên cứu ①, các bài này có thể được dùng cho nghiên cứu sau khi che tên. Bạn có thể tắt trong 'Thông tin của tôi'.",
   },
   ageCheck: { ko: "저는 만 14세 이상이에요", en: "I am 14 years old or older", zh: "我年满14周岁", vi: "Tôi từ 14 tuổi trở lên" },
   updTitle: {
@@ -8718,7 +8738,7 @@ async function saveResearchConsent(uid, text, voice, extra) {
 }
 
 // ── 방침 전문 보기 ──
-const POLICY_V8_TEXT = "# 한글친구 개인정보처리방침 (v8)\n\n한글친구(Hangeul Chingu, 운영자 노치성, 이하 \"한글친구\")는 개인정보 보호법에 따라 이용자의 개인정보를 보호하고, 궁금한 점과 요청을 빠르게 처리하기 위해 이 방침을 공개합니다. 번역본이 있더라도 **한국어 원문이 기준**입니다.\n\n## 제1조 (처리하는 개인정보 — 두 가지로 나눠 알려 드려요)\n\n### 가. 동의 없이 처리하는 개인정보 (이용 계약 이행)\n아래 정보는 한글친구를 쓰는 데 꼭 필요해서, 이용 계약에 따라 처리합니다(개인정보 보호법 제15조 제1항 제4호). 동의 항목과 구분해 알려 드립니다(같은 법 제22조 제3항).\n- 회원 정보: 이메일, 비밀번호(인증 서비스에 암호화되어 저장), 이름, 역할(학습자·교수자), 회원번호, 만 14세 이상인지 여부, (만 14세 미만) 동의해 주신 분 성함(선택), (교수자) 소속 기관(선택)\n- 학습 기록: 학습 진도와 단원 통과, 레벨, 활동 횟수, 발음 테스트 결과와 음성 인식 결과 글, TOPIK 모의고사 답안과 채점 결과, TOPIK 성적 인증 결과(성적표 사진은 판독에만 쓰고 저장하지 않음)\n- 교수자 과제 기록: 고른 답·쓴 답·만든 문장·한 날짜와 걸린 시간, 논술 과제 글(고쳐 쓴 글 포함), 발음 과제 녹음(단어별 하루 최대 2개), 상황 말하기 과제에서 제출한 녹음·준비 메모·스스로 체크한 항목·녹음 횟수와 걸린 시간, 선생님 의견(글·음성)과 학습자 답글\n- 반 연결 정보: 어느 교수자의 반에 속해 있는지\n- 문의할 때: 이메일과 문의 내용\n- **저장하지 않는 것**: 마중이·프리토킹 대화 내용(횟수만 저장), KIIP 평가지 답안, 말하기 과제에서 제출하기 전의 연습 녹음(기기 안에만 있음)\n\n### 나. 선택 동의를 받아 처리하는 개인정보\n동의하지 않아도 모든 기능을 똑같이 쓸 수 있습니다.\n- 업데이트 소식 이메일 수신 여부\n- 연구 활용 동의(만 14세 이상 학습자): 제4조\n- 나를 소개해요(만 14세 이상 학습자, 모두 선택): 한국어를 공부한 기간, 한국에서 산 기간, 공부하는 이유, 할 줄 아는 다른 언어, 나이대. **모어와 한국계(재외동포)인지 여부**는 민족을 짐작할 수 있는 정보라서 따로 체크한 경우에만 저장합니다.\n- 동의 기록: 언제 무엇에 동의하거나 철회했는지\n\n## 제2조 (처리 목적)\n1. 회원 확인과 로그인\n2. 학습 기능 제공(학습 기록 저장, AI 응답, 자동 채점)\n3. 연결된 교수자가 학습 현황을 보고 과제에 의견을 줄 수 있도록 지원(녹음은 학습자 본인과 과제를 낸 교수자만 들을 수 있음)\n4. 문의와 요청 대응\n5. 서비스 개선을 위한 통계(횟수·비율 같은 집계만, 개인을 알아볼 수 없는 형태)\n6. 연구 활용 — 선택 동의한 사람의 자료만(제4조)\n\n## 제3조 (보유 기간)\n- 회원 정보와 학습 기록: 탈퇴하거나 삭제를 요청할 때까지 보관하고, 요청하면 지체 없이 파기합니다. 법령이 보존을 정한 정보는 그 기간 동안만 보관합니다.\n- 교수자 과제 기록: 교수자가 과제를 [보관하기] 해도 남고, 교수자가 보관함에서 영구 삭제하거나 학습자가 탈퇴·삭제를 요청하면 파기합니다. 제출한 녹음은 기록을 지키기 위해 학습자가 직접 고치거나 지울 수 없으며, 삭제는 요청으로 합니다.\n- 나를 소개해요: 본인이 지우거나 탈퇴할 때까지.\n- 동의 기록: 탈퇴할 때 함께 파기합니다.\n\n## 제4조 (연구 활용 — 선택 동의)\n- **누구의 자료를**: 만 14세 이상 학습자가 동의한 경우에만. 만 14세 미만 학습자와 교수자의 자료는 쓰지 않습니다.\n- **무엇을**: ① 과제로 낸 글(고쳐 쓴 글 포함), 말하기 준비 메모, 어휘 과제에서 만든 문장, 발음 인식 결과 글, '나를 소개해요' 정보(논술 탭 글은 저장 기능이 생기면 포함) ② 과제로 낸 말하기·발음 녹음. 선생님의 의견은 넣지 않습니다.\n- **왜**: 한국어 교육 연구(학술 논문·학회 발표)\n- **어떻게**: 이름·이메일·회원번호를 지우고 무작위 번호로 바꾸며, 글과 녹음 속 이름·연락처 같은 정보는 사람이 확인해 가립니다(가명처리와 안전조치 — 개인정보 보호법 제28조의2, 제28조의4).\n- **공개하지 않음**: 누구나 받을 수 있게 공개하지 않습니다. 다른 연구자에게 줄 일이 생기면 그때 따로 동의를 받습니다.\n- **언제까지**: 동의를 끄거나 탈퇴하면 그때부터 쓰지 않고, 연구용으로 옮긴 자료에서도 빼서 지웁니다(이미 발표된 통계 결과는 되돌릴 수 없습니다). 연구용 자료는 만든 날부터 5년이 지나면 파기합니다.\n- **거부할 권리**: 동의하지 않아도 모든 기능을 똑같이 쓸 수 있고, 선생님의 의견과도 상관없습니다. '내 정보'에서 언제든 켜고 끌 수 있습니다.\n- **예전 동의**: v7까지 가입할 때 받던 \"(필수) 학습 데이터 소유권 귀속 및 활용 동의\"는 v8부터 효력이 없습니다. 한글친구는 이용자의 글·녹음에 대한 소유권을 갖지 않으며, 예전 동의를 근거로 연구에 쓰지 않습니다.\n\n## 제5조 (제3자 제공)\n원칙적으로 외부에 제공하지 않습니다. 다만 이용자가 미리 동의한 경우와 법령에 따른 요구가 있는 경우는 예외입니다. 학습자가 참여한 반의 교수자가 제2조 3호의 목적으로 기록을 보는 것은 서비스 안의 처리이며, 교수자는 이용약관 제5조에 따라 학습 지도 외의 용도로 쓸 수 없습니다.\n\n## 제6조 (처리 위탁과 국외 이전)\n한글친구는 아래 업체의 서버(국외)를 통해 동작합니다. 이용 계약을 이행하는 데 필요한 처리 위탁·보관이라서 이 방침으로 알려 드립니다(개인정보 보호법 제28조의8 제1항 제3호).\n\n### Google LLC — Firebase(회원 인증, 데이터 저장)\n- 이전 항목: 제1조의 회원 정보, 학습 기록, 과제 기록(녹음 포함), 선택 입력 정보, 동의 기록\n- 이전 국가: 미국 등 Google 클라우드 데이터센터가 있는 국가\n- 이전 시기와 방법: 서비스를 이용할 때마다 암호화된 통신으로 전송·저장\n- 받는 자와 연락처: Google LLC, https://support.google.com/policies\n- 받는 자의 이용 목적과 보유 기간: 회원 인증과 데이터 저장, 제3조의 보유 기간 동안\n\n### Anthropic PBC — Claude API(AI 응답 생성)\n- 이전 항목: AI 응답이 필요한 기능에서 입력한 내용(마중이·프리토킹 대화, 논술 글과 피드백 요청, TOPIK 서술형 답안, TOPIK 성적표 사진, 교수자의 과제 문항·의견 초안 요청)\n- 이전 국가: 미국\n- 이전 시기와 방법: 해당 기능을 쓸 때 암호화된 통신으로 전송\n- 받는 자와 연락처: Anthropic PBC, privacy@anthropic.com\n- 받는 자의 이용 목적과 보유 기간: AI 응답 생성. Anthropic은 받은 내용을 30일 이내에 자동 삭제하고(이용 정책 위반으로 표시된 경우 최대 2년), 허락 없이 AI 학습에 쓰지 않습니다(Anthropic 상업용 데이터 정책 기준).\n\n### Vercel Inc. — 웹사이트 호스팅\n- 이전 항목: 접속 기록(IP 주소, 접속 시각, 요청 주소). AI 요청을 전달하는 한글친구 서버는 요청 내용을 기록하지 않습니다.\n- 이전 국가: 미국 등\n- 이전 시기와 방법: 접속할 때 암호화된 통신으로\n- 받는 자와 연락처: Vercel Inc., privacy@vercel.com\n- 받는 자의 이용 목적과 보유 기간: 웹사이트 제공과 보안, Vercel의 로그 보관 정책에 따른 기간\n\n### 국외 이전을 거부하는 방법과 그 효과\n가입하지 않거나 탈퇴하면 국외 이전이 일어나지 않습니다. 다만 한글친구 전체가 위 업체를 통해 동작하므로 이 경우 서비스를 쓸 수 없습니다. AI 기능을 쓰지 않으면 Anthropic으로의 이전은 일어나지 않습니다.\n\n### 참고 — 음성 입력\n마이크 버튼으로 말해서 글자를 넣는 기능은 기기 브라우저의 음성 인식을 씁니다. Chrome 같은 브라우저는 음성을 브라우저 제공사(예: Google)의 서버에서 글자로 바꿉니다. 한글친구는 음성을 받지 않고 바뀐 글자만 받습니다. (과제 녹음은 이와 달리 제1조대로 저장됩니다.)\n\n## 제7조 (이용자와 법정대리인의 권리)\n이용자(만 14세 미만이면 동의해 주신 분도)는 언제든 개인정보의 열람, 정정, 삭제, 처리 정지, 동의 철회, 그리고 본인 정보를 다른 곳으로 보내 달라는 전송 요구를 할 수 있습니다. 연구 활용 동의와 '나를 소개해요'는 앱의 '내 정보'에서 직접 바꿀 수 있고, 그 밖의 요청은 제12조의 연락처로 해 주세요.\n\n## 제8조 (파기 방법)\n전자 파일 형태의 개인정보는 복구할 수 없는 방법으로 영구 삭제합니다.\n\n## 제9조 (아동의 개인정보 보호)\n가입할 때 나이 확인 단계에서 만 14세 미만 이용자를 확인합니다. 만 14세 미만 이용자는 부모님 또는 그 학습자를 실제로 돌보고 있는 책임 있는 어른(담임교사, 사회복지사, 선교사 등 교육·돌봄 담당자)의 동의를 확인한 뒤 이용할 수 있습니다. 보호자와 떨어져 지내는 학습자도 배제되지 않도록 하기 위함입니다. 만 14세 미만 학습자에게는 연구 활용 동의와 '나를 소개해요'를 묻지 않습니다.\n\n## 제10조 (안전성 확보 조치)\n- 접근 권한: 데이터베이스 보안 규칙으로 본인, 연결된 교수자(필요한 범위), 관리자만 읽을 수 있게 제한합니다.\n- 암호화: 모든 통신은 암호화되며, 비밀번호는 인증 서비스가 암호화해 보관합니다.\n- 연구용 자료: 가명처리한 자료와 원래 정보를 분리해 보관하고, 처리 기록을 남깁니다.\n\n## 제11조 (자동화된 결정)\nAI 채점과 피드백은 학습을 돕는 참고용이며, 이용자의 권리나 의무에 영향을 주는 결정에 쓰지 않습니다. 교수자 과제의 평가는 교수자가 합니다.\n\n## 제12조 (개인정보 보호책임자와 문의처)\n- 성명: 노치성\n- 이메일: roh053068@gmail.com\n\n## 제13조 (방침의 변경)\n이 방침은 시행일부터 적용되며, 바뀌면 앱 안에서 알려 드립니다. 중요한 내용이 바뀌면 다음 로그인 때 확인을 받습니다.\n\n# 한글친구 이용약관 (v8)\n\n## 제1조 (목적)\n이 약관은 한글친구가 제공하는 AI 기반 한국어 학습 서비스의 이용에 관한 한글친구와 이용자의 권리, 의무, 책임을 정합니다.\n\n## 제2조 (정의)\n- \"이용자\"는 이 약관에 따라 서비스를 이용하는 학습자와 교수자입니다.\n- \"교수자\"는 클래스 코드를 발급해 학습자를 초대하고 관리하는 이용자입니다(관리자 승인 후).\n- \"학습자\"는 클래스 코드로 교수자와 연결되거나 혼자 서비스를 이용하는 이용자입니다.\n\n## 제3조 (서비스의 내용)\nAI 캐릭터와의 대화형 한국어 학습, 커리큘럼 학습, TOPIK Ⅰ·Ⅱ 모의고사와 자동 채점, KIIP 평가지와 자동 채점, 교수자 과제와 클래스 관리 기능 등을 제공합니다. 서비스는 계속 개발 중이어서 일부 기능은 바뀌거나 잠시 멈출 수 있습니다.\n\n## 제4조 (이용 계약의 성립)\n이용 계약은 이용자가 이 약관에 동의하고 개인정보 처리 안내를 확인한 뒤 회원가입을 마치면 성립합니다. 만 14세 미만 이용자는 개인정보처리방침 제9조의 확인 절차를 거칩니다.\n\n## 제5조 (이용자의 의무)\n- 다른 사람의 정보를 도용하거나 거짓 정보를 등록하지 않습니다.\n- 서비스에서 얻은 정보를 한글친구의 사전 승인 없이 영리 목적으로 쓰지 않습니다.\n- 교수자는 연결된 학습자의 정보를 학습 지도 외의 용도로 쓰지 않습니다.\n\n## 제6조 (한글친구의 의무와 책임의 한계)\n- 한글친구는 안정적인 서비스를 위해 노력하지만, 서버나 외부 AI 서비스 장애로 인한 일시적인 중단에는 책임을 지지 않습니다.\n- AI(마중이, 자동 채점 등)의 응답은 학습을 돕기 위한 것이며 항상 정확하지는 않습니다. 중요한 학습·평가 결정은 본인의 판단과 공식 시험 결과를 우선해 주세요.\n- 서비스는 무료로 제공되며, 유료로 바뀌게 되면 미리 알려 드립니다.\n\n## 제7조 (계약 해지와 이용 제한)\n이용자는 언제든 탈퇴(삭제 요청)로 계약을 해지할 수 있습니다. 한글친구는 이용자가 약관을 어긴 경우 미리 알린 뒤 이용을 제한할 수 있습니다.\n\n## 제8조 (지식재산권)\n- 서비스의 커리큘럼, 문제, 콘텐츠의 저작권은 한글친구에 있으며, 사전 동의 없이 복제·배포·2차 저작물 제작을 할 수 없습니다.\n- **이용자가 쓴 글과 녹음의 권리는 이용자에게 있습니다.** 한글친구는 서비스 제공(저장, 연결된 교수자에게 보여 주기, AI 응답 생성)에 필요한 범위에서만 이용하며, 연구 활용은 개인정보처리방침 제4조의 선택 동의에 따릅니다.\n\n## 제9조 (분쟁 해결)\n분쟁이 생기면 서로 협의해 해결하도록 노력하고, 협의가 되지 않으면 관계 법령에 따릅니다.\n\n부칙: 이 방침과 약관은 앱 버전 V541이 게시된 날(2026년 9월)부터 시행합니다. v7까지의 \"학습 데이터 소유권 귀속 및 활용 동의\"는 이날부터 효력이 없습니다.";
+const POLICY_V8_TEXT = "# 한글친구 개인정보처리방침 (v8.1)\n\n한글친구(Hangeul Chingu, 운영자 노치성, 이하 \"한글친구\")는 개인정보 보호법에 따라 이용자의 개인정보를 보호하고, 궁금한 점과 요청을 빠르게 처리하기 위해 이 방침을 공개합니다. 번역본이 있더라도 **한국어 원문이 기준**입니다.\n\n## 제1조 (처리하는 개인정보 — 두 가지로 나눠 알려 드려요)\n\n### 가. 동의 없이 처리하는 개인정보 (이용 계약 이행)\n아래 정보는 한글친구를 쓰는 데 꼭 필요해서, 이용 계약에 따라 처리합니다(개인정보 보호법 제15조 제1항 제4호). 동의 항목과 구분해 알려 드립니다(같은 법 제22조 제3항).\n- 회원 정보: 이메일, 비밀번호(인증 서비스에 암호화되어 저장), 이름, 역할(학습자·교수자), 회원번호, 만 14세 이상인지 여부, (만 14세 미만) 동의해 주신 분 성함(선택), (교수자) 소속 기관(선택)\n- 학습 기록: 학습 진도와 단원 통과, 레벨, 활동 횟수, 발음 테스트 결과와 음성 인식 결과 글, TOPIK 모의고사 답안과 채점 결과, TOPIK 성적 인증 결과(성적표 사진은 판독에만 쓰고 저장하지 않음)\n- 교수자 과제 기록: 고른 답·쓴 답·만든 문장·한 날짜와 걸린 시간, 논술 과제 글(고쳐 쓴 글 포함), 발음 과제 녹음(단어별 하루 최대 2개), 상황 말하기 과제에서 제출한 녹음·준비 메모·스스로 체크한 항목·녹음 횟수와 걸린 시간, 선생님 의견(글·음성)과 학습자 답글\n- 논술 탭 글: 단계별 글쓰기에서 완성한 글과 AI 피드백('내 글 모음'에 저장돼요. 앱에서는 본인만 볼 수 있고 선생님은 볼 수 없으며, 본인이 언제든 지울 수 있음)\n- 반 연결 정보: 어느 교수자의 반에 속해 있는지\n- 문의할 때: 이메일과 문의 내용\n- **저장하지 않는 것**: 마중이·프리토킹 대화 내용(횟수만 저장), KIIP 평가지 답안, 말하기 과제에서 제출하기 전의 연습 녹음(기기 안에만 있음), 논술 탭에서 사진·PDF로 올린 글\n\n### 나. 선택 동의를 받아 처리하는 개인정보\n동의하지 않아도 모든 기능을 똑같이 쓸 수 있습니다.\n- 업데이트 소식 이메일 수신 여부\n- 연구 활용 동의(만 14세 이상 학습자): 제4조\n- 나를 소개해요(만 14세 이상 학습자, 모두 선택): 한국어를 공부한 기간, 한국에서 산 기간, 공부하는 이유, 할 줄 아는 다른 언어, 나이대. **모어와 한국계(재외동포)인지 여부**는 민족을 짐작할 수 있는 정보라서 따로 체크한 경우에만 저장합니다.\n- 동의 기록: 언제 무엇에 동의하거나 철회했는지\n\n## 제2조 (처리 목적)\n1. 회원 확인과 로그인\n2. 학습 기능 제공(학습 기록 저장, AI 응답, 자동 채점)\n3. 연결된 교수자가 학습 현황을 보고 과제에 의견을 줄 수 있도록 지원(녹음은 학습자 본인과 과제를 낸 교수자만 들을 수 있음)\n4. 문의와 요청 대응\n5. 서비스 개선을 위한 통계(횟수·비율 같은 집계만, 개인을 알아볼 수 없는 형태)\n6. 연구 활용 — 선택 동의한 사람의 자료만(제4조)\n\n## 제3조 (보유 기간)\n- 회원 정보와 학습 기록: 탈퇴하거나 삭제를 요청할 때까지 보관하고, 요청하면 지체 없이 파기합니다. 법령이 보존을 정한 정보는 그 기간 동안만 보관합니다.\n- 교수자 과제 기록: 교수자가 과제를 [보관하기] 해도 남고, 교수자가 보관함에서 영구 삭제하거나 학습자가 탈퇴·삭제를 요청하면 파기합니다. 제출한 녹음은 기록을 지키기 위해 학습자가 직접 고치거나 지울 수 없으며, 삭제는 요청으로 합니다.\n- 나를 소개해요: 본인이 지우거나 탈퇴할 때까지.\n- 논술 탭 글: 본인이 지우거나 탈퇴할 때까지.\n- 동의 기록: 탈퇴할 때 함께 파기합니다.\n\n## 제4조 (연구 활용 — 선택 동의)\n- **누구의 자료를**: 만 14세 이상 학습자가 동의한 경우에만. 만 14세 미만 학습자와 교수자의 자료는 쓰지 않습니다.\n- **무엇을**: ① 과제로 낸 글(고쳐 쓴 글 포함), 말하기 준비 메모, 어휘 과제에서 만든 문장, 발음 인식 결과 글, '나를 소개해요' 정보, 논술 탭에서 완성해 저장된 글(v8.1 이후에 ①에 동의한 경우) ② 과제로 낸 말하기·발음 녹음. 선생님의 의견은 넣지 않습니다.\n- **왜**: 한국어 교육 연구(학술 논문·학회 발표)\n- **어떻게**: 이름·이메일·회원번호를 지우고 무작위 번호로 바꾸며, 글과 녹음 속 이름·연락처 같은 정보는 사람이 확인해 가립니다(가명처리와 안전조치 — 개인정보 보호법 제28조의2, 제28조의4).\n- **공개하지 않음**: 누구나 받을 수 있게 공개하지 않습니다. 다른 연구자에게 줄 일이 생기면 그때 따로 동의를 받습니다.\n- **언제까지**: 동의를 끄거나 탈퇴하면 그때부터 쓰지 않고, 연구용으로 옮긴 자료에서도 빼서 지웁니다(이미 발표된 통계 결과는 되돌릴 수 없습니다). 연구용 자료는 만든 날부터 5년이 지나면 파기합니다.\n- **거부할 권리**: 동의하지 않아도 모든 기능을 똑같이 쓸 수 있고, 선생님의 의견과도 상관없습니다. '내 정보'에서 언제든 켜고 끌 수 있습니다.\n- **예전 동의**: v7까지 가입할 때 받던 \"(필수) 학습 데이터 소유권 귀속 및 활용 동의\"는 v8부터 효력이 없습니다. 한글친구는 이용자의 글·녹음에 대한 소유권을 갖지 않으며, 예전 동의를 근거로 연구에 쓰지 않습니다.\n\n## 제5조 (제3자 제공)\n원칙적으로 외부에 제공하지 않습니다. 다만 이용자가 미리 동의한 경우와 법령에 따른 요구가 있는 경우는 예외입니다. 학습자가 참여한 반의 교수자가 제2조 3호의 목적으로 기록을 보는 것은 서비스 안의 처리이며, 교수자는 이용약관 제5조에 따라 학습 지도 외의 용도로 쓸 수 없습니다.\n\n## 제6조 (처리 위탁과 국외 이전)\n한글친구는 아래 업체의 서버(국외)를 통해 동작합니다. 이용 계약을 이행하는 데 필요한 처리 위탁·보관이라서 이 방침으로 알려 드립니다(개인정보 보호법 제28조의8 제1항 제3호).\n\n### Google LLC — Firebase(회원 인증, 데이터 저장)\n- 이전 항목: 제1조의 회원 정보, 학습 기록, 과제 기록(녹음 포함), 선택 입력 정보, 동의 기록\n- 이전 국가: 미국 등 Google 클라우드 데이터센터가 있는 국가\n- 이전 시기와 방법: 서비스를 이용할 때마다 암호화된 통신으로 전송·저장\n- 받는 자와 연락처: Google LLC, https://support.google.com/policies\n- 받는 자의 이용 목적과 보유 기간: 회원 인증과 데이터 저장, 제3조의 보유 기간 동안\n\n### Anthropic PBC — Claude API(AI 응답 생성)\n- 이전 항목: AI 응답이 필요한 기능에서 입력한 내용(마중이·프리토킹 대화, 논술 글과 피드백 요청, TOPIK 서술형 답안, TOPIK 성적표 사진, 교수자의 과제 문항·의견 초안 요청)\n- 이전 국가: 미국\n- 이전 시기와 방법: 해당 기능을 쓸 때 암호화된 통신으로 전송\n- 받는 자와 연락처: Anthropic PBC, privacy@anthropic.com\n- 받는 자의 이용 목적과 보유 기간: AI 응답 생성. Anthropic은 받은 내용을 30일 이내에 자동 삭제하고(이용 정책 위반으로 표시된 경우 최대 2년), 허락 없이 AI 학습에 쓰지 않습니다(Anthropic 상업용 데이터 정책 기준).\n\n### Vercel Inc. — 웹사이트 호스팅\n- 이전 항목: 접속 기록(IP 주소, 접속 시각, 요청 주소). AI 요청을 전달하는 한글친구 서버는 요청 내용을 기록하지 않습니다.\n- 이전 국가: 미국 등\n- 이전 시기와 방법: 접속할 때 암호화된 통신으로\n- 받는 자와 연락처: Vercel Inc., privacy@vercel.com\n- 받는 자의 이용 목적과 보유 기간: 웹사이트 제공과 보안, Vercel의 로그 보관 정책에 따른 기간\n\n### 국외 이전을 거부하는 방법과 그 효과\n가입하지 않거나 탈퇴하면 국외 이전이 일어나지 않습니다. 다만 한글친구 전체가 위 업체를 통해 동작하므로 이 경우 서비스를 쓸 수 없습니다. AI 기능을 쓰지 않으면 Anthropic으로의 이전은 일어나지 않습니다.\n\n### 참고 — 음성 입력\n마이크 버튼으로 말해서 글자를 넣는 기능은 기기 브라우저의 음성 인식을 씁니다. Chrome 같은 브라우저는 음성을 브라우저 제공사(예: Google)의 서버에서 글자로 바꿉니다. 한글친구는 음성을 받지 않고 바뀐 글자만 받습니다. (과제 녹음은 이와 달리 제1조대로 저장됩니다.)\n\n## 제7조 (이용자와 법정대리인의 권리)\n이용자(만 14세 미만이면 동의해 주신 분도)는 언제든 개인정보의 열람, 정정, 삭제, 처리 정지, 동의 철회, 그리고 본인 정보를 다른 곳으로 보내 달라는 전송 요구를 할 수 있습니다. 연구 활용 동의와 '나를 소개해요'는 앱의 '내 정보'에서 직접 바꿀 수 있고, 그 밖의 요청은 제12조의 연락처로 해 주세요.\n\n## 제8조 (파기 방법)\n전자 파일 형태의 개인정보는 복구할 수 없는 방법으로 영구 삭제합니다.\n\n## 제9조 (아동의 개인정보 보호)\n가입할 때 나이 확인 단계에서 만 14세 미만 이용자를 확인합니다. 만 14세 미만 이용자는 부모님 또는 그 학습자를 실제로 돌보고 있는 책임 있는 어른(담임교사, 사회복지사, 선교사 등 교육·돌봄 담당자)의 동의를 확인한 뒤 이용할 수 있습니다. 보호자와 떨어져 지내는 학습자도 배제되지 않도록 하기 위함입니다. 만 14세 미만 학습자에게는 연구 활용 동의와 '나를 소개해요'를 묻지 않습니다.\n\n## 제10조 (안전성 확보 조치)\n- 접근 권한: 데이터베이스 보안 규칙으로 본인, 연결된 교수자(필요한 범위), 관리자만 읽을 수 있게 제한합니다. 논술 탭 글은 앱에서 본인만 읽을 수 있고, 운영자는 삭제 요청과 연구 동의 처리 때만 다룹니다.\n- 암호화: 모든 통신은 암호화되며, 비밀번호는 인증 서비스가 암호화해 보관합니다.\n- 연구용 자료: 가명처리한 자료와 원래 정보를 분리해 보관하고, 처리 기록을 남깁니다.\n\n## 제11조 (자동화된 결정)\nAI 채점과 피드백은 학습을 돕는 참고용이며, 이용자의 권리나 의무에 영향을 주는 결정에 쓰지 않습니다. 교수자 과제의 평가는 교수자가 합니다.\n\n## 제12조 (개인정보 보호책임자와 문의처)\n- 성명: 노치성\n- 이메일: roh053068@gmail.com\n\n## 제13조 (방침의 변경)\n이 방침은 시행일부터 적용되며, 바뀌면 앱 안에서 알려 드립니다. 중요한 내용이 바뀌면 다음 로그인 때 확인을 받습니다.\n\n# 한글친구 이용약관 (v8.1)\n\n## 제1조 (목적)\n이 약관은 한글친구가 제공하는 AI 기반 한국어 학습 서비스의 이용에 관한 한글친구와 이용자의 권리, 의무, 책임을 정합니다.\n\n## 제2조 (정의)\n- \"이용자\"는 이 약관에 따라 서비스를 이용하는 학습자와 교수자입니다.\n- \"교수자\"는 클래스 코드를 발급해 학습자를 초대하고 관리하는 이용자입니다(관리자 승인 후).\n- \"학습자\"는 클래스 코드로 교수자와 연결되거나 혼자 서비스를 이용하는 이용자입니다.\n\n## 제3조 (서비스의 내용)\nAI 캐릭터와의 대화형 한국어 학습, 커리큘럼 학습, TOPIK Ⅰ·Ⅱ 모의고사와 자동 채점, KIIP 평가지와 자동 채점, 교수자 과제와 클래스 관리 기능 등을 제공합니다. 서비스는 계속 개발 중이어서 일부 기능은 바뀌거나 잠시 멈출 수 있습니다.\n\n## 제4조 (이용 계약의 성립)\n이용 계약은 이용자가 이 약관에 동의하고 개인정보 처리 안내를 확인한 뒤 회원가입을 마치면 성립합니다. 만 14세 미만 이용자는 개인정보처리방침 제9조의 확인 절차를 거칩니다.\n\n## 제5조 (이용자의 의무)\n- 다른 사람의 정보를 도용하거나 거짓 정보를 등록하지 않습니다.\n- 서비스에서 얻은 정보를 한글친구의 사전 승인 없이 영리 목적으로 쓰지 않습니다.\n- 교수자는 연결된 학습자의 정보를 학습 지도 외의 용도로 쓰지 않습니다.\n\n## 제6조 (한글친구의 의무와 책임의 한계)\n- 한글친구는 안정적인 서비스를 위해 노력하지만, 서버나 외부 AI 서비스 장애로 인한 일시적인 중단에는 책임을 지지 않습니다.\n- AI(마중이, 자동 채점 등)의 응답은 학습을 돕기 위한 것이며 항상 정확하지는 않습니다. 중요한 학습·평가 결정은 본인의 판단과 공식 시험 결과를 우선해 주세요.\n- 서비스는 무료로 제공되며, 유료로 바뀌게 되면 미리 알려 드립니다.\n\n## 제7조 (계약 해지와 이용 제한)\n이용자는 언제든 탈퇴(삭제 요청)로 계약을 해지할 수 있습니다. 한글친구는 이용자가 약관을 어긴 경우 미리 알린 뒤 이용을 제한할 수 있습니다.\n\n## 제8조 (지식재산권)\n- 서비스의 커리큘럼, 문제, 콘텐츠의 저작권은 한글친구에 있으며, 사전 동의 없이 복제·배포·2차 저작물 제작을 할 수 없습니다.\n- **이용자가 쓴 글과 녹음의 권리는 이용자에게 있습니다.** 한글친구는 서비스 제공(저장, 연결된 교수자에게 보여 주기, AI 응답 생성)에 필요한 범위에서만 이용하며, 연구 활용은 개인정보처리방침 제4조의 선택 동의에 따릅니다.\n\n## 제9조 (분쟁 해결)\n분쟁이 생기면 서로 협의해 해결하도록 노력하고, 협의가 되지 않으면 관계 법령에 따릅니다.\n\n부칙: 이 방침과 약관은 앱 버전 V541이 게시된 날(2026년 9월)부터 시행합니다. v7까지의 \"학습 데이터 소유권 귀속 및 활용 동의\"는 이날부터 효력이 없습니다.\n\nv8.1 (2026년 10월, 앱 V543): 논술 탭 단계별 글쓰기에서 완성한 글을 '내 글 모음'에 저장하는 기능을 더하고, 이를 처리 항목(제1조)·보유 기간(제3조)·연구 활용 ①의 대상(제4조)·안전성 확보 조치(제10조)에 넣었습니다. 글쓰기 화면에서 저장된다는 사실을 먼저 알려 드립니다."; // ✅ V543: v8.1 본문(claude/한글친구_개인정보처리방침_이용약관_v8.1_261002.md와 같음)
 function PolicyText() {
   const lines = POLICY_V8_TEXT.split("\n");
   const bold = (s) => s.split("**").map((part, i) => i % 2 ? <strong key={i}>{part}</strong> : <span key={i}>{part}</span>);
@@ -9122,7 +9142,7 @@ function StatsModal({ user, onClose }) {
         </div>
         {stats ? (
           <div style={{display:"flex",gap:12,marginBottom:20}}>
-            {[["🗣️","프리토킹",stats.speak,C.pink],["✍️","논술",stats.write,C.teal],["🎓","하이터치",stats.tutor,C.purple]].map(([e,l,v,c])=>(
+            {[["🗣️","프리토킹",stats.speak,C.pink],["✍️","완성 글",stats.essay||0,C.teal],["🎓","하이터치",stats.tutor,C.purple]].map(([e,l,v,c])=>(
               <div key={l} style={{flex:1,background:`${c}18`,borderRadius:16,padding:"14px 8px",textAlign:"center"}}>
                 <div style={{fontSize:24,marginBottom:4}}>{e}</div>
                 <div style={{fontSize:22,fontWeight:900,color:c}}>{v}</div>
@@ -26859,7 +26879,146 @@ const PRAGMATIC_QUIZ = [
     ans:1, exp:"'괜찮아요'는 상황에 따라 '좋아요'가 아니라 '별로지만 그냥 먹겠다'는 의미일 때가 많아요. 한국에서는 부정적인 감정을 직접 표현하기보다 '괜찮아요'로 넘기는 경우가 흔해요." },
 ];
 
-function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
+// ════════════════════════════════════════════════════════
+// ✅ V543: 로드맵 6-3 — 내 글 모음 (설계: claude/한글친구_연구자료기반_설계안_260928.md v6)
+// - 논술 탭 "단계별 글쓰기"에서 완성한 글만 users/{uid}/writings/{id}에 저장(사진·PDF 글은 저장 안 함)
+// - 앱에서는 본인만 읽음(선생님·관리자 화면 모두 못 읽음 — 보안 규칙 V543). 지우기는 본인(+관리자)
+// - 세 번째 피드백을 받는 즉시 저장, 감성 매핑은 나중에 같은 글에 붙임. 고쳐 다시 완성하면 같은 글을 고침
+// - 완성 글 수 = stats.essay(처음 저장에 성공했을 때 1번). 기존 stats.write(단계 활동 횟수)는 그대로
+// - AI 오류 문장은 저장하지 않음, 길이는 저장 직전에 자름(규칙 상한과 같음)
+// ════════════════════════════════════════════════════════
+const WRITE_MAX = 1500;           // 단계마다 글 길이(입력칸 제한과 같음)
+const WRITE_FB_MAX = 2000;        // AI 피드백 저장 길이
+const WRITE_ART_MAX = 300;        // 감정·칭찬 저장 길이
+const WRITE_PAGE = 20;            // 내 글 모음 한 번에 불러오는 개수
+const ESSAY_RESEARCH_VERSIONS = ["v8.1"]; // 논술 탭 글을 연구 ①에 넣을 수 있는 동의 버전(버전이 늘면 추가)
+// callClaude가 실패할 때 돌려주는 문장(공용 함수는 고치지 않고 여기서 알아봄)
+function writeIsAiErr(s) {
+  const t = String(s || "").trim();
+  if (!t) return true;
+  if (Object.values(API_ERRORS).includes(t)) return true;
+  return t.startsWith("잠깐! 너무 빠르게") || /^오류가 발생했어요\. \(\d+\)$/.test(t) || t.startsWith("오류: ")
+    || t === "응답을 받지 못했어요." || t.startsWith("인터넷 연결을 확인해줘") || t.startsWith("연결 오류가 발생했어요");
+}
+function writePayload(steps, feedback) {
+  return {
+    steps: [0, 1, 2].map(i => String((steps && steps[i]) || "").slice(0, WRITE_MAX)),
+    feedback: [0, 1, 2].map(i => { const f = feedback && feedback[i]; return writeIsAiErr(f) ? "" : String(f).slice(0, WRITE_FB_MAX); }),
+  };
+}
+function writeArtPick(j) {
+  if (!j || typeof j !== "object") return null;
+  const emotion = typeof j.emotion === "string" ? j.emotion.trim().slice(0, WRITE_ART_MAX) : "";
+  const praise = typeof j.praise === "string" ? j.praise.trim().slice(0, WRITE_ART_MAX) : "";
+  return emotion ? { emotion, praise } : null;
+}
+function essayResearchOn(u) {
+  const rc = u && u.researchConsent;
+  return !!(u && u.isAdult === true && rc && rc.text === true && ESSAY_RESEARCH_VERSIONS.includes(rc.version));
+}
+const WRITE_LV = { beg: "초급", mid: "중급", adv: "고급" };
+function writeDate(v) {
+  const ms = toMs(v);
+  if (!ms) return "";
+  const d = new Date(ms);
+  return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`;
+}
+
+function MyWritings({ uid, lang, onBack }) {
+  const [items, setItems] = useState([]);
+  const [last, setLast] = useState(null);
+  const [more, setMore] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+  const [open, setOpen] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [research, setResearch] = useState(false);
+
+  async function load(after) {
+    setLoading(true); setErr("");
+    try {
+      const parts = [collection(db, "users", uid, "writings"), orderBy("createdAt", "desc"), limit(WRITE_PAGE)];
+      if (after) parts.push(startAfter(after));
+      const snap = await getDocs(query(...parts));
+      const got = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setItems(prev => after ? [...prev, ...got] : got);
+      setLast(snap.docs.length ? snap.docs[snap.docs.length - 1] : after || null);
+      setMore(snap.docs.length === WRITE_PAGE);
+    } catch (e) { setErr("글을 불러오지 못했어요. 잠시 후 다시 열어 주세요."); }
+    setLoading(false);
+  }
+  useEffect(() => {
+    if (!uid) return;
+    load(null);
+    getDoc(doc(db, "users", uid)).then(d => { if (d.exists()) setResearch(essayResearchOn(d.data())); }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uid]);
+
+  async function remove(w) {
+    if (busy) return;
+    if (!window.confirm("지우면 되돌릴 수 없어요. 이 글을 지울까요?")) return;
+    setBusy(true);
+    try {
+      await deleteDoc(doc(db, "users", uid, "writings", w.id));
+      setItems(prev => prev.filter(x => x.id !== w.id));
+      setOpen(null);
+    } catch (e) { alert("지우지 못했어요. 잠시 후 다시 해 주세요."); }
+    setBusy(false);
+  }
+
+  const top = (
+    <>
+      <button onClick={open ? () => setOpen(null) : onBack} style={{ background: "none", border: "none", color: C.teal, fontWeight: 700, fontSize: 13, cursor: "pointer", marginBottom: 8, padding: 0 }}>← 뒤로</button>
+      <div style={{ background: "white", borderRadius: 18, padding: "14px 16px", boxShadow: "0 4px 18px rgba(0,0,0,.07)", marginBottom: 12 }}>
+        <div style={{ fontSize: 17, fontWeight: 900, color: "#333", marginBottom: 6 }}>📚 내 글 모음</div>
+        <div style={{ fontSize: 12, color: "#2E75B6", lineHeight: 1.6 }}>{ctl("wMineLock", lang)}</div>
+        {research && <div style={{ fontSize: 11, color: "#777", lineHeight: 1.6, marginTop: 4 }}>{ctl("wMineResearch", lang)}</div>}
+      </div>
+    </>
+  );
+
+  if (open) return (
+    <div style={{ padding: "8px 0" }}>
+      {top}
+      <div style={{ background: "white", borderRadius: 18, padding: 16, boxShadow: "0 4px 18px rgba(0,0,0,.07)" }}>
+        <div style={{ fontSize: 12, color: "#999", marginBottom: 12 }}>{writeDate(open.createdAt)} · {WRITE_LV[open.level] || ""}</div>
+        {STEPS.map((s, i) => (
+          <div key={i} style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 12, color: s.color, fontWeight: 800, marginBottom: 4 }}>{s.emoji} {s.label}</div>
+            <div style={{ background: `${s.color}14`, borderRadius: 10, padding: "8px 12px", fontSize: 14, color: "#444", lineHeight: 1.7, borderLeft: `3px solid ${s.color}`, whiteSpace: "pre-wrap" }}>{(open.steps || [])[i]}</div>
+            {(open.feedback || [])[i] && <div style={{ marginTop: 5, padding: "8px 12px", background: "#f5f5f5", borderRadius: 8, lineHeight: 1.6 }}>{renderFeedback(open.feedback[i], "#888")}</div>}
+          </div>
+        ))}
+        {open.art && open.art.emotion && (
+          <div style={{ background: "#F3EEFF", borderRadius: 12, padding: "10px 14px", marginBottom: 14, fontSize: 13, color: "#5B3FA0", lineHeight: 1.6 }}>
+            🎨 핵심 감정: <b>{open.art.emotion}</b>{open.art.praise ? <div style={{ marginTop: 4, color: "#666" }}>{open.art.praise}</div> : null}
+          </div>
+        )}
+        <button onClick={() => remove(open)} disabled={busy} style={{ width: "100%", background: "white", border: "1.5px solid #E53935", color: "#E53935", borderRadius: 50, padding: "11px 0", fontSize: 14, fontWeight: 800, cursor: "pointer", opacity: busy ? 0.5 : 1 }}>🗑️ 이 글 지우기</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ padding: "8px 0" }}>
+      {top}
+      {err && <div style={{ background: "#FFF0F0", border: "1px solid #FFCCCC", borderRadius: 10, padding: "8px 12px", fontSize: 12, color: "#E53935", marginBottom: 10 }}>{err}</div>}
+      {!loading && !err && items.length === 0 && (
+        <div style={{ background: "white", borderRadius: 16, padding: "28px 16px", textAlign: "center", color: "#999", fontSize: 13 }}>아직 완성한 글이 없어요.<br />단계별 글쓰기로 첫 글을 완성해 보세요 ✍️</div>
+      )}
+      {items.map(w => (
+        <button key={w.id} onClick={() => setOpen(w)} style={{ width: "100%", textAlign: "left", background: "white", border: "1.5px solid #E8FAF8", borderRadius: 14, padding: "12px 14px", marginBottom: 8, cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,.04)" }}>
+          <div style={{ fontSize: 11, color: "#999", marginBottom: 4 }}>{writeDate(w.createdAt)} · {WRITE_LV[w.level] || ""}</div>
+          <div style={{ fontSize: 14, color: "#333", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>👀 {(w.steps || [])[0] || ""}</div>
+        </button>
+      ))}
+      {loading && <div style={{ textAlign: "center", color: "#999", fontSize: 13, padding: 12 }}>불러오는 중...</div>}
+      {!loading && more && <button onClick={() => load(last)} style={{ width: "100%", background: "none", border: `1.5px solid ${C.teal}`, color: C.teal, borderRadius: 50, padding: "10px 0", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>더 보기</button>}
+    </div>
+  );
+}
+
+function WriteTab({level, uid, lang, reviewModule, reviewNonce, preview=false}) { // ✅ V543: preview = 교수자의 '학습자 화면 보기'(저장 안 함)
   const [mode,        setMode]        = useState(null);
   const [wStep,       setWStep]       = useState(0);
   const [wText,       setWText]       = useState(["","",""]);
@@ -26873,6 +27032,12 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
   const [submitLoad,  setSubmitLoad]  = useState(false);
   const [submitFeed,  setSubmitFeed]  = useState(null);
   const [feedDepth,   setFeedDepth]   = useState("normal");
+  // ✅ V543: 내 글 모음 저장 상태 — null|"preview"|"saving"|"slow"|"saved"|"updated"|"error"
+  const [saveState,   setSaveState]   = useState(null);
+  const wDocId   = useRef(null);  // 지금 쓰는 글의 문서 id(처음 완성할 때 만들고 "새로운 글 쓰기"에서만 비움)
+  const wCreated = useRef(false); // 서버에 새로 만들기가 끝났는지
+  const pendingRef = useRef(null); // 실패했을 때 [다시 저장]할 내용
+  const lastArtRef = useRef(null); // 이번 완성의 진짜 감성 매핑(저장이 늦게 성공해도 붙이려고)
   // ✅ V348: 모듈1 어휘 출력 자동화 훈련 state
   const m1DoneKey = uid ? `hc_m1_done_${uid}` : null;
   const [m1Done,    setM1Done]    = useState(()=> m1DoneKey ? !!localStorage.getItem(m1DoneKey) : false);
@@ -26959,9 +27124,57 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
   const fileRef = useRef(null);
   const writeSys = PROMPTS.write[level === "adv" ? "adv" : level === "beg" ? "beg" : "mid"] ?? PROMPTS.write["mid"];
 
+  // ✅ V543: 내 글 모음 저장 — 성공하면 문서 id, 아니면 null
+  async function saveWriting(steps, feedback, asSaved = false) {
+    if (!uid) return null;
+    if (preview) { setSaveState("preview"); return null; }
+    if (!wDocId.current) wDocId.current = doc(collection(db, "users", uid, "writings")).id;
+    const id = wDocId.current;
+    const ref = doc(db, "users", uid, "writings", id);
+    const payload = writePayload(steps, feedback);
+    pendingRef.current = { steps, feedback };
+    setSaveState("saving");
+    const slow = setTimeout(() => setSaveState(st => st === "saving" ? "slow" : st), 6000);
+    try {
+      if (!wCreated.current) {
+        const lvl = ["beg", "mid", "adv"].includes(level) ? level : "mid";
+        await setDoc(ref, { ...payload, level: lvl, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+        wCreated.current = true;
+        recordStat(uid, "essay"); // 완성 글 수 — 처음 저장에 성공했을 때 1번만
+        setSaveState("saved");
+      } else {
+        await updateDoc(ref, { ...payload, art: deleteField(), updatedAt: serverTimestamp() }); // 고친 글에 옛 감정이 남지 않게(새 감정은 뒤에 붙임)
+        setSaveState(asSaved ? "saved" : "updated");
+      }
+      pendingRef.current = null;
+      return id;
+    } catch (e) {
+      setSaveState("error");
+      return null;
+    } finally { clearTimeout(slow); }
+  }
+  // [다시 저장] — 서버엔 저장됐는데 앱만 오류를 받은 경우를 먼저 확인
+  async function retrySave() {
+    const p = pendingRef.current;
+    if (!p || !uid || saveState === "saving" || saveState === "slow") return;
+    if (!wCreated.current && wDocId.current) {
+      setSaveState("saving");
+      try {
+        const snap = await getDocFromServer(doc(db, "users", uid, "writings", wDocId.current));
+        if (snap.exists()) { wCreated.current = true; recordStat(uid, "essay"); } // 서버엔 이미 있음 → 아래에서 지금 글로 맞춤(새로 만들지 않음)
+      } catch (e) { setSaveState("error"); return; }
+      const id = await saveWriting(p.steps, p.feedback, true);
+      if (id && lastArtRef.current) { try { await updateDoc(doc(db, "users", uid, "writings", id), { art: lastArtRef.current }); } catch (e) {} }
+      return;
+    }
+    const id = await saveWriting(p.steps, p.feedback);
+    if (id && lastArtRef.current) { try { await updateDoc(doc(db, "users", uid, "writings", id), { art: lastArtRef.current }); } catch (e) {} }
+  }
+
   async function submitStep() {
-    if (!wText[wStep].trim() || wLoad) return;
+    if (!wText[wStep].trim() || wLoad || saveState === "saving" || saveState === "slow") return; // ✅ V543: 저장 중에는 다시 완성 안 됨
     setWLoad(true);
+    const steps = [...wText]; // ✅ V543: 저장할 글은 지금 값으로
     let ctx = wStep > 0 ? `[현상] ${wText[0]}\n` : "";
     if (wStep > 1) ctx += `[생각] ${wText[1]}\n`;
     ctx += `[학생 입력] ${wText[wStep]}`;
@@ -26969,7 +27182,10 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
     const nf = [...wFeed]; nf[wStep] = fb; setWFeed(nf);
     const next = wStep < 2 ? wStep + 1 : 3;
     setWStep(next);
+    let saveP = null;
     if (next === 3) {
+      lastArtRef.current = null;
+      saveP = saveWriting(steps, nf); // ✅ V543: 감성 매핑을 기다리지 않고 바로 저장
       setArtLoading(true);
       const full = `[현상] ${wText[0]}\n[생각] ${wText[1]}\n[이유] ${wText[2]}`;
       const isAdv = level === "adv";
@@ -26980,9 +27196,13 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
 중급(TOPIK 3~4급) 학습자용: 모든 텍스트는 짧고 쉬운 한국어로. 한자어·고급어휘 절대 금지. 이모지 적극 활용. 각 항목 1문장 이내.
 {"emotion":"쉬운감정단어(예:따뜻함,설렘,그리움)","praise":"학습자를칭찬하는쉽고짧은문장+이모지","painting":"그림이름과쉬운설명1문장+이모지","paintingSync":"한국사람들도이그림보면같은기분이래요스타일1문장","music":"악기이름+쉬운설명1문장+이모지","musicSync":"이음악이어울리는쉬운이유1문장","musicEmoji":"악기이모지","bridgePlace":"장소명","bridgeDesc":"그장소와글연결쉬운1문장"}`;
       const ar = await callClaude([{role:"user", content:`글 분석:\n${full}`}], artSys);
-      try { setArtFeed(JSON.parse(ar.replace(/```json|```/g,"").trim())); }
+      let artSave = null; // ✅ V543: 진짜 매핑 결과만 저장(기본 문장으로 바뀐 경우는 저장 안 함)
+      try { const j = JSON.parse(ar.replace(/```json|```/g,"").trim()); setArtFeed(j); artSave = writeArtPick(j); }
       catch { setArtFeed({emotion:"성찰",praise:"당신의 문장은 새벽 안개를 걷어내는 햇살 같네요.",painting:"추사 김정희의 묵향처럼 깊은 여운이 남습니다.",music:"거문고의 낮고 깊은 선율이 어울려요.",musicEmoji:"🎵"}); }
       setArtLoading(false);
+      lastArtRef.current = artSave;
+      const savedId = await saveP;
+      if (savedId && artSave) { try { await updateDoc(doc(db, "users", uid, "writings", savedId), { art: artSave }); } catch (e) {} }
     }
     if (uid) recordStat(uid,"write");
     setWLoad(false);
@@ -27010,6 +27230,9 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
   }
 
   function resetWrite() {
+    if (wLoad || artLoading || saveState === "saving" || saveState === "slow") return; // ✅ V543: 저장·매핑 중에는 막음
+    if (saveState === "error" && !window.confirm("이 글을 아직 저장하지 못했어요. 저장하지 않고 새 글을 쓸까요?")) return;
+    wDocId.current = null; wCreated.current = false; pendingRef.current = null; lastArtRef.current = null; setSaveState(null);
     setWStep(0); setWText(["","",""]); setWFeed(["","",""]); setArtFeed(null); setMode(null);
   }
 
@@ -27386,8 +27609,15 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
           <div style={{fontSize:12,color:"#888"}}>내 나라와 한국의 문화를 비교해서 써요</div>
         </div>
       </button>
+      {/* ✅ V543: 내 글 모음 */}
+      <button onClick={()=>setMode("mine")} style={{width:"100%",marginTop:12,background:"white",border:"2px solid #2E75B655",borderRadius:16,padding:"14px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,textAlign:"left"}}>
+        <span style={{fontSize:28}}>📚</span>
+        <div><div style={{fontSize:15,fontWeight:900,color:"#2E75B6"}}>내 글 모음</div><div style={{fontSize:12,color:"#888"}}>단계별 글쓰기로 완성한 글</div></div>
+      </button>
     </div>
   );
+
+  if (mode === "mine") return <MyWritings uid={uid} lang={lang} onBack={()=>setMode(null)} />;
 
   if (mode === "culture") return (
     <div style={{minHeight:"100dvh",background:"linear-gradient(150deg,#FFF3E8,#FFF8F0)",padding:"20px 16px",maxWidth:700,margin:"0 auto"}}>
@@ -27498,7 +27728,7 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
             const clickable = done;
             return (
               <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",flex:1}}>
-                <button onClick={()=>clickable && setWStep(i)} disabled={!clickable} style={{width:40,height:40,borderRadius:"50%",background:done?s.color:current?s.color:"#e8e8e8",border:clickable?`2.5px solid ${s.color}`:"none",display:"flex",alignItems:"center",justifyContent:"center",fontSize:done?15:18,color:"white",transition:"all .2s",fontWeight:800,cursor:clickable?"pointer":"default",boxShadow:clickable?`0 2px 10px ${s.color}55`:"none",padding:0,WebkitTapHighlightColor:"transparent"}}>
+                <button onClick={()=>clickable && !wLoad && !artLoading && saveState!=="saving" && saveState!=="slow" && setWStep(i)} disabled={!clickable||wLoad||artLoading||saveState==="saving"||saveState==="slow"} style={{width:40,height:40,borderRadius:"50%",background:done?s.color:current?s.color:"#e8e8e8",border:clickable?`2.5px solid ${s.color}`:"none",display:"flex",alignItems:"center",justifyContent:"center",fontSize:done?15:18,color:"white",transition:"all .2s",fontWeight:800,cursor:clickable?"pointer":"default",boxShadow:clickable?`0 2px 10px ${s.color}55`:"none",padding:0,WebkitTapHighlightColor:"transparent"}}>
                   {done ? "✓" : s.emoji}
                 </button>
                 <div style={{fontSize:11,color:wStep>=i?s.color:"#ccc",fontWeight:current?800:500,marginTop:4}}>{s.label}</div>
@@ -27544,7 +27774,9 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
             ))}
           </div>
           {wStep>0&&<div style={{background:"#f8f8f8",borderRadius:10,padding:"8px 12px",marginBottom:10,fontSize:13,lineHeight:1.7}}>{wText[0]&&<div style={{color:C.teal}}><strong>👀 현상:</strong> {wText[0]}</div>}{wStep>1&&wText[1]&&<div style={{color:C.orange,marginTop:3}}><strong>💭 생각:</strong> {wText[1]}</div>}</div>}
-          <textarea value={wText[wStep]} onChange={e=>{const a=[...wText];a[wStep]=e.target.value;setWText(a);}} placeholder={STEPS[wStep].hint} rows={3} style={{width:"100%",padding:"11px 12px",borderRadius:12,border:`2px solid ${STEPS[wStep].color}55`,outline:"none",fontSize:14,resize:"none",boxSizing:"border-box",background:"#fafafa",lineHeight:1.65,WebkitAppearance:"none"}}/>
+          {wStep===0&&<div style={{fontSize:12,color:preview?"#999":"#2E75B6",marginBottom:8,lineHeight:1.5}}>{preview?"👀 미리보기라 저장하지 않아요.":ctl("wSaveNote", lang)}</div>}{/* ✅ V543: 쓰기 전에 저장된다는 알림(방침 v8.1) */}
+          <textarea maxLength={WRITE_MAX} value={wText[wStep]} onChange={e=>{const a=[...wText];a[wStep]=e.target.value.slice(0,WRITE_MAX);setWText(a);}} placeholder={STEPS[wStep].hint} rows={3} style={{width:"100%",padding:"11px 12px",borderRadius:12,border:`2px solid ${STEPS[wStep].color}55`,outline:"none",fontSize:14,resize:"none",boxSizing:"border-box",background:"#fafafa",lineHeight:1.65,WebkitAppearance:"none"}}/>
+          {wText[wStep].length>=1200&&<div style={{fontSize:11,color:wText[wStep].length>=WRITE_MAX?"#E53935":"#999",textAlign:"right",marginTop:2}}>{wText[wStep].length}/{WRITE_MAX}</div>}
           {wStep>0&&wFeed[wStep-1]&&<div style={{background:`${STEPS[wStep-1].color}12`,borderRadius:10,padding:"10px 14px",marginTop:8,borderLeft:`3px solid ${STEPS[wStep-1].color}`}}><div style={{fontSize:11,color:STEPS[wStep-1].color,fontWeight:700,marginBottom:6}}>✨ AI 피드백</div>{renderFeedback(wFeed[wStep-1], STEPS[wStep-1].color)}</div>}
           <button onClick={submitStep} disabled={wLoad||!wText[wStep].trim()} style={{marginTop:12,width:"100%",background:`linear-gradient(135deg,${STEPS[wStep].color},${C.yellow})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",opacity:wLoad||!wText[wStep].trim()?0.5:1,WebkitTapHighlightColor:"transparent",touchAction:"manipulation"}}>
             {wLoad?"AI가 읽는 중... 📖":wStep<2?`다음 → ${STEPS[wStep+1].label} ${STEPS[wStep+1].emoji}`:"완성하기 🎉"}
@@ -27553,6 +27785,12 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
       ) : (
         <div style={{background:"white",borderRadius:18,padding:16,boxShadow:"0 4px 18px rgba(0,0,0,.07)"}}>
           <div style={{textAlign:"center",marginBottom:14}}><div style={{fontSize:40}}>🎉</div><div style={{fontSize:18,fontWeight:900,color:C.pink}}>완성된 글</div></div>
+          {saveState && (
+            <div style={{textAlign:"center",fontSize:12,fontWeight:700,marginBottom:12,lineHeight:1.6,color:saveState==="error"?"#E53935":saveState==="slow"?"#E65100":saveState==="preview"?"#999":"#2E7D32"}}>
+              {{preview:"👀 미리보기라 저장하지 않아요", saving:"💾 내 글 모음에 저장하는 중...", slow:"⏳ 저장 중이에요... 인터넷 연결을 확인하고 화면을 닫지 말아 주세요", saved:"✅ 내 글 모음에 저장했어요", updated:"✏️ 고친 글로 바꿔 저장했어요", error:"⚠️ 저장하지 못했어요"}[saveState]}
+              {saveState==="error"&&<button onClick={retrySave} style={{marginLeft:8,background:"#E53935",color:"white",border:"none",borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:800,cursor:"pointer"}}>다시 저장</button>}
+            </div>
+          )}
           {STEPS.map((s,i) => (
             <div key={i} style={{marginBottom:14}}>
               <div style={{fontSize:12,color:s.color,fontWeight:800,marginBottom:4}}>{s.emoji} {s.label}</div>
@@ -27573,7 +27811,7 @@ function WriteTab({level, uid, lang, reviewModule, reviewNonce}) {
               {artFeed.bridgePlace&&<div style={{background:"rgba(255,140,66,.1)",borderRadius:12,padding:"12px 14px",borderLeft:"3px solid #FF8C42"}}><div style={{color:"#FF8C42",fontSize:10,fontWeight:800,marginBottom:6}}>🌏 마중의 약속</div><div style={{color:"rgba(255,255,255,.9)",fontSize:13,lineHeight:1.75}}>나중에 한국에 오신다면 <strong style={{color:"#FFD93D"}}>{artFeed.bridgePlace}</strong>을 마중 나가서 보여드리고 싶네요 🇰🇷</div></div>}
             </div>
           )}
-          <button onClick={resetWrite} style={{width:"100%",background:`linear-gradient(135deg,${C.teal},${C.sky})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",WebkitTapHighlightColor:"transparent"}}>새로운 글 쓰기 ✨</button>
+          <button onClick={resetWrite} disabled={wLoad||artLoading||saveState==="saving"||saveState==="slow"} style={{width:"100%",background:`linear-gradient(135deg,${C.teal},${C.sky})`,color:"white",border:"none",borderRadius:50,padding:"13px 0",fontSize:15,fontWeight:900,cursor:"pointer",WebkitTapHighlightColor:"transparent",opacity:(wLoad||artLoading||saveState==="saving"||saveState==="slow")?0.5:1}}>새로운 글 쓰기 ✨</button>
         </div>
       )}
     </div>
@@ -32264,7 +32502,7 @@ export default function App() {
               <div style={{fontSize:16,fontWeight:900,color:"#9C6FDE",marginBottom:8}}>논술은 중급부터 열려요!</div>
               <div style={{fontSize:13,color:"#999",lineHeight:1.8}}>프리토킹으로 말하기 기초를 먼저 다져요.<br/>TOPIK 3급 이상이 되면 논술이 열려요 😊</div>
             </div>
-          : <WriteTab level={level} uid={user.uid} lang={{code: onboardingLang || "ko"}} reviewModule={reviewModule} reviewNonce={reviewNonce}/>
+          : <WriteTab level={level} uid={user.uid} lang={{code: onboardingLang || "ko"}} reviewModule={reviewModule} reviewNonce={reviewNonce} preview={userRole==="instructor"}/>
         )}
         {tab==="tutor"&&<TutorTab level={level} uid={user.uid}/>}
         {tab==="game"&&<GameTab level={level} midLevel={midLevel} uid={user.uid} reviewModule={reviewModule} reviewNonce={reviewNonce} midModulesFirestore={midModulesFirestore} gradeRevealMode={gradeRevealMode}
