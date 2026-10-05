@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "546";
+const APP_VERSION = "547";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -7532,7 +7532,21 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
     });
     // 클래스 코드 조회 (없으면 null)
     getDoc(doc(db, "classes", user.uid)).then(d => {
-      if (d.exists()) setClassCode(d.data().code);
+      if (d.exists()) {
+        setClassCode(d.data().code);
+        // ✅ V547: V546까지 만든 코드를 classCodes에도 등록(없을 때만). 이미 공유한 링크는 그대로 작동.
+        const c0 = String(d.data().code || "").toUpperCase();
+        if (/^[A-Z0-9]{4,10}$/.test(c0)) {
+          getDoc(doc(db, "classCodes", c0)).then(cs => {
+            if (cs.exists()) return;
+            return setDoc(doc(db, "classCodes", c0), {
+              teacherId: user.uid,
+              teacherName: String(d.data().teacherName || "선생님").slice(0, 50),
+              createdAt: serverTimestamp(),
+            });
+          }).catch(() => {});
+        }
+      }
     }).catch(() => {});
     setLoading(false);
   }, [user]);
@@ -7556,10 +7570,20 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
   // 클래스 코드 생성
   async function generateCode() {
     try {
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const tName = (teacherData?.name || user.displayName || "선생님");
+      let code = null, lastErr = null;
+      for (let i = 0; i < 3 && !code; i++) { // ✅ V547: classCodes에 먼저 저장(같은 코드가 이미 있으면 거절 → 다시 뽑음)
+        let c;
+        do { c = Math.random().toString(36).substring(2, 8).toUpperCase(); } while (c.length < 4);
+        try {
+          await setDoc(doc(db, "classCodes", c), { teacherId: user.uid, teacherName: String(tName).slice(0, 50), createdAt: serverTimestamp() });
+          code = c;
+        } catch (e) { lastErr = e; }
+      }
+      if (!code) throw lastErr || new Error("code");
       await setDoc(doc(db, "classes", user.uid), {
         teacherId: user.uid,
-        teacherName: teacherData?.name || user.displayName || "선생님",
+        teacherName: tName,
         code,
         createdAt: serverTimestamp(),
       });
@@ -8375,13 +8399,14 @@ function JoinClassModal({ user, code, onClose }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // 코드로 교수자 클래스 조회
-    const q = query(collection(db, "classes"), where("code", "==", code));
-    getDocs(q).then(snap => {
-      if (snap.empty) { setError("유효하지 않은 코드예요"); setLoading(false); return; }
+    // ✅ V547: 코드로 교수자 찾기 — classCodes/{코드} 문서 하나만 읽음(코드를 아는 사람만 읽을 수 있고 목록은 못 봄)
+    const c = String(code || "").trim().toUpperCase();
+    if (!/^[A-Z0-9]{4,10}$/.test(c)) { setError("유효하지 않은 코드예요"); setLoading(false); return; }
+    getDoc(doc(db, "classCodes", c)).then(snap => {
+      if (!snap.exists()) { setError("유효하지 않은 코드예요"); setLoading(false); return; }
       // ✅ V516: 교수자가 자기 클래스 코드로 참여하는 것 차단("학습자 화면 보기" 테스트 중 발생 가능)
-      if (snap.docs[0].data().teacherId === user?.uid) { setError("내가 만든 클래스에는 학습자로 참여할 수 없어요"); setLoading(false); return; }
-      setTeacherData(snap.docs[0].data());
+      if (snap.data().teacherId === user?.uid) { setError("내가 만든 클래스에는 학습자로 참여할 수 없어요"); setLoading(false); return; }
+      setTeacherData(snap.data());
       setLoading(false);
     }).catch(() => { setError("조회 중 오류가 발생했어요"); setLoading(false); });
   }, [code]);
@@ -8394,6 +8419,7 @@ function JoinClassModal({ user, code, onClose }) {
         currentTeacherId: teacherData.teacherId,
         teacherName: teacherData.teacherName,
         connectedAt: serverTimestamp(),
+        joinCode: String(code).trim().toUpperCase(), // ✅ V547: 규칙이 이 코드가 그 교수자의 반 코드인지 확인
       });
       onClose(true);
     } catch(e) {
