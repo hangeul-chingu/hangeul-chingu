@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "554";
+const APP_VERSION = "555";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -9342,13 +9342,21 @@ function checkAnswer(userInput, card) {
 function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel, skipToLearn=false, onMyPage, initLang=null, onExamView }) {
   // ✅ V274: 모든 학습 화면에서 마이페이지 접근 가능한 공통 버튼
   const MyPageBtn = onMyPage ? (
-    <button onClick={e=>{e.stopPropagation();onMyPage();}}
-      style={{position:"fixed",top:16,right:16,zIndex:500,width:42,height:42,borderRadius:"50%",
-        background:"white",border:"2px solid #9C6FDE44",cursor:"pointer",
-        display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
-        boxShadow:"0 2px 12px rgba(156,111,222,.2)",WebkitTapHighlightColor:"transparent"}}>
-      👤
-    </button>
+    <>
+      <style>{`
+        .hc-avatar-wrap{position:fixed;top:16px;left:0;right:0;box-sizing:border-box;padding:0 16px;display:flex;justify-content:flex-end;pointer-events:none;}
+        @media (min-width:768px){.hc-avatar-wrap{max-width:480px;margin:0 auto;}}
+      `}</style>
+      <div className="hc-avatar-wrap" style={{zIndex:500}}>
+        <button onClick={e=>{e.stopPropagation();onMyPage();}}
+          style={{pointerEvents:"auto",width:42,height:42,borderRadius:"50%",
+            background:"white",border:"2px solid #9C6FDE44",cursor:"pointer",
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,
+            boxShadow:"0 2px 12px rgba(156,111,222,.2)",WebkitTapHighlightColor:"transparent"}}>
+          👤
+        </button>
+      </div>
+    </>
   ) : null;
 
   // ✅ V333: BegScreen 내부 이어하기 팝업 — 자동로그인 시에도 작동
@@ -31688,10 +31696,16 @@ export default function App() {
       )}
 
       {/* ✅ V263: 오른쪽 상단 프로필 버튼 */}
-      <button onClick={e=>{e.stopPropagation();setShowMyPage(true);}}
-        style={{position:"fixed",top:16,right:16,zIndex:100,width:42,height:42,borderRadius:"50%",background:"white",border:"2px solid #9C6FDE44",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 2px 12px rgba(156,111,222,.2)",WebkitTapHighlightColor:"transparent"}}>
-        👤
-      </button>
+      <style>{`
+        .hc-avatar-wrap{position:fixed;top:16px;left:0;right:0;box-sizing:border-box;padding:0 16px;display:flex;justify-content:flex-end;pointer-events:none;}
+        @media (min-width:768px){.hc-avatar-wrap{max-width:480px;margin:0 auto;}}
+      `}</style>
+      <div className="hc-avatar-wrap" style={{zIndex:100}}>
+        <button onClick={e=>{e.stopPropagation();setShowMyPage(true);}}
+          style={{pointerEvents:"auto",width:42,height:42,borderRadius:"50%",background:"white",border:"2px solid #9C6FDE44",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 2px 12px rgba(156,111,222,.2)",WebkitTapHighlightColor:"transparent"}}>
+          👤
+        </button>
+      </div>
 
       {/* ✅ V263: 마이페이지 모달 (레벨 선택 화면용) */}
       {showMyPage&&(()=>{
