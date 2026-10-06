@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "551";
+const APP_VERSION = "552";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -9032,6 +9032,10 @@ function profileCardNeeded(me, userRole) {
   return !!me && userRole === "learner" && me.isAdult === true && !!me.currentTeacherId && !me.profile && !me.profileAsked;
 }
 
+// ✅ V552: 마이페이지 맨 아래 앱 버전 표시(마이페이지 3곳 모두). 숫자는 하드코딩하지 않고 APP_VERSION을 그대로 참조.
+function AppVersionLabel() {
+  return <div style={{textAlign:"center",fontSize:10,color:"#b5b5b5",marginTop:10,lineHeight:1.2}}>앱 버전 V{APP_VERSION}</div>;
+}
 // ── 마이페이지 "내 정보와 동의" 칸(마이페이지 3곳 모두에 들어감) ──
 function MyInfoSection({ user, me, userRole, lang }) {
   const [showPf, setShowPf] = useState(false);
@@ -31952,6 +31956,7 @@ export default function App() {
               <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
                 {ht("logout")}
               </button>
+              <AppVersionLabel/>
             </div>
           </div>
         );
@@ -32344,6 +32349,7 @@ export default function App() {
               <button onClick={()=>setShowMyPage(false)} style={{width:"100%",padding:"13px 0",background:"linear-gradient(135deg,#9C6FDE,#C084FC)",border:"none",borderRadius:50,color:"white",fontSize:14,fontWeight:900,cursor:"pointer"}}>
                 계속 학습하기 →
               </button>
+              <AppVersionLabel/>
             </div>
           </div>
         )}
@@ -32671,6 +32677,7 @@ export default function App() {
               <button onClick={handleLogout} style={{width:"100%",background:"none",border:"1.5px solid #eee",borderRadius:50,padding:"11px 0",fontSize:13,color:"#aaa",cursor:"pointer",fontWeight:700}}>
                 {ht("logout")}
               </button>
+              <AppVersionLabel/>
             </div>
           </div>
         );
