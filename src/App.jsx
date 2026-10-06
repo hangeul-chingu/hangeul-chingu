@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "553";
+const APP_VERSION = "554";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -9044,6 +9044,38 @@ function profileCardNeeded(me, userRole) {
 }
 
 // ✅ V552: 마이페이지 맨 아래 앱 버전 표시(마이페이지 3곳 모두). 숫자는 하드코딩하지 않고 APP_VERSION을 그대로 참조.
+// ✅ V554: 캐시버스트 "반복" 판정 상태 — 단순 누적 카운트 대신 버전 쌍별 시도 기록.
+// 같은 두 버전(순서 무관) 사이에서만 반복될 때 attempts가 올라가고, 다른 버전 쌍이면
+// 1부터 다시 시작한다(550→551→552→553 같은 정상 연속 업데이트는 루프로 보지 않음).
+// 경고 없이 시작한 깨끗한 부팅에서는 기록을 지운다. 저장소 오류·깨진 값은 "처음 1회"로 처리.
+const CACHEBUST_STATE_KEY = "hc_cachebust_state";
+function cacheBustPairKey(a, b) {
+  return [String(a == null ? "" : a), String(b == null ? "" : b)].sort().join("|");
+}
+function cacheBustRecordAttempt(fromVer, toVer) {
+  try {
+    const pair = cacheBustPairKey(fromVer, toVer);
+    let prev = null;
+    try { prev = JSON.parse(sessionStorage.getItem(CACHEBUST_STATE_KEY)); } catch(e) { prev = null; }
+    const prevAttempts = (prev && prev.pair === pair && Number.isFinite(prev.attempts) && prev.attempts >= 1)
+      ? Math.floor(prev.attempts) : 0;
+    const next = { pair, attempts: prevAttempts + 1 };
+    sessionStorage.setItem(CACHEBUST_STATE_KEY, JSON.stringify(next));
+    return next.attempts;
+  } catch(e) { return 1; }
+}
+function cacheBustReadAttempts() {
+  try {
+    const st = JSON.parse(sessionStorage.getItem(CACHEBUST_STATE_KEY));
+    if (st && typeof st.pair === "string" && Number.isFinite(st.attempts) && st.attempts >= 1) return Math.floor(st.attempts);
+  } catch(e) {}
+  return 1;
+}
+function cacheBustClearState() {
+  try { sessionStorage.removeItem(CACHEBUST_STATE_KEY); } catch(e) {}
+  try { sessionStorage.removeItem("hc_cachebust_count"); } catch(e) {} // V553 이하 잔여 키 정리
+}
+
 function AppVersionLabel() {
   return <div style={{textAlign:"center",fontSize:10,color:"#b5b5b5",marginTop:10,lineHeight:1.2}}>앱 버전 V{APP_VERSION}</div>;
 }
@@ -30977,11 +31009,12 @@ export default function App() {
       // (기존엔 렌더링 함수 본문에서 증가시켜, 재렌더링될 때마다 카운트가
       // 올라가는 버그가 있었음 — 진짜 반복이 아닌데도 "계속 반복되고 있어요"로
       // 오판하는 원인이었음. 노치성님 실사용 스크린샷으로 발견, 260830.)
-      try {
-        const c = parseInt(sessionStorage.getItem("hc_cachebust_count")||"0",10) + 1;
-        sessionStorage.setItem("hc_cachebust_count", String(c));
-      } catch(e) {}
+      // ✅ V554: 버전 쌍({저장된 버전, 현재 버전}, 순서 무관)별로 시도 횟수 기록
+      cacheBustRecordAttempt(stored, APP_VERSION);
       setShowCacheBust(true);
+    } else {
+      // ✅ V554: 경고 없이 시작한 깨끗한 부팅 → 이전 반복 기록 제거
+      cacheBustClearState();
     }
     localStorage.setItem(VER_KEY, APP_VERSION);
 
@@ -31032,10 +31065,7 @@ export default function App() {
       const lastSeen = localStorage.getItem("hc_app_ver");
       if (lastSeen !== APP_VERSION) {
         // ✅ V488: 여기도 진짜 트리거 시점이므로 카운터 증가
-        try {
-          const c = parseInt(sessionStorage.getItem("hc_cachebust_count")||"0",10) + 1;
-          sessionStorage.setItem("hc_cachebust_count", String(c));
-        } catch(e) {}
+        cacheBustRecordAttempt(lastSeen, APP_VERSION); // ✅ V554: 버전 쌍별 기록
         setShowCacheBust(true);
       }
     };
@@ -31210,10 +31240,7 @@ export default function App() {
   if (showCacheBust) {
     // ✅ V488: 여기서는 더 이상 카운터를 증가시키지 않음(증가는 위 두 트리거 지점에서
     // 1회씩만 발생) — 렌더링될 때마다 값을 "읽기만" 해서 isLooping을 판정한다.
-    let cacheBustCount = 1;
-    try {
-      cacheBustCount = parseInt(sessionStorage.getItem("hc_cachebust_count") || "1", 10);
-    } catch(e) {}
+    const cacheBustCount = cacheBustReadAttempts(); // ✅ V554: 같은 버전 쌍의 시도 횟수
     const isLooping = cacheBustCount >= 2;
 
     return (
@@ -31254,7 +31281,7 @@ export default function App() {
           )}
           {isLooping ? (
             <button onClick={()=>{
-              try { sessionStorage.removeItem("hc_cachebust_count"); } catch(e) {}
+              cacheBustClearState();
               setShowCacheBust(false);
             }} style={{width:"100%",background:"linear-gradient(135deg,#1565C0,#1976D2)",
               color:"white",border:"none",borderRadius:14,padding:"15px",
