@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "550";
+const APP_VERSION = "551";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -548,6 +548,8 @@ const UI_TRANSLATIONS = {
   "답을 입력하세요...":{ko:"답을 입력하세요...",vi:"Nhập câu trả lời...",en:"Enter your answer...",zh:"请输入答案...",ja:"答えを入力してください...",id:"Masukkan jawaban...",ru:"Введите ответ...",th:"ป้อนคำตอบ...",mn:"Хариуг оруулна уу...",uz:"Javob kiriting...",es:"답을 입력하세요...",fr:"Entrez votre réponse...",ne:"तपाईंको उत्तर लेख्नुहोस्...",de:"Geben Sie Ihre Antwort ein..."},
   "제출하기 ✅":{ko:"제출하기 ✅",vi:"Nộp bài ✅",en:"Submit ✅",zh:"提交 ✅",ja:"提出する ✅",id:"Kirim ✅",ru:"Отправить ✅",th:"ส่ง ✅",mn:"Илгээх ✅",uz:"Yuborish ✅",es:"제출하기 ✅",fr:"Soumettre ✅",ne:"पेश गर्नुहोस् ✅",de:"Absenden ✅"},
   "정답":{ko:"정답",vi:"Đáp án",en:"Answer",zh:"答案",ja:"答え",id:"Jawaban",ru:"Ответ",th:"คำตอบ",mn:"Хариулт",uz:"Javob",es:"정답",fr:"Réponse",ne:"सही उत्तर",de:"Richtige Antwort"},
+  // ✅ V551: 후반 자기점검 카드는 채점하지 않고 모범 답안만 보여 주므로 "정답" 대신 "모범 답안"으로 표시
+  "모범 답안":{ko:"모범 답안",vi:"Đáp án mẫu",en:"Model answer",zh:"参考答案",ja:"模範解答",id:"Jawaban contoh",ru:"Образец ответа",th:"ตัวอย่างคำตอบ",mn:"Үлгэр хариулт",uz:"Namunaviy javob",es:"Respuesta modelo",fr:"Réponse modèle",ne:"नमूना उत्तर",de:"Musterantwort"},
   "번역":{ko:"번역",vi:"Dịch nghĩa",en:"Translation",zh:"翻译",ja:"翻訳",id:"Terjemahan",ru:"Перевод",th:"การแปล",mn:"Орчуулга",uz:"Tarjima",es:"번역",fr:"Traduction",ne:"अनुवाद",de:"Übersetzung"},
   "한국어로 작성하세요 (합니다체)":{ko:"한국어로 작성하세요 (합니다체)",vi:"Viết tiếng Hàn (thể hợp니다)",en:"Write in Korean (formal style)",zh:"用韩语书写(합니다体)",ja:"韓国語で書いてください(합니다体)",id:"Tulis dalam Korea (formal)",ru:"Пишите на корейском (офиц.)",th:"เขียนเป็นภาษาเกาหลี (ทางการ)",mn:"Солонгосоор бичнэ үү (ёсчлол)",uz:"Koreyschada yozing (rasmiy)",es:"한국어로 작성하세요 (합니다체)",fr:"Écrivez en coréen (style formel)",ne:"कोरियालीमा लेख्नुहोस् (औपचारिक शैली)",de:"Schreiben Sie auf Koreanisch (formeller Stil)"},
   "한국어를 입력하세요...":{ko:"한국어를 입력하세요...",vi:"Nhập tiếng Hàn...",en:"Enter Korean...",zh:"请用韩语输入...",ja:"韓国語を入力...",id:"Masukkan bahasa Korea...",ru:"Введите корейский...",th:"ป้อนภาษาเกาหลี...",mn:"Солонгосоор оруулна уу...",uz:"Koreyschada kiriting...",es:"한국어를 입력하세요...",fr:"Entrez du coréen...",ne:"कोरियाली लेख्नुहोस्...",de:"Koreanisch eingeben..."},
@@ -19312,7 +19314,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #8BC34A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#2E7D32"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -19509,7 +19511,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #8BC34A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#2E7D32"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -19673,7 +19675,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #8BC34A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#2E7D32"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -19783,7 +19785,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #8BC34A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#558B2F", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#2E7D32"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -19893,7 +19895,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#FFF3E0", border:"2px solid #FFCC02", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#E65100", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#E65100", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#BF360C"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -20003,7 +20005,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#F3E5F5", border:"2px solid #AB47BC", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#6A1B9A", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#6A1B9A", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#4A148C"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -20111,7 +20113,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#E3F2FD", border:"2px solid #42A5F5", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#0D47A1", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#0D47A1", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:16, fontWeight:800, color:"#0D47A1"}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -20251,7 +20253,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -20415,7 +20417,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -20545,7 +20547,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -20737,7 +20739,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -20896,7 +20898,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -21044,7 +21046,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -21185,7 +21187,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -21318,7 +21320,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -21437,7 +21439,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#1A237E", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1A237E", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -21567,7 +21569,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#FCE4EC", border:"2px solid #E91E63", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#880E4F", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#880E4F", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#880E4F", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -21703,7 +21705,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -21818,7 +21820,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #7986CB", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#283593", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#283593", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#283593", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -21976,7 +21978,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#F1F8E9", border:"2px solid #66BB6A", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:12, color:"#1B5E20", marginBottom:4}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:15, fontWeight:800, color:"#1B5E20", lineHeight:1.6}}>{card.full}</div>
               </div>
               <button onClick={()=>{
@@ -22123,7 +22125,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#E8F5E9", border:"2px solid #4CAF50", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:11, color:"#388E3C", fontWeight:700, marginBottom:6}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:11, color:"#388E3C", fontWeight:700, marginBottom:6}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:18, fontWeight:900, color:"#1B5E20", letterSpacing:1}}>{card.full}</div>
               </div>
               {unitCardIdx < total - 1 ? (
@@ -22267,7 +22269,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#FBE9E7", border:"2px solid #FF7043", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:11, color:"#BF360C", fontWeight:700, marginBottom:6}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:11, color:"#BF360C", fontWeight:700, marginBottom:6}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:18, fontWeight:900, color:"#BF360C", letterSpacing:1}}>{card.full}</div>
               </div>
               {unitCardIdx < total - 1 ? (
@@ -22416,7 +22418,7 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           ) : (
             <div>
               <div style={{background:"#E8EAF6", border:"2px solid #3F51B5", borderRadius:12, padding:"14px 16px", marginBottom:12, textAlign:"center"}}>
-                <div style={{fontSize:11, color:"#1A237E", fontWeight:700, marginBottom:6}}>✅ {txUI("정답", lang)}</div>
+                <div style={{fontSize:11, color:"#1A237E", fontWeight:700, marginBottom:6}}>💡 {txUI("모범 답안", lang)}</div>
                 <div style={{fontSize:18, fontWeight:900, color:"#1A237E", letterSpacing:1}}>{card.full}</div>
               </div>
               <button onClick={()=>{
