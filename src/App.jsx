@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "552";
+const APP_VERSION = "553";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -781,13 +781,24 @@ function FullMapScreen({ langCode, onNext, onSkip }) {
           V493에서 position:sticky+음수마진으로 만들었더니 스크롤 중 "조사·대명사" 칩과
           겹치는 버그가 실사용 스크린샷(260830)에서 확인됨 — position:fixed로 교체해
           문서 흐름 자체에서 분리, 겹침 원천 차단. */}
-      <button onClick={onSkip || onNext}
-        style={{position:"fixed",top:16,right:16,zIndex:10,
-          background:"rgba(255,255,255,0.92)",border:"1px solid #E4D6FA",borderRadius:20,
-          padding:"6px 14px",fontSize:12,fontWeight:700,color:"#9C8CB5",cursor:"pointer",
-          boxShadow:"0 2px 8px rgba(156,111,222,.15)",WebkitTapHighlightColor:"transparent"}}>
-        {txUI("건너뛰기", lang)} →
-      </button>
+      {/* ✅ V553: 건너뛰기 위치 보정. 앱 틀(#root)은 768px 이상에서 폭 480px로 가운데 정렬되는데,
+          버튼이 브라우저 창(viewport) 기준 position:fixed라 넓은 화면(노트북)에서는 앱 틀 밖 창 오른쪽
+          끝에 떠 있었음(휴대폰·좁은 창은 정상). 고정은 유지(V494 겹침 방지)하되, 버튼을 담는 투명 띠를
+          #root와 같은 규칙(768px 이상에서 max-width 480px, 가운데 정렬)으로 맞춰 앱 틀 안쪽 오른쪽 위에 둠. */}
+      <style>{`
+        .hc-fullmap-skip-wrap{position:fixed;top:16px;left:0;right:0;z-index:10;box-sizing:border-box;
+          padding:0 16px;display:flex;justify-content:flex-end;pointer-events:none;}
+        @media (min-width:768px){.hc-fullmap-skip-wrap{max-width:480px;margin:0 auto;}}
+      `}</style>
+      <div className="hc-fullmap-skip-wrap">
+        <button onClick={onSkip || onNext}
+          style={{pointerEvents:"auto",
+            background:"rgba(255,255,255,0.92)",border:"1px solid #E4D6FA",borderRadius:20,
+            padding:"6px 14px",fontSize:12,fontWeight:700,color:"#9C8CB5",cursor:"pointer",
+            boxShadow:"0 2px 8px rgba(156,111,222,.15)",WebkitTapHighlightColor:"transparent"}}>
+          {txUI("건너뛰기", lang)} →
+        </button>
+      </div>
 
       <div style={{fontSize:38,marginBottom:6,marginTop:20}}>🗺️</div>
       <div style={{fontSize:19,fontWeight:900,color:"#4A2C82",textAlign:"center",marginBottom:4}}>
