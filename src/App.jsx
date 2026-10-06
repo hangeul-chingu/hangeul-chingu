@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "549";
+const APP_VERSION = "550";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -7728,7 +7728,7 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
               const stagesByStudent = students.map(st => {
                 const up = st.unitsPassed || [];
                 const pct = Math.round((up.length / 25) * 100);
-                return curriculumJourneyStages(up.length, pct, {code:"ko"}, st.hc_step || "", st.curriculum80Complete === true, curriculum80ClampIdx(st.curriculum80PostIdx));
+                return curriculumJourneyStages(up.length, pct, {code:"ko"}, st.hc_step || "", st.curriculum80Complete === true, curriculum80DecodeStored(st.curriculum80PostIdx));
               });
               return (
                 <div style={{display:"flex", gap:8, overflowX:"auto", paddingBottom:8, marginBottom:16, WebkitOverflowScrolling:"touch"}}>
@@ -7849,7 +7849,7 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
                     // 추가로 표시(카드는 숨기지 않음). 순차 진행 가정에 기반한 근사치라
                     // "추정" 문구를 함께 노출(설계: instructor_shortterm_draft.md 1-1).
                     const areaIdx = AREA_FILTER_CHIPS.findIndex(c => c.key === areaFilter);
-                    const areaStage = areaIdx !== -1 ? curriculumJourneyStages(up.length, pct, {code:"ko"}, st.hc_step || "", st.curriculum80Complete === true, curriculum80ClampIdx(st.curriculum80PostIdx))[areaIdx] : null;
+                    const areaStage = areaIdx !== -1 ? curriculumJourneyStages(up.length, pct, {code:"ko"}, st.hc_step || "", st.curriculum80Complete === true, curriculum80DecodeStored(st.curriculum80PostIdx))[areaIdx] : null;
                     return (
                       <div style={{background:"#F0F7FF", borderRadius:10, padding:"10px 12px", marginBottom:8}}>
                         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
@@ -20550,13 +20550,13 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#283593" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("감정 동사 →", lang))}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("동사 불규칙 →", lang))}
               </button>
             </div>
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_indirect"); }}
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#595959", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {txUI("뒤로", lang)}
           </button>
@@ -21049,9 +21049,9 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_emotion"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#2E7D32" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("명사형 전환 →", lang))}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("감정 동사 →", lang))}
               </button>
             </div>
           )}
@@ -21442,9 +21442,9 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_irreg"); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#1565C0" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("동사 불규칙 →", lang))}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("존칭 표현 →", lang))}
               </button>
             </div>
           )}
@@ -21572,13 +21572,13 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
               </div>
               <button onClick={()=>{
                 if (unitCardIdx < total - 1) { setUnitCardIdx(unitCardIdx + 1); setUnitCardInput(""); setUnitCardRevealed(false); }
-                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_honor"); }
+                else { setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_noun"); }
               }} style={{width:"100%", background: unitCardIdx < total - 1 ? "#AD1457" : "#00C896", color:"white", border:"none", borderRadius:12, padding:"14px", fontSize:16, fontWeight:700, cursor:"pointer", marginBottom:8}}>
-                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("존칭 표현 →", lang))}
+                {unitCardIdx < total - 1 ? (txUI("다음 →", lang)) : (txUI("명사형 전환 →", lang))}
               </button>
             </div>
           )}
-          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_manner"); }}
+          <button onClick={()=>{ setUnitCardIdx(0); setUnitCardInput(""); setUnitCardRevealed(false); setStep("unit_freq"); }}
             style={{marginTop:12, background:"none", border:"none", color:"#595959", fontSize:12, cursor:"pointer", display:"block", margin:"12px auto 0"}}>
             ← {txUI("뒤로", lang)}
           </button>
@@ -30464,14 +30464,28 @@ function mascotProgressMsg(pct) {
 //  - 서술어 25단원 완료(unitsPassed)와 TOPIK Ⅰ 응시자격(examUnitsFirestore>=25)은 이 값들과 무관
 // 후반 순서는 각 화면 마지막 "다음 →" 버튼(setStep)이 실제로 이동하는 순서와 반드시 일치해야 함
 // (V548은 배열 순서가 실제 이동 순서와 달라 77h→67h 역행이 발생 — V549에서 코드를 재추적해 정정).
-// ⚠️ unit_honor(존칭)·unit_emotion(감정동사)는 정방향 "다음 →"으로는 도달 불가 — 두 화면의 "다음 →"이
-//    서로를 가리키는 순환이고 진입은 "뒤로"(irreg·noun)/개발자 패널뿐(V547 이전부터의 학습 흐름 문제, V549 범위 밖).
-//    따라서 실제 정방향 흐름 18개만 순서에 포함하고, 두 화면은 시간 계산에서 제외(라벨만 제공).
+// ✅ V550: 존칭(unit_honor)·감정동사(unit_emotion)를 정방향 흐름에 복원.
+//    (V549까지: 두 화면의 "다음 →"이 서로만 가리키는 순환이라 순차 학습자는 두 단원을 거치지 않았음)
+//    복원 위치는 각 화면의 기존 "뒤로" 연결이 가리키던 자리(irreg←honor, noun←emotion)와 일치:
+//    ...빈도부사 → 감정동사 → 명사형... / ...방식표현 → 존칭 → 불규칙...
+//    후반 화면 18개 → 20개. 시간은 기존 단계 값을 그대로 두고 비어 있던 67h·68h·75h 자리에 맞춤(아래 HOURS).
 const CURRICULUM80_POST_STEPS = [
   "unit_adv1","unit_adv2","unit_adv3","unit_adv4","unit_adv5","unit_adv6","unit_adv7",
-  "unit_freq","unit_noun","unit_indirect","unit_mankke","unit_approx","unit_rel",
-  "unit_counter","unit_manner","unit_irreg","unit_change","unit_compare"
+  "unit_freq","unit_emotion","unit_noun","unit_indirect","unit_mankke","unit_approx","unit_rel",
+  "unit_counter","unit_manner","unit_honor","unit_irreg","unit_change","unit_compare"
 ];
+// 후반 각 화면에 "들어온" 시점의 누적 진행시간(h). 순서대로 순증가, 마지막(compare)=78h, 이후 숫자·부정법·격식체·정리=79h(최종 완료 80h).
+const CURRICULUM80_POST_HOURS = [58,59,60,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78];
+// V549에서 저장된 curriculum80PostIdx(22단계 기준 인덱스)를 해석하기 위한 V549 당시 순서(불변, 수정 금지)
+const CURRICULUM80_LEGACY_V549_ORDER = [
+  "unit_adv1","unit_adv2","unit_adv3","unit_adv4","unit_adv5","unit_adv6","unit_adv7",
+  "unit_freq","unit_noun","unit_indirect","unit_mankke","unit_approx","unit_rel",
+  "unit_counter","unit_manner","unit_irreg","unit_change","unit_compare",
+  "unit_number","unit_neg","unit_register","unit_review"
+];
+// V550부터 저장하는 값 = 100 + (현재 22→24단계 순서 인덱스). V549 값(0~21)과 구분되어 순서가 바뀌어도 오해석되지 않음.
+// (V549 앱이 100 이상 값을 읽으면 "기록 없음"으로 무시 — 값이 줄어들거나 오류가 나지 않음)
+const CURRICULUM80_STORED_BASE = 100;
 const CURRICULUM80_EXTRA_STEPS = ["unit_number","unit_neg","unit_register","unit_review"];
 const CURRICULUM80_FULL_ORDER = [...CURRICULUM80_POST_STEPS, ...CURRICULUM80_EXTRA_STEPS];
 // 현재 위치 표시용(후반 화면은 "서술어 N단원"이 아니라 실제 학습 내용으로 표시)
@@ -30488,17 +30502,29 @@ function curriculum80PostLabel(step, suffix = " 학습 중") {
   return CURRICULUM80_STEP_LABELS[step] ? CURRICULUM80_STEP_LABELS[step] + suffix : null;
 }
 // 저장값(문자열/숫자)을 0~(전체 단계 수-1) 정수로 검증. 값이 없거나 이상하면 -1(기록 없음).
+// (메모리 안에서 쓰는 "현재 순서 기준 인덱스" 검증 — 저장값 해석은 curriculum80DecodeStored 사용)
 function curriculum80ClampIdx(v) {
   const n = typeof v === "number" ? v : parseInt(v, 10);
   return Number.isInteger(n) && n >= 0 && n < CURRICULUM80_FULL_ORDER.length ? n : -1;
 }
+// 저장값(localStorage/Firestore, 문자열·숫자) → 현재 순서 기준 인덱스. 없거나 이상하면 -1.
+//  - 100 이상: V550 이후 형식(100+현재 인덱스)
+//  - 0~21: V549 형식(당시 22단계 순서의 인덱스) → 단계 이름으로 현재 인덱스로 환산(진도가 줄지 않음)
+function curriculum80DecodeStored(v) {
+  const n = typeof v === "number" ? v : parseInt(v, 10);
+  if (!Number.isInteger(n) || n < 0) return -1;
+  if (n >= CURRICULUM80_STORED_BASE) return curriculum80ClampIdx(n - CURRICULUM80_STORED_BASE);
+  if (n < CURRICULUM80_LEGACY_V549_ORDER.length) return CURRICULUM80_FULL_ORDER.indexOf(CURRICULUM80_LEGACY_V549_ORDER[n]);
+  return -1;
+}
+const curriculum80EncodeStored = (idx) => CURRICULUM80_STORED_BASE + idx;
 const c80Key = (kind, uid) => `hc_curriculum80_${kind}_${uid}`; // kind: complete | post | pending
 function readCurriculum80Local(uid) {
   if (!uid) return { complete:false, postIdx:-1 };
   try {
     return {
       complete: localStorage.getItem(c80Key("complete", uid)) === "true",
-      postIdx: curriculum80ClampIdx(localStorage.getItem(c80Key("post", uid))),
+      postIdx: curriculum80DecodeStored(localStorage.getItem(c80Key("post", uid))),
     };
   } catch(_) { return { complete:false, postIdx:-1 }; }
 }
@@ -30507,8 +30533,8 @@ function writeCurriculum80Local(uid, s) {
   if (!uid) return;
   try {
     if (s.complete) localStorage.setItem(c80Key("complete", uid), "true");
-    const cur = curriculum80ClampIdx(localStorage.getItem(c80Key("post", uid)));
-    if (curriculum80ClampIdx(s.postIdx) > cur) localStorage.setItem(c80Key("post", uid), String(s.postIdx));
+    const cur = curriculum80DecodeStored(localStorage.getItem(c80Key("post", uid)));
+    if (curriculum80ClampIdx(s.postIdx) > cur) localStorage.setItem(c80Key("post", uid), String(curriculum80EncodeStored(s.postIdx)));
   } catch(_) {}
 }
 // Firestore에 "앞선 값만" 반영(다른 기기에서 이미 더 멀리 간 값을 낮추지 않음).
@@ -30520,12 +30546,12 @@ async function pushCurriculum80(uid, s) {
     const remote = snap.exists() ? snap.data() : {};
     const patch = {};
     if (s.complete && remote.curriculum80Complete !== true) patch.curriculum80Complete = true;
-    if (curriculum80ClampIdx(s.postIdx) > curriculum80ClampIdx(remote.curriculum80PostIdx)) patch.curriculum80PostIdx = s.postIdx;
+    if (curriculum80ClampIdx(s.postIdx) > curriculum80DecodeStored(remote.curriculum80PostIdx)) patch.curriculum80PostIdx = curriculum80EncodeStored(s.postIdx);
     if (Object.keys(patch).length) await updateDoc(doc(db, "users", uid), patch);
     try { localStorage.removeItem(c80Key("pending", uid)); } catch(_) {}
     return true;
   } catch (e) {
-    console.warn("[V549] curriculum80 Firestore 저장 실패 — 다음 접속/마이페이지에서 재시도:", e?.code || e?.message || e);
+    console.warn("[V550] curriculum80 Firestore 저장 실패 — 다음 접속/마이페이지에서 재시도:", e?.code || e?.message || e);
     try { localStorage.setItem(c80Key("pending", uid), "1"); } catch(_) {}
     return false;
   }
@@ -30536,7 +30562,7 @@ function reconcileCurriculum80(uid, remoteData) {
   if (!uid) return { complete:false, postIdx:-1 };
   const local = readCurriculum80Local(uid);
   const r = remoteData || {};
-  const rIdx = curriculum80ClampIdx(r.curriculum80PostIdx);
+  const rIdx = curriculum80DecodeStored(r.curriculum80PostIdx);
   const merged = {
     complete: local.complete || r.curriculum80Complete === true,
     postIdx: Math.max(local.postIdx, rIdx),
@@ -30559,7 +30585,7 @@ function getCurriculum80ElapsedHours(passedCount, savedStep = "", curriculum80Co
   // k: 지금까지 도달한 후반 단계 인덱스. k번째 화면에 들어왔다 = 앞의 k개 화면을 끝냈다.
   const postHours = k < 0 ? 0
     : k >= CURRICULUM80_POST_STEPS.length ? 79
-    : 58 + Math.round((k / CURRICULUM80_POST_STEPS.length) * 21);
+    : CURRICULUM80_POST_HOURS[k];
   const pre = {
     lang:0,curriculum:0,plan:0,preview:0,pronContents:0,
     pronunciation:2,pronTest:7,pronResult:8,
