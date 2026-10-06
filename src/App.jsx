@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "547";
+const APP_VERSION = "549";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -276,7 +276,7 @@ const UI_TRANSLATIONS = {
   // ✅ V444: 1단계(완주 순간 배너) 신규 문구
   "새로운 자격이 열렸어요!":{ko:"새로운 자격이 열렸어요!",vi:"Một tư cách mới đã được mở ra!",en:"A new milestone has opened up!",zh:"新资格已解锁!",ja:"新しい資格が開放されました!",id:"Kualifikasi baru telah terbuka!",ru:"Открылась новая возможность!",th:"ปลดล็อกคุณสมบัติใหม่แล้ว!",mn:"Шинэ эрх нээгдлээ!",uz:"Yangi imkoniyat ochildi!",es:"¡Se ha desbloqueado un nuevo logro!",fr:"Une nouvelle qualification s'est débloquée !",ne:"नयाँ योग्यता खुल्यो!",de:"Eine neue Berechtigung wurde freigeschaltet!"},
   "TOPIK Ⅰ 모의고사 응시 자격 획득!":{ko:"TOPIK Ⅰ 모의고사 응시 자격 획득!",vi:"Bạn đã đủ điều kiện thi thử TOPIK Ⅰ!",en:"You've earned eligibility for the TOPIK Ⅰ mock exam!",zh:"获得TOPIK Ⅰ模拟考试资格!",ja:"TOPIK Ⅰ模擬試験の受験資格を獲得しました!",id:"Anda memenuhi syarat untuk ujian simulasi TOPIK Ⅰ!",ru:"Вы получили право сдавать пробный экзамен TOPIK Ⅰ!",th:"คุณได้รับสิทธิ์สอบ TOPIK Ⅰ ภาคจำลองแล้ว!",mn:"TOPIK Ⅰ дадлага шалгалт өгөх эрх авлаа!",uz:"TOPIK Ⅰ sinov imtihoniga kirish huquqiga ega bo'ldingiz!",es:"¡Has obtenido la elegibilidad para el examen simulado TOPIK Ⅰ!",fr:"Vous avez obtenu l'éligibilité à l'examen blanc TOPIK Ⅰ !",ne:"तपाईंले TOPIK Ⅰ नमूना परीक्षा दिने योग्यता प्राप्त गर्नुभयो!",de:"Sie haben die Berechtigung für die TOPIK-Ⅰ-Probeprüfung erhalten!"},
-  "80시간 커리큘럼 서술어 25단원을 모두 마쳤어요! 이제 진짜 시험 문제에 도전해볼 수 있어요 🎉":{ko:"80시간 커리큘럼 서술어 25단원을 모두 마쳤어요! 이제 진짜 시험 문제에 도전해볼 수 있어요 🎉",vi:"Bạn đã hoàn thành cả 25 bài vị ngữ trong chương trình 80 giờ! Giờ đây bạn có thể thử sức với đề thi thật 🎉",en:"You've completed all 25 predicate units of the 80-hour curriculum! Now you can try real exam questions 🎉",zh:"您已完成80小时课程中全部25课谓语单元!现在可以挑战真实考题了 🎉",ja:"80時間カリキュラムの述語25課すべてを終えました!これで本物の試験問題に挑戦できます 🎉",id:"Anda telah menyelesaikan semua 25 unit predikat dari kurikulum 80 jam! Sekarang Anda bisa mencoba soal ujian asli 🎉",ru:"Вы завершили все 25 уроков сказуемого из 80-часовой программы! Теперь вы можете попробовать настоящие экзаменационные вопросы 🎉",th:"คุณเรียนจบภาคแสดงครบ 25 บทเรียนในหลักสูตร 80 ชั่วโมงแล้ว! ตอนนี้คุณลองทำข้อสอบจริงได้แล้ว 🎉",mn:"80 цагийн хөтөлбөрийн өгүүлэгдэхүүний 25 нэгжийг бүрэн дуусгалаа! Одоо жинхэнэ шалгалтын бодлогод хандаж болно 🎉",uz:"80 soatlik dasturning barcha 25 kesim darsini tugatdingiz! Endi haqiqiy imtihon savollarini sinab ko'rishingiz mumkin 🎉",es:"¡Has completado las 25 unidades de predicados del programa de 80 horas! Ahora puedes probar preguntas de examen reales 🎉",fr:"Vous avez terminé les 25 unités de prédicats du programme de 80 heures ! Vous pouvez maintenant essayer de vraies questions d'examen 🎉",ne:"तपाईंले 80-घण्टा पाठ्यक्रमका सबै 25 क्रियापद एकाइहरू पूरा गर्नुभयो! अब तपाईं वास्तविक परीक्षा प्रश्नहरू प्रयास गर्न सक्नुहुन्छ 🎉",de:"Sie haben alle 25 Prädikat-Einheiten des 80-Stunden-Programms abgeschlossen! Jetzt können Sie echte Prüfungsfragen ausprobieren 🎉"},
+  "서술어 25단원을 모두 마쳤어요! 이제 TOPIK Ⅰ 모의고사에 도전해볼 수 있어요 🎉":{ko:"서술어 25단원을 모두 마쳤어요! 이제 TOPIK Ⅰ 모의고사에 도전해볼 수 있어요 🎉",vi:"Bạn đã hoàn thành cả 25 bài vị ngữ! Giờ đây bạn có thể thử sức với kỳ thi thử TOPIK Ⅰ 🎉",en:"You've completed all 25 predicate units! Now you can try the TOPIK Ⅰ mock exam 🎉",zh:"您已完成全部25课谓语单元！现在可以挑战TOPIK Ⅰ模拟考试了 🎉",ja:"述語25課をすべて終えました！これでTOPIK Ⅰ模擬試験に挑戦できます 🎉",id:"Anda telah menyelesaikan semua 25 unit predikat! Sekarang Anda bisa mencoba ujian simulasi TOPIK Ⅰ 🎉",ru:"Вы завершили все 25 уроков сказуемого! Теперь можно попробовать пробный экзамен TOPIK Ⅰ 🎉",th:"คุณเรียนจบภาคแสดงครบ 25 บทเรียนแล้ว! ตอนนี้คุณสามารถลองทำข้อสอบจำลอง TOPIK Ⅰ ได้แล้ว 🎉",mn:"Өгүүлэгдэхүүний 25 нэгжийг бүгдийг дуусгалаа! Одоо TOPIK Ⅰ дадлага шалгалтад оролцож болно 🎉",uz:"Kesim bo‘yicha barcha 25 darsni tugatdingiz! Endi TOPIK Ⅰ sinov imtihonini topshirib ko‘rishingiz mumkin 🎉",es:"¡Has completado las 25 unidades de predicados! Ahora puedes intentar el examen de prueba TOPIK Ⅰ 🎉",fr:"Vous avez terminé les 25 unités de prédicats ! Vous pouvez maintenant essayer l’examen blanc TOPIK Ⅰ 🎉",ne:"तपाईंले सबै 25 क्रियापद एकाइ पूरा गर्नुभयो! अब TOPIK Ⅰ नमुना परीक्षा प्रयास गर्न सक्नुहुन्छ 🎉",de:"Sie haben alle 25 Prädikat-Einheiten abgeschlossen! Jetzt können Sie die TOPIK-Ⅰ-Probeprüfung versuchen 🎉"},
   "듣기":{ko:"듣기",vi:"Nghe",en:"Listening",zh:"听力",ja:"聞き取り",id:"Mendengarkan",ru:"Аудирование",th:"การฟัง",mn:"Сонсох",uz:"Tinglash",es:"Escucha",fr:"Écoute",ne:"सुनाइ",de:"Hören"},
   "읽기":{ko:"읽기",vi:"Đọc",en:"Reading",zh:"阅读",ja:"読解",id:"Membaca",ru:"Чтение",th:"การอ่าน",mn:"Унших",uz:"O'qish",es:"Lectura",fr:"Lecture",ne:"पढाइ",de:"Lesen"},
   "나의 학습 여정":{ko:"나의 학습 여정",vi:"Hành trình học tập của tôi",en:"My Learning Journey",zh:"我的学习历程",ja:"私の学習の旅",id:"Perjalanan Belajar Saya",ru:"Мой путь обучения",th:"เส้นทางการเรียนรู้ของฉัน",mn:"Миний суралцах аялал",uz:"Mening o'quv sayohatim",es:"Mi camino de aprendizaje",fr:"Mon parcours d'apprentissage",ne:"मेरो सिकाइ यात्रा",de:"Meine Lernreise"},
@@ -7722,13 +7722,13 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
             {/* ✅ V512: 학습 영역별 필터 칩 바 — curriculumJourneyStages()의 7단계 문법
                 구조 구분을 필터 카테고리로 재사용. 학생 카드를 숨기지 않고, 선택한
                 영역의 상태 배지를 각 카드의 "커리큘럼 진도" 블록에 추가로 강조 표시하는
-                방식(설계: instructor_shortterm_draft.md 1-2). 신규 Firestore 필드 없음 —
-                이미 구독 중인 unitsPassed/hc_step만으로 계산. */}
+                방식(설계: instructor_shortterm_draft.md 1-2). V549: 후반 영역은
+                curriculum80Complete/curriculum80PostIdx(없으면 무시)도 함께 사용. */}
             {students.length > 0 && (() => {
               const stagesByStudent = students.map(st => {
                 const up = st.unitsPassed || [];
                 const pct = Math.round((up.length / 25) * 100);
-                return curriculumJourneyStages(up.length, pct, {code:"ko"}, st.hc_step || "");
+                return curriculumJourneyStages(up.length, pct, {code:"ko"}, st.hc_step || "", st.curriculum80Complete === true, curriculum80ClampIdx(st.curriculum80PostIdx));
               });
               return (
                 <div style={{display:"flex", gap:8, overflowX:"auto", paddingBottom:8, marginBottom:16, WebkitOverflowScrolling:"touch"}}>
@@ -7849,7 +7849,7 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
                     // 추가로 표시(카드는 숨기지 않음). 순차 진행 가정에 기반한 근사치라
                     // "추정" 문구를 함께 노출(설계: instructor_shortterm_draft.md 1-1).
                     const areaIdx = AREA_FILTER_CHIPS.findIndex(c => c.key === areaFilter);
-                    const areaStage = areaIdx !== -1 ? curriculumJourneyStages(up.length, pct, {code:"ko"}, st.hc_step || "")[areaIdx] : null;
+                    const areaStage = areaIdx !== -1 ? curriculumJourneyStages(up.length, pct, {code:"ko"}, st.hc_step || "", st.curriculum80Complete === true, curriculum80ClampIdx(st.curriculum80PostIdx))[areaIdx] : null;
                     return (
                       <div style={{background:"#F0F7FF", borderRadius:10, padding:"10px 12px", marginBottom:8}}>
                         <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6}}>
@@ -9609,6 +9609,38 @@ function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel
     catch { return []; }
   });
   const [showProgress, setShowProgress] = useState(null); // ✅ V263: {passedCount, nextStep, nextLabel}
+  // ✅ V549: 80시간 전체 완주(curriculum80Complete)와 후반 누적 도달 위치(curriculum80PostIdx)를
+  // 서술어 25단원 완료(unitsPassed)와 분리해 기록. TOPIK Ⅰ 응시 자격(25단원)에는 영향 없음.
+  const [curriculum80Complete, setCurriculum80Complete] = useState(() => readCurriculum80Local(user?.uid).complete);
+  const [curriculum80PostIdx, setCurriculum80PostIdx] = useState(() => readCurriculum80Local(user?.uid).postIdx);
+
+  // 기기 변경·재접속 시 Firestore ↔ localStorage 병합(큰 쪽 채택, 로컬이 앞서거나 이전 저장 실패 흔적이 있으면 재전송)
+  useEffect(() => {
+    if (!user?.uid) return;
+    let alive = true;
+    getDoc(doc(db, "users", user.uid)).then(snap => {
+      if (!alive) return;
+      const merged = reconcileCurriculum80(user.uid, snap.exists() ? snap.data() : null);
+      setCurriculum80Complete(c => c || merged.complete);
+      setCurriculum80PostIdx(p => Math.max(p, merged.postIdx));
+    }).catch(()=>{});
+    return () => { alive = false; };
+  }, [user?.uid]);
+
+  // 현재 화면(step)이 후반/최종 단계이면 "여기까지 도달함"을 누적 기록 — step이 바뀌어도 기록은 줄지 않음
+  useEffect(() => {
+    const k = CURRICULUM80_FULL_ORDER.indexOf(step);
+    if (k < 0) return;
+    setCurriculum80PostIdx(prev => (k > prev ? k : prev));
+  }, [step]);
+  // 누적 도달 위치가 늘어난 경우에만 저장(localStorage 즉시 + Firestore, 실패 시 재시도 표식)
+  useEffect(() => {
+    if (!user?.uid || curriculum80PostIdx < 0) return;
+    if (curriculum80PostIdx <= readCurriculum80Local(user.uid).postIdx) return;
+    const next = { complete: readCurriculum80Local(user.uid).complete, postIdx: curriculum80PostIdx };
+    writeCurriculum80Local(user.uid, next);
+    pushCurriculum80(user.uid, next);
+  }, [curriculum80PostIdx, user?.uid]);
 
   // ✅ V355+V263: Firestore 이중 저장 useEffect (모든 useState 선언 완료 후)
   useEffect(() => {
@@ -10125,26 +10157,13 @@ ${vocabList}
     const mn = lc === "mn";
     const uz = lc === "uz";
 
-    // 전체 80시간 커리큘럼 단계 맵
-    // ✅ V266: 80시간 기준 누적 시간 계산 (현장 데이터 기반)
-    const HOUR_MAP = {
-      pronunciation: 8,   // 발음
-      tense:         6,   // 시제
-      josa:          5,   // 조사·대명사
-      sentence:      1,   // 문장구조·의문대명사
-      unit:          59,  // 서술어+부사어+기타
-      extra:         1,   // 숫자·부정법·격식체·정리
-    };
+    // ✅ V548: 80시간 진행률은 실제 커리큘럼 구조(20h 기초 + 38h 서술어 + 21h 확장 + 1h 정리)에 맞춰 계산.
+    // 서술어 25단원 완료는 TOPIK Ⅰ 응시 자격이지만, 80시간 전체 완주는 아님.
     const TOTAL_HOURS = 80;
-    const getElapsedHours = (passedCount) => {
-      // 발음8+시제6+조사5+문장구조1 = 20시간 고정
-      const unitHours = Math.round((passedCount / 25) * 59);
-      return 20 + unitHours;
-    };
-    const elapsedHours = getElapsedHours(passedCount);
+    const elapsedHours = getCurriculum80ElapsedHours(passedCount, step, curriculum80Complete, curriculum80PostIdx);
     const pctHours = Math.min(Math.round((elapsedHours / TOTAL_HOURS) * 100), 100);
 
-    const CURRICULUM_MAP = curriculumJourneyStages(passedCount, pct, lang);
+    const CURRICULUM_MAP = curriculumJourneyStages(passedCount, pct, lang, step, curriculum80Complete, curriculum80PostIdx);
 
     return (
       <div style={{minHeight:"100dvh",background:"linear-gradient(150deg,#E8F8F2,#F3EEFF 60%,#FFF0F9)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"28px 24px",fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
@@ -10159,7 +10178,7 @@ ${vocabList}
           {txUI("정말 잘하고 있어요! 💪", lang)}
         </div>
 
-        {/* ✅ V444: 1단계(완주 순간 배너) — 서술어 25단원 전부 완주 = TOPIK Ⅰ 응시자격 획득 순간.
+        {/* ✅ V548: 서술어 25단원 완료 = TOPIK Ⅰ 응시자격 획득 순간. 80시간 전체 완주와는 별도.
             결핍형·비교형 없이 진행형·동행형 톤으로만 축하. 응시 화면으로 바로 연결(마이페이지
             스크롤까지 갈 필요 없이 이 순간 자체가 발견 지점이 되도록 설계). */}
         {passedCount === 25 && (
@@ -10171,7 +10190,7 @@ ${vocabList}
               {txUI("TOPIK Ⅰ 모의고사 응시 자격 획득!", lang)}
             </div>
             <div style={{fontSize:12,color:"#888",marginBottom:14,textAlign:"center",lineHeight:1.6}}>
-              {txUI("80시간 커리큘럼 서술어 25단원을 모두 마쳤어요! 이제 진짜 시험 문제에 도전해볼 수 있어요 🎉", lang)}
+              {txUI("서술어 25단원을 모두 마쳤어요! 이제 TOPIK Ⅰ 모의고사에 도전해볼 수 있어요 🎉", lang)}
             </div>
             <div style={{display:"flex",gap:8}}>
               {TOPIK1_BUTTONS.map(b => (
@@ -22549,7 +22568,16 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
           </Section>
 
           {/* 완료 버튼 */}
-          <button onClick={()=>{ setStep("learn"); }}
+          <button onClick={()=>{
+              // ✅ V549: 80시간 완주는 이 최종 완료 버튼에서만 기록. localStorage 즉시 저장 +
+              // Firestore 저장(실패 시 pending 표식으로 다음 접속·마이페이지에서 재전송).
+              const done = { complete:true, postIdx: CURRICULUM80_FULL_ORDER.length - 1 };
+              setCurriculum80Complete(true);
+              setCurriculum80PostIdx(p => Math.max(p, done.postIdx));
+              writeCurriculum80Local(user?.uid, done);
+              pushCurriculum80(user?.uid, done);
+              setStep("learn");
+            }}
             style={{width:"100%", background:"linear-gradient(135deg,#1A237E,#00C896)", color:"white", border:"none", borderRadius:16, padding:"18px", fontSize:18, fontWeight:900, cursor:"pointer", marginTop:8, boxShadow:"0 4px 20px rgba(0,196,150,.3)"}}>
             🎉 {txUI("80시간 커리큘럼 완료!", lang)}
           </button>
@@ -30429,20 +30457,144 @@ function mascotProgressMsg(pct) {
 // savedStep(4번째 인자, 옵션)을 받아 실제 진행 위치로 done을 계산하도록 수정.
 // savedStep을 안 넘기는 기존 호출부(3315행)는 passedCount>0 안전망으로
 // 기존과 동일하게 동작함(하위 호환).
+// ✅ V549: 80시간 커리큘럼 진행 계산 + 후반 누적 진도 보존.
+//  - step(hc_step) = 학습자의 "현재 화면 위치"일 뿐, 성취 기록이 아님 (다른 화면으로 가면 바뀜)
+//  - curriculum80PostIdx = 후반(부사어~총정리) "최대 도달 위치" 누적 기록 (낮아지지 않음)
+//  - curriculum80Complete = 최종 unit_review 완료 버튼에서만 true (80시간 완주)
+//  - 서술어 25단원 완료(unitsPassed)와 TOPIK Ⅰ 응시자격(examUnitsFirestore>=25)은 이 값들과 무관
+// 후반 순서는 각 화면 마지막 "다음 →" 버튼(setStep)이 실제로 이동하는 순서와 반드시 일치해야 함
+// (V548은 배열 순서가 실제 이동 순서와 달라 77h→67h 역행이 발생 — V549에서 코드를 재추적해 정정).
+// ⚠️ unit_honor(존칭)·unit_emotion(감정동사)는 정방향 "다음 →"으로는 도달 불가 — 두 화면의 "다음 →"이
+//    서로를 가리키는 순환이고 진입은 "뒤로"(irreg·noun)/개발자 패널뿐(V547 이전부터의 학습 흐름 문제, V549 범위 밖).
+//    따라서 실제 정방향 흐름 18개만 순서에 포함하고, 두 화면은 시간 계산에서 제외(라벨만 제공).
+const CURRICULUM80_POST_STEPS = [
+  "unit_adv1","unit_adv2","unit_adv3","unit_adv4","unit_adv5","unit_adv6","unit_adv7",
+  "unit_freq","unit_noun","unit_indirect","unit_mankke","unit_approx","unit_rel",
+  "unit_counter","unit_manner","unit_irreg","unit_change","unit_compare"
+];
+const CURRICULUM80_EXTRA_STEPS = ["unit_number","unit_neg","unit_register","unit_review"];
+const CURRICULUM80_FULL_ORDER = [...CURRICULUM80_POST_STEPS, ...CURRICULUM80_EXTRA_STEPS];
+// 현재 위치 표시용(후반 화면은 "서술어 N단원"이 아니라 실제 학습 내용으로 표시)
+const CURRICULUM80_STEP_LABELS = {
+  unit_adv1:"부사어 1단원(시간)", unit_adv2:"부사어 2단원(원인)", unit_adv3:"부사어 3단원(목적)",
+  unit_adv4:"부사어 4단원(가정·조건)", unit_adv5:"부사어 5단원(필수조건)", unit_adv6:"부사어 6단원(양보)",
+  unit_adv7:"부사어 7단원(배경·상황)", unit_freq:"빈도부사", unit_noun:"명사형", unit_indirect:"간접화법",
+  unit_mankke:"만/밖에", unit_approx:"대략표현", unit_rel:"관형어", unit_counter:"단위명사",
+  unit_manner:"방식표현", unit_irreg:"불규칙", unit_honor:"존칭", unit_emotion:"감정동사",
+  unit_change:"상태변화", unit_compare:"비교표현", unit_number:"숫자", unit_neg:"부정법",
+  unit_register:"격식체·구어체·문어체", unit_review:"기초문법 총정리",
+};
+function curriculum80PostLabel(step, suffix = " 학습 중") {
+  return CURRICULUM80_STEP_LABELS[step] ? CURRICULUM80_STEP_LABELS[step] + suffix : null;
+}
+// 저장값(문자열/숫자)을 0~(전체 단계 수-1) 정수로 검증. 값이 없거나 이상하면 -1(기록 없음).
+function curriculum80ClampIdx(v) {
+  const n = typeof v === "number" ? v : parseInt(v, 10);
+  return Number.isInteger(n) && n >= 0 && n < CURRICULUM80_FULL_ORDER.length ? n : -1;
+}
+const c80Key = (kind, uid) => `hc_curriculum80_${kind}_${uid}`; // kind: complete | post | pending
+function readCurriculum80Local(uid) {
+  if (!uid) return { complete:false, postIdx:-1 };
+  try {
+    return {
+      complete: localStorage.getItem(c80Key("complete", uid)) === "true",
+      postIdx: curriculum80ClampIdx(localStorage.getItem(c80Key("post", uid))),
+    };
+  } catch(_) { return { complete:false, postIdx:-1 }; }
+}
+// localStorage에는 "더 큰 값"만 기록(완료는 true만, 후반 도달 위치는 감소 불가)
+function writeCurriculum80Local(uid, s) {
+  if (!uid) return;
+  try {
+    if (s.complete) localStorage.setItem(c80Key("complete", uid), "true");
+    const cur = curriculum80ClampIdx(localStorage.getItem(c80Key("post", uid)));
+    if (curriculum80ClampIdx(s.postIdx) > cur) localStorage.setItem(c80Key("post", uid), String(s.postIdx));
+  } catch(_) {}
+}
+// Firestore에 "앞선 값만" 반영(다른 기기에서 이미 더 멀리 간 값을 낮추지 않음).
+// 실패하면 조용히 삼키지 않고 pending 표식을 남겨 다음 접속·마이페이지 열 때 재전송.
+async function pushCurriculum80(uid, s) {
+  if (!uid) return false;
+  try {
+    const snap = await getDoc(doc(db, "users", uid));
+    const remote = snap.exists() ? snap.data() : {};
+    const patch = {};
+    if (s.complete && remote.curriculum80Complete !== true) patch.curriculum80Complete = true;
+    if (curriculum80ClampIdx(s.postIdx) > curriculum80ClampIdx(remote.curriculum80PostIdx)) patch.curriculum80PostIdx = s.postIdx;
+    if (Object.keys(patch).length) await updateDoc(doc(db, "users", uid), patch);
+    try { localStorage.removeItem(c80Key("pending", uid)); } catch(_) {}
+    return true;
+  } catch (e) {
+    console.warn("[V549] curriculum80 Firestore 저장 실패 — 다음 접속/마이페이지에서 재시도:", e?.code || e?.message || e);
+    try { localStorage.setItem(c80Key("pending", uid), "1"); } catch(_) {}
+    return false;
+  }
+}
+// Firestore 문서(remoteData, 없으면 null)와 localStorage를 병합 — 큰 쪽 채택.
+// 로컬이 앞서 있거나 이전 저장 실패(pending) 흔적이 있으면 Firestore로 재전송.
+function reconcileCurriculum80(uid, remoteData) {
+  if (!uid) return { complete:false, postIdx:-1 };
+  const local = readCurriculum80Local(uid);
+  const r = remoteData || {};
+  const rIdx = curriculum80ClampIdx(r.curriculum80PostIdx);
+  const merged = {
+    complete: local.complete || r.curriculum80Complete === true,
+    postIdx: Math.max(local.postIdx, rIdx),
+  };
+  writeCurriculum80Local(uid, merged);
+  let pending = false;
+  try { pending = localStorage.getItem(c80Key("pending", uid)) === "1"; } catch(_) {}
+  const remoteBehind = (merged.complete && r.curriculum80Complete !== true) || merged.postIdx > rIdx;
+  if (remoteData && (remoteBehind || pending)) pushCurriculum80(uid, merged);
+  return merged;
+}
+// 80시간 진행시간(h). 기초 20h + 서술어 38h + 후반 21h + 최종 1h = 80h
+//  - 완료 플래그가 있으면 80h, 없으면 최대 79h
+//  - 후반은 step(현재 위치)과 postIdx(누적 최대 도달) 중 더 앞선 값 → 화면을 옮겨도 줄지 않음
+//  - 아무 성취도 없는 신규 사용자(step 없음·통과 0)는 0h (V465 구조 복원)
+function getCurriculum80ElapsedHours(passedCount, savedStep = "", curriculum80Complete = false, postIdx = -1) {
+  if (curriculum80Complete) return 80;
+  const pc = Math.max(0, Math.min(Number(passedCount) || 0, 25));
+  const k = Math.max(curriculum80ClampIdx(postIdx), CURRICULUM80_FULL_ORDER.indexOf(savedStep));
+  // k: 지금까지 도달한 후반 단계 인덱스. k번째 화면에 들어왔다 = 앞의 k개 화면을 끝냈다.
+  const postHours = k < 0 ? 0
+    : k >= CURRICULUM80_POST_STEPS.length ? 79
+    : 58 + Math.round((k / CURRICULUM80_POST_STEPS.length) * 21);
+  const pre = {
+    lang:0,curriculum:0,plan:0,preview:0,pronContents:0,
+    pronunciation:2,pronTest:7,pronResult:8,
+    tense1:8,tense2:9,tense3:10,tense4:11,tense5:12,tense6:13,tenseTest:14,
+    josa:15,testJosa:19,qpron:19,sentenceStructure:20
+  };
+  let pos = 0;
+  if (pre[savedStep] !== undefined) pos = pre[savedStep];
+  else {
+    const m = /^unit(\d+)[ab]?$/.exec(savedStep || "");
+    if (m) pos = 20 + Math.round((Math.min(Number(m[1]) || 0, 25) / 25) * 38);
+    // step이 없거나(신규·'처음부터' 후) 후반이 아닌 화면(learn·test* 등)이면 통과 단원 수로 환산, 0개면 0h
+    else if (k < 0) pos = pc > 0 ? 20 + Math.round((pc / 25) * 38) : 0;
+  }
+  return Math.max(pos, postHours);
+}
+
 const CURRICULUM_STAGE_ORDER = ["lang","curriculum","plan","pronContents","pronunciation","pronTest","pronResult",
   "tense1","tense2","tense3","tense4","tense5","tense6","tenseTest",
   "josa","testJosa","qpron","sentenceStructure","unit1"];
-function curriculumJourneyStages(passedCount, pct, lang, savedStep = "") {
+function curriculumJourneyStages(passedCount, pct, lang, savedStep = "", curriculum80Complete = false, curriculum80PostIdx = -1) {
   const curIdx = CURRICULUM_STAGE_ORDER.indexOf(savedStep);
   const doneUpTo = (target) => passedCount > 0 || curIdx > CURRICULUM_STAGE_ORDER.indexOf(target);
+  // ✅ V549: 후반 21h 완료 = 후반 20개 화면을 모두 지나 "숫자" 이후 단계에 도달한 적이 있음(누적 기록 또는 현재 위치).
+  //   현재 step만으로 판단하지 않으므로 다른 화면으로 이동해도 완료 표시가 되돌아가지 않음.
+  const reachedIdx = Math.max(curriculum80ClampIdx(curriculum80PostIdx), CURRICULUM80_FULL_ORDER.indexOf(savedStep));
+  const postDone = curriculum80Complete || reachedIdx >= CURRICULUM80_POST_STEPS.length;
   const stages = [
     { label: txUI("발음 8단계 (8h)", lang),      done: doneUpTo("pronResult") },
     { label: txUI("시제 6단원 (6h)", lang),                  done: doneUpTo("tenseTest") },
     { label: txUI("조사·대명사 (5h)", lang),    done: doneUpTo("testJosa") },
     { label: txUI("문장구조·의문대명사 (1h)", lang),  done: doneUpTo("sentenceStructure") },
     { label: txUI("서술어 25단원 (38h)", lang),      done: passedCount >= 25, pct },
-    { label: txUI("부사어·관형어·기타 (21h)", lang), done: false },
-    { label: txUI("숫자·부정법·격식체·정리 (1h)", lang), done: false },
+    { label: txUI("부사어·관형어·기타 (21h)", lang), done: postDone },
+    { label: txUI("숫자·부정법·격식체·정리 (1h)", lang), done: curriculum80Complete },
   ];
   const firstNotDone = stages.findIndex(s => !s.done);
   if (firstNotDone !== -1) stages[firstNotDone].current = true;
@@ -30892,6 +31044,8 @@ export default function App() {
         // 도착했을 때, 그 사이 사용자가 이미 직접 다른 레벨을 골랐다면(level이
         // null이 아니라면) 그 선택을 덮어쓰지 않고 그대로 둠.
         if(d.data().savedLevel) setLevel(prev => prev === null ? d.data().savedLevel : prev);
+        // ✅ V549: 80시간 완주·후반 누적 진도를 Firestore ↔ localStorage 병합(큰 쪽 채택, 로컬이 앞서면 재전송)
+        reconcileCurriculum80(user.uid, d.data());
         // ✅ V410: 회원번호 로드
         // ✅ V411: 소급 부여 — V410 이전 가입자(memberNo 없음)는 로그인 시점에 1회 생성해 채워넣음.
         //   같은 세션에서 여러 번 로그인해도 이미 값이 생기면 이 분기를 다시 타지 않으므로 안전.
@@ -31486,18 +31640,8 @@ export default function App() {
           josa:15, testJosa:19,
           qpron:19, sentenceStructure:20,
         };
-        const getElapsed = (step, passed) => {
-          if (stepHourMap[step] !== undefined) return stepHourMap[step];
-          if (step && step.startsWith("unit")) {
-            const n = parseInt(step.replace("unit","")) || 0;
-            return 20 + Math.round((Math.min(n, 25) / 25) * 59);
-          }
-          // ✅ V465: 아직 학습을 전혀 시작 안 한 신규 가입자(step 없음)가
-          // 여기로 떨어져 무조건 +20h가 가산되던 버그 수정 — 0h가 맞음.
-          if (!step) return 0;
-          return 20 + Math.round((passed / 25) * 59);
-        };
-        const elapsedH = getElapsed(savedStep, passedCount);
+        const c80Local = readCurriculum80Local(user.uid);
+        const elapsedH = getCurriculum80ElapsedHours(passedCount, savedStep, c80Local.complete, c80Local.postIdx);
         const pctH = Math.min(Math.round((elapsedH / 80) * 100), 100);
         const stepLabels = {
           curriculum:"커리큘럼 확인 중", plan:"학습 계획 설정 중", preview:"맛보기 진행 중",
@@ -31509,7 +31653,7 @@ export default function App() {
           qpron:"의문대명사 학습 중", sentenceStructure:"문장구조 학습 중",
           learn:"학습 완료 (자유 탭)",
         };
-        const currentLabel = stepLabels[savedStep] || (savedStep.startsWith("unit") ? `서술어 ${savedStep.replace("unit","")}단원 학습 중` : savedStep ? `${savedStep} 진행 중` : "아직 시작 전");
+        const currentLabel = stepLabels[savedStep] || curriculum80PostLabel(savedStep) || (savedStep.startsWith("unit") ? `서술어 ${savedStep.replace("unit","")}단원 학습 중` : savedStep ? `${savedStep} 진행 중` : "아직 시작 전");
         return (
           <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
             onClick={()=>setShowMyPage(false)}>
@@ -31601,7 +31745,7 @@ export default function App() {
                       showProgress 모달과 동일 데이터·컴포넌트 재사용. */}
                   <div style={{marginTop:14,paddingTop:14,borderTop:"1px dashed #eee"}}>
                     <div style={{fontSize:12,fontWeight:900,color:"#9C6FDE",marginBottom:8}}>🗺️ {txUI("나의 학습 여정", {code:onboardingLang||"ko"})}</div>
-                    <JourneyMapList stages={curriculumJourneyStages(passedCount, pct, {code:onboardingLang||"ko"}, savedStep)} lang={{code:onboardingLang||"ko"}} />
+                    <JourneyMapList stages={curriculumJourneyStages(passedCount, pct, {code:onboardingLang||"ko"}, savedStep, c80Local.complete, c80Local.postIdx)} lang={{code:onboardingLang||"ko"}} />
                   </div>
                 </> : <div style={{fontSize:13,color:"#aaa",textAlign:"center",padding:"8px 0"}}>아직 학습 기록이 없어요. 지금 시작해볼까요? 😊</div>}
               </div>
@@ -31985,11 +32129,8 @@ export default function App() {
       tense1:8,tense2:9,tense3:10,tense4:11,tense5:12,tense6:13,tenseTest:14,
       josa:15,testJosa:19,qpron:19,sentenceStructure:20,
     };
-    const beg_elapsed = (() => {
-      if (beg_stepHourMap[beg_savedStep] !== undefined) return beg_stepHourMap[beg_savedStep];
-      if (beg_savedStep?.startsWith("unit")) { const n=parseInt(beg_savedStep.replace(/[^0-9]/g,""))||0; return 20+Math.round((Math.min(n,25)/25)*59); }
-      return 20+Math.round((beg_passedCount/25)*59);
-    })();
+    const beg_c80 = readCurriculum80Local(user.uid);
+    const beg_elapsed = getCurriculum80ElapsedHours(beg_passedCount, beg_savedStep, beg_c80.complete, beg_c80.postIdx);
     const beg_pctH = Math.min(Math.round((beg_elapsed/80)*100),100);
     const beg_stepLabels = {
       curriculum:"커리큘럼 확인 중",plan:"학습 계획 설정 중",preview:"맛보기 진행 중",
@@ -31998,7 +32139,7 @@ export default function App() {
       tense5:"시제 5단원",tense6:"시제 6단원",tenseTest:"시제 테스트",
       josa:"조사·대명사 학습",testJosa:"조사 테스트",qpron:"의문대명사",sentenceStructure:"문장구조",learn:"자유 탭",
     };
-    const beg_label = beg_stepLabels[beg_savedStep] || (beg_savedStep?.startsWith("unit") ? `서술어 ${beg_savedStep.replace("unit","")}단원` : beg_savedStep||"시작 전");
+    const beg_label = beg_stepLabels[beg_savedStep] || curriculum80PostLabel(beg_savedStep, "") || (beg_savedStep?.startsWith("unit") ? `서술어 ${beg_savedStep.replace("unit","")}단원` : beg_savedStep||"시작 전");
     return (
       <>
         <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}} onMidLevel={()=>{setMidLevel(true);setBegReady(true);}} onMyPage={()=>setShowMyPage(true)} initLang={onboardingLang||null} onExamView={(v)=>setExamView(v)}/>
@@ -32225,20 +32366,8 @@ export default function App() {
         const savedStep = localStorage.getItem(`hc_step_${user.uid}`) || "";
         const passedCount = unitsPassed.length;
         const pct = Math.round((passedCount/25)*100);
-        const stepHourMap2 = {
-          lang:0,curriculum:0,plan:0,
-          pronunciation:2,pronTest:7,pronResult:8,
-          tense1:8,tense2:9,tense3:10,tense4:11,tense5:12,tense6:13,tenseTest:14,
-          josa:15,testJosa:19,qpron:19,sentenceStructure:20,
-        };
-        const getElapsed2 = (step,passed) => {
-          if(stepHourMap2[step]!==undefined) return stepHourMap2[step];
-          if(step&&step.startsWith("unit")){const n=parseInt(step.replace("unit",""))||0;return 20+Math.round((Math.min(n,25)/25)*59);}
-          // ✅ V465: 신규 가입자(step 없음) +20h 오프셋 버그 수정 — 0h가 맞음.
-          if(!step) return 0;
-          return 20+Math.round((passed/25)*59);
-        };
-        const elapsedH2 = getElapsed2(savedStep,passedCount);
+        const c80Local = readCurriculum80Local(user.uid);
+        const elapsedH2 = getCurriculum80ElapsedHours(passedCount, savedStep, c80Local.complete, c80Local.postIdx);
         const pctH2 = Math.min(Math.round((elapsedH2/80)*100),100);
         const stepLabels = {
           curriculum:"커리큘럼 확인 중",plan:"학습 계획 설정 중",preview:"맛보기 진행 중",
@@ -32246,7 +32375,7 @@ export default function App() {
           tense1:"시제 1단원",tense2:"시제 2단원",tense3:"시제 3단원",tense4:"시제 4단원",tense5:"시제 5단원",tense6:"시제 6단원",tenseTest:"시제 테스트 중",
           josa:"조사·대명사 학습 중",testJosa:"조사 테스트 중",qpron:"의문대명사 학습 중",sentenceStructure:"문장구조 학습 중",learn:"학습 완료",
         };
-        const currentLabel = stepLabels[savedStep]||(savedStep.startsWith("unit")?`서술어 ${savedStep.replace("unit","")}단원 학습 중`:savedStep?`${savedStep} 진행 중`:"아직 시작 전");
+        const currentLabel = stepLabels[savedStep]||curriculum80PostLabel(savedStep)||(savedStep.startsWith("unit")?`서술어 ${savedStep.replace("unit","")}단원 학습 중`:savedStep?`${savedStep} 진행 중`:"아직 시작 전");
         return (
           <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:9999,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
             onClick={()=>setShowMyPage(false)}>
@@ -32327,7 +32456,7 @@ export default function App() {
                   {/* ✅ V447: 3단계(여정 지도) — 상시 노출, showProgress 모달과 동일 컴포넌트 재사용 */}
                   <div style={{marginTop:14,paddingTop:14,borderTop:"1px dashed #eee"}}>
                     <div style={{fontSize:12,fontWeight:900,color:"#9C6FDE",marginBottom:8}}>🗺️ {txUI("나의 학습 여정", {code:onboardingLang||"ko"})}</div>
-                    <JourneyMapList stages={curriculumJourneyStages(passedCount, pct, {code:onboardingLang||"ko"}, savedStep)} lang={{code:onboardingLang||"ko"}} />
+                    <JourneyMapList stages={curriculumJourneyStages(passedCount, pct, {code:onboardingLang||"ko"}, savedStep, c80Local.complete, c80Local.postIdx)} lang={{code:onboardingLang||"ko"}} />
                   </div>
                 </>:<div style={{fontSize:13,color:"#aaa",textAlign:"center",padding:"8px 0"}}>초급 커리큘럼 진행 시 표시됩니다</div>}
               </div>
