@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "558";
+const APP_VERSION = "559";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2569,7 +2569,7 @@ function VocabSetEditor({ form, setForm, essayExprs }) {
                                 <label key={oi} style={{ display: "flex", alignItems: "center", gap: 4 }}>
                                   <input type="radio" name={`ans-${tg.expr}-${i}`} checked={it.ansIdx === oi} onChange={() => setItem(tg.expr, i, { ansIdx: oi, flag: undefined })} title="정답" />
                                   <span style={{ flex: 1, minWidth: 0 }}>
-                                    <input value={o} onChange={e => setItem(tg.expr, i, { opts: it.opts.map((x, xi) => (xi === oi ? e.target.value : x)), flag: undefined })}
+                                    <input value={o} onChange={e => setItem(tg.expr, i, { opts: it.opts.map((x, xi) => (xi === oi ? e.target.value : x)), whys: (it.whys || it.opts.map(() => "")).map((w, wi) => (wi === oi ? "" : w)), flag: undefined })} // ✅ V559: 보기 글자를 고치면 그 보기에 붙어 있던 '✗ 이유'는 비움(옛 보기의 설명이 학습자에게 가지 않게)
                                       style={{ ...inp, padding: "5px 7px", fontSize: 12, background: it.ansIdx === oi ? "#EEF7EE" : "white" }} aria-label={`보기 ${oi + 1}`} />
                                     {oi !== it.ansIdx && it.whys && it.whys[oi] ? <span style={{ display: "block", fontSize: 10, color: "#888", lineHeight: 1.4, marginTop: 2 }}>✗ {it.whys[oi]}</span> : null}
                                   </span>
