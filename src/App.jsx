@@ -15,6 +15,7 @@ import {
   getDoc,
   updateDoc,
   increment,
+  arrayUnion, // ✅ V560: 학습기록 동시 저장 유실 방지 — 읽고-덮어쓰기 대신 원자적 추가
   serverTimestamp,
   collection,
   query,
@@ -93,9 +94,8 @@ async function saveGramLog(uid, quizType, results) {
   };
   try {
     const userRef = doc(db, "users", uid);
-    const snap = await getDoc(userRef);
-    const existing = snap.exists() ? (snap.data().gramLog || []) : [];
-    await setDoc(userRef, { gramLog: [...existing, logEntry] }, { merge: true });
+    // ✅ V560: 읽고-덮어쓰기(getDoc→setDoc) 대신 서버에서 원자적으로 추가 — 동시 저장이 서로의 기록을 지우지 않음
+    await setDoc(userRef, { gramLog: arrayUnion(logEntry) }, { merge: true });
   } catch (e) {
     console.warn("gramLog 저장 실패", e);
   }
@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "559";
+const APP_VERSION = "560";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -11321,11 +11321,9 @@ JSON: {"pass":true또는false,"coaching":"코칭 멘트"}
             };
             const userRef = doc(db, "users", user.uid);
             console.log("[pronLog] 저장 시작", { uid: user.uid, path: userRef.path, logEntry });
-            const snap = await getDoc(userRef);
-            const existing = snap.exists() ? (snap.data().pronLog || []) : [];
-            console.log("[pronLog] 기존 문서 존재:", snap.exists(), "기존 pronLog 개수:", existing.length);
-            await setDoc(userRef, { pronLog: [...existing, logEntry] }, { merge: true });
-            console.log("[pronLog] 저장 성공 — 총", existing.length + 1, "개");
+            // ✅ V560: 읽고-덮어쓰기 대신 원자적 추가(arrayUnion) — 동시 저장 시 기록 유실 방지
+            await setDoc(userRef, { pronLog: arrayUnion(logEntry) }, { merge: true });
+            console.log("[pronLog] 저장 성공");
           } catch(e) {
             console.warn("pronLog 저장 실패", e);
             console.error("[pronLog] 저장 실패 상세:", { uid: user?.uid, code: e?.code, message: e?.message });
