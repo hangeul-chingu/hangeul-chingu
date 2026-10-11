@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "560";
+const APP_VERSION = "561";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -31184,8 +31184,67 @@ export default function App() {
     };
     navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
 
+    // ✅ V561: 켜 둔 탭의 새 배포 감지 — 서비스 워커와 무관하게, 서버의 index.html이 가리키는
+    // 번들 파일명(해시)을 지금 실행 중인 번들과 비교한다. 다르면 화면 아래에 작은 안내 띠를 1회 띄운다.
+    // ⚠️ 전체 화면 팝업(showCacheBust)은 앱을 통째로 닫아 입력 중인 내용이 사라지므로 쓰지 않고,
+    //    React 밖의 DOM 띠로 띄운다(작업 중인 화면을 건드리지 않음).
+    // 같은 새 번들에 대해서는 세션당 1번만 알리고, 오류·개발 서버(해시 번들 없음)는 조용히 건너뛴다.
+    const runningBuildSrc = (() => {
+      try {
+        const el = Array.prototype.find.call(document.scripts, x => /\/assets\/[^"']+\.js$/.test(x.getAttribute("src") || ""));
+        return el ? el.getAttribute("src") : "";
+      } catch(e) { return ""; }
+    })();
+    const showNewBuildBar = () => {
+      try {
+        if (document.getElementById("hc-newbuild-bar")) return;
+        const bar = document.createElement("div");
+        bar.id = "hc-newbuild-bar";
+        bar.setAttribute("role", "status");
+        bar.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:2147483000;width:calc(100% - 32px);max-width:440px;box-sizing:border-box;background:#1565C0;color:#fff;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:8px;font:600 14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.25)";
+        const msg = document.createElement("span");
+        msg.style.cssText = "flex:1;line-height:1.35";
+        msg.textContent = "🔄 새 버전이 있어요. 하던 일을 마친 뒤 눌러 주세요.";
+        const go = document.createElement("button");
+        go.textContent = "새로고침";
+        go.style.cssText = "background:#fff;color:#1565C0;border:none;border-radius:10px;padding:8px 12px;font-weight:800;font-size:14px;cursor:pointer";
+        go.onclick = () => {
+          try { localStorage.removeItem("hc_app_ver"); } catch(e) {} // 새로 열린 뒤 전체 화면 팝업이 또 뜨지 않게
+          let u = window.location.origin + "?t=" + Date.now();
+          try { const j = new URLSearchParams(window.location.search).get("join"); if (j) u += "&join=" + encodeURIComponent(j); } catch(e) {}
+          window.location.href = u;
+        };
+        const close = document.createElement("button");
+        close.textContent = "✕";
+        close.setAttribute("aria-label", "닫기");
+        close.style.cssText = "background:none;color:#fff;border:none;font-size:16px;cursor:pointer;padding:4px 6px";
+        close.onclick = () => { try { bar.remove(); } catch(e) {} };
+        bar.appendChild(msg); bar.appendChild(go); bar.appendChild(close);
+        document.body.appendChild(bar);
+      } catch(e) {}
+    };
+    const checkNewBuild = () => {
+      if (!runningBuildSrc) return;
+      try {
+        fetch("/index.html?_=" + Date.now(), { cache: "no-store" })
+          .then(r => (r && r.ok ? r.text() : ""))
+          .then(html => {
+            const m = html && html.match(/<script[^>]*\ssrc="(\/assets\/[^"]+\.js)"/);
+            const latest = m ? m[1] : "";
+            if (!latest || latest === runningBuildSrc) return;
+            let seen = "";
+            try { seen = sessionStorage.getItem("hc_newbuild_seen") || ""; } catch(e) {}
+            if (seen === latest) return;
+            try { sessionStorage.setItem("hc_newbuild_seen", latest); } catch(e) {}
+            showNewBuildBar();
+          })
+          .catch(() => {});
+      } catch(e) {}
+    };
+
     const checkUpdate = () => {
       if (document.visibilityState !== "visible") return;
+      checkNewBuild(); // ✅ V561
       navigator.serviceWorker.getRegistration().then(reg => reg && reg.update()).catch(()=>{});
     };
     document.addEventListener("visibilitychange", checkUpdate);
