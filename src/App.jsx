@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "561";
+const APP_VERSION = "563";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -31175,6 +31175,7 @@ export default function App() {
     // 아닌 상황(iOS Safari의 SW 컨트롤러 재확인 등)에서도 팝업이 반복
     // 재표시되는 무한루프가 발생했음(노인경님 아이폰 실사용 사례로 확인).
     const onControllerChange = () => {
+      if (window.__hcReloading) return; // ✅ V563: 안내 띠의 [새로고침] 진행 중에는 전체 화면 팝업·반복 기록을 건너뜀
       const lastSeen = localStorage.getItem("hc_app_ver");
       if (lastSeen !== APP_VERSION) {
         // ✅ V488: 여기도 진짜 트리거 시점이므로 카운터 증가
@@ -31185,7 +31186,10 @@ export default function App() {
     navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
 
     // ✅ V561: 켜 둔 탭의 새 배포 감지 — 서비스 워커와 무관하게, 서버의 index.html이 가리키는
-    // 번들 파일명(해시)을 지금 실행 중인 번들과 비교한다. 다르면 화면 아래에 작은 안내 띠를 1회 띄운다.
+    // 번들 파일명(해시)을 지금 실행 중인 번들과 비교한다. 다르면 화면 위쪽에 작은 안내 띠를 띄운다.
+    // ✅ V562: ① 띠를 위쪽으로 옮기고 z-index를 전체 화면 작업 화면(3000~10000)보다 낮게 둠 — 아래쪽 고정 막대(과제 제출 막대 등)와
+    //    겹치지 않고, 쓰기·말하기·과제 화면 위에서는 가려져 있다가 그 화면을 닫으면 보임. ② [새로고침]이 캐시·서비스워커를 먼저 지움.
+    //    ③ 같은 새 번들은 띠가 실제로 만들어졌을 때만 "봤다"고 기록(B 안내가 떠 있는 동안 C가 배포돼도 ✕ 뒤 C 안내가 다시 뜸).
     // ⚠️ 전체 화면 팝업(showCacheBust)은 앱을 통째로 닫아 입력 중인 내용이 사라지므로 쓰지 않고,
     //    React 밖의 DOM 띠로 띄운다(작업 중인 화면을 건드리지 않음).
     // 같은 새 번들에 대해서는 세션당 1번만 알리고, 오류·개발 서버(해시 번들 없음)는 조용히 건너뛴다.
@@ -31197,19 +31201,36 @@ export default function App() {
     })();
     const showNewBuildBar = () => {
       try {
-        if (document.getElementById("hc-newbuild-bar")) return;
+        if (document.getElementById("hc-newbuild-bar")) return false;
         const bar = document.createElement("div");
         bar.id = "hc-newbuild-bar";
         bar.setAttribute("role", "status");
-        bar.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:2147483000;width:calc(100% - 32px);max-width:440px;box-sizing:border-box;background:#1565C0;color:#fff;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:8px;font:600 14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.25)";
+        bar.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);top:8px;z-index:2000;width:calc(100% - 32px);max-width:440px;box-sizing:border-box;background:#1565C0;color:#fff;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:8px;font:600 14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.25)";
         const msg = document.createElement("span");
         msg.style.cssText = "flex:1;line-height:1.35";
         msg.textContent = "🔄 새 버전이 있어요. 하던 일을 마친 뒤 눌러 주세요.";
         const go = document.createElement("button");
         go.textContent = "새로고침";
         go.style.cssText = "background:#fff;color:#1565C0;border:none;border-radius:10px;padding:8px 12px;font-weight:800;font-size:14px;cursor:pointer";
-        go.onclick = () => {
-          try { localStorage.removeItem("hc_app_ver"); } catch(e) {} // 새로 열린 뒤 전체 화면 팝업이 또 뜨지 않게
+        go.onclick = async () => {
+          if (go.disabled) return;
+          go.disabled = true;
+          try { go.textContent = "여는 중…"; } catch(e) {}
+          window.__hcReloading = true; // ✅ V563: 정리하는 동안 controllerchange 팝업 방지
+          // ✅ V562: 기존 팝업 버튼(V470)처럼 캐시·서비스워커 등록을 먼저 지움. 배포본 sw.js는 페이지 이동 요청을 미리 저장된
+          //    index.html로 먼저 응답하므로(NavigationRoute가 NetworkFirst보다 앞), 새 서비스 워커가 설치를 끝내기 전에 누르면
+          //    옛 화면이 열릴 수 있음. 2.5초 안에 끝나지 않아도 그대로 이동(멈춤 방지).
+          try {
+            await Promise.race([
+              // ✅ V563: 서비스워커 해제와 캐시 삭제를 각각 독립 실행(한쪽이 실패해도 다른 쪽 진행), 서비스워커 해제를 먼저
+              Promise.all([
+                (async () => { if ("serviceWorker" in navigator) { const regs = await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r => r.unregister())); } })().catch(() => {}),
+                (async () => { if ("caches" in window) { const keys = await caches.keys(); await Promise.all(keys.map(k => caches.delete(k))); } })().catch(() => {}),
+              ]),
+              new Promise(r => setTimeout(r, 2500))
+            ]);
+          } catch(e) {}
+          try { localStorage.removeItem("hc_app_ver"); } catch(e) {} // ✅ V563: 이동 직전에 삭제 — 새로 열린 뒤 전체 화면 팝업이 또 뜨지 않게
           let u = window.location.origin + "?t=" + Date.now();
           try { const j = new URLSearchParams(window.location.search).get("join"); if (j) u += "&join=" + encodeURIComponent(j); } catch(e) {}
           window.location.href = u;
@@ -31221,7 +31242,8 @@ export default function App() {
         close.onclick = () => { try { bar.remove(); } catch(e) {} };
         bar.appendChild(msg); bar.appendChild(go); bar.appendChild(close);
         document.body.appendChild(bar);
-      } catch(e) {}
+        return true;
+      } catch(e) { return false; }
     };
     const checkNewBuild = () => {
       if (!runningBuildSrc) return;
@@ -31235,8 +31257,7 @@ export default function App() {
             let seen = "";
             try { seen = sessionStorage.getItem("hc_newbuild_seen") || ""; } catch(e) {}
             if (seen === latest) return;
-            try { sessionStorage.setItem("hc_newbuild_seen", latest); } catch(e) {}
-            showNewBuildBar();
+            if (showNewBuildBar()) { try { sessionStorage.setItem("hc_newbuild_seen", latest); } catch(e) {} }
           })
           .catch(() => {});
       } catch(e) {}
