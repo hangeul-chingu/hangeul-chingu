@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "563";
+const APP_VERSION = "567";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -7632,17 +7632,188 @@ function SpeakAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }
   );
 }
 
+// ════════════════════════════════════════════════════════
+// ✅ V564: 교수자 "오늘 현황" (로드맵 T2) — 로그인 직후 한 화면에서 반 인원·확인할 제출물·미완료 과제·최근 기록을 본다.
+//   새 Firestore 필드·쓰기 없음. 이미 있는 판정(isAssignmentDone·essayStatus·speakStatus)과 같은 경로의 문서를 읽기만 한다.
+//   옛 퀴즈 카드 과제(OLD_QUIZ_TYPES)는 학습자 화면에서 숨겨져 있으므로 세지 않는다. 보관한 과제도 세지 않는다.
+//   "기록 없음"은 사실만 보여 주고 학습 의지를 판단하지 않는다(T3 A안 — 대표 결정 2026-10-11).
+// ════════════════════════════════════════════════════════
+function todayBoardSummary(students, assignments, subs, fbs, nowMs) {
+  const DAY = 86400000;
+  const active = (assignments || []).filter(a => !a.archived && !OLD_QUIZ_TYPES.includes(a.type));
+  const rows = (students || []).map(st => {
+    let lastMs = 0;
+    (st.gramLog || []).forEach(e => { const t = Number(e && (e.ts ?? e.timestamp)) || 0; if (t > lastMs) lastMs = t; });
+    (st.pronLog || []).forEach(e => { const t = Number(e && (e.ts ?? e.timestamp)) || 0; if (t > lastMs) lastMs = t; });
+    return { id: st.id, label: studentLabel(st), pending: 0, overdue: 0, review: 0, lastMs };
+  });
+  const byId = {}; rows.forEach(r => { byId[r.id] = r; });
+  active.forEach(a => {
+    const targets = a.isClassWide ? (students || []) : (students || []).filter(s => (a.targetUids || []).includes(s.id));
+    const aSubs = (subs && subs[a.id]) || {};
+    const aFbs = (fbs && fbs[a.id]) || {};
+    const dl = toMs(a.deadline);
+    targets.forEach(st => {
+      const r = byId[st.id]; if (!r) return;
+      const sub = aSubs[st.id];
+      (sub && Array.isArray(sub.versions) ? sub.versions : []).forEach(v => { const t = Number(v && v.submittedAtMs) || 0; if (t > r.lastMs) r.lastMs = t; });
+      if (!isAssignmentDone(a, st.gramLog || [], st.pronLog || [], sub)) {
+        r.pending++;
+        if (dl && dl < nowMs) r.overdue++;
+      }
+      if (a.type === "ESSAY" || a.type === "SPEAK_TASK") {
+        const fb = aFbs[st.id];
+        const es = (a.type === "SPEAK_TASK" ? speakStatus : essayStatus)(a, sub, fb);
+        const newReply = ((sub || {}).replies || []).length > (Number((fb || {}).seenReplies) || 0);
+        if (es.key === "submitted" || newReply) r.review++;
+      }
+    });
+  });
+  rows.forEach(r => { r.daysSince = r.lastMs ? Math.max(0, Math.floor((nowMs - r.lastMs) / DAY)) : null; });
+  rows.sort((a, b) => (b.review - a.review) || (b.overdue - a.overdue) || (b.pending - a.pending) || String(a.label).localeCompare(String(b.label)));
+  return {
+    total: rows.length,
+    activeAssignments: active.length,
+    review: rows.reduce((t, r) => t + r.review, 0),
+    pending: rows.reduce((t, r) => t + r.pending, 0),
+    overdue: rows.reduce((t, r) => t + r.overdue, 0),
+    quiet7: rows.filter(r => r.daysSince === null || r.daysSince >= 7).length,
+    rows,
+  };
+}
+
+// 교수자의 과제와 학습자 제출·의견·진행 기록을 읽기 전용으로 구독(AssignmentPanel과 같은 경로, 쓰기 없음)
+// ✅ V565: 제출·의견 구독이 모두 첫 응답(또는 오류)을 받기 전에는 ready=false — 받기 전 숫자를 보여 주면 미완료는 많게,
+//          확인할 제출물은 적게 보임(Codex 검토 반영). 하위 구독 오류는 과제 목록이 다시 와도 지우지 않음.
+function classWatchSubName(typ) {
+  return typ === "ESSAY" || typ === "SPEAK_TASK" ? "submissions" : typ === "PRON_SET" ? "pronProgress" : typ === "VOCAB_SET" ? "vocabProgress" : null;
+}
+function useClassAssignmentWatch(teacherUid) {
+  const [assignments, setAssignments] = useState(null); // null = 아직 못 받음
+  const [subs, setSubs] = useState({});
+  const [fbs, setFbs] = useState({});
+  const [got, setGot] = useState({ k: null, m: {} }); // ✅ V566: 어느 구독 묶음(key)에서 받은 응답인지 함께 기록 — 구독을 다시 만들면 이전 응답은 무효
+  const [errA, setErrA] = useState(false);
+  const [errC, setErrC] = useState(false);
+  useEffect(() => {
+    setAssignments(null); setSubs({}); setFbs({}); setGot({ k: null, m: {} }); setErrA(false); setErrC(false); // 교수자가 바뀌면 이전 정보를 비움
+    if (!teacherUid) return;
+    const unsub = onSnapshot(collection(db, "classes", teacherUid, "assignments"), snap => {
+      setAssignments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setErrA(false);
+    }, () => { setErrA(true); setAssignments(prev => prev || []); });
+    return () => unsub();
+  }, [teacherUid]);
+  const needed = (assignments || []).filter(a => !a.archived && !OLD_QUIZ_TYPES.includes(a.type) && classWatchSubName(a.type));
+  const key = needed.map(a => `${a.id}:${a.type}`).join(",");
+  useEffect(() => {
+    setGot({ k: null, m: {} }); setSubs({}); setFbs({}); setErrC(false); // ✅ V567: 빈 묶음(과제 전부 삭제)에서도 하위 오류 표시를 함께 지움 / V566: 구독 묶음이 바뀌거나 비면(과제 삭제 후 같은 ID로 재추가 포함) 이전 수신 기록을 먼저 비움
+    if (!teacherUid || !key) return;
+    let dead = false; // ✅ V567: 해제된 구독의 늦은 콜백이 새 묶음의 상태를 덮어쓰지 못하게 막는 방어
+    const unsubs = [];
+    key.split(",").forEach(x => {
+      const [aid, typ] = x.split(":");
+      const mark = (k) => !dead && setGot(prev => ({ k: key, m: { ...(prev.k === key ? prev.m : {}), [aid + ":" + k]: true } }));
+      unsubs.push(onSnapshot(collection(db, "classes", teacherUid, "assignments", aid, classWatchSubName(typ)), snap => {
+        if (dead) return;
+        const m = {}; snap.docs.forEach(d => { m[d.id] = d.data(); });
+        setSubs(prev => ({ ...prev, [aid]: m })); mark("s");
+      }, () => { if (dead) return; setErrC(true); mark("s"); }));
+      if (typ === "ESSAY" || typ === "SPEAK_TASK") {
+        unsubs.push(onSnapshot(collection(db, "classes", teacherUid, "assignments", aid, "feedback"), snap => {
+          if (dead) return;
+          const m = {}; snap.docs.forEach(d => { m[d.id] = d.data(); });
+          setFbs(prev => ({ ...prev, [aid]: m })); mark("f");
+        }, () => { if (dead) return; setErrC(true); mark("f"); }));
+      }
+    });
+    return () => { dead = true; unsubs.forEach(u => u()); };
+  }, [teacherUid, key]);
+  const ready = assignments !== null && (!key || got.k === key) && needed.every(a => got.m[a.id + ":s"] && (!(a.type === "ESSAY" || a.type === "SPEAK_TASK") || got.m[a.id + ":f"]));
+  return { assignments, subs, fbs, err: errA || errC, ready };
+}
+
+function TodayBoard({ user, students, studentsError, studentsLoaded = true, onGoAssign, onGoStudents, onGoClass }) {
+  const { assignments, subs, fbs, err, ready } = useClassAssignmentWatch(user && user.uid);
+  const loading = !ready || !studentsLoaded; // ✅ V565: 학습자·과제·제출·의견을 모두 받은 뒤에만 숫자를 보여 줌
+  const sum = loading ? null : todayBoardSummary(students, assignments, subs, fbs, Date.now());
+  const tile = (n, label, color, onClick) => (
+    <button type="button" onClick={onClick ? () => onClick() : undefined} style={{flex:1, minWidth:0, background:"#F5F8FF", border:"none", borderRadius:12, padding:"12px 6px", textAlign:"center", cursor:onClick?"pointer":"default", fontFamily:"inherit"}}>
+      <div style={{fontSize:24, fontWeight:900, color}}>{n}</div>
+      <div style={{fontSize:11, color:"#666", marginTop:2, lineHeight:1.3}}>{label}</div>
+    </button>
+  );
+  return (
+    <div>
+      <div style={{background:"white", borderRadius:20, padding:18, boxShadow:"0 4px 16px rgba(0,0,0,0.08)", marginBottom:16}}>
+        <div style={{fontSize:15, fontWeight:900, color:"#1A3A5C", marginBottom:4}}>📊 우리 반 오늘 현황</div>
+        {loading ? (
+          <div style={{fontSize:13, color:"#aaa", padding:"16px 0", textAlign:"center"}}>불러오는 중…</div>
+        ) : sum.total === 0 && studentsError ? (
+          <div style={{background:"#FFF0F0", border:"1px solid #FFCCCC", borderRadius:12, padding:"12px 14px", marginTop:10, fontSize:13, color:"#C62828", lineHeight:1.6}}>
+            ⚠️ 학습자 목록을 불러오지 못했어요. 새로고침해도 계속되면 관리자에게 알려 주세요.
+          </div>
+        ) : sum.total === 0 ? (
+          <div style={{textAlign:"center", padding:"18px 0"}}>
+            <div style={{fontSize:13, color:"#888", marginBottom:12}}>아직 연결된 학습자가 없어요. 클래스 코드를 공유해 학습자를 초대해 보세요.</div>
+            <button type="button" onClick={onGoClass} style={{background:"#2E75B6", color:"white", border:"none", borderRadius:20, padding:"9px 18px", fontSize:13, fontWeight:800, cursor:"pointer"}}>클래스 코드 보기</button>
+          </div>
+        ) : (
+          <>
+            <div style={{fontSize:11, color:"#999", marginBottom:10}}>배포 중인 과제 {sum.activeAssignments}개 기준 · 보관한 과제는 제외</div>
+            <div style={{display:"flex", gap:8, marginBottom:12}}>
+              {tile(sum.total, "학습자", "#2E75B6", onGoStudents)}
+              {tile(sum.review, "확인할 제출물·답글", sum.review ? "#1565C0" : "#999", onGoAssign)}
+              {tile(sum.pending, sum.overdue ? `미완료 과제 (마감 지남 ${sum.overdue})` : "미완료 과제", sum.pending ? "#E65100" : "#999", onGoAssign)}
+              {tile(sum.quiet7, "7일 이상 기록 없음", "#6A4FB3", onGoStudents)}
+            </div>
+            {(err || studentsError) && (
+              <div style={{background:"#FFF0F0", border:"1px solid #FFCCCC", borderRadius:12, padding:"8px 12px", marginBottom:10, fontSize:12, color:"#C62828", lineHeight:1.5}}>
+                ⚠️ 일부 정보를 불러오지 못해 숫자가 정확하지 않을 수 있어요. 제출 정보를 못 받으면 확인할 제출물은 적게, 미완료·기록 없음은 많게 보일 수 있어요. 새로고침해도 계속되면 관리자에게 알려 주세요.
+              </div>
+            )}
+            {sum.rows.map(r => (
+              <button key={r.id} type="button" onClick={() => onGoStudents(r.id)}
+                style={{display:"block", width:"100%", textAlign:"left", background:"#fff", border:"1px solid #E8EEF7", borderRadius:12, padding:"10px 12px", marginBottom:8, cursor:"pointer", fontFamily:"inherit"}}>
+                <div style={{fontSize:13, fontWeight:800, color:"#1A3A5C"}}>{r.label} <span style={{color:"#2E75B6"}}>›</span></div>
+                <div style={{display:"flex", gap:6, flexWrap:"wrap", marginTop:6}}>
+                  {r.review > 0 && <span style={{fontSize:11, padding:"3px 9px", borderRadius:20, background:"#E3F2FD", color:"#1565C0", fontWeight:700}}>📥 확인 {r.review}</span>}
+                  {r.pending > 0 && <span style={{fontSize:11, padding:"3px 9px", borderRadius:20, background:"#FFF3CD", color:"#8A6D00", fontWeight:700}}>⬜ 미완료 {r.pending}{r.overdue > 0 ? ` (마감 지남 ${r.overdue})` : ""}</span>}
+                  <span style={{fontSize:11, padding:"3px 9px", borderRadius:20, background:"#F3EFFB", color:"#6A4FB3", fontWeight:700}}>
+                    {r.daysSince === null ? "🕘 기록 없음" : r.daysSince === 0 ? "🕘 오늘 기록 있음" : `🕘 ${r.daysSince}일 전 기록`}
+                  </span>
+                </div>
+              </button>
+            ))}
+            <div style={{fontSize:10, color:"#999", marginTop:6, lineHeight:1.5}}>* 마지막 기록은 문법·발음 기록과 과제 제출 시각 기준이에요. 기록이 없다고 학습 의지가 부족한 것은 아니에요 — 기기·생활환경·언어 수준을 함께 살펴 주세요.</div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onViewAsLearner }) {
   const [teacherData, setTeacherData] = useState(null);
   const [classCode, setClassCode] = useState(null);
   const [students, setStudents] = useState([]);
   const [areaFilter, setAreaFilter] = useState("all"); // ✅ V512: 학습 영역별 필터
-  const [tab, setTab] = useState("class"); // "class" | "students" | "assign" | "quote"
+  const [tab, setTab] = useState("today"); // ✅ V564: 처음 화면은 "오늘 현황" — "today" | "class" | "students" | "assign" | "quote"
+  const [focusStudent, setFocusStudent] = useState(null); // ✅ V564: 오늘 현황에서 학습자를 눌러 학습자 목록의 그 카드로 이동
+  useEffect(() => {
+    if (tab !== "students" || !focusStudent) return;
+    const t = setTimeout(() => {
+      try { const el = document.getElementById("hc-st-" + focusStudent); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); } catch(e) {}
+      setFocusStudent(null);
+    }, 60);
+    return () => clearTimeout(t);
+  }, [tab, focusStudent]);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(null);
   // ✅ V520: 학습자 목록을 불러오지 못했을 때 빈 목록 대신 안내(V519까지는 조용히 빈 화면)
   const [studentsError, setStudentsError] = useState(false);
+  const [studentsLoaded, setStudentsLoaded] = useState(false); // ✅ V565: 학습자 목록 첫 응답(또는 오류)을 받았는지 — 받기 전엔 오늘 현황이 "학습자 없음"으로 보이지 않게
 
   // 교수자 정보 및 클래스 코드 로드
   useEffect(() => {
@@ -7672,17 +7843,23 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
   }, [user]);
 
   // 연결된 학습자 실시간 구독
+  const studentsUidRef = useRef(null);
   useEffect(() => {
     if (!user) return;
+    if (studentsUidRef.current !== user.uid) { // ✅ V566: 교수자(UID)가 바뀐 경우에만 이전 학습자 목록·상태를 비움(같은 교수자의 user 객체 갱신에는 깜빡이지 않음)
+      studentsUidRef.current = user.uid; setStudents([]); setStudentsError(false); setStudentsLoaded(false);
+    }
     const q = query(collection(db, "users"), where("currentTeacherId", "==", user.uid));
     const unsub = onSnapshot(q, snap => {
       // ✅ V516: 교수자 본인 UID 방어 필터 — "학습자 화면 보기" 중 자기 클래스에 참여한 경우에도
       //          학습자 목록·과제 완료 현황·발음 TOP5 집계에 교수자 본인이 섞이지 않도록 차단
       setStudents(snap.docs.filter(d => d.id !== user.uid).map(d => ({ id: d.id, ...d.data() })));
       setStudentsError(false);
+      setStudentsLoaded(true);
     }, err => {
       console.error("학습자 목록 로딩 오류:", err);
       setStudentsError(true);
+      setStudentsLoaded(true);
     });
     return () => unsub();
   }, [user]);
@@ -7760,9 +7937,9 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
           </div>
         </div>
         {/* 탭 */}
-        <div style={{display:"flex", gap:8, marginTop:16}}>
-          {[["class","🏫 클래스 관리"],["students","👥 학습자 목록"],["assign","📋 과제"],["quote","📄 견적서"]].map(([k,l]) => (
-            <button key={k} onClick={()=>setTab(k)} style={{padding:"8px 18px", border:"none", borderRadius:20, background:tab===k?"white":"rgba(255,255,255,0.15)", color:tab===k?"#2E75B6":"white", fontWeight:tab===k?800:600, fontSize:13, cursor:"pointer", transition:"all .2s"}}>
+        <div style={{display:"flex", gap:8, marginTop:16, overflowX:"auto", WebkitOverflowScrolling:"touch"}}>
+          {[["today","📊 오늘 현황"],["class","🏫 클래스 관리"],["students","👥 학습자 목록"],["assign","📋 과제"],["quote","📄 견적서"]].map(([k,l]) => (
+            <button key={k} onClick={()=>setTab(k)} style={{padding:"8px 14px", border:"none", borderRadius:20, background:tab===k?"white":"rgba(255,255,255,0.15)", color:tab===k?"#2E75B6":"white", fontWeight:tab===k?800:600, fontSize:13, cursor:"pointer", transition:"all .2s", flexShrink:0, whiteSpace:"nowrap"}}>
               {l} {k==="students" && students.length > 0 && `(${students.length})`}
             </button>
           ))}
@@ -7776,6 +7953,14 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
           <div style={{background:"#FFF0F0", border:"1px solid #FFCCCC", borderRadius:14, padding:"12px 14px", marginBottom:14, fontSize:13, color:"#C62828", lineHeight:1.6}}>
             ⚠️ 학습자 목록을 불러오지 못했어요. 새로고침해도 계속되면 관리자에게 알려 주세요.
           </div>
+        )}
+
+        {/* ── ✅ V564: 오늘 현황 탭 (로드맵 T2) ── */}
+        {tab === "today" && (
+          <TodayBoard user={user} students={students} studentsError={studentsError} studentsLoaded={studentsLoaded}
+            onGoAssign={() => setTab("assign")}
+            onGoStudents={(id) => { setFocusStudent(typeof id === "string" ? id : null); setTab("students"); }}
+            onGoClass={() => setTab("class")} />
         )}
 
         {/* ── 클래스 관리 탭 ── */}
@@ -7936,7 +8121,7 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
               </div>
             ) : (
               students.map(st => (
-                <div key={st.id} style={{background:"white", borderRadius:16, padding:18, marginBottom:12, boxShadow:"0 4px 12px rgba(0,0,0,0.06)"}}>
+                <div key={st.id} id={"hc-st-" + st.id} style={{background:"white", borderRadius:16, padding:18, marginBottom:12, boxShadow:"0 4px 12px rgba(0,0,0,0.06)"}}>
                   <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12}}>
                     <div>
                       <div style={{fontSize:15, fontWeight:800, color:"#1A3A5C"}}>{st.name || "이름 없음"}</div>
