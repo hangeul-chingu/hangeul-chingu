@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "572";
+const APP_VERSION = "573";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -4938,7 +4938,9 @@ const SELF_PACKS = [
 
 // ✅ V572: 독학 코너 — 교수자 없이 혼자 하는 "한국문화로 배우는 한국어". 기록은 본인만(users/{uid}/selfStudy/{꾸러미})
 function SelfStudySection({ user, onGoWrite }) {
-  const [openId, setOpenId] = useState(null);
+  // ✅ V573: 화면이 다시 그려지거나 새로고침돼도 하던 독학 화면으로 되돌아오게, 열어 둔 꾸러미를 이 탭에만 임시 기억
+  const [openId, setOpenIdRaw] = useState(() => { try { return sessionStorage.getItem("hc_selfpack_open") || null; } catch (e) { return null; } });
+  const setOpenId = (v) => { setOpenIdRaw(v); try { v ? sessionStorage.setItem("hc_selfpack_open", v) : sessionStorage.removeItem("hc_selfpack_open"); } catch (e) {} };
   const [progs, setProgs] = useState({});
   useEffect(() => {
     if (!user || !user.uid) return;
@@ -5120,7 +5122,7 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
   const fbBox = fb && it.kind !== "speak" && (
     <div style={{ marginTop: 14, background: fb.ok ? "#EEF7EE" : "#FFF6E5", borderRadius: 12, padding: "10px 12px", fontSize: 13, lineHeight: 1.6, color: "#333" }}>
       {fb.ok ? <b style={{ color: "#2D7A2D" }}>👏 맞았어요!</b> : <b style={{ color: "#8A4B00" }}>{fb.retry ? "아직이에요. 다시 한번 해 볼까요? 😊" : "괜찮아요, 다시 만나면 돼요 💪"}</b>}
-      {!fb.ok && it.kind === "pick" && (() => { const wi = (it.opts || []).indexOf(fb.a); const why = Array.isArray(it.whys) && wi >= 0 ? it.whys[wi] : ""; return why ? <div>✗ {why}</div> : null; })()}
+      {!fb.ok && it.kind === "pick" && (() => { const wi = (it.opts || []).indexOf(fb.a); const why = Array.isArray(it.whys) && wi >= 0 ? it.whys[wi] : ""; return why ? <div>{selfStudy ? "오답 설명: " : "✗ "}{why}</div> : null; })()}
       {!fb.ok && !fb.retry && <div>정답: <b>{it.kind === "pick" ? it.answer : (it.answers || [])[0]}</b></div>}
       {selfStudy && !fb.retry && (() => { const sen = vocabAnswerSentence(it); return sen ? <div style={{ marginTop: 4 }}>✔ {sen}</div> : null; })() /* ✅ V572 독학: 완성 문장은 글로도 보여 줌(소리를 못 듣는 학습자·중고급) */}
       {selfStudy && !fb.retry && it.kind === "pick" && it.explain && <div style={{ marginTop: 4 }}>💡 {it.explain}</div>}
