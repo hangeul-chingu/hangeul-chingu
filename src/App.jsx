@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "571";
+const APP_VERSION = "572";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -4276,11 +4276,713 @@ function vocabSpeakSentence(text) {
     return true;
   } catch (e) { return false; }
 }
-function VocabSessionScreen({ assignment, teacherId, user, prog, onClose }) {
+const SELF_PACKS = [
+ {
+  "id": "culture01",
+  "type": "VOCAB_SET",
+  "title": "말투의 온도 맞추기",
+  "desc": "높임말 5개: 드시다 · 주무시다 · 계시다 · 편찮으시다 · 말씀",
+  "days": 3,
+  "targets": [
+   {
+    "expr": "드시다"
+   },
+   {
+    "expr": "주무시다"
+   },
+   {
+    "expr": "계시다"
+   },
+   {
+    "expr": "편찮으시다"
+   },
+   {
+    "expr": "말씀"
+   }
+  ],
+  "items": [
+   {
+    "t": 0,
+    "day": 0,
+    "kind": "pick",
+    "q": "할머니께서 아침부터 밥을 한 숟가락도 ___ 걱정이에요. (어른께 높임말로 말해요.)",
+    "opts": [
+     "안 먹어서",
+     "안 드셔서",
+     "안 계셔서",
+     "못 주무셔서"
+    ],
+    "answer": "안 드셔서",
+    "whys": [
+     "'안 먹어서'는 문법상 가능하지만 높임말이 아니라서 이 문제의 지시(어른께 높임말로 말해요)에 맞지 않아요. '계시다'는 '있다'의 높임말이에요. '주무시다'는 '자다'의 높임말이라 밥과 맞지 않아요.",
+     "",
+     "'안 먹어서'는 문법상 가능하지만 높임말이 아니라서 이 문제의 지시(어른께 높임말로 말해요)에 맞지 않아요. '계시다'는 '있다'의 높임말이에요. '주무시다'는 '자다'의 높임말이라 밥과 맞지 않아요.",
+     "'안 먹어서'는 문법상 가능하지만 높임말이 아니라서 이 문제의 지시(어른께 높임말로 말해요)에 맞지 않아요. '계시다'는 '있다'의 높임말이에요. '주무시다'는 '자다'의 높임말이라 밥과 맞지 않아요."
+    ],
+    "explain": "어른이 식사를 하지 않은 상황이에요. '먹다'보다 높임말 '드시다'를 써요."
+   },
+   {
+    "t": 0,
+    "day": 0,
+    "kind": "recall",
+    "q": "어머니가 저녁을 아직 안 ___ 것 같아서 같이 식사하려고 기다렸어요.",
+    "answers": [
+     "드신",
+     "드셨을"
+    ],
+    "hint": "'먹다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "가장 자연스러운 답은 '드신'이에요. '안 드신 것 같아서'는 아직 식사하지 않았다고 짐작하는 말이에요. '안 드셨을 것 같아서'도 가능해요."
+   },
+   {
+    "t": 0,
+    "day": 0,
+    "kind": "speak",
+    "q": "어른과 함께 식사하는 장면을 떠올려 보세요. 그 어른이 무엇을 드셨는지 한두 문장으로 말해 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
+    "examples": [
+     "할머니께서 아침에 죽을 드셨어요.",
+     "할아버지께서 과일을 드셨어요."
+    ]
+   },
+   {
+    "t": 0,
+    "day": 1,
+    "kind": "pick",
+    "q": "할아버지께서 요즘 입맛이 없으셔서 밥을 잘 ___ 걱정이에요.",
+    "opts": [
+     "드시고 싶어서",
+     "못 드시다고",
+     "드시지 않고도",
+     "드시지 못해서"
+    ],
+    "answer": "드시지 못해서",
+    "whys": [
+     "입맛이 없다는 말과 뜻이 반대예요. '못 드시다고'는 문법이 틀렸어요. '-고도'는 이유를 말할 때 쓰지 않아요.",
+     "입맛이 없다는 말과 뜻이 반대예요. '못 드시다고'는 문법이 틀렸어요. '-고도'는 이유를 말할 때 쓰지 않아요.",
+     "입맛이 없다는 말과 뜻이 반대예요. '못 드시다고'는 문법이 틀렸어요. '-고도'는 이유를 말할 때 쓰지 않아요.",
+     ""
+    ],
+    "explain": "입맛이 없어 식사를 잘 못 하신다는 뜻이에요. 이유를 자연스럽게 이어 줘요."
+   },
+   {
+    "t": 0,
+    "day": 1,
+    "kind": "recall",
+    "q": "어르신께서 이 약을 ___ 되는지 물어보셨어요.",
+    "answers": [
+     "드셔도"
+    ],
+    "hint": "'먹다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "약을 먹어도 되는지 허락이나 가능 여부를 물어요. '먹다'의 높임말 '드시다'에 '-어도'를 붙였어요."
+   },
+   {
+    "t": 0,
+    "day": 1,
+    "kind": "speak",
+    "q": "내가 어른께 차나 음식을 권한다면 뭐라고 말할까요? 한 문장으로 말해 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
+    "examples": [
+     "차 한 잔 드시겠어요?",
+     "이 음식도 조금 드셔 보세요."
+    ]
+   },
+   {
+    "t": 0,
+    "day": 2,
+    "kind": "pick",
+    "q": "선생님께서 점심을 ___ 후에 교실로 올라가셨어요.",
+    "opts": [
+     "드신",
+     "주무신",
+     "계신",
+     "편찮으신"
+    ],
+    "answer": "드신",
+    "whys": [
+     "",
+     "'주무시다'는 '자다'의 높임말이에요. '계시다'는 '있다'의 높임말이에요. '편찮으시다'는 '아프다'의 높임말이에요. 점심과 이어지지 않아요.",
+     "'주무시다'는 '자다'의 높임말이에요. '계시다'는 '있다'의 높임말이에요. '편찮으시다'는 '아프다'의 높임말이에요. 점심과 이어지지 않아요.",
+     "'주무시다'는 '자다'의 높임말이에요. '계시다'는 '있다'의 높임말이에요. '편찮으시다'는 '아프다'의 높임말이에요. 점심과 이어지지 않아요."
+    ],
+    "explain": "점심을 먹은 행동을 선생님께 높여 말해요. '점심을 드신 후에'가 자연스러워요."
+   },
+   {
+    "t": 0,
+    "day": 2,
+    "kind": "recall",
+    "q": "어제 병원에서 의사 선생님이 할머니께 물으셨어요. \"오늘 아침에 뭘 ___?\"",
+    "answers": [
+     "드셨어요",
+     "드셨나요"
+    ],
+    "hint": "'먹다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "의사 선생님이 할머니께 아침에 무엇을 드셨는지 물어요. '드셨어요?'도 말투에 따라 질문이 되고, '드셨나요?'는 질문이라는 점이 더 분명해요."
+   },
+   {
+    "t": 0,
+    "day": 2,
+    "kind": "speak",
+    "q": "식당에서 직원에게 어른이 드실 음식을 알려 주는 장면을 상상해 보세요. 어떻게 말할까요?",
+    "examples": [
+     "할머니께서는 비빔밥을 드실 거예요.",
+     "어른께서 드실 음식은 국수예요."
+    ]
+   },
+   {
+    "t": 1,
+    "day": 0,
+    "kind": "pick",
+    "q": "어머니께서 많이 피곤하셔서 침대에 누워 일찍 ___ 저는 혼자 TV를 봤어요.",
+    "opts": [
+     "주무셔서",
+     "계셔서",
+     "편찮으셔서",
+     "드셔서"
+    ],
+    "answer": "주무셔서",
+    "whys": [
+     "",
+     "'계시다'는 '있다'의 높임말이라 '누워 일찍'과 이어지지 않아요. '편찮으시다'는 '아프다'의 높임말이에요. '드시다'는 먹거나 마시는 것을 높이는 말이에요.",
+     "'계시다'는 '있다'의 높임말이라 '누워 일찍'과 이어지지 않아요. '편찮으시다'는 '아프다'의 높임말이에요. '드시다'는 먹거나 마시는 것을 높이는 말이에요.",
+     "'계시다'는 '있다'의 높임말이라 '누워 일찍'과 이어지지 않아요. '편찮으시다'는 '아프다'의 높임말이에요. '드시다'는 먹거나 마시는 것을 높이는 말이에요."
+    ],
+    "explain": "피곤한 어머니가 일찍 잠든 상황이에요. '자다'의 높임말은 '주무시다'예요."
+   },
+   {
+    "t": 1,
+    "day": 0,
+    "kind": "recall",
+    "q": "할아버지께서 저녁을 드신 후에 방에서 ___ 계세요.",
+    "answers": [
+     "주무시고"
+    ],
+    "hint": "'자다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "'주무시고 계세요'는 지금 잠을 자는 상태를 높여 말해요. '-고 계시다'는 진행 중인 상태를 나타내요."
+   },
+   {
+    "t": 1,
+    "day": 0,
+    "kind": "speak",
+    "q": "어른이 주무시는 동안 다른 사람에게 조용히 해 달라고 알리는 장면을 떠올려 보세요. 한 문장으로 말해 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
+    "examples": [
+     "할아버지께서 주무시고 계세요. 조금 조용히 해 주세요.",
+     "어머니께서 주무시니까 목소리를 낮춰 주세요."
+    ]
+   },
+   {
+    "t": 1,
+    "day": 1,
+    "kind": "pick",
+    "q": "할머니께서 감기에 걸리셔서 저녁도 안 드시고 일찍 ___ 걱정이 됐어요.",
+    "opts": [
+     "주무셔서",
+     "드셔서",
+     "계셔서",
+     "읽으셔서"
+    ],
+    "answer": "주무셔서",
+    "whys": [
+     "",
+     "저녁을 안 드셨다고 했으니 '드셔서'는 맞지 않아요. '계셔서'와 '읽으셔서'는 '일찍'과 뜻이 이어지지 않아요.",
+     "저녁을 안 드셨다고 했으니 '드셔서'는 맞지 않아요. '계셔서'와 '읽으셔서'는 '일찍'과 뜻이 이어지지 않아요.",
+     "저녁을 안 드셨다고 했으니 '드셔서'는 맞지 않아요. '계셔서'와 '읽으셔서'는 '일찍'과 뜻이 이어지지 않아요."
+    ],
+    "explain": "감기에 걸린 할머니가 저녁도 안 드시고 일찍 주무신 상황이에요. 그래서 '드셔서'는 맞지 않아요."
+   },
+   {
+    "t": 1,
+    "day": 1,
+    "kind": "recall",
+    "q": "아버지께 전화했더니 어머니께서 \"아버지는 지금 ___.\"라고 말씀하셨어요.",
+    "answers": [
+     "주무세요",
+     "주무셔요",
+     "주무시고 계세요"
+    ],
+    "hint": "'자다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "전화에서 지금 잠든 상태를 전할 때 '지금 주무세요'가 간결하고 자연스러워요. '주무시고 계세요'도 가능해요."
+   },
+   {
+    "t": 1,
+    "day": 1,
+    "kind": "speak",
+    "q": "내가 아는 어른이나 가상의 어른이 보통 몇 시쯤 주무시는지 말해 보세요.",
+    "examples": [
+     "이웃 어르신은 보통 밤 열 시쯤 주무세요.",
+     "우리 할머니께서는 보통 아홉 시쯤 주무세요."
+    ]
+   },
+   {
+    "t": 1,
+    "day": 2,
+    "kind": "pick",
+    "q": "선생님께서는 출장에서 돌아오셔서 침대에 눕자마자 깊이 잠이 드셨어요. 지금도 방에서 ___ 계세요.",
+    "opts": [
+     "주무시고",
+     "드시고",
+     "요리하시고",
+     "말씀하시고"
+    ],
+    "answer": "주무시고",
+    "whys": [
+     "",
+     "'드시다'는 '먹다'의 높임말이라 잠든 상황과 맞지 않아요. '요리하시고'는 잠든 분이 할 수 없는 일이에요. '말씀하시다'는 '말하다'의 높임말인데 깊이 잠든 분은 말씀하지 않아요.",
+     "'드시다'는 '먹다'의 높임말이라 잠든 상황과 맞지 않아요. '요리하시고'는 잠든 분이 할 수 없는 일이에요. '말씀하시다'는 '말하다'의 높임말인데 깊이 잠든 분은 말씀하지 않아요.",
+     "'드시다'는 '먹다'의 높임말이라 잠든 상황과 맞지 않아요. '요리하시고'는 잠든 분이 할 수 없는 일이에요. '말씀하시다'는 '말하다'의 높임말인데 깊이 잠든 분은 말씀하지 않아요."
+    ],
+    "explain": "깊이 잠이 드신 상태라서 '주무시고 계세요'라고 해요."
+   },
+   {
+    "t": 1,
+    "day": 2,
+    "kind": "recall",
+    "q": "할아버지께 전화를 드렸는데 이미 ___ 할머니께서 내일 다시 전화하라고 하셨어요.",
+    "answers": [
+     "주무셔서",
+     "주무시고 계셔서"
+    ],
+    "hint": "'자다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "이미 잠드신 것이 내일 다시 전화해야 하는 이유예요. 두 답 모두 가능하고, '주무시고 계셔서'는 잠든 상태가 계속되고 있음을 더 강조해요."
+   },
+   {
+    "t": 1,
+    "day": 2,
+    "kind": "speak",
+    "q": "어른께서 늦게까지 안 주무시고 계신 장면을 떠올려 보세요. 어떤 상황이었는지 한두 문장으로 말해 보세요.",
+    "examples": [
+     "할아버지께서 내일 여행을 가셔야 해서 짐을 싸시느라 아직 안 주무시고 계세요.",
+     "어머니께서 책을 읽으시느라 늦게 주무셨어요."
+    ]
+   },
+   {
+    "t": 2,
+    "day": 0,
+    "kind": "pick",
+    "q": "할머니께서 방 안에서 쉬고 ___ 저는 조용히 문을 닫았어요.",
+    "opts": [
+     "계셔서",
+     "편찮으셔서",
+     "드셔서",
+     "읽으셔서"
+    ],
+    "answer": "계셔서",
+    "whys": [
+     "",
+     "'쉬고 계시다'는 쉬고 있다는 말이에요. 나머지는 '쉬고' 뒤에 자연스럽게 이어지지 않아요.",
+     "'쉬고 계시다'는 쉬고 있다는 말이에요. 나머지는 '쉬고' 뒤에 자연스럽게 이어지지 않아요.",
+     "'쉬고 계시다'는 쉬고 있다는 말이에요. 나머지는 '쉬고' 뒤에 자연스럽게 이어지지 않아요."
+    ],
+    "explain": "'쉬고 계시다'는 어른이 쉬고 있는 상태를 높여 말해요."
+   },
+   {
+    "t": 2,
+    "day": 0,
+    "kind": "recall",
+    "q": "교장 선생님께서 지금 교장실에 ___ 확인해 볼게요.",
+    "answers": [
+     "계신지"
+    ],
+    "hint": "'있다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "교장 선생님이 교장실에 있는지 확인하려는 말이에요. '있다'를 높인 '계시다'에 '-ㄴ지'가 붙었어요."
+   },
+   {
+    "t": 2,
+    "day": 0,
+    "kind": "speak",
+    "q": "학교나 가게에서 선생님이나 어른이 어디에 계신지 알려 주는 장면을 떠올려 보세요. 한 문장으로 말해 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
+    "examples": [
+     "선생님께서는 지금 교무실에 계세요.",
+     "사장님은 가게 안쪽에 계세요."
+    ]
+   },
+   {
+    "t": 2,
+    "day": 1,
+    "kind": "pick",
+    "q": "병원에 갔는데 의사 선생님이 진료실에 ___ 바로 진료를 받았어요.",
+    "opts": [
+     "계셔서",
+     "드셔서",
+     "주무셔서",
+     "편찮으셔서"
+    ],
+    "answer": "계셔서",
+    "whys": [
+     "",
+     "장소에 '있다'의 높임말은 '계시다'예요. 나머지는 '진료실에'와 이어지지 않아요.",
+     "장소에 '있다'의 높임말은 '계시다'예요. 나머지는 '진료실에'와 이어지지 않아요.",
+     "장소에 '있다'의 높임말은 '계시다'예요. 나머지는 '진료실에'와 이어지지 않아요."
+    ],
+    "explain": "의사 선생님이 진료실에 있어서 바로 진료를 받을 수 있었어요. 장소에 있는 어른은 '계시다'로 높여요."
+   },
+   {
+    "t": 2,
+    "day": 1,
+    "kind": "recall",
+    "q": "오늘 선물을 드리러 갔는데 할아버지께서 방에 ___ 바로 드릴 수 있었어요.",
+    "answers": [
+     "계셔서"
+    ],
+    "hint": "'있다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "할아버지가 방에 계셔서 선물을 바로 드릴 수 있었어요. 어른의 위치를 높이고 '-어서'로 이유를 이어요."
+   },
+   {
+    "t": 2,
+    "day": 1,
+    "kind": "speak",
+    "q": "선생님이 어디에 계신지 알고 싶을 때 뭐라고 물어볼까요? 질문을 하나 만들어 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
+    "examples": [
+     "선생님께서는 지금 어디에 계세요?",
+     "교장 선생님이 교장실에 계신가요?"
+    ]
+   },
+   {
+    "t": 2,
+    "day": 2,
+    "kind": "pick",
+    "q": "할아버지께서 마당에 ___ 인사를 드리러 갔어요.",
+    "opts": [
+     "계셔서",
+     "편찮으셔서",
+     "드셔서",
+     "웃으셔서"
+    ],
+    "answer": "계셔서",
+    "whys": [
+     "",
+     "'마당에 있다'의 높임말은 '마당에 계시다'예요. 나머지는 '마당에'와 이어지지 않아요.",
+     "'마당에 있다'의 높임말은 '마당에 계시다'예요. 나머지는 '마당에'와 이어지지 않아요.",
+     "'마당에 있다'의 높임말은 '마당에 계시다'예요. 나머지는 '마당에'와 이어지지 않아요."
+    ],
+    "explain": "할아버지가 마당에 계셔서 인사를 드리러 갔어요. 어른의 위치는 '계시다'로 말해요."
+   },
+   {
+    "t": 2,
+    "day": 2,
+    "kind": "recall",
+    "q": "친구가 물었어요. \"선생님 지금 학교에 ___?\" 저는 \"네, 교무실에 계세요.\"라고 했어요.",
+    "answers": [
+     "계세요",
+     "계셔요"
+    ],
+    "hint": "'있다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "선생님이 학교에 있는지 묻는 말이에요. 두 형태 모두 가능하고 '계세요'가 더 흔하고 간결해요."
+   },
+   {
+    "t": 2,
+    "day": 2,
+    "kind": "speak",
+    "q": "친구가 \"아버지 어디 계세요?\"라고 물으면 어떻게 대답할래요? 한 문장으로 말해 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
+    "examples": [
+     "아버지는 지금 집에 계세요.",
+     "아버지께서는 도서관에 계세요."
+    ]
+   },
+   {
+    "t": 3,
+    "day": 0,
+    "kind": "pick",
+    "q": "어머니께서 요즘 몸이 ___ 병원에 자주 가세요.",
+    "opts": [
+     "편찮으셔서",
+     "맛있어서",
+     "심심해서",
+     "즐거워서"
+    ],
+    "answer": "편찮으셔서",
+    "whys": [
+     "",
+     "'몸이' 다음에는 몸 상태를 말해요. '맛있어서', '심심해서', '즐거워서'는 몸 상태를 나타내는 말이 아니에요.",
+     "'몸이' 다음에는 몸 상태를 말해요. '맛있어서', '심심해서', '즐거워서'는 몸 상태를 나타내는 말이 아니에요.",
+     "'몸이' 다음에는 몸 상태를 말해요. '맛있어서', '심심해서', '즐거워서'는 몸 상태를 나타내는 말이 아니에요."
+    ],
+    "explain": "어머니가 몸이 좋지 않아 병원에 자주 가는 상황이에요. '아프다'를 높여 말한 표현이에요."
+   },
+   {
+    "t": 3,
+    "day": 0,
+    "kind": "recall",
+    "q": "할아버지께서 감기에 걸리셨어요. 친구에게 이렇게 말해요. \"우리 할아버지께서 ___ 걱정이 돼요.\"",
+    "answers": [
+     "편찮으셔서",
+     "편찮으시니까"
+    ],
+    "hint": "'아프다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "할아버지가 아프셔서 걱정된다는 이유를 말해요. '-어서'와 '-니까' 모두 이유를 이을 수 있어요."
+   },
+   {
+    "t": 3,
+    "day": 0,
+    "kind": "speak",
+    "q": "친구에게서 어머니가 편찮으시다는 말을 들었다면 어머니 상태를 언급하며 어떻게 위로할까요? 한 문장으로 말해 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
+    "examples": [
+     "어머니께서 편찮으시다니 걱정되겠어요. 빨리 나으시길 바라요.",
+     "어머니께서 편찮으시다고 들었어요. 많이 걱정되겠어요."
+    ]
+   },
+   {
+    "t": 3,
+    "day": 1,
+    "kind": "pick",
+    "q": "친구가 말했어요. \"우리 할머니께서 어제부터 ___ 오늘은 병원에 모시고 가요.\"",
+    "opts": [
+     "편찮으셔서",
+     "웃으셔서",
+     "드셔서",
+     "계셔서"
+    ],
+    "answer": "편찮으셔서",
+    "whys": [
+     "",
+     "병원에 모시고 가는 이유로 몸이 안 좋다는 말이 맞아요. 나머지는 이유로 이어지지 않아요.",
+     "병원에 모시고 가는 이유로 몸이 안 좋다는 말이 맞아요. 나머지는 이유로 이어지지 않아요.",
+     "병원에 모시고 가는 이유로 몸이 안 좋다는 말이 맞아요. 나머지는 이유로 이어지지 않아요."
+    ],
+    "explain": "할머니가 몸이 좋지 않아 병원에 모시고 가는 상황이에요. 앞뒤 상황에 맞는 이유예요."
+   },
+   {
+    "t": 3,
+    "day": 1,
+    "kind": "recall",
+    "q": "동료가 말했어요. \"우리 어머니께서 ___ 오늘 회사에 못 가요.\"",
+    "answers": [
+     "편찮으셔서"
+    ],
+    "hint": "'아프다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "어머니께서 편찮으신 것이 오늘 회사에 못 가는 이유예요. '아프다'를 높여 '편찮으시다'로 말해요."
+   },
+   {
+    "t": 3,
+    "day": 1,
+    "kind": "speak",
+    "q": "친구가 \"어머니가 편찮으시대\"라고 했다면 어머니 상태를 언급하며 어떻게 말해 줄까요? 한두 문장으로 말해 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
+    "examples": [
+     "어머니께서 편찮으시구나. 지금은 좀 어떠셔?",
+     "많이 걱정되겠다. 어머니께서 곧 나으셨으면 좋겠어."
+    ]
+   },
+   {
+    "t": 3,
+    "day": 2,
+    "kind": "pick",
+    "q": "선생님께서 이번 주에 열이 많이 나고 ___ 수업을 다른 선생님이 대신 하고 계세요.",
+    "opts": [
+     "편찮으셔서",
+     "기뻐하셔서",
+     "노래하셔서",
+     "읽으셔서"
+    ],
+    "answer": "편찮으셔서",
+    "whys": [
+     "",
+     "열이 많이 나고 몸이 안 좋으셔서 수업을 다른 선생님이 대신 한다는 뜻이라 '편찮으셔서'가 맞아요. '기뻐하셔서', '노래하셔서', '읽으셔서'는 수업을 대신하는 이유로 이어지지 않아요.",
+     "열이 많이 나고 몸이 안 좋으셔서 수업을 다른 선생님이 대신 한다는 뜻이라 '편찮으셔서'가 맞아요. '기뻐하셔서', '노래하셔서', '읽으셔서'는 수업을 대신하는 이유로 이어지지 않아요.",
+     "열이 많이 나고 몸이 안 좋으셔서 수업을 다른 선생님이 대신 한다는 뜻이라 '편찮으셔서'가 맞아요. '기뻐하셔서', '노래하셔서', '읽으셔서'는 수업을 대신하는 이유로 이어지지 않아요."
+    ],
+    "explain": "선생님이 열이 많이 나고 몸이 좋지 않아 다른 선생님이 수업을 대신하는 상황이에요."
+   },
+   {
+    "t": 3,
+    "day": 2,
+    "kind": "recall",
+    "q": "할머니 댁에 전화했더니 이모께서 받으셔서 \"할머니께서 ___ 잠깐 누워 계세요.\"라고 하셨어요.",
+    "answers": [
+     "편찮으셔서",
+     "편찮으시니까"
+    ],
+    "hint": "'아프다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요.",
+    "ansNote": "할머니가 몸이 좋지 않아 누워 계신 이유를 말해요. 두 형태 모두 이유를 나타내요."
+   },
+   {
+    "t": 3,
+    "day": 2,
+    "kind": "speak",
+    "q": "선생님께서 편찮으셔서 수업이 취소되었다는 공지를 받았다고 상상해 보세요. 반 친구에게 이 소식을 알려 주세요.",
+    "examples": [
+     "선생님께서 편찮으셔서 오늘 수업이 취소됐대.",
+     "오늘은 선생님께서 편찮으셔서 수업이 없대."
+    ]
+   },
+   {
+    "t": 4,
+    "day": 0,
+    "kind": "pick",
+    "q": "부장님께서 회의에서 ___ 내용을 보고서에 정리했어요.",
+    "opts": [
+     "드신",
+     "말씀하신",
+     "계신",
+     "주무신"
+    ],
+    "answer": "말씀하신",
+    "whys": [
+     "회의에서 하신 이야기를 어른께 높여 말할 때는 '말씀하시다'를 써요. '드신', '계신', '주무신'은 '내용'과 이어지지 않아요.",
+     "",
+     "회의에서 하신 이야기를 어른께 높여 말할 때는 '말씀하시다'를 써요. '드신', '계신', '주무신'은 '내용'과 이어지지 않아요.",
+     "회의에서 하신 이야기를 어른께 높여 말할 때는 '말씀하시다'를 써요. '드신', '계신', '주무신'은 '내용'과 이어지지 않아요."
+    ],
+    "explain": "부장님이 회의에서 말한 내용을 높여 말해요. '말씀하신 내용'이 자연스러워요."
+   },
+   {
+    "t": 4,
+    "day": 0,
+    "kind": "recall",
+    "q": "선생님께서 내일까지 숙제를 내라고 ___ 것을 꼭 기억해야 해요.",
+    "answers": [
+     "말씀하신",
+     "말씀하셨던"
+    ],
+    "hint": "'말하다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요. (동사 '말하다'의 높임 형태예요.)",
+    "ansNote": "선생님이 숙제를 내라고 한 말을 높여 전해요. '말씀하신'이 간결하고, '말씀하셨던'은 지난 일을 떠올리는 느낌이 있어요."
+   },
+   {
+    "t": 4,
+    "day": 0,
+    "kind": "speak",
+    "q": "선생님이나 부모님이 어떤 말씀을 해 주셨는지 친구에게 전하는 장면을 떠올려 보세요. 한두 문장으로 말해 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
+    "examples": [
+     "선생님께서 숙제를 내일까지 제출하라고 말씀하셨어요.",
+     "어머니께서 건강을 잘 챙기라고 말씀해 주셨어요."
+    ]
+   },
+   {
+    "t": 4,
+    "day": 1,
+    "kind": "pick",
+    "q": "어머니께서 전화로 뭐라고 ___ 잘 못 들었어요.",
+    "opts": [
+     "드셨는지",
+     "주무셨는지",
+     "계셨는지",
+     "말씀하셨는지"
+    ],
+    "answer": "말씀하셨는지",
+    "whys": [
+     "'뭐라고' 다음에는 말하는 행동이 와야 해요. '말씀하시다'가 '말하다'의 높임말이에요. '드셨는지', '주무셨는지', '계셨는지'는 '뭐라고'와 이어지지 않아요.",
+     "'뭐라고' 다음에는 말하는 행동이 와야 해요. '말씀하시다'가 '말하다'의 높임말이에요. '드셨는지', '주무셨는지', '계셨는지'는 '뭐라고'와 이어지지 않아요.",
+     "'뭐라고' 다음에는 말하는 행동이 와야 해요. '말씀하시다'가 '말하다'의 높임말이에요. '드셨는지', '주무셨는지', '계셨는지'는 '뭐라고'와 이어지지 않아요.",
+     ""
+    ],
+    "explain": "어머니가 전화로 무슨 말을 하셨는지 잘 못 들은 상황이에요. '뭐라고' 다음에는 말하는 행동이 와요."
+   },
+   {
+    "t": 4,
+    "day": 1,
+    "kind": "recall",
+    "q": "할아버지께서 건강에 대해 ___ 것을 항상 마음에 새기고 있어요.",
+    "answers": [
+     "말씀하신",
+     "말씀하셨던",
+     "말씀해 주신",
+     "말씀해 주셨던"
+    ],
+    "hint": "'말하다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요. (동사 '말하다'의 높임 형태예요.)",
+    "ansNote": "할아버지의 말을 높여 전해요. '말씀해 주신'은 나에게 해 준 말씀이라는 느낌을 더하고, '-셨던'은 지난 일을 떠올리는 느낌이에요."
+   },
+   {
+    "t": 4,
+    "day": 1,
+    "kind": "speak",
+    "q": "어른께 \"말씀 잘 들었습니다\"라고 하고 싶은 상황을 하나 만들어 보세요. 누가 어떤 말씀을 하셨는지도 간단히 말해 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
+    "examples": [
+     "선생님, 진로에 대해 조언해 주셔서 감사합니다. 말씀 잘 들었습니다.",
+     "좋은 경험을 말씀해 주셔서 감사합니다. 잘 들었습니다."
+    ]
+   },
+   {
+    "t": 4,
+    "day": 2,
+    "kind": "pick",
+    "q": "교수님께서 수업 시간에 ___ 것을 생각하며 자료를 정리했어요.",
+    "opts": [
+     "계신",
+     "주무신",
+     "말씀해 주신",
+     "편찮으신"
+    ],
+    "answer": "말씀해 주신",
+    "whys": [
+     "수업 시간에 해 주신 이야기는 '말씀해 주시다'로 높여요. '계신', '주무신', '편찮으신'은 '수업 시간에 ... 것'과 이어지지 않아요.",
+     "수업 시간에 해 주신 이야기는 '말씀해 주시다'로 높여요. '계신', '주무신', '편찮으신'은 '수업 시간에 ... 것'과 이어지지 않아요.",
+     "",
+     "수업 시간에 해 주신 이야기는 '말씀해 주시다'로 높여요. '계신', '주무신', '편찮으신'은 '수업 시간에 ... 것'과 이어지지 않아요."
+    ],
+    "explain": "교수님이 수업에서 알려 주신 내용을 높여 말해요. '말씀해 주신 것'이 자연스러워요."
+   },
+   {
+    "t": 4,
+    "day": 2,
+    "kind": "recall",
+    "q": "오늘 회사에서 팀장님과 회의를 했어요. 팀장님께서 새 프로젝트에 대해 ___ 내용을 잘 이해했어요.",
+    "answers": [
+     "말씀하신",
+     "말씀하셨던",
+     "말씀해 주신",
+     "말씀해 주셨던"
+    ],
+    "hint": "'말하다'를 높임말로 바꾸고, 문장에 알맞게 쓰세요. (동사 '말하다'의 높임 형태예요.)",
+    "ansNote": "팀장님이 회의에서 한 말을 높여 전해요. '말씀하신'이 간결하고, 나머지 표현도 문맥에 따라 가능해요. '-셨던'은 회의를 돌아보는 느낌을 더해요."
+   },
+   {
+    "t": 4,
+    "day": 2,
+    "kind": "speak",
+    "q": "교장 선생님께서 학교 행사에서 어떤 말씀을 하셨다고 상상해 보세요. 그 말씀을 친구에게 전하고 느낌도 덧붙여 보세요.",
+    "examples": [
+     "교장 선생님께서 서로 도우자고 말씀하셨어요. 저도 그 말씀이 좋았어요.",
+     "교장 선생님께서 새 학기를 응원한다고 말씀하셨어요. 힘이 났어요."
+    ]
+   }
+  ],
+  "level": "mid"
+ }
+]; // ✅ V572: 한국문화로 배우는 한국어 독학 꾸러미(내장). 꾸러미 02·03은 같은 형식으로 추가
+
+// ✅ V572: 독학 코너 — 교수자 없이 혼자 하는 "한국문화로 배우는 한국어". 기록은 본인만(users/{uid}/selfStudy/{꾸러미})
+function SelfStudySection({ user, onGoWrite }) {
+  const [openId, setOpenId] = useState(null);
+  const [progs, setProgs] = useState({});
+  useEffect(() => {
+    if (!user || !user.uid) return;
+    const unsubs = SELF_PACKS.map(p => onSnapshot(doc(db, "users", user.uid, "selfStudy", p.id),
+      snap => setProgs(prev => ({ ...prev, [p.id]: snap.exists() ? snap.data() : null })),
+      () => {}));
+    return () => unsubs.forEach(u => { try { u(); } catch (e) {} });
+  }, [user && user.uid]);
+  if (!user || !user.uid) return null;
+  const open = SELF_PACKS.find(p => p.id === openId);
+  return (
+    <div style={{ width: "100%", maxWidth: 600, marginBottom: 12 }}>
+      <div style={{ background: "#fff", border: "1px solid #D6E4F5", borderRadius: 14, padding: "14px 16px" }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: "#1F4E79" }}>🎎 한국문화로 배우는 한국어 <span style={{ fontSize: 11, fontWeight: 700, color: "#2E75B6" }}>혼자 하기</span></div>
+        <div style={{ fontSize: 12, color: "#777", marginTop: 4, lineHeight: 1.6 }}>선생님 없이도 하루 15분씩, 한국 문화 속 표현을 내 말로 만들어 봐요.</div>
+        {SELF_PACKS.map(p => {
+          const pr = progs[p.id]; const done = pr && Array.isArray(pr.days) ? pr.days.filter(d => d && d.doneAtMs).length : 0;
+          return (
+            <div key={p.id} style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, background: "#EBF3FB", borderRadius: 10, padding: "10px 12px" }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 800 }}>{p.title}</div>
+                <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>{p.desc} · {done}/{p.days}일 {done >= p.days ? "시도 완료 🎉" : ""}</div>
+              </div>
+              <button type="button" onClick={() => setOpenId(p.id)} style={{ background: "#2E75B6", color: "#fff", border: "none", borderRadius: 10, padding: "8px 14px", fontWeight: 800, cursor: "pointer" }}>{done > 0 && done < p.days ? "이어서" : "시작"}</button>
+            </div>
+          );
+        })}
+        {typeof onGoWrite === "function" && (
+          <button type="button" onClick={onGoWrite} style={{ marginTop: 10, width: "100%", background: "#fff", border: "1px dashed #2E75B6", color: "#2E75B6", borderRadius: 10, padding: "8px 12px", fontWeight: 700, cursor: "pointer" }}>✍️ 배운 표현으로 글 써 보기 (선택)</button>
+        )}
+      </div>
+      {open && <VocabSessionScreen key={open.id} assignment={open} teacherId={null} user={user} prog={progs[open.id]} selfStudy={true} progressRef={doc(db, "users", user.uid, "selfStudy", open.id)} onClose={() => setOpenId(null)} />}
+    </div>
+  );
+}
+
+function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfStudy = false, progressRef = null }) { // ✅ V572: selfStudy=독학 코너(교수자 없이, 본인 기록 users/{uid}/selfStudy/{꾸러미}). 기본값이면 기존 동작 그대로
   const a = assignment;
   const items = Array.isArray(a.items) ? a.items : [];
   const targets = Array.isArray(a.targets) ? a.targets : [];
-  const ref = doc(db, "classes", teacherId, "assignments", a.id, "vocabProgress", user.uid);
+  const ref = progressRef || doc(db, "classes", teacherId, "assignments", a.id, "vocabProgress", user.uid);
+  const [tries, setTries] = useState(0);          // ✅ V572 독학: 이번 문항 시도 횟수(틀린 뒤 다시 풀기)
+  const [showHint, setShowHint] = useState(false); // ✅ V572 독학: 도움말은 필요할 때만
+  const [checking, setChecking] = useState(false); // ✅ V572 독학: 말하기 확정 전 점검 화면
   const [days, setDays] = useState(null);      // 내 기록(화면에서 고치는 사본)
   const [view, setView] = useState(null);      // { mode: "play"|"locked"|"alldone"|"daydone", day }
   const [fb, setFb] = useState(null);          // 방금 푼 문제의 결과 { k, ok, a }
@@ -4407,14 +5109,27 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose }) {
   const tg = targets[it.t] || { expr: "" };
   const step = fb ? pos : pos + 1;
   const sub = `${d + 1}일째 · ${step}/${rec.order.length}`;
-  const next = () => { if (Date.now() - fbAt.current < 500) return; if (a.level === "beg") { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} } setFb(null); setText(""); setUsedVoice(false); if (rec.doneAtMs) setView({ mode: "daydone", day: d }); };
+  const next = () => { if (Date.now() - fbAt.current < 500) return; if (a.level === "beg") { try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} } setFb(null); setText(""); setUsedVoice(false); setTries(0); setShowHint(false); setChecking(false); if (rec.doneAtMs) setView({ mode: "daydone", day: d }); };
   const showFb = (x) => { fbAt.current = Date.now(); setFb(x); };
+  // ✅ V572 독학: 처음 틀리면 기록하지 않고 다시 해 볼 기회를 줌(두 번째 시도 또는 [정답 보기]에서 기록 — 첫 시도가 틀렸으면 ok:false로 남겨 다음 날 '막힌 표현 먼저'가 그대로 동작)
+  const retryButtons = (finalize) => (<>
+    {bigBtn("다시 해 보기", () => { setFb(null); })}
+    <button type="button" onClick={finalize} style={{ width: "100%", marginTop: 8, background: "white", color: "#2E75B6", border: "1.5px solid #C8DAF0", borderRadius: 24, padding: "11px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>정답 보고 다음으로</button>
+  </>);
   const stageTitle = it.kind === "pick" ? "① 알아보기 — 알맞은 표현을 고르세요" : it.kind === "recall" ? "② 떠올리기 — 알맞게 바꿔 써 보세요" : "③ 내 문장 말하기";
   const fbBox = fb && it.kind !== "speak" && (
     <div style={{ marginTop: 14, background: fb.ok ? "#EEF7EE" : "#FFF6E5", borderRadius: 12, padding: "10px 12px", fontSize: 13, lineHeight: 1.6, color: "#333" }}>
-      {fb.ok ? <b style={{ color: "#2D7A2D" }}>👏 맞았어요!</b> : <b style={{ color: "#8A4B00" }}>괜찮아요, 다시 만나면 돼요 💪</b>}
+      {fb.ok ? <b style={{ color: "#2D7A2D" }}>👏 맞았어요!</b> : <b style={{ color: "#8A4B00" }}>{fb.retry ? "아직이에요. 다시 한번 해 볼까요? 😊" : "괜찮아요, 다시 만나면 돼요 💪"}</b>}
       {!fb.ok && it.kind === "pick" && (() => { const wi = (it.opts || []).indexOf(fb.a); const why = Array.isArray(it.whys) && wi >= 0 ? it.whys[wi] : ""; return why ? <div>✗ {why}</div> : null; })()}
-      {!fb.ok && <div>정답: <b>{it.kind === "pick" ? it.answer : (it.answers || [])[0]}</b></div>}
+      {!fb.ok && !fb.retry && <div>정답: <b>{it.kind === "pick" ? it.answer : (it.answers || [])[0]}</b></div>}
+      {selfStudy && !fb.retry && (() => { const sen = vocabAnswerSentence(it); return sen ? <div style={{ marginTop: 4 }}>✔ {sen}</div> : null; })() /* ✅ V572 독학: 완성 문장은 글로도 보여 줌(소리를 못 듣는 학습자·중고급) */}
+      {selfStudy && !fb.retry && it.kind === "pick" && it.explain && <div style={{ marginTop: 4 }}>💡 {it.explain}</div>}
+      {selfStudy && !fb.retry && it.kind === "recall" && (
+        <div style={{ marginTop: 4 }}>
+          {Array.isArray(it.answers) && it.answers.length > 1 && <div>인정하는 답: {it.answers.join(", ")}</div>}
+          {it.ansNote && <div>💡 {it.ansNote}</div>}
+        </div>
+      )}
       {a.level === "beg" && vocabCanSpeak() && vocabAnswerSentence(it) && ( // ✅ V556: 푼 뒤에만(fbBox는 fb가 있을 때만 그려짐) 정답 문장 듣기
         <button type="button" aria-label="정답 문장 듣기" onClick={() => vocabSpeakSentence(vocabAnswerSentence(it))}
           style={{ marginTop: 8, width: "100%", background: "white", border: "1.5px solid #C8DAF0", borderRadius: 20, padding: "8px 0", fontSize: 13, fontWeight: 700, color: "#1A3A5C", cursor: "pointer", fontFamily: "inherit" }}>🔊 정답 문장 듣기</button>
@@ -4428,10 +5143,10 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose }) {
       <div style={{ fontSize: 16, color: "#1A3A5C", lineHeight: 1.8, marginBottom: 14 }}>{showQ(it.q)}</div>
       <div style={{ display: "grid", gap: 8 }}>
         {(it.opts || []).map((o, oi) => {
-          const chosen = fb && fb.a === o, right = fb && o === it.answer;
+          const chosen = fb && fb.a === o, right = fb && !fb.retry && o === it.answer;
           return (
             <button key={oi} disabled={!!fb} aria-label={`보기 ${oi + 1}`}
-              onClick={() => { const ok = o === it.answer; record(d, r => ({ answers: [...r.answers, { k, ok, a: o }] })); showFb({ k, ok, a: o }); }}
+              onClick={() => { const ok = o === it.answer; if (selfStudy && !ok && tries === 0) { setTries(1); showFb({ k, ok: false, a: o, retry: true }); return; } record(d, r => ({ answers: [...r.answers, { k, ok: ok && tries === 0, a: o }] })); showFb({ k, ok, a: o }); }}
               style={{ textAlign: "left", padding: "12px 14px", borderRadius: 12, fontSize: 15, fontFamily: "inherit", cursor: fb ? "default" : "pointer",
                 border: `2px solid ${right ? "#4CAF50" : chosen ? "#FF9800" : "#e0e0e0"}`, background: right ? "#EEF7EE" : chosen ? "#FFF6E5" : "white", color: "#1A3A5C" }}>
               {o}
@@ -4440,21 +5155,23 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose }) {
         })}
       </div>
       {fbBox}
-      {fb && bigBtn("다음 →", next)}
+      {fb && (fb.retry ? retryButtons(() => { record(d, r => ({ answers: [...r.answers, { k, ok: false, a: fb.a }] })); showFb({ k, ok: false, a: fb.a }); }) : bigBtn("다음 →", next))}
     </>);
   } else if (it.kind === "recall") {
     body = card(<>
       <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 10 }}>{stageTitle}</div>
       <div style={{ fontSize: 16, color: "#1A3A5C", lineHeight: 1.8, marginBottom: 8 }}>{showQ(it.q)}</div>
-      {it.hint && <div style={{ fontSize: 12, color: "#666", marginBottom: 10 }}>💡 {it.hint}</div>}
+      {it.hint && (!selfStudy || showHint) && <div style={{ fontSize: 12, color: "#666", marginBottom: 10 }}>💡 {it.hint}</div>}
+      {it.hint && selfStudy && !showHint && !fb && <button type="button" onClick={() => setShowHint(true)} style={{ background: "none", border: "none", color: "#2E75B6", fontSize: 12, fontWeight: 700, cursor: "pointer", padding: 0, marginBottom: 10, fontFamily: "inherit" }}>💡 도움말 보기</button>}
       <input value={fb ? fb.a : text} onChange={e => setText(e.target.value)} disabled={!!fb} aria-label="빈칸에 쓸 말"
         placeholder="빈칸에 들어갈 말을 써 보세요"
         style={{ width: "100%", boxSizing: "border-box", border: "1.5px solid #C8DAF0", borderRadius: 12, padding: "12px 14px", fontSize: 16, fontFamily: "inherit", outline: "none" }} />
       {fbBox}
-      {fb ? bigBtn("다음 →", next) : bigBtn("확인", () => {
+      {fb ? (fb.retry ? retryButtons(() => { record(d, r => ({ answers: [...r.answers, { k, ok: false, a: fb.a }] })); showFb({ k, ok: false, a: fb.a }); }) : bigBtn("다음 →", next)) : bigBtn("확인", () => {
         const t = text.trim();
         const ok = (it.answers || []).some(x => vocabNorm(x) === vocabNorm(t));
-        record(d, r => ({ answers: [...r.answers, { k, ok, a: t }] }));
+        if (selfStudy && !ok && tries === 0) { setTries(1); showFb({ k, ok: false, a: t, retry: true }); return; }
+        record(d, r => ({ answers: [...r.answers, { k, ok: ok && tries === 0, a: t }] }));
         showFb({ k, ok, a: t });
       }, !text.trim())}
     </>);
@@ -4485,11 +5202,39 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose }) {
         placeholder={canVoice ? "말한 문장이 여기에 나와요. 글로 써도 돼요." : "이 기기에서는 음성 인식이 안 돼요. 글로 써 주세요."}
         style={{ width: "100%", boxSizing: "border-box", marginTop: 10, border: "1.5px solid #C8DAF0", borderRadius: 12, padding: "10px 12px", fontSize: 15, fontFamily: "inherit", resize: "vertical", outline: "none" }} />
       {bigBtn("다 했어요 →", () => {
+        if (selfStudy) { setChecking(true); return; } // ✅ V572 독학: 바로 기록하지 않고 점검 화면을 거침
         const t = text.trim();
         const r = record(d, r0 => ({ said: [...r0.said, { k, text: t, how: usedVoice ? "voice" : "text" }] }));
         setText(""); setUsedVoice(false);
         if (r.doneAtMs) setView({ mode: "daydone", day: d });
       }, text.trim().length < 2)}
+    </>);
+  }
+  if (selfStudy && checking && it.kind === "speak") { // ✅ V572 독학: 내 문장 점검 → 고쳐 말하기 / 이대로 확정(확정할 때만 기록 → '끝낸 날은 수정 불가' 규칙과 충돌 없음)
+    const ex = Array.isArray(it.examples) ? it.examples.filter(Boolean).slice(0, 2) : [];
+    body = card(<>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 10 }}>③ 내 문장 점검 — 확정하기 전에 한 번 볼까요?</div>
+      <div style={{ fontSize: 14, color: "#1A3A5C", background: "#F5F8FF", borderRadius: 10, padding: "10px 12px", lineHeight: 1.7 }}>내가 한 말: {text.trim()}</div>
+      <div style={{ marginTop: 12, fontSize: 13, lineHeight: 1.8, color: "#333" }}>
+        <div style={{ fontWeight: 800, marginBottom: 2 }}>스스로 점검해 보세요</div>
+        <div>① 누구를 높여 말했나요?</div>
+        <div>② 상황에 맞는 표현을 사용했나요?</div>
+        <div>③ 듣는 사람에게 뜻이 자연스럽게 전달되나요?</div>
+      </div>
+      {ex.length > 0 && (
+        <div style={{ marginTop: 12, fontSize: 13, lineHeight: 1.7, color: "#555", background: "#FFFBEA", borderRadius: 10, padding: "10px 12px" }}>
+          <div style={{ fontWeight: 800, marginBottom: 2 }}>참고 예시 (여러 가능한 답 중 하나예요)</div>
+          {ex.map((e, i) => <div key={i}>• {e}</div>)}
+        </div>
+      )}
+      <div style={{ marginTop: 10, fontSize: 12, color: "#888" }}>확정하기 전에는 마음껏 고쳐도 돼요. 확정하면 오늘 기록에 저장돼요.</div>
+      <button type="button" onClick={() => setChecking(false)} style={{ width: "100%", marginTop: 12, background: "white", color: "#2E75B6", border: "1.5px solid #C8DAF0", borderRadius: 24, padding: "12px 0", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>고쳐 말해 볼래요</button>
+      {bigBtn("이대로 확정", () => {
+        const t = text.trim();
+        const r = record(d, r0 => ({ said: [...r0.said, { k, text: t, how: usedVoice ? "voice" : "text" }] }));
+        setText(""); setUsedVoice(false); setChecking(false);
+        if (r.doneAtMs) setView({ mode: "daydone", day: d });
+      })}
     </>);
   }
   return shell(sub, body);
@@ -32407,6 +33152,7 @@ export default function App() {
 
       {/* ✅ V521: 레벨 선택 전 화면에도 과제 배너·목록·논술 화면 */}
       {learnerAssignments.length > 0 && <div style={{width:"100%",maxWidth:600,marginBottom:12}}>{renderAssignmentBanner()}</div>}
+      <SelfStudySection user={user} />{/* ✅ V572 독학 코너 */}
       {showAssignmentModal && (
         <LearnerAssignmentModal
           assignments={learnerAssignments}
@@ -33152,6 +33898,7 @@ export default function App() {
           ✅ V517: 완료 여부 반영 — 남은 과제가 있으면 파란 배너(남은 개수), 모두 끝냈으면
           초록 "과제 모두 완료!" 배너(숨기지 않음: 성취감 표시, 구글 클래스룸 '완료' 칸과 같은 원칙) */}
       {renderAssignmentBanner()}
+      <SelfStudySection user={user} onGoWrite={() => setTab("write")} />{/* ✅ V572 독학 코너 */}
 
       {/* ✅ V514: 학습자 과제 모달 */}
       {showAssignmentModal && (
