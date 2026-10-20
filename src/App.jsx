@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "579";
+const APP_VERSION = "580";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2483,7 +2483,6 @@ function VocabSetEditor({ form, setForm, essayExprs }) {
     <div style={{ marginTop: 10, background: "#F5F8FF", border: "1px solid #D6E4F5", borderRadius: 12, padding: "12px 12px 8px" }}>
       <div style={{ fontSize: 11, color: "#2E75B6", marginBottom: 10, lineHeight: 1.6 }}>
         🧩 고른 표현을 <b>하루 5~10분씩 {days}일 동안</b> ① 알아보기 → ② 떠올리기(직접 쓰기) → ③ 내 문장 말하기로 익혀요. 날마다 다른 상황에서 다시 만나요.
-        <br /><b style={{ color: "#8A4B00" }}>(시범) 학습자 풀이 화면은 다음 업데이트에서 열려요.</b>
       </div>
       <div style={{ marginBottom: 10 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>수준</div>
@@ -2853,6 +2852,7 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
   const essayExprs = [...new Set(assignments.filter(x => x.type === "ESSAY").flatMap(x => x.expressions || []).map(x => String(x).trim()).filter(Boolean))];
   function closeForm() {
     if (showForm && form.type === "VOCAB_SET" && Object.keys(form.vGen).length > 0 && !window.confirm("만든 문항이 저장되지 않았어요. 닫을까요?")) return;
+    if (showForm) setForm(f => ({ ...f, packId: "", vReviewed: false })); // ✅ V580: 닫을 때 꾸러미 선택·확인 체크 초기화
     setShowForm(!showForm);
   }
 
@@ -2889,7 +2889,7 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
             <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>과제 유형</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {NEW_TYPES.map(k => [k, TYPE_LABELS[k]]).map(([k, v]) => (
-                <button key={k} onClick={() => setForm(f => ({ ...f, type: k }))}
+                <button key={k} onClick={() => setForm(f => ({ ...f, type: k, ...(k !== "VOCAB_SET" ? { packId: "", vReviewed: false } : {}) }))}
                   style={{ padding: "10px 8px", border: form.type === k ? "2px solid #2E75B6" : "1.5px solid #e0e0e0", borderRadius: 10, background: form.type === k ? "#EBF3FB" : "white", fontSize: 12, fontWeight: form.type === k ? 800 : 600, color: form.type === k ? "#2E75B6" : "#555", cursor: "pointer" }}>
                   {v}
                 </button>
@@ -2976,7 +2976,7 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {SELF_PACKS.map(p => (
                     <button key={p.id} type="button"
-                      onClick={() => setForm(f => f.packId === p.id ? { ...f, packId: "", vReviewed: false } : { ...f, packId: p.id, title: f.title.trim() ? f.title : p.title, vReviewed: false })}
+                      onClick={() => setForm(f => f.packId === p.id ? { ...f, packId: "", vReviewed: false } : { ...f, packId: p.id, title: (!f.title.trim() || SELF_PACKS.some(x => x.title === f.title.trim())) ? p.title : f.title, vReviewed: false })}
                       style={{ padding: "7px 10px", borderRadius: 10, fontSize: 12, fontWeight: form.packId === p.id ? 800 : 600, cursor: "pointer", border: form.packId === p.id ? "2px solid #2E75B6" : "1.5px solid #e0e0e0", background: form.packId === p.id ? "#EBF3FB" : "white", color: form.packId === p.id ? "#2E75B6" : "#555" }}>
                       {p.title}
                     </button>
@@ -2986,6 +2986,16 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
                   <div style={{ marginTop: 8, fontSize: 12, color: "#444", lineHeight: 1.7 }}>
                     <b>{pk.title}</b> · {pk.days}일 · 표현 {pk.targets.length}개 · 문항 {pk.items.length}개<br />
                     {pk.targets.map(t => t.expr).join(" / ")}
+                    <details style={{ marginTop: 6 }}>
+                      <summary style={{ cursor: "pointer", color: "#2E75B6", fontWeight: 700 }}>▼ 문항 {pk.items.length}개 미리 보기</summary>
+                      <div style={{ maxHeight: 260, overflowY: "auto", marginTop: 6, background: "#fff", border: "1px solid #E5E5E5", borderRadius: 8, padding: "6px 8px" }}>
+                        {pk.items.map((it, i) => (
+                          <div key={i} style={{ fontSize: 11, color: "#444", padding: "3px 0", borderBottom: "1px dashed #eee" }}>
+                            {it.day + 1}일 · {it.kind === "pick" ? "알아보기" : it.kind === "recall" ? "떠올리기" : "말하기"} · {it.q}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                     <label style={{ display: "flex", alignItems: "flex-start", gap: 8, background: form.vReviewed ? "#EEF7EE" : "#FFF", border: `1px solid ${form.vReviewed ? "#B7DDB7" : "#FFE08A"}`, borderRadius: 10, padding: "8px 10px", marginTop: 8, cursor: "pointer" }}>
                       <input type="checkbox" checked={!!form.vReviewed} onChange={e => setForm(f => ({ ...f, vReviewed: e.target.checked }))} style={{ width: 16, height: 16, marginTop: 1 }} />
                       <span>문항을 모두 읽고 확인했어요. (학습자가 보는 문항·해설은 혼자 하기와 같아요)</span>
