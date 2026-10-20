@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "574";
+const APP_VERSION = "575";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -4267,8 +4267,8 @@ function selfExprHint(expr, text) {
   const re = SELF_EXPR_FORMS[expr];
   const t = String(text || "");
   if (!re || !t.trim() || re.test(t)) return "";
-  if (re.test(t.replace(/\s+/g, ""))) return "띄어쓰기를 확인해 보세요. 높임 표현은 한 덩어리로 붙여 써요.";
-  return `'${expr}'(을)를 문장에 썼는지 한번 볼까요? 모양이 바뀌어도 괜찮아요.`;
+  if (re.test(t.replace(/\s+/g, ""))) return "오늘 배운 표현을 상황에 맞게 사용했나요? 높임 표현은 한 덩어리로 붙여 써요.";
+  return "오늘 배운 표현을 상황에 맞게 사용했나요? 표현의 모양은 문장에 따라 달라질 수 있어요.";
 }
 function vocabCanSpeak() { return typeof window !== "undefined" && "speechSynthesis" in window && typeof window.SpeechSynthesisUtterance !== "undefined"; }
 function vocabSpeakSentence(text) {
@@ -4951,20 +4951,23 @@ function SelfStudySection({ user, onGoWrite }) {
   const [openId, setOpenIdRaw] = useState(() => { try { return sessionStorage.getItem("hc_selfpack_open") || null; } catch (e) { return null; } });
   const setOpenId = (v) => { setOpenIdRaw(v); try { v ? sessionStorage.setItem("hc_selfpack_open", v) : sessionStorage.removeItem("hc_selfpack_open"); } catch (e) {} };
   const [progs, setProgs] = useState({});
+  const [loadErrs, setLoadErrs] = useState({}); // ✅ V575: 기록을 읽지 못했을 때 '불러오는 중...'에서 멈추지 않게
+  const [retryN, setRetryN] = useState(0);
   useEffect(() => {
     if (!user || !user.uid) return;
+    setLoadErrs({});
     const unsubs = SELF_PACKS.map(p => onSnapshot(doc(db, "users", user.uid, "selfStudy", p.id),
-      snap => setProgs(prev => ({ ...prev, [p.id]: snap.exists() ? snap.data() : null })),
-      () => {}));
+      snap => { setLoadErrs(prev => (prev[p.id] ? { ...prev, [p.id]: false } : prev)); setProgs(prev => ({ ...prev, [p.id]: snap.exists() ? snap.data() : null })); },
+      () => setLoadErrs(prev => ({ ...prev, [p.id]: true }))));
     return () => unsubs.forEach(u => { try { u(); } catch (e) {} });
-  }, [user && user.uid]);
+  }, [user && user.uid, retryN]);
   if (!user || !user.uid) return null;
   const open = SELF_PACKS.find(p => p.id === openId);
   return (
     <div style={{ width: "100%", maxWidth: 600, marginBottom: 12 }}>
       <div style={{ background: "#fff", border: "1px solid #D6E4F5", borderRadius: 14, padding: "14px 16px" }}>
         <div style={{ fontSize: 15, fontWeight: 800, color: "#1F4E79" }}>🎎 한국문화로 배우는 한국어 <span style={{ fontSize: 11, fontWeight: 700, color: "#2E75B6" }}>혼자 하기</span></div>
-        <div style={{ fontSize: 12, color: "#777", marginTop: 4, lineHeight: 1.6 }}>선생님 없이도 하루 15분씩, 한국 문화 속 표현을 내 말로 만들어 봐요.</div>
+        <div style={{ fontSize: 12, color: "#777", marginTop: 4, lineHeight: 1.6 }}>선생님 없이도 하루 한 단계씩, 한국 문화 속 표현을 내 말로 만들어 봐요.</div>
         {SELF_PACKS.map(p => {
           const pr = progs[p.id]; const done = pr && Array.isArray(pr.days) ? pr.days.filter(d => d && d.doneAtMs).length : 0;
           return (
@@ -4981,12 +4984,12 @@ function SelfStudySection({ user, onGoWrite }) {
           <button type="button" onClick={onGoWrite} style={{ marginTop: 10, width: "100%", background: "#fff", border: "1px dashed #2E75B6", color: "#2E75B6", borderRadius: 10, padding: "8px 12px", fontWeight: 700, cursor: "pointer" }}>✍️ 배운 표현으로 글 써 보기 (선택)</button>
         )}
       </div>
-      {open && <VocabSessionScreen key={open.id} assignment={open} teacherId={null} user={user} prog={progs[open.id]} selfStudy={true} progressRef={doc(db, "users", user.uid, "selfStudy", open.id)} onClose={() => setOpenId(null)} />}
+      {open && <VocabSessionScreen key={open.id} assignment={open} teacherId={null} user={user} prog={progs[open.id]} selfStudy={true} loadFailed={!!loadErrs[open.id] && progs[open.id] === undefined} onRetry={() => setRetryN(n => n + 1)} progressRef={doc(db, "users", user.uid, "selfStudy", open.id)} onClose={() => setOpenId(null)} />}
     </div>
   );
 }
 
-function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfStudy = false, progressRef = null }) { // ✅ V572: selfStudy=독학 코너(교수자 없이, 본인 기록 users/{uid}/selfStudy/{꾸러미}). 기본값이면 기존 동작 그대로
+function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfStudy = false, progressRef = null, loadFailed = false, onRetry = null }) { // ✅ V572: selfStudy=독학 코너(교수자 없이, 본인 기록 users/{uid}/selfStudy/{꾸러미}). 기본값이면 기존 동작 그대로
   const a = assignment;
   const items = Array.isArray(a.items) ? a.items : [];
   const targets = Array.isArray(a.targets) ? a.targets : [];
@@ -5083,6 +5086,15 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
     <span key={i}>{part}{i < arr.length - 1 && <span style={{ display: "inline-block", minWidth: 60, borderBottom: "2px solid #2E75B6", margin: "0 4px" }}>&nbsp;</span>}</span>
   ));
 
+  if (selfStudy && loadFailed && !days) return shell("", card(
+    <div style={{ textAlign: "center", padding: "10px 0" }}>
+      <div style={{ fontSize: 15, fontWeight: 800, color: "#1A3A5C" }}>기록을 불러오지 못했어요</div>
+      <div style={{ fontSize: 13, color: "#555", marginTop: 6, lineHeight: 1.6 }}>인터넷 연결을 확인하고 다시 시도해 주세요.</div>
+      {typeof onRetry === "function" && bigBtn("다시 시도", onRetry)}
+      <div style={{ height: 8 }} />
+      {bigBtn("닫기", onClose)}
+    </div>
+  ));
   if (!view || !days) return shell("", <div style={{ textAlign: "center", color: "#888", padding: 40 }}>불러오는 중...</div>);
   if (view.mode === "alldone") return shell(`${a.days}일을 모두 끝냈어요`, card(
     <div style={{ textAlign: "center", padding: "10px 0" }}>
@@ -5109,6 +5121,11 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
         <div style={{ fontSize: 44 }}>{last ? "🎉" : "🌱"}</div>
         <div style={{ fontSize: 17, fontWeight: 800, color: "#1A3A5C", marginTop: 8 }}>{d + 1}일째 공부를 끝냈어요!</div>
         <div style={{ fontSize: 13, color: "#555", marginTop: 6, lineHeight: 1.6 }}>{last ? "모든 날을 끝냈어요. 정말 잘했어요!" : `내일 ${d + 2}일째에서 또 만나요.`}</div>
+        {selfStudy && saveErr && (<>
+          <div style={{ background: "#FFF0F0", color: "#C62828", borderRadius: 10, padding: "8px 12px", fontSize: 12, marginTop: 10, lineHeight: 1.6 }}>기록이 아직 저장되지 않았어요. 인터넷을 확인하고 '다시 저장'을 눌러 주세요.</div>
+          {bigBtn("다시 저장", () => save(days))}
+          <div style={{ height: 8 }} />
+        </>)}
         {bigBtn("닫기", onClose)}
       </div>
     ));
@@ -5116,7 +5133,7 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
   const pos = rec.answers.length + rec.said.length;
   const k = fb ? fb.k : rec.order[pos];
   const it = items[k];
-  if (!it) return shell("", card(<div>문항을 찾지 못했어요. 선생님께 알려 주세요.</div>));
+  if (!it) return shell("", card(<div>{selfStudy ? "문항을 불러오지 못했어요. 닫고 다시 열어 주세요." : "문항을 찾지 못했어요. 선생님께 알려 주세요."}</div>));
   const tg = targets[it.t] || { expr: "" };
   const step = fb ? pos : pos + 1;
   const sub = `${d + 1}일째 · ${step}/${rec.order.length}`;
