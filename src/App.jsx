@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "575";
+const APP_VERSION = "576";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -5004,6 +5004,7 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
   const [usedVoice, setUsedVoice] = useState(false);
   const [listening, setListening] = useState(false);
   const [saveErr, setSaveErr] = useState("");
+  const [savingN, setSavingN] = useState(0); // ✅ V576: 저장 중인 요청 수(독학 완료 화면에서 저장이 끝나기 전에 닫지 않게)
   const tick = useRef(Date.now());
   const srRef = useRef(null);
   const progRef = useRef(prog); progRef.current = prog; // 저장 직전에 합칠 최신 기록
@@ -5032,6 +5033,7 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
 
   async function save(next) {
     const clean = vocabMergeDays(next, progRef.current && progRef.current.days).map(x => x || null);
+    setSavingN(n => n + 1);
     try {
       await setDoc(ref, { learnerUid: user.uid, days: clean, doneDays: clean.filter(x => x && x.doneAtMs).length, updatedAt: serverTimestamp(), updatedAtMs: Date.now() });
       setSaveErr("");
@@ -5039,7 +5041,7 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
       setSaveErr(e && e.code === "permission-denied" // ✅ V539: 끝낸 날은 바꿀 수 없게 된 규칙 — 두 기기에서 같은 날을 끝낸 경우 등
         ? "다른 기기에서 먼저 저장된 기록이 있거나 과제가 정리됐어요. 닫고 다시 열어 주세요."
         : "저장하지 못했어요. 인터넷 연결을 확인해 주세요. (다음 문제를 풀 때 다시 저장해요)");
-    }
+    } finally { setSavingN(n => Math.max(0, n - 1)); }
   }
   function record(d, patch) {
     const now = Date.now();
@@ -5121,12 +5123,13 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
         <div style={{ fontSize: 44 }}>{last ? "🎉" : "🌱"}</div>
         <div style={{ fontSize: 17, fontWeight: 800, color: "#1A3A5C", marginTop: 8 }}>{d + 1}일째 공부를 끝냈어요!</div>
         <div style={{ fontSize: 13, color: "#555", marginTop: 6, lineHeight: 1.6 }}>{last ? "모든 날을 끝냈어요. 정말 잘했어요!" : `내일 ${d + 2}일째에서 또 만나요.`}</div>
-        {selfStudy && saveErr && (<>
+        {selfStudy && savingN > 0 && <div style={{ background: "#EBF3FB", color: "#1F4E79", borderRadius: 10, padding: "8px 12px", fontSize: 12, marginTop: 10, lineHeight: 1.6 }}>기록을 저장하는 중이에요. 잠깐만 기다려 주세요.</div>}
+        {selfStudy && savingN === 0 && saveErr && (<>
           <div style={{ background: "#FFF0F0", color: "#C62828", borderRadius: 10, padding: "8px 12px", fontSize: 12, marginTop: 10, lineHeight: 1.6 }}>기록이 아직 저장되지 않았어요. 인터넷을 확인하고 '다시 저장'을 눌러 주세요.</div>
           {bigBtn("다시 저장", () => save(days))}
           <div style={{ height: 8 }} />
         </>)}
-        {bigBtn("닫기", onClose)}
+        {bigBtn("닫기", onClose, selfStudy && savingN > 0)}
       </div>
     ));
   }
