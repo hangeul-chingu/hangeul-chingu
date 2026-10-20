@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "577";
+const APP_VERSION = "578";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2638,6 +2638,7 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
     vTargets: "",      // 한 줄에 하나씩 "표현 | 쓰임 메모"
     vGen: {},          // { [표현]: 편집 중인 문항[] }
     vReviewed: false,  // 교수자 확인 체크
+    packId: "",        // ✅ V578: 완성된 꾸러미로 만들 때 꾸러미 id
     vAiUsed: false,
     // ✅ V539: 발음 세트 설정 (로드맵 4-1)
     pStep: "",
@@ -2714,7 +2715,10 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
     if (form.type === "ESSAY" && !form.topic.trim()) { alert("논술 과제는 주제·상황을 입력해주세요"); return; }
     // ✅ V530: 어휘·문법 세트 — 문항이 다 채워지고 교수자가 확인해야 배포(원칙 6)
     const vTargets = vocabParseTargets(form.vTargets);
-    if (form.type === "VOCAB_SET") {
+    if (form.type === "VOCAB_SET" && form.packId) { // ✅ V578: 완성된 꾸러미는 문항 검사 대신 확인 체크만
+      if (!SELF_PACKS.find(p => p.id === form.packId)) { alert("꾸러미를 찾을 수 없어요."); return; }
+      if (!form.vReviewed) { alert("문항을 모두 읽고 '확인했어요'에 체크해 주세요."); return; }
+    } else if (form.type === "VOCAB_SET") {
       const pr = vocabCheck(vTargets, form.vGen, form.vDays);
       if (pr.length) { alert(pr[0]); return; }
       if (!form.vReviewed) { alert("문항을 모두 읽고 '확인했어요'에 체크해 주세요."); return; }
@@ -2741,7 +2745,15 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
           minChars: parseInt(form.minChars, 10) > 0 ? parseInt(form.minChars, 10) : null,
           checklist: form.checklist.split("\n").map(x => x.trim()).filter(Boolean),
         } : {}),
-        ...(form.type === "VOCAB_SET" ? {
+        ...(form.type === "VOCAB_SET" && form.packId ? (() => { // ✅ V578: 완성된 꾸러미를 그대로 과제로(오답 이유·해설·예시 포함)
+          const pk = SELF_PACKS.find(p => p.id === form.packId);
+          return {
+            level: pk.level || "mid", days: pk.days, targets: pk.targets, items: pk.items,
+            ...(Array.isArray(pk.selfCheck) && pk.selfCheck.length ? { selfCheck: pk.selfCheck } : {}),
+            packId: pk.id, reviewed: true, aiAssisted: false,
+          };
+        })() : {}),
+        ...(form.type === "VOCAB_SET" && !form.packId ? {
           level: vocabLevelKey(form.vLevel), // ✅ V556: beg 보존
           days: form.vDays,
           targets: vTargets,
@@ -2958,7 +2970,30 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
                 </div>
               </div>
             )}
-            {form.type === "VOCAB_SET" && <VocabSetEditor form={form} setForm={setForm} essayExprs={essayExprs} />}
+            {form.type === "VOCAB_SET" && (
+              <div style={{ marginTop: 10, background: "#FFFBEA", border: "1px solid #FFE08A", borderRadius: 12, padding: "10px 12px" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#8A4B00", marginBottom: 6 }}>📦 완성된 꾸러미로 만들기 (직접 입력 없이 한 번에)</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {SELF_PACKS.map(p => (
+                    <button key={p.id} type="button"
+                      onClick={() => setForm(f => f.packId === p.id ? { ...f, packId: "", vReviewed: false } : { ...f, packId: p.id, title: f.title.trim() ? f.title : p.title, vReviewed: false })}
+                      style={{ padding: "7px 10px", borderRadius: 10, fontSize: 12, fontWeight: form.packId === p.id ? 800 : 600, cursor: "pointer", border: form.packId === p.id ? "2px solid #2E75B6" : "1.5px solid #e0e0e0", background: form.packId === p.id ? "#EBF3FB" : "white", color: form.packId === p.id ? "#2E75B6" : "#555" }}>
+                      {p.title}
+                    </button>
+                  ))}
+                </div>
+                {form.packId && (() => { const pk = SELF_PACKS.find(p => p.id === form.packId); return pk ? (
+                  <div style={{ marginTop: 8, fontSize: 12, color: "#444", lineHeight: 1.7 }}>
+                    <b>{pk.title}</b> · {pk.days}일 · 표현 {pk.targets.length}개 · 문항 {pk.items.length}개<br />
+                    {pk.targets.map(t => t.expr).join(" / ")}
+                    <label style={{ display: "flex", alignItems: "flex-start", gap: 8, background: form.vReviewed ? "#EEF7EE" : "#FFF", border: `1px solid ${form.vReviewed ? "#B7DDB7" : "#FFE08A"}`, borderRadius: 10, padding: "8px 10px", marginTop: 8, cursor: "pointer" }}>
+                      <input type="checkbox" checked={!!form.vReviewed} onChange={e => setForm(f => ({ ...f, vReviewed: e.target.checked }))} style={{ width: 16, height: 16, marginTop: 1 }} />
+                      <span>문항을 모두 읽고 확인했어요. (학습자가 보는 문항·해설은 혼자 하기와 같아요)</span>
+                    </label>
+                  </div>) : null; })()}
+              </div>
+            )}
+            {form.type === "VOCAB_SET" && !form.packId && <VocabSetEditor form={form} setForm={setForm} essayExprs={essayExprs} />}
             {form.type === "PRON_SET" && <PronSetEditor form={form} setForm={setForm} />}
             {form.type === "SPEAK_TASK" && <SpeakTaskEditor form={form} setForm={setForm} />}
           </div>
@@ -4972,7 +5007,7 @@ const SELF_PACKS = [
     "t": 0,
     "day": 0,
     "kind": "pick",
-    "q": "동아리 회의에서 서로 비난하자 분위기가 나빠졌어요. 친구가 먼저 예의 있게 말하자고 해요. 알맞은 속담은 ___예요.",
+    "q": "동아리 회의에서 서로 비난하자 분위기가 나빠졌어요. 친구가 먼저 예의 있게 말하자고 해요. 알맞은 속담은 '___'예요.",
     "opts": [
      "가는 말이 고와야 오는 말이 곱다",
      "백지장도 맞들면 낫다",
@@ -5013,7 +5048,7 @@ const SELF_PACKS = [
     "t": 1,
     "day": 0,
     "kind": "pick",
-    "q": "조별 발표 자료가 많아서 한 명이 힘들어해요. 모두 조금씩 일을 나누기로 했어요. 알맞은 속담은 ___예요.",
+    "q": "조별 발표 자료가 많아서 한 명이 힘들어해요. 모두 조금씩 일을 나누기로 했어요. 알맞은 속담은 '___'예요.",
     "opts": [
      "티끌 모아 태산",
      "백지장도 맞들면 낫다",
@@ -5054,7 +5089,7 @@ const SELF_PACKS = [
     "t": 2,
     "day": 0,
     "kind": "pick",
-    "q": "매주 남은 동전을 작은 통에 모았더니 몇 달 뒤 책을 살 돈이 생겼어요. 알맞은 속담은 ___예요.",
+    "q": "매주 남은 동전을 작은 통에 모았더니 몇 달 뒤 책을 살 돈이 생겼어요. 알맞은 속담은 '___'예요.",
     "opts": [
      "소 잃고 외양간 고친다",
      "호랑이도 제 말하면 온다",
@@ -5095,7 +5130,7 @@ const SELF_PACKS = [
     "t": 3,
     "day": 0,
     "kind": "pick",
-    "q": "휴대전화를 잃어버린 뒤에야 잠금 설정을 하려고 해요. 미리 조심해야 한다는 속담은 ___예요.",
+    "q": "휴대전화를 잃어버린 뒤에야 잠금 설정을 하려고 해요. 미리 조심해야 한다는 속담은 '___'예요.",
     "opts": [
      "호랑이도 제 말하면 온다",
      "소 잃고 외양간 고친다",
@@ -5136,7 +5171,7 @@ const SELF_PACKS = [
     "t": 4,
     "day": 0,
     "kind": "pick",
-    "q": "민지에 대해 이야기하던 순간 민지가 회의실에 들어왔어요. 알맞은 속담은 ___예요.",
+    "q": "민지에 대해 이야기하던 순간 민지가 회의실에 들어왔어요. 알맞은 속담은 '___'예요.",
     "opts": [
      "백지장도 맞들면 낫다",
      "티끌 모아 태산",
@@ -5177,7 +5212,7 @@ const SELF_PACKS = [
     "t": 0,
     "day": 1,
     "kind": "pick",
-    "q": "단체 채팅방에서 무례한 답장이 이어졌어요. 누군가 말투부터 바꾸자고 제안해요. 알맞은 속담은 ___예요.",
+    "q": "단체 채팅방에서 무례한 답장이 이어졌어요. 누군가 말투부터 바꾸자고 제안해요. 알맞은 속담은 '___'예요.",
     "opts": [
      "가는 말이 고와야 오는 말이 곱다",
      "백지장도 맞들면 낫다",
@@ -5218,7 +5253,7 @@ const SELF_PACKS = [
     "t": 1,
     "day": 1,
     "kind": "pick",
-    "q": "동네 행사에서 의자를 옮겨야 해요. 여러 사람이 나서자 일이 빨리 끝났어요. 알맞은 속담은 ___예요.",
+    "q": "동네 행사에서 의자를 옮겨야 해요. 여러 사람이 나서자 일이 빨리 끝났어요. 알맞은 속담은 '___'예요.",
     "opts": [
      "티끌 모아 태산",
      "백지장도 맞들면 낫다",
@@ -5259,7 +5294,7 @@ const SELF_PACKS = [
     "t": 2,
     "day": 1,
     "kind": "pick",
-    "q": "하루에 새로운 단어를 두 개씩 익혔더니 몇 달 뒤 많은 단어를 알게 됐어요. 알맞은 속담은 ___예요.",
+    "q": "하루에 새로운 단어를 두 개씩 익혔더니 몇 달 뒤 많은 단어를 알게 됐어요. 알맞은 속담은 '___'예요.",
     "opts": [
      "소 잃고 외양간 고친다",
      "호랑이도 제 말하면 온다",
@@ -5300,7 +5335,7 @@ const SELF_PACKS = [
     "t": 3,
     "day": 1,
     "kind": "pick",
-    "q": "시험이 끝나고 나서야 공부 계획표를 만들겠다는 사람이 있어요. 알맞은 속담은 ___예요.",
+    "q": "시험이 끝나고 나서야 공부 계획표를 만들겠다는 사람이 있어요. 알맞은 속담은 '___'예요.",
     "opts": [
      "호랑이도 제 말하면 온다",
      "소 잃고 외양간 고친다",
@@ -5341,7 +5376,7 @@ const SELF_PACKS = [
     "t": 4,
     "day": 1,
     "kind": "pick",
-    "q": "친구들과 태훈이의 새 자전거를 이야기하는데 바로 태훈이가 도착했어요. 알맞은 속담은 ___예요.",
+    "q": "친구들과 태훈이의 새 자전거를 이야기하는데 바로 태훈이가 도착했어요. 알맞은 속담은 '___'예요.",
     "opts": [
      "백지장도 맞들면 낫다",
      "티끌 모아 태산",
@@ -5382,7 +5417,7 @@ const SELF_PACKS = [
     "t": 0,
     "day": 2,
     "kind": "pick",
-    "q": "새 팀원이 인사했는데 차갑게 대답하는 사람이 있어요. 먼저 친절하게 대하자는 상황에 어울리는 속담은 ___예요.",
+    "q": "새 팀원이 인사했는데 차갑게 대답하는 사람이 있어요. 먼저 친절하게 대하자는 상황에 어울리는 속담은 '___'예요.",
     "opts": [
      "가는 말이 고와야 오는 말이 곱다",
      "백지장도 맞들면 낫다",
@@ -5423,7 +5458,7 @@ const SELF_PACKS = [
     "t": 1,
     "day": 2,
     "kind": "pick",
-    "q": "팀이 큰 행사를 준비하는데 한 사람이 모든 일을 맡겠다고 해요. 협력을 권하는 속담은 ___예요.",
+    "q": "팀이 큰 행사를 준비하는데 한 사람이 모든 일을 맡겠다고 해요. 협력을 권하는 속담은 '___'예요.",
     "opts": [
      "티끌 모아 태산",
      "백지장도 맞들면 낫다",
@@ -5464,7 +5499,7 @@ const SELF_PACKS = [
     "t": 2,
     "day": 2,
     "kind": "pick",
-    "q": "하루에 몇 분씩 산책을 시작한 사람이 꾸준히 운동하는 습관을 만들었어요. 알맞은 속담은 ___예요.",
+    "q": "하루에 몇 분씩 산책을 시작한 사람이 꾸준히 운동하는 습관을 만들었어요. 알맞은 속담은 '___'예요.",
     "opts": [
      "소 잃고 외양간 고친다",
      "호랑이도 제 말하면 온다",
@@ -5505,7 +5540,7 @@ const SELF_PACKS = [
     "t": 3,
     "day": 2,
     "kind": "pick",
-    "q": "우산 없이 나갔다가 비를 맞고 집에 와서야 날씨 앱을 확인했어요. 알맞은 속담은 ___예요.",
+    "q": "우산 없이 나갔다가 비를 맞고 집에 와서야 날씨 앱을 확인했어요. 알맞은 속담은 '___'예요.",
     "opts": [
      "호랑이도 제 말하면 온다",
      "소 잃고 외양간 고친다",
@@ -5546,7 +5581,7 @@ const SELF_PACKS = [
     "t": 4,
     "day": 2,
     "kind": "pick",
-    "q": "동료가 선우를 찾고 있다고 말하는데 선우가 바로 옆에서 인사했어요. 알맞은 속담은 ___예요.",
+    "q": "동료가 선우를 찾고 있다고 말하는데 선우가 바로 옆에서 인사했어요. 알맞은 속담은 '___'예요.",
     "opts": [
      "백지장도 맞들면 낫다",
      "티끌 모아 태산",
