@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "573";
+const APP_VERSION = "574";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -4261,6 +4261,15 @@ function vocabAnswerSentence(it) {
   if (typeof ans !== "string" || !ans.trim() || !blank.test(q)) return "";
   return q.replace(blank, () => ans.trim()).replace(/\s+/g, " ").trim();
 }
+// ✅ V574 독학: 내 문장에 오늘의 표현이 들어갔는지 아주 가볍게 알려 줌(AI 아님, 비용 없음). 맞다/틀리다를 판정하지 않고 "확인해 보세요"만 한다.
+const SELF_EXPR_FORMS = { "드시다": /드시|드셔|드셨|드세|드실/, "주무시다": /주무시|주무셔|주무셨|주무세|주무실/, "계시다": /계시|계셔|계셨|계세|계실/, "편찮으시다": /편찮으시|편찮으셔|편찮으셨|편찮으세|편찮으실/, "말씀": /말씀/ };
+function selfExprHint(expr, text) {
+  const re = SELF_EXPR_FORMS[expr];
+  const t = String(text || "");
+  if (!re || !t.trim() || re.test(t)) return "";
+  if (re.test(t.replace(/\s+/g, ""))) return "띄어쓰기를 확인해 보세요. 높임 표현은 한 덩어리로 붙여 써요.";
+  return `'${expr}'(을)를 문장에 썼는지 한번 볼까요? 모양이 바뀌어도 괜찮아요.`;
+}
 function vocabCanSpeak() { return typeof window !== "undefined" && "speechSynthesis" in window && typeof window.SpeechSynthesisUtterance !== "undefined"; }
 function vocabSpeakSentence(text) {
   try {
@@ -5217,6 +5226,7 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
     body = card(<>
       <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 10 }}>③ 내 문장 점검 — 확정하기 전에 한 번 볼까요?</div>
       <div style={{ fontSize: 14, color: "#1A3A5C", background: "#F5F8FF", borderRadius: 10, padding: "10px 12px", lineHeight: 1.7 }}>내가 한 말: {text.trim()}</div>
+      {selfExprHint(tg.expr, text) && <div style={{ marginTop: 10, fontSize: 13, color: "#8A5A00", background: "#FFF6E0", borderRadius: 10, padding: "8px 12px", lineHeight: 1.6 }}>💡 {selfExprHint(tg.expr, text)}</div>}
       <div style={{ marginTop: 12, fontSize: 13, lineHeight: 1.8, color: "#333" }}>
         <div style={{ fontWeight: 800, marginBottom: 2 }}>스스로 점검해 보세요</div>
         <div>① 누구를 높여 말했나요?</div>
