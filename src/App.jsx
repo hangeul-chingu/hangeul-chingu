@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "587";
+const APP_VERSION = "588";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -13394,6 +13394,9 @@ ${vocabList}
           </div>
         </div>
       )}
+      {/* ✅ V588: 언어 선택 화면에도 마이페이지 버튼 — 다른 단계에는 있는데 이 단계만 빠져 있어, 새로 접속한 로그인 사용자가
+          화면 아래 "← 뒤로"로 이전 화면에 돌아가야만 마이페이지에 들어갈 수 있었음(261021 대표님 확인). onMyPage가 없으면 MyPageBtn은 null. */}
+      {!begSpeak && MyPageBtn}
       {!begSpeak && <><div style={{fontSize:48,marginBottom:8}}>🌸</div>
       <div style={{fontSize:22,fontWeight:900,color:"#9C6FDE",marginBottom:4}}>한글 친구</div></>}
       <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center",width:"100%"}}>
