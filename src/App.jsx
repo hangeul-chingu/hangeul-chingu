@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "588";
+const APP_VERSION = "589";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -4309,8 +4309,19 @@ function vocabAnswerSentence(it) {
   return q.replace(blank, () => ans.trim()).replace(/\s+/g, " ").trim();
 }
 // ✅ V574 독학: 내 문장에 오늘의 표현이 들어갔는지 아주 가볍게 알려 줌(AI 아님, 비용 없음). 맞다/틀리다를 판정하지 않고 "확인해 보세요"만 한다.
-const SELF_EXPR_FORMS = { "가는 말이 고와야 오는 말이 곱다": /가는\s*말|고와야|오는\s*말|곱다/, "백지장도 맞들면 낫다": /백지장|맞들/, "티끌 모아 태산": /티끌|태산/, "소 잃고 외양간 고친다": /외양간|소\s*잃/, "호랑이도 제 말하면 온다": /호랑이|제\s*말/, "드시다": /드시|드셔|드셨|드세|드실/, "주무시다": /주무시|주무셔|주무셨|주무세|주무실/, "계시다": /계시|계셔|계셨|계세|계실/, "편찮으시다": /편찮으시|편찮으셔|편찮으셨|편찮으세|편찮으실/, "말씀": /말씀/, "손이 크다": /손이?\s*크|손\s*큰|손이?\s*커/, "입이 무겁다": /입이?\s*무거|입\s*무겁/, "발이 넓다": /발이?\s*넓/, "어깨가 무겁다": /어깨가?\s*무거|어깨\s*무겁/, "귀가 얇다": /귀가?\s*얇/ };
-function selfExprHint(expr, text) {
+const SELF_EXPR_FORMS = { "가는 말이 고와야 오는 말이 곱다": /가는\s*말|고와야|오는\s*말|곱다/, "백지장도 맞들면 낫다": /백지장|맞들/, "티끌 모아 태산": /티끌|태산/, "소 잃고 외양간 고친다": /외양간|소\s*잃/, "호랑이도 제 말하면 온다": /호랑이|제\s*말/, "드시다": /드시|드셔|드셨|드세|드실/, "주무시다": /주무시|주무셔|주무셨|주무세|주무실/, "계시다": /계시|계셔|계셨|계세|계실/, "편찮으시다": /편찮으시|편찮으셔|편찮으셨|편찮으세|편찮으실/, "말씀": /말씀/, "손이 크다": /손이?\s*크|손\s*큰|손이?\s*커/, "입이 무겁다": /입이?\s*무거|입\s*무겁/, "발이 넓다": /발이?\s*넓/, "어깨가 무겁다": /어깨가?\s*무거|어깨\s*무겁/, "귀가 얇다": /귀가?\s*얇/,
+  // ✅ V589: 꾸러미 04 호칭 5개(비채점·제안형). 이름은 쓰지 않고 모양만 봄. 씨/님은 어느 쪽이든 자연스러우면 힌트 없음.
+  "부모님": /부모\s*님/, "이모": /이모(?!티콘|부)/, "사장님": /사장\s*님/ };
+// ✅ V589 r2: 이름+씨/님은 "이름 모양의 말 + 씨/님"만 인정. 일반 호칭(사장님·선생님·부모님·고객님·아저씨 …)은 이름으로 보지 않음.
+const SELF_NOT_NAME = /(부모|사장|선생|고객|아저|아가|아줌|이모|고모|삼촌|교수|대표|회장|부장|팀장|과장|차장|실장|원장|교장|담당|주인|여러|어르|할머|할아|아버|어머|언니|오빠|누나|동생|친구|후배|선배|동료|학생|회원|독자|청취|시청|관리|운영|우리|저희|시청자|청취자|이용자|참가자|구독자|도서관|학교|기관|회사|은행|병원|가게)$/;
+function selfHasNameHon(t) { const re = /([가-힣]{2,4})\s*(씨|님)(?![앗알])/g; let m; while ((m = re.exec(t))) { if (SELF_NOT_NAME.test(m[1])) continue; if (m[1] === "하나" && m[2] === "님" && !/\s/.test(m[0])) continue; /* 붙여 쓴 "하나님"은 이름이 아닌 일반 낱말 — "하나 님"처럼 띄어 쓴 이름은 인정 */ return true; } return false; }
+const SELF_EXPR_CALL = { "부모님": t => SELF_EXPR_FORMS["부모님"].test(t), "이모": t => SELF_EXPR_FORMS["이모"].test(t), "사장님": t => SELF_EXPR_FORMS["사장님"].test(t), "이름+씨": selfHasNameHon, "이름+님": selfHasNameHon };
+const SELF_EXPR_MSG = { "부모님": "'부모님'이라는 호칭으로도 말해 볼까요? 상황에 맞는 호칭을 골라 쓰면 돼요.", "이모": "'이모'라는 호칭으로도 말해 볼까요? 상황에 맞는 호칭을 골라 쓰면 돼요.", "사장님": "'사장님'이라는 호칭으로도 말해 볼까요? 상황에 맞는 호칭을 골라 쓰면 돼요.", "이름+씨": "이름 뒤에 '씨'나 '님'을 붙인 호칭으로도 말해 볼까요? 상대가 원하는 호칭이 있으면 그 호칭을 따라요.", "이름+님": "이름 뒤에 '씨'나 '님'을 붙인 호칭으로도 말해 볼까요? 상대가 원하는 호칭이 있으면 그 호칭을 따라요." };
+const SELF_EXPR_VOICE_HOLD = new Set(["부모님", "이모", "사장님", "이름+씨", "이름+님"]); // ✅ V589: 음성 인식 글은 오인식 가능 → 04 힌트는 보류
+const SELF_EXPR_HINT_OFF = {}; // ✅ V589: 문제가 생긴 규칙만 { "이모": true }처럼 끌 수 있는 스위치
+function selfExprHint(expr, text, viaVoice) {
+  if (SELF_EXPR_HINT_OFF[expr] || (viaVoice && SELF_EXPR_VOICE_HOLD.has(expr))) return "";
+  if (SELF_EXPR_CALL[expr]) { const t0 = String(text || ""); return !t0.trim() || SELF_EXPR_CALL[expr](t0) ? "" : SELF_EXPR_MSG[expr]; } // ✅ V589 r2: 꾸러미 04 호칭
   const re = SELF_EXPR_FORMS[expr];
   const t = String(text || "");
   if (!re || !t.trim() || re.test(t)) return "";
@@ -4454,9 +4465,9 @@ const SELF_PACKS = [
     "answer": "드신",
     "whys": [
      "",
-     "'주무시다'는 '자다'의 높임말이에요. '계시다'는 '있다'의 높임말이에요. '편찮으시다'는 '아프다'의 높임말이에요. 점심과 이어지지 않아요.",
-     "'주무시다'는 '자다'의 높임말이에요. '계시다'는 '있다'의 높임말이에요. '편찮으시다'는 '아프다'의 높임말이에요. 점심과 이어지지 않아요.",
-     "'주무시다'는 '자다'의 높임말이에요. '계시다'는 '있다'의 높임말이에요. '편찮으시다'는 '아프다'의 높임말이에요. 점심과 이어지지 않아요."
+     "'주무시다'는 잠을 자는 행동에 쓰므로 점심 식사를 나타내지 않아요.",
+     "'계시다'는 어떤 곳에 있거나 머무는 상태를 말해요. 점심을 먹는 행동과 달라요.",
+     "'편찮으시다'는 몸이 아픈 상태를 말해요. 점심을 먹는 행동과 달라요."
     ],
     "explain": "점심을 먹은 행동을 선생님께 높여 말해요. '점심을 드신 후에'가 자연스러워요."
    },
@@ -4496,9 +4507,9 @@ const SELF_PACKS = [
     "answer": "주무셔서",
     "whys": [
      "",
-     "'계시다'는 '있다'의 높임말이라 '누워 일찍'과 이어지지 않아요. '편찮으시다'는 '아프다'의 높임말이에요. '드시다'는 먹거나 마시는 것을 높이는 말이에요.",
-     "'계시다'는 '있다'의 높임말이라 '누워 일찍'과 이어지지 않아요. '편찮으시다'는 '아프다'의 높임말이에요. '드시다'는 먹거나 마시는 것을 높이는 말이에요.",
-     "'계시다'는 '있다'의 높임말이라 '누워 일찍'과 이어지지 않아요. '편찮으시다'는 '아프다'의 높임말이에요. '드시다'는 먹거나 마시는 것을 높이는 말이에요."
+     "'계시다'는 있는 상태를 나타내므로 '침대에 누워 일찍'과 연결된 행동을 설명하기 어려워요.",
+     "'편찮으시다'는 아픈 상태를 나타내지만, 이 문장에는 피곤하다는 정보만 있어요.",
+     "'드시다'는 먹거나 마시는 행동에 쓰므로 누워 있는 상황과 맞지 않아요."
     ],
     "explain": "피곤한 어머니가 일찍 잠든 상황이에요. '자다'의 높임말은 '주무시다'예요."
    },
@@ -4580,9 +4591,9 @@ const SELF_PACKS = [
     "answer": "주무시고",
     "whys": [
      "",
-     "'드시다'는 '먹다'의 높임말이라 잠든 상황과 맞지 않아요. '요리하시고'는 잠든 분이 할 수 없는 일이에요. '말씀하시다'는 '말하다'의 높임말인데 깊이 잠든 분은 말씀하지 않아요.",
-     "'드시다'는 '먹다'의 높임말이라 잠든 상황과 맞지 않아요. '요리하시고'는 잠든 분이 할 수 없는 일이에요. '말씀하시다'는 '말하다'의 높임말인데 깊이 잠든 분은 말씀하지 않아요.",
-     "'드시다'는 '먹다'의 높임말이라 잠든 상황과 맞지 않아요. '요리하시고'는 잠든 분이 할 수 없는 일이에요. '말씀하시다'는 '말하다'의 높임말인데 깊이 잠든 분은 말씀하지 않아요."
+     "'드시고'는 먹거나 마시는 행동이에요. 깊이 잠든 상태를 나타내지 않아요.",
+     "'요리하시고'는 음식을 만드는 행동이에요. 잠든 뒤의 상태와 달라요.",
+     "'말씀하시고'는 말하는 행동이에요. 깊이 잠든 분의 상황과 맞지 않아요."
     ],
     "explain": "깊이 잠이 드신 상태라서 '주무시고 계세요'라고 해요."
    },
@@ -4622,9 +4633,9 @@ const SELF_PACKS = [
     "answer": "계셔서",
     "whys": [
      "",
-     "'쉬고 계시다'는 쉬고 있다는 말이에요. 나머지는 '쉬고' 뒤에 자연스럽게 이어지지 않아요.",
-     "'쉬고 계시다'는 쉬고 있다는 말이에요. 나머지는 '쉬고' 뒤에 자연스럽게 이어지지 않아요.",
-     "'쉬고 계시다'는 쉬고 있다는 말이에요. 나머지는 '쉬고' 뒤에 자연스럽게 이어지지 않아요."
+     "'편찮으셔서'는 몸이 아프다는 말이에요. '쉬고' 뒤의 상황과 맞지 않아요.",
+     "'드셔서'는 먹거나 마신다는 뜻이라 '쉬고' 뒤의 상태 설명에 어울리지 않아요.",
+     "'읽으셔서'는 글을 읽는 행동이에요. '쉬고' 뒤에서 쉬는 상태를 나타내지 않아요."
     ],
     "explain": "'쉬고 계시다'는 어른이 쉬고 있는 상태를 높여 말해요."
    },
@@ -4663,9 +4674,9 @@ const SELF_PACKS = [
     "answer": "계셔서",
     "whys": [
      "",
-     "장소에 '있다'의 높임말은 '계시다'예요. 나머지는 '진료실에'와 이어지지 않아요.",
-     "장소에 '있다'의 높임말은 '계시다'예요. 나머지는 '진료실에'와 이어지지 않아요.",
-     "장소에 '있다'의 높임말은 '계시다'예요. 나머지는 '진료실에'와 이어지지 않아요."
+     "'드셔서'는 식사하거나 마시는 행동이에요. 진료실에서 바로 진료를 받았다는 이유가 되지 않아요.",
+     "'주무셔서'는 잠자는 행동이에요. 의사가 잠을 자고 있다면 바로 진료를 받았다는 상황과 맞지 않아요.",
+     "'편찮으셔서'는 아픈 상태예요. 진료실에서 바로 진료를 받은 이유를 설명하지 못해요."
     ],
     "explain": "의사 선생님이 진료실에 있어서 바로 진료를 받을 수 있었어요. 장소에 있는 어른은 '계시다'로 높여요."
    },
@@ -4704,9 +4715,9 @@ const SELF_PACKS = [
     "answer": "계셔서",
     "whys": [
      "",
-     "'마당에 있다'의 높임말은 '마당에 계시다'예요. 나머지는 '마당에'와 이어지지 않아요.",
-     "'마당에 있다'의 높임말은 '마당에 계시다'예요. 나머지는 '마당에'와 이어지지 않아요.",
-     "'마당에 있다'의 높임말은 '마당에 계시다'예요. 나머지는 '마당에'와 이어지지 않아요."
+     "'편찮으셔서'는 몸이 아픈 상태를 나타내요. 이 문장에는 아프다는 정보가 없어요.",
+     "'드셔서'는 먹거나 마시는 행동이에요. 마당에 있다는 위치를 설명하지 않아요.",
+     "'웃으셔서'는 웃는 행동이에요. 행동이 일어난 장소를 말하려면 '마당에서'가 더 자연스러워요."
     ],
     "explain": "할아버지가 마당에 계셔서 인사를 드리러 갔어요. 어른의 위치는 '계시다'로 말해요."
    },
@@ -4714,7 +4725,7 @@ const SELF_PACKS = [
     "t": 2,
     "day": 2,
     "kind": "recall",
-    "q": "친구가 물었어요. \"선생님 지금 학교에 ___?\" 저는 \"네, 교무실에 계세요.\"라고 했어요.",
+    "q": "동아리 선배가 정중하게 물었어요. \"선생님 지금 학교에 ___?\" 저는 \"네, 교무실에 계세요.\"라고 했어요.",
     "answers": [
      "계세요",
      "계셔요"
@@ -4726,7 +4737,7 @@ const SELF_PACKS = [
     "t": 2,
     "day": 2,
     "kind": "speak",
-    "q": "친구가 \"아버지 어디 계세요?\"라고 물으면 어떻게 대답할래요? 한 문장으로 말해 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
+    "q": "선배가 \"아버지는 어디 계세요?\"라고 물으면 어떻게 대답할래요? 한 문장으로 말해 보세요. (내가 만든 가상의 인물이나 상황으로 말해도 돼요.)",
     "examples": [
      "아버지는 지금 집에 계세요.",
      "아버지께서는 도서관에 계세요."
@@ -4870,10 +4881,10 @@ const SELF_PACKS = [
     ],
     "answer": "말씀하신",
     "whys": [
-     "회의에서 하신 이야기를 어른께 높여 말할 때는 '말씀하시다'를 써요. '드신', '계신', '주무신'은 '내용'과 이어지지 않아요.",
+     "'드신'은 먹거나 마신 행동에 써요. 회의의 '내용'을 나타내는 상황과 어울리지 않아요.",
      "",
-     "회의에서 하신 이야기를 어른께 높여 말할 때는 '말씀하시다'를 써요. '드신', '계신', '주무신'은 '내용'과 이어지지 않아요.",
-     "회의에서 하신 이야기를 어른께 높여 말할 때는 '말씀하시다'를 써요. '드신', '계신', '주무신'은 '내용'과 이어지지 않아요."
+     "'계신'은 있는 상태를 나타내요. 보고서에 정리할 회의의 발언 내용을 가리키지 않아요.",
+     "'주무신'은 잠자는 행동이에요. 회의에서 나온 내용을 가리키지 않아요."
     ],
     "explain": "부장님이 회의에서 말한 내용을 높여 말해요. '말씀하신 내용'이 자연스러워요."
    },
@@ -4912,9 +4923,9 @@ const SELF_PACKS = [
     ],
     "answer": "말씀하셨는지",
     "whys": [
-     "'뭐라고' 다음에는 말하는 행동이 와야 해요. '말씀하시다'가 '말하다'의 높임말이에요. '드셨는지', '주무셨는지', '계셨는지'는 '뭐라고'와 이어지지 않아요.",
-     "'뭐라고' 다음에는 말하는 행동이 와야 해요. '말씀하시다'가 '말하다'의 높임말이에요. '드셨는지', '주무셨는지', '계셨는지'는 '뭐라고'와 이어지지 않아요.",
-     "'뭐라고' 다음에는 말하는 행동이 와야 해요. '말씀하시다'가 '말하다'의 높임말이에요. '드셨는지', '주무셨는지', '계셨는지'는 '뭐라고'와 이어지지 않아요.",
+     "'드셨는지'는 먹거나 마시는 행동에 써요. '뭐라고'와 이어지지 않아요.",
+     "'주무셨는지'는 잠을 자는 행동에 써요. '뭐라고'와 이어지지 않아요.",
+     "'계셨는지'는 있는 상태에 써요. '뭐라고'와 이어지지 않아요.",
      ""
     ],
     "explain": "어머니가 전화로 무슨 말을 하셨는지 잘 못 들은 상황이에요. '뭐라고' 다음에는 말하는 행동이 와요."
@@ -4956,10 +4967,10 @@ const SELF_PACKS = [
     ],
     "answer": "말씀해 주신",
     "whys": [
-     "수업 시간에 해 주신 이야기는 '말씀해 주시다'로 높여요. '계신', '주무신', '편찮으신'은 '수업 시간에 ... 것'과 이어지지 않아요.",
-     "수업 시간에 해 주신 이야기는 '말씀해 주시다'로 높여요. '계신', '주무신', '편찮으신'은 '수업 시간에 ... 것'과 이어지지 않아요.",
+     "'계신'은 어디에 있거나 머무는 상태를 나타내요. 수업에서 배운 내용을 가리키지 않아요.",
+     "'주무신'은 잠자는 행동이에요. 수업에서 배운 것을 떠올리는 상황과 맞지 않아요.",
      "",
-     "수업 시간에 해 주신 이야기는 '말씀해 주시다'로 높여요. '계신', '주무신', '편찮으신'은 '수업 시간에 ... 것'과 이어지지 않아요."
+     "'편찮으신'은 몸이 아픈 상태를 나타내요. 수업 내용을 정리하는 맥락과 달라요."
     ],
     "explain": "교수님이 수업에서 알려 주신 내용을 높여 말해요. '말씀해 주신 것'이 자연스러워요."
    },
@@ -6074,7 +6085,7 @@ const SELF_PACKS = [
     "q": "수강 과목을 여러 번 바꾸는 친구에게 조언해 보세요.",
     "examples": [
      "귀가 얇아서 고민이 많겠구나. 네 목표에 맞춰 골라 봐.",
-     "다른 의견도 듣되 귀가 얇다는 말을 듣지 않도록 네 기준을 세워 봐."
+     "나도 귀가 얇아 과목을 자주 바꿨어. 너는 네 목표에 맞게 골라 봐."
     ]
    },
    {
@@ -6142,7 +6153,7 @@ const SELF_PACKS = [
     "t": 1,
     "day": 2,
     "kind": "recall",
-    "q": "중요한 계획을 끝까지 지켜 주는 사람을 '___'라고 표현해요.",
+    "q": "친구의 비밀을 끝까지 말하지 않는 사람을 '___'라고 해요.",
     "answers": [
      "입이 무겁다"
     ],
@@ -7226,7 +7237,7 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
     body = card(<>
       <div style={{ fontSize: 12, fontWeight: 800, color: "#2E75B6", marginBottom: 10 }}>③ 내 문장 점검 — 확정하기 전에 한 번 볼까요?</div>
       <div style={{ fontSize: 14, color: "#1A3A5C", background: "#F5F8FF", borderRadius: 10, padding: "10px 12px", lineHeight: 1.7 }}>내가 한 말: {text.trim()}</div>
-      {selfExprHint(tg.expr, text) && <div style={{ marginTop: 10, fontSize: 13, color: "#8A5A00", background: "#FFF6E0", borderRadius: 10, padding: "8px 12px", lineHeight: 1.6 }}>💡 {selfExprHint(tg.expr, text)}</div>}
+      {selfExprHint(tg.expr, text, usedVoice) && <div style={{ marginTop: 10, fontSize: 13, color: "#8A5A00", background: "#FFF6E0", borderRadius: 10, padding: "8px 12px", lineHeight: 1.6 }}>💡 {selfExprHint(tg.expr, text, usedVoice)}</div>}
       <div style={{ marginTop: 12, fontSize: 13, lineHeight: 1.8, color: "#333" }}>
         <div style={{ fontWeight: 800, marginBottom: 2 }}>스스로 점검해 보세요</div>
         {(Array.isArray(a.selfCheck) && a.selfCheck.length ? a.selfCheck : ["① 누구를 높여 말했나요?", "② 상황에 맞는 표현을 사용했나요?", "③ 듣는 사람에게 뜻이 자연스럽게 전달되나요?"]).map((c, i) => <div key={i}>{c}</div>)}
@@ -10554,6 +10565,20 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
   const [students, setStudents] = useState([]);
   const [areaFilter, setAreaFilter] = useState("all"); // ✅ V512: 학습 영역별 필터
   const [tab, setTab] = useState("today"); // ✅ V564: 처음 화면은 "오늘 현황" — "today" | "class" | "students" | "assign" | "quote"
+  const tabsRef = useRef(null); // ✅ V589: 좁은 화면에서 탭이 더 있다는 표시·선택 탭 자동 보이기
+  const [tabNarrow, setTabNarrow] = useState(() => typeof window !== "undefined" && window.innerWidth <= 480);
+  const [tabMore, setTabMore] = useState(false);
+  const [tabLess, setTabLess] = useState(false);
+  const updateTabMore = useCallback(() => { const el = tabsRef.current; if (!el) return; setTabMore(el.scrollWidth - el.clientWidth - el.scrollLeft > 4); setTabLess(el.scrollLeft > 4); }, []);
+  useEffect(() => { const f = () => { setTabNarrow(window.innerWidth <= 480); updateTabMore(); }; window.addEventListener("resize", f); f(); return () => window.removeEventListener("resize", f); }, [updateTabMore]);
+  useEffect(() => { // 선택한 탭이 화면 밖이면 탭 줄 안에서만 옮겨 보여 줌(페이지는 움직이지 않음)
+    const el = tabsRef.current; if (!el) return;
+    const b = el.querySelector('[data-tab="' + tab + '"]'); if (!b) return;
+    const l = b.offsetLeft, r = l + b.offsetWidth;
+    if (l < el.scrollLeft + 52) el.scrollLeft = Math.max(0, l - 56); // 왼쪽·오른쪽 "더 보기" 버튼(44px)에 가리지 않게 여유
+    else if (r > el.scrollLeft + el.clientWidth - 52) el.scrollLeft = r - el.clientWidth + 56;
+    updateTabMore();
+  }, [tab, tabNarrow, students.length, updateTabMore]);
   const [focusStudent, setFocusStudent] = useState(null); // ✅ V564: 오늘 현황에서 학습자를 눌러 학습자 목록의 그 카드로 이동
   useEffect(() => {
     if (tab !== "students" || !focusStudent) return;
@@ -10692,12 +10717,20 @@ function InstructorDashboard({ user, onLogout, isAdmin=false, onEnterAdmin, onVi
           </div>
         </div>
         {/* 탭 */}
-        <div style={{display:"flex", gap:8, marginTop:16, overflowX:"auto", WebkitOverflowScrolling:"touch"}}>
-          {[["today","📊 오늘 현황"],["class","🏫 클래스 관리"],["students","👥 학습자 목록"],["assign","📋 과제"],["quote","📄 견적서"]].map(([k,l]) => (
-            <button key={k} onClick={()=>setTab(k)} style={{padding:"8px 14px", border:"none", borderRadius:20, background:tab===k?"white":"rgba(255,255,255,0.15)", color:tab===k?"#2E75B6":"white", fontWeight:tab===k?800:600, fontSize:13, cursor:"pointer", transition:"all .2s", flexShrink:0, whiteSpace:"nowrap"}}>
-              {l} {k==="students" && students.length > 0 && `(${students.length})`}
+        <div style={{position:"relative", marginTop:16}}>
+        <div ref={tabsRef} onScroll={updateTabMore} style={{display:"flex", gap:tabNarrow?6:8, overflowX:"auto", WebkitOverflowScrolling:"touch", scrollbarWidth:"none"}}>
+          {[["today","📊","오늘 현황","현황"],["class","🏫","클래스 관리","클래스"],["students","👥","학습자 목록","학습자"],["assign","📋","과제","과제"],["quote","📄","견적서","견적"]].map(([k,ic,full,short]) => (
+            <button key={k} data-tab={k} aria-label={full} title={full} onClick={()=>setTab(k)} style={{padding:tabNarrow?"8px 11px":"8px 14px", border:"none", borderRadius:20, background:tab===k?"white":"rgba(255,255,255,0.15)", color:tab===k?"#2E75B6":"white", fontWeight:tab===k?800:600, fontSize:13, cursor:"pointer", transition:"all .2s", flexShrink:0, whiteSpace:"nowrap"}}>
+              {tabNarrow ? short : ic + " " + full} {k==="students" && students.length > 0 && `(${students.length})`}
             </button>
           ))}
+        </div>
+        {tabLess && (
+          <button type="button" aria-label="왼쪽으로 더 보기" title="왼쪽으로 더 보기" onClick={()=>{ const el = tabsRef.current; if (el) el.scrollBy({left: -160, behavior: "smooth"}); }} style={{position:"absolute", left:0, top:0, bottom:0, width:44, border:"none", cursor:"pointer", color:"white", fontSize:22, fontWeight:800, background:"linear-gradient(270deg, rgba(26,58,92,0), rgba(26,58,92,0.95) 70%)", borderRadius:"20px 0 0 20px", display:"flex", alignItems:"center", justifyContent:"flex-start", paddingLeft:8}}>‹</button>
+        )}
+        {tabMore && (
+          <button type="button" aria-label="옆으로 더 보기" title="옆으로 더 보기" onClick={()=>{ const el = tabsRef.current; if (el) el.scrollBy({left: 160, behavior: "smooth"}); }} style={{position:"absolute", right:0, top:0, bottom:0, width:44, border:"none", cursor:"pointer", color:"white", fontSize:22, fontWeight:800, background:"linear-gradient(90deg, rgba(26,58,92,0), rgba(26,58,92,0.95) 70%)", borderRadius:"0 20px 20px 0", display:"flex", alignItems:"center", justifyContent:"flex-end", paddingRight:8}}>›</button>
+        )}
         </div>
       </div>
 
