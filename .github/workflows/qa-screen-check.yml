@@ -17,7 +17,7 @@ jobs:
           cd qa-kit
           npm i --no-audit --no-fund playwright
           npx playwright install --with-deps chromium
-      - run: node qa-kit/run.mjs . src/App.jsx
+      - run: node qa-kit/run.mjs "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/src/App.jsx"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
