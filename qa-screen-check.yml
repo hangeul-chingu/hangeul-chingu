@@ -1,0 +1,31 @@
+name: qa-screen-check
+on:
+  workflow_dispatch:        # GitHub 화면에서 "Run workflow" 버튼으로 수동 실행
+  pull_request:
+    paths: ['src/App.jsx']  # 후보 브랜치에서 App.jsx가 바뀐 PR에서만 자동 실행
+jobs:
+  screen-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci
+      - name: 검사 도구 설치
+        run: |
+          cd qa-kit
+          npm i --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+      - run: node qa-kit/run.mjs . src/App.jsx
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screen-check-report
+          path: |
+            qa-kit/out/REPORT.md
+            qa-kit/out/shots/
+            qa-kit/out/log_*.txt
+          retention-days: 30
+# 한계: 가짜 로그인·저장소, 화면 크기 에뮬레이션. 실기기 통과가 아님. 소스·배포는 건드리지 않음(읽기 전용).
+# 첫 실행은 GitHub 서버에서 처음 돌리는 것이라 설정 오류가 나올 수 있음(그때 개발팀장이 고침).
