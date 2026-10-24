@@ -18,6 +18,10 @@ jobs:
           npm i --no-audit --no-fund playwright
           npx playwright install --with-deps chromium
       - run: node qa-kit/run.mjs "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/src/App.jsx"
+      - name: 결과 요약을 실행 화면에 게시
+        if: always()
+        run: |
+          if [ -f qa-kit/out/REPORT.md ]; then cat qa-kit/out/REPORT.md >> "$GITHUB_STEP_SUMMARY"; else echo "REPORT.md가 만들어지지 않았습니다(검사가 중간에 실패)" >> "$GITHUB_STEP_SUMMARY"; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
