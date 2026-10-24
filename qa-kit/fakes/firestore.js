@@ -24,7 +24,7 @@ function snap(ref,m){const d=m[ref.path];return{id:ref.id,ref,exists:()=>d!==und
 function notify(){const m=load();subs.forEach(s=>{try{s.cb(snap(s.ref,m))}catch(e){console.error(e)}})}
 export async function getDoc(ref){return snap(ref,load())}
 export const getDocFromServer=getDoc;
-export async function setDoc(ref,data,opts){const m=load();m[ref.path]=apply(m[ref.path],data,!!(opts&&opts.merge));save(m);notify()}
+export async function setDoc(ref,data,opts){if(localStorage.getItem('fake_fail')==='1'){const e=new Error('fake unavailable');e.code='unavailable';throw e}const m=load();m[ref.path]=apply(m[ref.path],data,!!(opts&&opts.merge));save(m);notify()}
 export async function updateDoc(ref,data){const m=load();if(m[ref.path]===undefined)throw new Error('not-found');m[ref.path]=apply(m[ref.path],data,true);save(m);notify()}
 export async function addDoc(col,data){const m=load();const id='auto'+Date.now()+Math.random().toString(36).slice(2,6);m[col.path+'/'+id]=apply({},data,false);save(m);notify();return{id}}
 export async function deleteDoc(ref){const m=load();delete m[ref.path];save(m);notify()}

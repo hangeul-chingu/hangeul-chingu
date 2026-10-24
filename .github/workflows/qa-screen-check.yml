@@ -18,6 +18,9 @@ jobs:
           npm i --no-audit --no-fund playwright
           npx playwright install --with-deps chromium
       - run: node qa-kit/run.mjs "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/src/App.jsx"
+      - name: 필수 산출물 확인 (없으면 실패)
+        run: node qa-kit/verify-outputs.mjs
+        env: { QA_OUT: qa-kit/out }
       - name: 결과 요약을 실행 화면에 게시
         if: always()
         run: |
@@ -28,8 +31,12 @@ jobs:
           name: screen-check-report
           path: |
             qa-kit/out/REPORT.md
+            qa-kit/out/spec.json
+            qa-kit/out/res_*.json
+            qa-kit/out/extra_*.json
             qa-kit/out/shots/
             qa-kit/out/log_*.txt
+          if-no-files-found: error
           retention-days: 30
-# 한계: 가짜 로그인·저장소, 화면 크기 에뮬레이션. 실기기 통과가 아님. 소스·배포는 건드리지 않음(읽기 전용).
-# 첫 실행은 GitHub 서버에서 처음 돌리는 것이라 설정 오류가 나올 수 있음(그때 개발팀장이 고침).
+# 한계: 가짜 로그인·저장소, 화면 크기 에뮬레이션. 실기기 확인이 아님. 소스·배포는 건드리지 않음(읽기 전용).
+# 결과 문구는 REPORT.md의 고정 머리 문장과 판정 표현을 따름("지정 환경의 N개 검사 PASS, FAIL 0").

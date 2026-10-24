@@ -1,9 +1,9 @@
 import { chromium } from 'playwright';
 export const URL=process.env.QA_URL||'http://127.0.0.1:5199/';
 export const SEED={'users/qa-learner':{role:'learner',isAdult:true,serviceAgreed:true,dataOwnershipAgreed:true,researchAsked:true,researchConsent:false,profileAsked:true,name:'학습자QA',level:'mid',lang:'ko',createdAt:1}};
-export async function open({w=390,h=844,mobile=true,fontScale=1,seed=SEED}={}){
+export async function open({w=390,h=844,mobile=true,fontScale=1,seed=SEED,tz='Asia/Seoul'}={}){
   const b=await chromium.launch();
-  const ctx=await b.newContext({viewport:{width:w,height:h},locale:'ko-KR',isMobile:mobile,hasTouch:mobile,deviceScaleFactor:2});
+  const ctx=await b.newContext({viewport:{width:w,height:h},locale:'ko-KR',timezoneId:tz,isMobile:mobile,hasTouch:mobile,deviceScaleFactor:2});
   await ctx.addInitScript(([s])=>{ if(!localStorage.getItem('fake_fs')) localStorage.setItem('fake_fs',JSON.stringify(s)); },[seed]);
   await ctx.addInitScript(()=>{ const off=()=>{try{return +localStorage.getItem('fake_dayoff')||0}catch(e){return 0}}; const D=Date; class F extends D{constructor(...a){ if(a.length) super(...a); else super(D.now()+off()); } static now(){return D.now()+off();}} window.Date=F; });
   const p=await ctx.newPage();

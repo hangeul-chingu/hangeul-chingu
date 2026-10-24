@@ -60,7 +60,7 @@ for(const day of daysArg.split(',').map(Number)){
   }
   const fin=await head(p); await p.screenshot({path:`out/shots/${packId}_${outTag}_d${day}_end.png`});
   console.log(`day${day} END:`,fin.slice(0,250));
-  await btn(p,'닫기').click().catch(()=>{}); await sleep(p,600);
+  await btn(p,/닫기|여기서 마치기/).click().catch(()=>{}); await sleep(p,600);
 }
 for(const e of errs) rec(false,'콘솔오류',e);
 fs.writeFileSync(`out/res_${packId}_${outTag}.json`,JSON.stringify(res,null,1));
