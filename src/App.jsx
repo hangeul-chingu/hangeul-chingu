@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "599";
+const APP_VERSION = "601";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -13181,6 +13181,8 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
     if (st.done) { setDays(cur); setView({ mode: "alldone" }); return; }
     if (st.locked) { setDays(cur); setView({ mode: "locked", day: st.next }); return; }
     const d = st.next;
+    // ✅ V601: 독학 — 앞선 일차를 끝낸 뒤 아직 시작하지 않은 다음 일차는 날짜(오늘/다음 날)와 상관없이 자동으로 시작하지 않고 선택 화면을 먼저 보여 줌. 이미 시작한 일차(중간 진도)는 그대로 이어서 풂. 교수자 과제·듣기는 selfStudy=false라 영향 없음.
+    if (selfStudy && d > 0 && !(cur[d] && Array.isArray(cur[d].order))) { setDays(cur); setView({ mode: "locked", day: d }); return; }
     if (!cur[d] || !Array.isArray(cur[d].order)) {
       cur[d] = { order: vocabDayOrder(a, d, prog), startedAtMs: Date.now(), answers: [], said: [], sec: 0 };
       setDays(cur);
@@ -13203,6 +13205,18 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
         ? "다른 기기에서 먼저 저장된 기록이 있거나 과제가 정리됐어요. 닫고 다시 열어 주세요."
         : "저장하지 못했어요. 인터넷 연결을 확인해 주세요. (다음 문제를 풀 때 다시 저장해요)");
     } finally { setSavingN(n => Math.max(0, n - 1)); }
+  }
+  // ✅ V600: 독학 — 학습자가 직접 고른 때에만 같은 날 다음 일차를 시작(자동 시작 없음). 교수자 과제·듣기는 이 함수를 쓰지 않음.
+  function startNext(nextD) {
+    const cur = vocabMergeDays(days, progRef.current && progRef.current.days).map(x => (x ? { ...x } : x));
+    if (!cur[nextD] || !Array.isArray(cur[nextD].order)) {
+      cur[nextD] = { order: vocabDayOrder(a, nextD, { days: cur }), startedAtMs: Date.now(), answers: [], said: [], sec: 0 };
+    }
+    tick.current = Date.now();
+    setDays(cur);
+    setFb(null); setText(""); setUsedVoice(false); setTries(0); setShowHint(false); setChecking(false);
+    setView({ mode: "play", day: nextD });
+    save(cur);
   }
   function record(d, patch) {
     const now = Date.now();
@@ -13267,6 +13281,16 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
       {bigBtn("닫기", onClose)}
     </div>
   ));
+  if (view.mode === "locked" && selfStudy) return shell(`${view.day}일째까지 끝났어요`, card( // ✅ V600: 독학은 잠그지 않고 선택 화면(자동 시작 없음, 두 버튼 같은 크기·같은 강조·기본 선택 없음)
+    <div style={{ textAlign: "center", padding: "10px 0" }}>
+      <div style={{ fontSize: 44 }}>🌱</div>
+      <div style={{ fontSize: 17, fontWeight: 800, color: "#1A3A5C", marginTop: 8 }}>{view.day}일째까지 끝났어요</div>
+      <div style={{ fontSize: 13, color: "#555", marginTop: 6, lineHeight: 1.6 }}>오늘은 쉬어도 좋아요.<br />더 공부하고 싶다면 다음 일차를 시작할 수 있어요.</div>
+      {bigBtn("여기서 마치기", onClose)}
+      <div style={{ height: 8 }} />
+      {bigBtn("다음 일차 계속하기", () => startNext(view.day))}
+    </div>
+  ));
   if (view.mode === "locked") return shell(`${view.day}일째까지 끝났어요`, card(
     <div style={{ textAlign: "center", padding: "10px 0" }}>
       <div style={{ fontSize: 44 }}>🌙</div>
@@ -13283,14 +13307,18 @@ function VocabSessionScreen({ assignment, teacherId, user, prog, onClose, selfSt
       <div style={{ textAlign: "center", padding: "10px 0" }}>
         <div style={{ fontSize: 44 }}>{last ? "🎉" : "🌱"}</div>
         <div style={{ fontSize: 17, fontWeight: 800, color: "#1A3A5C", marginTop: 8 }}>{d + 1}일째 공부를 끝냈어요!</div>
-        <div style={{ fontSize: 13, color: "#555", marginTop: 6, lineHeight: 1.6 }}>{last ? "모든 날을 끝냈어요. 정말 잘했어요!" : `내일 ${d + 2}일째에서 또 만나요.`}</div>
+        <div style={{ fontSize: 13, color: "#555", marginTop: 6, lineHeight: 1.6 }}>{last ? "모든 날을 끝냈어요. 정말 잘했어요!" : selfStudy ? "내일 다시 공부하면 더 잘 기억할 수 있어요. 지금 더 공부하고 싶으면 다음 일차를 시작해도 좋아요." : `내일 ${d + 2}일째에서 또 만나요.`}</div>
         {selfStudy && savingN > 0 && <div style={{ background: saveSlow ? "#FFF6E0" : "#EBF3FB", color: saveSlow ? "#8A5A00" : "#1F4E79", borderRadius: 10, padding: "8px 12px", fontSize: 12, marginTop: 10, lineHeight: 1.6 }}>{saveSlow ? "저장이 오래 걸리고 있어요. 인터넷 연결을 확인해 주세요." : "기록을 저장하는 중이에요. 잠깐만 기다려 주세요."}</div>}
         {selfStudy && (savingN === 0 || saveSlow) && saveErr && (<>
           <div style={{ background: "#FFF0F0", color: "#C62828", borderRadius: 10, padding: "8px 12px", fontSize: 12, marginTop: 10, lineHeight: 1.6 }}>기록이 아직 저장되지 않았어요. 인터넷을 확인하고 '다시 저장'을 눌러 주세요.</div>
           {bigBtn("다시 저장", () => save(days))}
           <div style={{ height: 8 }} />
         </>)}
-        {bigBtn("닫기", onClose, closeLocked)}
+        {selfStudy && !last ? (<>
+          {bigBtn("여기서 마치기", onClose, closeLocked)}
+          <div style={{ height: 8 }} />
+          {bigBtn("다음 일차 계속하기", () => startNext(d + 1), savingN > 0 || !!saveErr /* ✅ V600: 저장이 끝나고 오류가 없을 때만 */)}
+        </>) : bigBtn("닫기", onClose, closeLocked)}
       </div>
     ));
   }
