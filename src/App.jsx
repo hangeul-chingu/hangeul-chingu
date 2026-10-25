@@ -200,7 +200,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "601";
+const APP_VERSION = "602";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -18617,7 +18617,7 @@ function checkAnswer(userInput, card) {
   return answers.includes(userAns);
 }
 
-function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel, skipToLearn=false, onMyPage, initLang=null, onExamView }) {
+function BegScreen({ user, onBack, begSpeak=false, onReady, onBrowse, onMidLevel, skipToLearn=false, onMyPage, initLang=null, onExamView, assignBanner=null }) {
   // ✅ V274: 모든 학습 화면에서 마이페이지 접근 가능한 공통 버튼
   const MyPageBtn = onMyPage ? (
     <>
@@ -19630,6 +19630,9 @@ ${vocabList}
       {!begSpeak && MyPageBtn}
       {!begSpeak && <><div style={{fontSize:48,marginBottom:8}}>🌸</div>
       <div style={{fontSize:22,fontWeight:900,color:"#9C6FDE",marginBottom:4}}>한글 친구</div></>}
+      {/* ✅ V602: 언어 선택 화면에도 기존 과제 띠 — 로그인 직후 이 화면이 먼저 떠서 과제를 못 보는 문제(261025 대표님 확인).
+          띠는 부모(renderAssignmentBanner)가 만든 것을 그대로 받아 표시만 함. 언어 선택·로그인 흐름은 바꾸지 않음. */}
+      {!begSpeak && assignBanner && <div style={{width:"100%",maxWidth:360,marginBottom:12}}>{assignBanner}</div>}
       <div style={{background:"white",borderRadius:18,padding:"18px 16px",boxShadow:"0 4px 18px rgba(0,0,0,.07)",marginBottom:14,textAlign:"center",width:"100%"}}>
         <div style={{fontSize:28,marginBottom:6}}>🌍</div>
         <div style={{fontSize:17,fontWeight:900,color:"#333",marginBottom:4}}>언어를 선택해 주세요</div>
@@ -41597,7 +41600,7 @@ export default function App() {
     const beg_label = beg_stepLabels[beg_savedStep] || curriculum80PostLabel(beg_savedStep, "") || (beg_savedStep?.startsWith("unit") ? `서술어 ${beg_savedStep.replace("unit","")}단원` : beg_savedStep||"시작 전");
     return (
       <>
-        <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}} onMidLevel={()=>{setMidLevel(true);setBegReady(true);}} onMyPage={()=>setShowMyPage(true)} initLang={onboardingLang||null} onExamView={(v)=>setExamView(v)}/>
+        <BegScreen user={user} onBack={()=>setLevel(null)} onReady={()=>setBegReady(true)} onBrowse={()=>{setBrowseMode(true);setBegReady(true);}} onMidLevel={()=>{setMidLevel(true);setBegReady(true);}} onMyPage={()=>setShowMyPage(true)} initLang={onboardingLang||null} onExamView={(v)=>setExamView(v)} assignBanner={learnerAssignments.length > 0 ? renderAssignmentBanner() : null}/>
         {showMyPage&&(
           <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.5)",zIndex:99999,display:"flex",alignItems:"flex-end",justifyContent:"center"}}
             onClick={()=>setShowMyPage(false)}>
