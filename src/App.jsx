@@ -21,10 +21,12 @@ import {
   query,
   where,
   getDocs,
+  getDocsFromServer, // ✅ V603: 학습자 기록 유무는 기기에 남은 값이 아니라 서버에서 읽음(못 읽으면 잠금)
   onSnapshot,
   deleteField,
   addDoc,
   deleteDoc,
+  runTransaction, // ✅ V603: 배포 후 문항 수정 — 저장 직전에 최신본 확인
   getDocFromServer, // ✅ V540: 말하기 과제 제출 — 기기에 남은 옛 데이터 말고 서버에서 버전 번호를 읽음
   orderBy, limit, startAfter, // ✅ V543: 내 글 모음 목록(최신순 20개씩)
 } from "firebase/firestore";
@@ -200,7 +202,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "602";
+const APP_VERSION = "603";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2615,6 +2617,297 @@ function VocabSetEditor({ form, setForm, essayExprs }) {
   );
 }
 
+// ✅ V603: 배포한 어휘·문법 세트의 문항 보기·수정(교수자 본인 과제만).
+//   고치는 것: 문제·보기·정답·오답 이유·인정 답·도움말·말하기 문장의 "글"만. 문항 수·날·종류·표현·보기 개수는 그대로 둠
+//   → 학습자 기록(vocabProgress)이 문항 번호(k)로 문항을 가리키므로 번호가 어긋나지 않음.
+//   ▸ 학습자가 푼 기록(vocabProgress 문서)이 하나라도 있으면: 문제·보기·정답·인정 답·말하기 문장은 잠그고 도움말·오답 이유만 고칠 수 있음
+//     (이미 푼 결과는 다시 계산되지 않아, 고치면 학습자마다 채점 기준이 달라지기 때문). 기록을 못 읽으면 같은 잠금(안전 쪽).
+//   ▸ 푼 기록이 없을 때만 전부 고칠 수 있음. 저장 직전에 최신 문항·기록을 다시 읽어 확인하고, 직전 문항은 itemsPrev에 한 벌 남김.
+//   완성된 꾸러미(packId)는 앱 안의 원본과 같아야 하므로 보기만. 고친 문항은 AI 검사를 거치지 않음(체크로 확인).
+function VocabItemsEditPanel({ assignment, teacherUid, onClose }) {
+  const a = assignment;
+  const locked = !!a.packId;
+  const targets = Array.isArray(a.targets) ? a.targets : [];
+  const itemsOk = Array.isArray(a.items) && a.items.every(it => it && typeof it === "object" && !Array.isArray(it));
+  const orig = itemsOk ? a.items : [];
+  const s0 = (v) => (v === null || v === undefined || typeof v === "object" ? "" : String(v));
+  const LIM = { q: 200, opt: 60, why: 100, ans: 40, hint: 100 };
+  const lim = (field, cur) => Math.max(LIM[field], s0(cur).length); // 원래 더 긴 값은 그대로 두되, 새로 늘리지는 못함
+  const toEdit = (it) => {
+    if (it.kind === "pick") {
+      const opts = (Array.isArray(it.opts) ? it.opts : []).map(s0);
+      const ai = opts.findIndex(o => o.trim() === s0(it.answer).trim());
+      const wh = Array.isArray(it.whys) ? it.whys.map(s0) : [];
+      return { q: s0(it.q), opts, ansIdx: ai, whys: opts.map((o, k) => wh[k] || "") };
+    }
+    if (it.kind === "recall") {
+      const ans = (Array.isArray(it.answers) ? it.answers : []).map(s0);
+      return { q: s0(it.q), answersText: ans.join(", "), hint: s0(it.hint), commaAns: ans.some(x => x.includes(",")) };
+    }
+    return { q: s0(it.q) };
+  };
+  const baseRef = useRef(JSON.stringify(a.items === undefined ? null : a.items)); // 창을 열 때의 문항 — 다른 곳에서 바뀌었는지 비교
+  const [ed, setEd] = useState(() => orig.map(toEdit));
+  const edRef0 = useRef(JSON.stringify(ed));
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const [err, setErr] = useState("");
+  const [checked, setChecked] = useState(false);
+  // 학습자가 푼 기록이 있는지: "loading" → true/false, 읽기 실패는 "error"(잠금 쪽으로 처리)
+  const [started, setStarted] = useState("loading");
+  const readStarted = async () => {
+    const snap = await getDocsFromServer(collection(db, "classes", teacherUid, "assignments", a.id, "vocabProgress"));
+    return snap.size > 0;
+  };
+  useEffect(() => {
+    let off = false;
+    readStarted().then(v => { if (!off) setStarted(v); }).catch(() => { if (!off) setStarted("error"); });
+    return () => { off = true; };
+  }, [a.id]);
+  const coreLock = locked || started !== false; // 문제·보기·정답·인정 답·말하기 문장
+  const staleNow = !locked && JSON.stringify(a.items === undefined ? null : a.items) !== baseRef.current; // 다른 곳에서 문항이 바뀜
+  const dirty = JSON.stringify(ed) !== edRef0.current;
+  const inp = { width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 8, padding: "7px 9px", fontSize: 13, boxSizing: "border-box", outline: "none", fontFamily: "inherit", background: "white" };
+  const roBg = "#F7F7F7";
+  const setE = (i, patch) => setEd(prev => prev.map((e, k) => (k === i ? { ...e, ...patch } : e)));
+  const nameOf = (i) => { const it = orig[i]; const kd = VOCAB_KINDS.find(x => x.k === it.kind); return `'${s0((targets[it.t] || {}).expr)}' ${Number(it.day) + 1}일째 ${kd ? kd.label : ""}`; };
+  const norm = (ans) => ans.map(x => x.trim()).filter(Boolean);
+  // 고친 문항을 모아 검사 → 저장할 items와 고친 개수. coreAllowed=false면 잠긴 칸이 바뀐 흔적이 있을 때 거절
+  function build(coreAllowed) {
+    const next = []; let changed = 0; let coreChanged = false;
+    for (let i = 0; i < orig.length; i++) {
+      const it = orig[i], e = ed[i];
+      if (!e) return { problem: "문항을 읽지 못했어요. 창을 닫았다가 다시 열어 주세요." };
+      const old = toEdit(it);
+      if (it.kind === "pick") {
+        const opts = e.opts.map(o => o.trim());
+        const ansMissing = old.ansIdx < 0 && !coreAllowed; // 기존 정답을 보기에서 못 찾는 손상 문항: 잠금 중에는 정답은 그대로 두고 이유만 고침
+        const coreSame = old.q.trim() === e.q.trim() && old.opts.map(o => o.trim()).join("|") === opts.join("|") && old.ansIdx === e.ansIdx;
+        if (!coreAllowed && !coreSame) return { problem: `${nameOf(i)}: 푼 기록이 있어 문제·보기·정답은 바꿀 수 없어요.` };
+        if (!coreSame || coreAllowed) {
+          if (!e.q.trim()) return { problem: `${nameOf(i)}: 문제를 비워 둘 수 없어요.` };
+          if (e.q.length > lim("q", it.q)) return { problem: `${nameOf(i)}: 문제는 ${LIM.q}자까지예요.` };
+          if (!e.q.includes("___") && !coreSame) return { problem: `${nameOf(i)}: 문제 안에 빈칸(___)이 있어야 해요.` };
+          if (opts.length !== 4 || opts.some(o => !o) || new Set(opts).size < opts.length) return { problem: `${nameOf(i)}: 보기 4개를 모두 서로 다르게 채워 주세요.` };
+          if (opts.some((o, k) => o.length > lim("opt", (old.opts || [])[k]))) return { problem: `${nameOf(i)}: 보기는 ${LIM.opt}자까지예요.` };
+          if (!(e.ansIdx >= 0 && e.ansIdx < 4)) return { problem: `${nameOf(i)}: 정답 보기를 골라 주세요.` };
+        }
+        if (e.whys.some((w, k) => k !== e.ansIdx && w.trim().length > lim("why", old.whys[k]))) return { problem: `${nameOf(i)}: 오답 이유는 ${LIM.why}자까지예요.` };
+        const whysNew = ansMissing ? e.whys.map(w => w.trim()) : opts.map((o, k) => (k === e.ansIdx ? "" : e.whys[k].trim()));
+        const whysOldTrim = ansMissing ? old.whys.map(w => w.trim()) : old.whys.map((w, k) => (k === old.ansIdx ? "" : w.trim()));
+        const whysSame = whysNew.join("|") === whysOldTrim.join("|");
+        // 바뀐 칸만 새 값으로 쓰고, 안 바뀐 칸은 원래 값을 그대로 둠(공백 등이 조용히 달라지지 않게)
+        const n = { ...it };
+        if (!coreSame) { n.q = e.q.trim(); n.opts = opts; n.answer = opts[e.ansIdx]; coreChanged = true; }
+        if (!whysSame) n.whys = whysNew;
+        else if (!coreSame) n.whys = whysNew;
+        if (!coreSame || !whysSame) changed++;
+        next.push(n);
+      } else if (it.kind === "recall") {
+        const answers = norm(e.answersText.split(","));
+        const oldAns = norm(old.answersText.split(","));
+        const coreSame = old.q.trim() === e.q.trim() && (old.commaAns || oldAns.join("|") === answers.join("|"));
+        if (!coreAllowed && !coreSame) return { problem: `${nameOf(i)}: 푼 기록이 있어 문제·인정 답은 바꿀 수 없어요.` };
+        if (!coreSame) {
+          if (!e.q.trim()) return { problem: `${nameOf(i)}: 문제를 비워 둘 수 없어요.` };
+          if (e.q.length > lim("q", it.q)) return { problem: `${nameOf(i)}: 문제는 ${LIM.q}자까지예요.` };
+          if (answers.length === 0) return { problem: `${nameOf(i)}: 인정할 답을 1개 이상 써 주세요.` };
+          if (answers.length > Math.max(5, oldAns.length)) return { problem: `${nameOf(i)}: 인정할 답은 5개까지예요.` };
+          if (new Set(answers).size < answers.length) return { problem: `${nameOf(i)}: 인정할 답이 겹쳐요. 같은 답은 하나만 써 주세요.` };
+          if (answers.some((x, k) => x.length > lim("ans", oldAns[k]))) return { problem: `${nameOf(i)}: 인정할 답은 하나에 ${LIM.ans}자까지예요.` };
+        }
+        if (e.hint.trim().length > lim("hint", it.hint)) return { problem: `${nameOf(i)}: 도움말은 ${LIM.hint}자까지예요.` };
+        const n = { ...it };
+        if (!coreSame) { n.q = e.q.trim(); if (!old.commaAns) n.answers = answers; coreChanged = true; }
+        const hintSame = old.hint.trim() === e.hint.trim();
+        if (!hintSame) n.hint = e.hint.trim();
+        if (!coreSame || !hintSame) changed++;
+        next.push(n);
+      } else if (it.kind === "speak") {
+        const same = old.q.trim() === e.q.trim();
+        if (!coreAllowed && !same) return { problem: `${nameOf(i)}: 푼 기록이 있어 말하기 문장은 바꿀 수 없어요.` };
+        if (!same) {
+          if (!e.q.trim()) return { problem: `${nameOf(i)}: 문제를 비워 둘 수 없어요.` };
+          if (e.q.length > lim("q", it.q)) return { problem: `${nameOf(i)}: 문제는 ${LIM.q}자까지예요.` };
+          changed++; coreChanged = true;
+          next.push({ ...it, q: e.q.trim() });
+        } else next.push(it);
+      } else {
+        next.push(it); // 알 수 없는 종류는 그대로 둠
+      }
+    }
+    return { next, changed, coreChanged };
+  }
+  async function save() {
+    if (locked || saving || savingRef.current) return;
+    setErr("");
+    if (!itemsOk) { setErr("문항 데이터를 읽지 못해 저장할 수 없어요."); return; }
+    if (staleNow) { setErr("다른 곳에서 이 세트의 문항이 바뀌었어요. 창을 닫고 다시 열어 주세요."); return; }
+    if (started === "loading") { setErr("학습자 기록을 확인하는 중이에요. 잠시 뒤 다시 눌러 주세요."); return; }
+    if (!checked) { setErr("아래 확인 칸에 체크해 주세요."); return; }
+    const r0 = build(started === false);
+    if (r0.problem) { setErr(r0.problem); return; }
+    if (r0.changed === 0) { setErr("바꾼 문항이 없어요."); return; }
+    if (!window.confirm(`고친 문항 ${r0.changed}개를 저장할까요?\n\n· 학습자에게 바로 바뀌어 보여요.\n· 학습자가 이미 푼 결과는 다시 계산되지 않아요.\n· 고친 문항은 AI 검사를 거치지 않아요.`)) return;
+    savingRef.current = true; setSaving(true);
+    try {
+      // 저장 직전에 학습자 기록을 다시 읽음(그 사이 누가 풀기 시작했을 수 있음)
+      const startedNow = await readStarted();
+      const r = build(!startedNow);
+      if (r.problem) throw new Error(startedNow ? "그 사이 학습자가 풀기 시작했어요. " + r.problem : r.problem);
+      const ref = doc(db, "classes", teacherUid, "assignments", a.id);
+      let prevItems = null;
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(ref);
+        if (!snap.exists()) throw new Error("이 과제가 삭제됐어요.");
+        const cur = snap.data();
+        if (JSON.stringify(cur.items === undefined ? null : cur.items) !== baseRef.current) throw new Error("다른 곳에서 이 세트의 문항이 바뀌었어요. 창을 닫고 다시 열어 주세요.");
+        if (cur.packId) throw new Error("완성된 꾸러미는 고칠 수 없어요.");
+        if (r.next.length !== (Array.isArray(cur.items) ? cur.items.length : -1)) throw new Error("문항 개수가 달라 저장하지 않았어요.");
+        // 문항 번호(k)에 영향을 주는 값이 그대로인지 한 번 더 비교
+        for (let i = 0; i < r.next.length; i++) {
+          const o = cur.items[i], n = r.next[i];
+          if (o.t !== n.t || o.day !== n.day || o.kind !== n.kind || (o.kind === "pick" && (o.opts || []).length !== (n.opts || []).length)) throw new Error("문항 순서·종류가 달라 저장하지 않았어요.");
+        }
+        prevItems = cur.items;
+        // itemsOrig: 처음 고치기 전 문항(한 번만 기록, 이후 수정에서도 그대로) / itemsPrev: 바로 직전 문항
+        tx.update(ref, { items: r.next, itemsPrev: cur.items, itemsOrig: cur.itemsOrig !== undefined ? cur.itemsOrig : cur.items, itemsEditedAt: serverTimestamp(), itemsEditedBy: teacherUid });
+      });
+      // 저장 직후 한 번 더 확인: 핵심 칸을 고쳤는데 그 사이 학습자가 풀기 시작했다면 방금 저장을 되돌림
+      if (r.coreChanged) {
+        let nowStarted = false, readFail = false;
+        try { nowStarted = await readStarted(); } catch (e2) { readFail = true; }
+        if (nowStarted || readFail) {
+          let undone = false;
+          try {
+            await runTransaction(db, async (tx2) => {
+              const s2 = await tx2.get(ref);
+              if (s2.exists() && JSON.stringify(s2.data().items) === JSON.stringify(r.next)) {
+                tx2.update(ref, { items: prevItems, itemsEditedAt: serverTimestamp(), itemsEditedBy: teacherUid, itemsRolledBack: true });
+                undone = true;
+              }
+            });
+          } catch (e3) { undone = false; }
+          throw new Error(undone ? "저장하는 사이에 학습자가 풀기 시작해서, 방금 저장을 자동으로 되돌렸어요. 문제·보기·정답은 새 과제로 다시 내 주세요." : "저장하는 사이에 학습자가 풀기 시작했을 수 있어요. 자동으로 되돌리지 못했으니 문항을 직접 확인해 주세요.");
+        }
+      }
+      alert(`저장했어요. (고친 문항 ${r.changed}개)\n처음 문항과 바로 전 문항이 보관돼요.`);
+      onClose();
+      return;
+    } catch (e) {
+      const code = e && e.code;
+      setErr("저장하지 못했어요: " + (code === "permission-denied" ? "저장 권한이 없어요(본인 과제만 고칠 수 있어요)." : (e && e.message ? e.message : String(e))));
+    }
+    savingRef.current = false; setSaving(false);
+  }
+  const closeAsk = () => {
+    if (dirty && !locked && !window.confirm("고친 내용을 저장하지 않았어요. 닫을까요?")) return;
+    onClose();
+  };
+  const days = Number(a.days) || 0;
+  const startedMsg = started === "loading" ? "학습자 기록을 확인하는 중…"
+    : started === "error" ? "학습자 기록을 읽지 못해, 안전하게 도움말·오답 이유만 고칠 수 있게 했어요."
+    : started ? "학습자가 푼 기록이 있어요. 채점 기준이 학습자마다 달라지지 않게, 문제·보기·정답·인정 답·말하기 문장은 잠겼어요(도움말·오답 이유만 고칠 수 있어요). 이 부분을 바꾸려면 새 과제로 다시 내 주세요. 오답 이유는 정답·보기의 뜻을 뒤집지 않게 써 주세요."
+    : "아직 푼 학습자가 없어서 모두 고칠 수 있어요.";
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 3000, display: "flex", justifyContent: "center", alignItems: "flex-end" }}>
+      <div style={{ background: "#F5F8FF", width: "100%", maxWidth: 600, maxHeight: "92vh", borderRadius: "20px 20px 0 0", display: "flex", flexDirection: "column" }}>
+        <div style={{ background: "linear-gradient(135deg,#2E75B6,#1A3A5C)", padding: "16px 18px", borderRadius: "20px 20px 0 0", color: "white" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 15, fontWeight: 800 }}>🔎 {a.title}</div>
+            <button onClick={closeAsk} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "white", borderRadius: 20, padding: "6px 14px", fontSize: 13, cursor: "pointer", fontWeight: 700 }}>닫기</button>
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.9)", marginTop: 4, lineHeight: 1.5 }}>
+            {locked ? "완성된 꾸러미라 보기만 할 수 있어요." : "글만 고칠 수 있어요(문항 수·보기 개수는 그대로). 저장하면 학습자에게 바로 바뀌어요."}
+          </div>
+        </div>
+        <div style={{ overflowY: "auto", padding: 16 }}>
+          {!itemsOk && <div style={{ fontSize: 12, color: "#C62828", background: "#FFF0F0", border: "1px solid #FFCCCC", borderRadius: 8, padding: "8px 10px", marginBottom: 10 }}>⚠️ 문항 데이터를 읽지 못했어요. 저장할 수 없어요.</div>}
+          {!locked && itemsOk && (
+            <div style={{ fontSize: 11, color: started === false ? "#1B5E20" : "#8A4B00", background: started === false ? "#EEF7EE" : "#FFF3E0", borderRadius: 8, padding: "7px 10px", marginBottom: 10, lineHeight: 1.6 }}>
+              {startedMsg}
+            </div>
+          )}
+          {staleNow && <div style={{ fontSize: 12, color: "#C62828", background: "#FFF0F0", border: "1px solid #FFCCCC", borderRadius: 8, padding: "8px 10px", marginBottom: 10, lineHeight: 1.5 }}>⚠️ 다른 곳에서 이 세트의 문항이 바뀌었어요. 창을 닫고 다시 열어 주세요.</div>}
+          {orig.length === 0 && itemsOk && <div style={{ textAlign: "center", color: "#888", padding: 30 }}>문항이 없어요.</div>}
+          {targets.map((tg, t) => {
+            const idxs = orig.map((it, i) => i).filter(i => orig[i].t === t);
+            if (idxs.length === 0) return null;
+            return (
+              <div key={t} style={{ background: "white", borderRadius: 14, padding: 14, marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#1A3A5C", marginBottom: 8 }}>{t + 1}. {s0(tg.expr)}</div>
+                {Array.from({ length: days }, (_, d) => d).map(d => {
+                  const di = idxs.filter(i => orig[i].day === d);
+                  if (di.length === 0) return null;
+                  return (
+                    <div key={d} style={{ borderTop: "1px dashed #D6E4F5", paddingTop: 6, marginTop: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: "#2E75B6", marginBottom: 4 }}>📅 {d + 1}일째</div>
+                      {di.map(i => {
+                        const it = orig[i], e = ed[i];
+                        if (!e) return null;
+                        const kd = VOCAB_KINDS.find(x => x.k === it.kind);
+                        const roCore = coreLock || staleNow;
+                        const roSoft = locked || staleNow;
+                        const old = toEdit(it);
+                        return (
+                          <div key={i} style={{ marginBottom: 10 }}>
+                            <div style={{ fontSize: 11, fontWeight: 800, color: "#555", marginBottom: 3 }}>{kd ? kd.label : it.kind}</div>
+                            <input value={e.q} readOnly={roCore} onChange={ev => setE(i, { q: ev.target.value })} style={{ ...inp, background: roCore ? roBg : "white" }} aria-label={`${nameOf(i)} 문제`} />
+                            {it.kind === "pick" && (
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 4, marginTop: 4 }}>
+                                {e.opts.map((o, oi) => (
+                                  <label key={oi} style={{ display: "flex", alignItems: "flex-start", gap: 4 }}>
+                                    <input type="radio" disabled={roCore} name={`vie-${i}`} checked={e.ansIdx === oi} onChange={() => setE(i, { ansIdx: oi })} title="정답" style={{ marginTop: 9 }} />
+                                    <span style={{ flex: 1, minWidth: 0 }}>
+                                      <input value={o} readOnly={roCore} onChange={ev => setE(i, { opts: e.opts.map((x, xi) => (xi === oi ? ev.target.value : x)) })}
+                                        style={{ ...inp, padding: "5px 7px", fontSize: 12, background: e.ansIdx === oi ? "#EEF7EE" : (roCore ? roBg : "white") }} aria-label={`${nameOf(i)} 보기 ${oi + 1}`} />
+                                      {e.ansIdx !== oi && (
+                                        <input value={e.whys[oi]} readOnly={roSoft} onChange={ev => setE(i, { whys: e.whys.map((x, xi) => (xi === oi ? ev.target.value : x)) })}
+                                          placeholder={roSoft ? "" : "✗ 왜 틀렸는지 (선택)"} style={{ ...inp, padding: "4px 7px", fontSize: 11, marginTop: 2, color: "#777", background: roSoft ? roBg : "white" }} aria-label={`${nameOf(i)} 보기 ${oi + 1} 오답 이유`} />
+                                      )}
+                                    </span>
+                                  </label>
+                                ))}
+                                {e.ansIdx < 0
+                                  ? <div style={{ fontSize: 10, color: "#C62828" }}>⚠️ 정답 보기를 찾지 못했어요{roCore ? "." : ". 정답 보기를 골라 주세요."}</div>
+                                  : <div style={{ fontSize: 10, color: "#888" }}>● 표시한 것이 정답이에요 (학습자에게는 섞여서 보여요)</div>}
+                              </div>
+                            )}
+                            {it.kind === "recall" && (
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, marginTop: 4 }}>
+                                <input value={e.answersText} readOnly={roCore || old.commaAns} onChange={ev => setE(i, { answersText: ev.target.value })} style={{ ...inp, padding: "5px 7px", fontSize: 12, background: (roCore || old.commaAns) ? roBg : "white" }} placeholder="인정할 답 (쉼표로 구분, 5개까지)" aria-label={`${nameOf(i)} 인정할 답`} />
+                                <input value={e.hint} readOnly={roSoft} onChange={ev => setE(i, { hint: ev.target.value })} style={{ ...inp, padding: "5px 7px", fontSize: 12, background: roSoft ? roBg : "white" }} placeholder="도움말 (선택)" aria-label={`${nameOf(i)} 도움말`} />
+                                {old.commaAns && <div style={{ gridColumn: "1 / span 2", fontSize: 10, color: "#8A4B00" }}>인정 답 안에 쉼표가 있어 여기서는 고칠 수 없어요.</div>}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+          {err && <div style={{ fontSize: 12, color: "#C62828", background: "#FFF0F0", border: "1px solid #FFCCCC", borderRadius: 8, padding: "8px 10px", marginBottom: 10, lineHeight: 1.5 }}>⚠️ {err}</div>}
+          {!locked && itemsOk && orig.length > 0 && (
+            <>
+              <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12, color: "#444", lineHeight: 1.6, marginBottom: 10 }}>
+                <input type="checkbox" checked={checked} onChange={ev => setChecked(ev.target.checked)} style={{ marginTop: 4 }} />
+                <span>고친 문항은 AI 검사를 하지 않았어요. 제가 직접 읽고 정답이 하나뿐인지, 인정 답이 빠지지 않았는지 확인했어요.</span>
+              </label>
+              <button onClick={save} disabled={saving || staleNow}
+                style={{ width: "100%", background: (saving || staleNow) ? "#9DB9D6" : "linear-gradient(135deg,#2E75B6,#1A3A5C)", color: "white", border: "none", borderRadius: 14, padding: "13px 0", fontSize: 14, fontWeight: 800, cursor: (saving || staleNow) ? "default" : "pointer", marginBottom: 20 }}>
+                {saving ? "저장 중…" : "💾 고친 문항 저장하기"}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V540: 학습자 목록 오류 중에는 말하기 과제 영구 삭제를 막음
   const [assignments, setAssignments] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -2661,6 +2954,7 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
   // ✅ V522: 논술 과제별 돌려준 의견 { [과제id]: { [학습자uid]: {rounds} } } / 지금 보고 있는 학습자 글
   const [essayFb, setEssayFb] = useState({});
   const [review, setReview] = useState(null); // { aid, uid }
+  const [editItemsId, setEditItemsId] = useState(null); // ✅ V603: 문항 보기·수정 창에 띄울 과제 id
 
   // 교수자 과제 실시간 구독
   useEffect(() => {
@@ -3123,7 +3417,14 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
                   {a.type === "VOCAB_SET" && (
                     <div style={{ fontSize: 12, color: "#1A3A5C", marginTop: 4, background: "#EEF4FF", borderRadius: 8, padding: "6px 10px" }}>
                       🧩 {(a.targets || []).map(t => t.expr).join(" · ")}
-                      <div style={{ fontSize: 11, color: "#2E75B6", marginTop: 2 }}>{a.level === "adv" ? "고급" : a.level === "beg" ? "초급" : "중급"} · {a.days}일 · {(a.items || []).length}문항{a.aiAssisted ? " · AI 초안 확인함" : ""}</div>
+                      <div style={{ fontSize: 11, color: "#2E75B6", marginTop: 2 }}>{a.level === "adv" ? "고급" : a.level === "beg" ? "초급" : "중급"} · {a.days}일 · {(a.items || []).length}문항{a.aiAssisted ? " · AI 초안 확인함" : ""}
+                      {(a.items || []).length > 0 && (
+                        <button onClick={() => setEditItemsId(a.id)}
+                          style={{ marginTop: 6, background: "white", border: "1px solid #C8DAF0", color: "#2E75B6", borderRadius: 16, padding: "4px 12px", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
+                          🔎 문항 {a.packId ? "보기" : "보기·수정"}
+                        </button>
+                      )}
+                    </div>
                     </div>
                   )}
                   {a.type === "PRON_SET" && (
@@ -3237,6 +3538,10 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
         if (ra.type === "VOCAB_SET") return <VocabResultPanel key={ra.id + "_" + st.id} assignment={ra} student={st} prog={(essaySubs[ra.id] || {})[st.id]} onClose={() => setReview(null)} />; // ✅ V537
         return <EssayReviewPanel key={ra.id + "_" + st.id} teacherUid={user.uid} assignment={ra} student={st}
           sub={(essaySubs[ra.id] || {})[st.id]} fb={(essayFb[ra.id] || {})[st.id]} onClose={() => setReview(null)} />;
+      })()}
+      {editItemsId && (() => { // ✅ V603: 배포한 어휘·문법 세트 문항 보기·수정
+        const ea = assignments.find(x => x.id === editItemsId);
+        return ea && ea.type === "VOCAB_SET" ? <VocabItemsEditPanel key={ea.id} assignment={ea} teacherUid={user.uid} onClose={() => setEditItemsId(null)} /> : null;
       })()}
     </div>
   );
