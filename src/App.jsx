@@ -202,7 +202,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "603";
+const APP_VERSION = "604";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2624,6 +2624,28 @@ function VocabSetEditor({ form, setForm, essayExprs }) {
 //     (이미 푼 결과는 다시 계산되지 않아, 고치면 학습자마다 채점 기준이 달라지기 때문). 기록을 못 읽으면 같은 잠금(안전 쪽).
 //   ▸ 푼 기록이 없을 때만 전부 고칠 수 있음. 저장 직전에 최신 문항·기록을 다시 읽어 확인하고, 직전 문항은 itemsPrev에 한 벌 남김.
 //   완성된 꾸러미(packId)는 앱 안의 원본과 같아야 하므로 보기만. 고친 문항은 AI 검사를 거치지 않음(체크로 확인).
+// 한 문항 안의 칸(키) 순서와 상관없이 같은 내용이면 같은 글자가 되게 만드는 비교용 변환. 목록(배열) 안의 순서는 그대로 비교함.
+// 전제: 문항 값은 글자·숫자·참거짓·null·목록·일반 객체뿐(날짜·NaN 등이 들어가면 이 함수를 다시 점검할 것)
+function canonItems(v) {
+  const f = (x) => Array.isArray(x) ? x.map(f) : (x && typeof x === "object" ? Object.keys(x).sort().reduce((o, k) => { if (x[k] !== undefined) o[k] = f(x[k]); return o; }, {}) : x);
+  return JSON.stringify(f(v === undefined ? null : v));
+}
+// 어느 문항·칸이 다른지 알려 주는 진단 글(저장 실패 때 화면에 함께 보여 줌)
+function diffItemsHint(a, b) {
+  try {
+    if (!Array.isArray(a) || !Array.isArray(b)) return "문항 형식이 다름";
+    if (a.length !== b.length) return `문항 수 ${a.length}→${b.length}`;
+    for (let i = 0; i < a.length; i++) {
+      if (canonItems(a[i]) !== canonItems(b[i])) {
+        const ks = Array.from(new Set([...Object.keys(a[i] || {}), ...Object.keys(b[i] || {})]));
+        const bad = ks.filter(k => canonItems((a[i] || {})[k]) !== canonItems((b[i] || {})[k]));
+        const OK = ["t", "day", "kind", "q", "opts", "answer", "whys", "answers", "hint"]; // 알려진 칸 이름만 보여 줌(그 밖의 칸 이름은 "기타 칸"으로)
+        return `${i + 1}번째 문항 ${Array.from(new Set(bad.map(k => OK.includes(k) ? k : "기타 칸"))).join(",")}`;
+      }
+    }
+  } catch (e) {}
+  return "";
+}
 function VocabItemsEditPanel({ assignment, teacherUid, onClose }) {
   const a = assignment;
   const locked = !!a.packId;
@@ -2646,7 +2668,8 @@ function VocabItemsEditPanel({ assignment, teacherUid, onClose }) {
     }
     return { q: s0(it.q) };
   };
-  const baseRef = useRef(JSON.stringify(a.items === undefined ? null : a.items)); // 창을 열 때의 문항 — 다른 곳에서 바뀌었는지 비교
+  const baseRef = useRef(canonItems(a.items));
+  const baseItemsRef = useRef(a.items); // 창을 열 때의 문항 — 다른 곳에서 바뀌었는지 비교
   const [ed, setEd] = useState(() => orig.map(toEdit));
   const edRef0 = useRef(JSON.stringify(ed));
   const [saving, setSaving] = useState(false);
@@ -2665,7 +2688,7 @@ function VocabItemsEditPanel({ assignment, teacherUid, onClose }) {
     return () => { off = true; };
   }, [a.id]);
   const coreLock = locked || started !== false; // 문제·보기·정답·인정 답·말하기 문장
-  const staleNow = !locked && JSON.stringify(a.items === undefined ? null : a.items) !== baseRef.current; // 다른 곳에서 문항이 바뀜
+  const staleNow = !locked && canonItems(a.items) !== baseRef.current; // 다른 곳에서 문항이 바뀜
   const dirty = JSON.stringify(ed) !== edRef0.current;
   const inp = { width: "100%", border: "1.5px solid #e0e0e0", borderRadius: 8, padding: "7px 9px", fontSize: 13, boxSizing: "border-box", outline: "none", fontFamily: "inherit", background: "white" };
   const roBg = "#F7F7F7";
@@ -2761,7 +2784,7 @@ function VocabItemsEditPanel({ assignment, teacherUid, onClose }) {
         const snap = await tx.get(ref);
         if (!snap.exists()) throw new Error("이 과제가 삭제됐어요.");
         const cur = snap.data();
-        if (JSON.stringify(cur.items === undefined ? null : cur.items) !== baseRef.current) throw new Error("다른 곳에서 이 세트의 문항이 바뀌었어요. 창을 닫고 다시 열어 주세요.");
+        if (canonItems(cur.items) !== baseRef.current) throw new Error("다른 곳에서 이 세트의 문항이 바뀌었어요. 창을 닫고 다시 열어 주세요. (다른 곳: " + (diffItemsHint(baseItemsRef.current, cur.items) || "내용은 같고 형식만 다름") + ")");
         if (cur.packId) throw new Error("완성된 꾸러미는 고칠 수 없어요.");
         if (r.next.length !== (Array.isArray(cur.items) ? cur.items.length : -1)) throw new Error("문항 개수가 달라 저장하지 않았어요.");
         // 문항 번호(k)에 영향을 주는 값이 그대로인지 한 번 더 비교
@@ -2782,7 +2805,7 @@ function VocabItemsEditPanel({ assignment, teacherUid, onClose }) {
           try {
             await runTransaction(db, async (tx2) => {
               const s2 = await tx2.get(ref);
-              if (s2.exists() && JSON.stringify(s2.data().items) === JSON.stringify(r.next)) {
+              if (s2.exists() && canonItems(s2.data().items) === canonItems(r.next)) {
                 tx2.update(ref, { items: prevItems, itemsEditedAt: serverTimestamp(), itemsEditedBy: teacherUid, itemsRolledBack: true });
                 undone = true;
               }
