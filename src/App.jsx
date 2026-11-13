@@ -202,7 +202,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "604";
+const APP_VERSION = "605";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -2161,12 +2161,12 @@ const VOCAB_VERIFY_SYSTEM = `당신은 한국어 원어민 검수자입니다. �
 async function vocabCallOnce(msgs, sys, maxTokens) {
   let r;
   try {
-    r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" },
+    r = await fetch("/api/chat", { method: "POST", headers: await chatHeaders(),
       body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: maxTokens, system: (sys || "") + POLITENESS_GUARD, messages: msgs }) });
   } catch (e) {
     return { error: `연결 오류${typeof navigator !== "undefined" && navigator.onLine === false ? "(인터넷 끊김)" : ""}`, retry: true };
   }
-  if (!r.ok) return { error: `서버 오류(${r.status})`, retry: true };
+  if (!r.ok) return { error: r.status === 401 ? "로그인이 필요하거나 만료됨(다시 로그인)" : `서버 오류(${r.status})`, retry: r.status !== 401 && r.status !== 403 }; // ✅ V605: 로그인 문제는 재시도해도 소용없음
   let d;
   try { d = await r.json(); } catch { return { error: "서버 응답을 읽지 못함", retry: true }; }
   if (d && d.error) return { error: `서버 오류(${typeof d.error === "string" ? d.error : d.error.type || d.error.message || "알 수 없음"})`, retry: true };
@@ -32706,13 +32706,26 @@ function trimHistory(msgs) {
 }
 
 const API_ERRORS = {
-  401:"API 인증 오류예요. 관리자에게 문의해주세요. 🔑",
+  401:"로그인이 필요하거나 만료됐어요. 다시 로그인한 뒤 시도해줘! 🔑",
   402:"AI 사용 크레딧이 부족해요. 관리자에게 문의해주세요. 💳",
   404:"AI 모델 오류예요. 관리자에게 문의해주세요. 🔧",
   429:"요청이 너무 많아요. 잠시 후 다시 시도해줘! ⏳",
   500:"서버 오류가 발생했어요. 잠시 후 다시 시도해줘! 🔧",
   503:"서비스가 일시적으로 불안정해요. 잠시 후 다시 시도해줘! 🔧",
 };
+
+// ✅ V605: /api/chat 서버가 로그인(Firebase ID 토큰)을 요구하도록 바뀜(2026-11 API 무단 사용 사고 대응).
+//   AI 호출 4곳(vocabCallOnce·callClaude·callClaudeGrade·evaluateFile)이 모두 이 함수로 헤더를 만든다.
+//   getIdToken()은 만료 직전이면 알아서 새 토큰을 받아 온다. 로그인이 안 된 상태면 토큰 없이 보내고,
+//   서버가 401을 돌려주면 각 호출부의 기존 오류 안내(API_ERRORS[401])가 나간다.
+async function chatHeaders() {
+  const h = { "Content-Type": "application/json" };
+  try {
+    const u = auth && auth.currentUser;
+    if (u) h["Authorization"] = "Bearer " + (await u.getIdToken());
+  } catch (e) { /* 토큰을 못 받으면 서버가 401로 답함 */ }
+  return h;
+}
 
 // ============================================================
 // ✅ V122 수정 1: callClaude — /api/chat 프록시로 변경
@@ -32725,7 +32738,7 @@ async function callClaude(messages, system) {
   try {
     const r = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await chatHeaders(),
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         max_tokens: 1000,
@@ -32767,7 +32780,7 @@ async function callClaudeGrade(messages, system, maxTokens = 1000) {
   const doCall = async (msgs) => {
     const r = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await chatHeaders(),
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         // ✅ V426: 51·52(빈칸)는 검증된 1000 유지, 53·54(서술형)는 breakdown+감점배열+답안인용까지
@@ -32902,7 +32915,7 @@ async function evaluateFile(file, level, depth = "normal") {
 
     const r = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await chatHeaders(),
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
         max_tokens: 1000,
