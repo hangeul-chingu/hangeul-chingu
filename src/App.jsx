@@ -103,6 +103,31 @@ async function saveGramLog(uid, quizType, results) {
   }
 }
 
+// ✅ V606: 교수자 과제 메모 안의 https 주소를 눌러서 새 탭으로 여는 링크로 표시하고, 입력한 줄바꿈을 화면에서도 유지한다.
+//   표시만 바꾼다 — 저장된 메모 글자는 그대로이고, https 주소만 링크가 된다(그 밖의 글자·주소는 일반 글자로 표시).
+function NoteText({ text }) {
+  const s = String(text == null ? "" : text);
+  const re = /https:\/\/[A-Za-z0-9\-._~:\/?#\[\]@!$&'()*+,;=%]+/g;
+  const out = [];
+  let last = 0, m, k = 0;
+  while ((m = re.exec(s)) !== null) {
+    let url = m[0];
+    const trail = url.match(/[.,;:!?)\]']+$/); // 문장 끝의 마침표·괄호 등은 링크에서 뺀다
+    if (trail) url = url.slice(0, url.length - trail[0].length);
+    if (url.length <= "https://".length) continue;
+    if (m.index > last) out.push(s.slice(last, m.index));
+    out.push(
+      <a key={"nl" + (k++)} href={url} target="_blank" rel="noopener noreferrer"
+        onClick={e => e.stopPropagation()}
+        style={{ color: "#1A5FB4", textDecoration: "underline", fontWeight: 700, wordBreak: "break-all" }}>{url}</a>
+    );
+    last = m.index + url.length;
+    re.lastIndex = last;
+  }
+  if (last < s.length) out.push(s.slice(last));
+  return <span>{out}</span>;
+}
+
 // ✅ V538: 프리토킹 퀴즈 카드에 묶였던 옛 과제 유형 — 새로 낼 수 없고 학습자 화면에서 숨김(로드맵 3-4)
 //   (퀴즈 카드 자체는 프리토킹에 그대로 둠: 과제와 끊기면 "퀴즈 받으려고 5번 채우는" 문제는 사라짐, 9/27 교수자 결정)
 const OLD_QUIZ_TYPES = ["MID_QUIZ", "ADV_QUIZ"];
@@ -202,7 +227,7 @@ const DEV_EMAIL = "csyager@hanmail.net";
 //          매 버전(Vxxx) 작업 끝낼 때마다 이 숫자를 반드시 그 버전 번호로 갱신할 것!
 //          (V381에서 누락 → V382에서 1차 수정 + 경고주석 추가했으나, V385~386에서 또 누락됨.
 //           "384"로 2버전 연속 배포되어 사용자가 업데이트 알림을 못 받는 문제 발생했음 — 반드시 확인!)
-const APP_VERSION = "605";
+const APP_VERSION = "606";
 
 const C = {
   pink:"#FF6B9D", orange:"#FF8C42", yellow:"#FFD93D",
@@ -3463,7 +3488,7 @@ function AssignmentPanel({ user, students, studentsError = false }) { // ✅ V54
                       <div style={{ fontSize: 11, color: "#7A6000", marginTop: 2 }}>{a.level === "adv" ? "고급" : "초·중급"} · 최대 {speakMaxSec(a) / 60}분{a.level === "adv" && a.topic ? ` · 주제: ${a.topic}` : ""}{(a.expressions || []).length > 0 ? ` · 표현: ${a.expressions.join(", ")}` : ""}</div>
                     </div>
                   )}
-                  {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 4, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
+                  {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 4, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>💬 <NoteText text={a.note} /></div>}
                 </div>
                 {a.archived ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0, marginLeft: 8 }}>
@@ -4414,7 +4439,7 @@ function LearnerAssignmentModal({ assignments, gramLog = [], pronLog = [], essay
                          "📌 초급 80시간 과정의 '발음 8단계' → 발음 테스트를 끝까지 풀면 완료돼요"}
                       </div>
                       )}
-                      {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
+                      {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "#F5F8FF", borderRadius: 8, padding: "6px 10px", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>💬 <NoteText text={a.note} /></div>}
                     </div>
                     <div style={{ fontSize: 22, marginLeft: 8 }}>{done ? "✅" : "⬜"}</div>
                   </div>
@@ -16174,7 +16199,7 @@ function EssayAssignmentScreen({ assignment, teacherId, user, sub, fb, onClose }
         <div style={{ fontSize: 11, fontWeight: 800, color: "#F57F17", marginBottom: 4 }}>📝 주제·상황</div>
         <div style={{ fontSize: 14, color: "#333", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{a.topic || a.title}</div>
         {minChars > 0 && <div style={{ fontSize: 12, color: "#7A6000", marginTop: 6 }}>✏️ 최소 {minChars}자 (띄어쓰기 포함)</div>}
-        {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
+        {a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "6px 10px", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>💬 <NoteText text={a.note} /></div>}
       </div>
 
       {/* 꼭 써볼 표현 */}
@@ -16473,7 +16498,7 @@ function SpeakSituationCard({ a, small }) {
         {a.level === "adv" && a.topic ? <div style={{ whiteSpace: "pre-wrap" }}><b>주제</b> · {a.topic}</div> : null}
       </div>
       {!small && ex.length > 0 && <div style={{ fontSize: 12, color: "#7A6000", marginTop: 6 }}>🎯 넣어 보면 좋은 표현: {ex.join(", ")}</div>}
-      {!small && a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "6px 10px" }}>💬 {a.note}</div>}
+      {!small && a.note && <div style={{ fontSize: 12, color: "#555", marginTop: 6, background: "rgba(255,255,255,0.7)", borderRadius: 8, padding: "6px 10px", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>💬 <NoteText text={a.note} /></div>}
     </div>
   );
 }
